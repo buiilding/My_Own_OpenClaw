@@ -109,7 +109,7 @@ Rules:
 - `argument_resolution` is usually `passthrough`; use `backend_grounding` only
   when the backend prepares executable sidecar arguments.
 - Contribution manifests use the documented snake_case field names only;
-  alternate aliases and camelCase keys are ignored.
+  alternate aliases and camelCase keys are rejected at load time.
 - Plugin tools always execute in the Python sidecar.
 - Plugin entrypoints must return native `tools.result.ToolResult` values.
 - Sidecar-generated Python module names for loaded entrypoint files are

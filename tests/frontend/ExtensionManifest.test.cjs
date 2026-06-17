@@ -196,7 +196,7 @@ describe('extension registry loader', () => {
     expect(loadExtensionPluginTools({ contributionsDir: contributionRoot })).toEqual([]);
   });
 
-  test('ignores removed extension manifest alias fields', () => {
+  test('rejects removed extension manifest alias fields', () => {
     const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
     const pluginDir = path.join(contributionRoot, 'plugins', 'alias-plugin');
     const mcpDir = path.join(contributionRoot, 'mcps', 'alias-mcp');
@@ -239,19 +239,20 @@ describe('extension registry loader', () => {
 
     const result = loadAgentExtensionRegistry({ contributionsDir: contributionRoot });
 
-    expect(result.plugins[0].permissions).toEqual([]);
-    expect(result.plugins[0].config_schema).toEqual({});
-    expect(result.plugins[0].settings_panels[0]).toEqual(expect.objectContaining({
-      title: 'panel',
-      config_schema: {},
-    }));
-    expect(result.plugins[0].tools).toEqual([]);
-    expect(result.mcps[0]).toEqual(expect.objectContaining({
-      timeout_ms: null,
-      tool_prefix: '',
-      requires_user_enable: false,
-      tools: [],
-    }));
+    expect(result.plugins).toEqual([]);
+    expect(result.mcps).toEqual([]);
+    expect(result.errors).toEqual([
+      expect.objectContaining({
+        kind: 'plugin',
+        id: 'alias-plugin',
+        reason: 'Plugin manifest uses removed manifest field(s): permissions, configSchema',
+      }),
+      expect.objectContaining({
+        kind: 'mcp',
+        id: 'alias-mcp',
+        reason: 'MCP server alias-mcp uses removed manifest field(s): timeoutMs, toolPrefix, requiresUserEnable',
+      }),
+    ]);
   });
 
   test('defaults blank skill priority instead of coercing it to zero', () => {

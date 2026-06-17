@@ -34,6 +34,16 @@ function normalizeObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
+function rejectRemovedAliasKeys(value, keys, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return;
+  }
+  const present = keys.filter((key) => Object.prototype.hasOwnProperty.call(value, key));
+  if (present.length > 0) {
+    throw new Error(`${label} uses removed manifest field(s): ${present.join(', ')}`);
+  }
+}
+
 function readJsonFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -152,6 +162,7 @@ function readToolContribution(rawTool, pluginDir, pluginId) {
   if (!rawTool || typeof rawTool !== 'object' || Array.isArray(rawTool)) {
     return null;
   }
+  rejectRemovedAliasKeys(rawTool, ['tool_schema'], `Plugin ${pluginId} tool`);
   const name = normalizeString(rawTool.name);
   const entrypoint = normalizeString(rawTool.entrypoint);
   const toolSchema = readSchemaValue(rawTool.schema, pluginDir);
@@ -179,6 +190,7 @@ function normalizePermission(permission) {
   if (!permission || typeof permission !== 'object' || Array.isArray(permission)) {
     return null;
   }
+  rejectRemovedAliasKeys(permission, ['name'], 'Plugin permission');
   const id = normalizeString(permission.id);
   if (!id) {
     return null;
@@ -194,6 +206,7 @@ function normalizeSettingsPanel(panel, pluginId, index) {
   if (!panel || typeof panel !== 'object' || Array.isArray(panel)) {
     return null;
   }
+  rejectRemovedAliasKeys(panel, ['name', 'schema'], `Plugin ${pluginId} settings panel`);
   const id = normalizeString(panel.id) || `panel-${index}`;
   const title = normalizeString(panel.title) || id;
   return {
@@ -210,6 +223,7 @@ function normalizeSettingsPanel(panel, pluginId, index) {
 function loadPlugin(pluginDir) {
   const manifestPath = path.join(pluginDir, 'plugin.json');
   const manifest = readJsonFile(manifestPath);
+  rejectRemovedAliasKeys(manifest, ['permissions', 'configSchema'], 'Plugin manifest');
   const pluginId = normalizeString(manifest.id) || path.basename(pluginDir);
   const permissions = [
     ...(Array.isArray(manifest.required_permissions) ? manifest.required_permissions : []),
@@ -237,6 +251,7 @@ function normalizeMcpToolSpec(tool, mcpDir) {
   if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
     return null;
   }
+  rejectRemovedAliasKeys(tool, ['input_schema', 'inputSchema'], 'MCP tool spec');
   const name = normalizeString(tool.name);
   const schema = readSchemaValue(tool.schema, mcpDir);
   if (!name || !schema || Object.keys(schema).length === 0) {
@@ -253,6 +268,7 @@ function normalizeMcpServer(server, mcpDir, mcpId) {
   if (!server || typeof server !== 'object' || Array.isArray(server)) {
     return null;
   }
+  rejectRemovedAliasKeys(server, ['timeoutMs', 'toolPrefix', 'requiresUserEnable'], `MCP server ${mcpId}`);
   const id = normalizeString(server.id || server.name) || mcpId;
   const command = normalizeString(server.command);
   if (!id || !command || server.enabled === false) {
