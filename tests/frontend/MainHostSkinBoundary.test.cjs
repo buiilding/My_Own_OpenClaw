@@ -283,6 +283,15 @@ describe('main host skin/config boundary', () => {
     );
   });
 
+  test('main backend connection logs use generic agent-backend wording', () => {
+    const source = fs.readFileSync(mainIpcPath, 'utf8');
+
+    expect(source).toContain('Successfully connected to agent backend through Agent SDK runtime.');
+    expect(source).toContain('Disconnected from agent backend. Attempting to reconnect...');
+    expect(source).toContain('Disconnected from agent backend');
+    expect(source).not.toContain('Python backend');
+  });
+
   test('main-private host markers use generic desktop-agent naming', () => {
     const bannedMarkers = [
       '__windieConsoleStreamErrorGuardInstalled',

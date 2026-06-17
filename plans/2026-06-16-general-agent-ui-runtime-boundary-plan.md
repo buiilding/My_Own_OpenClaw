@@ -2847,3 +2847,18 @@ Each completed slice should report:
 - Compatibility: no migration required. This is documentation/comment-only;
   config storage keys, filters, settings payloads, and ACK behavior are
   unchanged.
+
+### 2026-06-17 main agent backend connection logs
+
+- Finding: Electron main user/dev logs still described SDK backend websocket
+  connection open/close events as connecting to a "Python backend", even though
+  the main process is a generic host for the Agent SDK transport and the Python
+  implementation detail belongs below the hosted backend boundary.
+- Change: reworded those connection logs to "agent backend" and added main
+  host skin/config boundary coverage to keep the stale Python-backend label out
+  of the Electron main SDK connection flow.
+- Validation: focused main host skin/config boundary test, stale phrase scan,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. Log text changes only; websocket
+  routing, backend endpoint state, reconnect behavior, and event payloads are
+  unchanged.

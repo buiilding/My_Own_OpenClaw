@@ -622,7 +622,7 @@ function handleAgentConnection(event = {}) {
     setResponseOverlayPhase('idle', 'ws-open');
     ipcEventReplayState.clear();
     logMainRuntime(`[Main][Backend] connected user=${handshakeUserId || currentUserId || 'unknown'}`);
-    log('Successfully connected to Python backend through Agent SDK runtime.');
+    log('Successfully connected to agent backend through Agent SDK runtime.');
     log(`Handshake sent with authenticated user_id: ${handshakeUserId || currentUserId || 'unknown'}`);
     broadcastConnectionStatus(true);
     return;
@@ -1496,9 +1496,9 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
   resetBackendSessionState();
   ipcEventReplayState.clear();
   if (shouldReconnect) {
-    log('Disconnected from Python backend. Attempting to reconnect...');
+    log('Disconnected from agent backend. Attempting to reconnect...');
   } else {
-    log(`Disconnected from Python backend (${closeReason || 'idle'}).`);
+    log(`Disconnected from agent backend (${closeReason || 'idle'}).`);
   }
   broadcastConnectionStatus(false);
 }
