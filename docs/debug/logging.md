@@ -143,6 +143,11 @@ only the public interaction logger surface:
 - `logUserSentMessage(...)` records the explicit send-message breadcrumb used by
   the chat send path.
 
+For browser-only renderer debugging, the logger accepts private
+`window.__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__` and
+`window.__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__` toggles. Legacy `__WINDIE_*`
+window toggles remain read-compatible for existing debug snippets.
+
 Target description, entry construction, summary formatting, and generic
 interaction dispatch stay private to `frontendInteractionLogger.js`. Electron
 main owns the final diagnostic normalization and stdout summary formatting after

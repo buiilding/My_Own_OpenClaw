@@ -32,6 +32,8 @@ describe('frontendInteractionLogger', () => {
   afterEach(() => {
     cleanup?.();
     cleanup = null;
+    delete window.__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
+    delete window.__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__;
     delete window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
     delete window.__WINDIE_DEBUG_SURFACE_STDOUT__;
     consoleSpy?.mockRestore();
@@ -129,7 +131,7 @@ describe('frontendInteractionLogger', () => {
   });
 
   test('includes message text only when explicit diagnostic flag is enabled', () => {
-    window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
+    window.__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
 
     logUserSentMessage({
       conversationRef: 'conv-1',
@@ -151,7 +153,41 @@ describe('frontendInteractionLogger', () => {
     }));
   });
 
+  test('accepts legacy interaction message-text diagnostic flag', () => {
+    window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
+
+    logUserSentMessage({
+      conversationRef: 'conv-1',
+      senderSurface: 'main-window',
+      messageText: 'show this message in logs',
+      textLength: 27,
+    });
+
+    expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
+      source: 'frontend-interaction',
+      entry: expect.objectContaining({
+        messageText: 'show this message in logs',
+        messageTextRedacted: false,
+      }),
+    }));
+  });
+
   test('prints compact frontend interaction summaries only when debug stdout is enabled', () => {
+    window.__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__ = true;
+
+    logUserSentMessage({
+      conversationRef: 'conv-1',
+      senderSurface: 'main-window',
+      messageText: 'show this message in logs',
+      textLength: 27,
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[FrontendInteraction] action=message_sent event=send-message view=main label="-" target=-',
+    );
+  });
+
+  test('accepts legacy debug stdout diagnostic flag', () => {
     window.__WINDIE_DEBUG_SURFACE_STDOUT__ = true;
 
     logUserSentMessage({

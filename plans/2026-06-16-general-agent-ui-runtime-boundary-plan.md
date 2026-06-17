@@ -1102,3 +1102,16 @@ Each completed slice should report:
   sidecar results using `windie-shot-` remain accepted, including files already
   in the generic temp directory and files from the older WindieOS temp
   directory.
+
+### 2026-06-17 renderer interaction debug globals
+
+- Finding: the generic renderer interaction logger still read product-named
+  window globals for opt-in message-text diagnostics and compact stdout
+  summaries.
+- Change: added generic `__DESKTOP_AGENT_*` debug globals for the renderer
+  logger and kept the legacy `__WINDIE_*` globals as read-compatible aliases.
+- Validation: focused interaction-logger Jest coverage, docs listing,
+  `git diff --check`, and source scan for the generic plus legacy renderer
+  debug globals.
+- Compatibility: no migration required. These globals are ephemeral dev/test
+  toggles on `window`, and the previous names remain accepted.
