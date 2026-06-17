@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer conversation-list local runtime error code
+
+- Finding: the renderer conversation library facade classified active
+  conversation metadata failures with the diagnostic code
+  `sidecar_unavailable`, leaking the local executor implementation name through
+  a generic renderer app-runtime diagnostic surface.
+- Change: renamed the emitted diagnostic code to `local_runtime_unavailable`
+  while preserving transient matching for lower-layer sidecar/local-backend
+  error messages.
+- Validation: focused desktop conversation library Jest run, diagnostics code
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This diagnostic code is emitted for new
+  transient renderer diagnostics only; existing matching behavior and user copy
+  are unchanged.
+
 ### 2026-06-17 conversation metadata diagnostics local runtime field
 
 - Finding: the generic Agent SDK command handler still emitted

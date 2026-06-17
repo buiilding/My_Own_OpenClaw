@@ -29,7 +29,7 @@ function classifyDiagnosticError(error) {
     return 'memory_store_not_initialized';
   }
   if (message.includes('sidecar') || message.includes('local runtime')) {
-    return 'sidecar_unavailable';
+    return 'local_runtime_unavailable';
   }
   return 'runtime_error';
 }

@@ -140,6 +140,30 @@ describe('DesktopConversationLibraryClient', () => {
     }));
   });
 
+  test('emits generic local-runtime diagnostics for local availability failures', () => {
+    DesktopConversationLibraryClient.emitConversationMetadataListRendered(
+      {
+        path: 'conversation.metadata.list',
+        traceId: 'diag-local-runtime',
+        requestId: 'req-local-runtime',
+      },
+      {
+        status: 'failed',
+        error: new Error('Local runtime not ready'),
+      },
+    );
+
+    expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('diagnostics.append', expect.objectContaining({
+      stage: 'rendered',
+      status: 'failed',
+      runtime: 'renderer',
+      error: {
+        code: 'local_runtime_unavailable',
+        message: 'Local runtime not ready',
+      },
+    }));
+  });
+
   test('classifies transient metadata list runtime errors behind the app facade', () => {
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
