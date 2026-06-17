@@ -10,4 +10,3 @@ class CacheEntry:
     value: Any
     expires_at: float
     created_at: float = field(default_factory=time.time)
-    is_error: bool = False  # True if value is an exception (negative caching)

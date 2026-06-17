@@ -50,6 +50,8 @@ All notable changes to WindieOS will be documented in this file.
   contract and remove stale troubleshooting guidance for legacy dict returns.
 - tests/frontend/sidecar: remove stale deprecated-warning and legacy/unused
   wording from current SDK projection and system-stats paths.
+- backend/core: remove unused cache compute-on-miss helpers, waiter state, and
+  negative-cache fields from the in-memory cache primitive.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

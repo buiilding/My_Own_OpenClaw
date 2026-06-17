@@ -1,8 +1,8 @@
 ---
-summary: "Backend core cache docs sub-hub for cache-store ttl/lru/negative-cache concurrency semantics and cache-manager namespace keying plus facade export contracts."
+summary: "Backend core cache docs sub-hub for cache-store ttl/lru/stat semantics and cache-manager namespace keying plus facade export contracts."
 read_when:
   - When changing cache internals under `backend/src/core/infrastructure/cache*`.
-  - When debugging cache hit/miss behavior, waiter synchronization, key generation, or cache singleton wiring.
+  - When debugging cache hit/miss behavior, ttl expiry, eviction, key generation, or cache singleton wiring.
 title: "Backend Core Cache Docs Hub"
 ---
 
@@ -10,7 +10,7 @@ title: "Backend Core Cache Docs Hub"
 
 ## Deep Pages
 
-- [Cache Store TTL, LRU, Negative-Cache, and Sync/Async Waiter Contract Reference](cache_store_ttl_lru_negative_cache_and_sync_async_waiter_contract_reference.md)
+- [Cache Store TTL, LRU, and Stats Contract Reference](cache_store_ttl_lru_stats_contract_reference.md)
 - [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
 
 ## Related Pages

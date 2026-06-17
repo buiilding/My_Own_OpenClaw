@@ -1,13 +1,10 @@
 """In-memory cache implementation."""
-import asyncio
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional, TypeVar, Callable, Awaitable
+from typing import Any, Dict, Optional
 
 from backend.src.core.infrastructure.cache_entry import CacheEntry
-
-T = TypeVar("T")
 
 
 class Cache:
@@ -15,20 +12,15 @@ class Cache:
     In-memory cache with TTL support and LRU eviction.
 
     Thread-safe: Uses RLock for all operations to prevent race conditions.
-    Prevents deadlocks by using separate synchronization primitives for sync and async operations.
-
     Features:
     - TTL-based expiration
     - LRU eviction when max_size is reached
-    - Negative caching for errors (configurable TTL)
-    - Separate sync/async coordination to prevent deadlocks
     """
 
     def __init__(
         self,
         default_ttl: float = 3600.0,
         max_size: Optional[int] = None,
-        error_ttl: float = 5.0,
     ):
         """
         Initialize the cache.
@@ -36,17 +28,13 @@ class Cache:
         Args:
             default_ttl: Default time-to-live in seconds (default: 1 hour)
             max_size: Maximum number of entries (None = unlimited, default: None)
-            error_ttl: TTL for cached errors in seconds (default: 5.0)
         """
         self._cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.default_ttl = default_ttl
-        self.error_ttl = error_ttl
         self.max_size = max_size
         self._hits = 0
         self._misses = 0
         self._lock = threading.RLock()
-        self._computing_sync: Dict[str, threading.Event] = {}
-        self._computing_async: Dict[tuple[str, int], asyncio.Event] = {}
 
     def get(self, key: str) -> Optional[Any]:
         """
@@ -75,8 +63,6 @@ class Cache:
             self._cache.move_to_end(key)
 
             self._hits += 1
-            if entry.is_error:
-                raise entry.value
             return True, entry.value
 
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
@@ -99,19 +85,6 @@ class Cache:
                     self._cache.popitem(last=False)
 
             self._cache[key] = CacheEntry(value=value, expires_at=expires_at)
-            self._cache.move_to_end(key)
-
-    def _store_error_entry(self, key: str, error: Exception) -> None:
-        error_entry = CacheEntry(
-            value=error,
-            expires_at=time.time() + self.error_ttl,
-            is_error=True,
-        )
-        with self._lock:
-            if self.max_size is not None and len(self._cache) >= self.max_size:
-                if self._cache:
-                    self._cache.popitem(last=False)
-            self._cache[key] = error_entry
             self._cache.move_to_end(key)
 
     def delete(self, key: str) -> bool:
@@ -154,81 +127,3 @@ class Cache:
                 "hit_rate": hit_rate,
                 "total_requests": total_requests,
             }
-
-    def get_or_compute(
-        self,
-        key: str,
-        compute_func: Callable[[], T],
-        ttl: Optional[float] = None,
-    ) -> T:
-        """
-        Get value from cache or compute it if not found.
-        """
-        while True:
-            found, value = self._get_cached_value(key)
-            if found:
-                return value
-
-            with self._lock:
-                event = self._computing_sync.get(key)
-                if event is None:
-                    event = threading.Event()
-                    self._computing_sync[key] = event
-                    should_compute = True
-                else:
-                    should_compute = False
-
-            if should_compute:
-                try:
-                    value = compute_func()
-                    self.set(key, value, ttl)
-                    return value
-                except Exception as e:
-                    self._store_error_entry(key, e)
-                    raise
-                finally:
-                    with self._lock:
-                        if self._computing_sync.get(key) is event:
-                            del self._computing_sync[key]
-                        event.set()
-            else:
-                event.wait()
-
-    async def get_or_compute_async(
-        self,
-        key: str,
-        compute_func: Callable[[], Awaitable[T]],
-        ttl: Optional[float] = None,
-    ) -> T:
-        """Get value from cache or compute it asynchronously if not found."""
-        loop = asyncio.get_running_loop()
-        coordination_key = (key, id(loop))
-        while True:
-            found, value = self._get_cached_value(key)
-            if found:
-                return value
-
-            with self._lock:
-                event = self._computing_async.get(coordination_key)
-                if event is None:
-                    event = asyncio.Event()
-                    self._computing_async[coordination_key] = event
-                    should_compute = True
-                else:
-                    should_compute = False
-
-            if should_compute:
-                try:
-                    value = await compute_func()
-                    self.set(key, value, ttl)
-                    return value
-                except Exception as e:
-                    self._store_error_entry(key, e)
-                    raise
-                finally:
-                    with self._lock:
-                        if self._computing_async.get(coordination_key) is event:
-                            del self._computing_async[coordination_key]
-                        event.set()
-            else:
-                await event.wait()

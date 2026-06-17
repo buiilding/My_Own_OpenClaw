@@ -1,9 +1,5 @@
 """Covers cache layer behavior in the backend test suite."""
 
-import asyncio
-import threading
-import time as time_module
-
 from backend.src.core.infrastructure.cache import Cache
 import backend.src.core.infrastructure.cache_store as cache_store_module
 
@@ -24,144 +20,43 @@ def test_cache_set_get_and_expire(monkeypatch):
     assert cache.get("a") is None
 
 
-def test_cache_get_or_compute_called_once():
+def test_cache_get_returns_cached_none_without_counting_as_miss():
     cache = Cache(default_ttl=10.0)
-    calls = {"count": 0}
 
-    def compute():
-        calls["count"] += 1
-        return "value"
+    cache.set("key", None)
 
-    assert cache.get_or_compute("key", compute) == "value"
-    assert cache.get_or_compute("key", compute) == "value"
-    assert calls["count"] == 1
+    assert cache.get("key") is None
+    assert cache.get_stats()["hits"] == 1
 
 
-def test_cache_get_or_compute_caches_none_results():
+def test_cache_lru_eviction_keeps_recently_read_key():
+    cache = Cache(default_ttl=10.0, max_size=2)
+
+    cache.set("a", 1)
+    cache.set("b", 2)
+    assert cache.get("a") == 1
+    cache.set("c", 3)
+
+    assert cache.get("a") == 1
+    assert cache.get("b") is None
+    assert cache.get("c") == 3
+
+
+def test_cache_delete_and_cleanup_expired(monkeypatch):
+    now = {"value": 1000.0}
+
+    def fake_time():
+        return now["value"]
+
+    monkeypatch.setattr(cache_store_module.time, "time", fake_time)
     cache = Cache(default_ttl=10.0)
-    calls = {"count": 0}
 
-    def compute():
-        calls["count"] += 1
-        return None
+    cache.set("a", 1, ttl=2.0)
+    cache.set("b", 2, ttl=20.0)
+    assert cache.delete("missing") is False
+    assert cache.delete("b") is True
+    assert cache.get("b") is None
 
-    assert cache.get_or_compute("key", compute) is None
-    assert cache.get_or_compute("key", compute) is None
-    assert calls["count"] == 1
-
-
-def test_cache_get_or_compute_waiters_complete():
-    cache = Cache(default_ttl=10.0)
-    started = threading.Event()
-    proceed = threading.Event()
-    compute_lock = threading.Lock()
-    compute_calls = {"count": 0}
-    results = []
-
-    def compute():
-        with compute_lock:
-            compute_calls["count"] += 1
-        started.set()
-        proceed.wait(timeout=2.0)
-        return "value"
-
-    def worker():
-        results.append(cache.get_or_compute("key", compute))
-
-    t1 = threading.Thread(target=worker)
-    t2 = threading.Thread(target=worker)
-    t1.start()
-    t2.start()
-
-    assert started.wait(timeout=1.0)
-    proceed.set()
-
-    t1.join(timeout=2.0)
-    t2.join(timeout=2.0)
-
-    assert results.count("value") == 2
-    assert compute_calls["count"] == 1
-
-
-def test_cache_get_or_compute_async_waiters_complete():
-    cache = Cache(default_ttl=10.0)
-    started = asyncio.Event()
-    proceed = asyncio.Event()
-    compute_calls = {"count": 0}
-
-    async def compute():
-        compute_calls["count"] += 1
-        started.set()
-        await proceed.wait()
-        return "value"
-
-    async def runner():
-        return await cache.get_or_compute_async("key", compute)
-
-    async def run():
-        task1 = asyncio.create_task(runner())
-        task2 = asyncio.create_task(runner())
-        await started.wait()
-        await asyncio.sleep(0)
-        proceed.set()
-        results = await asyncio.gather(task1, task2)
-        assert results == ["value", "value"]
-        assert compute_calls["count"] == 1
-
-    asyncio.run(run())
-
-
-def test_cache_get_or_compute_async_caches_none_results():
-    cache = Cache(default_ttl=10.0)
-    compute_calls = {"count": 0}
-
-    async def compute():
-        compute_calls["count"] += 1
-        return None
-
-    async def run():
-        assert await cache.get_or_compute_async("key", compute) is None
-        assert await cache.get_or_compute_async("key", compute) is None
-        assert compute_calls["count"] == 1
-
-    asyncio.run(run())
-
-
-def test_cache_get_or_compute_async_scopes_waiters_by_event_loop():
-    cache = Cache(default_ttl=10.0)
-    ready = threading.Barrier(3)
-    release = threading.Event()
-    compute_lock = threading.Lock()
-    compute_calls = {"count": 0}
-    results = []
-    errors = []
-
-    async def run_in_loop():
-        async def compute():
-            with compute_lock:
-                compute_calls["count"] += 1
-            await asyncio.to_thread(ready.wait, 2.0)
-            await asyncio.to_thread(release.wait, 2.0)
-            return "value"
-
-        return await cache.get_or_compute_async("shared-key", compute)
-
-    def worker():
-        try:
-            results.append(asyncio.run(run_in_loop()))
-        except Exception as error:  # pragma: no cover - asserted below for thread visibility
-            errors.append(error)
-
-    threads = [threading.Thread(target=worker) for _ in range(2)]
-    for thread in threads:
-        thread.start()
-
-    ready.wait(timeout=2.0)
-    release.set()
-
-    for thread in threads:
-        thread.join(timeout=2.0)
-
-    assert errors == []
-    assert results == ["value", "value"]
-    assert compute_calls["count"] == 2
+    now["value"] = 1003.0
+    assert cache.cleanup_expired() == 1
+    assert cache.get_stats()["size"] == 0

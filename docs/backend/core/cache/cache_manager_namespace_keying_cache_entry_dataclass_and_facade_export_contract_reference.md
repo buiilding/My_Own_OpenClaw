@@ -22,11 +22,6 @@ title: "Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export
 - `value: Any`
 - `expires_at: float`
 - `created_at: float` default `time.time()`
-- `is_error: bool` default `False`
-
-Meaning:
-
-- `is_error=True` marks cached exception entries used by negative-cache path.
 
 ## Cache Manager Namespace Contract
 
@@ -95,5 +90,5 @@ Purpose:
 ## Related Pages
 
 - [Backend Core Cache Docs Hub](README.md)
-- [Cache Store TTL, LRU, Negative-Cache, and Sync/Async Waiter Contract Reference](cache_store_ttl_lru_negative_cache_and_sync_async_waiter_contract_reference.md)
+- [Cache Store TTL, LRU, and Stats Contract Reference](cache_store_ttl_lru_stats_contract_reference.md)
 - [Event Bus and Cache Infrastructure Reference](../event_bus_and_cache_infrastructure_reference.md)

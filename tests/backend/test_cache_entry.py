@@ -16,14 +16,6 @@ class TestCacheEntry:
         
         assert entry.value == "test"
         assert entry.expires_at == 1234.0
-        assert entry.is_error is False
-
-    def test_init_with_is_error(self):
-        error = ValueError("test error")
-        entry = CacheEntry(value=error, expires_at=1234.0, is_error=True)
-        
-        assert entry.value is error
-        assert entry.is_error is True
 
     def test_created_at_default(self):
         before = time.time()

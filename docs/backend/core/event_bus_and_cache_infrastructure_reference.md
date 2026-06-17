@@ -1,8 +1,8 @@
 ---
-summary: "Backend core infrastructure reference for EventBus handler resolution/publish flow, config-change event fan-out, and in-memory cache semantics (TTL/LRU/negative caching/concurrency guards)."
+summary: "Backend core infrastructure reference for EventBus handler resolution/publish flow, config-change event fan-out, and in-memory cache semantics (TTL/LRU/direct get-set operations)."
 read_when:
   - When editing event bus internals, event class hierarchy behavior, or configuration change notification flow.
-  - When changing cache usage, key generation, TTL policy, or diagnosing cache stampede/error-caching behavior.
+  - When changing cache usage, key generation, TTL policy, or diagnosing cache hit/miss and eviction behavior.
 title: "Event Bus and Cache Infrastructure Reference"
 ---
 
@@ -107,31 +107,18 @@ Error behavior:
 
 - TTL expiration
 - optional LRU eviction (`max_size` + ordered dict)
-- negative caching of exceptions (`is_error=True`, short `error_ttl`)
-- sync + async stampede guards for concurrent same-key compute paths
 
 ### Read path (`get`)
 
 - cache miss increments `_misses`
 - expired entries are removed then treated as miss
 - successful hit moves key to end (LRU freshness)
-- cached error entries re-raise stored exception object
 
 ### Write path (`set`)
 
 - per-entry TTL (or default)
 - overwrite preserves key freshness
 - LRU eviction pops oldest key when max size exceeded
-
-### Compute-on-miss guards
-
-- `get_or_compute(...)` uses per-key `threading.Event` coordination
-- `get_or_compute_async(...)` uses per-key and per-event-loop `asyncio.Event` coordination
-- only one same-loop caller computes; callers from different loops do not share loop-bound events and may compute independently
-
-### Negative caching
-
-On compute failure, exception is cached temporarily (`error_ttl=5s` default). Repeated immediate callers receive same failure without recomputing until error entry expires.
 
 ## CacheManager Namespaces and Usage
 
@@ -177,7 +164,6 @@ This prevents malformed schema objects from persisting in cache.
 
 ## Known Boundaries
 
-- cache `get_or_compute*` helpers are currently defined but not used by call sites.
 - event bus global listeners API exists, but standard runtime primarily uses per-event subscriptions.
 
 ## Debug Checklist
@@ -192,13 +178,12 @@ If events appear missing:
 If cache behavior looks wrong:
 
 1. verify TTL and `max_size` settings for that cache namespace
-2. inspect for cached exceptions (`error_ttl` negative cache window)
-3. confirm key generation consistency (tool name/text hashing)
-4. check whether call path uses `get/set` directly vs compute helper path
+2. confirm key generation consistency (tool name/text hashing)
+3. check whether call path writes expected values with `set`
 
 ## Related Pages
 
 - [Backend Core Infrastructure Docs Hub](README.md)
 - [Backend Core Cache Docs Hub](cache/README.md)
-- [Cache Store TTL, LRU, Negative-Cache, and Sync/Async Waiter Contract Reference](cache/cache_store_ttl_lru_negative_cache_and_sync_async_waiter_contract_reference.md)
+- [Cache Store TTL, LRU, and Stats Contract Reference](cache/cache_store_ttl_lru_stats_contract_reference.md)
 - [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache/cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
