@@ -1179,3 +1179,16 @@ Each completed slice should report:
   `git diff --check`, and stale namespace scan.
 - Compatibility: no migration required. Plugin manifests, tool names,
   schemas, entrypoint paths, and execution behavior are unchanged.
+
+### 2026-06-17 sidecar daemon health service label
+
+- Finding: the sidecar daemon `/health` response still reported a
+  product-named service id even though the endpoint is local sidecar runtime
+  liveness, not hosted WindieOS orchestration.
+- Change: changed the health payload service label to `sidecar_daemon`,
+  documented the `/health` endpoint, and added focused daemon endpoint
+  coverage.
+- Validation: focused sidecar daemon health test, docs listing,
+  `git diff --check`, and stale service-label scan.
+- Compatibility: no migration required. Auth, status payloads, discovery file
+  shape, daemon routes, and SDK local-runtime behavior are unchanged.

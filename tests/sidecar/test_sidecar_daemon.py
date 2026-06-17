@@ -285,6 +285,21 @@ async def test_sidecar_daemon_rejects_missing_or_invalid_token():
 
 
 @pytest.mark.asyncio
+async def test_sidecar_daemon_health_endpoint_reports_generic_service():
+    daemon = SidecarDaemon(token="test-token")
+
+    response = await daemon.handle_health(FakeRequest())
+    payload = json.loads(response.text)
+
+    assert response.status == 200
+    assert payload["status"] == "ok"
+    assert payload["service"] == "sidecar_daemon"
+    legacy_service_name = "windie" "_sidecar_daemon"
+    assert payload["service"] != legacy_service_name
+    assert payload["pid"] > 0
+
+
+@pytest.mark.asyncio
 async def test_sidecar_daemon_status_endpoint_reports_runtime_boundary():
     daemon = SidecarDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()

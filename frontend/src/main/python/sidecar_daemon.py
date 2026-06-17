@@ -866,7 +866,7 @@ class SidecarDaemon:
         return web.json_response(
             {
                 "status": "ok",
-                "service": "windie_sidecar_daemon",
+                "service": "sidecar_daemon",
                 "pid": os.getpid(),
                 "created_at": self.created_at,
             }
