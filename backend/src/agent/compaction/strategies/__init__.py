@@ -1,1 +1,0 @@
-"""Compaction strategy implementations package."""

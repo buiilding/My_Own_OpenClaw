@@ -1,1 +1,0 @@
-"""Backend browser schema package."""

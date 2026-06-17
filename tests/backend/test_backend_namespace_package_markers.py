@@ -1,0 +1,52 @@
+"""Covers backend namespace packages that intentionally have no marker file."""
+
+from pathlib import Path
+import importlib
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+REMOVED_MARKERS = [
+    "backend/src/__init__.py",
+    "backend/src/agent/__init__.py",
+    "backend/src/agent/compaction/__init__.py",
+    "backend/src/agent/compaction/strategies/__init__.py",
+    "backend/src/agent/execution/__init__.py",
+    "backend/src/agent/history/__init__.py",
+    "backend/src/agent/llm/__init__.py",
+    "backend/src/agent/tools/__init__.py",
+    "backend/src/api/__init__.py",
+    "backend/src/api/contracts/__init__.py",
+    "backend/src/api/services/__init__.py",
+    "backend/src/api/services/query_execution_support/__init__.py",
+    "backend/src/core/__init__.py",
+    "backend/src/services/vm_run_control_support/__init__.py",
+    "backend/src/tools/__init__.py",
+    "backend/src/tools/browser/__init__.py",
+    "backend/src/tools/remote_tools/__init__.py",
+]
+
+CONCRETE_MODULES = [
+    "backend.src.agent.compaction.models",
+    "backend.src.agent.compaction.strategies.base",
+    "backend.src.agent.execution.tool_call_bridge",
+    "backend.src.agent.history.history_admission",
+    "backend.src.agent.llm.conversation_context",
+    "backend.src.agent.tools.shared.logging_utils",
+    "backend.src.api.contracts.registry",
+    "backend.src.api.services.query_execution_support.query_execution_stream_state",
+    "backend.src.core.logging_setup",
+    "backend.src.services.vm_run_control_support.vm_run_control_helpers",
+    "backend.src.tools.browser.schemas",
+    "backend.src.tools.remote_tools.base",
+]
+
+
+def test_marker_only_backend_package_files_are_removed():
+    for marker in REMOVED_MARKERS:
+        assert not (ROOT / marker).exists()
+
+
+def test_namespace_packages_still_import_concrete_modules():
+    for module_name in CONCRETE_MODULES:
+        assert importlib.import_module(module_name).__name__ == module_name

@@ -147,7 +147,9 @@ class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
 ### 3. Register backend stub
 
 - Add the tool metadata entry in `backend/src/tools/tool_catalog.py`.
-- Export from the package (`backend/src/tools/remote_tools/__init__.py`) if needed.
+- Import remote tool implementations from their concrete modules; the
+  `backend/src/tools/remote_tools/` package root has no compatibility export
+  surface.
 
 ### 4. Implement sidecar execution handler
 

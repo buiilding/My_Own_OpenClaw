@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for backend package entrypoint exports: behavior and compatibility expectations for `backend/src/**/__init__.py` re-export surfaces across root, agent, api, core, llm, sdk, services, embeddings, and simulation packages."
+summary: "Deep reference for backend package entrypoint exports: behavior and compatibility expectations for remaining curated `backend/src/**/__init__.py` re-export surfaces."
 read_when:
   - When adding/removing symbols from backend package `__init__.py` files.
   - When debugging import-path breakages after backend refactors or package moves.
@@ -9,10 +9,10 @@ title: "Backend Package `__init__` Exports and Public Import Surface Reference"
 # Backend Package `__init__` Exports and Public Import Surface Reference
 
 This page documents backend package entrypoint surfaces that still publish
-curated import contracts. Package markers are intentionally not treated as
-public re-export surfaces.
+curated import contracts. Empty marker-only `__init__.py` files are not kept;
+namespace packages are used for package directories whose callers import
+concrete modules directly.
 
-- `backend/src/__init__.py`
 - `backend/src/agent/session/__init__.py`
 - `backend/src/agent/tools/preparation/__init__.py`
 - `backend/src/agent/tools/preparation/coordinate_resolution/__init__.py`
@@ -25,8 +25,6 @@ public re-export surfaces.
 - `backend/src/agent/tools/sending/__init__.py`
 - `backend/src/agent/tools/waiting/__init__.py`
 - `backend/src/agent/tools/waiting/storage/__init__.py`
-- `backend/src/api/__init__.py`
-- `backend/src/api/contracts/__init__.py`
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/api/infrastructure/__init__.py`
 - `backend/src/api/processing/__init__.py`
@@ -34,7 +32,6 @@ public re-export surfaces.
 - `backend/src/api/processing/tts/__init__.py`
 - `backend/src/api/routes/memory/__init__.py`
 - `backend/src/api/transport/__init__.py`
-- `backend/src/core/__init__.py`
 - `backend/src/core/bootstrap/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
@@ -79,24 +76,18 @@ Major aggregator files:
 
 ## Minimal/Marker Entrypoints
 
-Some entrypoints intentionally expose little or nothing:
+Marker-only files are intentionally absent for package directories whose
+callers import concrete modules directly, including `backend.src.agent`,
+`backend.src.api.services`, `backend.src.core`, `backend.src.tools`, and their
+non-exporting subpackages. Do not add a package `__init__.py` only for a
+docstring or compatibility path.
 
-- `backend/src/__init__.py`, `backend/src/agent/__init__.py`,
-  `backend/src/agent/compaction/__init__.py`,
-  `backend/src/agent/execution/__init__.py`,
-  `backend/src/agent/history/__init__.py`,
-  `backend/src/agent/llm/__init__.py`, `backend/src/agent/tools/__init__.py`,
-  `backend/src/core/__init__.py`, and `backend/src/embeddings/__init__.py` are
-  mostly package-level docs/markers
-- `backend/src/api/services/__init__.py` is a marker package; API services are
-  imported directly from their owning modules such as
-  `api.services.query_execution` and `api.services.wakeword_execution`
-- `backend/src/api/contracts/__init__.py` is a migration seam marker (API-owned contract adapter note)
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`
 
-These files still matter for package discovery and should be retained unless package layout is intentionally reworked.
+Remaining `__init__.py` files matter only when they publish a live import
+contract or route-registration surface.
 
 ## `__all__` Governance
 
