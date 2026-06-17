@@ -154,7 +154,7 @@ function readToolContribution(rawTool, pluginDir, pluginId) {
   }
   const name = normalizeString(rawTool.name);
   const entrypoint = normalizeString(rawTool.entrypoint);
-  const toolSchema = readSchemaValue(rawTool.schema || rawTool.tool_schema, pluginDir);
+  const toolSchema = readSchemaValue(rawTool.schema, pluginDir);
   if (!name || !toolSchema || !hasSidecarEntrypoint(entrypoint, pluginDir)) {
     return null;
   }
@@ -179,7 +179,7 @@ function normalizePermission(permission) {
   if (!permission || typeof permission !== 'object' || Array.isArray(permission)) {
     return null;
   }
-  const id = normalizeString(permission.id || permission.name);
+  const id = normalizeString(permission.id);
   if (!id) {
     return null;
   }
@@ -195,23 +195,16 @@ function normalizeSettingsPanel(panel, pluginId, index) {
     return null;
   }
   const id = normalizeString(panel.id) || `panel-${index}`;
-  const title = normalizeString(panel.title || panel.name) || id;
+  const title = normalizeString(panel.title) || id;
   return {
     id: `extension:plugin:${pluginId}:settings:${id}`,
     plugin_id: pluginId,
     extension_id: `plugin:${pluginId}`,
     title,
     description: normalizeString(panel.description),
-    config_schema: normalizeObject(panel.config_schema || panel.schema),
+    config_schema: normalizeObject(panel.config_schema),
     ui: normalizeObject(panel.ui),
   };
-}
-
-function readMcpTimeoutMs(server) {
-  if (Object.prototype.hasOwnProperty.call(server, 'timeout_ms')) {
-    return server.timeout_ms;
-  }
-  return server.timeoutMs;
 }
 
 function loadPlugin(pluginDir) {
@@ -220,7 +213,6 @@ function loadPlugin(pluginDir) {
   const pluginId = normalizeString(manifest.id) || path.basename(pluginDir);
   const permissions = [
     ...(Array.isArray(manifest.required_permissions) ? manifest.required_permissions : []),
-    ...(Array.isArray(manifest.permissions) ? manifest.permissions : []),
   ].map(normalizePermission).filter(Boolean);
   const settingsPanels = (Array.isArray(manifest.settings_panels) ? manifest.settings_panels : [])
     .map((panel, index) => normalizeSettingsPanel(panel, pluginId, index))
@@ -232,7 +224,7 @@ function loadPlugin(pluginDir) {
     version: normalizeString(manifest.version),
     directory: pluginDir,
     config: normalizeObject(manifest.config),
-    config_schema: normalizeObject(manifest.config_schema || manifest.configSchema),
+    config_schema: normalizeObject(manifest.config_schema),
     permissions,
     settings_panels: settingsPanels,
     tools: (Array.isArray(manifest.tools) ? manifest.tools : [])
@@ -246,7 +238,7 @@ function normalizeMcpToolSpec(tool, mcpDir) {
     return null;
   }
   const name = normalizeString(tool.name);
-  const schema = readSchemaValue(tool.schema || tool.input_schema || tool.inputSchema, mcpDir);
+  const schema = readSchemaValue(tool.schema, mcpDir);
   if (!name || !schema || Object.keys(schema).length === 0) {
     return null;
   }
@@ -273,7 +265,7 @@ function normalizeMcpServer(server, mcpDir, mcpId) {
   const tools = Array.isArray(server.tools)
     ? server.tools.map((tool) => normalizeMcpToolSpec(tool, mcpDir)).filter(Boolean)
     : [];
-  const timeoutMs = Number(readMcpTimeoutMs(server));
+  const timeoutMs = Number(server.timeout_ms);
   return {
     id,
     name: normalizeString(server.name) || id,
@@ -288,8 +280,8 @@ function normalizeMcpServer(server, mcpDir, mcpId) {
     timeout_ms: Number.isFinite(timeoutMs)
       ? timeoutMs
       : null,
-    tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
-    requires_user_enable: server.requires_user_enable === true || server.requiresUserEnable === true,
+    tool_prefix: normalizeString(server.tool_prefix),
+    requires_user_enable: server.requires_user_enable === true,
     tools,
     mcp_id: mcpId,
     extension_id: `mcp:${mcpId}`,

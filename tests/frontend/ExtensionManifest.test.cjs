@@ -42,7 +42,7 @@ function writeExtensionRegistry() {
     JSON.stringify({
       id: 'notes',
       name: 'Notes',
-      permissions: [{ id: 'filesystem', reason: 'Read and write local notes.' }],
+      required_permissions: [{ id: 'filesystem', reason: 'Read and write local notes.' }],
       settings_panels: [{
         id: 'notes',
         title: 'Notes',
@@ -75,7 +75,6 @@ function writeExtensionRegistry() {
       command: 'node',
       args: ['memory-server.cjs'],
       timeout_ms: 0,
-      timeoutMs: 9000,
       requires_user_enable: true,
       tools: [{
         name: 'search_notes',
@@ -195,6 +194,64 @@ describe('extension registry loader', () => {
     );
 
     expect(loadExtensionPluginTools({ contributionsDir: contributionRoot })).toEqual([]);
+  });
+
+  test('ignores removed extension manifest alias fields', () => {
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+    const pluginDir = path.join(contributionRoot, 'plugins', 'alias-plugin');
+    const mcpDir = path.join(contributionRoot, 'mcps', 'alias-mcp');
+    fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
+    fs.mkdirSync(path.join(pluginDir, 'python'), { recursive: true });
+    fs.mkdirSync(mcpDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginDir, 'schemas', 'tool.schema.json'),
+      JSON.stringify({ type: 'object', properties: {}, additionalProperties: false }),
+    );
+    fs.writeFileSync(path.join(pluginDir, 'python', 'tool.py'), 'def run(args):\n  return {}\n');
+    fs.writeFileSync(
+      path.join(pluginDir, 'plugin.json'),
+      JSON.stringify({
+        id: 'alias-plugin',
+        permissions: [{ id: 'filesystem' }],
+        configSchema: { type: 'object' },
+        settings_panels: [{ id: 'panel', name: 'Alias Panel', schema: { type: 'object' } }],
+        tools: [{
+          name: 'alias_tool',
+          entrypoint: 'python/tool.py:run',
+          tool_schema: 'schemas/tool.schema.json',
+        }],
+      }),
+    );
+    fs.writeFileSync(
+      path.join(mcpDir, 'mcp.json'),
+      JSON.stringify({
+        id: 'alias-mcp',
+        command: 'node',
+        timeoutMs: 1234,
+        toolPrefix: 'alias_prefix',
+        requiresUserEnable: true,
+        tools: [{
+          name: 'alias_search',
+          inputSchema: { type: 'object', properties: {} },
+        }],
+      }),
+    );
+
+    const result = loadAgentExtensionRegistry({ contributionsDir: contributionRoot });
+
+    expect(result.plugins[0].permissions).toEqual([]);
+    expect(result.plugins[0].config_schema).toEqual({});
+    expect(result.plugins[0].settings_panels[0]).toEqual(expect.objectContaining({
+      title: 'panel',
+      config_schema: {},
+    }));
+    expect(result.plugins[0].tools).toEqual([]);
+    expect(result.mcps[0]).toEqual(expect.objectContaining({
+      timeout_ms: null,
+      tool_prefix: '',
+      requires_user_enable: false,
+      tools: [],
+    }));
   });
 
   test('defaults blank skill priority instead of coercing it to zero', () => {
