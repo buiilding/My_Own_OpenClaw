@@ -578,3 +578,19 @@ Each completed slice should report:
 - Compatibility: no migration required. `windie:conversation-event`,
   `ConversationEvent` payload shape, transcript-session IPC, and chat store
   workspace routing are unchanged.
+
+### 2026-06-17 docs search runtime-owner routing on Windows
+
+- Finding: `bin/windie docs search` scored docs using Windows-style repo paths,
+  but hub/ADR/history path checks only matched forward slashes. This let ADRs
+  outrank current hubs and left several boundary-owner queries tied with broad
+  workflow docs.
+- Change: normalized docs-search paths before hub/ADR/history checks and
+  strengthened canonical owner docs for sidecar daemon discovery, OCR vision,
+  transcription stream, computer-use screenshots, renderer voice capture
+  cleanup, core interface exports, and provider completion parsing.
+- Validation: focused Jest run for `WindieDocsIndex`; docs listing; and `git
+  diff --check`.
+- Compatibility: no migration required. This changes only docs-search routing
+  and documentation metadata/headings; runtime behavior and docs paths are
+  unchanged.

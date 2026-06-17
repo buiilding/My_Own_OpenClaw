@@ -248,17 +248,21 @@ function scoreDoc(doc, query) {
 }
 
 function isHistoricalDocPath(docPath) {
-  return /(^|\/)(plans|planning|refactors)\//.test(String(docPath || ''));
+  return /(^|\/)(plans|planning|refactors)\//.test(normalizeDocPath(docPath));
 }
 
 function isDecisionRecordPath(docPath) {
-  return /(^|\/)adr\//.test(String(docPath || ''));
+  return /(^|\/)adr\//.test(normalizeDocPath(docPath));
 }
 
 function isHubDoc(doc, fields) {
-  return String(doc.path || '').endsWith('/README.md') && (
+  return normalizeDocPath(doc.path).endsWith('/README.md') && (
     fields.title.includes('hub') || fields.summary.includes('hub') || fields.headings.includes('hub')
   );
+}
+
+function normalizeDocPath(docPath) {
+  return String(docPath || '').replace(/\\/g, '/');
 }
 
 function isHistoricalQuery(terms) {

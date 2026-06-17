@@ -3,6 +3,7 @@ summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 c
 read_when:
   - When changing voice/wakeword audio chunk conversion or gateway framing payload shape.
   - When debugging mic-resource leaks, repeated AudioContext-close warnings, AudioWorklet capture processor unavailable errors, removed ScriptProcessor fallback behavior, processorNodeRef cleanup, or wakeword chunk-size warnings/normalization behavior.
+  - When resolving removed ScriptProcessor fallback voice capture behavior.
 title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 ---
 
@@ -61,6 +62,8 @@ wakeword framing stays on a supported/stable set while preserving closest user
 intent.
 
 ## Capture Processor Selection
+
+This is the canonical route for ScriptProcessor fallback voice capture removed.
 
 `createAudioCaptureProcessorNode(...)` behavior:
 

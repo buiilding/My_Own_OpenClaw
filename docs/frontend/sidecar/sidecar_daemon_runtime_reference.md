@@ -3,6 +3,7 @@ summary: "Local sidecar daemon HTTP/WebSocket contract, discovery token model, d
 read_when:
   - When changing the Python sidecar daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
   - When deciding whether a capability belongs in backend policy or local executor code.
+  - When debugging `baseUrl` discovery metadata ignored by daemon discovery reuse.
 title: "Sidecar Daemon Runtime Reference"
 ---
 

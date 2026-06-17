@@ -4,6 +4,7 @@ read_when:
   - When changing contracts under `backend/src/core/interfaces/*`.
   - When changing embedder/vision dependency wiring between container factories and tool preparation runtime.
   - When debugging removed core tool protocol exports such as `Kind`, `ToolContext`, or `ToolInterface`.
+  - When resolving searches for `Kind ToolContext ToolInterface exports removed`.
 title: "Backend Core Interfaces Docs Hub"
 ---
 

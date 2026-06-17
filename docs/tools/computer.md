@@ -3,10 +3,11 @@ summary: "Computer-use screenshot and desktop-control tool guide for mouse, keyb
 read_when:
   - When changing computer-use screenshot behavior, desktop control tools, screenshots, OCR/prediction coordinate grounding, or platform capture behavior.
   - When debugging mouse, keyboard, screenshot, scroll, or window actions.
-title: "Computer Tools"
+  - When routing computer use screenshot ownership between backend coordinate preparation and sidecar execution.
+title: "Computer Use Screenshot and Control Tools"
 ---
 
-# Computer Tools
+# Computer Use Screenshot and Control Tools
 
 Computer tools are local-execution tools. The backend owns the model-facing intent and coordinate preparation; the sidecar owns actual mouse, keyboard, screenshot, scroll, and window operations.
 
@@ -22,6 +23,8 @@ Computer tools are local-execution tools. The backend owns the model-facing inte
 | System stats | `get_system_stats` | `frontend/src/main/python/tools/system/stats_tool.py` |
 
 ## Screenshot and Grounding Rules
+
+This is the canonical computer use screenshot guide.
 
 - Renderer query screenshots and sidecar tool screenshots are different paths.
 - Backend OCR/vision services can prepare coordinates before local execution.

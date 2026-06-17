@@ -3,10 +3,11 @@ summary: "Voice and audio channel guide covering wakeword, voice dictation, tran
 read_when:
   - When changing voice mode, wakeword capture, STT gateway behavior, TTS playback, or audio event routing.
   - When debugging microphone capture, transcription stream websocket failures, wakeword subprocess behavior, or audio-chunk playback.
-title: "Voice and Audio Channels"
+  - When routing transcription stream ownership between renderer voice capture, the desktop voice gateway, and backend STT providers.
+title: "Voice, Audio, and Transcription Stream Channels"
 ---
 
-# Voice and Audio Channels
+# Voice, Audio, and Transcription Stream Channels
 
 WindieOS voice is three channels that share microphone/audio concepts but have different owners.
 
@@ -50,6 +51,8 @@ Read next:
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 
 ## Voice Dictation Channel
+
+This is the canonical transcription stream route for live dictation.
 
 Main flow:
 

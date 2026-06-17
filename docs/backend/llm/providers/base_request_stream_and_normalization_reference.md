@@ -3,6 +3,8 @@ summary: "Backend LLM provider base runtime reference: request param validation,
 read_when:
   - When changing `LLMProvider`/`OnlineLLMProvider` method contracts in `backend/src/llm/providers/base.py` and `online.py`.
   - When debugging malformed tool-calls, provider tool call id synthesis removal, missing provider tool_call_id fail-closed behavior, OpenAI Responses tool call id requirements, stream delta parsing, the removed `response_parsing` thinking-extraction import relay, choice-level completion text fallback behavior, OpenAI choice text fallback payloads, or cache diagnostics values on streamed turns.
+  - When resolving choice text completion fallback routing for provider response parsing.
+  - When resolving completion fallback choice text routing for provider response parsing.
 title: "Base Provider Tool-Call ID and Normalization Reference"
 ---
 
@@ -25,6 +27,9 @@ title: "Base Provider Tool-Call ID and Normalization Reference"
 - `tests/backend/test_llm_provider_utils.py`
 
 ## Call Path and Ownership
+
+This is the canonical route for the removed choice text completion fallback and
+completion fallback choice text queries.
 
 For backend query turns, provider execution is split across two layers:
 
