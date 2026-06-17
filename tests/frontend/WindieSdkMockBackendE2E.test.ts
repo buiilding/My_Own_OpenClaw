@@ -1,17 +1,17 @@
 /**
- * Covers windie sdk mock backend e2 e. behavior in the frontend test suite.
+ * Covers Agent SDK mock backend end-to-end behavior in the frontend test suite.
  */
 
 import {
   moduleTool,
-  WindieClient,
-  type WindieLocalRuntimeClient,
+  AgentClient,
+  type AgentLocalRuntimeClient,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
 
 const WebSocket = require('../../frontend/node_modules/ws');
 const { createMockBackendServer } = require('../../scripts/mock-backend.cjs');
 
-describe('Windie SDK mock backend end to end', () => {
+describe('Agent SDK mock backend end to end', () => {
   let server: any;
   let wss: any;
   let activeAgent: { sleep?: () => void } | null = null;
@@ -43,7 +43,7 @@ describe('Windie SDK mock backend end to end', () => {
     const { port } = server.address();
     const storedEvents: Array<Record<string, unknown>> = [];
 
-    const localRuntime: WindieLocalRuntimeClient = {
+    const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
         version: 1,
@@ -95,7 +95,7 @@ describe('Windie SDK mock backend end to end', () => {
       }),
     };
 
-    const client = new WindieClient({
+    const client = new AgentClient({
       backendUrl: `http://127.0.0.1:${port}`,
       fetchImpl: jest.fn() as unknown as typeof fetch,
       WebSocketImpl: WebSocket,

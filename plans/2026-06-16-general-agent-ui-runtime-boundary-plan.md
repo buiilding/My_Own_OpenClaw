@@ -1973,3 +1973,19 @@ Each completed slice should report:
   tests/frontend/FrontendBackendWebsocketContract.test.cjs`.
 - Compatibility: no migration required. The compatibility module and aliases
   remain exported for existing callers.
+
+### 2026-06-17 Mock backend E2E AgentClient path
+
+- Finding: the mock-backend end-to-end SDK test covered normal agent runtime
+  behavior but still instantiated the historical `WindieClient` compatibility
+  alias and used Windie-prefixed local-runtime typing.
+- Change: switched the test to import and instantiate `AgentClient`, use
+  `AgentLocalRuntimeClient`, and describe the scenario as Agent SDK behavior.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/WindieSdkMockBackendE2E.test.ts`; `bin\windie docs list`;
+  `git diff --check -- tests/frontend/WindieSdkMockBackendE2E.test.ts
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`; `rg -n
+  "WindieClient|WindieLocalRuntimeClient|Windie SDK|windie sdk"
+  tests/frontend/WindieSdkMockBackendE2E.test.ts`.
+- Compatibility: no migration required. Windie-prefixed aliases remain covered
+  by package-boundary and compatibility tests.
