@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK session and stream events wrapper deletion
+
+- Finding: the SDK still exposed `WindieAgentSession` transport helpers,
+  `WindieAgentStreamEvents`, and root Windie-prefixed aliases after
+  `AgentSession` and `AgentStreamEvent` became the canonical public contracts.
+- Change: deleted the Windie-prefixed session and stream-events modules,
+  removed root compatibility exports, updated SDK docs, and switched focused
+  tests to canonical `AgentSession` and `AgentStreamEvent` contracts with
+  removed-wrapper coverage.
+- Validation: focused SDK conversation-runtime, package-boundary, and
+  private-export Jest tests plus the SDK runtime header boundary test,
+  stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. TypeScript SDK
+  callers must use `AgentSession`, `createAgentSession`,
+  `createAgentBackendTransport`, `AgentStreamEvent`, `AgentStreamState`,
+  `AgentToolCall`, and `AgentToolOutput` directly.
+
 ### 2026-06-17 SDK managed session wrapper deletion
 
 - Finding: the SDK still exposed `ManagedWindieAgentSession` as a
