@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main diagnostics local runtime lifecycle alias
+
+- Finding: Electron main diagnostics code still used local-backend constant and
+  helper names for the local runtime lifecycle diagnostic path, even though the
+  path now represents SDK local-runtime/sidecar lifecycle status.
+- Change: introduced generic local-runtime diagnostics constant/helper names for
+  main code while preserving the legacy exported names and the durable
+  `local_backend.lifecycle` path id for existing diagnostics filters.
+- Validation: focused diagnostics alias and local bridge lifecycle Jest tests,
+  docs listing, `git diff --check`, and source scan for remaining lifecycle
+  helper references.
+- Compatibility: no migration required. Stored diagnostic path ids, CLI path
+  filters, environment flag names, and legacy module exports remain available.
+
 ### 2026-06-17 renderer local runtime status store
 
 - Finding: renderer browser-session and dashboard consumers still imported a

@@ -17,7 +17,8 @@ const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
 const PERMISSION_PROBE_DIAGNOSTICS_PATH = 'permission.probe';
 const DESKTOP_STARTUP_DIAGNOSTICS_PATH = 'desktop.startup';
 const IPC_BRIDGE_DIAGNOSTICS_PATH = 'ipc.bridge';
-const LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH = 'local_backend.lifecycle';
+const LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH = 'local_backend.lifecycle';
+const LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH = LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH;
 const WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH = 'wakeword.lifecycle';
 const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
 const FRONTEND_INTERACTION_DIAGNOSTICS_PATH = 'frontend.interaction';
@@ -45,7 +46,7 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
     owner: 'Electron main IPC bridge',
     purpose: 'Backend connection and settings/update bridge milestones that are not owned by one conversation turn.',
   },
-  [LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH]: {
+  [LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH]: {
     owner: 'Electron main local sidecar bridge',
     purpose: 'Local sidecar bridge initialization and lifecycle status outside a specific browser action.',
   },
@@ -559,6 +560,7 @@ module.exports = {
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
   FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
+  LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
   LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,

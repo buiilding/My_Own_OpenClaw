@@ -33,7 +33,7 @@ const {
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
 } = require('../diagnostics/app_diagnostics_store.cjs');
 const {
-  appendLocalBackendLifecycleDiagnostic,
+  appendLocalRuntimeLifecycleDiagnostic,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 
@@ -554,7 +554,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
 
   registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS);
 
-  appendLocalBackendLifecycleDiagnostic({
+  appendLocalRuntimeLifecycleDiagnostic({
     action: 'bridge_initialized',
     status: 'succeeded',
     ...buildLocalRuntimeDiagnosticData(),

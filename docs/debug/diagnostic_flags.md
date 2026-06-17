@@ -36,7 +36,7 @@ LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
 | `WINDIE_DEBUG_IPC_STDOUT=1` | Mirrors `ipc.bridge` diagnostics and generic bridge status to stdout as `[IPC Bridge]` / `[ElectronTrace]` lines. |
 | `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors `desktop.startup` diagnostics to stdout as `[Main][StartupMetrics]` lines. |
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors `wakeword.lifecycle` diagnostics to stdout as `[Wakeword]` lines. |
-| `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT=1` | Mirrors `local_backend.lifecycle` diagnostics to stdout as `[LocalBackend]` lines. |
+| `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the compatibility `local_backend.lifecycle` path to stdout as `[LocalBackend]` lines. |
 | `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors `surface.visibility` and `frontend.interaction` diagnostics to stdout as compact surface/interaction lines. |
 | `WINDIE_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer `bin/windie trace ... --path backend.compaction` for durable turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
@@ -60,7 +60,7 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python sidecar logs. |
 | `WINDIE_VERBOSE_SIDECAR_STDERR=1` | Forwards verbose sidecar stderr through Electron main. |
 | `WINDIE_VERBOSE_SIDECAR_STDERR=0` | Reduces sidecar stderr noise; used by packaged reinstall helpers. |
-| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables semantic summarizer for focused local-backend debugging. |
+| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables semantic summarizer for focused local-runtime debugging. |
 | `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` | Prevents browser feature-pack auto-install while debugging availability. |
 
 Sidecar stdout is protocol traffic. Never log debug text to stdout.

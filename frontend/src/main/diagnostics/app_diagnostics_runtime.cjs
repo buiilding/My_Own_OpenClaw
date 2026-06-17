@@ -6,7 +6,7 @@ const {
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
   FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
-  LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
+  LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
@@ -175,10 +175,10 @@ function appendIpcBridgeDiagnostic(input = {}, options = {}) {
   }, options);
 }
 
-function appendLocalBackendLifecycleDiagnostic(input = {}, options = {}) {
+function appendLocalRuntimeLifecycleDiagnostic(input = {}, options = {}) {
   return appendAppRuntimeDiagnostic({
     ...input,
-    path: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
+    path: LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
     runtime: 'electron-main',
     data: {
       action: normalizeString(input.action),
@@ -193,6 +193,8 @@ function appendLocalBackendLifecycleDiagnostic(input = {}, options = {}) {
     },
   }, options);
 }
+
+const appendLocalBackendLifecycleDiagnostic = appendLocalRuntimeLifecycleDiagnostic;
 
 function appendSurfaceVisibilityDiagnostic(input = {}, options = {}) {
   const action = normalizeString(input.action) || 'unknown';
@@ -265,6 +267,7 @@ module.exports = {
   appendDesktopStartupDiagnostic,
   appendFrontendInteractionDiagnostic,
   appendIpcBridgeDiagnostic,
+  appendLocalRuntimeLifecycleDiagnostic,
   appendLocalBackendLifecycleDiagnostic,
   appendSurfaceVisibilityDiagnostic,
   appendWakewordLifecycleDiagnostic,

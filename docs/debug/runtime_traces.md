@@ -179,8 +179,8 @@ App diagnostic paths:
   stdout as `[ElectronTrace]`, including backend connection, frontend query
   send, backend event milestones, tool call/output markers, and settings update
   send/ack summaries.
-- `local_backend.lifecycle`: Electron main local-backend bridge initialization
-  and lifecycle status outside a specific browser action.
+- `local_backend.lifecycle`: Electron main local-runtime/sidecar bridge
+  initialization and lifecycle status outside a specific browser action.
 - `permission.probe`: Electron main permission probe/request and workspace
   activation diagnostics by default. Rows include permission id, platform,
   status enum, granted boolean, details presence, workspace-path presence,
@@ -222,7 +222,7 @@ metadata. They may include booleans and counts such as `hasUserId`, `limit`,
 `resultCount`, `backendConnected`, `sidecarReady`,
 and `canonicalHistoryDbExists`.
 
-`browser.session_control` rows may include local-backend readiness booleans,
+`browser.session_control` rows may include local-runtime readiness booleans,
 status strings, browser action names, wake success/failure booleans, tab counts,
 response key counts, request ids, durations, and short errors. They must not
 include browser URLs, page titles, page text, screenshots, tool output, local
