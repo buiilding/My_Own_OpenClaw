@@ -275,3 +275,17 @@ Each completed slice should report:
   because the `sqlite3` CLI is not installed (`spawnSync sqlite3 ENOENT`).
 - Compatibility: no migration required. Diagnostic path ids, event payloads,
   and persisted field names are unchanged.
+
+### 2026-06-17 frontend sidecar docs ownership copy
+
+- Finding: frontend sidecar browser docs still described local browser helpers
+  and Browser Use adapters as Windie-owned behavior, and query-send failure docs
+  still showed the old "backend reconnects" user-facing copy.
+- Change: updated sidecar browser docs to name adapter-owned/local-sidecar
+  responsibilities, kept dedicated WindieOS browser profile facts where they
+  describe product-specific storage, and aligned query-send failure examples
+  with connection-oriented copy.
+- Validation: docs navigation listing plus a source scan for the old docs
+  phrases; the only remaining `Local backend not ready` mention in this slice
+  is the explicit legacy transient-error compatibility note.
+- Compatibility: no migration required. Documentation-only boundary alignment.

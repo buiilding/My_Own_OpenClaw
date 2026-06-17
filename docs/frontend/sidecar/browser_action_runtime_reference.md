@@ -21,7 +21,7 @@ title: "Browser Action Runtime Reference"
 
 - Browser tool entrypoint accepts only object args and requires `action`.
 - Browser actions route through `BrowserUseEngineRuntime`.
-- WindieOS owns schema validation, removed-alias rejection, Chrome/CDP launch policy, local file helpers, and result normalization.
+- The sidecar browser adapter owns runtime validation, removed-alias rejection, Chrome/CDP launch policy, local file helpers, and result normalization.
 - Browser Use owns daemon/session mechanics, DOM state extraction, numeric element indexes, interactions, screenshots, tabs, and browser recovery behavior.
 - Removed aliases are blocked by the shared browser schema and do not reach runtime execution.
 - `connect` always targets the WindieOS dedicated localhost CDP endpoint.
@@ -33,11 +33,11 @@ title: "Browser Action Runtime Reference"
 3. Browser tool has extended timeout (`120000ms`; non-browser tools `60000ms`).
 4. Sidecar `LocalBackend._handle_execute_tool` calls `ToolRegistry.execute_tool("browser", args)`.
 5. `browser_tool.execute_browser` validates `BrowserControlArgs`.
-6. `BrowserUseEngineRuntime.execute` maps the canonical action to a Browser Use CLI command or Windie-owned helper.
+6. `BrowserUseEngineRuntime.execute` maps the canonical action to a Browser Use CLI command or adapter-owned helper.
 
 ## Action Families and Routing
 
-Windie-owned helpers:
+Adapter-owned helpers:
 
 - `connect`, `status`, `profiles`
 - deterministic `extract`, `find_text`, `find_elements`, `search_page`

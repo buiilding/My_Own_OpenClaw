@@ -82,7 +82,7 @@ For query sends, null result triggers synthesized failure event:
   "type": "error",
   "id": "<queryMessageId>",
   "payload": {
-    "message": "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects."
+    "message": "Your message wasn't sent because WindieOS isn't connected right now. Try again when the connection is restored."
   }
 }
 ```

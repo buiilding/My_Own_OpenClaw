@@ -207,12 +207,12 @@ Primary files:
 
 Capabilities:
 
-- Local backend JSON-RPC host for tool execution, memory operations, and transcript persistence.
+- Local sidecar JSON-RPC host for tool execution, memory operations, and transcript persistence.
 - Core protocol runtime includes request framing, stdout JSON transport, shutdown handling, and platform adapters.
 - Memory runtime uses SQLite + FAISS with transcript search/list/get/delete and semantic summarization workflow.
 - Sidecar core remote clients call backend semantic routes with shared retry/error policy wrappers; embedding generation is SDK-owned.
 - Tool runtime exposes computer/filesystem/system/browser/memory tool suites with normalized result envelopes.
-- Browser stack uses Windie-owned schema/result adapters over the official Browser Use CLI package.
+- Browser stack uses sidecar-owned schema/result adapters over the official Browser Use CLI package.
 
 ## 9) Landing Surface Catalog
 

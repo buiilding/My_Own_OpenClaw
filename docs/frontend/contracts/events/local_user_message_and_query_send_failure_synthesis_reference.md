@@ -57,7 +57,7 @@ This keeps synthetic event context shape deterministic for renderer filters.
 - `sequence`: local positive sequence so SDK normalization accepts the event
 - same query context fields (`turn_ref`, `session_id`, `user_id`, `conversation_ref`)
 - payload:
-  - `message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects."`
+  - `message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the connection is restored."`
 
 `broadcastQuerySendFailure(...)` also sets overlay phase to:
 

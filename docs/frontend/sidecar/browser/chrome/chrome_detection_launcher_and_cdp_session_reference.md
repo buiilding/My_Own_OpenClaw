@@ -61,7 +61,7 @@ Derived endpoints:
 - returns `True` only on HTTP `200`
 - catches all exceptions and returns `False`
 
-Windie-owned process matching is scoped to the dedicated profile directory and
+Dedicated-browser process matching is scoped to the dedicated profile directory and
 the configured CDP port; the launcher no longer exposes broad Chrome process
 discovery or generic listener checks.
 
