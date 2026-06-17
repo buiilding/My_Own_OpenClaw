@@ -134,8 +134,8 @@ Renderer invariants:
 
 - A conversation ref must exist before send. If none exists, renderer creates one
   and synchronizes chat store and transcript state before dispatch.
-- The pending local user row is rendered before backend send. Main later emits
-  `local-user-message` for cross-window/replay parity.
+- The pending local user row is rendered before backend send. The SDK
+  `user_message` projection later replaces it for cross-window/replay parity.
 - Clipboard images are normalized into screenshot entries and artifact refs when
   upload succeeds.
 - Readable file content becomes hidden `attachment_context`; filenames remain UI
@@ -170,9 +170,10 @@ Main relay invariants:
   `conversation_ref`, strips prompt-only attachment context, strips the memory
   retrieval flag, and normalizes attachment filenames.
 - `prepareRendererQuerySend(...)` sets response overlay phase to
-  `awaiting-first-chunk`, records active display affinity, broadcasts
-  `local-user-message`, starts the event replay buffer, filters backend query fields,
-  and returns the final websocket payload.
+  `awaiting-first-chunk`, records active display affinity, starts the event
+  replay buffer with the turn id, filters backend query fields, and returns the
+  final websocket payload. SDK `ConversationRuntime.send(...)` emits
+  `turn_started` and `user_message` projections.
 - `buildQueryPayload(...)` requires a current authenticated user id. If the
   query send path can run before install auth, fix auth/connection ordering
   instead of inventing an anonymous fallback.
@@ -223,8 +224,8 @@ wrong:
 
 Renderer stream invariants:
 
-- SDK `user_message` events normalized from backend `local-user-message` seed
-  the active turn through the shared stream dispatch path.
+- SDK `user_message` events seed the active turn through the shared stream
+  dispatch path.
 - Other stream events must be scoped by `turn_ref` and routed to the correct
   `conversation_ref`.
 - Terminal handoff predicates protect new sends from old terminal events.
@@ -261,8 +262,8 @@ Renderer stream invariants:
 | Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, inline screenshot fallback, and backend artifact lookup. | query screenshot pipeline, `DesktopLiveTurnRuntimeClient.sendQuery`, backend `QueryExecutionService` |
 | File attachment is visible but ignored by model | Check readable file context generation, SDK enrichment, and `<attached_file_context>` insertion. | renderer file helper, `ipc_query_runtime.cjs`, `ContextEnrichmentPipeline.ts` |
 | Response streams into old dashboard conversation | Check `conversation_ref` creation, transcript-session sync, event `conversation_ref`, and `turn_ref` mapping. | renderer session runtime, `ipc_transcript_session_sync.cjs`, chat stream conversation gate |
-| Minimal pill stuck awaiting | Check `local-user-message`, first stream chunk, terminal/error event, overlay phase transitions, and disconnect watchdog. | overlay phase state, stream phase state, `useChatLoopUiState` |
-| Duplicate local user rows | Check renderer optimistic row plus main synthetic `local-user-message` handling and replay dedupe behavior. | `useChatMessageSender`, `useChatStream`, `ipc_event_replay_state.cjs` |
+| Minimal pill stuck awaiting | Check SDK `user_message`, first stream chunk, terminal/error event, overlay phase transitions, and disconnect watchdog. | overlay phase state, stream phase state, `useChatLoopUiState` |
+| Duplicate local user rows | Check renderer optimistic row plus SDK `user_message` projection replacement and replay dedupe behavior. | `useChatMessageSender`, `useChatStream`, `ipc_event_replay_state.cjs` |
 | Backend rejects query payload | Compare `DesktopLiveTurnRuntimeClient.sendQuery`, `desktopAgentRuntimeTransport.sendQuery`, and main-filtered payload against `backend/src/api/schemas/incoming.py`. | renderer SDK transport, main query runtime, backend incoming schema |
 
 ## Validation Matrix

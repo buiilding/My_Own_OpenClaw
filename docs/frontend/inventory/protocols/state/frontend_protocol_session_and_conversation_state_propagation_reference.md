@@ -1,7 +1,8 @@
 ---
-summary: "Deep frontend protocol state reference for websocket bridge identity/session/conversation tracking, query fallback correlation fields, renderer event gating, and SDK transcript-session persistence/update semantics."
+summary: "Deep frontend protocol state reference for websocket bridge identity/session/conversation tracking, query fallback correlation fields, SDK conversation-event gating, and SDK transcript-session persistence/update semantics."
 read_when:
-  - When changing frontend connection/session identity state in `ipc.cjs` or synthetic query event payload context.
+  - When changing frontend connection/session identity state in `ipc.cjs`, SDK
+    query event projection context, or send-failure event payload context.
   - When changing SDK transcript-session updates, stale-conversation event filtering, or session-info persistence behavior.
 title: "Frontend Protocol Session and Conversation-State Propagation Reference"
 ---
@@ -108,9 +109,10 @@ Locked by:
 
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 
-## Query Conversation-Ref Fallback and Synthetic Event Context
+## Query Conversation-Ref Fallback and SDK Event Context
 
-`ipc_query_events.cjs` encapsulates context-field assembly for query-side synthetic events.
+`ipc_query_events.cjs` encapsulates context-field assembly for query-side SDK
+projection and send-failure events.
 
 `resolveConversationRef(payload, currentConversationRef)` rules:
 
@@ -158,14 +160,15 @@ Locked by:
 
 ## Renderer Conversation Gate and Event Acceptance Rules
 
-`useChatStream` applies `shouldIgnoreEventForActiveConversation(...)` before handling backend events.
+`useChatStream` applies `shouldIgnoreEventForActiveConversation(...)` before
+handling SDK conversation events.
 
 `desktopChatStreamIngressRuntime.ts` rules:
 
 - if no active conversation ref, do not ignore
 - if event has no conversation ref, do not ignore identity-less lifecycle events
 - if event conversation ref matches active one, do not ignore
-- `local-user-message` mismatch events are never ignored
+- SDK `user_message` mismatch events are never ignored
 - mismatch events are ignored only when:
   - stream has active turn ref, and
   - stream phase is non-terminal (`idle|complete|error` are terminal)
@@ -245,7 +248,7 @@ When changing this surface, keep aligned:
 |---|---|---|
 | handshake identity caching and snapshot fan-out | `frontend/src/main/ipc.cjs` | stable client identity/session endpoint snapshot exposed via `get-client-user-id` and `ipc-status` |
 | backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest backend correlation context |
-| conversation_ref fallback for query/local echo | `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs` | query payload and synthetic local-user-message share same resolved conversation reference |
+| conversation_ref fallback for query/user projection | `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | query payload and SDK `user_message` projection share the same resolved conversation reference |
 | dashboard conversation open/delete session transitions | `useDashboardConversations`, SDK transcript session runtime | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
 | renderer stale-event gating | `desktopChatStreamIngressRuntime.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving identity-less lifecycle events |
 | websocket-close display affinity continuity | `frontend/src/main/ipc.cjs`, `frontend/src/main/surfaces/display_affinity_runtime.cjs` | backend session identity resets do not clear active monitor affinity, preserving reconnect-time screenshot/main-window fallback targeting |

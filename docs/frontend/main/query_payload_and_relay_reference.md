@@ -2,7 +2,7 @@
 summary: "Electron main query relay reference: windie renderer IPC handling, SDK desktop-agent sends, initial settings ACK gating, query payload normalization, SDK memory-context enrichment, and query failure event synthesis."
 read_when:
   - When changing query transport from renderer to the SDK desktop agent/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
-  - When debugging first-query payload normalization, settings-sync gate timing, SDK memory-context enrichment, or local-user-message/error event behavior.
+  - When debugging first-query payload normalization, settings-sync gate timing, SDK memory-context enrichment, SDK user-message projection, or send-failure error behavior.
 title: "Query Payload and Relay Reference"
 ---
 
@@ -238,11 +238,13 @@ If query content misses memory or attachment context:
 
 If renderer shows user message but backend never streams:
 
-1. confirm local synthetic `local-user-message` occurred (optimistic path)
+1. confirm the SDK `user_message` projection arrived after the optimistic row
 2. verify SDK runtime send returned message id
 3. inspect synthetic `buildQuerySendFailure` error event path for failed send
 
-For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
+For module ownership details of query send-failure broadcasters and
+renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary
+Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
 For end-to-end query-send owner routing across renderer compose, Electron main relay, backend handoff, stream ingress, and validation, see [Query Send and Stream Relay Change Workflow](query_send_and_stream_relay_change_workflow.md).
 For replay and transcript session-sync normalization details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).
 For helper-level contracts (`prepareRendererQueryPayload`, `buildQueryPayload`, `prepareAutomatedQueryPayload`, `applyTranscriptSessionSync`), see [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md).

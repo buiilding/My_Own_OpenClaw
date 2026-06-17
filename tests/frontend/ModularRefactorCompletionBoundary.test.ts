@@ -236,6 +236,10 @@ describe('modular sdk refactor completion boundary', () => {
         'useToolRunner',
         'ToolExecutionService',
         'renderer tool execution',
+        'backend callback fanout',
+        'broadcasts `local-user-message`',
+        '`local-user-message` for cross-window/replay parity',
+        'main synthetic `local-user-message`',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

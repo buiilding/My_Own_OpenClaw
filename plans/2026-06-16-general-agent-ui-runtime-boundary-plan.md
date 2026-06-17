@@ -672,3 +672,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Channel names, replay behavior,
   settings/capability/audio side channels, and SDK projection payloads are
   unchanged.
+
+### 2026-06-17 frontend user-message and tool-result ownership docs
+
+- Finding: frontend inventory and query workflow docs still said Electron main
+  broadcast a synthetic `local-user-message` and renderer tool execution owned
+  backend callback fanout, even though SDK `ConversationRuntime` emits the
+  authoritative `user_message` projection and SDK tool coordination sends tool
+  results.
+- Change: updated the inventory, query-send, query-payload, and protocol-state
+  docs to route user-message projection and tool-result delivery through the SDK
+  runtime boundary, then expanded the modular boundary test stale-doc scan to
+  catch those old phrases.
+- Validation: docs listing; `git diff --check`; focused stale scans for the old
+  local-user-message and backend callback wording; and the modular refactor
+  boundary test.
+- Compatibility: no migration required. Renderer optimistic rows,
+  `windie:conversation-event`, send-failure errors, and SDK tool-result payloads
+  are unchanged.

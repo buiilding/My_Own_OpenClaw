@@ -76,7 +76,8 @@ Capabilities:
   `agent-capability-event`, `audio-chunk`).
 - Enforces first-query settings-sync ACK/timeout policy through `ipc_settings_sync` helpers.
 - Builds query payload with memory/system context sections.
-- Emits synthetic local-user-message and user-safe error fallbacks for send failures.
+- Relays SDK `user_message` projections and user-safe error fallbacks for send
+  failures.
 - Persists frontend config to disk and returns merged config payloads to renderer.
 - Query send path resolves `conversation_ref` from payload or cached backend-ref fallback and reuses it for both local echo and outbound websocket message.
 - Query send gates first turn on config sync only when cached frontend config payload is object-valid; invalid payloads are dropped instead of sent.
@@ -175,7 +176,9 @@ Capabilities:
 - Shared turn-scoped stream guards reject stale reply, metadata, compaction, terminal, and tool packets per workspace; SDK runtime owns stale local tool waits.
 - SDK runtime executes single and bundle tool requests through the sidecar SDK local-runtime client and posts structured result payloads back to backend.
 - Desktop transcript projection runtime persists user/assistant/tool entries with pending-queue retry semantics.
-- Tool execution service includes capture, artifact upload, formatting, and backend callback fanout.
+- SDK tool coordination owns local execution capture, artifact materialization,
+  result formatting, and backend result delivery; renderer chat only displays
+  projected tool state.
 - Tool-runner safety flow no longer exposes separate overlay-prep IPC; renderer surface orchestration plus main-process overlay phase handling own the loop guard behavior.
 
 ## 7) Renderer Dashboard + Settings + Permissions + Voice

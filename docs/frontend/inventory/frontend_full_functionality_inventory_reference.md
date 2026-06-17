@@ -90,7 +90,8 @@ Functionality:
 - Maintains settings-sync ACK lifecycle with timeout protection via `ipc_settings_sync` helper module.
 - Gates first query behind initial settings sync attempt.
 - Builds query payload content with system-context XML + memory sections.
-- Emits synthetic `local-user-message` and fallback error envelopes for failed sends through split broadcaster helpers.
+- Relays SDK `user_message` projections and fallback error envelopes for failed
+  sends through split broadcaster helpers.
 - Persists/loads frontend config to disk and keeps in-memory config snapshot.
 - Exposes OpenAI Codex OAuth login/logout IPC handlers for non-UI callers; the renderer settings UI does not currently surface OAuth controls.
 
