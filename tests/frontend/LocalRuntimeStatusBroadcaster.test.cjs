@@ -4,12 +4,12 @@ const {
   broadcastConversationMetadataInvalidation,
   buildLocalRuntimeStatusPayload,
   sendLocalRuntimeStatus,
-} = require('../../frontend/src/main/sidecar/local_backend_status_broadcaster.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_status_broadcaster.cjs');
 const {
   DESKTOP_AGENT_ON_CHANNELS,
 } = require('../../frontend/src/main/ipc/ipc_desktop_agent_channels.cjs');
 
-describe('local_backend_status_broadcaster', () => {
+describe('local_runtime_status_broadcaster', () => {
   test('builds local runtime status from supervisor and SDK local runtime snapshots', () => {
     expect(buildLocalRuntimeStatusPayload({
       supervisor: {
@@ -79,7 +79,7 @@ describe('local_backend_status_broadcaster', () => {
     expect(destroyedWindow.webContents.send).not.toHaveBeenCalled();
   });
 
-  test('ignores unrelated sidecar events', () => {
+  test('ignores unrelated local runtime events', () => {
     const liveWindow = {
       isDestroyed: () => false,
       webContents: {

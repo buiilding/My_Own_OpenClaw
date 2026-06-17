@@ -24,7 +24,7 @@ const {
   broadcastConversationMetadataInvalidation,
   buildLocalRuntimeStatusPayload,
   sendLocalRuntimeStatus,
-} = require('./local_backend_status_broadcaster.cjs');
+} = require('./local_runtime_status_broadcaster.cjs');
 const {
   DESKTOP_AGENT_INVOKE_CHANNELS,
 } = require('../ipc/ipc_desktop_agent_channels.cjs');

@@ -78,7 +78,7 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
     const broadcasterSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/main/sidecar/local_backend_status_broadcaster.cjs'),
+      path.resolve(__dirname, '../../frontend/src/main/sidecar/local_runtime_status_broadcaster.cjs'),
       'utf8',
     );
     const channelSource = await fs.readFile(

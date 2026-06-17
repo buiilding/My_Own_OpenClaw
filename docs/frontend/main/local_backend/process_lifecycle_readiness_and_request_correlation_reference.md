@@ -78,5 +78,5 @@ The old `stopLocalBackend()` export has been removed.
 Run these focused checks after changing this path:
 
 - `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.lifecycle.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs --runInBand`
-- `cd frontend && npm run test -- ../tests/frontend/LocalBackendStatusBroadcaster.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs --runInBand`
+- `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeStatusBroadcaster.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs --runInBand`
 - `bin/windie docs list`

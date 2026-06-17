@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime status broadcaster module
+
+- Finding: Electron main local-runtime status broadcasting still lived in the
+  backend-named broadcaster module/test path even though the implementation and
+  IPC channel registry now use local-runtime terminology.
+- Change: renamed the broadcaster module and focused Jest suite to
+  `local_runtime_status_broadcaster.cjs` / `LocalRuntimeStatusBroadcaster`,
+  updated bridge imports, boundary tests, and lifecycle docs, and kept payload
+  shape plus IPC channels unchanged.
+- Validation: focused broadcaster/main-boundary tests, stale broadcaster-path
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; renderer status payloads and IPC channel strings are
+  unchanged.
+
 ### 2026-06-17 desktop local-runtime launch options module
 
 - Finding: Electron main's desktop local-runtime launch option builder still
@@ -1851,7 +1866,7 @@ Each completed slice should report:
 - Change: renamed the internal status payload/send helpers and immediate bridge
   call sites to local-runtime terminology while preserving the compatibility
   filename, then-current status channel, and payload fields.
-- Validation: focused Jest run for `LocalBackendStatusBroadcaster` and
+- Validation: focused Jest run for `LocalRuntimeStatusBroadcaster` and
   `LocalBackendBridge.lifecycle`; docs listing; `git diff --check`; and a
   stale-name scan for the retired helper names.
 - Compatibility: no migration required. Status payload shape, lifecycle

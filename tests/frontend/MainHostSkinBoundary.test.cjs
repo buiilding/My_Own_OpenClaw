@@ -33,7 +33,7 @@ const localBackendBridgeModulePaths = [
   path.join(mainRoot, 'sidecar/local_backend_bridge_tool_args.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_utils.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_window_visibility.cjs'),
-  path.join(mainRoot, 'sidecar/local_backend_status_broadcaster.cjs'),
+  path.join(mainRoot, 'sidecar/local_runtime_status_broadcaster.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_supervisor.cjs'),
 ];
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
