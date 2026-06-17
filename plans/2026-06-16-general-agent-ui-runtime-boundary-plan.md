@@ -834,3 +834,16 @@ Each completed slice should report:
 - Compatibility: no persisted migration is required. Electron desktop launches
   own a fresh sidecar (`reuseExisting:false`) and pass an explicit discovery
   file to the SDK provider; public standalone SDK/Python defaults are unchanged.
+
+### 2026-06-17 renderer new-chat event name
+
+- Finding: the generic dashboard-to-chat renderer handoff still used the
+  product-named `windie:new-chat` DOM event even though the event is an internal
+  desktop UI signal, not an IPC or hosted API contract.
+- Change: introduced a shared renderer runtime constant for
+  `desktop-agent:new-chat`, updated the dashboard dispatcher and chat listener,
+  and refreshed focused chat wiring coverage plus dashboard shell docs.
+- Validation: focused `ChatInterfaceWiring` Jest run, docs listing,
+  `git diff --check`, and stale scan for the retired `windie:new-chat` literal.
+- Compatibility: no migration required. This event is renderer-process local
+  and does not cross preload, Electron main, SDK, or backend boundaries.

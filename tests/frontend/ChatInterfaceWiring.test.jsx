@@ -12,6 +12,7 @@ import {
 } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
+import { DESKTOP_AGENT_NEW_CHAT_EVENT } from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
 
 const mockUseChatMessageSender = jest.fn(() => ({
@@ -1574,7 +1575,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     act(() => {
-      window.dispatchEvent(new Event('windie:new-chat'));
+      window.dispatchEvent(new Event(DESKTOP_AGENT_NEW_CHAT_EVENT));
     });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);
@@ -1594,7 +1595,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     act(() => {
-      window.dispatchEvent(new Event('windie:new-chat'));
+      window.dispatchEvent(new Event(DESKTOP_AGENT_NEW_CHAT_EVENT));
     });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);

@@ -18,6 +18,7 @@ import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import { DESKTOP_AGENT_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -190,7 +191,7 @@ function DashboardShell({
 
   const handleStartNewChat = useCallback(() => {
     closeAllPanels();
-    window.dispatchEvent(new Event('windie:new-chat'));
+    window.dispatchEvent(new Event(DESKTOP_AGENT_NEW_CHAT_EVENT));
   }, [closeAllPanels]);
 
   const handleMemorySurface = useCallback(() => {
