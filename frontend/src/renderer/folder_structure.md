@@ -115,7 +115,7 @@ frontend/src/renderer/
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
 │   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
-│   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
+│   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment and error filtering/text helpers
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thinking text accumulation helper
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers

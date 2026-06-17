@@ -126,13 +126,15 @@ SDK tool coordination resolves correlation ids in this order:
 3. `event.id`
 4. generated UUID
 
-### Tool-output display/transcript correlation (`useChatStream`)
+### Tool-output display/transcript correlation
 
-`resolveToolOutputCorrelationId(payload, eventId)` order:
+The SDK `resolveToolOutputCorrelationId(payload, eventId)` helper is imported
+through `agentSdkClient`; renderer chat-stream utilities do not wrap it. Helper
+precedence:
 
-1. `payload.request_id`
-2. `payload.tool_call_id`
-3. `payload.metadata.tool_call_id`
+1. `payload.requestId` / `payload.request_id`
+2. `payload.toolCallId` / `payload.tool_call_id`
+3. `payload.metadata.toolCallId` / `payload.metadata.tool_call_id`
 4. `eventId`
 
 This keeps correlation on canonical output payload fields while still allowing
