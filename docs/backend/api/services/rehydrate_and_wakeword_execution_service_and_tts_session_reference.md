@@ -50,7 +50,7 @@ For tool-call-like rows:
 
 - require an explicit or parsed tool call id
 - parse JSON content for `name`, `id`, and `args`; structured tool-call
-  payloads carry canonical `arguments`
+  payloads use plural `toolCalls[]` entries with canonical `arguments`
 - emit assistant entry with `tool_calls=[{id,name,arguments}]`
 - update `known_tool_call_ids` and `pending_tool_call_ids`
 
@@ -136,9 +136,11 @@ This provides consistent setup/teardown for both query and wakeword service flow
 2. accepting top-level JSON-content `arguments` can reintroduce old transcript
    parser aliases; use `args` in content fallbacks or structured tool-call
    payloads instead.
-3. accepting unknown tool-output ids can orphan tool rows.
-4. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
-5. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
+3. accepting singular structured-payload `toolCall` can reintroduce old replay
+   aliases; current SDK rehydrate projections use `toolCalls[]`.
+4. accepting unknown tool-output ids can orphan tool rows.
+5. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
+6. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
 
 ## Related Pages
 

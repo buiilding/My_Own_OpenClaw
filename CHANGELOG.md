@@ -85,6 +85,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/rehydrate: stop reading top-level JSON-content `arguments` as a
   replay tool-call alias; content fallbacks use `args`, while structured
   tool-call payloads retain canonical `arguments`.
+- backend/rehydrate: require plural structured-payload `toolCalls[]` during
+  replay instead of accepting the singular `toolCall` alias.
 - docs/sidecar: rename the sidecar registry reference around the native result
   contract and remove stale troubleshooting guidance for legacy dict returns.
 - tests/frontend/sidecar: remove stale deprecated-warning and legacy/unused

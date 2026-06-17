@@ -38,10 +38,6 @@ def _extract_structured_tool_calls(
     if normalized_tool_calls:
         return normalized_tool_calls
 
-    raw_tool_call = structured_payload.get("toolCall")
-    if isinstance(raw_tool_call, dict):
-        return normalize_tool_calls([raw_tool_call])
-
     return []
 
 

@@ -274,12 +274,14 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
         tool_calls=None,
         structured_payload={
             "kind": "tool-call",
-            "toolCall": {
-                "id": "call-structured-1",
-                "name": "open_url",
-                "arguments": {"url": "https://example.com"},
-                "thought_signature": "sig-structured-1",
-            },
+            "toolCalls": [
+                {
+                    "id": "call-structured-1",
+                    "name": "open_url",
+                    "arguments": {"url": "https://example.com"},
+                    "thought_signature": "sig-structured-1",
+                }
+            ],
         },
     )
 
@@ -307,6 +309,40 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
     assert normalized_entry["correlation_id"] == "call-structured-1"
     assert pending_tool_call_ids == ["call-structured-1"]
     assert known_tool_call_ids == {"call-structured-1"}
+
+
+def test_normalize_rehydrated_entry_ignores_singular_structured_tool_call_alias():
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="assistant",
+        content="not valid json",
+        message_type="tool-call",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+        structured_payload={
+            "kind": "tool-call",
+            "toolCall": {
+                "id": "call-structured-1",
+                "name": "open_url",
+                "arguments": {"url": "https://example.com"},
+            },
+        },
+    )
+
+    with pytest.raises(ValueError, match="without a tool call id"):
+        _normalize_entry(
+            entry=entry,
+            index=8,
+            image_data=None,
+            known_tool_call_ids=known_tool_call_ids,
+            pending_tool_call_ids=[],
+            transparency=None,
+        )
+
+    assert known_tool_call_ids == set()
 
 
 def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
