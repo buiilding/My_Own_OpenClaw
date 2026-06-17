@@ -106,6 +106,8 @@ All notable changes to WindieOS will be documented in this file.
   the agent executor imports ToolSender from the concrete sender module.
 - backend/agent-tools: remove the unused tool-waiting package export so
   session initialization imports result waiting components directly.
+- backend/agent-tools: remove the unused tool-processing package export so
+  processing components are imported from concrete owner modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

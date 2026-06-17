@@ -28,12 +28,10 @@ from backend.src.agent.tools.preparation.coordinate_resolution import (
 )
 from backend.src.agent.tools.preparation.ocr import OcrCoordinator
 from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
-from backend.src.agent.tools.processing import (
-    ResultTransformer,
-    SyntheticResultFactory,
-    ToolProcessingCoordinator,
-    ToolResultProcessor,
-)
+from backend.src.agent.tools.processing.coordinator import ToolProcessingCoordinator
+from backend.src.agent.tools.processing.processor import ToolResultProcessor
+from backend.src.agent.tools.processing.synthetic_factory import SyntheticResultFactory
+from backend.src.agent.tools.processing.transformer import ResultTransformer
 from backend.src.agent.tools.sending.sender import ToolSender
 from backend.src.core.events import (
     AgentStreamingEvent,
