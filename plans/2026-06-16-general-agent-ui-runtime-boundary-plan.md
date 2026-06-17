@@ -2616,3 +2616,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level and
   `WindieClient` module imports still resolve to the same client runtime object
   and types.
+
+### 2026-06-17 Agent module compatibility wrapper
+
+- Finding: the canonical SDK agent runtime module still exported `WindieAgent`
+  and Windie-prefixed option, memory, result, trace, and replay-preparation type
+  aliases directly, so the generic high-level agent module owned historical
+  product naming.
+- Change: moved the Windie-prefixed agent value and type aliases to the
+  `WindieAgent` compatibility module and package boundary, leaving `Agent` as
+  the canonical high-level SDK runtime module.
+- Validation: focused SDK package-boundary/private-export coverage, SDK client
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  canonical agent runtime module no longer exports Windie-prefixed
+  compatibility names.
+- Compatibility: no migration required. Existing package-level and
+  `WindieAgent` module imports still resolve to the same agent runtime object
+  and types.

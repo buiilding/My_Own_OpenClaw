@@ -37,6 +37,26 @@ export type {
   WindieChatSendInput,
 } from './runtime/WindieChatSession.js';
 export * from './runtime/Agent.js';
+export {
+  WindieAgent,
+} from './runtime/WindieAgent.js';
+export type {
+  WindieAgentOwner,
+  WindieAgentQueryOptions,
+  WindieAgentRegisterMcpOptions,
+  WindieAgentStopOptions,
+  WindieAgentTraceOptions,
+  WindieClearConversationsOptions,
+  WindieClearMemoriesResult,
+  WindieDeleteMemoryResult,
+  WindieMemoryListResult,
+  WindieMemoryQuery,
+  WindieMemoryType,
+  WindiePrepareEditAndResendOptions,
+  WindiePrepareRetryTurnOptions,
+  WindieStoreMemoryInput,
+  WindieStoreMemoryResult,
+} from './runtime/WindieAgent.js';
 export * from './runtime/AgentClient.js';
 export {
   WindieClient,

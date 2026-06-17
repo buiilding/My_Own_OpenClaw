@@ -17,4 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.WindieAgent = void 0;
+const Agent_js_1 = require("./Agent.js");
 __exportStar(require("./Agent.js"), exports);
+Object.defineProperty(exports, "WindieAgent", { enumerable: true, get: function () { return Agent_js_1.Agent; } });

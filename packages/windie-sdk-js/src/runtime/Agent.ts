@@ -79,16 +79,12 @@ export type AgentQueryOptions = Partial<Omit<AgentQueryInput, 'text' | 'conversa
   model?: AgentModelSelection;
 };
 
-export type WindieAgentQueryOptions = AgentQueryOptions;
-
 export type AgentStopOptions = {
   conversation_ref?: string | null;
   conversationRef?: string | null;
   turn_ref?: string | null;
   turnRef?: string | null;
 };
-
-export type WindieAgentStopOptions = AgentStopOptions;
 
 export type AgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
@@ -97,13 +93,9 @@ export type AgentOwner = {
   shutdownLocalRuntime?(): Promise<void>;
 };
 
-export type WindieAgentOwner = AgentOwner;
-
 export type AgentRegisterMcpOptions = {
   replace?: boolean;
 };
-
-export type WindieAgentRegisterMcpOptions = AgentRegisterMcpOptions;
 
 function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): void {
   const details = [
@@ -161,8 +153,6 @@ export type RawBackendEventListener = (event: BackendEvent) => void;
 
 export type AgentMemoryType = 'episodic' | 'semantic';
 
-export type WindieMemoryType = AgentMemoryType;
-
 export type AgentMemoryQuery = {
   userId?: string;
   query?: string;
@@ -174,8 +164,6 @@ export type AgentMemoryQuery = {
   semanticMinScore?: number;
 };
 
-export type WindieMemoryQuery = AgentMemoryQuery;
-
 export type AgentStoreMemoryInput = {
   userId?: string;
   userQuery: string;
@@ -184,40 +172,28 @@ export type AgentStoreMemoryInput = {
   sessionId?: string;
 };
 
-export type WindieStoreMemoryInput = AgentStoreMemoryInput;
-
 export type AgentClearMemoriesResult = JsonRecord & {
   episodic_deleted_count?: number;
   semantic_deleted_count?: number;
 };
-
-export type WindieClearMemoriesResult = AgentClearMemoriesResult;
 
 export type AgentMemoryListResult = JsonRecord & {
   memories: unknown[];
   count: number;
 };
 
-export type WindieMemoryListResult = AgentMemoryListResult;
-
 export type AgentDeleteMemoryResult = JsonRecord & {
   deleted?: boolean;
 };
-
-export type WindieDeleteMemoryResult = AgentDeleteMemoryResult;
 
 export type AgentStoreMemoryResult = JsonRecord & {
   memory_id?: string;
   memory_type?: string;
 };
 
-export type WindieStoreMemoryResult = AgentStoreMemoryResult;
-
 export type AgentClearConversationsOptions = {
   store?: ConversationStore;
 };
-
-export type WindieClearConversationsOptions = AgentClearConversationsOptions;
 
 export type AgentTraceOptions = {
   conversationRef?: string;
@@ -225,23 +201,17 @@ export type AgentTraceOptions = {
   store?: ConversationStore;
 };
 
-export type WindieAgentTraceOptions = AgentTraceOptions;
-
 export type AgentPrepareEditAndResendOptions = EditAndResendInput & {
   conversationRef: string;
   revisionId?: string;
   store?: ConversationStore;
 };
 
-export type WindiePrepareEditAndResendOptions = AgentPrepareEditAndResendOptions;
-
 export type AgentPrepareRetryTurnOptions = RetryTurnInput & {
   conversationRef: string;
   revisionId?: string;
   store?: ConversationStore;
 };
-
-export type WindiePrepareRetryTurnOptions = AgentPrepareRetryTurnOptions;
 
 export class Agent {
   constructor(
@@ -1160,6 +1130,3 @@ export class Agent {
   }
 
 }
-
-export type WindieAgent = Agent;
-export const WindieAgent = Agent;

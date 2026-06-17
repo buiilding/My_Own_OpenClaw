@@ -18,8 +18,8 @@ title: "AgentClient Runtime Contract"
 `AgentClient` is the canonical agent client runtime. `WindieClient.ts` remains
 the compatibility wrapper for the historical product-branded constructor alias,
 and the returned agent object is exported as the generic `Agent` class.
-`WindieAgent` remains the matching compatibility alias for that high-level
-agent object.
+`WindieAgent.ts` remains the matching compatibility wrapper for that high-level
+agent object and Windie-prefixed agent type aliases.
 
 ```text
 Electron main / future CLI / SDK users
@@ -102,22 +102,23 @@ Ownership rules:
   TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
   `process.cwd()` first, then the best available home-directory environment
   path.
-- the SDK `Agent` / `WindieAgent` runtime module owns live MCP manifest refresh
+- the SDK `Agent` runtime module owns live MCP manifest refresh
   after an agent is already awake. `Agent.registerMcps([...], { replace: true })`
   registers the requested MCP servers through the local runtime, reads the
   refreshed local tool manifest, sends a backend `update-settings` command with
   `tools.mode = replace_client_manifest`, mutates the SDK agent definition, and
   includes that updated client manifest on the next `ask`, `run`, `stream`, or
-  conversation send.
+  conversation send. `WindieAgent.ts` is the compatibility wrapper for
+  historical Windie-prefixed agent imports.
 - the SDK agent stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
-- the SDK `Agent` / `WindieAgent` runtime module owns high-level agent helpers such as
+- the SDK `Agent` runtime module owns high-level agent helpers such as
   `ask`, `run`, `stream`, `chat`, model updates, conversation creation,
   conversation listing/search/loading/deletion over a store adapter, memory
   commands, title commands, system prompt/tool-schema commands, and artifact
-  helpers. `Agent` is the canonical high-level SDK class; `WindieAgent` remains
-  the compatibility value/type alias for existing callers.
+  helpers. `Agent` is the canonical high-level SDK class; `WindieAgent.ts`
+  remains the compatibility wrapper for existing callers.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
@@ -161,7 +162,7 @@ Client-level runtime options follow the same rule: prefer `AgentClientOptions`,
 and `AgentInstallAuthOptions` in reusable SDK code, while Windie-prefixed type
 names remain compatibility aliases. The high-level agent instance follows that
 same naming pattern: reusable TypeScript hosts should prefer `Agent`, while
-`WindieAgent` remains a compatibility alias.
+`WindieAgent.ts` remains a compatibility wrapper.
 
 ## Desktop Host Startup
 
