@@ -163,4 +163,46 @@ describe('main ipc sdk runtime boundary', () => {
     expect(memoryHandlers).not.toContain('userId: requireAuthenticatedCommandUserId()');
     expect(memoryHandlers).not.toContain('requireCommandUserId(payload)');
   });
+
+  test('electron main rejects removed user_id SDK command alias', async () => {
+    const { handleAgentSdkInvoke } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const ensureAgent = jest.fn(async () => ({
+      listConversations: jest.fn(async () => []),
+    }));
+    const appendAppDiagnostic = jest.fn(input => input);
+
+    const result = await handleAgentSdkInvoke(
+      null,
+      {
+        command: 'conversations.list',
+        payload: {
+          user_id: 'user-1',
+          limit: 5,
+        },
+      },
+      {
+        deps: {
+          ensureAgent,
+          appendAppDiagnostic,
+          getState: () => ({
+            currentUserId: 'user-1',
+            isConnected: true,
+            agent: true,
+          }),
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Agent SDK command requires an active user id.',
+    });
+    expect(ensureAgent).not.toHaveBeenCalled();
+    expect(appendAppDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      stage: 'ipc_received',
+      data: expect.objectContaining({
+        hasUserId: false,
+      }),
+    }));
+  });
 });

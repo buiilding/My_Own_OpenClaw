@@ -52,6 +52,11 @@ Other desktop renderer facades use the same SDK export for conversation
 library, transcript, memory, and diagnostics commands such as
 `conversations.list`, `conversation.loadDisplay`, `memories.list`,
 `memories.delete`, `conversations.clearAll`, and `diagnostics.append`.
+Those SDK-shaped library commands use canonical SDK object fields such as
+`userId`, `conversationRef`, `messageId`, and `turnRef`; removed snake_case
+input aliases such as `user_id` are ignored at the Electron main validation
+boundary. Query transport payloads are the separate snake_case command contract
+described below.
 
 Electron main exports `handleAgentSdkInvoke(...)` as the `windie:invoke`
 boundary. Its internal command table uses those same `SDK_RUNTIME_COMMANDS`

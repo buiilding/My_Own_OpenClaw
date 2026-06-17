@@ -41,7 +41,7 @@ function normalizeMemoryType(value) {
 }
 
 function requireCommandUserId(payload = {}, currentUserId = null) {
-  const userId = normalizeOptionalString(payload.userId || payload.user_id);
+  const userId = normalizeOptionalString(payload.userId);
   if (!userId || userId === 'default_user') {
     throw new Error('Agent SDK command requires an active user id.');
   }
@@ -200,7 +200,7 @@ function buildAgentSdkCommandHandlers({
         status: 'succeeded',
         runtime: 'electron-main',
         data: {
-          hasUserId: Boolean(normalizeOptionalString(payload.userId || payload.user_id)),
+          hasUserId: Boolean(normalizeOptionalString(payload.userId)),
           limit,
           backendConnected: Boolean(deps.getState().isConnected),
         },
@@ -248,7 +248,7 @@ function buildAgentSdkCommandHandlers({
           runtime: 'electron-main',
           durationMs: Date.now() - startedAt,
           data: {
-            hasUserId: Boolean(normalizeOptionalString(payload.userId || payload.user_id)),
+            hasUserId: Boolean(normalizeOptionalString(payload.userId)),
             backendConnected: Boolean(deps.getState().isConnected),
             localRuntimeReady: Boolean(deps.getState().agent),
           },
