@@ -1,9 +1,9 @@
 /**
- * Covers windie agent conversation store api. behavior in the frontend test suite.
+ * Covers Agent conversation store API behavior in the frontend test suite.
  */
 
 import {
-  WindieAgent,
+  Agent,
   SidecarConversationStore,
   createConversationEvent,
   type ConversationEvent,
@@ -12,7 +12,7 @@ import {
 } from '../../packages/windie-sdk-js/src';
 
 function createAgentWithStore(store: Record<string, jest.Mock>) {
-  return new WindieAgent(
+  return new Agent(
     'agent-test',
     {
       waitForOpen: jest.fn(),
@@ -29,7 +29,7 @@ function createAgentWithStore(store: Record<string, jest.Mock>) {
   );
 }
 
-describe('WindieAgent public conversation store APIs', () => {
+describe('Agent public conversation store APIs', () => {
   test('routes revision reads and writes through the configured conversation store', async () => {
     const event = createConversationEvent({
       eventId: 'evt-1',

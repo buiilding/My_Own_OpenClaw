@@ -2011,3 +2011,20 @@ Each completed slice should report:
   tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs`.
 - Compatibility: no migration required. Compatibility alias behavior remains
   covered by dedicated SDK package-boundary tests.
+
+### 2026-06-17 Conversation store API Agent test path
+
+- Finding: the conversation store API test covered current SDK agent behavior,
+  but instantiated the historical `WindieAgent` compatibility alias and
+  described the suite with Windie-prefixed terminology.
+- Change: switched the test helper to instantiate `Agent` and updated the
+  header/suite copy to describe the Agent conversation store API.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/WindieAgentConversationStoreApi.test.ts`; `bin\windie
+  docs list`; `git diff --check --
+  tests/frontend/WindieAgentConversationStoreApi.test.ts
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`; `rg -n
+  "WindieAgent|windie agent"
+  tests/frontend/WindieAgentConversationStoreApi.test.ts`.
+- Compatibility: no migration required. `WindieAgent` alias coverage remains
+  in the SDK package-boundary tests.
