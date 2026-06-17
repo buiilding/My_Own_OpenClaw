@@ -4,7 +4,7 @@
 
 import type { JsonRecord } from '../conversation/types.js';
 
-export type CapabilityManifestSummary = {
+type CapabilityManifestSummary = {
   revision: string;
   toolCount: number;
   promptLayerCount: number;

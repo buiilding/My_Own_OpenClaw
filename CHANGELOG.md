@@ -66,6 +66,9 @@ All notable changes to WindieOS will be documented in this file.
   modules, leaving `AgentFactory.create_agent` as the sub-session path.
 - sdk/js: keep websocket URL normalization, capability summarization, and
   compacted-replay event helpers private instead of exporting unused symbols.
+- sdk/js: keep context-enrichment render helpers, tool-output content shapes,
+  capability summaries, and internal diagnostic types private while testing
+  escaping through the enrichment pipeline entrypoint.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

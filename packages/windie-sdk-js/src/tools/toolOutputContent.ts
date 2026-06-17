@@ -4,7 +4,7 @@
 
 import type { JsonRecord } from '../conversation/types.js';
 
-export type ToolOutputContent = {
+type ToolOutputContent = {
   displayContent: string;
   modelContent: string;
   hasModelContent: boolean;

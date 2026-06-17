@@ -3,8 +3,6 @@
  * Provides the context enrichment pipeline module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.renderModelFacingUserContent = renderModelFacingUserContent;
-exports.renderPlainModelFacingUserContent = renderPlainModelFacingUserContent;
 exports.formatCompletedTurnMemory = formatCompletedTurnMemory;
 exports.enrichQueryPayload = enrichQueryPayload;
 exports.storeCompletedTurnMemory = storeCompletedTurnMemory;

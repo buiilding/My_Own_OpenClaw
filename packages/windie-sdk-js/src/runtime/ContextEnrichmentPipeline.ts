@@ -14,7 +14,7 @@ const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
   semanticMinScore: 0.2,
 });
 
-export type ContextEnrichmentInput = {
+type ContextEnrichmentInput = {
   text: string;
   conversationRef: string;
   userId: string;
@@ -44,7 +44,7 @@ export type MemoryRetrievalDiagnostic = {
   semanticCount?: number;
 };
 
-export type MemoryPersistenceDiagnosticStage =
+type MemoryPersistenceDiagnosticStage =
   | 'memory_disabled'
   | 'local_runtime_missing'
   | 'turn_state_missing'
@@ -53,7 +53,7 @@ export type MemoryPersistenceDiagnosticStage =
   | 'sidecar_store_failed'
   | 'store_succeeded';
 
-export type MemoryPersistenceDiagnostic = {
+type MemoryPersistenceDiagnostic = {
   stage: MemoryPersistenceDiagnosticStage;
   conversationRef: string;
   userId: string;
@@ -66,7 +66,7 @@ export type MemoryPersistenceDiagnostic = {
   error?: string;
 };
 
-export type ContextEnrichmentResult = {
+type ContextEnrichmentResult = {
   payload: JsonRecord;
   memories: {
     episodic: string[];
@@ -74,7 +74,7 @@ export type ContextEnrichmentResult = {
   };
 };
 
-export type StoreCompletedTurnMemoryResult = {
+type StoreCompletedTurnMemoryResult = {
   memoryId?: string | null;
 };
 
@@ -101,7 +101,7 @@ function formatMemorySection(tagName: string, entries: string[]): string {
   return `<${tagName}>\n${entries.map(entry => `- ${escapeXml(entry)}`).join('\n')}\n</${tagName}>`;
 }
 
-export function renderModelFacingUserContent(input: {
+function renderModelFacingUserContent(input: {
   text: string;
   memories?: { episodic?: string[]; semantic?: string[] } | null;
   attachmentContext?: string | null;
@@ -117,7 +117,7 @@ export function renderModelFacingUserContent(input: {
   return parts.join('\n\n');
 }
 
-export function renderPlainModelFacingUserContent(input: {
+function renderPlainModelFacingUserContent(input: {
   text: string;
   attachmentContext?: string | null;
 }): string {
@@ -461,7 +461,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
   };
 }
 
-export type StoreCompletedTurnMemoryInput = {
+type StoreCompletedTurnMemoryInput = {
   localRuntime?: WindieLocalRuntimeClient | null;
   sdkClient: WindieSdkClient;
   userId: string;
