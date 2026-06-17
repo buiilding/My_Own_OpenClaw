@@ -177,6 +177,62 @@ describe('Agent public conversation store APIs', () => {
 });
 
 describe('LocalRuntimeConversationStore event payload write params', () => {
+  test('loads generic metadata event payloads before legacy Windie metadata fallbacks', async () => {
+    const genericEvent: ConversationEvent = createConversationEvent({
+      eventId: 'evt-generic',
+      type: 'assistant_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      payload: { text: 'generic metadata' },
+    });
+    const legacyEvent: ConversationEvent = createConversationEvent({
+      eventId: 'evt-legacy',
+      type: 'assistant_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      payload: { text: 'legacy metadata' },
+    });
+    const ignoredLegacyEvent: ConversationEvent = createConversationEvent({
+      eventId: 'evt-ignored-legacy',
+      type: 'assistant_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      payload: { text: 'ignored legacy metadata' },
+    });
+    const rpc = jest.fn(async ({ method }) => {
+      if (method === 'conversation.load_events') {
+        return {
+          success: true,
+          data: {
+            events: [
+              {
+                metadata: {
+                  agent_sdk_conversation_event: genericEvent,
+                  windie_sdk_conversation_event: ignoredLegacyEvent,
+                },
+              },
+              {
+                metadata: JSON.stringify({
+                  windieSdkConversationEvent: legacyEvent,
+                }),
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new LocalRuntimeConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await expect(store.loadEvents('conv-1')).resolves.toEqual([
+      genericEvent,
+      legacyEvent,
+    ]);
+  });
+
   test('normalizes sidecar metadata event counts before exposing conversation rows', async () => {
     const rpc = jest.fn(async ({ method }) => {
       if (method === 'conversation.list') {

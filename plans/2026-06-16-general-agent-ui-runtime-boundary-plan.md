@@ -2804,3 +2804,16 @@ Each completed slice should report:
 - Validation: focused renderer settings runtime boundary test.
 - Compatibility: no migration required. This is documentation/comment-only;
   settings commands and IPC wire channels are unchanged.
+
+### 2026-06-17 LocalRuntimeConversationStore metadata fallback keys
+
+- Finding: the canonical SDK local-runtime conversation store still read
+  historical `windie_sdk_conversation_event` metadata keys when reconstructing
+  events from older rows, with no generic metadata key ahead of that fallback.
+- Change: added `agent_sdk_conversation_event` and `agentSdkConversationEvent`
+  as the preferred metadata fallback keys and kept the Windie-prefixed keys as
+  legacy persisted-row compatibility.
+- Validation: focused Agent conversation store API coverage, CJS parity update,
+  `git diff --check`, and source scans for the metadata fallback keys.
+- Compatibility: no migration required. Current rows still use `event_payload`;
+  older rows with Windie-prefixed metadata continue to load.

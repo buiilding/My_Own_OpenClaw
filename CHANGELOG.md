@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: prefer generic agent SDK metadata keys when loading local-runtime conversation events while preserving Windie metadata fallbacks.
+
 - frontend/renderer: clarify settings runtime facade IPC wording so it points callers at SDK command IPC instead of backend IPC.
 
 - frontend/renderer: move artifact/transcription URL composition to the

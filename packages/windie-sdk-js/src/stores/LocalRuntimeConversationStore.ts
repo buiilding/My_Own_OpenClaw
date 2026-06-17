@@ -130,11 +130,14 @@ function normalizeConversationEvent(candidate: unknown): ConversationEvent | nul
 }
 
 function storedEventFromRow(row: Record<string, unknown>): ConversationEvent | null {
+  const metadata = parseJsonRecord(row.metadata);
   return normalizeConversationEvent(
     parseJsonRecord(row.event_payload)
     ?? parseJsonRecord(row.eventPayload)
-    ?? parseJsonRecord(row.metadata)?.windie_sdk_conversation_event
-    ?? parseJsonRecord(row.metadata)?.windieSdkConversationEvent,
+    ?? metadata?.agent_sdk_conversation_event
+    ?? metadata?.agentSdkConversationEvent
+    ?? metadata?.windie_sdk_conversation_event
+    ?? metadata?.windieSdkConversationEvent,
   );
 }
 
