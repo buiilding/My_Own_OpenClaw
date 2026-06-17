@@ -103,7 +103,7 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
-- `get-local-backend-status`
+- `get-local-runtime-status`
 
 Memory list/delete/clear and chat clear are not direct preload invoke channels.
 Renderer memory UI uses SDK-shaped `window.desktopAgent.invoke("memories.*", payload)`
@@ -131,7 +131,7 @@ Allowed channels (from shared `ON_CHANNELS` registry):
 - `windie:current-turn`
 - `transcript-session-sync`
 - `ipc-status`
-- `local-backend-status`
+- `local-runtime-status`
 - `log`
 - `wakeword-detected`
 - `wakeword-status`

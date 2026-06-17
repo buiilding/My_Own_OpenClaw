@@ -68,7 +68,7 @@ Electron main normalizes multiple failure classes:
 - websocket disconnected query sends synthesize a backend-style `error` event.
 - settings ACK timeouts resolve failure after the configured timeout.
 - local backend JSON-RPC request failures return `{ success: false, error }`.
-- local backend process failures broadcast `local-backend-status` with `ready: false` and an error string.
+- local backend process failures broadcast `local-runtime-status` with `ready: false` and an error string.
 
 Do not throw uncaught errors from these hot paths; preserve status updates and pending-promise cleanup.
 

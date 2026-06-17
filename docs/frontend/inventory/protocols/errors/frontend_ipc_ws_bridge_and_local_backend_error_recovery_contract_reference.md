@@ -123,7 +123,7 @@ Failure causes include:
 
 ### Process lifecycle failures
 
-Failure notifications emitted to main window via `local-backend-status`:
+Failure notifications emitted to main window via `local-runtime-status`:
 
 | Failure case | Status payload |
 |---|---|

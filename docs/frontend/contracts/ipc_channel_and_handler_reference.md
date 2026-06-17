@@ -192,7 +192,7 @@ Local tool runtime nuances:
 - `windie:pending-turn`: main-replayed pending renderer user turn until matching SDK current-turn projection or explicit clear
 - `transcript-session-sync`: normalized transcript session sync snapshots
 - `ipc-status`: websocket connection + endpoint status payload
-- `local-backend-status`: local SDK sidecar process/readiness status
+- `local-runtime-status`: local SDK sidecar process/readiness status
 - `response-overlay-phase`: phase transitions (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`)
 - `backend-settings-event`: model/settings ACK and settings-error events
 - `agent-capability-event`: client tool manifest and remote tool catalog events

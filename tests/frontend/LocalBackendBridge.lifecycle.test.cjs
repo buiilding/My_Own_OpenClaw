@@ -17,7 +17,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     });
 
     expect(spawn).not.toHaveBeenCalled();
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-runtime-status', expect.objectContaining({
       ready: false,
       status: 'error',
       error: 'Agent SDK local runtime resolver is unavailable.',
@@ -41,7 +41,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
 
     expect(spawn).not.toHaveBeenCalled();
     expect(ensureLocalRuntime).not.toHaveBeenCalled();
-    const result = await handlers['get-local-backend-status']();
+    const result = await handlers['get-local-runtime-status']();
     expect(result).toEqual(expect.objectContaining({
       ready: true,
       status: 'ready',
@@ -55,7 +55,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       reason: 'status_bootstrap',
     });
     expect(localRuntime.subscribeEvents).toHaveBeenCalledTimes(1);
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-runtime-status', expect.objectContaining({
       ready: true,
       status: 'ready',
     }));
@@ -82,7 +82,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       ensureLocalRuntime,
     });
 
-    const result = await handlers['get-local-backend-status']();
+    const result = await handlers['get-local-runtime-status']();
 
     expect(spawn).not.toHaveBeenCalled();
     expect(ensureLocalRuntime).not.toHaveBeenCalled();
@@ -96,7 +96,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       }),
     }));
     expect(activeRuntime.subscribeEvents).toHaveBeenCalledTimes(1);
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-runtime-status', expect.objectContaining({
       ready: true,
       status: 'ready',
     }));
@@ -131,7 +131,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       success: false,
       error: 'Local runtime bridge is stopped.',
     });
-    await expect(handlers['get-local-backend-status']()).resolves.toEqual(
+    await expect(handlers['get-local-runtime-status']()).resolves.toEqual(
       expect.objectContaining({
         ready: false,
         status: 'stopped',
@@ -159,12 +159,12 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
     const { handlers, mainWindow, spawn } = initBridge({ ensureLocalRuntime });
 
     expect(spawn).not.toHaveBeenCalled();
-    await expect(handlers['get-local-backend-status']()).resolves.toEqual(expect.objectContaining({
+    await expect(handlers['get-local-runtime-status']()).resolves.toEqual(expect.objectContaining({
       ready: false,
       status: 'error',
       error: 'daemon unavailable',
     }));
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', expect.objectContaining({
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-runtime-status', expect.objectContaining({
       ready: false,
       status: 'error',
       error: 'daemon unavailable',

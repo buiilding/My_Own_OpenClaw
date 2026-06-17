@@ -2,7 +2,7 @@
 summary: "SDK-owned sidecar daemon lifecycle reference for desktop launch options, readiness status, helper RPC routing, and failure behavior."
 read_when:
   - When changing desktop sidecar daemon startup, readiness status, or helper RPC routing.
-  - When debugging sidecar startup failures, local-backend-status drift, or Electron helper calls that cannot reach the sidecar daemon.
+  - When debugging sidecar startup failures, local-runtime-status drift, or Electron helper calls that cannot reach the sidecar daemon.
 title: "SDK-Owned Sidecar Lifecycle Reference"
 ---
 
@@ -51,10 +51,10 @@ SDK daemon startup sequence:
   runtime provider.
 - A resolved provider means the daemon discovery file matched the expected launch
   context and `/status` succeeded.
-- Electron emits `local-backend-status { ready: true }` only after the SDK
+- Electron emits `local-runtime-status { ready: true }` only after the SDK
   runtime provider has returned a usable runtime for bridge-owned helper calls.
 - If Electron cannot construct a valid SDK sidecar launch plan, it emits
-  `local-backend-status { ready:false, error }` and helper RPC calls fail closed.
+  `local-runtime-status { ready:false, error }` and helper RPC calls fail closed.
 
 ## Request Correlation and Timeout Model
 

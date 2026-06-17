@@ -21,10 +21,10 @@ describe('localRuntimeStatusStore', () => {
         },
       },
       INVOKE_CHANNELS: {
-        GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
+        GET_LOCAL_RUNTIME_STATUS: 'get-local-runtime-status',
       },
       ON_CHANNELS: {
-        LOCAL_RUNTIME_STATUS: 'local-backend-status',
+        LOCAL_RUNTIME_STATUS: 'local-runtime-status',
       },
     }));
 
@@ -71,7 +71,7 @@ describe('localRuntimeStatusStore', () => {
     const onChange = jest.fn();
 
     const unsubscribe = store.subscribeLocalRuntimeStatusStore(onChange);
-    store.listeners.get('local-backend-status')({ ready: true, status: 'ready', error: '' });
+    store.listeners.get('local-runtime-status')({ ready: true, status: 'ready', error: '' });
     store.resolveBootstrap({ ready: false, status: 'stopped', error: '' });
     await flushPromises();
 
@@ -112,8 +112,8 @@ describe('localRuntimeStatusStore', () => {
       'utf8',
     );
 
-    expect(sharedChannels.INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS).toBe('get-local-backend-status');
-    expect(sharedChannels.ON_CHANNELS.LOCAL_RUNTIME_STATUS).toBe('local-backend-status');
+    expect(sharedChannels.INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS).toBe('get-local-runtime-status');
+    expect(sharedChannels.ON_CHANNELS.LOCAL_RUNTIME_STATUS).toBe('local-runtime-status');
     expect(sharedChannels.INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS).toBeUndefined();
     expect(sharedChannels.ON_CHANNELS.LOCAL_BACKEND_STATUS).toBeUndefined();
     expect(rendererChannelsSource).not.toContain('GET_LOCAL_BACKEND_STATUS');

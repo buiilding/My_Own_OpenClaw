@@ -2,7 +2,7 @@
 summary: "Reference for SDK-owned desktop sidecar daemon readiness, helper RPC routing, local-backend status snapshots, and Electron host-only sidecar helpers."
 read_when:
   - When changing SDK local runtime provider usage in `frontend/src/main/sidecar/local_backend_bridge.cjs`.
-  - When debugging desktop sidecar daemon startup, `local-backend-status`, helper RPC failures, or screenshot helper routing.
+  - When debugging desktop sidecar daemon startup, `local-runtime-status`, helper RPC failures, or screenshot helper routing.
 title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 ---
 
@@ -49,7 +49,7 @@ Electron main owns only host-side behavior:
 2. cache the returned runtime
 3. subscribe to daemon events for conversation metadata invalidation
 4. attach a synthetic SDK daemon process ref to `local_backend_supervisor`
-5. emit `local-backend-status { ready:true, localRuntime }`
+5. emit `local-runtime-status { ready:true, localRuntime }`
 
 If launch option construction or provider resolution fails, the bridge keeps
 status not-ready and helper calls return stable error envelopes where possible.

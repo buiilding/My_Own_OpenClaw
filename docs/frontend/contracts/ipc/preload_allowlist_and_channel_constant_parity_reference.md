@@ -107,7 +107,7 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
-- `get-local-backend-status`
+- `get-local-runtime-status`
 
 Memory list/delete/clear and chat clear are intentionally absent from direct
 `window.ipc.invoke` preload channels. Renderer memory UI uses SDK-shaped
@@ -131,7 +131,7 @@ Shared names from `ipcChannels.json`, consumed by preload + `ON_CHANNELS`:
 - `windie:pending-turn`
 - `transcript-session-sync`
 - `ipc-status`
-- `local-backend-status`
+- `local-runtime-status`
 - `log`
 - `wakeword-detected`
 - `wakeword-status`

@@ -57,7 +57,7 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WINDOW_MINIMIZE: 'window-minimize',
     WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
     WINDOW_CLOSE: 'window-close',
-    GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
+    GET_LOCAL_RUNTIME_STATUS: 'get-local-runtime-status',
   },
   ON_CHANNELS: {
     DESKTOP_AGENT_ROWS: 'windie:rows',
@@ -69,7 +69,7 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     DESKTOP_AGENT_PENDING_TURN: 'windie:pending-turn',
     TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
     IPC_STATUS: 'ipc-status',
-    LOCAL_RUNTIME_STATUS: 'local-backend-status',
+    LOCAL_RUNTIME_STATUS: 'local-runtime-status',
     LOG: 'log',
     WAKEWORD_DETECTED: 'wakeword-detected',
     WAKEWORD_STATUS: 'wakeword-status',

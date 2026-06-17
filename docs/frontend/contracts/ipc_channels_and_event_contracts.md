@@ -1,4 +1,4 @@
-﻿---
+---
 summary: "Renderer-main IPC contract and SDK conversation event contract used by chat stream, tool runner, settings lifecycle, and permission onboarding channels."
 read_when:
   - When adding/changing IPC channels.
@@ -68,7 +68,7 @@ Inbound event streams:
 - `windie:current-turn`
 - `transcript-session-sync`
 - `ipc-status`
-- `local-backend-status`
+- `local-runtime-status`
 - `wakeword-status`
 - `wakeword-detected`
 - `wakeword-toggle`

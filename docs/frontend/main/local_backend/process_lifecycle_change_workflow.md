@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS SDK-owned sidecar daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
 read_when:
   - When changing desktop sidecar daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged sidecar launch options.
-  - When debugging sidecar startup failures, `local-backend-status` drift, browser controls waiting forever, SDK sidecar `/rpc` failures, or packaged app sidecar launch failures.
+  - When debugging sidecar startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK sidecar `/rpc` failures, or packaged app sidecar launch failures.
 title: "SDK-Owned Local Runtime Lifecycle Change Workflow"
 ---
 
@@ -23,7 +23,7 @@ flowchart LR
   SDKProvider --> Daemon["sidecar_daemon.py"]
   Daemon --> LocalBackend["LocalBackend"]
   SDKProvider --> Supervisor["local_backend_supervisor"]
-  Supervisor --> Status["local-backend-status broadcast"]
+  Supervisor --> Status["local-runtime-status broadcast"]
   Status --> RendererStore["localRuntimeStatusStore"]
   RendererStore --> Consumers["browser session, permissions, dashboard retries"]
   SDKProvider --> Rpc["SDK AgentLocalRuntimeHttpClient /rpc"]
@@ -43,7 +43,7 @@ readiness/status broadcasts.
 | Timeout policy | `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
 | Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
-| Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-backend-status` events. |
+| Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-runtime-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-runtime readiness. |
 | Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Owns the app-session `LocalBackend`, `/rpc` endpoint, local tools, memory, and chat-event storage. |
 
@@ -52,7 +52,7 @@ readiness/status broadcasts.
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
 | Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
-| `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
+| `local-runtime-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
@@ -64,8 +64,8 @@ readiness/status broadcasts.
 2. The bridge must not spawn `local_backend.py` as a standalone Electron-owned process.
 3. Launch target resolution must prefer packaged binaries/runtime paths in packaged mode and source Python paths in development mode.
 4. Startup env must preserve `PYTHONUNBUFFERED=1`, `WINDIE_BACKEND_HTTP_URL`, `WINDIE_BACKEND_AUTH_STATE_PATH` when provided, `WINDIE_PERMISSION_STATE_PATH` when provided, `WINDIE_PACKAGED_APP`, `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`, and packaged Python isolation variables when applicable.
-5. The `get-local-backend-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
-6. A resolved SDK local runtime provider emits `local-backend-status` with `ready:true` and the full normalized status payload.
+5. The `get-local-runtime-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
+6. A resolved SDK local runtime provider emits `local-runtime-status` with `ready:true` and the full normalized status payload.
 7. SDK provider failures keep `ready:false`, publish `status:"error"` with a short sanitized error, and helper calls fail closed.
 8. `stopLocalRuntime()` shuts down the resolved SDK runtime when present and clears the local status snapshot. The old `stopLocalBackend()` export has been removed.
 
@@ -108,8 +108,8 @@ passed to the SDK provider before changing Python sidecar code.
 ## Renderer Consumer Rules
 
 Renderer readiness consumers should subscribe to `localRuntimeStatusStore` instead of invoking local-runtime status repeatedly.
-The store installs the live `local-backend-status` listener before starting the
-bootstrap `get-local-backend-status` read. If a live event arrives while the
+The store installs the live `local-runtime-status` listener before starting the
+bootstrap `get-local-runtime-status` read. If a live event arrives while the
 bootstrap read is pending, the bootstrap response is treated as stale and cannot
 overwrite the newer event snapshot.
 
@@ -126,12 +126,12 @@ Use the persistent app diagnostics path `browser.session_control` when the
 browser header is disabled, stuck, or failing before a conversation turn exists.
 Renderer events record local-runtime status observations and suppressed connect
 attempts. Electron main events record status bootstrap wake success/failure,
-`local-backend-status` broadcasts, and summarized `run-browser-action` results.
+`local-runtime-status` broadcasts, and summarized `run-browser-action` results.
 Rows must stay sanitized: store booleans, action names, status strings, counts,
 request ids, durations, and short errors only. Do not store browser URLs, page
 titles, local paths, page text, screenshots, tool output, or stack traces.
 
-When adding a new renderer feature that depends on the sidecar, wire it through the status store and test both initial bootstrap read and later `local-backend-status` event updates.
+When adding a new renderer feature that depends on the sidecar, wire it through the status store and test both initial bootstrap read and later `local-runtime-status` event updates.
 
 ## Debug Routes
 
@@ -139,7 +139,7 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 | --- | --- | --- |
 | SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `LocalRuntime.ts` |
 | Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalBackend.protocol.handle_request(...)`. | `LocalRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
-| Ready event reaches main but renderer still disabled | Check `get-local-backend-status` bootstrap invoke and `local-backend-status` listener cleanup. | `localRuntimeStatusStore.js` |
+| Ready event reaches main but renderer still disabled | Check `get-local-runtime-status` bootstrap invoke and `local-runtime-status` listener cleanup. | `localRuntimeStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
 | Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `sdk_sidecar_launch_options.cjs`, `docs/operations/release_packaging_change_workflow.md` |
 

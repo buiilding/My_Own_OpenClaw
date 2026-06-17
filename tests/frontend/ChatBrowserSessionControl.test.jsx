@@ -28,11 +28,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     RUN_BROWSER_ACTION: 'run-browser-action',
-    GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
+    GET_LOCAL_RUNTIME_STATUS: 'get-local-runtime-status',
     DESKTOP_AGENT_INVOKE: 'windie:invoke',
   },
   ON_CHANNELS: {
-    LOCAL_RUNTIME_STATUS: 'local-backend-status',
+    LOCAL_RUNTIME_STATUS: 'local-runtime-status',
   },
 }));
 
@@ -42,7 +42,7 @@ function createBrowserToolHandler(session) {
       return { ok: true, data: { stored: true } };
     }
 
-    if (channel === 'get-local-backend-status') {
+    if (channel === 'get-local-runtime-status') {
       return {
         ready: session.localRuntimeReady !== false,
         status: session.localRuntimeReady === false ? 'starting' : 'ready',
@@ -263,7 +263,7 @@ describe('ChatBrowserSessionControl', () => {
 
     expect(await screen.findByRole('button', { name: 'Connect browser' })).toBeDisabled();
     expect(screen.getByText('Starting local runtime…')).toBeInTheDocument();
-    expect(mockInvoke).toHaveBeenCalledWith('get-local-backend-status');
+    expect(mockInvoke).toHaveBeenCalledWith('get-local-runtime-status');
     const issuedBrowserToolCall = mockInvoke.mock.calls.some(([channel, payload]) => (
       channel === 'run-browser-action'
     ));
@@ -273,7 +273,7 @@ describe('ChatBrowserSessionControl', () => {
 
     session.localRuntimeReady = true;
     await act(async () => {
-      mockListeners.get('local-backend-status')?.({ ready: true });
+      mockListeners.get('local-runtime-status')?.({ ready: true });
     });
 
     expect(
@@ -319,7 +319,7 @@ describe('ChatBrowserSessionControl', () => {
       if (channel === 'windie:invoke') {
         return { ok: true, data: { stored: true } };
       }
-      if (channel === 'get-local-backend-status') {
+      if (channel === 'get-local-runtime-status') {
         return { ready: true, status: 'ready', error: '' };
       }
       if (payload?.action === 'status') {

@@ -120,19 +120,35 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime status IPC wire names
+
+- Finding: the shared IPC registry still exposed backend-named wire channel
+  values for the local-runtime status bootstrap and broadcast path, even though
+  main and renderer code now use generic local-runtime constants.
+- Change: renamed the status bootstrap and broadcast wire channels to
+  `get-local-runtime-status` and `local-runtime-status`, then updated renderer
+  parity checks, focused frontend tests, preload/IPC contract docs, and
+  local-runtime lifecycle references.
+- Validation: focused local-runtime bridge, status store, browser-session
+  control, main SDK boundary, status broadcaster, and preload channel Jest
+  tests; stale legacy-channel scan; and diff check.
+- Compatibility: no persisted-data migration required. This intentionally
+  removes the old Electron IPC wire names across main/preload/renderer; no
+  stored records or user settings change shape.
+
 ### 2026-06-17 Main local-runtime status channel constants
 
 - Finding: Electron main local-runtime bridge code still hardcoded the
-  compatibility `get-local-backend-status` and `local-backend-status` IPC wire
-  strings even though the shared registry exposes generic local-runtime keys.
+  local-runtime status IPC channel strings even though the shared registry
+  exposes generic local-runtime keys.
 - Change: routed the bridge handler and status broadcaster through shared
   `GET_LOCAL_RUNTIME_STATUS` / `LOCAL_RUNTIME_STATUS` constants and added main
-  boundary coverage so raw compatibility strings do not return to bridge code.
+  boundary coverage so raw channel strings do not return to bridge code.
 - Validation: focused main SDK runtime-boundary and status-broadcaster Jest
   tests, source scan, and diff check.
-- Compatibility: no migration required. The IPC wire channel values are
-  unchanged in the shared registry; this only removes hardcoded compatibility
-  strings from main bridge implementation code.
+- Compatibility: no migration required. The bridge now follows shared registry
+  values; the subsequent local-runtime IPC wire rename is tracked separately
+  above.
 
 ### 2026-06-17 diagnostics local-runtime lifecycle path
 
@@ -1851,9 +1867,9 @@ Each completed slice should report:
 - Validation: focused Jest run for `MainHostSkinBoundary` and
   `ChatStreamThinkingStatus.transcript`; docs listing; `git diff --check`; and
   stale-name scans for the retired local handler/status wording.
-- Compatibility: no migration required. `get-local-backend-status`,
-  `local-backend-status`, and `backend_status` compatibility payload names are
-  unchanged.
+- Compatibility: no persisted-data migration required. The `backend_status`
+  compatibility payload name is unchanged; the local-runtime status IPC wire
+  rename is tracked in the latest progress note.
 
 ### 2026-06-17 main host skin local runtime copy
 

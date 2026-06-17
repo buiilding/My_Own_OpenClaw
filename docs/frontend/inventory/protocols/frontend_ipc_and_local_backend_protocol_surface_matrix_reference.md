@@ -88,7 +88,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `window-minimize` | `main/surfaces/window_controls_ipc_runtime.cjs` | Minimize main window |
 | `window-toggle-maximize` | `main/surfaces/window_controls_ipc_runtime.cjs` | Toggle maximize state; macOS uses native fullscreen instead of Electron maximize |
 | `window-close` | `main/surfaces/window_controls_ipc_runtime.cjs` | Close main window |
-| `get-local-backend-status` | `main/sidecar/local_backend_bridge.cjs` | Wakes/reads SDK local-runtime status for renderer status surfaces |
+| `get-local-runtime-status` | `main/sidecar/local_backend_bridge.cjs` | Wakes/reads SDK local-runtime status for renderer status surfaces |
 
 ### `on`/`once` Channels (Main -> Renderer)
 
@@ -103,7 +103,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `windie:pending-turn` | `main/ipc.cjs` | Pending renderer user turn replay/clear events for secondary windows and startup handoff |
 | `transcript-session-sync` | `main/ipc/ipc_transcript_session_sync.cjs` | Normalized transcript session/conversation/user identity snapshot |
 | `ipc-status` | `main/ipc.cjs` | Backend connection + client/user/session snapshot |
-| `local-backend-status` | `main/sidecar/local_backend_bridge.cjs` | Local SDK sidecar process/readiness status |
+| `local-runtime-status` | `main/sidecar/local_backend_bridge.cjs` | Local SDK sidecar process/readiness status |
 | `log` | Reserved in preload/typed constants | Main-to-renderer log channel retained in allowlist for renderer listeners |
 | `wakeword-detected` | `main/wakeword_bridge.cjs` | Wakeword detection event (`model`, `confidence`, `score`) |
 | `wakeword-status` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` emits normalized status payloads) | Wakeword subprocess readiness/error |
@@ -240,7 +240,7 @@ Registered callable surface:
 - On process exit/error:
   - clears readiness state,
   - rejects all pending JSON-RPC promises,
-  - broadcasts `local-backend-status` with failure info (main side).
+  - broadcasts `local-runtime-status` with failure info (main side).
 
 ## Drift Guards
 

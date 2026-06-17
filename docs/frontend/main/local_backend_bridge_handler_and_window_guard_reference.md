@@ -35,7 +35,7 @@ subfolder because the file names remain compatibility names.
 Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 
 1. assemble desktop launch options and resolve the SDK local runtime provider
-2. publish renderer-visible readiness through `local-backend-status`
+2. publish renderer-visible readiness through `local-runtime-status`
 3. map renderer IPC channels to sidecar JSON-RPC methods through the SDK runtime
 4. normalize error payloads for renderer callers
 5. route screenshot tool calls through host-owned display bounds and artifact materialization; Linux hide/show ownership lives in SDK/main surface prep and renderer attachment capture orchestration

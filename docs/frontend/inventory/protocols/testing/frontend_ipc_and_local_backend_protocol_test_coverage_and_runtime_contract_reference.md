@@ -138,7 +138,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 `tests/frontend/LocalBackendBridge.lifecycle.test.cjs` enforces process-generation safety:
 
 - sidecar exit/error rejects pending internal tool execution requests with standardized unavailable errors
-- non-zero exit broadcasts `local-backend-status` with `{ready:false,error:<message>}`
+- non-zero exit broadcasts `local-runtime-status` with `{ready:false,error:<message>}`
 - stale readiness timeout/retry callbacks from previous process generation are ignored
 - delayed force-kill timer from `stopLocalRuntime` cannot kill a newly restarted process
 
