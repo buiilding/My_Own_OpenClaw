@@ -22,8 +22,6 @@ title: "Backend SDK Docs Hub"
 
 - `backend/src/sdk/context.py`
 - `backend/src/sdk/tool.py`
-- `backend/src/sdk/agents/config_helper.py`
-- `backend/src/sdk/agents/session_builder.py`
 - `backend/src/sdk/agents/response_extractor.py`
 - `backend/src/core/services/context_factory.py`
 - `backend/src/core/services/agent_factory.py`

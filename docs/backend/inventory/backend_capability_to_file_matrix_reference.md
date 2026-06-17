@@ -92,7 +92,7 @@ This matrix maps backend capabilities to implementation files.
 | Artifact storage service | `backend/src/services/artifacts/store.py` | Artifact upload/load lifecycle for screenshots/binary. |
 | Embedding provider abstraction | `backend/src/embeddings/embeddings.py` | Embedding generation and provider abstraction. |
 | Simulation runtime and mock clients | `backend/src/simulation/*` | Deterministic mock backend/LLM workflows. |
-| SDK tool/context/sub-agent helpers | `backend/src/sdk/{tool,context}.py`, `backend/src/sdk/agents/{session_builder,response_extractor,config_helper}.py` | Tool authoring and constrained sub-session helper APIs. |
+| SDK tool/context/sub-agent helpers | `backend/src/sdk/{tool,context}.py`, `backend/src/sdk/agents/response_extractor.py`, `backend/src/core/services/agent_factory.py` | Tool authoring and constrained sub-session helper APIs. |
 
 ## Related Docs
 

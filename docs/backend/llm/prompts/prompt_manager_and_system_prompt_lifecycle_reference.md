@@ -13,7 +13,6 @@ title: "Prompt Manager and System Prompt Lifecycle Reference"
 - `backend/src/llm/prompts/prompts.py`
 - `backend/src/llm/prompts/system_prompt.txt`
 - `backend/src/agent/session/initializer.py`
-- `backend/src/sdk/agents/session_builder.py`
 - `backend/src/core/services/agent_factory.py`
 - `tests/backend/test_prompt_manager.py`
 - `tests/backend/test_session_initializer.py`
@@ -89,10 +88,9 @@ Result:
 
 Sub-agent builders can override prompt at runtime:
 
-- `sdk/agents/session_builder.build_session(...)`
 - `core/services/agent_factory.AgentFactory.create_agent(...)`
 
-Both paths set:
+That path sets:
 
 - `sub_session.prompt_builder.system_prompt = <custom system_prompt>`
 

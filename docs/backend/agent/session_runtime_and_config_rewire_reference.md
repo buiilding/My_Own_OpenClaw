@@ -79,8 +79,8 @@ The current session-construction path is:
 1. `SessionRuntimeCoordinator` reads `container.ocr_router`.
 2. `AgentSessionFactory(..., ocr_router=...)` stores that router dependency.
 3. `AgentSession(..., ocr_router=...)` stores `self.ocr_router`.
-4. `AgentFactory.create_agent(...)` and `sdk/agents/session_builder.build_session(...)`
-   copy `parent_session.ocr_router` into child sessions.
+4. `AgentFactory.create_agent(...)` copies `parent_session.ocr_router` into
+   child sessions.
 
 Tool context injection uses the same `ocr_router` name; do not reintroduce a
 separate `ocr_service` service key when touching OCR wiring.

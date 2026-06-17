@@ -26,7 +26,6 @@ title: "Backend LLM Prompt Docs Hub"
 - `backend/src/agent/llm/event_presenter.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/session/initializer.py`
-- `backend/src/sdk/agents/session_builder.py`
 - `backend/src/core/services/agent_factory.py`
 - `tests/backend/test_prompt_constructor_utils.py`
 - `tests/backend/test_prompt_manager.py`

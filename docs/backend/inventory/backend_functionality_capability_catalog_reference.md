@@ -227,7 +227,8 @@ Primary files:
 
 - `backend/src/simulation/*`
 - `backend/src/sdk/{tool,context}.py`
-- `backend/src/sdk/agents/{session_builder,response_extractor,config_helper}.py`
+- `backend/src/sdk/agents/response_extractor.py`
+- `backend/src/core/services/agent_factory.py`
 
 Capabilities:
 

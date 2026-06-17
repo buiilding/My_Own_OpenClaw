@@ -2,7 +2,6 @@
 
 import pytest
 
-from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
@@ -11,7 +10,6 @@ from backend.src.core.events.streaming_events import (
     ToolCallEvent,
     ToolOutputEvent,
 )
-from backend.src.sdk.agents.config_helper import override_model_id
 from backend.src.sdk.agents.response_extractor import extract_response
 
 
@@ -104,16 +102,3 @@ async def test_extract_response_returns_default_when_no_events_or_assistant_text
     session = _FakeSession(events=[], history_rows=[{"role": "user", "content": "only user"}])
 
     assert await extract_response(session, "q") == "Agent finished without a response."
-
-
-def test_override_model_id_returns_new_config_without_mutating_original():
-    original = AppConfig(
-        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
-        model_provider="openai",
-    )
-
-    updated = override_model_id(original, "k2p5")
-
-    assert updated.selected_model_id == "k2p5"
-    assert original.selected_model_id == "gpt-5.4@@gpt-5-4-none-thinking"
-    assert updated.model_provider == original.model_provider
