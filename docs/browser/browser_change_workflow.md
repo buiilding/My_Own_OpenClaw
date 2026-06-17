@@ -215,7 +215,7 @@ Validate:
 - stale async status responses cannot overwrite newer state, and disconnect
   invalidates in-flight syncs before stale `get_tabs` results can reapply a
   connected snapshot.
-- UI handles local backend not-ready state without pretending the browser is connected.
+- UI handles local-runtime not-ready state without pretending the browser is connected.
 
 ### Change browser permission/readiness behavior
 

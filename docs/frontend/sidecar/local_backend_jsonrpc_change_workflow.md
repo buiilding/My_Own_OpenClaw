@@ -1,12 +1,12 @@
 ---
-summary: "Workflow for adding, changing, or debugging WindieOS local-backend JSON-RPC methods across SDK local-runtime bridge mappings, Python sidecar method registration, payload normalization, timeouts, readiness, and tests."
+summary: "Workflow for adding, changing, or debugging WindieOS local-runtime JSON-RPC methods across SDK local-runtime bridge mappings, Python sidecar method registration, payload normalization, timeouts, readiness, and tests."
 read_when:
   - When adding, renaming, deleting, or changing a Python sidecar JSON-RPC method.
   - When a renderer IPC call reaches Electron main but does not reach the expected sidecar method, maps payload keys incorrectly, times out, or returns the wrong success/error envelope.
-title: "Local Backend JSON-RPC Change Workflow"
+title: "Local Runtime JSON-RPC Change Workflow"
 ---
 
-# Local Backend JSON-RPC Change Workflow
+# Local Runtime JSON-RPC Change Workflow
 
 Use this workflow when a change crosses the Electron main process into
 `frontend/src/main/python/local_backend.py`. The active desktop bridge sends
@@ -139,14 +139,15 @@ Do not silently rename payload keys in only the renderer or only the mapper. If 
 
 Electron main readiness behavior:
 
-- starts `local_backend.py` from the resolved sidecar launch target.
+- starts `sidecar_daemon.py` from the resolved sidecar launch target.
 - passes backend endpoint, install-auth path, permission-state path, packaged-app flags, and Python runtime env.
 - performs repeated `ping` readiness checks.
 - marks the supervisor ready when ping succeeds.
 - rejects all pending requests on sidecar process exit/error.
 - parses stdout line by line; large JSON responses can be parsed in a worker thread.
-- forwards allowed stderr lines as `[LocalRuntime] ...` logs while continuing
-  to accept legacy local-backend-prefixed lines from older helper output.
+- forwards allowed stderr lines with active sidecar daemon, local-runtime, tool,
+  and MCP prefixes; retired local-backend-prefixed helper lines are not part of
+  the host forwarding allowlist.
 
 When changing readiness, update process lifecycle docs and tests. Do not use arbitrary stdout logging from Python because it corrupts the JSON-RPC stream.
 
@@ -155,7 +156,7 @@ When changing readiness, update process lifecycle docs and tests. Do not use arb
 Choose the response layer intentionally:
 
 - Use a raw JSON-RPC result for low-level protocol methods such as `ping`.
-- Use `{ success:true, data }` and `{ success:false, error }` for local backend operations that renderer/main treats as application results.
+- Use `{ success:true, data }` and `{ success:false, error }` for local-runtime operations that renderer/main treats as application results.
 - Use `sendRequestOrError(...)` when main callers should receive error envelopes instead of rejected promises.
 - Use thrown errors only when the caller is explicitly expected to catch request/transport failures.
 - Keep tool execution errors as tool result errors so backend can receive model-visible tool outputs.

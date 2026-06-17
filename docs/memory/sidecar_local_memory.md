@@ -9,8 +9,8 @@ title: "Sidecar Local Memory"
 # Sidecar Local Memory
 
 The sidecar owns local episodic and semantic memory persistence and search.
-Renderer and Electron main call it through local-backend JSON-RPC; backend code
-must not import sidecar memory code.
+Renderer and Electron main call it through the SDK local-runtime JSON-RPC path;
+backend code must not import sidecar memory code.
 
 ## Code Ownership
 

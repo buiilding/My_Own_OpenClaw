@@ -67,8 +67,8 @@ Electron main normalizes multiple failure classes:
 
 - websocket disconnected query sends synthesize a backend-style `error` event.
 - settings ACK timeouts resolve failure after the configured timeout.
-- local backend JSON-RPC request failures return `{ success: false, error }`.
-- local backend process failures broadcast `local-runtime-status` with `ready: false` and an error string.
+- local-runtime JSON-RPC request failures return `{ success: false, error }`.
+- local-runtime process failures broadcast `local-runtime-status` with `ready: false` and an error string.
 
 Do not throw uncaught errors from these hot paths; preserve status updates and pending-promise cleanup.
 
@@ -85,7 +85,7 @@ Tool implementations should include structured `data.error_code` when a caller c
 
 ### Renderer error surfaces
 
-Renderer UI should display errors from canonical backend events, tool-result envelopes, local backend status payloads, or component crash boundaries. Avoid creating a second error vocabulary if a producing runtime already has a stable contract.
+Renderer UI should display errors from canonical backend events, tool-result envelopes, local-runtime status payloads, or component crash boundaries. Avoid creating a second error vocabulary if a producing runtime already has a stable contract.
 
 ## Change Paths
 
@@ -230,7 +230,7 @@ Validate:
 | Backend exception hierarchy | `./scripts/python-in-env backend pytest tests/backend/test_exceptions.py tests/backend/test_api_errors.py` |
 | Parser/tool-call recovery | parser validation and interaction-loop recovery tests |
 | Tool result ingestion | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_router.py tests/backend/test_incoming_tool_result_schemas.py` |
-| Electron websocket/settings/local-backend failures | `bin/windie test frontend -- IpcMainBridge LocalRuntimeBridge` |
+| Electron websocket/settings/local-runtime failures | `bin/windie test frontend -- IpcMainBridge LocalRuntimeBridge` |
 | Preload/IPC validation | `bin/windie test frontend -- IpcBridgeValidation` |
 | Sidecar ToolResult/registry | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_result.py tests/sidecar/test_tool_registry.py` |
 | Renderer tool failure UI/persistence | `bin/windie test frontend -- ToolRunnerFailureContracts ToolExecutionResultDispatch ToolResultEnvelope` |

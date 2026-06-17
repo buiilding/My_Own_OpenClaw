@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 JSON-RPC workflow local-runtime wording cleanup
+
+- Finding: JSON-RPC, browser, memory, and error workflow docs still described
+  Electron-facing sidecar request/status failures as local-backend surfaces, and
+  the JSON-RPC workflow still said the host starts `local_backend.py` and
+  accepts legacy local-backend-prefixed stderr.
+- Change: updated those docs to describe the SDK local-runtime JSON-RPC path,
+  the `sidecar_daemon.py` launch target, and the active stderr forwarding
+  allowlist; preserved Python `LocalBackend` implementation references where
+  they name the real sidecar class.
+- Validation: docs listing, focused stale wording scan, and diff check.
+- Compatibility: no migration required. This is documentation only; JSON-RPC
+  methods, IPC channels, daemon launch behavior, and persisted data are
+  unchanged.
+
 ### 2026-06-17 protocol surface matrix local-runtime title cleanup
 
 - Finding: frontend inventory protocol hubs still surfaced the local-runtime

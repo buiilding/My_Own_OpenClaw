@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated JSON-RPC, browser, memory, and error workflow docs to describe Electron-facing sidecar request/status paths as SDK local-runtime surfaces. No migration is required.
+
 - Removed stale compatibility-facade wording from backend container docs so `Container` is described as the active runtime facade over `ApplicationContainer`. No migration is required.
 
 - Removed the stale backend inventory claim for a compatibility schema export facade and kept schema ownership pointed at direct modules. No migration is required.
