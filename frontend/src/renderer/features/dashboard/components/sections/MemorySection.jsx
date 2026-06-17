@@ -94,17 +94,17 @@ function MemorySection({ onClose = () => {} }) {
       return;
     }
 
-    const backendMemoryId = memory.backendMemoryId || memory.id || null;
-    const backendType = memory.backendType || activeType;
+    const runtimeMemoryId = memory.runtimeMemoryId || memory.id || null;
+    const runtimeMemoryKind = memory.runtimeMemoryKind || activeType;
 
-    if (backendMemoryId && (backendType === 'semantic' || backendType === 'episodic')) {
+    if (runtimeMemoryId && (runtimeMemoryKind === 'semantic' || runtimeMemoryKind === 'episodic')) {
       try {
         await DesktopMemoryRuntimeClient.deleteMemoryItem({
-          memoryId: backendMemoryId,
-          kind: backendType,
+          memoryId: runtimeMemoryId,
+          kind: runtimeMemoryKind,
         });
       } catch (error) {
-        setLoadError(error?.message || `${memoryPanelSkin.deleteFailurePrefix} ${backendType} memory`);
+        setLoadError(error?.message || `${memoryPanelSkin.deleteFailurePrefix} ${runtimeMemoryKind} memory`);
         return;
       }
     }

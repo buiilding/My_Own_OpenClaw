@@ -130,8 +130,8 @@ export function normalizeEpisodicMemories(memories = []) {
       tokens: Math.max(words, 0),
       source: memory?.metadata?.source || 'memory_store',
       timestamp: memory?.timestamp || null,
-      backendMemoryId: memory?.id || null,
-      backendType: 'episodic',
+      runtimeMemoryId: memory?.id || null,
+      runtimeMemoryKind: 'episodic',
     };
   });
 }
@@ -150,8 +150,8 @@ export function normalizeSemanticMemories(memories = []) {
       confidence: memory?.metadata?.source === 'manual' ? 'Medium' : 'High',
       source: memory?.metadata?.source || 'semantic_summary',
       timestamp: memory?.timestamp || null,
-      backendMemoryId: memory?.id || null,
-      backendType: 'semantic',
+      runtimeMemoryId: memory?.id || null,
+      runtimeMemoryKind: 'semantic',
     };
   });
 }

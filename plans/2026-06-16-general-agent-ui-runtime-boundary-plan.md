@@ -2763,3 +2763,17 @@ Each completed slice should report:
 - Compatibility: no migration required. The backend mode value remains
   `windie_default`; host callers now use the SDK predicate instead of the raw
   literal.
+
+### 2026-06-17 renderer memory row runtime id fields
+
+- Finding: dashboard memory rows stored delete-routing data as
+  `backendMemoryId` and `backendType`, making renderer UI state read as if it
+  owned backend memory internals instead of calling the desktop memory runtime
+  facade.
+- Change: renamed the internal normalized row fields to `runtimeMemoryId` and
+  `runtimeMemoryKind`, kept `DesktopMemoryRuntimeClient.deleteMemoryItem(...)`
+  as the delete boundary, and updated the dashboard memory docs.
+- Validation: focused MemorySection coverage, docs listing, `git diff --check`,
+  and source scans for retired backend-shaped row fields.
+- Compatibility: no migration required. These fields are transient renderer row
+  properties, and the SDK/runtime delete payload is unchanged.

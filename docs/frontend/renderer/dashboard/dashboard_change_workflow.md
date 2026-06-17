@@ -193,7 +193,7 @@ Panel invariants:
 | Search results lag or show stale query | Check 180ms search debounce cancellation, query length gate, and `searchOpen` reset path. | Search modal and conversation hook |
 | Conversation opens but messages belong to previous chat | Check snapshot loader, `applyRendererConversationSelection`, chat store `conversationRef`, and inference session state. | Conversation handoff |
 | Delete removes row but chat still shows old messages | Check active-conversation delete branch and `resetActiveChatSession`. | Conversation hook and replay state |
-| Memory delete fails silently | Check IPC invoke result, `backendMemoryId`, `backendType`, and error state handling. | Memory section and memory IPC |
+| Memory delete fails silently | Check IPC invoke result, `runtimeMemoryId`, `runtimeMemoryKind`, and error state handling. | Memory section and memory IPC |
 | Model appears selected but backend uses old model | Check `onConfigChange`, AppConfig persistence, `update-settings` ACK, and backend model catalog. | Models section plus settings sync |
 | Settings save status is stuck | Check AppStatus provider ACK/error routing and settings-error text coupling. | AppConfig/AppStatus and ACK routing |
 | Dashboard behaves differently in VM mode | Check `vmModeEnabled` panel/sidebar gating in `DashboardShell`. | Shell |

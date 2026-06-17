@@ -210,6 +210,29 @@ describe('MemorySection', () => {
     }
   });
 
+  test('normalizes memory rows with runtime delete-routing fields', async () => {
+    const {
+      normalizeEpisodicMemories,
+      normalizeSemanticMemories,
+    } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/memorySectionData'
+    );
+
+    const episodicRow = normalizeEpisodicMemories([{ id: 'ep-runtime-1', content: 'User: hi' }])[0];
+    const semanticRow = normalizeSemanticMemories([{ id: 'sem-runtime-1', content: 'Summary: hi' }])[0];
+
+    expect(episodicRow).toMatchObject({
+      runtimeMemoryId: 'ep-runtime-1',
+      runtimeMemoryKind: 'episodic',
+    });
+    expect(semanticRow).toMatchObject({
+      runtimeMemoryId: 'sem-runtime-1',
+      runtimeMemoryKind: 'semantic',
+    });
+    expect(episodicRow).not.toHaveProperty('backendMemoryId');
+    expect(semanticRow).not.toHaveProperty('backendType');
+  });
+
   test('persists memory retrieval injection toggle state in localStorage', async () => {
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'

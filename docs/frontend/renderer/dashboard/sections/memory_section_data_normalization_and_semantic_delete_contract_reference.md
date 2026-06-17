@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, and backend-backed delete IPC contracts."
+summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, and runtime-backed delete IPC contracts."
 read_when:
   - When changing `MemorySection.jsx`, `MemoryItem.jsx`, or `memorySectionData.js`.
   - When debugging dashboard memory list shape drift, episodic/semantic delete failures, or search/edit state behavior.
@@ -24,7 +24,7 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 - memory type tabs (`episodic`, `semantic`, `procedural`)
 - fetch + normalization on mount/user switch
 - local search filter
-- episodic/semantic delete RPC flow (for backend-backed rows)
+- episodic/semantic delete RPC flow (for runtime-backed rows)
 
 State buckets:
 
@@ -59,14 +59,14 @@ Normalization modules:
 - title uses first non-empty content line (prefixes like `user:` / `assistant:` stripped)
 - date uses locale-formatted timestamp during normalization
 - tokens estimate uses word count
-- backend ids retained in `backendMemoryId`
+- runtime memory ids retained in `runtimeMemoryId`
 
 ### Semantic normalization
 
 - parses `Summary:` / `Facts:` style content into summary + bullet detail
 - title defaults to parsed summary
 - confidence label derived from metadata source (`manual` -> `Medium`, else `High`)
-- source and backend ids retained
+- source and runtime memory ids retained
 
 ## Search Filter Contract
 
@@ -83,9 +83,9 @@ Match behavior:
 Add/edit controls are intentionally not exposed in `MemorySection`. The panel is backed by sidecar episodic and semantic stores, and local-only draft mutations would disappear on reload. Until a real create/update memory IPC contract exists for this dashboard shape, delete is the only row mutation.
 
 - no confirmation prompt; delete is single-click
-- rows with `backendMemoryId` and backend type call
+- rows with `runtimeMemoryId` and runtime memory kind call
   `DesktopMemoryRuntimeClient.deleteMemoryItem({ userId, memoryId, kind })`
-- rows without backend id are removed from local list only
+- rows without a runtime memory id are removed from local list only
 
 `DesktopMemoryRuntimeClient` contains the sidecar-shaped IPC channel names and
 result normalization. `MemorySection` must stay UI-scoped and call the facade
@@ -122,7 +122,7 @@ After delete:
 
 1. Changing sidecar memory payload shape without updating normalizers.
 2. Reintroducing local add/edit without a backend write path creates reload-time data loss.
-3. Removing backend id propagation (`backendMemoryId`) breaks backend delete routing.
+3. Removing runtime memory id propagation (`runtimeMemoryId`) breaks delete routing.
 4. Divergent user-id fallback policy can split memory visibility by session state.
 
 ## Related Pages
