@@ -73,33 +73,41 @@ Handshake validation behavior:
 {
   "type": "handshake",
   "user_id": "user-123",
-  "operating_system": "macOS",
-  "available_tools": [
-    "mouse_control",
-    "keyboard_control",
-    "screenshot",
-    "browser",
-    "web_search"
-  ],
-  "requested_agent_policy": {
-    "profile": "computer",
-    "disabled_tools": ["browser"],
-    "disabled_capabilities": ["ocr", "vision"]
+  "agent_definition": {
+    "version": 1,
+    "tools": {
+      "mode": "explicit",
+      "available_tools": [
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "browser",
+        "web_search"
+      ],
+      "disabled_tools": ["browser"],
+      "disabled_capabilities": ["ocr", "vision"]
+    },
+    "runtime": {
+      "operating_system": "macOS",
+      "coordinate_methods": ["manual"]
+    }
   }
 }
 ```
 
-Capability negotiation fields are optional. If provided, the backend applies
-them as session-scoped policy inputs before the first query:
-- `available_tools`: tool names this client/runtime can satisfy or expects the backend to provide for this session
-- `available_coordinate_methods`: optional coordinate grounding methods used only as a narrowing input for specialized clients; Electron does not send this field
-- `requested_agent_policy.profile`: `default`, `chat`, `coding`, `browser`, `computer`, `full`, or `custom`
-- `requested_agent_policy.disabled_tools`: direct tool names requested off
-- `requested_agent_policy.coordinate_methods`: optional requested coordinate-method narrowing
-- `requested_agent_policy.disabled_capabilities`: `ocr`, `vision`, `embeddings`, `web_search`, or `browser`
+`agent_definition` is optional. If provided, the backend applies its tool and
+runtime fields as session-scoped policy inputs before the first query:
+- `agent_definition.tools.available_tools`: tool names this client/runtime can satisfy or expects the backend to provide for this session
+- `agent_definition.tools.disabled_tools`: direct tool names requested off
+- `agent_definition.tools.disabled_capabilities`: `ocr`, `vision`, `embeddings`, `web_search`, or `browser`
+- `agent_definition.runtime.coordinate_methods`: optional coordinate grounding methods used only as a narrowing input for specialized clients
+- `agent_definition.runtime.operating_system`: optional runtime OS used when rendering the session prompt
 
-The backend treats these as narrowing inputs. Server policy, interaction mode,
-and dev compatibility policy still apply after handshake negotiation.
+The backend treats these as narrowing inputs. Server policy and interaction
+mode still apply after handshake negotiation. Removed top-level handshake fields
+such as `operating_system`, `available_tools`, `available_coordinate_methods`,
+and `requested_agent_policy` are rejected; websocket clients must send the
+canonical `agent_definition` shape. No persisted-data migration is required.
 OCR, vision, prediction, web search, and paid capability availability are
 backend-owned; clients cannot unlock them by sending handshake fields.
 

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed legacy top-level WebSocket handshake capability fields; clients must send runtime and tool policy through `agent_definition`, and no persisted-data migration is required.
+
 - Removed the legacy `withLocalBackendNodeOptions` Electron main helper export so local-runtime launch code uses `withLocalRuntimeNodeOptions` directly.
 
 - Removed legacy screenshot temp path acceptance in the Electron local-runtime bridge; screenshot materialization now accepts only `desktop-agent-screenshots` files with the `desktop-agent-shot-` prefix. No persisted-data migration is required.

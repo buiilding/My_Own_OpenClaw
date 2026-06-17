@@ -2,7 +2,6 @@
 
 from backend.src.api.schemas.common import (
     BaseMessage,
-    HandshakeAgentPolicy,
     HandshakeMessage,
 )
 from backend.src.api.schemas.agent_definition import (
@@ -106,7 +105,6 @@ __all__ = [
     "ErrorPayload",
     "ErrorResponse",
     "HandshakeMessage",
-    "HandshakeAgentPolicy",
     "IncomingMessage",
     "ListModelsMessage",
     "LlmThought",

@@ -108,12 +108,16 @@ async def test_perform_handshake_returns_client_user_id() -> None:
             {
                 "type": "handshake",
                 "user_id": "client_user",
-                "operating_system": "macOS",
-                "available_tools": ["read_file", "mouse_control"],
-                "available_coordinate_methods": ["manual"],
-                "requested_agent_policy": {
-                    "profile": "coding",
-                    "disabled_capabilities": ["ocr", "vision"],
+                "agent_definition": {
+                    "tools": {
+                        "mode": "explicit",
+                        "available_tools": ["read_file", "mouse_control"],
+                        "disabled_capabilities": ["ocr", "vision"],
+                    },
+                    "runtime": {
+                        "operating_system": "macOS",
+                        "coordinate_methods": ["manual"],
+                    },
                 },
             }
         )
@@ -128,9 +132,31 @@ async def test_perform_handshake_returns_client_user_id() -> None:
     assert getattr(safe_ws, "frontend_agent_capability_overrides", None) == {
         "agent_available_tools": ["read_file", "mouse_control"],
         "agent_available_coordinate_methods": ["manual"],
-        "agent_tool_profile": "coding",
         "agent_disabled_capabilities": ["ocr", "vision"],
     }
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_rejects_removed_top_level_capability_fields() -> None:
+    websocket = DummyWebSocket(
+        json.dumps(
+            {
+                "type": "handshake",
+                "user_id": "client_user",
+                "operating_system": "macOS",
+                "available_tools": ["read_file"],
+                "available_coordinate_methods": ["manual"],
+                "requested_agent_policy": {"disabled_capabilities": ["vision"]},
+            }
+        )
+    )
+    safe_ws = DummySafeWebSocket()
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert safe_ws.closed[0][0] == 1008
 
 
 @pytest.mark.asyncio

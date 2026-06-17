@@ -84,13 +84,13 @@ Coordinate/capability behavior:
 - `agent_disabled_capabilities=["vision"]` removes prediction coordinate fields and rejects prediction method calls.
 - `agent_provider_unavailable_capabilities=["ocr", "vision"]` has the same prompt/schema effect as explicit disables, but is computed from backend provider health instead of user/session preference.
 
-The WebSocket handshake can populate `agent_available_tools`,
-`agent_available_coordinate_methods`, and requested policy fields before the
-first query. `available_coordinate_methods`, requested agent policy coordinate
-methods, and agent-definition runtime coordinate methods all converge on
-`agent_available_coordinate_methods` because they describe client/session
-availability. These client-provided fields are narrowing inputs only; they do
-not override backend hard-disables.
+The WebSocket handshake can populate `agent_available_tools` and
+`agent_available_coordinate_methods` from the canonical `agent_definition`
+object before the first query. Agent-definition runtime coordinate methods map
+to `agent_available_coordinate_methods` because they describe client/session
+availability. The removed top-level handshake capability fields are rejected.
+These client-provided fields are narrowing inputs only; they do not override
+backend hard-disables.
 
 Provider-health gates are also narrowing inputs. The container-backed session
 manager resolves known OCR, vision, embeddings, and web-search availability when

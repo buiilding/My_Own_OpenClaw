@@ -84,8 +84,7 @@ async def perform_handshake(
         frontend_operating_system = (
             agent_definition.runtime.operating_system
             if agent_definition is not None
-            and agent_definition.runtime.operating_system is not None
-            else handshake_msg.operating_system
+            else None
         )
         setattr(safe_ws, "frontend_operating_system", frontend_operating_system)
         raw_client_tool_manifest = (
@@ -96,7 +95,7 @@ async def perform_handshake(
         capability_overrides = (
             agent_definition.to_session_config_overrides()
             if agent_definition is not None
-            else handshake_msg.to_session_config_overrides()
+            else {}
         )
         client_tool_manifest_result = validate_client_tool_manifest(
             raw_client_tool_manifest

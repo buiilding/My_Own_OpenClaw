@@ -66,7 +66,7 @@ Initialization is effectively idempotent after first successful load.
 
 Current session behavior:
 
-- Electron main includes `operating_system` in the websocket handshake once per connection
+- Electron main includes `agent_definition.runtime.operating_system` in the websocket handshake once per connection
 - websocket router forwards that value into `SessionManager`
 - `SessionManager` applies the rendered prompt to `prompt_builder.system_prompt` and `history.system_prompt` when the user session is created (or immediately if the session already exists)
 

@@ -15,13 +15,13 @@ Tool visibility is not just the static catalog. Backend `ToolPolicy` narrows too
 | Input | Owner | Effect |
 | --- | --- | --- |
 | interaction mode | backend session config | Can apply a broad allowlist for chat/agent behavior |
-| `agent_tool_profile` | backend config/session/agent definition policy | Selects a named profile such as `coding`, `browser`, `computer`, or `full` |
-| `agent_available_tools` | websocket `agent_definition` or compatibility capability fields | Intersects model-visible tools with what the client can execute |
+| `agent_tool_profile` | backend config/session policy | Selects a named profile such as `coding`, `browser`, `computer`, or `full` |
+| `agent_available_tools` | websocket `agent_definition.tools` or session config | Intersects model-visible tools with what the client can execute |
 | `agent_disabled_tools` | config/session policy | Removes specific direct tools |
 | `agent_disabled_capabilities` | config/session policy | Removes capability families such as `browser`, `web_search`, `ocr`, or `vision` |
 | `agent_provider_unavailable_capabilities` | provider health policy | Removes capabilities known unavailable before prompt construction |
 | `agent_coordinate_methods` | config/session policy | Narrows mouse/scroll coordinate methods |
-| `agent_available_coordinate_methods` | specialized websocket `agent_definition` or compatibility capability fields | Optional narrowing input for clients that truly lack a coordinate method; Electron does not send it |
+| `agent_available_coordinate_methods` | specialized websocket `agent_definition.runtime` or session config | Optional narrowing input for clients that truly lack a coordinate method; Electron does not send it |
 | provider projection | backend provider layer | May add or adapt provider-native declarations after canonical filtering |
 
 Primary files:
