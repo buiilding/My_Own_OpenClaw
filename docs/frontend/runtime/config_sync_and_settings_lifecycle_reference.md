@@ -77,7 +77,7 @@ Tracks transient save state machine:
 
 - `saving` set when UI triggers config update callback
 - transitions to `success` when backend emits `settings-updated`
-- transitions to `error` on backend settings-update failure message
+- transitions to `error` on settings-runtime update failure message
 - auto-resets to `idle` after timeout window
 
 ## Renderer Persistence Layers

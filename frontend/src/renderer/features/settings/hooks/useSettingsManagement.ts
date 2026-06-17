@@ -26,7 +26,7 @@ function isListedModelsPayload(payload: unknown): payload is ListedModelsPayload
 }
 
 /**
- * Custom hook for managing settings-related backend events.
+ * Custom hook for managing settings-runtime events.
  * Currently only handles model listing (config is frontend-only now).
  *
  * @param {Function} setAvailableModels - Function to update available models state

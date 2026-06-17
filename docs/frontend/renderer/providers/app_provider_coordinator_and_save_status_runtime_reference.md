@@ -83,7 +83,7 @@ Initialization/sync inputs:
 
 1. localStorage (`loadConfigFromStorage`) as initial state seed
 2. renderer view (`window.location.search`) for initial wakeword suppression seed
-3. backend stream listener for `models-listed`
+3. settings-event listener for `models-listed`
 4. IPC status events (`ipc-status`) for transcript user and backend HTTP URL snapshot
 5. initial `get-client-user-id` invoke for startup snapshot
 6. disk config load (`load-frontend-config`) merge path

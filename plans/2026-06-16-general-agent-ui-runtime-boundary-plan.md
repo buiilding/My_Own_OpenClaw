@@ -626,3 +626,17 @@ Each completed slice should report:
 - Compatibility: no migration required. The sidecar bridge export and
   initialization behavior are unchanged; only generic main-process dependency
   names moved to local-runtime wording.
+
+### 2026-06-17 renderer settings runtime event wording
+
+- Finding: renderer settings hook/docs still described model-list and
+  save-status flows as backend events/listeners even though renderer providers
+  consume settings-runtime events through the app runtime facade.
+- Change: updated the settings hook comment plus provider/config lifecycle docs
+  to use settings-runtime and settings-event listener wording.
+- Validation: focused Jest run for `SettingsManagementHook`,
+  `AppConfigProvider.models`, and `AppStatusProvider`; stale-phrase scan; docs
+  listing; and `git diff --check`.
+- Compatibility: no migration required. Settings-event channels, backend
+  settings ownership, model-list payloads, and save-status behavior are
+  unchanged.
