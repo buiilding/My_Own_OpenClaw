@@ -24,11 +24,7 @@ from backend.src.llm.providers.error_mapping import (
     extract_status_code,
     iter_exception_chain,
 )
-from backend.src.llm.providers.stream_event_pipeline import (
-    enable_stream_with_usage,
-    stream_text_content_events,
-    stream_thinking_and_text_events,
-)
+from backend.src.llm.providers.stream_event_pipeline import enable_stream_with_usage
 from backend.src.llm.providers.usage_diagnostics import (
     build_stream_cache_diagnostics,
     collect_usage_payload,
@@ -214,7 +210,7 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
             max_output_tokens=request_kwargs.get("max_output_tokens"),
         )
         if include_stream:
-            self._enable_stream_with_usage(params)
+            enable_stream_with_usage(params)
         return params
 
     async def _get_completion_with_standard_params(
@@ -553,38 +549,6 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         _ = runtime_model_id
         _ = model
         return params
-
-    @staticmethod
-    def _enable_stream_with_usage(params: Dict[str, Any]) -> Dict[str, Any]:
-        """Enable stream mode with usage payloads on provider request params."""
-        return enable_stream_with_usage(params)
-
-    async def _stream_text_content_events(
-        self,
-        params: Dict[str, Any],
-    ) -> AsyncGenerator[StreamingEvent, None]:
-        """Stream request and yield text chunk events for providers without thinking deltas."""
-        async for event in stream_text_content_events(
-            params=params,
-            record_stream_usage_from_chunk=self._record_stream_usage_from_chunk,
-            extract_stream_delta=self._extract_stream_delta,
-            extract_delta_content=self._extract_delta_content,
-        ):
-            yield event
-
-    async def _stream_thinking_and_text_events(
-        self,
-        params: Dict[str, Any],
-    ) -> AsyncGenerator[StreamingEvent, None]:
-        """Stream request and yield thinking + text events when provider returns thinking deltas."""
-        async for event in stream_thinking_and_text_events(
-            params=params,
-            record_stream_usage_from_chunk=self._record_stream_usage_from_chunk,
-            extract_stream_delta=self._extract_stream_delta,
-            extract_thinking_content=self._extract_thinking_content,
-            extract_delta_content=self._extract_delta_content,
-        ):
-            yield event
 
     @abstractmethod
     def _get_full_model_string(self, model_id: str) -> str:

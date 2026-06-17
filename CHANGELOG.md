@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed private base LLM provider stream forwarding helpers so stream usage setup and online stream event iteration call `stream_event_pipeline` directly. No migration is required because provider request params, streaming event shapes, and backend API contracts are unchanged.
+
 - Removed camelCase backend-event alias reads from compact Electron trace diagnostics so `ipc.bridge` summaries use canonical backend fields such as `turn_ref`, `conversation_ref`, `request_id`, `tool_name`, and `final_response`. No migration is required because this changes diagnostic summarization only.
 
 - Removed duplicate renderer query turn-id aliases so `conversation.send` emits and accepts only `query_message_id`; direct `id`, `messageId`, `message_id`, `queryMessageId`, `turnRef`, and `turn_ref` query command fields now fail fast. No migration required for first-party callers, which already have a canonical turn id.

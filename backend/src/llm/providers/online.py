@@ -7,6 +7,10 @@ import litellm
 from backend.src.core.events.streaming_events import StreamingEvent
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.providers.stream_event_pipeline import (
+    stream_text_content_events,
+    stream_thinking_and_text_events,
+)
 
 
 class OnlineLLMProvider(LLMProvider):
@@ -107,12 +111,23 @@ class OnlineLLMProvider(LLMProvider):
             messages=messages,
             completion_kwargs=self._extract_request_options(request_kwargs),
         )
-        stream_handler = (
-            self._stream_thinking_and_text_events
-            if self.stream_includes_thinking
-            else self._stream_text_content_events
-        )
-        async for event in stream_handler(params):
+        if self.stream_includes_thinking:
+            async for event in stream_thinking_and_text_events(
+                params=params,
+                record_stream_usage_from_chunk=self._record_stream_usage_from_chunk,
+                extract_stream_delta=self._extract_stream_delta,
+                extract_thinking_content=self._extract_thinking_content,
+                extract_delta_content=self._extract_delta_content,
+            ):
+                yield event
+            return
+
+        async for event in stream_text_content_events(
+            params=params,
+            record_stream_usage_from_chunk=self._record_stream_usage_from_chunk,
+            extract_stream_delta=self._extract_stream_delta,
+            extract_delta_content=self._extract_delta_content,
+        ):
             yield event
 
     async def list_models(self) -> List[Dict[str, str]]:

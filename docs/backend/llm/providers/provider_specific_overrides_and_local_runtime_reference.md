@@ -31,10 +31,12 @@ title: "Provider-Specific Overrides and Local Runtime Reference"
 
 - API-key dependency check (`_validate_dependencies` uses `_require_api_key`).
 - non-stream completion path via `_get_completion_with_standard_params(...)`.
-- stream param construction includes usage payloads.
-- stream handler selection:
-  - thinking-capable providers use `_stream_thinking_and_text_events`,
-  - others use `_stream_text_content_events`.
+- stream param construction in the base provider includes usage payloads through
+  `stream_event_pipeline.enable_stream_with_usage(...)`.
+- stream handler selection stays in `OnlineLLMProvider` and calls
+  `stream_event_pipeline.stream_thinking_and_text_events(...)` for
+  thinking-capable providers or `stream_text_content_events(...)` for normal
+  text streams.
 - model namespacing via optional `model_prefix`.
 
 Default `list_models()` returns empty list; online model catalogs are static in `models_config.py`.

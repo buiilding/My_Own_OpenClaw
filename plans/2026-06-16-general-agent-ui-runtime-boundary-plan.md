@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend provider stream helper ownership cleanup
+
+- Finding: base LLM provider still exposed private forwarding helpers for
+  stream usage and stream event iteration even after stream event functions were
+  extracted to `stream_event_pipeline`.
+- Change: made base provider call `enable_stream_with_usage(...)` directly,
+  moved online stream selection to direct `stream_event_pipeline` calls, and
+  updated provider override docs to describe the concrete owner.
+- Validation: Python py_compile for touched provider modules, docs listing, and
+  diff check. Focused backend pytest was attempted but blocked because the
+  `jarvis` conda env was unavailable and the fallback Python environment lacked
+  backend dependencies such as `litellm` and `fastapi`.
+- Compatibility: no migration required. This removes private provider wrapper
+  methods only; provider request params, streaming event shapes, and backend API
+  contracts are unchanged.
+
 ### 2026-06-17 backend trace diagnostic alias removal
 
 - Finding: Electron main compact backend-event tracing still read camelCase
