@@ -15,7 +15,7 @@ import type {
   TurnResourceResolverContext,
   TurnResourceResolverRegistry,
 } from '../conversation/types.js';
-import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
+import type { AgentHostedBackendClient } from '../transport/HostedBackendHttpClient.js';
 
 const DEFAULT_SCREENSHOT_CONTENT_TYPE = 'image/jpeg';
 const SCREENSHOT_CAPTURE_PATH = 'screenshot.capture';
@@ -23,7 +23,7 @@ const SCREENSHOT_CAPTURE_PATH = 'screenshot.capture';
 export type DefaultTurnResourceResolverOptions = {
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
   localToolLifecycle?: LocalToolExecutionLifecycle | null;
-  sdkClient?: WindieSdkClient | null;
+  sdkClient?: AgentHostedBackendClient | null;
 };
 
 function isJsonRecord(value: unknown): value is JsonRecord {
@@ -283,7 +283,7 @@ function sidecarCaptureTraceData(data: JsonRecord): JsonRecord {
 }
 
 async function uploadScreenshotBase64(
-  sdkClient: WindieSdkClient | null | undefined,
+  sdkClient: AgentHostedBackendClient | null | undefined,
   screenshot: string,
   contentTypeInput: unknown,
   filename?: string | null,
@@ -320,7 +320,7 @@ function filenameFromPath(filePath: string): string | null {
 }
 
 async function uploadScreenshotFile(
-  sdkClient: WindieSdkClient | null | undefined,
+  sdkClient: AgentHostedBackendClient | null | undefined,
   screenshotPath: string,
   contentTypeInput: unknown,
 ): Promise<{

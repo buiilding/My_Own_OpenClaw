@@ -80,7 +80,11 @@ Ownership rules:
   public SDK callers. TypeScript and Python hosted clients filter POST payloads
   to the backend route models before JSON serialization so caller-local UI,
   replay, tracing, and compatibility fields do not reach strict Pydantic
-  request contracts.
+  request contracts. TypeScript callers should prefer the generic
+  `AgentHostedBackendClient`, `AgentHostedBackendClientOptions`,
+  `AgentSdkQueryOptions`, and `AgentInstallIdentityResponse` names for reusable
+  SDK host code; `WindieSdkClient` and matching Windie-prefixed types remain
+  compatibility aliases.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
   auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and

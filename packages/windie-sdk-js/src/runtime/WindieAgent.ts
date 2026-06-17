@@ -27,8 +27,8 @@ import {
   type AgentSessionRuntime,
 } from '../transport/WindieAgentSession.js';
 import {
-  WindieSdkClient,
-  type WindieInstallIdentityResponse,
+  AgentHostedBackendClient,
+  type AgentInstallIdentityResponse,
   type SdkGenerateTitleRequest,
   type SdkGenerateTitleResponse,
   type SdkModelsResponse,
@@ -246,7 +246,7 @@ export class WindieAgent {
     readonly id: string,
     readonly session: AgentSessionRuntime,
     readonly agentDefinition: JsonRecord,
-    private readonly sdkClient: WindieSdkClient,
+    private readonly sdkClient: AgentHostedBackendClient,
     private readonly owner: AgentOwner,
     private readonly localRuntime?: AgentLocalRuntimeClient,
     private readonly userId = 'local-sdk-user',
@@ -887,7 +887,7 @@ export class WindieAgent {
     }
   }
 
-  async installIdentity(options: AgentTraceOptions = {}): Promise<WindieInstallIdentityResponse> {
+  async installIdentity(options: AgentTraceOptions = {}): Promise<AgentInstallIdentityResponse> {
     const startedAtMs = Date.now();
     await this.recordAgentTrace({
       path: 'install.auth',

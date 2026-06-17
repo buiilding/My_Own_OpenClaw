@@ -32,10 +32,10 @@ import {
   type ManagedAgentBackendEndpoint,
 } from '../transport/ManagedWindieAgentSession.js';
 import {
-  WindieSdkClient,
+  AgentHostedBackendClient,
   type FetchLike,
   type SdkModelsResponse,
-  type WindieSdkQueryOptions,
+  type AgentSdkQueryOptions,
 } from '../transport/HostedBackendHttpClient.js';
 import { WindieAgent } from './WindieAgent.js';
 import { stampAgentDefinitionCapabilityMetadata } from './CapabilityManifest.js';
@@ -230,7 +230,7 @@ export class WindieClient {
     }));
   }
 
-  async listModels(options: WindieSdkQueryOptions & { backendUrl?: string } = {}): Promise<SdkModelsResponse> {
+  async listModels(options: AgentSdkQueryOptions & { backendUrl?: string } = {}): Promise<SdkModelsResponse> {
     const { backendUrl, ...queryOptions } = options;
     return this.createSdkClient(this.resolveBackendUrl(backendUrl)).models(queryOptions);
   }
@@ -326,8 +326,8 @@ export class WindieClient {
       ?? 'https://api.windieos.com';
   }
 
-  private createSdkClient(backendUrl: string, authToken?: string): WindieSdkClient {
-    return new WindieSdkClient({
+  private createSdkClient(backendUrl: string, authToken?: string): AgentHostedBackendClient {
+    return new AgentHostedBackendClient({
       httpBaseUrl: backendUrl,
       fetchImpl: this.defaultOptions.fetchImpl,
       authToken,
@@ -446,7 +446,7 @@ export class WindieClient {
     installToken: string,
   ): Promise<Pick<AgentInstallAuthState, 'userId' | 'installId'> | null> {
     try {
-      const identity = await new WindieSdkClient({
+      const identity = await new AgentHostedBackendClient({
         httpBaseUrl: backendUrl,
         fetchImpl: this.defaultOptions.fetchImpl,
         authToken: installToken,

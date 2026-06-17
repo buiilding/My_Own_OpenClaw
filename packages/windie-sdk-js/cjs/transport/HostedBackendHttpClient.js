@@ -3,7 +3,7 @@
  * Implements the hosted backend http client integration for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieSdkClient = void 0;
+exports.WindieSdkClient = exports.AgentHostedBackendClient = void 0;
 function resolveFetchImplementation(fetchImpl) {
     if (fetchImpl) {
         return fetchImpl;
@@ -208,7 +208,7 @@ function filterSdkHttpPayload(path, body) {
     }
     return body;
 }
-class WindieSdkClient {
+class AgentHostedBackendClient {
     constructor(options) {
         this.artifacts = {
             upload: async (file, filename) => this.uploadArtifact(file, filename),
@@ -333,4 +333,5 @@ class WindieSdkClient {
         return headers;
     }
 }
-exports.WindieSdkClient = WindieSdkClient;
+exports.AgentHostedBackendClient = AgentHostedBackendClient;
+exports.WindieSdkClient = AgentHostedBackendClient;

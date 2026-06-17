@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Provides the windie chat session module for the TypeScript SDK runtime.
+ * Provides the reusable chat session module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieChatSession = exports.AgentChatSession = void 0;

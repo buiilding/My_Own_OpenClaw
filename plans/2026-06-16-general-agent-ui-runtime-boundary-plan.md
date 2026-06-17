@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK hosted backend HTTP client aliases
+
+- Finding: SDK runtime internals still typed hosted HTTP route access through
+  the Windie-prefixed `WindieSdkClient` surface even though model listing,
+  prompt/query-plan introspection, artifacts, OCR, vision, embeddings, and
+  install identity are reusable agent SDK hosted-backend contracts.
+- Change: added `AgentHostedBackendClient` plus generic option/query/install
+  identity type aliases, switched SDK runtime internals to the generic names,
+  and kept `WindieSdkClient` and matching Windie-prefixed types as
+  compatibility aliases.
+- Validation: focused SDK package-boundary/type/CJS checks and docs listing.
+- Compatibility: no migration required. Existing `WindieSdkClient`,
+  `WindieSdkClientOptions`, `WindieSdkQueryOptions`, and
+  `WindieInstallIdentityResponse` imports continue to work.
+
 ### 2026-06-17 main layer log default path
 
 - Finding: generic Electron main layer-log resolution still defaulted to the

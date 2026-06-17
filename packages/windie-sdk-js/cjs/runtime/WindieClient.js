@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Implements the windie client integration for the TypeScript SDK runtime.
+ * Implements the hosted/local agent client integration for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentClient = exports.WindieClient = void 0;
@@ -153,7 +153,7 @@ class WindieClient {
             ?? 'https://api.windieos.com';
     }
     createSdkClient(backendUrl, authToken) {
-        return new HostedBackendHttpClient_js_1.WindieSdkClient({
+        return new HostedBackendHttpClient_js_1.AgentHostedBackendClient({
             httpBaseUrl: backendUrl,
             fetchImpl: this.defaultOptions.fetchImpl,
             authToken,
@@ -246,7 +246,7 @@ class WindieClient {
     }
     async resolveInstallTokenIdentity(backendUrl, installToken) {
         try {
-            const identity = await new HostedBackendHttpClient_js_1.WindieSdkClient({
+            const identity = await new HostedBackendHttpClient_js_1.AgentHostedBackendClient({
                 httpBaseUrl: backendUrl,
                 fetchImpl: this.defaultOptions.fetchImpl,
                 authToken: installToken,

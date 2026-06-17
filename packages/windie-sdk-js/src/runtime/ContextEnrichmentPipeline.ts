@@ -3,7 +3,7 @@
  */
 
 import type { JsonRecord, TraceContext } from '../conversation/types.js';
-import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
+import type { AgentHostedBackendClient } from '../transport/HostedBackendHttpClient.js';
 import type { AgentLocalRuntimeClient } from './LocalSidecarRuntime.js';
 import type { TraceEventInput } from './TraceRecorder.js';
 
@@ -19,7 +19,7 @@ type ContextEnrichmentInput = {
   conversationRef: string;
   userId: string;
   payload?: JsonRecord | null;
-  sdkClient: WindieSdkClient;
+  sdkClient: AgentHostedBackendClient;
   localRuntime?: AgentLocalRuntimeClient | null;
   memoryEnabled?: boolean;
   emitDiagnostic?: (diagnostic: MemoryRetrievalDiagnostic) => void | Promise<void>;
@@ -311,7 +311,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
         },
       });
     } else {
-      let embedding: Awaited<ReturnType<WindieSdkClient['embeddings']['create']>> | null = null;
+      let embedding: Awaited<ReturnType<AgentHostedBackendClient['embeddings']['create']>> | null = null;
       const embeddingStartedAtMs = nowMs();
       try {
         await emitTrace(input, {
@@ -467,7 +467,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
 
 type StoreCompletedTurnMemoryInput = {
   localRuntime?: AgentLocalRuntimeClient | null;
-  sdkClient: WindieSdkClient;
+  sdkClient: AgentHostedBackendClient;
   userId: string;
   conversationRef: string;
   userQuery: string;
@@ -504,7 +504,7 @@ export async function storeCompletedTurnMemory(
     userQuery: input.userQuery,
     assistantResponse: input.assistantResponse,
   });
-  let embedding: Awaited<ReturnType<WindieSdkClient['embeddings']['create']>>;
+  let embedding: Awaited<ReturnType<AgentHostedBackendClient['embeddings']['create']>>;
   try {
     embedding = await input.sdkClient.embeddings.create({ text: content });
   } catch (error) {

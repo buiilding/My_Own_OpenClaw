@@ -71,11 +71,12 @@ export type SdkModelsResponse = {
   models: JsonRecord[];
 };
 
-export type WindieInstallIdentityResponse = {
+export type AgentInstallIdentityResponse = {
   success?: boolean;
   user_id: string;
   install_id: string;
 };
+export type WindieInstallIdentityResponse = AgentInstallIdentityResponse;
 
 export type SdkToolSchemasResponse = {
   config: SdkConfigSnapshot;
@@ -312,18 +313,20 @@ export type SdkVisionDescribeResponse = {
   description: string;
 };
 
-export type WindieSdkQueryOptions = {
+export type AgentSdkQueryOptions = {
   userId?: string;
   modelId?: string;
   modelProvider?: string;
   interactionMode?: SdkInteractionMode;
 };
+export type WindieSdkQueryOptions = AgentSdkQueryOptions;
 
-export type WindieSdkClientOptions = {
+export type AgentHostedBackendClientOptions = {
   httpBaseUrl: string;
   fetchImpl?: FetchLike;
   authToken?: string;
 };
+export type WindieSdkClientOptions = AgentHostedBackendClientOptions;
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   if (fetchImpl) {
@@ -339,7 +342,7 @@ function normalizeHttpBaseUrl(httpBaseUrl: string): string {
   return httpBaseUrl.replace(/\/+$/, '');
 }
 
-function buildQueryString(options: WindieSdkQueryOptions = {}): string {
+function buildQueryString(options: AgentSdkQueryOptions = {}): string {
   const params = new URLSearchParams();
   if (options.userId) {
     params.set('user_id', options.userId);
@@ -543,7 +546,7 @@ function filterSdkHttpPayload(path: string, body: unknown): unknown {
   return body;
 }
 
-export class WindieSdkClient {
+export class AgentHostedBackendClient {
   private readonly httpBaseUrl: string;
   private readonly fetchImpl: FetchLike;
   private readonly authToken?: string;
@@ -572,10 +575,10 @@ export class WindieSdkClient {
   };
 
   readonly introspection = {
-    models: async (options?: WindieSdkQueryOptions): Promise<SdkModelsResponse> => this.getJson(`/api/sdk/models${buildQueryString(options)}`),
-    toolSchemas: async (options?: WindieSdkQueryOptions): Promise<SdkToolSchemasResponse> => this.getJson(`/api/sdk/tool-schemas${buildQueryString(options)}`),
-    toolCapabilities: async (toolName: string, options?: WindieSdkQueryOptions): Promise<SdkToolCapabilitiesResponse> => this.getJson(`/api/sdk/tool-capabilities/${encodeURIComponent(toolName)}${buildQueryString(options)}`),
-    systemPrompt: async (options?: WindieSdkQueryOptions): Promise<SdkSystemPromptResponse> => this.getJson(`/api/sdk/system-prompt${buildQueryString(options)}`),
+    models: async (options?: AgentSdkQueryOptions): Promise<SdkModelsResponse> => this.getJson(`/api/sdk/models${buildQueryString(options)}`),
+    toolSchemas: async (options?: AgentSdkQueryOptions): Promise<SdkToolSchemasResponse> => this.getJson(`/api/sdk/tool-schemas${buildQueryString(options)}`),
+    toolCapabilities: async (toolName: string, options?: AgentSdkQueryOptions): Promise<SdkToolCapabilitiesResponse> => this.getJson(`/api/sdk/tool-capabilities/${encodeURIComponent(toolName)}${buildQueryString(options)}`),
+    systemPrompt: async (options?: AgentSdkQueryOptions): Promise<SdkSystemPromptResponse> => this.getJson(`/api/sdk/system-prompt${buildQueryString(options)}`),
     promptPreview: async (payload: SdkPromptPreviewRequest): Promise<SdkPromptPreviewResponse> => this.postJson('/api/sdk/prompt-preview', payload),
     queryPlan: async (payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> => this.postJson('/api/sdk/query-plan', payload),
   };
@@ -592,32 +595,32 @@ export class WindieSdkClient {
   };
 
   readonly install = {
-    identity: async (): Promise<WindieInstallIdentityResponse> => this.getJson('/api/install/me'),
+    identity: async (): Promise<AgentInstallIdentityResponse> => this.getJson('/api/install/me'),
   };
 
-  constructor(options: WindieSdkClientOptions) {
+  constructor(options: AgentHostedBackendClientOptions) {
     this.httpBaseUrl = normalizeHttpBaseUrl(options.httpBaseUrl);
     this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
     this.authToken = options.authToken?.trim() || undefined;
   }
 
-  async models(options?: WindieSdkQueryOptions): Promise<SdkModelsResponse> {
+  async models(options?: AgentSdkQueryOptions): Promise<SdkModelsResponse> {
     return this.introspection.models(options);
   }
 
-  async installIdentity(): Promise<WindieInstallIdentityResponse> {
+  async installIdentity(): Promise<AgentInstallIdentityResponse> {
     return this.install.identity();
   }
 
-  async toolSchemas(options?: WindieSdkQueryOptions): Promise<SdkToolSchemasResponse> {
+  async toolSchemas(options?: AgentSdkQueryOptions): Promise<SdkToolSchemasResponse> {
     return this.introspection.toolSchemas(options);
   }
 
-  async toolCapabilities(toolName: string, options?: WindieSdkQueryOptions): Promise<SdkToolCapabilitiesResponse> {
+  async toolCapabilities(toolName: string, options?: AgentSdkQueryOptions): Promise<SdkToolCapabilitiesResponse> {
     return this.introspection.toolCapabilities(toolName, options);
   }
 
-  async systemPrompt(options?: WindieSdkQueryOptions): Promise<SdkSystemPromptResponse> {
+  async systemPrompt(options?: AgentSdkQueryOptions): Promise<SdkSystemPromptResponse> {
     return this.introspection.systemPrompt(options);
   }
 
@@ -694,3 +697,6 @@ export class WindieSdkClient {
     return headers;
   }
 }
+
+export type WindieSdkClient = AgentHostedBackendClient;
+export const WindieSdkClient = AgentHostedBackendClient;

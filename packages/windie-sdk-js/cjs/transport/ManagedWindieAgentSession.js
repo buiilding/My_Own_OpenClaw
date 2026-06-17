@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Provides the managed windie agent session module for the TypeScript SDK runtime.
+ * Provides managed backend agent session transport for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = exports.ManagedAgentSession = void 0;
@@ -184,7 +184,6 @@ class ManagedAgentSession {
     }
 }
 exports.ManagedAgentSession = ManagedAgentSession;
-exports.ManagedWindieAgentSession = ManagedAgentSession;
 function normalizeEndpoints(options) {
     const endpoints = options.endpoints && options.endpoints.length > 0
         ? options.endpoints
@@ -202,4 +201,5 @@ function normalizeEndpoints(options) {
 function createManagedAgentSession(options) {
     return new ManagedAgentSession(options);
 }
+exports.ManagedWindieAgentSession = ManagedAgentSession;
 exports.createManagedWindieAgentSession = createManagedAgentSession;

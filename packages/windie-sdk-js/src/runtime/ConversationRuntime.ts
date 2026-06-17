@@ -33,7 +33,7 @@ import {
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
 import { mergeQueryAgentDefinition } from '../transport/WindieAgentSession.js';
-import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
+import type { AgentHostedBackendClient } from '../transport/HostedBackendHttpClient.js';
 import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
 import {
   buildModelSettingsPatch,
@@ -146,7 +146,7 @@ export type ConversationRuntimeOptions = {
   transport?: BackendTransport;
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool' | 'rpc'>> | null;
   localToolLifecycle?: LocalToolExecutionLifecycle | null;
-  sdkClient?: WindieSdkClient;
+  sdkClient?: AgentHostedBackendClient;
   userId?: string;
   memoryEnabled?: boolean;
   agentDefinition?: JsonRecord | null;

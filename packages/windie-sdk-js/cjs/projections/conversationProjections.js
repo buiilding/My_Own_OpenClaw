@@ -51,6 +51,7 @@ function isTracePayload(payload) {
 }
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const EMPTY_CHAT_GREETING_TEXT = 'Hi! What can I help you with?';
+const SDK_CURRENT_TURN_SOURCE_CHANNEL = 'sdk:current-turn';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
     'failed to parse streamed tool-call arguments',
     'raw arguments preview:',
@@ -721,7 +722,7 @@ function buildLiveTurnPresentation(projection) {
             type: 'thinking',
             text: reasoningText,
             sourceEventType: 'reasoning_delta',
-            sourceChannel: 'windie:current-turn',
+            sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
             turnRef: projection.turnRef,
         });
     }
@@ -731,7 +732,7 @@ function buildLiveTurnPresentation(projection) {
             type: toolEntryType(toolEvent),
             text: toolEntryText(toolEvent),
             sourceEventType: toolEvent.kind,
-            sourceChannel: 'windie:current-turn',
+            sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
             turnRef: projection.turnRef,
             toolName: toolEvent.toolName ?? null,
             payload: toolEvent.payload,
@@ -744,7 +745,7 @@ function buildLiveTurnPresentation(projection) {
             type: 'llm-text',
             text: assistantText,
             sourceEventType: 'assistant_delta',
-            sourceChannel: 'windie:current-turn',
+            sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
             turnRef: projection.turnRef,
             isComplete: projection.phase === 'complete',
         });
@@ -756,7 +757,7 @@ function buildLiveTurnPresentation(projection) {
             type: 'error',
             text: errorText,
             sourceEventType: 'runtime_error',
-            sourceChannel: 'windie:current-turn',
+            sourceChannel: SDK_CURRENT_TURN_SOURCE_CHANNEL,
             turnRef: projection.turnRef,
             isComplete: true,
         });

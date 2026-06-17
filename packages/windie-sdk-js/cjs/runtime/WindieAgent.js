@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Provides the windie agent module for the TypeScript SDK runtime.
+ * Provides the reusable agent API module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieAgent = void 0;

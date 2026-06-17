@@ -1,12 +1,12 @@
 "use strict";
 /**
- * Provides the windie agent session module for the TypeScript SDK runtime.
+ * Provides the backend agent session transport for the TypeScript SDK runtime.
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgentSession = exports.WindieAgentSession = exports.createWindieAgentBackendTransport = exports.createWindieAgentSession = void 0;
+exports.AgentSession = exports.createWindieAgentBackendTransport = exports.WindieAgentSession = exports.createWindieAgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
