@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime title invalidation alias removal
+
+- Finding: SDK conversation continuity still normalized local-runtime
+  `conversation-title-updated` events from removed top-level, camelCase, and
+  `conversation_ref` aliases, duplicating sidecar event parsing at the host
+  boundary.
+- Change: made metadata invalidation read only canonical sidecar payload fields
+  `conversation_id`, `title`, and `source`, leaving UI adapters to reload
+  metadata from the store through the public invalidation event.
+- Validation: focused conversation continuity service test, local-runtime
+  status broadcaster test, docs listing, and diff check.
+- Compatibility: no persisted-data migration required. Title-update events are
+  transient local-runtime notifications; stale alias-only events now broadcast
+  a generic metadata invalidation without alias-derived fields.
+
 ### 2026-06-17 SDK/main agent definition AGENTS.md input alias rejection
 
 - Finding: SDK `buildAgentDefinition(...)` and Electron main agent-definition
