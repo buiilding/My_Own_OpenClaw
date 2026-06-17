@@ -26,6 +26,7 @@ const {
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 164;
 const DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS = 120;
+const PENDING_COLLAPSE_TO_CHAT_PILL_KEY = '__desktopAgentPendingCollapseToChatPill';
 
 function normalizeOverlayQueryCaptureFocusWaitMs(value) {
   if (typeof value !== 'number' && typeof value !== 'string') {
@@ -128,11 +129,11 @@ function collapseMainWindowToChatPill({
     return;
   }
 
-  if (mainWindow.__windiePendingCollapseToChatPill) {
+  if (mainWindow[PENDING_COLLAPSE_TO_CHAT_PILL_KEY]) {
     return;
   }
 
-  mainWindow.__windiePendingCollapseToChatPill = true;
+  mainWindow[PENDING_COLLAPSE_TO_CHAT_PILL_KEY] = true;
   let settled = false;
   let timeoutId = null;
   const finishPendingCollapse = () => {
@@ -144,7 +145,7 @@ function collapseMainWindowToChatPill({
       clearTimeout(timeoutId);
       timeoutId = null;
     }
-    mainWindow.__windiePendingCollapseToChatPill = false;
+    mainWindow[PENDING_COLLAPSE_TO_CHAT_PILL_KEY] = false;
     finishCollapse();
   };
   try {

@@ -22,6 +22,13 @@ const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/perm
 const inputControlPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_input_control.cjs');
 const microphonePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_microphone.cjs');
 const workspacePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_workspace.cjs');
+const mainMarkerConsumerPaths = [
+  layerLogSinkPath,
+  path.join(mainRoot, 'surfaces/main_window_overlay_runtime.cjs'),
+  path.join(mainRoot, 'surfaces/main_window_runtime.cjs'),
+  path.join(mainRoot, 'surfaces/window_suppression_runtime.cjs'),
+  path.join(mainRoot, 'surfaces/window_visibility_runtime.cjs'),
+];
 
 describe('main host skin/config boundary', () => {
   test('WindieOS host permission copy lives in the main host skin', () => {
@@ -111,6 +118,7 @@ describe('main host skin/config boundary', () => {
     const source = fs.readFileSync(layerLogSinkPath, 'utf8');
 
     expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Agent]'");
+    expect(source).not.toContain('Unknown Windie log layer');
     expect(source).not.toContain('[WindieOS]');
   });
 
@@ -138,5 +146,23 @@ describe('main host skin/config boundary', () => {
     expect(oauthSource).toContain('Return to the app for details');
     expect(oauthSource).not.toContain('Return to WindieOS');
     expect(oauthHandlerSource).toContain('copy ? { copy } : {}');
+  });
+
+  test('main-private host markers use generic desktop-agent naming', () => {
+    const bannedMarkers = [
+      '__windieConsoleStreamErrorGuardInstalled',
+      '__windieLayerLogInstalled',
+      '__windieLayerLogOriginals',
+      '__windieRendererConsoleLoggingAttached',
+      '__windiePendingCollapseToChatPill',
+      '__windieScreenshotRestoreBounds',
+    ];
+
+    for (const markerConsumerPath of mainMarkerConsumerPaths) {
+      const source = fs.readFileSync(markerConsumerPath, 'utf8');
+      for (const marker of bannedMarkers) {
+        expect(source).not.toContain(marker);
+      }
+    }
   });
 });

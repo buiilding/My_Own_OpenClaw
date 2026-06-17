@@ -12,6 +12,7 @@ const {
   isWindowMinimized,
   rememberWindowBoundsForScreenshotSuppression,
   restoreWindowBoundsFromScreenshotSuppression,
+  SCREENSHOT_RESTORE_BOUNDS_KEY,
   setWindowBounds,
   setWindowOpacityIfSupported,
   waitForMainWindowSuppressedForScreenshot,
@@ -275,7 +276,7 @@ function showMainWindow(options = {}, deps = {}) {
       getActiveDisplayAffinity,
     });
   if (resolvedTargetDisplayAffinity) {
-    delete mainWindow.__windieScreenshotRestoreBounds;
+    delete mainWindow[SCREENSHOT_RESTORE_BOUNDS_KEY];
     setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
     if (
       isMacFullscreenCapable

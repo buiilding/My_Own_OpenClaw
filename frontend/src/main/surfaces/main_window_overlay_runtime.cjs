@@ -12,6 +12,8 @@ const {
   appendRendererVerboseLogSessionBanner,
 } = require('../logging/layer_log_sink.cjs');
 
+const RENDERER_CONSOLE_LOGGING_ATTACHED_KEY = '__desktopAgentRendererConsoleLoggingAttached';
+
 function normalizeConsoleMessagePayload(args) {
   if (
     args.length === 2
@@ -66,7 +68,7 @@ function attachRendererConsoleLogging({
   if (!webContents || typeof webContents.on !== 'function') {
     return false;
   }
-  if (webContents.__windieRendererConsoleLoggingAttached) {
+  if (webContents[RENDERER_CONSOLE_LOGGING_ATTACHED_KEY]) {
     return false;
   }
   const sessionBannerOptions = {
@@ -93,7 +95,7 @@ function attachRendererConsoleLogging({
       writeLayerLogLine('renderer', line);
     }
   });
-  Object.defineProperty(webContents, '__windieRendererConsoleLoggingAttached', {
+  Object.defineProperty(webContents, RENDERER_CONSOLE_LOGGING_ATTACHED_KEY, {
     value: true,
     enumerable: false,
     configurable: true,

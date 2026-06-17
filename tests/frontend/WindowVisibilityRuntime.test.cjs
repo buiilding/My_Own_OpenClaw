@@ -383,7 +383,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       setOpacity: jest.fn(),
       restore: jest.fn(),
       isMinimized: jest.fn(() => false),
-      __windieScreenshotRestoreBounds: {
+      __desktopAgentScreenshotRestoreBounds: {
         x: 123,
         y: 234,
         width: 900,
@@ -422,7 +422,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(getActiveDisplayAffinity).not.toHaveBeenCalled();
     expect(setActiveDisplayAffinity).not.toHaveBeenCalled();
     expect(mainWindow.getSize).not.toHaveBeenCalled();
-    expect(mainWindow.__windieScreenshotRestoreBounds).toBeUndefined();
+    expect(mainWindow.__desktopAgentScreenshotRestoreBounds).toBeUndefined();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
   });
@@ -440,7 +440,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       setOpacity: jest.fn(),
       restore: jest.fn(),
       isMinimized: jest.fn(() => false),
-      __windieScreenshotRestoreBounds: {
+      __desktopAgentScreenshotRestoreBounds: {
         x: 123,
         y: 234,
         width: 900,
@@ -475,7 +475,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       width: 1000,
       height: 700,
     }, false);
-    expect(mainWindow.__windieScreenshotRestoreBounds).toBeUndefined();
+    expect(mainWindow.__desktopAgentScreenshotRestoreBounds).toBeUndefined();
   });
 
   test('uses target display work area instead of native maximize when opening from another monitor maximized', () => {

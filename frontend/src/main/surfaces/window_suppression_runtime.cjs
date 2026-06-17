@@ -2,6 +2,8 @@
  * Coordinates the window suppression runtime for the Electron main process.
  */
 
+const SCREENSHOT_RESTORE_BOUNDS_KEY = '__desktopAgentScreenshotRestoreBounds';
+
 function setWindowOpacityIfSupported(targetWindow, opacity) {
   if (!targetWindow || typeof targetWindow.setOpacity !== 'function') {
     return;
@@ -119,22 +121,22 @@ async function waitForMainWindowSuppressedForScreenshot(
 }
 
 function rememberWindowBoundsForScreenshotSuppression(targetWindow) {
-  if (!targetWindow || targetWindow.__windieScreenshotRestoreBounds) {
+  if (!targetWindow || targetWindow[SCREENSHOT_RESTORE_BOUNDS_KEY]) {
     return;
   }
   const bounds = getWindowBounds(targetWindow);
   const normalizedBounds = normalizeWindowBounds(bounds);
   if (normalizedBounds) {
-    targetWindow.__windieScreenshotRestoreBounds = normalizedBounds;
+    targetWindow[SCREENSHOT_RESTORE_BOUNDS_KEY] = normalizedBounds;
   }
 }
 
 function restoreWindowBoundsFromScreenshotSuppression(targetWindow) {
-  const bounds = targetWindow?.__windieScreenshotRestoreBounds || null;
+  const bounds = targetWindow?.[SCREENSHOT_RESTORE_BOUNDS_KEY] || null;
   if (!bounds) {
     return false;
   }
-  delete targetWindow.__windieScreenshotRestoreBounds;
+  delete targetWindow[SCREENSHOT_RESTORE_BOUNDS_KEY];
   return setWindowBounds(targetWindow, bounds);
 }
 
@@ -144,6 +146,7 @@ module.exports = {
   isWindowMinimized,
   rememberWindowBoundsForScreenshotSuppression,
   restoreWindowBoundsFromScreenshotSuppression,
+  SCREENSHOT_RESTORE_BOUNDS_KEY,
   setWindowBounds,
   setWindowOpacityIfSupported,
   waitForMainWindowSuppressedForScreenshot,

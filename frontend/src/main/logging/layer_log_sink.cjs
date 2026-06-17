@@ -10,13 +10,15 @@ const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const LOG_DIR = path.join(REPO_ROOT, '.windie', 'logs');
 const VALID_LOG_LAYERS = new Set(['frontend', 'vite', 'main', 'renderer', 'sidecar']);
 const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
-const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__windieConsoleStreamErrorGuardInstalled';
+const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopAgentConsoleStreamErrorGuardInstalled';
+const CONSOLE_LAYER_LOG_INSTALLED = '__desktopAgentLayerLogInstalled';
+const CONSOLE_LAYER_LOG_ORIGINALS = '__desktopAgentLayerLogOriginals';
 const DEFAULT_LOG_PREFIX = '[Desktop Agent]';
 
 function normalizeLayer(layer) {
   const normalized = String(layer || '').trim().toLowerCase();
   if (!VALID_LOG_LAYERS.has(normalized)) {
-    throw new Error(`Unknown Windie log layer: ${layer}`);
+    throw new Error(`Unknown desktop log layer: ${layer}`);
   }
   return normalized;
 }
@@ -234,7 +236,7 @@ function installConsoleLayerLog({
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
   installConsoleStreamErrorGuards({ processObject });
-  if (!consoleObject || consoleObject.__windieLayerLogInstalled) {
+  if (!consoleObject || consoleObject[CONSOLE_LAYER_LOG_INSTALLED]) {
     return false;
   }
   appendLayerLogSessionBanner(normalizedLayer, {
@@ -263,12 +265,12 @@ function installConsoleLayerLog({
       }
     };
   });
-  Object.defineProperty(consoleObject, '__windieLayerLogInstalled', {
+  Object.defineProperty(consoleObject, CONSOLE_LAYER_LOG_INSTALLED, {
     value: true,
     enumerable: false,
     configurable: true,
   });
-  Object.defineProperty(consoleObject, '__windieLayerLogOriginals', {
+  Object.defineProperty(consoleObject, CONSOLE_LAYER_LOG_ORIGINALS, {
     value: originals,
     enumerable: false,
     configurable: true,
