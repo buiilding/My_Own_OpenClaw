@@ -263,7 +263,7 @@ export function toAgentStreamEvents(runtimeEvent: WindieRuntimeEvent): WindieAge
       stateEvent('error', locator),
       {
         type: 'error',
-        message: stringField(event.payload, 'message', 'content', 'error') ?? 'Windie stream failed',
+        message: stringField(event.payload, 'message', 'content', 'error') ?? 'Agent stream failed',
         ...locator,
       },
     ];

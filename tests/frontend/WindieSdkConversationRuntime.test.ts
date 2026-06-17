@@ -1435,6 +1435,26 @@ describe('Windie SDK conversation runtime core', () => {
     expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
   });
 
+  test('agent stream projection uses generic fallback error wording', () => {
+    const streamEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('turn_error', {}),
+    } as any);
+
+    expect(streamEvents).toEqual([
+      expect.objectContaining({
+        type: 'state',
+        state: 'error',
+      }),
+      expect.objectContaining({
+        type: 'error',
+        message: 'Agent stream failed',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+      }),
+    ]);
+  });
+
   test('agent stream projection ignores memory store invalidation events', () => {
     const streamEvents = toAgentStreamEvents({
       type: 'conversation_event',

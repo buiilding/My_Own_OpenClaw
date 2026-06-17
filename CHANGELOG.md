@@ -71,6 +71,8 @@ All notable changes to WindieOS will be documented in this file.
   validation failures while preserving the `window.windie` bridge contract.
 - frontend/sidecar: use generic Agent SDK wording for Python SDK stream and
   trace-query fallback failures.
+- sdk/js: use generic Agent stream fallback wording in public stream
+  projections when backend/runtime errors omit a message.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

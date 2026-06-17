@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `0eb116782` (`refactor(preload): genericize sdk command diagnostics`)
+- Latest inspected plan checkpoint: `416320ebe` (`refactor(sidecar): genericize python sdk diagnostics`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -28,7 +28,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   now use generic `agent-*` values while the existing backend mode remains
   unchanged. Preload SDK-command validation failures use generic Agent SDK
   wording while the `window.windie` bridge contract remains stable. Python SDK
-  stream and trace-query fallback failures also use generic Agent SDK wording.
+  stream and trace-query fallback failures also use generic Agent SDK wording,
+  and JS SDK public stream projections use generic fallback error wording when
+  runtime errors omit a message.
 
 ## Inspection Log
 
@@ -331,6 +333,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: stream errors without a backend message now fall back to "Agent SDK stream failed".
 - Change: trace query timeout errors now say "Agent SDK trace query timed out...".
 
+### 2026-06-16 JS SDK Stream Projection Diagnostic Slice
+
+- Worktree recovery: recent commits, the clean worktree, docs listing, and SDK runtime ownership docs were inspected before continuing.
+- Finding: `AgentStreamEvents.ts` owns public `agent.stream(...)` projection, but its fallback error text still said "Windie stream failed" when backend/runtime errors did not include a message.
+- Decision: keep public `WindieAgentStreamEvent` names unchanged, but make the projection fallback diagnostic generic.
+- Change: JS SDK stream error projection now falls back to "Agent stream failed".
+- Change: the SDK conversation-runtime projection test now covers the fallback path directly.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -366,6 +376,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK-generated default agent IDs use generic values while preserving backend mode contracts.
 - [x] Preload SDK-command bridge diagnostics use generic Agent SDK wording while preserving wire contracts.
 - [x] Python SDK stream/trace fallback diagnostics use generic Agent SDK wording while preserving public package names.
+- [x] JS SDK stream projection fallback diagnostics use generic Agent wording while preserving public stream event names.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -462,6 +473,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Invalid Windie SDK command|Windie SDK invoke channel|Invalid Agent SDK command|Agent SDK invoke channel" frontend/src/preload.js tests/frontend/PreloadIpcChannels.test.cjs docs/plans/2026-06-16-general-agent-ui-runtime-boundary-report.md` found only the new generic preload wording.
 - `scripts\python-in-env sidecar -m pytest tests/sidecar/test_windie_sdk_client.py::test_trace_query_times_out_and_closes_websocket -q` passed.
 - `rg -n "Windie SDK stream failed|Windie SDK trace query|Agent SDK stream failed|Agent SDK trace query" frontend/src/main/python tests/sidecar -g "*.py"` found only the new generic Python SDK fallback wording.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkConversationRuntime.test.ts -t "agent stream projection uses generic fallback error wording|agent stream projection exposes memory retrieval diagnostics"` passed.
+- `rg -n "Windie stream failed|Agent stream failed" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend/WindieSdkConversationRuntime.test.ts -g "*.ts" -g "*.js"` found only the new generic JS SDK fallback wording and assertion.
 
 ## Remaining Findings
 
@@ -520,3 +533,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   wire contracts.
 - Python SDK stream and trace-query fallback diagnostics now use generic Agent
   SDK wording. Public Python package names remain unchanged.
+- JS SDK stream projection fallback diagnostics now use generic Agent stream
+  wording. Public stream event and SDK package names remain unchanged.
