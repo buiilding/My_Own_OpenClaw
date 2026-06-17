@@ -55,7 +55,7 @@ class ContainerConfigUpdater:
 
         # Update model service (recreate with new config)
         # ModelService stores config in __init__, so we need to recreate it
-        from backend.src.llm.models import ModelService
+        from backend.src.llm.models.model_service import ModelService
 
         core_model_service_provider = self.container._di_container.core.model_service
         core_model_service_provider.reset_override()

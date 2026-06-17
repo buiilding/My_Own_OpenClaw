@@ -29,8 +29,6 @@ concrete modules directly.
 - `backend/src/core/events/__init__.py`
 - `backend/src/core/infrastructure/__init__.py`
 - `backend/src/core/security/__init__.py`
-- `backend/src/llm/__init__.py`
-- `backend/src/llm/models/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 - `backend/src/sdk/__init__.py`
 
@@ -151,6 +149,11 @@ docstring or compatibility path.
 - `backend/src/services/vision/providers/__init__.py` is intentionally absent;
   import vision provider base/classes from concrete modules under
   `backend.src.services.vision.providers`.
+- `backend/src/llm/__init__.py` is intentionally absent; import LLM client
+  helpers from `backend.src.llm.client`.
+- `backend/src/llm/models/__init__.py` is intentionally absent; import
+  `ModelService` from `backend.src.llm.models.model_service` and model catalog
+  constants from `backend.src.llm.models.models_config`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

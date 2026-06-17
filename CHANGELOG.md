@@ -90,6 +90,8 @@ All notable changes to WindieOS will be documented in this file.
   service wiring imports provider and service classes from concrete modules.
 - backend/services: remove the unused vision providers package export so vision
   model selection imports provider classes from concrete modules.
+- backend/llm: remove unused LLM and model package exports so client and model
+  service callers use concrete LLM modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

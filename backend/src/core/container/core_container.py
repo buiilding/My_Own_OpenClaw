@@ -18,7 +18,7 @@ from backend.src.core.container.factories import (
 )
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.llm.client import get_llm_client
-from backend.src.llm.models import ModelService
+from backend.src.llm.models.model_service import ModelService
 
 logger = logging.getLogger(__name__)
 
