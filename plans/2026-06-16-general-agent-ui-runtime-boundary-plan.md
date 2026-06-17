@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK backend socket factory wrapper deletion
+
+- Finding: the SDK still exposed `WindieBackendSocketFactory` and root
+  `createWindieSdkBackendSocket` compatibility exports after
+  `createAgentBackendSocket` became the canonical backend websocket factory.
+- Change: deleted the Windie-prefixed socket factory module, removed the root
+  compatibility export and type alias, updated SDK docs, and switched package
+  boundary tests to the generic backend socket factory with removed-wrapper
+  coverage.
+- Validation: focused SDK package-boundary and private-export Jest tests,
+  stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. TypeScript SDK
+  callers must use `createAgentBackendSocket` and `AgentBackendSocketOptions`
+  directly.
+
 ### 2026-06-17 SDK hosted backend client wrapper deletion
 
 - Finding: the SDK still exposed `WindieHostedBackendHttpClient` and root

@@ -101,14 +101,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.toolOutputStreamKeys).toBe(canonicalModule.toolOutputStreamKeys);
   });
 
-  test('Windie backend socket factory module remains a compatibility wrapper for backend socket factory', () => {
+  test('Windie backend socket factory compatibility module is removed', () => {
     const canonicalModule = require('../../packages/windie-sdk-js/cjs/transport/BackendSocketFactory.js');
-    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/transport/WindieBackendSocketFactory.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/transport/WindieBackendSocketFactory.js',
+    );
 
     expect(canonicalModule.createAgentBackendSocket).toBeDefined();
     expect(canonicalModule.createWindieSdkBackendSocket).toBeUndefined();
-    expect(compatibilityModule.createAgentBackendSocket).toBe(canonicalModule.createAgentBackendSocket);
-    expect(compatibilityModule.createWindieSdkBackendSocket).toBe(canonicalModule.createAgentBackendSocket);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('Windie hosted backend client compatibility module is removed', () => {

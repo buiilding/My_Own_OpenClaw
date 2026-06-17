@@ -86,12 +86,6 @@ export type {
 } from './runtime/WindieLocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/BackendSocketFactory.js';
-export {
-  createWindieSdkBackendSocket,
-} from './transport/WindieBackendSocketFactory.js';
-export type {
-  WindieSdkBackendSocketOptions,
-} from './transport/WindieBackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
 export * from './transport/ManagedBackendSession.js';
 export * from './transport/ManagedAgentSession.js';

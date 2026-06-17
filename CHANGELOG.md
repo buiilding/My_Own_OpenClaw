@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK `WindieBackendSocketFactory` compatibility module so websocket callers use `createAgentBackendSocket` and `AgentBackendSocketOptions` directly.
+
 - Removed the TypeScript SDK `WindieHostedBackendHttpClient` compatibility module so hosted backend callers use `AgentHostedBackendClient` and `Agent*` types directly.
 
 - Removed the SDK `WindieConversationRuntime` compatibility module so callers use `AgentRuntimeEvent` directly.

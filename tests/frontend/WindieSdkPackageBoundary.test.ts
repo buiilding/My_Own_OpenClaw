@@ -31,7 +31,6 @@ import {
   createWindieLocalRuntimeProvider,
   createWindieAgentBackendTransport,
   createWindieAgentSession,
-  createWindieSdkBackendSocket,
   createManagedWindieAgentSession,
   moduleTool,
   resolveModelFacingToolCallId,
@@ -64,7 +63,6 @@ import {
   type AgentStopInput,
   type AgentToolDefinition,
   type WindieClientOptions,
-  type WindieSdkBackendSocketOptions,
   type WindieInstallAuthOptions,
   type WindieLocalRuntimeRequest,
   type WindieLocalRuntimeClient,
@@ -99,7 +97,6 @@ describe('@windie/sdk package boundary', () => {
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
     expect(createWindieAgentSession).toBe(createAgentSession);
     expect(createWindieAgentBackendTransport).toBe(createAgentBackendTransport);
-    expect(createWindieSdkBackendSocket).toBe(createAgentBackendSocket);
     expect(ManagedWindieAgentSession).toBe(ManagedAgentSession);
     expect(createManagedWindieAgentSession).toBe(createManagedAgentSession);
     expect(WindieAgentSession).toBe(AgentSession);
@@ -153,7 +150,7 @@ describe('@windie/sdk package boundary', () => {
     expect(compatibilityRuntime.isOpen()).toBe(true);
   });
 
-  test('exports generic backend socket factory aliases', () => {
+  test('exports generic backend socket factory helpers', () => {
     class FakeWebSocket {
       constructor(readonly url: string) {}
     }
@@ -161,9 +158,8 @@ describe('@windie/sdk package boundary', () => {
       WebSocketImpl: FakeWebSocket,
       wsUrl: 'wss://socket.example.test/ws',
     };
-    const compatibilityOptions: WindieSdkBackendSocketOptions = options;
 
-    expect(createWindieSdkBackendSocket(compatibilityOptions)).toBeInstanceOf(FakeWebSocket);
+    expect(createAgentBackendSocket(options)).toBeInstanceOf(FakeWebSocket);
   });
 
   test('exports generic builtin selection helpers', () => {
