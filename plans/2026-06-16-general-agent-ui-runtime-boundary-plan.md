@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime bridge alias deletion
+
+- Finding: Electron main still exported `initializeLocalBackendBridge`,
+  `stopLocalBackend`, `getLocalBackendStatus`,
+  `createLocalBackendSupervisor`, and
+  `createLocalBackendExecuteToolRuntime` as compatibility aliases after the
+  local-runtime bridge names became canonical.
+- Change: removed the local-backend-named exports from the bridge, supervisor,
+  and execute-tool runtime modules, updated focused tests to assert the aliases
+  stay removed, and updated main-process docs to route callers to
+  local-runtime names.
+- Validation: focused local-runtime bridge, supervisor, execute-tool runtime,
+  and host-skin Jest tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for first-party code. Main-process
+  callers must use `initializeLocalRuntimeBridge`, `stopLocalRuntime`,
+  `getLocalRuntimeStatus`, `createLocalRuntimeSupervisor`, and
+  `createLocalRuntimeExecuteToolRuntime`.
+
 ### 2026-06-17 SDK client and agent wrapper deletion
 
 - Finding: the SDK still exposed `WindieClient`, `WindieAgent`, and
