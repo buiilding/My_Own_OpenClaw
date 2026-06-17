@@ -1595,7 +1595,7 @@ export class SdkConversationRuntime {
         revisionId: event.revisionId,
       });
       console.warn(
-        '[Windie SDK] Memory persistence failed:',
+        '[Agent SDK] Memory persistence failed:',
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -1640,7 +1640,7 @@ export class SdkConversationRuntime {
     void this.generateCompletedTurnTitle(input)
       .catch(error => {
         console.warn(
-          '[Windie SDK] Conversation title generation failed:',
+          '[Agent SDK] Conversation title generation failed:',
           error instanceof Error ? error.message : String(error),
         );
       })
@@ -1876,7 +1876,7 @@ export class SdkConversationRuntime {
       .then(() => this.processNormalizedBackendEvent(event))
       .catch(error => {
         console.warn(
-          '[Windie SDK] Backend event processing failed:',
+          '[Agent SDK] Backend event processing failed:',
           error instanceof Error ? error.message : String(error),
         );
       });
@@ -2026,7 +2026,7 @@ export class SdkConversationRuntime {
     if (!isCompactionStdoutEnabled()) {
       return;
     }
-    console.log('[Windie SDK][Compaction] backend event rejected', {
+    console.log('[Agent SDK][Compaction] backend event rejected', {
       reason,
       eventType: event.type,
       eventScope: getConversationEventScope(event),

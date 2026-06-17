@@ -360,9 +360,9 @@ function buildQueryString(options: WindieSdkQueryOptions = {}): string {
 function buildErrorMessage(status: number, statusText: string, bodyText: string): string {
   const trimmedBody = bodyText.trim();
   if (!trimmedBody) {
-    return `Windie SDK request failed (${status} ${statusText})`;
+    return `Agent SDK request failed (${status} ${statusText})`;
   }
-  return `Windie SDK request failed (${status} ${statusText}): ${trimmedBody}`;
+  return `Agent SDK request failed (${status} ${statusText}): ${trimmedBody}`;
 }
 
 function isJsonRecord(value: unknown): value is JsonRecord {

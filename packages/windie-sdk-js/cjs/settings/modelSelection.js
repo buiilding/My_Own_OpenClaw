@@ -11,7 +11,7 @@ function coerceNonEmptyString(value) {
     const normalized = value.trim();
     return normalized.length > 0 ? normalized : null;
 }
-function buildModelSettingsPatch(selection, owner = 'WindieAgent.setModel') {
+function buildModelSettingsPatch(selection, owner = 'agent.setModel') {
     const modelId = coerceNonEmptyString(selection.modelId);
     const modelProvider = coerceNonEmptyString(selection.modelProvider ?? selection.provider);
     if (!modelId) {

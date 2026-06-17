@@ -106,7 +106,7 @@ function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): vo
     typeof diagnostic.semanticCount === 'number' ? `semantic=${diagnostic.semanticCount}` : null,
     diagnostic.error ? `error=${diagnostic.error}` : null,
   ].filter(Boolean).join(' ');
-  console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
+  console.warn(`[Agent SDK] memory retrieval diagnostic: ${details}`);
 }
 
 function normalizeJsonRecord(value: unknown): JsonRecord | null {

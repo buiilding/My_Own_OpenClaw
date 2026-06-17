@@ -19,7 +19,7 @@ function attachSocketListener(socket, event, listener) {
         socket.on(event, listener);
         return () => socket.off?.(event, listener);
     }
-    throw new Error('Windie SDK WebSocket implementation does not support event listeners');
+    throw new Error('Agent SDK WebSocket implementation does not support event listeners');
 }
 function normalizeIncomingSocketMessage(payload) {
     if (payload && typeof payload === 'object' && 'data' in payload) {
@@ -70,7 +70,7 @@ class ManagedBackendSession {
             return;
         }
         if (this.isOpen() || this.isConnecting()) {
-            this.options.log?.('Windie SDK managed backend session already open or connecting.');
+            this.options.log?.('Agent SDK managed backend session already open or connecting.');
             return;
         }
         const nextSocket = this.options.createSocket();
@@ -200,7 +200,7 @@ class ManagedBackendSession {
     }
     sendMessage(type, payload = {}, messageId = null) {
         if (!this.isOpen() || !this.socket) {
-            this.options.log?.('Cannot send message: Windie SDK managed backend session is not connected.');
+            this.options.log?.('Cannot send message: Agent SDK managed backend session is not connected.');
             return null;
         }
         const userId = this.options.getUserId();
@@ -259,7 +259,7 @@ class ManagedBackendSession {
         this.intentionalCloseReason = reason;
         this.clearReconnectTimer();
         this.clearIdleDisconnectTimer();
-        this.rejectConnectWaiters(new Error('Windie SDK managed backend session closed.'));
+        this.rejectConnectWaiters(new Error('Agent SDK managed backend session closed.'));
         const current = this.socket;
         this.socket = null;
         this.handshakeCompleted = false;

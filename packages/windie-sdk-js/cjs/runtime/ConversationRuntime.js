@@ -1366,7 +1366,7 @@ class SdkConversationRuntime {
                 turnRef: event.turnRef,
                 revisionId: event.revisionId,
             });
-            console.warn('[Windie SDK] Memory persistence failed:', error instanceof Error ? error.message : String(error));
+            console.warn('[Agent SDK] Memory persistence failed:', error instanceof Error ? error.message : String(error));
         }
     }
     scheduleCompletedTurnTitleGeneration(event, pendingTurn, assistantResponse) {
@@ -1401,7 +1401,7 @@ class SdkConversationRuntime {
         completedTurnTitleGenerationInFlight.add(key);
         void this.generateCompletedTurnTitle(input)
             .catch(error => {
-            console.warn('[Windie SDK] Conversation title generation failed:', error instanceof Error ? error.message : String(error));
+            console.warn('[Agent SDK] Conversation title generation failed:', error instanceof Error ? error.message : String(error));
         })
             .finally(() => {
             completedTurnTitleGenerationInFlight.delete(key);
@@ -1624,7 +1624,7 @@ class SdkConversationRuntime {
         this.backendEventQueue = this.backendEventQueue
             .then(() => this.processNormalizedBackendEvent(event))
             .catch(error => {
-            console.warn('[Windie SDK] Backend event processing failed:', error instanceof Error ? error.message : String(error));
+            console.warn('[Agent SDK] Backend event processing failed:', error instanceof Error ? error.message : String(error));
         });
     }
     async processNormalizedBackendEvent(event) {
@@ -1757,7 +1757,7 @@ class SdkConversationRuntime {
         if (!isCompactionStdoutEnabled()) {
             return;
         }
-        console.log('[Windie SDK][Compaction] backend event rejected', {
+        console.log('[Agent SDK][Compaction] backend event rejected', {
             reason,
             eventType: event.type,
             eventScope: (0, conversationEventScope_js_1.getConversationEventScope)(event),

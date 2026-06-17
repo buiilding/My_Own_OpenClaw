@@ -11,13 +11,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `d8987539d` (`refactor(backend): require current venus dependencies`)
+- Latest inspected plan checkpoint: `d1ba700ea` (`refactor(main): genericize sdk customer identifiers`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
   identity. SDK helper symbols that are not part of the public package boundary
   stay private behind higher-level runtime APIs, and renderer/main-private
-  guard markers use generic desktop-agent naming.
+  guard markers use generic desktop-agent naming. SDK internal diagnostics use
+  generic Agent SDK wording while preserving current public Windie API names.
 
 ## Inspection Log
 
@@ -253,6 +254,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: the SDK command helper diagnostic state now receives a generic `agent` readiness field.
 - Change: main IPC boundary tests now assert the generic local names and prevent old Windie-specific local identifiers from returning.
 
+### 2026-06-16 SDK Diagnostic Wording Slice
+
+- Worktree recovery: after the main IPC commit, recent commits and the clean worktree were inspected; a concurrent backend tool-shape commit had landed and was treated as already integrated context.
+- Finding: SDK internals still emitted Windie-specific wording in diagnostics, request failures, local-runtime errors, managed-backend session logs, compaction debug logs, and model-selection validation owner strings.
+- Decision: keep public `WindieClient`/`WindieAgent` class, file, and package API names unchanged, but make private/runtime diagnostic text generic so the SDK reads as the reusable agent runtime boundary.
+- Change: SDK source and checked-in CJS output now use Agent SDK wording for websocket listener support, managed backend session lifecycle, hosted/local request failures, sidecar discovery/local-tool errors, local runtime capability failures, memory/title/backend processing warnings, compaction debug logs, and model selection validation.
+- Change: focused SDK tests now expect the generic diagnostic wording.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -280,6 +289,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Main local-runtime bridge fallback wording is generic while preserving SDK-owned runtime lifecycle.
 - [x] Main IPC SDK runtime logs use generic Agent SDK wording while preserving public SDK APIs.
 - [x] Main IPC SDK customer internals use generic agent/client names while preserving public SDK APIs and wire contracts.
+- [x] SDK runtime diagnostics and local-runtime failures use generic Agent SDK wording while preserving public Windie API names.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -356,6 +366,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Windie SDK runtime|WindieClient wakeUp runtime started|Failed to send query through WindieAgent|Agent SDK runtime|Agent SDK wakeUp" frontend/src/main/ipc.cjs tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs docs/plans/2026-06-16-general-agent-ui-runtime-boundary-report.md` found the new generic main IPC wording and the old wording only in boundary assertions/report history.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs ../tests/frontend/ModularRefactorCompletionBoundary.test.ts ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcMainReplayCommands.test.cjs` passed.
 - `rg -n "windieAgent|windieClient|pendingWindieAgentStartPromise|windieAgentWebSocketImpl|createDesktopWindieClient|getWindieClient|startWindieAgent|ensureWindieAgent|getKnownWindieLocalRuntime|ensureWindieLocalRuntime|handleWindieAgent" frontend/src/main tests/frontend -g "*.cjs" -g "*.ts"` found old local names only in boundary assertions that ban them.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkConversationRuntime.test.ts ../tests/frontend/WindieAgentConversationStoreApi.test.ts -t "localRuntime does not wake hosted agent when auto-start is disabled|agent.setModel validates SDK model selections|logs compaction debug output|conversation runtime title generation failure|conversation.append_event compaction debug"` passed for the matching SDK client/conversation-runtime cases.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieAgentConversationStoreApi.test.ts -t "logs successful compaction event storage after sidecar RPC succeeds"` passed.
+- `rg -n "Windie SDK|WindieClient local runtime|WindieAgent\\.setModel|WindieClient could not locate|WindieClient local tools|WindieClient persistence|WindieClient memory|WindieClient install" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found old diagnostic wording only in public command/test names and boundary assertions.
 
 ## Remaining Findings
 
@@ -393,3 +406,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   content shapes, capability summaries, and internal diagnostic types are
   private behind their owning entrypoints. Broader public SDK API naming still
   intentionally uses Windie-branded class/type names.
+- SDK runtime diagnostics, request/local-runtime failures, managed-session logs,
+  and model-selection validation now use generic Agent SDK wording. Public
+  `WindieClient`/`WindieAgent` API names remain unchanged.

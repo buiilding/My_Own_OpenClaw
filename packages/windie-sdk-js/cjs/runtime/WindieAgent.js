@@ -25,7 +25,7 @@ function logMemoryRetrievalDiagnostic(diagnostic) {
         typeof diagnostic.semanticCount === 'number' ? `semantic=${diagnostic.semanticCount}` : null,
         diagnostic.error ? `error=${diagnostic.error}` : null,
     ].filter(Boolean).join(' ');
-    console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
+    console.warn(`[Agent SDK] memory retrieval diagnostic: ${details}`);
 }
 function normalizeJsonRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value)

@@ -64,9 +64,9 @@ function buildEventWebSocketUrl(baseUrl) {
 function buildErrorMessage(status, statusText, bodyText) {
     const trimmedBody = bodyText.trim();
     if (!trimmedBody) {
-        return `Windie SDK request failed (${status} ${statusText})`;
+        return `Agent SDK request failed (${status} ${statusText})`;
     }
-    return `Windie SDK request failed (${status} ${statusText}): ${trimmedBody}`;
+    return `Agent SDK request failed (${status} ${statusText}): ${trimmedBody}`;
 }
 function moduleTool(tool) {
     return {
@@ -434,7 +434,7 @@ function resolveDaemonScript(options, fs, path) {
     if (found) {
         return found;
     }
-    throw new Error('WindieClient could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.');
+    throw new Error('Agent SDK client could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.');
 }
 function resolveProcessEnv() {
     const processLike = globalThis.process;
@@ -488,7 +488,7 @@ function createWindieLocalRuntimeProvider(options = {}) {
             modules = await loadNodeSidecarModules();
         }
         catch (error) {
-            throw new Error(`WindieClient local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(`Agent SDK local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`);
         }
         const { fs, os, path, childProcess } = modules;
         const processEnv = resolveProcessEnv();

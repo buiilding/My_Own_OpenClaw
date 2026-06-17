@@ -159,7 +159,7 @@ function attachSocketListener(
     socket.on(event, listener);
     return () => socket.off?.(event, listener);
   }
-  throw new Error('Windie SDK WebSocket implementation does not support event listeners');
+  throw new Error('Agent SDK WebSocket implementation does not support event listeners');
 }
 
 function normalizeIncomingSocketMessage(payload: unknown): unknown {

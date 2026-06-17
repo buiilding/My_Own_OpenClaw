@@ -413,7 +413,7 @@ describe('SidecarConversationStore event payload write params', () => {
     await store.appendEvent(event);
 
     expect(logSpy).toHaveBeenCalledWith(
-      '[Windie SDK][Compaction] conversation.append_event succeeded',
+      '[Agent SDK][Compaction] conversation.append_event succeeded',
       expect.objectContaining({
         conversationRef: 'conv-1',
         turnRef: 'turn-1',

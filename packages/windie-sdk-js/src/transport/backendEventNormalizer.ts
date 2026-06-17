@@ -261,7 +261,7 @@ function logCompactionNormalization(
   const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
     ? payload.replacement_history_entries
     : null;
-  console.log('[Windie SDK][Compaction] backend event normalized', {
+  console.log('[Agent SDK][Compaction] backend event normalized', {
     backendEventType: event.type,
     normalizedEventType: normalizedType,
     conversationRef: base.conversationRef,

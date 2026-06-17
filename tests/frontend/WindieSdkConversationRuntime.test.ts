@@ -2568,7 +2568,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
 
     expect(logSpy).toHaveBeenCalledWith(
-      '[Windie SDK][Compaction] backend event normalized',
+      '[Agent SDK][Compaction] backend event normalized',
       expect.objectContaining({
         backendEventType: 'context-compaction-completed',
         normalizedEventType: 'compaction_applied',
@@ -2579,7 +2579,7 @@ describe('Windie SDK conversation runtime core', () => {
       }),
     );
     expect(logSpy).toHaveBeenCalledWith(
-      '[Windie SDK][Compaction] backend event normalized',
+      '[Agent SDK][Compaction] backend event normalized',
       expect.objectContaining({
         backendEventType: 'context-compaction-completed',
         normalizedEventType: 'compaction_skipped',
@@ -2642,7 +2642,7 @@ describe('Windie SDK conversation runtime core', () => {
       }),
     });
     expect(logSpy).toHaveBeenCalledWith(
-      '[Windie SDK][Compaction] backend event normalized',
+      '[Agent SDK][Compaction] backend event normalized',
       expect.objectContaining({
         generationId: null,
         skippedReason: null,
@@ -5003,7 +5003,7 @@ describe('Windie SDK conversation runtime core', () => {
       });
       await waitForExpect(() => {
         expect(warnSpy).toHaveBeenCalledWith(
-          '[Windie SDK] Conversation title generation failed:',
+          '[Agent SDK] Conversation title generation failed:',
           'title backend unavailable',
         );
       });

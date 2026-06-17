@@ -53,6 +53,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: rename main IPC's local SDK customer variables and exported
   local-runtime resolver helpers to generic agent/client terms while preserving
   public Windie SDK APIs.
+- sdk/js: use generic Agent SDK wording for internal diagnostics, local-runtime
+  failures, managed-backend session logs, and model-selection validation while
+  preserving public Windie SDK API names.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

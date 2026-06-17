@@ -22,7 +22,7 @@ function coerceNonEmptyString(value: unknown): string | null {
 
 export function buildModelSettingsPatch(
   selection: WindieModelSelection,
-  owner = 'WindieAgent.setModel',
+  owner = 'agent.setModel',
 ): JsonRecord {
   const modelId = coerceNonEmptyString(selection.modelId);
   const modelProvider = coerceNonEmptyString(selection.modelProvider ?? selection.provider);

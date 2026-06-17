@@ -153,7 +153,7 @@ export class WindieClient {
   async wakeUp(options: WindieWakeUpOptions = {}): Promise<WindieAgent> {
     const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
     const initialModelSettings = options.model
-      ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
+      ? buildModelSettingsPatch(options.model, 'agentClient.wakeUp')
       : null;
     const backendUrl = this.resolveBackendUrl(options.backendUrl);
     const operatingSystem = options.operatingSystem ?? this.defaultOptions.operatingSystem ?? detectOperatingSystem();
@@ -241,7 +241,7 @@ export class WindieClient {
     return this.ensureLocalRuntime({
       reason: options.reason ?? 'local-runtime',
       wakeUp: {},
-      errorMessage: 'WindieClient local runtime provider did not return a runtime.',
+      errorMessage: 'Agent SDK local runtime provider did not return a runtime.',
     });
   }
 
@@ -254,7 +254,7 @@ export class WindieClient {
       reason: options.reason ?? 'execute-tool',
     });
     if (typeof runtime.executeTool !== 'function') {
-      throw new Error('WindieClient local runtime does not support tool execution.');
+      throw new Error('Agent SDK local runtime does not support tool execution.');
     }
     return runtime.executeTool({
       toolName: call.toolName,
@@ -271,7 +271,7 @@ export class WindieClient {
       reason: options.reason ?? 'local-runtime-rpc',
     });
     if (typeof runtime.rpc !== 'function') {
-      throw new Error('WindieClient local runtime does not support RPC.');
+      throw new Error('Agent SDK local runtime does not support RPC.');
     }
     return runtime.rpc(payload);
   }
@@ -282,7 +282,7 @@ export class WindieClient {
       reason: options.reason ?? 'list-local-tools',
     });
     if (typeof runtime.listTools !== 'function') {
-      throw new Error('WindieClient local runtime does not support tool listing.');
+      throw new Error('Agent SDK local runtime does not support tool listing.');
     }
     return runtime.listTools() as Promise<LocalToolManifest>;
   }
@@ -293,7 +293,7 @@ export class WindieClient {
       reason: options.reason ?? 'local-status',
     });
     if (typeof runtime.status !== 'function') {
-      throw new Error('WindieClient local runtime does not support status.');
+      throw new Error('Agent SDK local runtime does not support status.');
     }
     return runtime.status();
   }
@@ -403,7 +403,7 @@ export class WindieClient {
     }
     const fetchImpl = this.defaultOptions.fetchImpl ?? globalThis.fetch?.bind(globalThis);
     if (typeof fetchImpl !== 'function') {
-      throw new Error('WindieClient install auth auto-registration requires fetch');
+      throw new Error('Agent SDK install auth auto-registration requires fetch');
     }
     const response = await fetchImpl(`${backendUrl.replace(/\/+$/, '')}/api/install/register`, {
       method: 'POST',
@@ -511,7 +511,7 @@ export class WindieClient {
       return runtime;
     }
     if (this.defaultOptions.autoStartLocalRuntime === false) {
-      throw new Error(`WindieClient local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
+      throw new Error(`Agent SDK local runtime is required for ${reason}, but autoStartLocalRuntime is false.`);
     }
     if (!this.autoLocalRuntimeProvider) {
       this.autoLocalRuntimeProvider = createWindieLocalRuntimeProvider<WindieWakeUpOptions>({
@@ -541,7 +541,7 @@ export class WindieClient {
     return this.ensureLocalRuntime({
       wakeUp: options,
       reason: 'memory, persistence, tools, plugins, MCPs, or builtins',
-      errorMessage: 'WindieClient local runtime provider did not return a runtime for required local features.',
+      errorMessage: 'Agent SDK local runtime provider did not return a runtime for required local features.',
     });
   }
 
@@ -632,7 +632,7 @@ function createDefaultConversationStore({
     return new InMemoryConversationStore();
   }
   if (!localRuntime?.rpc) {
-    throw new Error('WindieClient persistence requires a local runtime with RPC support.');
+    throw new Error('Agent SDK persistence requires a local runtime with RPC support.');
   }
   return new SidecarConversationStore({
     userId,
@@ -645,10 +645,10 @@ function validateLocalRuntimeFeatures(
   runtimeFeatures: NormalizedWindieRuntimeFeatures,
 ): void {
   if (runtimeFeatures.memory && !localRuntime?.rpc) {
-    throw new Error('WindieClient memory requires a local runtime with RPC support.');
+    throw new Error('Agent SDK memory requires a local runtime with RPC support.');
   }
   if (runtimeFeatures.persistence && !localRuntime?.rpc) {
-    throw new Error('WindieClient persistence requires a local runtime with RPC support.');
+    throw new Error('Agent SDK persistence requires a local runtime with RPC support.');
   }
 }
 

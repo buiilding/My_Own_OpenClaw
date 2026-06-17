@@ -36,9 +36,9 @@ function buildQueryString(options = {}) {
 function buildErrorMessage(status, statusText, bodyText) {
     const trimmedBody = bodyText.trim();
     if (!trimmedBody) {
-        return `Windie SDK request failed (${status} ${statusText})`;
+        return `Agent SDK request failed (${status} ${statusText})`;
     }
-    return `Windie SDK request failed (${status} ${statusText}): ${trimmedBody}`;
+    return `Agent SDK request failed (${status} ${statusText}): ${trimmedBody}`;
 }
 function isJsonRecord(value) {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);

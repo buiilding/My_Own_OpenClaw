@@ -895,7 +895,7 @@ describe('WindieSdkClient', () => {
     });
 
     await expect(client.localRuntime({ reason: 'browser-control' })).rejects.toThrow(
-      'WindieClient local runtime is required for browser-control, but autoStartLocalRuntime is false.',
+      'Agent SDK local runtime is required for browser-control, but autoStartLocalRuntime is false.',
     );
     expect(FakeWebSocket.instances).toHaveLength(0);
   });
@@ -1895,7 +1895,7 @@ describe('WindieSdkClient', () => {
     await expect(agent.setModel({
       modelProvider: 'openai',
       modelId: '',
-    })).rejects.toThrow('WindieAgent.setModel requires a non-empty modelId');
+    })).rejects.toThrow('agent.setModel requires a non-empty modelId');
     expect(socket.sent).toHaveLength(0);
   });
 

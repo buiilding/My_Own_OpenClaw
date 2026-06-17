@@ -146,9 +146,9 @@ function buildEventWebSocketUrl(baseUrl: string): string {
 function buildErrorMessage(status: number, statusText: string, bodyText: string): string {
   const trimmedBody = bodyText.trim();
   if (!trimmedBody) {
-    return `Windie SDK request failed (${status} ${statusText})`;
+    return `Agent SDK request failed (${status} ${statusText})`;
   }
-  return `Windie SDK request failed (${status} ${statusText}): ${trimmedBody}`;
+  return `Agent SDK request failed (${status} ${statusText}): ${trimmedBody}`;
 }
 
 export function moduleTool(tool: WindieToolDefinition & { module: string }): WindieToolDefinition {
@@ -612,7 +612,7 @@ function resolveDaemonScript(options: WindieAutoSidecarOptions, fs: NodeFsLike, 
     return found;
   }
   throw new Error(
-    'WindieClient could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.',
+    'Agent SDK client could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.',
   );
 }
 
@@ -681,7 +681,7 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
       modules = await loadNodeSidecarModules();
     } catch (error) {
       throw new Error(
-        `WindieClient local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`,
+        `Agent SDK local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
     const { fs, os, path, childProcess } = modules;

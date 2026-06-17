@@ -212,7 +212,7 @@ function logStoredCompactionEvent(
     return;
   }
   const payload = normalizeRecord(event.payload) ?? {};
-  console.log('[Windie SDK][Compaction] conversation.append_event succeeded', {
+  console.log('[Agent SDK][Compaction] conversation.append_event succeeded', {
     conversationRef: event.conversationRef,
     turnRef: event.turnRef,
     revisionId: event.revisionId,
