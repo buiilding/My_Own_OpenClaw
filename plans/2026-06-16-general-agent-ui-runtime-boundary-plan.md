@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 extension manifest alias rejection
+
+- Finding: extension contribution manifest loading still ignored removed alias
+  and camelCase manifest fields, which hid packages that had not migrated to
+  documented snake_case contribution contracts.
+- Change: made plugin, permission, settings-panel, and MCP manifest loading
+  reject the removed aliases at load time and updated extension authoring docs
+  to say those fields fail closed.
+- Validation: focused extension manifest and scaffold tests plus docs search.
+- Compatibility: extension authors using removed alias or camelCase manifest
+  fields must migrate to documented snake_case manifest fields. No
+  persisted-data, wire, storage, settings, or event-payload migration is
+  required.
+
 ### 2026-06-17 renderer command docs payload correction
 
 - Finding: the SDK runtime contract doc still showed renderer-facing
