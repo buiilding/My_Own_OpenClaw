@@ -16,6 +16,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - backend/core: remove the unused `core.interfaces` package export so interface
   contracts are imported from concrete modules.
+- backend/core: remove the unused `core.observability` package export so trust
+  boundary metrics are imported from the concrete metrics module.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
