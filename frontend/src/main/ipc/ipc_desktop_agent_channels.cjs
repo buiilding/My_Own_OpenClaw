@@ -1,5 +1,5 @@
 /**
- * Provides generic desktop-agent IPC channel aliases for the Electron main process.
+ * Provides generic desktop-agent IPC channel groups for the Electron main process.
  */
 
 const IPC_CHANNELS = require('../../shared/ipcChannels.json');

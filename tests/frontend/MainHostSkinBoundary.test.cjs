@@ -294,7 +294,7 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('getLocalBackendStatus');
   });
 
-  test('main SDK conversation channels use desktop-agent aliases', () => {
+  test('main SDK conversation channels use desktop-agent channel groups', () => {
     const {
       DESKTOP_AGENT_SEND_CHANNELS,
       DESKTOP_AGENT_INVOKE_CHANNELS,
@@ -305,12 +305,15 @@ describe('main host skin/config boundary', () => {
     expect(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT).toBe('windie:conversation-event');
     expect(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN).toBe('windie:current-turn');
 
+    const channelSource = fs.readFileSync(desktopAgentChannelsPath, 'utf8');
     const genericHostSources = [
       mainIpcPath,
       ipcRendererWindowsPath,
       ipcQueryBroadcastPath,
     ].map(modulePath => fs.readFileSync(modulePath, 'utf8')).join('\n');
 
+    expect(channelSource).toContain('desktop-agent IPC channel groups');
+    expect(channelSource).not.toContain(['desktop-agent IPC channel', 'aliases'].join(' '));
     expect(genericHostSources).toContain('DESKTOP_AGENT_ON_CHANNELS');
     expect(genericHostSources).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
     expect(genericHostSources).not.toMatch(

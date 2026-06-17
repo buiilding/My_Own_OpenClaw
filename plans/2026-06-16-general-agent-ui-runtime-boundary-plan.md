@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main desktop-agent channel group wording
+
+- Finding: the Electron main desktop-agent IPC channel owner module still called
+  its canonical channel groups aliases, keeping compatibility wording in active
+  source after callers converged on the desktop-agent registry groups.
+- Change: renamed the module header and boundary test wording to channel groups
+  and added coverage so the active owner module does not reintroduce alias
+  wording.
+- Validation: focused main host boundary test, stale active-source wording scan,
+  and diff check.
+- Compatibility: no migration required. IPC channel strings, preload validation,
+  renderer expectations, and bridge behavior are unchanged.
+
 ### 2026-06-17 loopback backend endpoint fallback naming
 
 - Finding: Electron main endpoint resolution still named its internal loopback
