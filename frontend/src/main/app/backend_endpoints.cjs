@@ -11,8 +11,8 @@
 
 const { mainHostSkin } = require('./main_host_skin.cjs');
 
-const DEFAULT_LOCAL_BACKEND_HOST = '127.0.0.1';
-const DEFAULT_LOCAL_BACKEND_PORT = '8765';
+const DEFAULT_LOOPBACK_BACKEND_HOST = '127.0.0.1';
+const DEFAULT_LOOPBACK_BACKEND_PORT = '8765';
 const DEFAULT_HOSTED_BACKEND = mainHostSkin.hostedBackend;
 
 function trimTrailingSlash(value) {
@@ -137,9 +137,9 @@ function resolveHostedDefaultEndpoints(env) {
   };
 }
 
-function resolveLocalFallbackEndpoints(env) {
-  const host = env.BACKEND_HOST || DEFAULT_LOCAL_BACKEND_HOST;
-  const port = String(env.BACKEND_PORT || DEFAULT_LOCAL_BACKEND_PORT);
+function resolveLoopbackFallbackEndpoints(env) {
+  const host = env.BACKEND_HOST || DEFAULT_LOOPBACK_BACKEND_HOST;
+  const port = String(env.BACKEND_PORT || DEFAULT_LOOPBACK_BACKEND_PORT);
   const httpUrl = `http://${host}:${port}`;
   const wsUrl = `ws://${host}:${port}/ws`;
 
@@ -189,7 +189,7 @@ function resolveBackendEndpointCandidates(env = process.env) {
 
   if (explicitLocalHostOrPort) {
     const localCandidates = dedupeEndpointCandidates([
-      resolveLocalFallbackEndpoints(env),
+      resolveLoopbackFallbackEndpoints(env),
     ]);
     if (localCandidates.length > 0) {
       return localCandidates;

@@ -31,6 +31,20 @@ describe('backend_endpoints artifact url selection', () => {
 });
 
 describe('backend_endpoints hosted defaults', () => {
+  test('uses loopback fallback naming for internal endpoint defaults', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/app/backend_endpoints.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_HOST');
+    expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_PORT');
+    expect(source).toContain('resolveLoopbackFallbackEndpoints');
+    expect(source).not.toContain(['DEFAULT', 'LOCAL', 'BACKEND', 'HOST'].join('_'));
+    expect(source).not.toContain(['DEFAULT', 'LOCAL', 'BACKEND', 'PORT'].join('_'));
+    expect(source).not.toContain(['resolveLocal', 'FallbackEndpoints'].join(''));
+  });
+
   test('uses canonical hosted-default override pair', () => {
     const env = {
       WINDIE_DEFAULT_BACKEND_HTTP_URL: 'https://staging.windieos.com/',

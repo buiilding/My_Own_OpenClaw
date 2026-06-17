@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 loopback backend endpoint fallback naming
+
+- Finding: Electron main endpoint resolution still named its internal loopback
+  backend fallback constants and helper as local-backend defaults even though
+  hosted backend defaults now live in the WindieOS host skin and local fallback
+  is only an explicit loopback endpoint candidate.
+- Change: renamed the internal fallback constants/helper to loopback-backend
+  terminology and added endpoint source coverage so the local-backend fallback
+  helper names do not return.
+- Validation: focused endpoint tests, stale fallback-name scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. `BACKEND_HOST`, `BACKEND_PORT`,
+  hosted-default env vars, URL resolution behavior, and persisted settings are
+  unchanged.
+
 ### 2026-06-17 browser permission local-runtime status detail
 
 - Finding: the Electron main browser automation permission adapter still
