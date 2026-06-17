@@ -2698,3 +2698,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level runtime event
   type imports still resolve, and direct compatibility-module imports can use
   `WindieConversationRuntime`.
+
+### 2026-06-17 builtins module compatibility wrapper
+
+- Finding: the canonical SDK builtin selection module still exported
+  `windieBuiltins` and Windie-prefixed builtin selection type aliases directly,
+  so the reusable builtin selector owned historical product naming.
+- Change: moved the Windie-prefixed builtin value and type aliases to the
+  `WindieBuiltins` compatibility module and package boundary, leaving
+  `builtins` as the canonical module for `agentBuiltins`.
+- Validation: focused SDK package-boundary/private-export coverage, SDK client
+  builtin-selection coverage, docs listing, `git diff --check`, and source
+  scans confirming the canonical builtin module no longer exports
+  Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level builtin imports
+  still resolve, and direct compatibility-module imports can use
+  `WindieBuiltins`.

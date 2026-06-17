@@ -3,7 +3,7 @@
  * Provides the builtins module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.windieBuiltins = exports.agentBuiltins = void 0;
+exports.agentBuiltins = void 0;
 exports.shouldIncludeBuiltinTool = shouldIncludeBuiltinTool;
 exports.agentBuiltins = {
     none() {
@@ -42,7 +42,6 @@ exports.agentBuiltins = {
         };
     },
 };
-exports.windieBuiltins = exports.agentBuiltins;
 const BUILTIN_PREFIXES = {
     desktop: [],
     filesystem: ['read_file', 'replace', 'list_files', 'search_files'],

@@ -115,6 +115,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.createConversationRuntime).toBe(canonicalModule.createConversationRuntime);
   });
 
+  test('Windie builtins module remains a compatibility wrapper for builtins', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/tools/builtins.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/tools/WindieBuiltins.js');
+
+    expect(canonicalModule.agentBuiltins).toBeDefined();
+    expect(canonicalModule.windieBuiltins).toBeUndefined();
+    expect(compatibilityModule.agentBuiltins).toBe(canonicalModule.agentBuiltins);
+    expect(compatibilityModule.windieBuiltins).toBe(canonicalModule.agentBuiltins);
+  });
+
   test('capability manifest module keeps summarization behind stamping API', () => {
     const manifestModule = require('../../packages/windie-sdk-js/cjs/runtime/CapabilityManifest.js');
 

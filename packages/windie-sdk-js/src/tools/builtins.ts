@@ -15,10 +15,6 @@ export type AgentBuiltinToolSelection = {
   builtins: AgentBuiltinSelection;
 };
 
-export type WindieBuiltinToolSet = AgentBuiltinToolSet;
-export type WindieBuiltinSelection = AgentBuiltinSelection;
-export type WindieBuiltinToolSelection = AgentBuiltinToolSelection;
-
 export const agentBuiltins = {
   none(): AgentBuiltinToolSelection {
     return {
@@ -56,8 +52,6 @@ export const agentBuiltins = {
     };
   },
 };
-
-export const windieBuiltins = agentBuiltins;
 
 const BUILTIN_PREFIXES: Record<AgentBuiltinToolSet, string[]> = {
   desktop: [],

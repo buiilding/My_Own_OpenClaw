@@ -474,8 +474,8 @@ const unsubscribe = agent.subscribeLocalRuntimeEvents((event) => {
 ```
 
 `agentBuiltins` is the generic SDK helper for selecting built-in local tool
-sets. `windieBuiltins` remains exported as a compatibility alias for existing
-callers.
+sets. `WindieBuiltins.ts` remains the compatibility wrapper for
+`windieBuiltins` and historical Windie-prefixed builtin selection types.
 
 ## Conversation Runtime
 

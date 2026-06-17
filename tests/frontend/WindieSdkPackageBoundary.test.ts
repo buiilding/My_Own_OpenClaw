@@ -55,6 +55,8 @@ import {
   type AgentSdkQueryOptions,
   type AgentStreamEvent,
   type AgentBackendSocketOptions,
+  type AgentBuiltinSelection,
+  type AgentBuiltinToolSelection,
   type AgentStopOptions,
   type AgentStoreMemoryInput,
   type AgentTraceOptions,
@@ -69,6 +71,8 @@ import {
   type WindieSdkBackendSocketOptions,
   type WindieSdkClientOptions,
   type WindieSdkQueryOptions,
+  type WindieBuiltinSelection,
+  type WindieBuiltinToolSelection,
   type WindieInstallAuthOptions,
   type WindieLocalRuntimeRequest,
   type WindieLocalRuntimeClient,
@@ -171,6 +175,16 @@ describe('@windie/sdk package boundary', () => {
     const compatibilityOptions: WindieSdkBackendSocketOptions = options;
 
     expect(createWindieSdkBackendSocket(compatibilityOptions)).toBeInstanceOf(FakeWebSocket);
+  });
+
+  test('exports generic builtin selection aliases', () => {
+    const selection: AgentBuiltinSelection = ['browser'];
+    const compatibilitySelection: WindieBuiltinSelection = selection;
+    const toolSelection: AgentBuiltinToolSelection = { builtins: compatibilitySelection };
+    const compatibilityToolSelection: WindieBuiltinToolSelection = toolSelection;
+
+    expect(windieBuiltins.browser()).toEqual(agentBuiltins.browser());
+    expect(compatibilityToolSelection.builtins).toEqual(['browser']);
   });
 
   test('exports generic chat session input aliases', () => {
