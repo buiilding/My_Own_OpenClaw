@@ -1876,6 +1876,39 @@ describe('Agent SDK client behavior', () => {
     });
   });
 
+  test('agent.stop rejects removed snake_case option aliases', async () => {
+    const stopQuery = jest.fn(async () => 'stop-message-id');
+    const agent = new Agent(
+      'stop-agent',
+      {
+        on: jest.fn(() => () => undefined),
+        stopQuery,
+        close: jest.fn(),
+      } as any,
+      {},
+      {} as any,
+      { listAgents: jest.fn(() => []) },
+    );
+
+    await expect(agent.stop({
+      conversationRef: 'conv-stop',
+      turnRef: 'turn-stop',
+    })).resolves.toBe('stop-message-id');
+
+    expect(stopQuery).toHaveBeenCalledWith({
+      conversation_ref: 'conv-stop',
+      turn_ref: 'turn-stop',
+    });
+
+    await expect(agent.stop({
+      conversation_ref: 'legacy-conv',
+      turn_ref: 'legacy-turn',
+    } as any)).rejects.toThrow(
+      'agent.stop accepts conversationRef and turnRef; snake_case stop fields are not supported.',
+    );
+    expect(stopQuery).toHaveBeenCalledTimes(1);
+  });
+
   test('managed SDK agent sessions own reconnect fallback and command sends', async () => {
     const onFallback = jest.fn();
     const client = new AgentClient({

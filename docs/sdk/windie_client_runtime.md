@@ -149,6 +149,8 @@ such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
 follow the same rule: use `AgentClientOptions`, `AgentWakeUpOptions`,
 `AgentLocalRuntimeRequest`, `AgentRuntimeFeatureOption`, and
 `AgentInstallAuthOptions` in reusable SDK code.
+High-level `agent.stop(...)` option objects accept `conversationRef` and
+`turnRef`; snake_case stop fields are reserved for backend transport payloads.
 
 ## Desktop Host Startup
 

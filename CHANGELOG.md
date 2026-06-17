@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the high-level `Agent.stop(...)` snake_case option compatibility path; public stop options now use `conversationRef` and `turnRef` while backend transport payloads remain snake_case. No persisted-data, wire, or storage migration is required.
+
 - Updated sidecar source-copy guard tests to require Python sidecar runtime/daemon wording instead of retired local-sidecar labels. No migration is required.
 
 - Updated browser runtime docs to remove legacy Browser Use session and browser file-root reuse guidance while preserving generic desktop-agent defaults. No migration is required.

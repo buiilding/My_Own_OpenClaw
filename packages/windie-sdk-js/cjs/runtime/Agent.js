@@ -146,9 +146,12 @@ class Agent {
     }
     async stop(input) {
         if (input && typeof input === 'object') {
+            if ('conversation_ref' in input || 'turn_ref' in input) {
+                throw new Error('agent.stop accepts conversationRef and turnRef; snake_case stop fields are not supported.');
+            }
             return this.session.stopQuery({
-                conversation_ref: input.conversation_ref ?? input.conversationRef ?? null,
-                turn_ref: input.turn_ref ?? input.turnRef ?? null,
+                conversation_ref: input.conversationRef ?? null,
+                turn_ref: input.turnRef ?? null,
             });
         }
         return this.session.stopQuery({ conversation_ref: typeof input === 'string' ? input : null });
