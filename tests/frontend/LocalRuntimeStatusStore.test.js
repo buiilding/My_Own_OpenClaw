@@ -22,11 +22,9 @@ describe('localRuntimeStatusStore', () => {
       },
       INVOKE_CHANNELS: {
         GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
-        GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
       },
       ON_CHANNELS: {
         LOCAL_RUNTIME_STATUS: 'local-backend-status',
-        LOCAL_BACKEND_STATUS: 'local-backend-status',
       },
     }));
 
@@ -102,5 +100,23 @@ describe('localRuntimeStatusStore', () => {
     expect(source).not.toContain('ON_CHANNELS.LOCAL_BACKEND_STATUS');
     expect(source).not.toContain('IpcBridge.on(ON_CHANNELS.LOCAL_BACKEND_STATUS');
     expect(source).not.toContain('IpcBridge.invoke(INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS');
+  });
+
+  test('shared channel registry omits legacy local-backend status aliases', () => {
+    const sharedChannels = require('../../frontend/src/shared/ipcChannels.json');
+    const rendererChannelsSource = require('fs').readFileSync(
+      require('path').resolve(
+        __dirname,
+        '../../frontend/src/renderer/infrastructure/ipc/channels.ts',
+      ),
+      'utf8',
+    );
+
+    expect(sharedChannels.INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS).toBe('get-local-backend-status');
+    expect(sharedChannels.ON_CHANNELS.LOCAL_RUNTIME_STATUS).toBe('local-backend-status');
+    expect(sharedChannels.INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS).toBeUndefined();
+    expect(sharedChannels.ON_CHANNELS.LOCAL_BACKEND_STATUS).toBeUndefined();
+    expect(rendererChannelsSource).not.toContain('GET_LOCAL_BACKEND_STATUS');
+    expect(rendererChannelsSource).not.toContain('LOCAL_BACKEND_STATUS');
   });
 });

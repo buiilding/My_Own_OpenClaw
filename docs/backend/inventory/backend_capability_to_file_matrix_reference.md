@@ -59,7 +59,7 @@ This matrix maps backend capabilities to implementation files.
 | Tool result transformation/history commit | `backend/src/agent/tools/processing/{processor,transformer,coordinator,synthetic_factory}.py`, `backend/src/agent/history/history_committer.py` | Converts raw tool results to model-facing history rows and cleanup path. |
 | Backend tool registry and schema policy | `backend/src/tools/{registry,schema_registry,tool_policy,tool_selection,categorization}.py` | Tool availability and schema surfaces for prompt/validation path. |
 | Single/bundle tool orchestration contracts | `backend/src/tools/{single_tool_execution,bundle_execution,orchestrator}.py`, `backend/src/tools/result_{helpers,types}.py` | Bundled and individual tool execution result contracts. |
-| Remote tool adapter layer | `backend/src/tools/remote.py`, `backend/src/tools/remote_tools/*.py` | Frontend-executed tool bridge and compatibility layer. |
+| Remote tool adapter layer | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/*.py` | Frontend-executed tool catalog and concrete domain stubs. |
 
 ## 5) LLM Stack
 

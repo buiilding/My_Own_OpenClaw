@@ -28,11 +28,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     RUN_BROWSER_ACTION: 'run-browser-action',
-    GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
+    GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
     WINDIE_INVOKE: 'windie:invoke',
   },
   ON_CHANNELS: {
-    LOCAL_BACKEND_STATUS: 'local-backend-status',
+    LOCAL_RUNTIME_STATUS: 'local-backend-status',
   },
 }));
 

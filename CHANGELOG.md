@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed legacy renderer local-backend status IPC alias constants in favor of local-runtime status constants while preserving the wire channel strings. No persisted-data migration is required.
+
 - Removed the backend remote-tool re-export facade so tests and docs use the canonical tool catalog and concrete remote tool modules directly; the browser shared-contract loader now supports the existing markerless `windie_shared` namespace package. No persisted-data migration is required.
 
 - Renamed Electron main local-runtime daemon launch helpers and main-added log prefix away from sidecar-daemon wording. No persisted-data migration is required.

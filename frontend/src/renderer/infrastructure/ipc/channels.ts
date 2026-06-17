@@ -58,7 +58,6 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
     WINDOW_CLOSE: 'window-close',
     GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
-    GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
   },
   ON_CHANNELS: {
     WINDIE_ROWS: 'windie:rows',
@@ -71,7 +70,6 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
     IPC_STATUS: 'ipc-status',
     LOCAL_RUNTIME_STATUS: 'local-backend-status',
-    LOCAL_BACKEND_STATUS: 'local-backend-status',
     LOG: 'log',
     WAKEWORD_DETECTED: 'wakeword-detected',
     WAKEWORD_STATUS: 'wakeword-status',

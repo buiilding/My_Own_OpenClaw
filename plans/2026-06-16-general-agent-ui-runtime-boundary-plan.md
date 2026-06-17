@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Renderer local-runtime status IPC alias deletion
+
+- Finding: the shared IPC channel registry still exported
+  `GET_LOCAL_BACKEND_STATUS` and `LOCAL_BACKEND_STATUS` as compatibility
+  aliases after renderer status consumers moved to local-runtime names.
+- Change: removed the legacy local-backend status alias constants from the
+  shared registry, renderer channel validation, and frontend test mocks while
+  keeping the existing `get-local-backend-status` and `local-backend-status`
+  wire channels unchanged.
+- Validation: focused local-runtime status store and browser-session frontend
+  tests, stale alias scan, docs listing, and diff check.
+- Compatibility: no migration required for first-party code. Runtime consumers
+  should use `GET_LOCAL_RUNTIME_STATUS` and `LOCAL_RUNTIME_STATUS`; the IPC
+  channel strings remain unchanged.
+
 ### 2026-06-17 Main local-runtime daemon helper naming
 
 - Finding: Electron main's local-runtime launch-options helper still used

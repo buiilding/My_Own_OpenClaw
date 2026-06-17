@@ -3,27 +3,36 @@
 from __future__ import annotations
 
 import importlib
-import importlib.util
 import sys
+from importlib.machinery import ModuleSpec
 from pathlib import Path
 from types import ModuleType
 
 
 def _load_windie_shared_package(package_dir: Path) -> ModuleType:
     package_name = "windie_shared"
-    package_init = package_dir / "__init__.py"
-    package_spec = importlib.util.spec_from_file_location(
-        package_name,
-        package_init,
-        submodule_search_locations=[str(package_dir)],
-    )
-    if package_spec is None or package_spec.loader is None:
-        raise ImportError(f"Unable to load {package_name} package from {package_init}")
+    if not package_dir.is_dir():
+        raise ImportError(f"Unable to load {package_name} package from {package_dir}")
 
-    package = importlib.util.module_from_spec(package_spec)
+    package = ModuleType(package_name)
+    package.__path__ = [str(package_dir)]
+    package.__package__ = package_name
+    package.__spec__ = ModuleSpec(package_name, loader=None, is_package=True)
+    package.__spec__.submodule_search_locations = [str(package_dir)]
     sys.modules[package_name] = package
-    package_spec.loader.exec_module(package)
     return package
+
+
+def _package_root(package: ModuleType) -> Path | None:
+    package_file = getattr(package, "__file__", None)
+    if package_file:
+        return Path(package_file).resolve().parent
+
+    package_paths = getattr(package, "__path__", None)
+    if package_paths:
+        return Path(next(iter(package_paths))).resolve()
+
+    return None
 
 
 def load_shared_browser_contract() -> ModuleType:
@@ -32,14 +41,11 @@ def load_shared_browser_contract() -> ModuleType:
     package_dir = repo_root / "frontend" / "src" / "main" / "python" / "windie_shared"
     package = sys.modules.get("windie_shared")
     if package is not None:
-        package_file = getattr(package, "__file__", None)
-        if (
-            package_file
-            and Path(package_file).resolve().parent != package_dir.resolve()
-        ):
+        package_root = _package_root(package)
+        if package_root and package_root != package_dir.resolve():
             raise ImportError(
                 "windie_shared is already loaded from a different location: "
-                f"{package_file}"
+                f"{package_root}"
             )
     else:
         _load_windie_shared_package(package_dir)
