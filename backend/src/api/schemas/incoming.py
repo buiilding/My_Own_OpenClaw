@@ -52,7 +52,7 @@ class QueryPayload(BaseModel):
 
     text: str
     conversation_ref: str
-    content: Optional[str] = None
+    content: str = Field(min_length=1)
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None

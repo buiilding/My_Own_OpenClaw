@@ -44,13 +44,6 @@ def build_query_image_data(
     return resolved_screenshots
 
 
-def format_plain_user_query_content(query: str) -> str:
-    """Fallback wrapper for clients that do not send SDK-prepared content."""
-    from xml.sax.saxutils import escape
-
-    return f"<user_query>\n{escape(str(query or ''))}\n</user_query>"
-
-
 def resolve_query_execution_inputs(
     message: "QueryMessage",
     *,
@@ -92,13 +85,7 @@ def resolve_query_execution_inputs(
         image_data=inline_screenshot,
         image_refs=resolve_screenshot_refs(message),
         capture_meta=resolve_query_screenshot_metadata(message),
-        message_content=(
-            format_plain_user_query_content(
-                getattr(message.payload, "text", ""),
-            )
-            if getattr(message.payload, "content", None) is None
-            else getattr(message.payload, "content", None)
-        ),
+        message_content=message.payload.content,
         conversation_ref=getattr(message.payload, "conversation_ref", None),
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,

@@ -1103,7 +1103,11 @@ async def test_query_handler_invalid_text():
         id="msg_2",
         type="query",
         user_id="user_1",
-        payload={"text": "   ", "conversation_ref": "conv_test", "content": ""},
+        payload={
+            "text": "   ",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>\n   \n</user_query>",
+        },
     )
 
     await handler.handle(message, websocket, "user_1")

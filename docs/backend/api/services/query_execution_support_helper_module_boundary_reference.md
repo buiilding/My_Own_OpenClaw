@@ -71,9 +71,8 @@ Notable behavior:
 - `image_data`: inline screenshot `str | None`
 - `image_refs`: normalized artifact refs `list[str] | None`
 - `capture_meta`: dict copy or `None`
-- `message_content`: payload `content` when present, otherwise the query input
-  helper wraps payload `text` in the plain `<user_query>` block before the
-  prompt constructor sees it
+- `message_content`: required payload `content` from the SDK/client-prepared
+  model-facing query content
 - `conversation_ref`: pass-through from payload conversation ref
 
 Artifact-backed `screenshot_ref`/`screenshot_refs` are stored as refs and resolved later by prompt construction.

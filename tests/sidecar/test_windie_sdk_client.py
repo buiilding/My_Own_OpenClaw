@@ -415,6 +415,9 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
     assert websocket.sent[1]["payload"] == {
         "text": "Click the orange search button",
         "conversation_ref": "conv-123",
+        "content": (
+            "<user_query>\nClick the orange search button\n</user_query>"
+        ),
         "screenshot_ref": "artifact-123.png",
     }
 
@@ -986,6 +989,11 @@ async def test_trace_query_collects_events_until_streaming_complete():
     )
 
     assert trace["final_response"] == "done"
+    assert websocket.sent[1]["payload"] == {
+        "text": "Inspect repo state",
+        "conversation_ref": "conv-trace",
+        "content": "<user_query>\nInspect repo state\n</user_query>",
+    }
     assert [event["type"] for event in trace["events"]] == [
         "tool-schemas",
         "streaming-response",

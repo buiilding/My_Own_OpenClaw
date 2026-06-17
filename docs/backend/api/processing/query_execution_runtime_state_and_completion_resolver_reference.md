@@ -69,10 +69,10 @@ Prompt construction later resolves refs into bounded model image payloads. Artif
 
 ## Agent Runtime Inputs
 
-`query_execution_inputs.resolve_query_execution_inputs(...)` renders structured
-`payload.query_context` into the backend-built user message. Local memory
-snippets and attachment context remain prompt context produced by backend
-formatting, not renderer-visible chat text.
+`query_execution_inputs.resolve_query_execution_inputs(...)` passes through the
+required SDK/client-prepared `payload.content` as the model-facing user message.
+Local memory snippets and attachment context are prepared before backend ingress,
+not rebuilt from a backend query-context fallback.
 
 `QueryExecutionService.execute(...)` forwards the normalized query inputs into
 `AgentSession.process_query(...)`:

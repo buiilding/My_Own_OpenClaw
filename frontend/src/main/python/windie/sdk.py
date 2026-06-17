@@ -47,15 +47,23 @@ def _build_query_string(params: dict[str, Any]) -> str:
     return f"?{urlencode(filtered)}"
 
 
-def _render_user_content_with_attachment(text: str, attachment_context: str) -> str:
-    return (
-        "<attached_file_context>\n"
-        f"{html.escape(attachment_context.strip(), quote=True)}\n"
-        "</attached_file_context>\n\n"
+def _render_user_content(
+    text: str,
+    attachment_context: Optional[str] = None,
+) -> str:
+    parts: list[str] = []
+    if isinstance(attachment_context, str) and attachment_context.strip():
+        parts.append(
+            "<attached_file_context>\n"
+            f"{html.escape(attachment_context.strip(), quote=True)}\n"
+            "</attached_file_context>"
+        )
+    parts.append(
         "<user_query>\n"
         f"{html.escape(text, quote=True)}\n"
         "</user_query>"
     )
+    return "\n\n".join(parts)
 
 
 def _derive_ws_url(http_url: str) -> str:
@@ -713,8 +721,11 @@ class WindieSdkAgentSession:
             "text": text,
             "conversation_ref": conversation_ref,
         }
-        if isinstance(content, str) and content.strip():
-            payload["content"] = content
+        payload["content"] = (
+            content
+            if isinstance(content, str) and content.strip()
+            else _render_user_content(text, attachment_context)
+        )
         if isinstance(screenshot, str) and screenshot.strip():
             payload["screenshot"] = screenshot
         if isinstance(screenshot_ref, str) and screenshot_ref.strip():
@@ -725,12 +736,6 @@ class WindieSdkAgentSession:
                 for value in screenshot_refs
                 if isinstance(value, str) and value.strip()
             ]
-        if (
-            "content" not in payload
-            and isinstance(attachment_context, str)
-            and attachment_context.strip()
-        ):
-            payload["content"] = _render_user_content_with_attachment(text, attachment_context)
         if isinstance(system_state_internal, dict) and system_state_internal:
             payload["system_state_internal"] = system_state_internal
         if isinstance(workspace_path, str) and workspace_path.strip():

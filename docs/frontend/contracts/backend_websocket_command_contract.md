@@ -50,9 +50,7 @@ Frontend sends must validate against that fixture for:
 
 Tool-result `data` and bundle `step_results[]` intentionally allow tool-specific extra fields, but their top-level payload keys remain closed.
 
-`query.payload` allows the desktop query path to send structured
-`query_context` alongside legacy `content`. Backend prompt rendering owns turning
-`query_context.memories` and `query_context.attachment_context` into
-model-visible user context. Electron main may also attach `agent_definition` to
+`query.payload.content` is required and must contain SDK/client-prepared
+model-facing query content. Electron main may also attach `agent_definition` to
 query sends for local repo instruction, skill, and custom-instruction layers;
 generic rehydrate forwarding does not add that context.

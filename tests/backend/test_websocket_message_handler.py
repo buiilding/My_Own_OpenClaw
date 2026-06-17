@@ -36,7 +36,11 @@ def _query_message(message_id: str) -> QueryMessage:
         id=message_id,
         type="query",
         user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
+        payload={
+            "text": "test",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>\ntest\n</user_query>",
+        },
     )
 
 
@@ -92,7 +96,11 @@ async def test_parse_and_validate_message_success() -> None:
         {
             "id": "msg_1",
             "type": "query",
-            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "content": "<user_query>\nhello\n</user_query>",
+            },
         }
     )
 
@@ -107,6 +115,25 @@ async def test_parse_and_validate_message_success() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_missing_prepared_content() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_missing_content",
+            "type": "query",
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=1024
+    )
+
+    assert message is None
+    assert error is not None
+    assert "payload.content" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_query_payload_turn_ref() -> None:
     payload = json.dumps(
         {
@@ -115,6 +142,7 @@ async def test_parse_and_validate_message_rejects_query_payload_turn_ref() -> No
             "payload": {
                 "text": "hello",
                 "conversation_ref": "conv_test",
+                "content": "<user_query>\nhello\n</user_query>",
                 "turn_ref": " turn_1 ",
             },
         }
@@ -159,7 +187,11 @@ async def test_parse_and_validate_message_overrides_client_user_id_with_connecti
             "id": "msg_user_override",
             "type": "query",
             "user_id": "attacker_user",
-            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "content": "<user_query>\nhello\n</user_query>",
+            },
         }
     )
 

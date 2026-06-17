@@ -13,7 +13,7 @@ def _build_message(
     screenshot_ref=None,
     screenshot_refs=None,
     capture_meta=None,
-    content=None,
+    content="<user_query>\nhello\n</user_query>",
     system_state_internal=None,
     workspace_path=None,
     repo_instruction_messages=None,
@@ -59,7 +59,7 @@ def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fiel
     message = _build_message(
         screenshot_refs=["shot-a", "shot-b"],
         capture_meta={"display": {"width": 1920}},
-        content="hello",
+        content="<user_query>\nhello\n</user_query>",
         system_state_internal={"active_window": "Terminal", "ignored": "nope"},
         workspace_path="/work/WindieOS",
         repo_instruction_messages=[{"role": "user", "content": "Use repo rules"}],
@@ -75,7 +75,7 @@ def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fiel
     assert inputs.image_data is None
     assert inputs.image_refs == ["shot-a", "shot-b"]
     assert inputs.capture_meta == {"display": {"width": 1920}}
-    assert inputs.message_content == "hello"
+    assert inputs.message_content == "<user_query>\nhello\n</user_query>"
     assert inputs.conversation_ref == "conv-2"
     assert inputs.workspace_path == "/work/WindieOS"
     assert inputs.repo_instruction_messages == [

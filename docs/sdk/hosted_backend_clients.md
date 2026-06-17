@@ -119,9 +119,9 @@ The Python runtime also exposes `status()`, `list_tools()`, and
 
 Python websocket agent sessions normalize backend-bound payloads before send:
 
-- attachment file bodies are sent as `query_context.attachment_context`;
-  attachment filenames remain client/display metadata and are not sent to the
-  backend websocket query payload
+- attachment file bodies are rendered into required backend query
+  `payload.content`; attachment filenames remain client/display metadata and are
+  not sent to the backend websocket query payload
 - `update_settings(...)` filters patches to backend-owned `update-settings`
   keys, including the supported provider API-key and OAuth nested shapes
 - sidecar tool-result data keeps complete screenshot `capture_meta` only; partial

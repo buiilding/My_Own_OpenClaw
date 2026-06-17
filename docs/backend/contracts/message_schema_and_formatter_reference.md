@@ -45,8 +45,7 @@ Payload (`QueryPayload`):
 - `turn_ref` is not accepted in the query payload. Desktop/SDK query
   correlation belongs in the websocket envelope `id`, which becomes the
   canonical `turn_ref` echoed on backend stream events.
-- `content: Optional[str]`
-- `query_context: Optional[QueryContext]`
+- `content: str` (SDK/client-prepared model-facing query content)
 - `screenshot: Optional[str]`
 - `screenshot_ref: Optional[str]`
 - `screenshot_refs: Optional[List[str]]`

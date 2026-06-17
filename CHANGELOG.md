@@ -81,6 +81,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: rename the strict SDK command invoke helper/dependencies to
   generic agent SDK terms while preserving the existing `windie:invoke` wire
   contract.
+- backend/api: require SDK/client-prepared query `content` at websocket ingress
+  and remove the legacy backend `<user_query>` text wrapper.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.
