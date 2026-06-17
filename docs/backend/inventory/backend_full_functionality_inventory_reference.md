@@ -134,14 +134,13 @@ Primary files:
 
 - `backend/src/api/contracts/{message_types,formatter_specs,registry}.py`
 - `backend/src/api/schemas/{common,incoming,outgoing}.py`
-- `backend/src/api/schemas/{common,incoming,outgoing}.py`
 
 Functionality:
 
 - Defines canonical incoming/outgoing envelope schemas.
 - Defines event formatter route table.
 - Enforces message-type constant and outgoing-schema parity for query/settings/control ACK payloads.
-- Provides compatibility schema export façade.
+- Keeps schema ownership in direct concern-specific modules.
 
 ## 3) Agent Runtime Inventory
 

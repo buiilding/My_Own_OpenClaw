@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the stale backend inventory claim for a compatibility schema export facade and kept schema ownership pointed at direct modules. No migration is required.
+
 - Updated frontend protocol matrix hubs to present Electron-facing JSON-RPC mapping as local-runtime protocol surface wording. No migration is required.
 
 - Replaced the sidecar filesystem topology placeholder for removed legacy tools with the active replace helper modules. No migration is required.
