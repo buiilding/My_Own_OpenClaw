@@ -349,3 +349,15 @@ Each completed slice should report:
   source scan for the retired helper name and sync option names.
 - Compatibility: no migration required. Settings payload fields, IPC channels,
   backend ACK events, and selected-model behavior are unchanged.
+
+### 2026-06-17 renderer settings capability event test naming
+
+- Finding: the Agent settings test named the captured
+  `agent-capability-event` callback as a backend handler, and the renderer
+  feature matrix described settings integration as backend-driven.
+- Change: renamed the test callback to capability-event terminology and aligned
+  the feature matrix with runtime-driven model list/event integration.
+- Validation: focused Jest run for `AgentSettingsTab`, docs listing,
+  `git diff --check`, and a source scan for the retired test callback name.
+- Compatibility: no migration required. Event channel names and settings UI
+  behavior are unchanged.
