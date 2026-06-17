@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 LocalRuntimeConversationStore metadata fallback deletion
+
+- Finding: `LocalRuntimeConversationStore` still loaded Windie-prefixed
+  `windie_sdk_conversation_event` and `windieSdkConversationEvent` metadata
+  keys even after generic agent metadata keys became the durable fallback.
+- Change: removed the Windie-prefixed metadata fallback keys from the SDK store,
+  updated checked-in CJS parity output, and changed store API coverage to prove
+  legacy metadata keys are ignored while generic metadata still loads.
+- Validation: focused Agent conversation store API test, SDK package build,
+  stale metadata-key scan, docs listing, and diff check.
+- Compatibility: no migration required for first-party code. Current rows use
+  `event_payload`; metadata fallback reads only `agent_sdk_conversation_event`
+  or `agentSdkConversationEvent`.
+
 ### 2026-06-17 SDK local-runtime client options alias deletion
 
 - Finding: the TypeScript SDK still exported `SidecarDaemonClientOptions` and
@@ -3171,12 +3185,12 @@ Each completed slice should report:
   historical `windie_sdk_conversation_event` metadata keys when reconstructing
   events from older rows, with no generic metadata key ahead of that fallback.
 - Change: added `agent_sdk_conversation_event` and `agentSdkConversationEvent`
-  as the preferred metadata fallback keys and kept the Windie-prefixed keys as
-  legacy persisted-row compatibility.
+  as the preferred metadata fallback keys. The Windie-prefixed fallback keys
+  were removed in a later cleanup slice.
 - Validation: focused Agent conversation store API coverage, CJS parity update,
   `git diff --check`, and source scans for the metadata fallback keys.
 - Compatibility: no migration required. Current rows still use `event_payload`;
-  older rows with Windie-prefixed metadata continue to load.
+  metadata fallback reads the generic agent keys.
 
 ### 2026-06-17 AgentClient local runtime daemon option
 
