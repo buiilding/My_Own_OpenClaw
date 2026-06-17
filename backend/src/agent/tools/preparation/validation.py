@@ -18,7 +18,6 @@ _GROUNDED_SOURCE_FIELDS = (
     "candidate_id",
     "source_description",
     "model_name",
-    "screenshot_id",
 )
 _GROUNDED_DRAG_FIELDS = (
     "drag_to_find_coordinates_by",
@@ -79,6 +78,11 @@ def _strip_grounding_only_fields(resolved_call: ResolvedToolCall) -> None:
         return
     if not isinstance(resolved_call.parameters, dict):
         return
+    if "screenshot_id" in resolved_call.parameters:
+        raise ValueError(
+            f"{resolved_call.tool_name} no longer accepts screenshot_id; "
+            "use current-frame coordinates without passing screenshot_id."
+        )
 
     for field_name in _GROUNDED_SOURCE_FIELDS:
         resolved_call.parameters.pop(field_name, None)

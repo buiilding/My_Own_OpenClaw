@@ -169,6 +169,26 @@ def test_sanitize_resolved_call_only_strips_backend_grounding_fields():
     assert resolved_call.parameters == {"action": "click", "x": 10, "y": 20}
 
 
+def test_sanitize_resolved_call_rejects_unsupported_screenshot_id():
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "action": "click",
+            "x": 10,
+            "y": 20,
+            "screenshot_id": "old-shot",
+        },
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    with pytest.raises(ValueError, match="no longer accepts screenshot_id"):
+        sanitize_resolved_tool_call(
+            resolved_call,
+            enabled=True,
+        )
+
+
 @pytest.mark.asyncio
 async def test_resolve_tool_with_coordinates_scales_using_capture_meta(monkeypatch):
     session, screenshot_manager = _create_session_and_manager(
@@ -600,44 +620,6 @@ async def test_resolve_tool_with_coordinates_allows_ocr_candidate_with_implicit_
     assert resolved_call.parameters["y"] == 360
 
 
-@pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_ignores_legacy_ocr_candidate_screenshot_id(
-    monkeypatch,
-):
-    session, screenshot_manager = _create_session_and_manager(
-        screenshot_id="shot-current",
-        capture_meta={
-            "screenshot_id": "shot-current",
-            "source_w": 1920,
-            "source_h": 1080,
-            "crop_x": 0,
-            "crop_y": 0,
-            "crop_w": 1920,
-            "crop_h": 1080,
-            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
-            "monitor_id": None,
-            "timestamp": 1,
-        },
-    )
-
-    tool_call, resolved_call = _build_mouse_call(
-        method=CoordinateFindingMethod.OCR,
-        candidate_id="ocr_deadbeef0000",
-        screenshot_id="shot-old",
-    )
-    _patch_coordinate_resolution(monkeypatch, 641, 361)
-
-    await _resolve_with_stubs(
-        tool_call,
-        resolved_call,
-        session,
-        screenshot_manager,
-        "ocr-candidate-legacy-shot-id",
-    )
-    assert resolved_call.parameters["x"] == 641
-    assert resolved_call.parameters["y"] == 361
-
-
 def test_normalize_manual_coordinates_uses_current_frame_when_screenshot_id_missing():
     session, _ = _create_session_and_manager(
         screenshot_id="shot-manual",
@@ -672,42 +654,6 @@ def test_normalize_manual_coordinates_uses_current_frame_when_screenshot_id_miss
     assert resolved_call.parameters["y"] == 300
     assert (
         resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-manual"
-    )
-
-
-def test_normalize_manual_coordinates_ignores_legacy_screenshot_id():
-    session, _ = _create_session_and_manager(
-        screenshot_id="shot-current",
-        capture_meta={
-            "screenshot_id": "shot-current",
-            "source_w": 1920,
-            "source_h": 1080,
-            "crop_x": 0,
-            "crop_y": 0,
-            "crop_w": 1920,
-            "crop_h": 1080,
-            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
-            "monitor_id": None,
-            "timestamp": 1,
-        },
-    )
-
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"action": "click", "x": 700, "y": 300, "screenshot_id": "shot-old"},
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-
-    normalize_manual_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        context_id="manual-stale",
-    )
-    assert resolved_call.parameters["x"] == 700
-    assert resolved_call.parameters["y"] == 300
-    assert (
-        resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-current"
     )
 
 

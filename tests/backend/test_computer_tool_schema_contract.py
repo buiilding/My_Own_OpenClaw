@@ -177,6 +177,23 @@ def test_grounding_mixins_reject_unknown_legacy_fields(model, payload):
     assert model.model_json_schema()["additionalProperties"] is False
 
 
+def test_mouse_control_schema_rejects_unsupported_screenshot_id():
+    payload = {
+        "action": "click",
+        "x": 10,
+        "y": 20,
+        "screenshot_id": "old-shot",
+        "explanation": _EXPLANATION,
+    }
+
+    with pytest.raises(ValidationError):
+        MouseControlArgs.model_validate(payload)
+
+    errors = _schema_errors("mouse_control", payload)
+    assert errors
+    assert any("Additional properties are not allowed" in error for error in errors)
+
+
 def test_provider_projection_is_noop_for_openai_computer_tools():
     config = AppConfig(model_provider="openai")
     registry = ToolRegistry(config=config, cache_manager=CacheManager())

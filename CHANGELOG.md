@@ -99,6 +99,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: remove unused remote wrapper mapping constants for the retired
   `computer_use` and `system_use` paths, rename focused contract tests/docs to
   direct-tool language, and keep catalog parity anchored on live remote classes.
+- backend/tools: reject model-emitted `screenshot_id` on grounded mouse/scroll
+  calls instead of silently stripping the retired caller-provided frame field;
+  coordinate preparation now always binds to the active screenshot frame.
 - backend/query: remove the unused private completion-emission wrapper from
   `QueryExecutionService` and keep backfill/terminal emission owned by the
   query execution pipeline-events helper.

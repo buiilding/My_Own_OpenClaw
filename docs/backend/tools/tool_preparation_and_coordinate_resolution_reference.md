@@ -82,14 +82,14 @@ For a qualifying call:
 For OCR candidate retries (`find_coordinates_by='ocr'` + `candidate_id`):
 
 1. use current session frame id for candidate lookup/normalization
-2. ignore any legacy `screenshot_id` passed by the caller
+2. reject any caller-provided `screenshot_id`; preparation always uses the active frame
 3. fail fast with `frame changed, re-ground required` when execution-time frame check detects drift
 4. validate the selected candidate bbox before returning coordinates; candidates with missing or malformed bbox data produce a controlled re-grounding error instead of a raw key/indexing failure
 
 For manual `x/y` calls (no OCR/vision resolution):
 
 1. require current session frame id to exist
-2. ignore any legacy `screenshot_id` field in tool args
+2. reject any caller-provided `screenshot_id`; manual coordinates always bind to the active frame
 3. build the same `CoordinateContract` used by OCR/prediction
 4. normalize screenshot-space manual coordinates to display-space
 5. persist `coordinate_contract` metadata + `coordinate_resolution_screenshot_id`
@@ -187,8 +187,9 @@ Bundle preparation failure:
 - mismatch returns immediate failure result (`frame changed, re-ground required`) to prevent dangerous clicks on changed UI
 
 This guard is independent of frontend behavior and protects local automation safety.
-Manual calls always participate because preparation writes `coordinate_resolution_screenshot_id`
-from the current frame even when tool args omit `screenshot_id`.
+Manual calls always participate because preparation writes
+`coordinate_resolution_screenshot_id` from the current frame. Tool args must
+not provide `screenshot_id`.
 
 ## Wait Path Coupling
 
