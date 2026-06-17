@@ -155,7 +155,3 @@ def get_model_visible_tool_names() -> list[str]:
 
 def get_client_executable_tool_names() -> list[str]:
     return [entry.name for entry in _CATALOG if entry.client_executable]
-
-
-def get_backend_exposed_tool_names() -> list[str]:
-    return get_client_executable_tool_names()
