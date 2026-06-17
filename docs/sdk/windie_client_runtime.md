@@ -685,9 +685,9 @@ Non-Electron SDK hosts can override that behavior with:
   while leaving daemon discovery, registration, JSON-RPC unwrapping, and
   shutdown with `WindieClient`.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
-  a `WindieLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
+  an `AgentLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.
-- `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
+- `sidecar`: a custom `AgentLocalRuntimeClient` implementation.
 - `sidecarDaemon`: public client option for an already-known daemon `baseUrl`
   and per-process `token`; `WindieClient` creates a `SidecarDaemonHttpClient`
   and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
@@ -699,6 +699,10 @@ Non-Electron SDK hosts can override that behavior with:
 - `persistence`: enabled by default. When enabled, `agent.chat()` and
   `agent.conversation()` use the sidecar-backed default conversation store so
   chat event history survives process restart.
+
+`AgentToolDefinition`, `AgentLocalRuntimeClient`, and related `Agent*` local
+runtime types are the generic SDK contract names. The matching `Windie*` local
+runtime types remain exported as compatibility aliases for existing callers.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly

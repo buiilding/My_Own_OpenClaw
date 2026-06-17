@@ -43,13 +43,13 @@ import {
   createWindieLocalRuntimeProvider,
   SidecarDaemonHttpClient,
   type SidecarDaemonClientOptions,
-  type WindieAutoSidecarOptions,
-  type WindieLocalRuntimeClient,
-  type WindieLocalRuntimeProvider,
-  type WindieMcpDefinition,
-  type WindiePluginDefinition,
-  type WindieSkillDefinition,
-  type WindieToolDefinition,
+  type AgentAutoSidecarOptions,
+  type AgentLocalRuntimeClient,
+  type AgentLocalRuntimeProvider,
+  type AgentMcpDefinition,
+  type AgentPluginDefinition,
+  type AgentSkillDefinition,
+  type AgentToolDefinition,
 } from './LocalSidecarRuntime.js';
 
 export type WindieWakeUpOptions = {
@@ -59,10 +59,10 @@ export type WindieWakeUpOptions = {
   installAuth?: WindieInstallAuthOptions;
   systemPrompt?: string;
   workspacePath?: string;
-  tools?: WindieToolDefinition[];
-  skills?: WindieSkillDefinition[];
-  mcps?: WindieMcpDefinition[];
-  plugins?: WindiePluginDefinition[];
+  tools?: AgentToolDefinition[];
+  skills?: AgentSkillDefinition[];
+  mcps?: AgentMcpDefinition[];
+  plugins?: AgentPluginDefinition[];
   builtins?: AgentBuiltinSelection;
   conversationRef?: string;
   agentId?: string;
@@ -106,12 +106,12 @@ export type WindieClientOptions = {
   defaultUserId?: string;
   installToken?: string;
   installAuth?: WindieInstallAuthOptions;
-  sidecar?: WindieLocalRuntimeClient;
+  sidecar?: AgentLocalRuntimeClient;
   localToolLifecycle?: LocalToolExecutionLifecycle;
   sidecarDaemon?: SidecarDaemonClientOptions;
-  ensureLocalRuntime?: WindieLocalRuntimeProvider<WindieWakeUpOptions>;
+  ensureLocalRuntime?: AgentLocalRuntimeProvider<WindieWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
-  autoSidecar?: WindieAutoSidecarOptions;
+  autoSidecar?: AgentAutoSidecarOptions;
   memory?: WindieRuntimeFeatureOption;
   persistence?: WindieRuntimeFeatureOption;
 };
@@ -143,8 +143,8 @@ export type WindieInstallAuthOptions = Partial<WindieInstallAuthState> & {
 export class WindieClient {
   private readonly defaultOptions: WindieClientOptions;
   private readonly activeAgents = new Map<string, WindieAgent>();
-  private autoLocalRuntimeProvider?: WindieLocalRuntimeProvider<WindieWakeUpOptions>;
-  private activeLocalRuntime?: WindieLocalRuntimeClient;
+  private autoLocalRuntimeProvider?: AgentLocalRuntimeProvider<WindieWakeUpOptions>;
+  private activeLocalRuntime?: AgentLocalRuntimeClient;
 
   constructor(options: WindieClientOptions = {}) {
     this.defaultOptions = options;
@@ -233,11 +233,11 @@ export class WindieClient {
     return localRuntime?.status ? localRuntime.status() : null;
   }
 
-  getKnownLocalRuntime(): WindieLocalRuntimeClient | null {
+  getKnownLocalRuntime(): AgentLocalRuntimeClient | null {
     return this.resolveKnownLocalRuntime() ?? null;
   }
 
-  async localRuntime(options: WindieLocalRuntimeRequest = {}): Promise<WindieLocalRuntimeClient> {
+  async localRuntime(options: WindieLocalRuntimeRequest = {}): Promise<AgentLocalRuntimeClient> {
     return this.ensureLocalRuntime({
       reason: options.reason ?? 'local-runtime',
       wakeUp: {},
@@ -459,7 +459,7 @@ export class WindieClient {
     }
   }
 
-  private resolveConfiguredLocalRuntime(): WindieLocalRuntimeClient | undefined {
+  private resolveConfiguredLocalRuntime(): AgentLocalRuntimeClient | undefined {
     const explicitRuntime = this.defaultOptions.sidecar;
     if (explicitRuntime) {
       return explicitRuntime;
@@ -473,7 +473,7 @@ export class WindieClient {
     return undefined;
   }
 
-  private resolveKnownLocalRuntime(): WindieLocalRuntimeClient | undefined {
+  private resolveKnownLocalRuntime(): AgentLocalRuntimeClient | undefined {
     if (this.activeLocalRuntime) {
       return this.activeLocalRuntime;
     }
@@ -493,7 +493,7 @@ export class WindieClient {
     wakeUp: WindieWakeUpOptions;
     reason: string;
     errorMessage: string;
-  }): Promise<WindieLocalRuntimeClient> {
+  }): Promise<AgentLocalRuntimeClient> {
     const knownRuntime = this.resolveKnownLocalRuntime();
     if (knownRuntime) {
       return knownRuntime;
@@ -530,7 +530,7 @@ export class WindieClient {
   private async resolveLocalRuntimeForWakeUp(
     options: WindieWakeUpOptions,
     runtimeFeatures: NormalizedWindieRuntimeFeatures,
-  ): Promise<WindieLocalRuntimeClient | undefined> {
+  ): Promise<AgentLocalRuntimeClient | undefined> {
     const knownRuntime = this.resolveKnownLocalRuntime();
     if (knownRuntime) {
       return knownRuntime;
@@ -562,7 +562,7 @@ export class WindieClient {
 
   private async prepareLocalRuntime(
     options: WindieWakeUpOptions,
-    localRuntime?: WindieLocalRuntimeClient,
+    localRuntime?: AgentLocalRuntimeClient,
   ): Promise<JsonRecord[]> {
     if (!localRuntime) {
       return (options.tools ?? []).map(tool => buildManifestTool(tool));
@@ -624,7 +624,7 @@ function createDefaultConversationStore({
   persistenceEnabled,
   userId,
 }: {
-  localRuntime?: WindieLocalRuntimeClient;
+  localRuntime?: AgentLocalRuntimeClient;
   persistenceEnabled: boolean;
   userId: string;
 }): ConversationStore {
@@ -641,7 +641,7 @@ function createDefaultConversationStore({
 }
 
 function validateLocalRuntimeFeatures(
-  localRuntime: WindieLocalRuntimeClient | undefined,
+  localRuntime: AgentLocalRuntimeClient | undefined,
   runtimeFeatures: NormalizedWindieRuntimeFeatures,
 ): void {
   if (runtimeFeatures.memory && !localRuntime?.rpc) {
@@ -714,7 +714,7 @@ function dedupeBuiltinToolSets(values: AgentBuiltinToolSet[]): AgentBuiltinToolS
   return normalized;
 }
 
-function buildManifestTool(tool: WindieToolDefinition): JsonRecord {
+function buildManifestTool(tool: AgentToolDefinition): JsonRecord {
   return {
     name: tool.name,
     description: tool.description,

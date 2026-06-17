@@ -1436,3 +1436,17 @@ Each completed slice should report:
   Windie-prefixed stream types remain only as compatibility aliases.
 - Compatibility: no migration required. Stream payloads are unchanged, and
   existing `WindieAgentStreamEvent` imports continue to type-check.
+
+### 2026-06-17 SDK local runtime contract type aliases
+
+- Finding: SDK local-runtime contracts still exposed only Windie-prefixed type
+  names for local tools, sidecar clients, local runtime providers, local events,
+  and auto-sidecar options even though these are reusable SDK agent contracts.
+- Change: added generic `Agent*` local-runtime type names, switched SDK
+  internals and sidecar-backed store adapters to the generic names, and kept
+  matching `Windie*` type names as compatibility aliases.
+- Validation: focused SDK package-boundary Jest coverage, SDK no-emit
+  TypeScript check, docs listing, `git diff --check`, and source scans showing
+  Windie-prefixed local-runtime types remain compatibility aliases.
+- Compatibility: no migration required. Runtime payloads and public option
+  shapes are unchanged; existing `Windie*` type imports continue to type-check.

@@ -26,7 +26,7 @@ import {
   buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
-import type { WindieLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js';
+import type { AgentLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
@@ -42,7 +42,7 @@ export type SidecarConversationStoreEventWriteParams = (
 
 export type SidecarConversationStoreOptions = {
   userId: string;
-  runtime: Pick<WindieLocalRuntimeClient, 'rpc'>;
+  runtime: Pick<AgentLocalRuntimeClient, 'rpc'>;
   pageSize?: number;
   maxPages?: number;
   eventWriteParams?: SidecarConversationStoreEventWriteParams;

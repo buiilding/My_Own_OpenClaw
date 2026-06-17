@@ -4,7 +4,7 @@
 
 import type { JsonRecord, TraceContext } from '../conversation/types.js';
 import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
-import type { WindieLocalRuntimeClient } from './LocalSidecarRuntime.js';
+import type { AgentLocalRuntimeClient } from './LocalSidecarRuntime.js';
 import type { TraceEventInput } from './TraceRecorder.js';
 
 const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
@@ -20,7 +20,7 @@ type ContextEnrichmentInput = {
   userId: string;
   payload?: JsonRecord | null;
   sdkClient: WindieSdkClient;
-  localRuntime?: WindieLocalRuntimeClient | null;
+  localRuntime?: AgentLocalRuntimeClient | null;
   memoryEnabled?: boolean;
   emitDiagnostic?: (diagnostic: MemoryRetrievalDiagnostic) => void | Promise<void>;
   traceContext?: TraceContext | null;
@@ -466,7 +466,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
 }
 
 type StoreCompletedTurnMemoryInput = {
-  localRuntime?: WindieLocalRuntimeClient | null;
+  localRuntime?: AgentLocalRuntimeClient | null;
   sdkClient: WindieSdkClient;
   userId: string;
   conversationRef: string;

@@ -19,6 +19,10 @@ import {
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
   windieBuiltins,
+  type AgentLocalRuntimeClient,
+  type AgentToolDefinition,
+  type WindieLocalRuntimeClient,
+  type WindieToolDefinition,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
@@ -47,6 +51,26 @@ describe('@windie/sdk package boundary', () => {
       execution_target: 'sidecar',
       argument_resolution: 'passthrough',
     });
+  });
+
+  test('exports generic local runtime contract aliases', () => {
+    const tool: AgentToolDefinition = {
+      name: 'save_note',
+      module: 'example.tools:save_note',
+      schema: { type: 'object', properties: {} },
+    };
+    const compatibilityTool: WindieToolDefinition = tool;
+    const runtime: AgentLocalRuntimeClient = {
+      registerModuleTool: async () => ({ ok: true }),
+    };
+    const compatibilityRuntime: WindieLocalRuntimeClient = runtime;
+
+    expect(moduleTool(compatibilityTool as AgentToolDefinition & { module: string })).toMatchObject({
+      name: 'save_note',
+      execution_target: 'sidecar',
+      argument_resolution: 'passthrough',
+    });
+    expect(compatibilityRuntime.registerModuleTool).toBeDefined();
   });
 
   test('exports canonical tool correlation alias resolution', () => {

@@ -44,11 +44,9 @@ import {
   type AgentModelSelection,
 } from '../settings/modelSelection.js';
 import type {
-  WindieLocalRuntimeClient,
-  WindieMcpDefinition,
-} from './LocalSidecarRuntime.js';
-import type {
-  WindieLocalRuntimeEventListener,
+  AgentLocalRuntimeClient,
+  AgentLocalRuntimeEventListener,
+  AgentMcpDefinition,
 } from './LocalSidecarRuntime.js';
 import {
   SdkConversationRuntime,
@@ -88,8 +86,8 @@ export type WindieAgentStopOptions = {
 
 export type WindieAgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
-  getKnownLocalRuntime?(): WindieLocalRuntimeClient | null;
-  localRuntime?(options?: { reason?: string }): Promise<WindieLocalRuntimeClient>;
+  getKnownLocalRuntime?(): AgentLocalRuntimeClient | null;
+  localRuntime?(options?: { reason?: string }): Promise<AgentLocalRuntimeClient>;
   shutdownLocalRuntime?(): Promise<void>;
 };
 
@@ -220,7 +218,7 @@ export class WindieAgent {
     readonly agentDefinition: JsonRecord,
     private readonly sdkClient: WindieSdkClient,
     private readonly owner: WindieAgentOwner,
-    private readonly localRuntime?: WindieLocalRuntimeClient,
+    private readonly localRuntime?: AgentLocalRuntimeClient,
     private readonly userId = 'local-sdk-user',
     private readonly defaultConversationStore: ConversationStore = new InMemoryConversationStore(),
     private readonly memoryEnabled = true,
@@ -231,11 +229,11 @@ export class WindieAgent {
     return this.defaultConversationStore;
   }
 
-  private getKnownLocalRuntime(): WindieLocalRuntimeClient | undefined {
+  private getKnownLocalRuntime(): AgentLocalRuntimeClient | undefined {
     return this.localRuntime ?? this.owner.getKnownLocalRuntime?.() ?? undefined;
   }
 
-  private async ensureLocalRuntime(reason: string): Promise<WindieLocalRuntimeClient> {
+  private async ensureLocalRuntime(reason: string): Promise<AgentLocalRuntimeClient> {
     const knownRuntime = this.getKnownLocalRuntime();
     if (knownRuntime) {
       return knownRuntime;
@@ -357,7 +355,7 @@ export class WindieAgent {
     conversationRef?: string;
     revisionId?: string;
     store?: ConversationStore;
-    localRuntime?: WindieLocalRuntimeClient | null;
+    localRuntime?: AgentLocalRuntimeClient | null;
     localToolLifecycle?: LocalToolExecutionLifecycle | null;
     resourceResolvers?: TurnResourceResolverRegistry | null;
   } = {}): SdkConversationRuntime {
@@ -415,7 +413,7 @@ export class WindieAgent {
     conversationRef?: string;
     revisionId?: string;
     store?: ConversationStore;
-    localRuntime?: WindieLocalRuntimeClient | null;
+    localRuntime?: AgentLocalRuntimeClient | null;
     localToolLifecycle?: LocalToolExecutionLifecycle | null;
     resourceResolvers?: TurnResourceResolverRegistry | null;
   } = {}): WindieChatSession {
@@ -549,7 +547,7 @@ export class WindieAgent {
   }
 
   async registerMcps(
-    mcps: WindieMcpDefinition[],
+    mcps: AgentMcpDefinition[],
     options: WindieAgentRegisterMcpOptions = {},
   ): Promise<{ registration: JsonRecord; toolSchemas: JsonRecord[] }> {
     const localRuntime = await this.ensureLocalRuntime('MCP registration');
@@ -560,7 +558,7 @@ export class WindieAgent {
     const registration = await localRuntime.registerMcp({
       servers,
       replace: options.replace !== false,
-    } as WindieMcpDefinition);
+    } as AgentMcpDefinition);
     const manifest = await localRuntime.listTools?.();
     const toolSchemas = Array.isArray(manifest?.tools) ? manifest.tools : [];
     await this.updateToolSchemas(toolSchemas);
@@ -903,7 +901,7 @@ export class WindieAgent {
     return this.session.on('event', listener);
   }
 
-  subscribeLocalRuntimeEvents(listener: WindieLocalRuntimeEventListener): () => void {
+  subscribeLocalRuntimeEvents(listener: AgentLocalRuntimeEventListener): () => void {
     return this.getKnownLocalRuntime()?.subscribeEvents?.(listener) ?? (() => {});
   }
 

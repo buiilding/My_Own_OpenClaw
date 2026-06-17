@@ -14,7 +14,7 @@ type EventWebSocketLike = {
 };
 type EventWebSocketConstructor = new (url: string, options?: JsonRecord) => EventWebSocketLike;
 
-export type WindieToolDefinition = {
+export type AgentToolDefinition = {
   name: string;
   description?: string;
   schema: JsonRecord;
@@ -24,38 +24,38 @@ export type WindieToolDefinition = {
   workspacePath?: string;
 };
 
-export type WindieSkillDefinition = JsonRecord & {
+export type AgentSkillDefinition = JsonRecord & {
   id?: string;
   type?: string;
   content?: string;
   priority?: number;
 };
 
-export type WindieMcpDefinition = JsonRecord & {
+export type AgentMcpDefinition = JsonRecord & {
   id?: string;
   name?: string;
   command?: string;
   args?: string[];
 };
 
-export type WindiePluginDefinition = JsonRecord & {
+export type AgentPluginDefinition = JsonRecord & {
   path?: string;
   pluginPath?: string;
 };
 
-export type WindieLocalRuntimeClient = {
+export type AgentLocalRuntimeClient = {
   status?: () => Promise<JsonRecord>;
   listTools?: () => Promise<{ version?: number; tools?: JsonRecord[] }>;
-  registerModuleTool?: (tool: WindieToolDefinition, context: { workspacePath?: string }) => Promise<JsonRecord>;
-  registerPlugin?: (plugin: WindiePluginDefinition) => Promise<JsonRecord>;
-  registerMcp?: (mcp: WindieMcpDefinition) => Promise<JsonRecord>;
-  executeTool?: (payload: WindieLocalToolExecutionPayload) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
+  registerModuleTool?: (tool: AgentToolDefinition, context: { workspacePath?: string }) => Promise<JsonRecord>;
+  registerPlugin?: (plugin: AgentPluginDefinition) => Promise<JsonRecord>;
+  registerMcp?: (mcp: AgentMcpDefinition) => Promise<JsonRecord>;
+  executeTool?: (payload: AgentLocalToolExecutionPayload) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
   rpc?: (payload: { method: string; params?: JsonRecord; id?: string | number }) => Promise<JsonRecord>;
-  subscribeEvents?: (listener: WindieLocalRuntimeEventListener) => () => void;
+  subscribeEvents?: (listener: AgentLocalRuntimeEventListener) => () => void;
   shutdown?: () => Promise<void>;
 };
 
-export type WindieLocalToolExecutionPayload = {
+export type AgentLocalToolExecutionPayload = {
   toolName: string;
   args: JsonRecord;
   requestId?: string | null;
@@ -66,21 +66,34 @@ export type WindieLocalToolExecutionPayload = {
   conversationRef?: string | null;
 };
 
-export type WindieLocalRuntimeEvent = JsonRecord & {
+export type AgentLocalRuntimeEvent = JsonRecord & {
   type: string;
   payload?: JsonRecord;
 };
 
-export type WindieLocalRuntimeEventListener = (event: WindieLocalRuntimeEvent) => void;
+export type AgentLocalRuntimeEventListener = (event: AgentLocalRuntimeEvent) => void;
 
-export type WindieLocalRuntimeProviderContext<TWakeUpOptions = unknown> = {
+export type AgentLocalRuntimeProviderContext<TWakeUpOptions = unknown> = {
   wakeUp: TWakeUpOptions;
   needsLocalRuntime: boolean;
 };
 
-export type WindieLocalRuntimeProvider<TWakeUpOptions = unknown> = (
-  context: WindieLocalRuntimeProviderContext<TWakeUpOptions>,
-) => Promise<WindieLocalRuntimeClient | undefined> | WindieLocalRuntimeClient | undefined;
+export type AgentLocalRuntimeProvider<TWakeUpOptions = unknown> = (
+  context: AgentLocalRuntimeProviderContext<TWakeUpOptions>,
+) => Promise<AgentLocalRuntimeClient | undefined> | AgentLocalRuntimeClient | undefined;
+
+export type WindieToolDefinition = AgentToolDefinition;
+export type WindieSkillDefinition = AgentSkillDefinition;
+export type WindieMcpDefinition = AgentMcpDefinition;
+export type WindiePluginDefinition = AgentPluginDefinition;
+export type WindieLocalRuntimeClient = AgentLocalRuntimeClient;
+export type WindieLocalToolExecutionPayload = AgentLocalToolExecutionPayload;
+export type WindieLocalRuntimeEvent = AgentLocalRuntimeEvent;
+export type WindieLocalRuntimeEventListener = AgentLocalRuntimeEventListener;
+export type WindieLocalRuntimeProviderContext<TWakeUpOptions = unknown> =
+  AgentLocalRuntimeProviderContext<TWakeUpOptions>;
+export type WindieLocalRuntimeProvider<TWakeUpOptions = unknown> =
+  AgentLocalRuntimeProvider<TWakeUpOptions>;
 
 export type SidecarDaemonClientOptions = {
   baseUrl: string;
@@ -95,7 +108,7 @@ type SidecarDaemonDiscovery = SidecarDaemonClientOptions & {
   launch?: Record<string, string> | null;
 };
 
-export type WindieAutoSidecarOptions = {
+export type AgentAutoSidecarOptions = {
   discoveryFile?: string;
   command?: string;
   args?: string[];
@@ -117,6 +130,8 @@ export type WindieAutoSidecarOptions = {
   fetchImpl?: FetchLike;
   WebSocketImpl?: EventWebSocketConstructor;
 };
+
+export type WindieAutoSidecarOptions = AgentAutoSidecarOptions;
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   if (fetchImpl) {
@@ -151,7 +166,7 @@ function buildErrorMessage(status: number, statusText: string, bodyText: string)
   return `Agent SDK request failed (${status} ${statusText}): ${trimmedBody}`;
 }
 
-export function moduleTool(tool: WindieToolDefinition & { module: string }): WindieToolDefinition {
+export function moduleTool(tool: AgentToolDefinition & { module: string }): AgentToolDefinition {
   return {
     ...tool,
     execution_target: 'sidecar',
@@ -159,13 +174,13 @@ export function moduleTool(tool: WindieToolDefinition & { module: string }): Win
   };
 }
 
-export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
+export class SidecarDaemonHttpClient implements AgentLocalRuntimeClient {
   private readonly baseUrl: string;
   private readonly token: string;
   private readonly fetchImpl: FetchLike;
   private readonly WebSocketImpl?: EventWebSocketConstructor;
   private eventSocket: EventWebSocketLike | null = null;
-  private eventListeners = new Set<WindieLocalRuntimeEventListener>();
+  private eventListeners = new Set<AgentLocalRuntimeEventListener>();
 
   constructor(options: SidecarDaemonClientOptions) {
     this.baseUrl = normalizeHttpBaseUrl(options.baseUrl);
@@ -182,7 +197,7 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
     return this.request('/tools', { method: 'GET' });
   }
 
-  async registerModuleTool(tool: WindieToolDefinition, context: { workspacePath?: string }): Promise<JsonRecord> {
+  async registerModuleTool(tool: AgentToolDefinition, context: { workspacePath?: string }): Promise<JsonRecord> {
     return this.post('/tools/register-module', {
       name: tool.name,
       description: tool.description,
@@ -192,15 +207,15 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
     });
   }
 
-  async registerPlugin(plugin: WindiePluginDefinition): Promise<JsonRecord> {
+  async registerPlugin(plugin: AgentPluginDefinition): Promise<JsonRecord> {
     return this.post('/plugins/register', plugin);
   }
 
-  async registerMcp(mcp: WindieMcpDefinition): Promise<JsonRecord> {
+  async registerMcp(mcp: AgentMcpDefinition): Promise<JsonRecord> {
     return this.post('/mcps/register', mcp);
   }
 
-  async executeTool(payload: WindieLocalToolExecutionPayload): Promise<{ success?: boolean; data?: JsonRecord; error?: string }> {
+  async executeTool(payload: AgentLocalToolExecutionPayload): Promise<{ success?: boolean; data?: JsonRecord; error?: string }> {
     return this.post('/execute-tool', {
       tool_name: payload.toolName,
       args: payload.args,
@@ -239,7 +254,7 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
     await this.post('/shutdown', {});
   }
 
-  subscribeEvents(listener: WindieLocalRuntimeEventListener): () => void {
+  subscribeEvents(listener: AgentLocalRuntimeEventListener): () => void {
     this.eventListeners.add(listener);
     void this.ensureEventSocket();
     return () => {
@@ -309,7 +324,7 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
     }
   }
 
-  private parseEventPayload(raw: unknown): WindieLocalRuntimeEvent | null {
+  private parseEventPayload(raw: unknown): AgentLocalRuntimeEvent | null {
     try {
       const text = typeof raw === 'string'
         ? raw
@@ -326,7 +341,7 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
       if (typeof type !== 'string' || !type.trim()) {
         return null;
       }
-      return payload as WindieLocalRuntimeEvent;
+      return payload as AgentLocalRuntimeEvent;
     } catch {
       return null;
     }
@@ -591,7 +606,7 @@ async function shutdownDiscoveredDaemon(
   return true;
 }
 
-function resolveDaemonScript(options: WindieAutoSidecarOptions, fs: NodeFsLike, path: NodePathLike): string {
+function resolveDaemonScript(options: AgentAutoSidecarOptions, fs: NodeFsLike, path: NodePathLike): string {
   const processLike = (globalThis as unknown as {
     process?: { cwd?: () => string; env?: Record<string, string | undefined> };
   }).process;
@@ -623,7 +638,7 @@ function resolveProcessEnv(): SidecarLaunchEnvironment {
   return processLike?.env ?? {};
 }
 
-function buildSpawnEnv(options: WindieAutoSidecarOptions): SidecarLaunchEnvironment {
+function buildSpawnEnv(options: AgentAutoSidecarOptions): SidecarLaunchEnvironment {
   if (options.envMode === 'replace') {
     return { ...(options.env ?? {}) };
   }
@@ -634,7 +649,7 @@ function buildSpawnEnv(options: WindieAutoSidecarOptions): SidecarLaunchEnvironm
 }
 
 function resolveDaemonLaunchCommand(
-  options: WindieAutoSidecarOptions,
+  options: AgentAutoSidecarOptions,
   fs: NodeFsLike,
   path: NodePathLike,
   discoveryFile: string,
@@ -666,13 +681,13 @@ function resolveDaemonLaunchCommand(
 }
 
 export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
-  options: WindieAutoSidecarOptions = {},
-): WindieLocalRuntimeProvider<TWakeUpOptions> {
-  let cachedRuntime: WindieLocalRuntimeClient | undefined;
-  let pendingRuntimePromise: Promise<WindieLocalRuntimeClient | undefined> | null = null;
+  options: AgentAutoSidecarOptions = {},
+): AgentLocalRuntimeProvider<TWakeUpOptions> {
+  let cachedRuntime: AgentLocalRuntimeClient | undefined;
+  let pendingRuntimePromise: Promise<AgentLocalRuntimeClient | undefined> | null = null;
   let ownedProcess: NodeSpawnedProcessLike | null = null;
 
-  async function resolveRuntime(): Promise<WindieLocalRuntimeClient | undefined> {
+  async function resolveRuntime(): Promise<AgentLocalRuntimeClient | undefined> {
     if (cachedRuntime) {
       return cachedRuntime;
     }
