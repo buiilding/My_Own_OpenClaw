@@ -1644,3 +1644,29 @@ Each completed slice should report:
 - Compatibility: no migration required. Renderer bridge validation, IPC
   strings, pending-turn behavior, conversation projections, memory refresh, and
   dashboard reload semantics remain unchanged.
+
+### 2026-06-17 SDK backend socket factory alias
+
+- Finding: managed SDK agent sessions now expose generic session/factory names,
+  but their hosted websocket construction still depended on the
+  Windie-prefixed `createWindieSdkBackendSocket` factory.
+- Change: added `AgentBackendSocketOptions` and `createAgentBackendSocket` as
+  the preferred SDK socket factory surface, kept the Windie-prefixed names as
+  compatibility aliases, and switched managed session internals plus checked-in
+  CommonJS output to the generic factory.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/WindieSdkPackageBoundary.test.ts
+  ../tests/frontend/WindieSdkClient.test.ts` passed package-boundary coverage
+  but the full `WindieSdkClient` suite hit unrelated local-sidecar launcher
+  failures while spawning temp `python-in-env`; focused socket diagnostics
+  passed with `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/WindieSdkClient.test.ts --testNamePattern "transport
+  constructors use generic agent SDK dependency diagnostics"`; CJS export smoke
+  passed; `frontend\node_modules\.bin\tsc.cmd --noEmit -p
+  packages/windie-sdk-js/tsconfig.build.json`; `frontend\node_modules\.bin\tsc.cmd
+  --noEmit -p packages/windie-sdk-js/tsconfig.cjs.json`; `git diff --check`;
+  `bin\windie docs list`; source scan confirms the Windie-prefixed socket
+  factory remains only as compatibility API or test coverage.
+- Compatibility: no migration required. Existing `createWindieSdkBackendSocket`
+  imports keep working, socket options and behavior are unchanged, and the
+  public package entrypoint still exports both names.

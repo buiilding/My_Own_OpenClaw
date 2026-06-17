@@ -29,7 +29,7 @@ class ManagedAgentSession {
         this.session = (0, ManagedBackendSession_js_1.createManagedBackendSession)({
             createSocket: () => {
                 const endpoint = this.currentEndpoint();
-                return (0, BackendSocketFactory_js_1.createWindieSdkBackendSocket)({
+                return (0, BackendSocketFactory_js_1.createAgentBackendSocket)({
                     WebSocketImpl,
                     wsUrl: resolveEndpointWsUrl(endpoint),
                     wsOrigin: endpoint.wsOrigin,

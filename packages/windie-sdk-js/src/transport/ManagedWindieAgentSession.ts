@@ -21,7 +21,7 @@ import {
   createManagedBackendSession,
   type ManagedBackendSession,
 } from './ManagedBackendSession.js';
-import { createWindieSdkBackendSocket } from './BackendSocketFactory.js';
+import { createAgentBackendSocket } from './BackendSocketFactory.js';
 import { filterBackendPayload } from './backendPayloadContract.js';
 
 type AgentSessionEventMap = {
@@ -105,7 +105,7 @@ export class ManagedAgentSession implements AgentSessionRuntime {
     this.session = createManagedBackendSession({
       createSocket: () => {
         const endpoint = this.currentEndpoint();
-        return createWindieSdkBackendSocket({
+        return createAgentBackendSocket({
           WebSocketImpl,
           wsUrl: resolveEndpointWsUrl(endpoint),
           wsOrigin: endpoint.wsOrigin,

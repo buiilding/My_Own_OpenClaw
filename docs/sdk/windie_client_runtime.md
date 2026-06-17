@@ -62,12 +62,15 @@ Ownership rules:
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
   `createAgentSession`, and `createAgentBackendTransport` contracts alongside
   `WebSocketLike` and `WebSocketConstructor`. The Windie-prefixed session names
-  remain compatibility aliases. `ManagedWindieAgentSession.ts` exposes the same
-  pattern for managed hosted sessions through `ManagedAgentBackendEndpoint`,
+  remain compatibility aliases. `BackendSocketFactory.ts` exposes
+  `createAgentBackendSocket` and `AgentBackendSocketOptions`, with
+  `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions` kept as
+  compatibility aliases. `ManagedWindieAgentSession.ts` exposes the same pattern
+  for managed hosted sessions through `ManagedAgentBackendEndpoint`,
   `ManagedAgentSessionOptions`, `ManagedAgentSession`, and
   `createManagedAgentSession`, with Windie-prefixed aliases kept for existing
-  callers. The package still depends on runtime `ws` for Node sockets, but it
-  no longer carries a local `src/types/ws.d.ts` ambient declaration; TypeScript
+  callers. The package still depends on runtime `ws` for Node sockets, but it no
+  longer carries a local `src/types/ws.d.ts` ambient declaration; TypeScript
   declaration output comes from the SDK-owned websocket-like interfaces.
 - Electron main exposes only non-tool typed websocket commands to app callers;
   backend tool-result sends are internal to SDK tool coordination after a
