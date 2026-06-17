@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const { BrowserWindow, screen } = require('electron');
 
-const { resolveToolArgs } = require('./local_backend_bridge_tool_args.cjs');
+const { resolveToolArgs } = require('./local_runtime_tool_args.cjs');
 const {
   withHiddenWindowForScreenshot,
 } = require('./local_backend_bridge_window_visibility.cjs');
@@ -22,7 +22,7 @@ const {
 const {
   DEFAULT_REQUEST_TIMEOUT_MS,
   resolveExecuteToolTimeoutMs,
-} = require('./local_backend_bridge_timeout_policy.cjs');
+} = require('./local_runtime_timeout_policy.cjs');
 const {
   getActiveDisplayAffinity,
   resolveActiveSurfaceDisplayAffinityForWindows,

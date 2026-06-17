@@ -39,7 +39,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 - `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
@@ -47,4 +47,4 @@ title: "Frontend Main Local-Backend Docs Hub"
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
-- `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
+- `tests/frontend/LocalRuntimeToolArgs.test.cjs`

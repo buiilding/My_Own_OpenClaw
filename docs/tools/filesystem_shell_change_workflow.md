@@ -22,7 +22,7 @@ flowchart LR
     C --> D["SDK main runtime tool router"]
     D --> E["Electron main sidecar bridge"]
     E --> F["local_runtime_execute_tool_runtime.cjs"]
-    F --> G["local_backend_bridge_tool_args.cjs"]
+    F --> G["local_runtime_tool_args.cjs"]
     G --> H["Python sidecar execute_tool JSON-RPC"]
     H --> I["ToolRegistry.execute_tool"]
     I --> J["filesystem/system sidecar tool"]
@@ -77,7 +77,7 @@ flowchart LR
    - Electron internal adapter: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
      exposes `executeToolForBackend(...)` for SDK/main tool routing.
    - Tool execution runtime: `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`.
-   - Argument mapper: `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`.
+   - Argument mapper: `frontend/src/main/sidecar/local_runtime_tool_args.cjs`.
 
 4. Verify sidecar executable registration and schema.
    - Registry: `frontend/src/main/python/tools/registry.py`.
@@ -131,7 +131,7 @@ flowchart LR
 | Sidecar `replace` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
 | Sidecar shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
 | Sidecar registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
-| Electron bridge argument shaping and local tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
+| Electron bridge argument shaping and local tool failures | `cd frontend && npm run test -- LocalRuntimeToolArgs LocalBackendBridge.lifecycle` |
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |
 | Workspace default-folder behavior | Workspace tests plus the focused shell/read-file tests that exercise selected-workspace path resolution |

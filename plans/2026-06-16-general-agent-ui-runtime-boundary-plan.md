@@ -120,6 +120,31 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime timeout policy module
+
+- Finding: Electron main local-runtime request timeout policy was a private
+  execution helper, but its module path still used local-backend bridge naming.
+- Change: renamed the helper to `local_runtime_timeout_policy.cjs`, updated the
+  execute-tool runtime import, host-boundary coverage, current docs, and added
+  focused timeout-policy coverage.
+- Validation: focused timeout-policy, tool-args, execute-tool, bridge RPC, and
+  host-boundary Jest tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  path rename; timeout values and local tool execution behavior are unchanged.
+
+### 2026-06-17 local-runtime tool-args module
+
+- Finding: Electron main local tool argument normalization was a local-runtime
+  adapter, but the private helper module and focused Jest suite still lived
+  under local-backend bridge names.
+- Change: renamed the helper module and focused test to local-runtime tool-args
+  paths, updated execute-tool imports, boundary coverage, and docs that route
+  screenshot display-bounds argument shaping through this adapter.
+- Validation: focused tool-args, execute-tool, bridge RPC, and host-boundary
+  Jest tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; tool argument payload shape is unchanged.
+
 ### 2026-06-17 local-runtime execute-tool module
 
 - Finding: Electron main local-tool execution was already coordinated by the

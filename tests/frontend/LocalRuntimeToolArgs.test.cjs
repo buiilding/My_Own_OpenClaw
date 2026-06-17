@@ -2,9 +2,9 @@
 
 const {
   resolveToolArgs,
-} = require('../../frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_tool_args.cjs');
 
-describe('local_backend_bridge_tool_args', () => {
+describe('local_runtime_tool_args', () => {
   test('returns cloned plain args for non shell tools', () => {
     const baseArgs = { file_path: '/tmp/a' };
     const result = resolveToolArgs('read_file', baseArgs, null);

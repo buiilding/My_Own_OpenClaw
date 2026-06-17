@@ -136,5 +136,5 @@ retry rewrites from reporting an old preserved event revision.
 
 - invalid method or params return JSON-RPC errors
 - memory handlers return `{ success:false, error:"Memory store not initialized" }` when the memory runtime is unavailable
-- bridge timeouts are owned by `local_backend_bridge_timeout_policy.cjs`
+- bridge timeouts are owned by `local_runtime_timeout_policy.cjs`
 - mapped responses are forwarded to renderer unchanged

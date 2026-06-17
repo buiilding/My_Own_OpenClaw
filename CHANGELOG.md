@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed Electron main local-runtime tool argument and timeout policy helpers from local-backend bridge paths to `local_runtime_tool_args.cjs` and `local_runtime_timeout_policy.cjs`. No migration is required.
+
 - Renamed the Electron main local-runtime execute-tool helper and focused Jest suite from local-backend bridge names to `local_runtime_execute_tool_runtime.cjs` / `LocalRuntimeExecuteToolRuntime`. No migration is required.
 
 - Renamed the Electron main local-runtime display-bounds helper and focused Jest suite from local-backend bridge paths to `local_runtime_display_bounds.cjs` / `LocalRuntimeDisplayBounds`. No migration is required.

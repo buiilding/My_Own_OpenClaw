@@ -12,12 +12,12 @@ title: "Screenshot Display-Bounds Fallback and Attachment Materialization Refere
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
-- `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
+- `tests/frontend/LocalRuntimeToolArgs.test.cjs`
 
 ## Runtime Ownership
 
@@ -48,7 +48,7 @@ Returned affinity is converted with `toScreenshotDisplayBounds(...)` and include
 
 ## Tool-Arg Injection Boundary
 
-`resolveToolArgs("screenshot", args, ..., { displayBounds })` (`local_backend_bridge_tool_args.cjs`) applies fallback only when caller args do not already contain valid explicit bounds.
+`resolveToolArgs("screenshot", args, ..., { displayBounds })` (`local_runtime_tool_args.cjs`) applies fallback only when caller args do not already contain valid explicit bounds.
 
 Normalization rules:
 
@@ -134,7 +134,7 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 
 - non-screenshot MCP tool results do not materialize, read, or delete returned `screenshot_path` values
 
-`tests/frontend/LocalBackendBridgeToolArgs.test.cjs`:
+`tests/frontend/LocalRuntimeToolArgs.test.cjs`:
 
 - screenshot args preserve explicit `display_bounds`
 - screenshot args inject fallback bounds only when explicit bounds are absent/invalid

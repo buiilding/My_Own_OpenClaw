@@ -15,14 +15,14 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `tests/frontend/DesktopConversationStore.test.ts`
 - `tests/frontend/DesktopConversationLibraryClient.test.ts`
 - `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
-- `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
+- `tests/frontend/LocalRuntimeToolArgs.test.cjs`
 - `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs`
 
 ## Removed Renderer Helpers Route
@@ -115,7 +115,7 @@ Electron main sidecar execution:
 
 - prepares the active desktop surface before computer-use sidecar execution
 - resolves screenshot display bounds from the active surface/display affinity
-- injects bounds through `local_backend_bridge_tool_args.cjs`
+- injects bounds through `local_runtime_tool_args.cjs`
 - sends normalized args to the Python sidecar
 
 SDK/main screenshot paths:
