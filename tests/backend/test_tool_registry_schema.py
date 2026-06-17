@@ -14,7 +14,7 @@ from backend.src.tools.computer.schemas import MouseControlArgs
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.tool_catalog import (
-    get_built_tool_catalog_entry,
+    get_built_tool_catalog,
     get_model_visible_tool_names,
 )
 
@@ -124,9 +124,10 @@ def test_schema_registry_handles_schema_errors():
 
 
 def test_catalog_build_entry_contains_prebuilt_canonical_spec():
-    built_entry = get_built_tool_catalog_entry("browser")
+    built_entry = next(
+        entry for entry in get_built_tool_catalog() if entry.entry.name == "browser"
+    )
 
-    assert built_entry is not None
     assert built_entry.entry.name == "browser"
     assert built_entry.tool_class.__name__ == "RemoteBrowserTool"
     assert built_entry.tool_spec["type"] == "function"

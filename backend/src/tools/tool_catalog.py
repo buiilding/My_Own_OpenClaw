@@ -131,13 +131,6 @@ def get_built_tool_catalog() -> tuple[BuiltToolCatalogEntry, ...]:
     return tuple(build_tool_catalog_entry(entry) for entry in _CATALOG)
 
 
-def get_built_tool_catalog_entry(tool_name: str) -> Optional[BuiltToolCatalogEntry]:
-    entry = get_tool_catalog_entry(tool_name)
-    if entry is None:
-        return None
-    return build_tool_catalog_entry(entry)
-
-
 def get_remote_tool_class(tool_name: str):
     entry = get_tool_catalog_entry(tool_name)
     if entry is None:
