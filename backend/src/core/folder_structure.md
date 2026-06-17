@@ -16,9 +16,7 @@ backend/src/core/
 │   ├── cache_entry.py                 # CacheEntry
 │   ├── cache_store.py                 # Cache - TTL + LRU in-memory cache
 │   ├── cache_manager.py               # CacheManager - shared caches
-│   ├── exceptions.py                  # Public exception export facade (re-exports from error_types/)
 │   └── error_types/                   # Domain exception modules
-│       ├── __init__.py                # Public exception exports (stable surface)
 │       ├── base.py                    # BaseAppError + shared metadata/init helpers
 │       ├── configuration.py           # ConfigurationError
 │       ├── llm.py                     # LLMError, LLMAPIError, LLMRateLimitError

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed stale backend core exception facade references from source-map docs after the `exceptions.py` and `error_types/__init__.py` surfaces were deleted. No persisted-data migration is required.
+
 - Updated SDK README, local-tool examples, and boundary plan wording to use autoLocalRuntime for automatic local runtime startup.
 
 - Added SDK boundary coverage for generated auto local runtime output so stale auto-sidecar references stay removed.

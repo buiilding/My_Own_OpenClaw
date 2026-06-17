@@ -132,7 +132,8 @@ Operational implication:
 
 ## Exception and Metadata Conventions
 
-Trust-boundary exceptions inherit `_TrustBoundaryError` in `error_types/trust_boundary.py` (re-exported via `exceptions.py`):
+Trust-boundary exceptions inherit `_TrustBoundaryError` in the concrete owner
+module `error_types/trust_boundary.py`:
 
 - `InputSizeLimitError`
 - `ParseTimeoutError`
