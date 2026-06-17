@@ -11,7 +11,6 @@ title: "Artifact Store Upload Streaming, ID Validation, and Base64 Lookup Contra
 ## Canonical Modules
 
 - `backend/src/services/artifacts/store.py`
-- `backend/src/services/artifacts/__init__.py`
 - `tests/backend/test_artifacts_store.py`
 
 ## Core Data and Allowlist Surface

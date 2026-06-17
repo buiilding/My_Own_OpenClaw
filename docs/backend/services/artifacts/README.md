@@ -23,7 +23,6 @@ title: "Backend Artifact Service Docs Hub"
 ## Code Scope
 
 - `backend/src/services/artifacts/store.py`
-- `backend/src/services/artifacts/__init__.py`
 - `backend/src/api/routes/artifacts/router.py`
 - `backend/src/api/routes/artifacts/models.py`
 - `tests/backend/test_artifacts_store.py`

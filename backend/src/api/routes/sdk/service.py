@@ -44,7 +44,7 @@ from backend.src.core.inference.errors import ProviderCapabilityError
 from backend.src.core.types.enums import MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.llm.prompts.prompts import PromptManager
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 from backend.src.services.ocr.helpers import decode_screenshot_payload
 from backend.src.tools.client_manifest import validate_client_tool_manifest
 from backend.src.tools.tool_specs import get_tool_spec_name

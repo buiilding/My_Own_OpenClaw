@@ -43,7 +43,7 @@ from backend.src.api.transport.envelope import build_transport_message
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.core.validation.validators import validate_query_text
 from backend.src.core.events.streaming_events import TraceEvent
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager

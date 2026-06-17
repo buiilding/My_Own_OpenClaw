@@ -126,7 +126,6 @@ Primary files:
 - `backend/src/api/routes/artifacts/router.py`
 - `backend/src/api/routes/artifacts/models.py`
 - `backend/src/services/artifacts/store.py`
-- `backend/src/services/artifacts/__init__.py`
 
 Validation:
 

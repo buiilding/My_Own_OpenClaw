@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 
 from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.deps import ContainerDep
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 from .models import ArtifactUploadResponse
 

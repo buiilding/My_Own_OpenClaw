@@ -15,7 +15,7 @@ from backend.src.api.auth.context import (
     set_current_authenticated_install_identity,
 )
 from backend.src.core.config.models import AppConfig
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 
 class BrokenUpload:

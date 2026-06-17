@@ -14,7 +14,7 @@ from backend.src.api.services.rehydrate_transparency_resolution import (
     extract_system_prompt_from_transparency,
     normalize_transparency,
 )
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager

@@ -7,7 +7,7 @@ Routes tool results to appropriate handlers.
 import logging
 from typing import TYPE_CHECKING, Any, Literal, Optional
 
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

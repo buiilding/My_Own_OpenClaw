@@ -131,6 +131,9 @@ docstring or compatibility path.
 - `backend/src/api/routes/websocket/__init__.py` is intentionally absent;
   route registration imports `router` from
   `backend.src.api.routes.websocket.router`.
+- `backend/src/services/artifacts/__init__.py` is intentionally absent;
+  import `ArtifactStore` and `ArtifactMeta` from
+  `backend.src.services.artifacts.store`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

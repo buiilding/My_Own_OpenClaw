@@ -68,6 +68,8 @@ All notable changes to WindieOS will be documented in this file.
   specs at concrete formatter modules.
 - backend/api: remove unused SDK and websocket route package exports so route
   registration imports concrete router modules.
+- backend/services: remove the unused artifact service package export so
+  artifact callers import `ArtifactStore` from the concrete store module.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

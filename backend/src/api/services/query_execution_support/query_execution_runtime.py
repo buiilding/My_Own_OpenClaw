@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Type
 
 from backend.src.api.schemas import QueryMessage
 from backend.src.api.transport.envelope import StreamEventSequencer
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 logger = logging.getLogger(__name__)
 _RUNTIME_STATE_KEYS = ("active_window", "mouse_position", "screen_resolution")

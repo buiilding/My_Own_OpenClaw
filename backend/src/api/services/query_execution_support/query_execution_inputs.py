@@ -11,7 +11,7 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
     resolve_query_screenshot_metadata,
     resolve_screenshot_refs,
 )
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 
 if TYPE_CHECKING:
     from backend.src.api.schemas import QueryMessage

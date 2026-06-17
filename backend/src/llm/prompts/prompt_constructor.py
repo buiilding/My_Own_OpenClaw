@@ -47,7 +47,7 @@ from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
 )
-from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.artifacts.store import ArtifactStore
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
