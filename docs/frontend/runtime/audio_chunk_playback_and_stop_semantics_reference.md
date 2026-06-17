@@ -95,7 +95,7 @@ Error tolerance:
 Stop sources:
 
 - before sending a new message (`useChatMessageSender` calls `stopPlayback`)
-- explicit stop button (`ChatInterface.handleStopQuery`)
+- explicit dashboard stop button through `useStopTurnHandler`
 - new chat action when stream active (`handleNewChat`)
 - component unmount cleanup
 
@@ -112,7 +112,8 @@ This prevents overlap between old and new response audio.
 
 When user stops query:
 
-1. renderer applies shared stop-state helper (`applyStopQueryUiState`) to mark terminal stop phase
+1. renderer resolves the stop target and accepts it through
+   `acceptStoppedTurn(...)`
 2. playback stops immediately
 3. `DesktopLiveTurnRuntimeClient.stop(...)` calls the SDK conversation runtime stop command
 4. the desktop runtime transport adapter maps that semantic stop into the `stop-query` backend envelope

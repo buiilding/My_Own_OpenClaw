@@ -110,7 +110,7 @@ frontend/src/renderer/
 │   │       │   ├── chatBoxState.js      # chatBoxState - Visual anchor height helpers for compact/preview chatbox shells
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
 │   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/minimal-pill surface projection helpers
-│   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
+│   │       │   ├── stopQueryState.js    # stopQueryState - Shared stop target resolver and terminal projection helpers
 │   │       │   └── streamPhaseState.js  # streamPhaseState - Awaiting-reply phase predicate
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers

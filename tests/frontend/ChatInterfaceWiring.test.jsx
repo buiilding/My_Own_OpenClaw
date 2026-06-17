@@ -54,8 +54,6 @@ const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
-const mockSetCurrentTurnProjection = jest.fn();
-const mockUpdateStreamTracking = jest.fn();
 const mockAcceptStoppedTurn = jest.fn();
 const mockSetChatActiveConversationRef = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
@@ -88,8 +86,6 @@ const mockChatState = {
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
-  setCurrentTurnProjection: (...args) => mockSetCurrentTurnProjection(...args),
-  updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   acceptStoppedTurn: (...args) => mockAcceptStoppedTurn(...args),
   setActiveConversationRef: (...args) => mockSetChatActiveConversationRef(...args),
 };
@@ -269,8 +265,6 @@ describe('ChatInterface wiring', () => {
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
-    mockSetCurrentTurnProjection.mockClear();
-    mockUpdateStreamTracking.mockClear();
     mockAcceptStoppedTurn.mockClear();
     mockSetChatActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
@@ -1230,10 +1224,7 @@ describe('ChatInterface wiring', () => {
       turnRef: 'turn_test',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('stop response handler targets the current-turn conversation when session ref is stale', () => {
@@ -1259,10 +1250,7 @@ describe('ChatInterface wiring', () => {
       turnRef: 'turn_visible',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('stop shortcut sends stop-query while stream is active', () => {
@@ -1287,10 +1275,7 @@ describe('ChatInterface wiring', () => {
       turnRef: 'turn_test',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('stop shortcut ignores key presses when loop is idle', () => {
@@ -1309,8 +1294,6 @@ describe('ChatInterface wiring', () => {
 
     expect(shortcutEvent.defaultPrevented).toBe(false);
     expect(mockStopQuery).not.toHaveBeenCalled();
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
     expect(mockAcceptStoppedTurn).not.toHaveBeenCalled();
   });
 
@@ -1338,9 +1321,7 @@ describe('ChatInterface wiring', () => {
       turnRef: 'turn_pending',
       currentTurnProjection: null,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('keeps composer in stop state during tool loop even when isSending is false', () => {

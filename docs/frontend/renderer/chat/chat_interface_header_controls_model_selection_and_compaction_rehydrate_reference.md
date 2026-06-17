@@ -38,18 +38,18 @@ Derived flags:
 
 ## Stop Query Contract
 
-`handleStopQuery()` behavior:
+Dashboard stop behavior is owned by `useStopTurnHandler(...)`:
 
 1. no-op when not busy
-2. applies UI-side stop state reset via `applyStopQueryUiState(...)`
-3. stops local audio playback
-4. calls `DesktopLiveTurnRuntimeClient.stop(...)` using:
-  - transcript-session conversation ref first
-  - fallback `getActiveConversationRef()`
+2. resolve stop target from SDK current turn, then pending turn, then idle
+3. atomically accept the stopped turn in chat store with `acceptStoppedTurn(...)`
+4. stop local audio playback
+5. call `DesktopLiveTurnRuntimeClient.stop(...)` with the resolved
+   conversation ref and turn ref
 
 Keyboard binding:
 
-- `useChatInterfaceStopShortcut(canStop, handleStopQuery)`
+- `useChatInterfaceStopShortcut(canStop, handleStopTurn)`
 
 ## Sender Surface Contract (Dashboard/Main Window)
 

@@ -58,7 +58,7 @@ export function useChatInterfaceMenuDismiss({
   ]);
 }
 
-export function useChatInterfaceStopShortcut(canStop, handleStopQuery) {
+export function useChatInterfaceStopShortcut(canStop, handleStopTurn) {
   useEffect(() => {
     const handleStopShortcut = (event) => {
       if (!canStop || !isAgentStopShortcutEvent(event)) {
@@ -69,14 +69,14 @@ export function useChatInterfaceStopShortcut(canStop, handleStopQuery) {
       if (typeof event.stopImmediatePropagation === 'function') {
         event.stopImmediatePropagation();
       }
-      handleStopQuery();
+      handleStopTurn();
     };
 
     window.addEventListener('keydown', handleStopShortcut);
     return () => {
       window.removeEventListener('keydown', handleStopShortcut);
     };
-  }, [canStop, handleStopQuery]);
+  }, [canStop, handleStopTurn]);
 }
 
 export function useChatInterfaceFindShortcut({

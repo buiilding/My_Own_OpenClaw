@@ -29,9 +29,6 @@ const mockStopQuery = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
-const mockSetIsSending = jest.fn();
-const mockSetCurrentTurnProjection = jest.fn();
-const mockUpdateStreamTracking = jest.fn();
 const mockAcceptStoppedTurn = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const originalFileReader = global.FileReader;
@@ -141,9 +138,6 @@ const mockChatState = {
   thinkingStatus: null,
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
-  setIsSending: (...args) => mockSetIsSending(...args),
-  setCurrentTurnProjection: (...args) => mockSetCurrentTurnProjection(...args),
-  updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   acceptStoppedTurn: (...args) => mockAcceptStoppedTurn(...args),
   setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   streamTracking: { phase: 'idle' },
@@ -230,9 +224,6 @@ describe('ChatBox overlay mouse ignore', () => {
     mockStopQuery.mockClear();
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
-    mockSetIsSending.mockClear();
-    mockSetCurrentTurnProjection.mockClear();
-    mockUpdateStreamTracking.mockClear();
     mockAcceptStoppedTurn.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockIsDevUiEnabled.mockReset();
@@ -484,10 +475,8 @@ describe('ChatBox overlay mouse ignore', () => {
     });
 
     expect(mockSendMessage).toHaveBeenCalledWith('Start immediately');
-    expect(mockSetIsSending).not.toHaveBeenCalled();
     expect(mockSetThinkingStatus).not.toHaveBeenCalled();
     expect(mockSetThinkingSourceEventType).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
   });
 
   test('config button opens and maximizes the dashboard on the chat surface', () => {
@@ -525,8 +514,6 @@ describe('ChatBox overlay mouse ignore', () => {
       turnRef: 'turn-active',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
   });
 
   test('stop targets the current-turn conversation when pill session ref is stale', async () => {
@@ -548,9 +535,6 @@ describe('ChatBox overlay mouse ignore', () => {
       turnRef: 'turn-visible',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('does not render compaction control when dev UI flag is disabled', () => {
@@ -877,9 +861,6 @@ describe('ChatBox overlay mouse ignore', () => {
       turnRef: 'turn-active',
       currentTurnProjection: mockChatState.currentTurnProjection,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockSetCurrentTurnProjection).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('renders stop button when isSending is true before first stream event', async () => {
@@ -907,8 +888,6 @@ describe('ChatBox overlay mouse ignore', () => {
       turnRef: 'turn-pending',
       currentTurnProjection: null,
     });
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('does not start wakeword STT voice mode when setting is disabled', () => {
