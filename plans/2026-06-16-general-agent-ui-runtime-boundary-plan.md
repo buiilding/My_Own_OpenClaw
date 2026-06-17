@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 browser docs legacy session reuse cleanup
+
+- Finding: browser docs still suggested using `WINDIE_BROWSER_USE_SESSION=windieos`
+  or the old browser file root when intentionally reusing legacy Browser Use
+  state.
+- Change: narrowed those environment overrides to diagnostics or isolated local
+  sessions/file roots so the documented default remains the generic
+  `desktop-agent` Browser Use session and browser file root.
+- Validation: docs listing, focused legacy browser-session/file-root scan, and
+  diff check.
+- Compatibility: no migration required. This is documentation cleanup only;
+  browser session defaults, file-root resolution, and Browser Use execution are
+  unchanged.
+
 ### 2026-06-17 permission adapter diagnostic ownership label cleanup
 
 - Finding: the Electron main permission adapter wrapped macOS Automation
