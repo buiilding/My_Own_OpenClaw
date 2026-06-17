@@ -107,7 +107,7 @@ const agent = await client.wakeUp({ builtins: 'default' });
 
 Package boundary: `packages/windie-sdk-python`
 
-Compatibility path: `frontend/src/main/python/core/windie_sdk_client.py`
+Python implementation path: `frontend/src/main/python/windie/sdk.py`
 
 The distribution name is `windie-sdk`; the import package is `windie`.
 

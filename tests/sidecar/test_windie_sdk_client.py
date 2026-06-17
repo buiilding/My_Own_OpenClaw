@@ -18,12 +18,11 @@ from tests.sidecar.remote_client_test_utils import (
 aiohttp = ensure_aiohttp_with_stubs()
 ensure_frontend_python_path()
 
-from core import windie_sdk_client as windie_sdk_client_module  # noqa: E402
-from core import (  # noqa: E402
+from windie import (  # noqa: E402
     AgentLocalRuntimeHttpClient as ExportedAgentLocalRuntimeHttpClient,
     AgentSdkClient as ExportedAgentSdkClient,
 )
-from core.windie_sdk_client import (  # noqa: E402
+from windie.sdk import (  # noqa: E402
     AgentLocalRuntimeHttpClient,
     AgentSdkClient,
 )
@@ -77,10 +76,10 @@ def test_python_sdk_default_sidecar_discovery_path_is_generic():
 
 
 def test_python_sdk_local_runtime_http_client_is_canonical():
+    assert ExportedAgentSdkClient is AgentSdkClient
     assert windie_sdk_module.AgentLocalRuntimeHttpClient is AgentLocalRuntimeHttpClient
     assert ExportedAgentLocalRuntimeHttpClient is AgentLocalRuntimeHttpClient
     assert not hasattr(windie_sdk_module, "SidecarDaemonHttpClient")
-    assert not hasattr(windie_sdk_client_module, "SidecarDaemonHttpClient")
 
 
 def test_python_sdk_generated_agent_identity_is_generic():
@@ -398,7 +397,7 @@ async def test_sdk_http_ocr_vision_and_title_payloads_drop_unknown_fields():
 
 @pytest.mark.asyncio
 async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
-    monkeypatch.setattr(windie_sdk_client_module.aiohttp, "FormData", FakeFormData)
+    monkeypatch.setattr(windie_sdk_module.aiohttp, "FormData", FakeFormData)
     session = DummyArtifactSession(
         DummyResponse(
             200,
@@ -438,7 +437,7 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
-    monkeypatch.setattr(windie_sdk_client_module.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(windie_sdk_module.platform, "system", lambda: "Darwin")
     websocket = FakeWebSocket()
     session = DummyWsSession(websocket)
     client = AgentSdkClient(
@@ -1142,15 +1141,13 @@ async def test_trace_query_times_out_and_closes_websocket():
 async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
     await assert_client_initialize_reuses_session_and_close_resets(
         monkeypatch,
-        windie_sdk_client_module.aiohttp,
+        windie_sdk_module.aiohttp,
         AgentSdkClient(),
     )
 
 
-def test_core_package_exports_agent_sdk_client():
+def test_windie_package_exports_agent_sdk_client():
     assert ExportedAgentSdkClient is AgentSdkClient
     assert ExportedAgentLocalRuntimeHttpClient is AgentLocalRuntimeHttpClient
     assert not hasattr(windie_sdk_module, "WindieSdkClient")
     assert not hasattr(windie_sdk_module, "WindieSdkAgentSession")
-    assert not hasattr(windie_sdk_client_module, "WindieSdkClient")
-    assert not hasattr(windie_sdk_client_module, "WindieSdkAgentSession")

@@ -12,14 +12,17 @@ REMOVED_MARKERS = [
     "frontend/src/main/python/tools/computer/__init__.py",
     "frontend/src/main/python/tools/filesystem/__init__.py",
     "frontend/src/main/python/tools/system/__init__.py",
+    "frontend/src/main/python/core/__init__.py",
     "frontend/src/main/python/windie_shared/__init__.py",
 ]
 
 CONCRETE_MODULES = [
+    "core.remote_semantic_client",
     "tools.browser.browser_tool",
     "tools.computer.mouse_tool",
     "tools.filesystem.read_file_tool",
     "tools.system.shell_tool",
+    "windie.sdk",
     "windie_shared.browser_contract",
 ]
 

@@ -8,15 +8,13 @@ from tests.sidecar.remote_client_test_utils import (
 ensure_aiohttp_with_stubs()
 ensure_frontend_python_path()
 
-from core.windie_sdk_client import (  # noqa: E402
-    AgentSdkClient as CoreAgentSdkClient,
-)
 import windie  # noqa: E402
 from windie import AgentSdkClient  # noqa: E402
+from windie.sdk import AgentSdkClient as SdkAgentSdkClient  # noqa: E402
 
 
 def test_windie_package_exports_public_client():
-    assert AgentSdkClient is CoreAgentSdkClient
+    assert AgentSdkClient is SdkAgentSdkClient
     assert not hasattr(windie, "WindieSdkClient")
     assert not hasattr(windie, "WindieSdkAgentSession")
     client = AgentSdkClient(

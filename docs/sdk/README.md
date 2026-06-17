@@ -30,8 +30,8 @@ separate backend websocket loops, replay logic, or tool-result routing.
 - TypeScript package: `packages/windie-sdk-js` publishes as `@windie/sdk`.
 - TypeScript app client: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
 - Python package: `packages/windie-sdk-python` publishes as `windie-sdk` and imports as `windie`.
-- Python sidecar package re-export: `frontend/src/main/python/core/windie_sdk_client.py`
-- Sidecar package export: `frontend/src/main/python/core/__init__.py`
+- Python package entrypoint: `frontend/src/main/python/windie/__init__.py`
+- Python SDK implementation: `frontend/src/main/python/windie/sdk.py`
 
 Build the TypeScript SDK as a standalone package:
 

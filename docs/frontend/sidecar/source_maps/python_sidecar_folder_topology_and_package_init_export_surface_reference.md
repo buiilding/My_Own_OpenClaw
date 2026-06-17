@@ -11,7 +11,7 @@ title: "Python Sidecar Folder Topology and Package `__init__` Export Surface Ref
 This page documents:
 
 - `frontend/src/main/python/folder_structure.md`
-- `frontend/src/main/python/core/__init__.py`
+- remaining concrete sidecar package entrypoints
 
 ## Sidecar Topology Source Map Contract
 
@@ -30,13 +30,15 @@ Maintenance rule:
 
 ## Sidecar Package `__init__` Surface Contract
 
-`core/__init__.py` remains an export surface for the SDK client and semantic
-client helpers used by tests and local backend wiring.
+`core/__init__.py` is intentionally absent. Import core helpers from concrete
+modules such as `core.remote_semantic_client`, and import the hosted Python SDK
+from the public `windie` package.
 
 Marker-only files are intentionally absent for `tools/`, tool category
-subpackages, and `windie_shared/`. Import tool and shared browser-contract
-runtime code from concrete modules such as `tools.system.shell_tool`,
-`tools.browser.browser_tool`, and `windie_shared.browser_contract`.
+subpackages, `core/`, and `windie_shared/`. Import tool and shared
+browser-contract runtime code from concrete modules such as
+`tools.system.shell_tool`, `tools.browser.browser_tool`, and
+`windie_shared.browser_contract`.
 
 The retired `tools/memory` package no longer defines a sidecar tool export;
 local memory is handled through sidecar JSON-RPC methods and memory runtime

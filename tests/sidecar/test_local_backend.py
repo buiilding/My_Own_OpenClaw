@@ -23,7 +23,6 @@ def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
         for module_path in [
             local_backend_module.__file__,
             memory_handlers_module.__file__,
-            Path(local_backend_module.__file__).parent / "core" / "__init__.py",
             Path(local_backend_module.__file__).parent / "folder_structure.md",
         ]
     )

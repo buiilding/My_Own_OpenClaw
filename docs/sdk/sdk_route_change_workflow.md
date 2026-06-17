@@ -20,7 +20,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 | Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
 | Backend SDK helpers | `backend/src/sdk` | Tool/context helpers and sub-agent helper utilities. |
 | TypeScript hosted client | `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` | Public TS route methods, request typing, artifact helpers, and `AgentClient.wakeUp` agent runtime. |
-| Python sidecar/developer client | `frontend/src/main/python/core/windie_sdk_client.py` | Python hosted client behavior. |
+| Python sidecar/developer client | `frontend/src/main/python/windie/sdk.py` | Python hosted client behavior. |
 
 ## Add or Change a Route
 

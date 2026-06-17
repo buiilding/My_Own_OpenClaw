@@ -15,7 +15,7 @@ WindieOS hosted clients talk directly to the backend. They do not use Electron I
 | Client | Current path | Use for | Not for |
 | --- | --- | --- | --- |
 | TypeScript hosted client | `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` | artifacts, SDK routes, websocket query transport | local sidecar tools or Electron-only state |
-| Python hosted client | `frontend/src/main/python/core/windie_sdk_client.py` | sidecar/developer hosted backend access | direct local desktop automation without sidecar tool path |
+| Python hosted client | `frontend/src/main/python/windie/sdk.py` | sidecar/developer hosted backend access | direct local desktop automation without sidecar tool path |
 | Electron renderer `ApiClient` | renderer infrastructure | app-internal UI/runtime requests | public browser SDK contract |
 | VM worker runtime | `frontend/src/main/app/vm_worker_runtime.cjs` | `/api/runs/*` assignment/control and normal websocket dispatch | normal desktop user query routing |
 

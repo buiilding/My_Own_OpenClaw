@@ -26,15 +26,15 @@ Release contract:
 - End users do not need Python preinstalled.
 - Installer ships a bundled runtime under `resources/python-runtime`.
 - Sidecar and wakeword services run from bundled runtime in packaged apps.
-- The sidecar now includes a transport-only hosted SDK client in `frontend/src/main/python/core/windie_sdk_client.py` for direct developer-facing calls to `/api/artifacts/*`, `/api/sdk/*`, and `/ws`.
-- `frontend/src/main/python/core/__init__.py` re-exports `AgentSdkClient` so sidecar consumers can import it from `core` instead of reaching into the module file path. The old `WindieSdkClient` and `WindieSdkAgentSession` aliases have been removed.
+- The sidecar now includes a transport-only hosted SDK client in `frontend/src/main/python/windie/sdk.py` for direct developer-facing calls to `/api/artifacts/*`, `/api/sdk/*`, and `/ws`.
+- Python SDK callers import `AgentSdkClient` from the public `windie` package. The old `core` package re-export and `WindieSdkClient`/`WindieSdkAgentSession` aliases have been removed.
 
 **Key files:**
 - Sidecar daemon entrypoint: `frontend/src/main/python/sidecar_daemon.py`
 - LocalBackend implementation: `frontend/src/main/python/local_backend.py`
 - Electron bridge: `frontend/src/main/sidecar/local_backend_bridge.cjs`
 - Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
-- Hosted SDK transport client: `frontend/src/main/python/core/windie_sdk_client.py`
+- Hosted SDK transport client: `frontend/src/main/python/windie/sdk.py`
 - Tool implementations: `frontend/src/main/python/tools/`
 - Memory system: `frontend/src/main/python/memory/`
 

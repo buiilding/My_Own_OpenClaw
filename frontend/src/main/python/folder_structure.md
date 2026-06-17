@@ -15,7 +15,6 @@ frontend/src/main/python/
 ├── requirements.txt                    # Python dependencies (faiss-cpu, aiosqlite, aiohttp, pyautogui, pynput, psutil, etc.)
 │
 ├── core/                               # Core infrastructure modules
-│   ├── __init__.py                    # Package initialization
 │   ├── ipc_protocol.py                # JSONRPCProtocol - JSON-RPC 2.0 protocol handler for stdin/stdout communication
 │   ├── remote_semantic_client.py      # RemoteSemanticClient - HTTP client for backend semantic summarization API
 │   ├── system_state.py                # get_system_state() - Cross-platform system state collection (active window, mouse, clipboard, stats)
@@ -29,25 +28,21 @@ frontend/src/main/python/
 │       └── linux.py                   # LinuxWindowManager - Linux implementation using xdotool
 │
 ├── memory/                             # Memory storage system
-│   ├── __init__.py                    # Package initialization
 │   ├── local_store.py                # LocalMemoryStore - SQLite + FAISS implementation with SDK-provided embeddings (separate DBs for episodic/semantic)
 │   └── summarizer.py                 # MemorySummarizer - Periodic episodic -> semantic consolidation
 │
 └── tools/                              # Tool implementations and registry
-    ├── __init__.py                    # Package initialization
     ├── registry.py                    # ToolRegistry - Tool registration and execution with Pydantic validation
     ├── result.py                      # ToolResult - Standardized tool result dataclass
     ├── schemas.py                     # Pydantic schemas for all tools (MouseControlArgs, KeyboardControlArgs, etc.)
     │
     ├── computer/                      # Computer control tools
-    │   ├── __init__.py                # Package initialization
     │   ├── keyboard_tool.py           # execute_keyboard_control() - Keyboard input (type/paste/press/hotkey) with clipboard-safe paste for multiline/long text
     │   ├── mouse_tool.py              # execute_mouse_control() - Mouse actions (click, move, drag, scroll) using pyautogui
     │   ├── screenshot_tool.py         # capture_screenshot() - Screenshot capture with JPEG compression using pyautogui/PIL
     │   └── scroll_tool.py             # execute_scroll_control() - Scroll control (scroll, scroll_up, scroll_down) using pyautogui
     │
     ├── filesystem/                     # Filesystem tools
-    │   ├── __init__.py                # Package initialization
     │   ├── file_utils.py              # Binary file detection, encoding detection utilities
     │   ├── gitignore_utils.py         # Gitignore parsing and filtering using pathspec
     │   ├── read_file_tool.py          # read_file() - File reading with binary detection, size limits, pagination
@@ -55,7 +50,6 @@ frontend/src/main/python/
     │   └── ...                        # Removed legacy filesystem tool implementations
     │
     └── system/                         # System tools
-        ├── __init__.py                # Package initialization
         ├── shell_tool.py              # run_shell_command() - Shell command execution with background sessions
         ├── shell_process_registry.py  # Background shell session registry
         ├── process_tool.py            # process() - Manage background shell sessions (poll/log/write/kill)
