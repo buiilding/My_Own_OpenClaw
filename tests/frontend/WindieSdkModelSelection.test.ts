@@ -6,9 +6,6 @@ import {
   buildModelSettingsPatch,
   type AgentModelSelection,
 } from '../../packages/windie-sdk-js/src/settings/modelSelection';
-import type {
-  WindieModelSelection,
-} from '../../packages/windie-sdk-js/src/settings/WindieModelSelection';
 
 describe('buildModelSettingsPatch', () => {
   test('maps SDK model selection fields to backend settings keys', () => {
@@ -18,9 +15,7 @@ describe('buildModelSettingsPatch', () => {
       modelMode: ' high ',
       interactionMode: ' agent ',
     };
-    const compatibilitySelection: WindieModelSelection = selection;
-
-    expect(buildModelSettingsPatch(compatibilitySelection)).toEqual({
+    expect(buildModelSettingsPatch(selection)).toEqual({
       selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
       model_provider: 'openai',
       model_mode: 'high',

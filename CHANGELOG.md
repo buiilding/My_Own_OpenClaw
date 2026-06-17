@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK `WindieModelSelection` compatibility module so callers use `AgentModelSelection` directly.
+
 - Recorded the SDK sidecar conversation store wrapper deletion in the boundary implementation plan.
 
 - Removed the SDK `SidecarConversationStore` compatibility module so conversation persistence imports use `LocalRuntimeConversationStore` directly.

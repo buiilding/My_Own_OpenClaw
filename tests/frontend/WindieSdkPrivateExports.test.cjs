@@ -140,12 +140,15 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.windieBuiltins).toBe(canonicalModule.agentBuiltins);
   });
 
-  test('Windie model selection module remains a compatibility wrapper for model selection', () => {
+  test('Windie model selection compatibility module is removed', () => {
     const canonicalModule = require('../../packages/windie-sdk-js/cjs/settings/modelSelection.js');
-    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/settings/WindieModelSelection.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/settings/WindieModelSelection.js',
+    );
 
     expect(canonicalModule.buildModelSettingsPatch).toBeDefined();
-    expect(compatibilityModule.buildModelSettingsPatch).toBe(canonicalModule.buildModelSettingsPatch);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('capability manifest module keeps summarization behind stamping API', () => {

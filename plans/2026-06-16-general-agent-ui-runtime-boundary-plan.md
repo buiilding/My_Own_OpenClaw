@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK model selection wrapper deletion
+
+- Finding: the SDK still exposed a `WindieModelSelection` compatibility module
+  after `AgentModelSelection` became the canonical model-selection contract.
+- Change: deleted the Windie-prefixed model-selection modules, removed the
+  package export, updated SDK runtime docs, and kept tests focused on the
+  canonical `settings/modelSelection` module plus removed-wrapper coverage.
+- Validation: focused SDK model-selection and package-boundary Jest tests,
+  stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. SDK callers
+  must import `AgentModelSelection` from `settings/modelSelection` directly.
+
 ### 2026-06-17 SDK sidecar conversation store wrapper deletion
 
 - Finding: the SDK still exposed `SidecarConversationStore` as a
