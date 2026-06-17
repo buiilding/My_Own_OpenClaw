@@ -1,5 +1,5 @@
 /**
- * Provides local sidecar status broadcasting for the Electron main process.
+ * Provides local runtime status broadcasting for the Electron main process.
  */
 
 const {

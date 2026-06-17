@@ -1,5 +1,5 @@
 /**
- * Bridges local sidecar display bounds behavior for the Electron main process.
+ * Bridges local runtime display bounds behavior for the Electron main process.
  */
 
 function resolveScreenshotToolDisplayBounds({

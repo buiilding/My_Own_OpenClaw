@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main local runtime bridge headers
+
+- Finding: Electron main sidecar bridge modules still introduced host adapter
+  files as local sidecar bridges even though they adapt SDK local runtime
+  behavior to Electron windows, status, tools, and diagnostics.
+- Change: reworded the active module headers to local-runtime bridge/process
+  language while leaving compatibility file names and actual sidecar process
+  implementation details unchanged.
+- Validation: active header phrase scan, focused bridge module Jest smoke,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is code commentary only.
+
 ### 2026-06-17 renderer transient runtime error pattern table
 
 - Finding: the renderer conversation-list facade still inlined lower-layer

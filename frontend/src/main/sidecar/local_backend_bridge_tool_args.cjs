@@ -1,5 +1,5 @@
 /**
- * Bridges local sidecar tool argument behavior for the Electron main process.
+ * Bridges local runtime tool argument behavior for the Electron main process.
  */
 
 function isRecord(value) {

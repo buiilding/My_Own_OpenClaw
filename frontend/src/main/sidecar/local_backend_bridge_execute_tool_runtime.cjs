@@ -1,5 +1,5 @@
 /**
- * Coordinates local sidecar tool execution for the Electron main process.
+ * Coordinates local runtime tool execution for the Electron main process.
  */
 
 const fs = require('fs');

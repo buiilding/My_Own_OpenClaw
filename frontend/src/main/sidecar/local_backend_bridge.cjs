@@ -1,5 +1,5 @@
 /**
- * Bridges local sidecar runtime behavior for the Electron main process.
+ * Bridges SDK local runtime behavior for the Electron main process.
  */
 
 const { ipcMain } = require('electron');
