@@ -134,6 +134,10 @@ Electron must not reimplement SDK behavior separately.
 over `SdkConversationRuntime`. `WindieChatSession` and the matching
 Windie-prefixed chat input types remain compatibility aliases for existing SDK
 callers, but new reusable host code should prefer the `AgentChat*` names.
+Likewise, public agent API option and result shapes use generic `Agent*` names
+such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
+`AgentMemoryQuery`, and `AgentStoreMemoryInput`; the matching Windie-prefixed
+type names remain compatibility aliases only.
 
 ## Desktop Host Startup
 

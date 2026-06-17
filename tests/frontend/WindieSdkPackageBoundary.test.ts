@@ -30,6 +30,11 @@ import {
   windieBuiltins,
   WindieChatSession,
   type AgentChatSendInput,
+  type AgentMemoryQuery,
+  type AgentQueryOptions,
+  type AgentStopOptions,
+  type AgentStoreMemoryInput,
+  type AgentTraceOptions,
   type AgentLocalRuntimeClient,
   type AgentQueryInput,
   type AgentSessionRuntime,
@@ -41,6 +46,11 @@ import {
   type WindieAgentStopInput,
   type WindieToolDefinition,
   type WindieChatSendInput,
+  type WindieMemoryQuery,
+  type WindieAgentQueryOptions,
+  type WindieAgentStopOptions,
+  type WindieAgentTraceOptions,
+  type WindieStoreMemoryInput,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
@@ -111,6 +121,31 @@ describe('@windie/sdk package boundary', () => {
     const compatibilityInput: WindieChatSendInput = input;
 
     expect(compatibilityInput).toBe('hello');
+  });
+
+  test('exports generic agent API option aliases', () => {
+    const queryOptions: AgentQueryOptions = {
+      conversationRef: 'conv-1',
+      screenshotRef: 'shot-1',
+    };
+    const compatibilityQueryOptions: WindieAgentQueryOptions = queryOptions;
+    const stopOptions: AgentStopOptions = { conversationRef: compatibilityQueryOptions.conversationRef };
+    const compatibilityStopOptions: WindieAgentStopOptions = stopOptions;
+    const memoryQuery: AgentMemoryQuery = { query: 'preferences', memoryType: 'semantic' };
+    const compatibilityMemoryQuery: WindieMemoryQuery = memoryQuery;
+    const storeMemory: AgentStoreMemoryInput = {
+      userQuery: 'What should I remember?',
+      assistantResponse: 'Remember the workspace preference.',
+      memoryType: 'episodic',
+    };
+    const compatibilityStoreMemory: WindieStoreMemoryInput = storeMemory;
+    const traceOptions: AgentTraceOptions = { conversationRef: 'conv-1' };
+    const compatibilityTraceOptions: WindieAgentTraceOptions = traceOptions;
+
+    expect(compatibilityStopOptions.conversationRef).toBe('conv-1');
+    expect(compatibilityMemoryQuery.memoryType).toBe('semantic');
+    expect(compatibilityStoreMemory.memoryType).toBe('episodic');
+    expect(compatibilityTraceOptions.conversationRef).toBe('conv-1');
   });
 
   test('exports generic local runtime contract aliases', () => {

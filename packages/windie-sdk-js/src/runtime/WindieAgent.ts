@@ -72,28 +72,36 @@ import {
   type AgentStreamEvent,
 } from './AgentStreamEvents.js';
 
-export type WindieAgentQueryOptions = Partial<Omit<AgentQueryInput, 'text' | 'conversationRef'>> & {
+export type AgentQueryOptions = Partial<Omit<AgentQueryInput, 'text' | 'conversationRef'>> & {
   conversationRef?: string;
   model?: AgentModelSelection;
 };
 
-export type WindieAgentStopOptions = {
+export type WindieAgentQueryOptions = AgentQueryOptions;
+
+export type AgentStopOptions = {
   conversation_ref?: string | null;
   conversationRef?: string | null;
   turn_ref?: string | null;
   turnRef?: string | null;
 };
 
-export type WindieAgentOwner = {
+export type WindieAgentStopOptions = AgentStopOptions;
+
+export type AgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
   getKnownLocalRuntime?(): AgentLocalRuntimeClient | null;
   localRuntime?(options?: { reason?: string }): Promise<AgentLocalRuntimeClient>;
   shutdownLocalRuntime?(): Promise<void>;
 };
 
-export type WindieAgentRegisterMcpOptions = {
+export type WindieAgentOwner = AgentOwner;
+
+export type AgentRegisterMcpOptions = {
   replace?: boolean;
 };
+
+export type WindieAgentRegisterMcpOptions = AgentRegisterMcpOptions;
 
 function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): void {
   const details = [
@@ -149,67 +157,89 @@ export type LoadConversationOptions = {
 
 export type RawBackendEventListener = (event: BackendEvent) => void;
 
-export type WindieMemoryType = 'episodic' | 'semantic';
+export type AgentMemoryType = 'episodic' | 'semantic';
 
-export type WindieMemoryQuery = {
+export type WindieMemoryType = AgentMemoryType;
+
+export type AgentMemoryQuery = {
   userId?: string;
   query?: string;
   limit?: number;
-  memoryType?: WindieMemoryType;
+  memoryType?: AgentMemoryType;
   excludeConversationId?: string;
   episodicLimit?: number;
   semanticLimit?: number;
   semanticMinScore?: number;
 };
 
-export type WindieStoreMemoryInput = {
+export type WindieMemoryQuery = AgentMemoryQuery;
+
+export type AgentStoreMemoryInput = {
   userId?: string;
   userQuery: string;
   assistantResponse: string;
-  memoryType?: WindieMemoryType;
+  memoryType?: AgentMemoryType;
   sessionId?: string;
 };
 
-export type WindieClearMemoriesResult = JsonRecord & {
+export type WindieStoreMemoryInput = AgentStoreMemoryInput;
+
+export type AgentClearMemoriesResult = JsonRecord & {
   episodic_deleted_count?: number;
   semantic_deleted_count?: number;
 };
 
-export type WindieMemoryListResult = JsonRecord & {
+export type WindieClearMemoriesResult = AgentClearMemoriesResult;
+
+export type AgentMemoryListResult = JsonRecord & {
   memories: unknown[];
   count: number;
 };
 
-export type WindieDeleteMemoryResult = JsonRecord & {
+export type WindieMemoryListResult = AgentMemoryListResult;
+
+export type AgentDeleteMemoryResult = JsonRecord & {
   deleted?: boolean;
 };
 
-export type WindieStoreMemoryResult = JsonRecord & {
+export type WindieDeleteMemoryResult = AgentDeleteMemoryResult;
+
+export type AgentStoreMemoryResult = JsonRecord & {
   memory_id?: string;
   memory_type?: string;
 };
 
-export type WindieClearConversationsOptions = {
+export type WindieStoreMemoryResult = AgentStoreMemoryResult;
+
+export type AgentClearConversationsOptions = {
   store?: ConversationStore;
 };
 
-export type WindieAgentTraceOptions = {
+export type WindieClearConversationsOptions = AgentClearConversationsOptions;
+
+export type AgentTraceOptions = {
   conversationRef?: string;
   turnRef?: string | null;
   store?: ConversationStore;
 };
 
-export type WindiePrepareEditAndResendOptions = EditAndResendInput & {
+export type WindieAgentTraceOptions = AgentTraceOptions;
+
+export type AgentPrepareEditAndResendOptions = EditAndResendInput & {
   conversationRef: string;
   revisionId?: string;
   store?: ConversationStore;
 };
 
-export type WindiePrepareRetryTurnOptions = RetryTurnInput & {
+export type WindiePrepareEditAndResendOptions = AgentPrepareEditAndResendOptions;
+
+export type AgentPrepareRetryTurnOptions = RetryTurnInput & {
   conversationRef: string;
   revisionId?: string;
   store?: ConversationStore;
 };
+
+export type WindiePrepareRetryTurnOptions = AgentPrepareRetryTurnOptions;
 
 export class WindieAgent {
   constructor(
@@ -217,7 +247,7 @@ export class WindieAgent {
     readonly session: AgentSessionRuntime,
     readonly agentDefinition: JsonRecord,
     private readonly sdkClient: WindieSdkClient,
-    private readonly owner: WindieAgentOwner,
+    private readonly owner: AgentOwner,
     private readonly localRuntime?: AgentLocalRuntimeClient,
     private readonly userId = 'local-sdk-user',
     private readonly defaultConversationStore: ConversationStore = new InMemoryConversationStore(),
@@ -244,7 +274,7 @@ export class WindieAgent {
     return this.owner.localRuntime({ reason });
   }
 
-  async ask(text: string, options: WindieAgentQueryOptions = {}): Promise<string> {
+  async ask(text: string, options: AgentQueryOptions = {}): Promise<string> {
     if (options.model) {
       await this.setModel(options.model);
     }
@@ -256,7 +286,7 @@ export class WindieAgent {
     return this.session.query(enriched);
   }
 
-  async run(input: string | AgentQueryInput, options: WindieAgentQueryOptions = {}): Promise<string> {
+  async run(input: string | AgentQueryInput, options: AgentQueryOptions = {}): Promise<string> {
     if (typeof input === 'string') {
       return this.ask(input, options);
     }
@@ -268,7 +298,7 @@ export class WindieAgent {
 
   async *stream(
     input: string | AgentQueryInput,
-    options: WindieAgentQueryOptions = {},
+    options: AgentQueryOptions = {},
   ): AsyncIterableIterator<AgentStreamEvent> {
     const queryInput = typeof input === 'string' ? this.buildQueryInput(input, options) : input;
     const model = typeof input === 'string' ? options.model : undefined;
@@ -309,7 +339,7 @@ export class WindieAgent {
     }
   }
 
-  async stop(input?: string | WindieAgentStopOptions | null): Promise<string> {
+  async stop(input?: string | AgentStopOptions | null): Promise<string> {
     if (input && typeof input === 'object') {
       return this.session.stopQuery({
         conversation_ref: input.conversation_ref ?? input.conversationRef ?? null,
@@ -446,7 +476,7 @@ export class WindieAgent {
     return this.sdkClient.systemPrompt();
   }
 
-  async listToolSchemas(options: WindieAgentTraceOptions = {}): Promise<SdkToolSchemasResponse> {
+  async listToolSchemas(options: AgentTraceOptions = {}): Promise<SdkToolSchemasResponse> {
     const startedAtMs = Date.now();
     await this.recordAgentTrace({
       path: 'tool.schema.policy',
@@ -548,7 +578,7 @@ export class WindieAgent {
 
   async registerMcps(
     mcps: AgentMcpDefinition[],
-    options: WindieAgentRegisterMcpOptions = {},
+    options: AgentRegisterMcpOptions = {},
   ): Promise<{ registration: JsonRecord; toolSchemas: JsonRecord[] }> {
     const localRuntime = await this.ensureLocalRuntime('MCP registration');
     if (typeof localRuntime.registerMcp !== 'function') {
@@ -582,7 +612,7 @@ export class WindieAgent {
     });
   }
 
-  async searchMemory(query: string | WindieMemoryQuery): Promise<JsonRecord> {
+  async searchMemory(query: string | AgentMemoryQuery): Promise<JsonRecord> {
     const payload = typeof query === 'string' ? { query } : query;
     const text = payload.query ?? '';
     const embedding = await this.sdkClient.embeddings.create({ text });
@@ -599,7 +629,7 @@ export class WindieAgent {
     });
   }
 
-  async listMemories(options: { userId?: string; type: WindieMemoryType; limit?: number }): Promise<WindieMemoryListResult> {
+  async listMemories(options: { userId?: string; type: AgentMemoryType; limit?: number }): Promise<AgentMemoryListResult> {
     const data = await this.callLocalRuntimeRpcData(
       options.type === 'semantic' ? 'list_semantic_memories' : 'list_episodic_memories',
       {
@@ -618,7 +648,7 @@ export class WindieAgent {
     };
   }
 
-  async storeMemory(input: WindieStoreMemoryInput): Promise<WindieStoreMemoryResult> {
+  async storeMemory(input: AgentStoreMemoryInput): Promise<AgentStoreMemoryResult> {
     const content = formatCompletedTurnMemory({
       userQuery: input.userQuery,
       assistantResponse: input.assistantResponse,
@@ -634,7 +664,7 @@ export class WindieAgent {
     });
   }
 
-  async deleteMemory(options: { userId?: string; type: WindieMemoryType; memoryId: string }): Promise<WindieDeleteMemoryResult> {
+  async deleteMemory(options: { userId?: string; type: AgentMemoryType; memoryId: string }): Promise<AgentDeleteMemoryResult> {
     return this.callLocalRuntimeRpcData(
       options.type === 'semantic' ? 'delete_semantic_memory' : 'delete_episodic_memory',
       {
@@ -644,13 +674,13 @@ export class WindieAgent {
     );
   }
 
-  async clearMemories(options: { userId?: string } = {}): Promise<WindieClearMemoriesResult> {
+  async clearMemories(options: { userId?: string } = {}): Promise<AgentClearMemoriesResult> {
     return await this.callLocalRuntimeRpcData('clear_local_memory', {
       user_id: options.userId ?? this.userId,
-    }) as WindieClearMemoriesResult;
+    }) as AgentClearMemoriesResult;
   }
 
-  async listTools(options: WindieAgentTraceOptions = {}): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
+  async listTools(options: AgentTraceOptions = {}): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
     const startedAtMs = Date.now();
     const localRuntime = this.getKnownLocalRuntime();
     if (!localRuntime?.listTools) {
@@ -698,7 +728,7 @@ export class WindieAgent {
     }
   }
 
-  async status(options: WindieAgentTraceOptions = {}): Promise<JsonRecord | null> {
+  async status(options: AgentTraceOptions = {}): Promise<JsonRecord | null> {
     const startedAtMs = Date.now();
     const localRuntime = this.getKnownLocalRuntime();
     if (!localRuntime?.status) {
@@ -747,7 +777,7 @@ export class WindieAgent {
     }
   }
 
-  async shutdownLocalRuntime(options: WindieAgentTraceOptions = {}): Promise<void> {
+  async shutdownLocalRuntime(options: AgentTraceOptions = {}): Promise<void> {
     const startedAtMs = Date.now();
     const localRuntime = this.getKnownLocalRuntime();
     const ownerShutdown = typeof this.owner.shutdownLocalRuntime === 'function';
@@ -816,7 +846,7 @@ export class WindieAgent {
     return this.sdkClient.artifacts.url(artifactId);
   }
 
-  async fetchArtifact(artifactId: string, options: WindieAgentTraceOptions = {}): Promise<Response> {
+  async fetchArtifact(artifactId: string, options: AgentTraceOptions = {}): Promise<Response> {
     const startedAtMs = Date.now();
     await this.recordAgentTrace({
       path: 'artifact.fetch',
@@ -857,7 +887,7 @@ export class WindieAgent {
     }
   }
 
-  async installIdentity(options: WindieAgentTraceOptions = {}): Promise<WindieInstallIdentityResponse> {
+  async installIdentity(options: AgentTraceOptions = {}): Promise<WindieInstallIdentityResponse> {
     const startedAtMs = Date.now();
     await this.recordAgentTrace({
       path: 'install.auth',
@@ -971,7 +1001,7 @@ export class WindieAgent {
     await conversationStore.deleteConversation(deleteOptions.conversationRef);
   }
 
-  async clearConversations(options: WindieClearConversationsOptions = {}): Promise<void> {
+  async clearConversations(options: AgentClearConversationsOptions = {}): Promise<void> {
     const conversationStore = options.store ?? this.defaultConversationStore;
     if (typeof conversationStore.clearConversations !== 'function') {
       throw new Error('clearConversations requires a clearable conversation store');
@@ -1027,7 +1057,7 @@ export class WindieAgent {
   }
 
   async prepareEditAndResend(
-    options: WindiePrepareEditAndResendOptions,
+    options: AgentPrepareEditAndResendOptions,
   ): Promise<PreparedReplayTurn> {
     const { conversationRef, revisionId, store, ...input } = options;
     return this.conversation({
@@ -1038,7 +1068,7 @@ export class WindieAgent {
   }
 
   async prepareRetryTurn(
-    options: WindiePrepareRetryTurnOptions,
+    options: AgentPrepareRetryTurnOptions,
   ): Promise<PreparedReplayTurn> {
     const { conversationRef, revisionId, store, ...input } = options;
     return this.conversation({
@@ -1054,7 +1084,7 @@ export class WindieAgent {
 
   private async recordAgentTrace(
     input: TraceEventInput,
-    options: WindieAgentTraceOptions = {},
+    options: AgentTraceOptions = {},
   ): Promise<TraceEventPayload> {
     const conversationRef = options.conversationRef ?? `conv-${this.id}`;
     const turnRef = options.turnRef ?? null;
@@ -1092,7 +1122,7 @@ export class WindieAgent {
     return unwrapLocalRuntimeRpcData(result, `Local runtime RPC failed for ${method}`);
   }
 
-  private buildQueryInput(text: string, options: WindieAgentQueryOptions): AgentQueryInput {
+  private buildQueryInput(text: string, options: AgentQueryOptions): AgentQueryInput {
     const { model: _model, ...queryOptions } = options;
     return {
       ...queryOptions,

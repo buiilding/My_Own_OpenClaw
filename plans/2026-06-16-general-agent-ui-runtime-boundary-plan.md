@@ -1497,3 +1497,19 @@ Each completed slice should report:
   source scans showing Windie-prefixed chat names remain compatibility aliases.
 - Compatibility: no migration required. Chat-session behavior and payloads are
   unchanged, and existing `WindieChatSession` imports keep working.
+
+### 2026-06-17 SDK agent API option aliases
+
+- Finding: `WindieAgent` still exposed and consumed Windie-prefixed option,
+  owner, memory, trace, and prepare-edit/retry type names for generic agent API
+  shapes.
+- Change: added generic `Agent*` names for query/stop options, owner/MCP
+  registration, memory inputs/results, trace options, clear-conversation
+  options, and prepare-edit/retry inputs; switched `WindieAgent` internals to
+  those names; and kept the matching Windie-prefixed names as compatibility
+  aliases.
+- Validation: focused SDK package-boundary Jest coverage, SDK no-emit
+  TypeScript check, docs listing, `git diff --check`, and source scans showing
+  Windie-prefixed agent API types remain compatibility aliases.
+- Compatibility: no migration required. Agent method payloads and results are
+  unchanged, and existing Windie-prefixed type imports keep working.
