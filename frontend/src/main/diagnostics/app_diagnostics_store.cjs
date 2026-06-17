@@ -88,7 +88,6 @@ const ALLOWED_DATA_KEYS = new Set([
   'resultCount',
   'canonicalHistoryDbExists',
   'backendConnected',
-  'sidecarReady',
   'ready',
   'status',
   'statusReason',

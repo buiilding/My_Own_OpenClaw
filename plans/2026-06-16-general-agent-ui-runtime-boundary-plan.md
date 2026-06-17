@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 diagnostics sidecar readiness field removal
+
+- Finding: after active conversation metadata diagnostics moved to
+  `localRuntimeReady`, the diagnostics runtime sanitizer and store allowlist
+  still accepted new `sidecarReady` payload fields.
+- Change: removed `sidecarReady` from the new-row diagnostics sanitizer and
+  allowlist while leaving historical stored rows untouched.
+- Validation: targeted diagnostics Jest assertions, direct Node export smoke,
+  sidecar readiness field scan, docs listing, and diff check.
+- Compatibility: no data migration required. Existing diagnostic rows remain
+  readable as stored JSON; new rows use the generic local-runtime readiness
+  field.
+
 ### 2026-06-17 main diagnostics local runtime export
 
 - Finding: main diagnostics still exported the unused

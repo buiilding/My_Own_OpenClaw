@@ -166,7 +166,6 @@ function appendIpcBridgeDiagnostic(input = {}, options = {}) {
       hasUserId: booleanOrNull(input.hasUserId),
       userIdSource: normalizeString(input.userIdSource),
       backendConnected: booleanOrNull(input.backendConnected),
-      sidecarReady: booleanOrNull(input.sidecarReady),
       payloadHasEnabledKey: booleanOrNull(input.payloadHasEnabledKey),
       enabledServerCount: finiteNumberOrNull(input.enabledServerCount),
       previousEnabledServerCount: finiteNumberOrNull(input.previousEnabledServerCount),

@@ -226,6 +226,20 @@ describe('app diagnostics store', () => {
     expect(runtime.appendLocalBackendLifecycleDiagnostic).toBeUndefined();
   });
 
+  test('diagnostics sanitizers do not allow sidecar readiness fields for new rows', () => {
+    const runtimeSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs'),
+      'utf8',
+    );
+    const storeSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/diagnostics/app_diagnostics_store.cjs'),
+      'utf8',
+    );
+
+    expect(runtimeSource).not.toContain('sidecarReady');
+    expect(storeSource).not.toContain("'sidecarReady'");
+  });
+
   test('persists sanitized surface visibility diagnostics', () => {
     appendDiagnosticEvent({
       traceId: 'surface-diag-test',
