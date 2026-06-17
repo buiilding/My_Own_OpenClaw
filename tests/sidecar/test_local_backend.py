@@ -521,6 +521,30 @@ async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_browser_packaged_runtime_uses_generic_install_copy(
+    monkeypatch,
+):
+    backend = LocalBackend()
+    backend.tool_registry = BrowserToolRegistry(
+        has_browser=False,
+        result=ToolResult.success_result({"ok": True}),
+    )
+    backend._browser_feature_pack_autoinstall_enabled = False
+    backend._packaged_app = True
+
+    monkeypatch.setattr(
+        local_backend_module, "is_feature_pack_available", lambda *_: False
+    )
+
+    result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
+
+    assert result["success"] is False
+    assert "bundled app install" in result["error"]
+    assert "Reinstall this app" in result["error"]
+    assert "WindieOS" not in result["error"]
+
+
+@pytest.mark.asyncio
 async def test_handle_get_status_reports_tools():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({}))

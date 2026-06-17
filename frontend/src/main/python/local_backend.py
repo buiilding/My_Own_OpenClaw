@@ -351,8 +351,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         if not self._browser_feature_pack_autoinstall_enabled:
             if self._packaged_app:
                 return (
-                    "Browser runtime dependencies are missing from the bundled WindieOS install. "
-                    "Reinstall WindieOS."
+                    "Browser runtime dependencies are missing from the bundled app install. "
+                    "Reinstall this app."
                 )
             return (
                 "Browser feature pack is unavailable in this runtime. "
@@ -379,7 +379,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             if not self.tool_registry.has_tool("browser"):
                 return (
                     "Browser feature pack installed but browser tool is still unavailable. "
-                    "Restart WindieOS and retry."
+                    "Restart this app and retry."
                 )
 
         return None

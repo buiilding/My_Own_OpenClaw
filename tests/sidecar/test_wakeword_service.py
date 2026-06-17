@@ -153,6 +153,30 @@ def test_ensure_models_available_returns_true_when_path_exists(tmp_path):
     assert wakeword_service.ensure_models_available("hey_jarvis", str(model_file)) is True
 
 
+def test_ensure_models_available_missing_packaged_model_uses_generic_reinstall_copy(monkeypatch):
+    statuses = []
+    monkeypatch.setattr(
+        wakeword_service,
+        "_emit_status",
+        lambda status, message=None, **extra: statuses.append(
+            {"status": status, "message": message, **extra}
+        ),
+    )
+
+    assert (
+        wakeword_service.ensure_models_available(
+            "hey_jarvis",
+            "/missing/hey_jarvis_v0.1.tflite",
+            allow_runtime_download=False,
+        )
+        is False
+    )
+
+    assert statuses[-1]["status"] == "error"
+    assert "Reinstall this app" in statuses[-1]["message"]
+    assert "WindieOS" not in statuses[-1]["message"]
+
+
 def test_resolve_model_path_from_directory_prefers_known_filename(tmp_path):
     model_dir = tmp_path / "models"
     model_dir.mkdir(parents=True)

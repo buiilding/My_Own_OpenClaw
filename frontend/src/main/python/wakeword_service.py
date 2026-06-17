@@ -162,7 +162,7 @@ def ensure_models_available(
             "error",
             (
                 "Wakeword model is missing from bundled runtime and runtime downloads are disabled. "
-                f"Missing: {missing}. Reinstall WindieOS."
+                f"Missing: {missing}. Reinstall this app."
             ),
         )
         return False

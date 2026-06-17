@@ -97,6 +97,8 @@ All notable changes to WindieOS will be documented in this file.
   skin/config so config storage initializes from skin-owned defaults.
 - frontend/main: move OpenAI Codex OAuth IPC fallback copy into main host
   skin/config while keeping generic OAuth handler defaults provider-neutral.
+- frontend/sidecar: use generic bundled-app reinstall/restart guidance in
+  packaged browser and wakeword runtime dependency failures.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

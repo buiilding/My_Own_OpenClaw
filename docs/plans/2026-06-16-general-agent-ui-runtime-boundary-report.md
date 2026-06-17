@@ -548,6 +548,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: moved OAuth login/logout fallback copy into main host skin/config and
   made the IPC handler use provider-neutral defaults when no host copy is
   supplied.
+- Finding: sidecar packaged browser and wakeword dependency failures still told
+  users to reinstall or restart WindieOS from executable local-runtime code.
+- Change: changed those sidecar runtime failures to generic bundled-app
+  reinstall/restart wording while leaving host/product copy ownership outside
+  the sidecar executables.
 
 ## Remaining Findings
 
@@ -636,3 +641,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `selected_model_id` settings fields.
 - Main OpenAI Codex OAuth IPC fallback copy now comes from main host skin/config
   with generic OAuth defaults in the handler itself.
+- Sidecar packaged runtime dependency failures now use generic bundled-app
+  reinstall/restart copy instead of embedding WindieOS product naming in local
+  executable paths.
