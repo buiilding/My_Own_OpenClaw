@@ -216,6 +216,19 @@ describe('main host skin/config boundary', () => {
     }
   });
 
+  test('main sidecar adapter console labels use generic bridge naming', () => {
+    for (const modulePath of localBackendBridgeModulePaths) {
+      const source = fs.readFileSync(modulePath, 'utf8');
+
+      expect(source).not.toContain('[Main][LocalBackendBridge]');
+    }
+
+    const joinedSource = localBackendBridgeModulePaths
+      .map(modulePath => fs.readFileSync(modulePath, 'utf8'))
+      .join('\n');
+    expect(joinedSource).toContain('[Main][SidecarBridge]');
+  });
+
   test('main-private host markers use generic desktop-agent naming', () => {
     const bannedMarkers = [
       '__windieConsoleStreamErrorGuardInstalled',

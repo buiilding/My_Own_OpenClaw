@@ -74,7 +74,7 @@ function appendBrowserSessionDiagnostic(input = {}) {
     });
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[Main][LocalBackendBridge] browser_session_diagnostic_failed message=${JSON.stringify(getErrorMessage(error))}`);
+      console.warn(`[Main][SidecarBridge] browser_session_diagnostic_failed message=${JSON.stringify(getErrorMessage(error))}`);
     }
   }
 }
@@ -161,7 +161,7 @@ function resolveKnownLocalRuntime({ quiet = false } = {}) {
     return runtime && typeof runtime === 'object' ? runtime : null;
   } catch (error) {
     if (!quiet && process.env.NODE_ENV !== 'production') {
-      console.warn(`[Main][LocalBackendBridge] known_sdk_runtime_lookup_failed message=${JSON.stringify(getErrorMessage(error))}`);
+      console.warn(`[Main][SidecarBridge] known_sdk_runtime_lookup_failed message=${JSON.stringify(getErrorMessage(error))}`);
     }
     return null;
   }
@@ -353,7 +353,7 @@ async function getSystemStateFromBackend(fields) {
     }
     return result.data || result;
   } catch (error) {
-    console.error(`[Main][LocalBackendBridge] system_state_request_failed message=${JSON.stringify(getErrorMessage(error))}`);
+    console.error(`[Main][SidecarBridge] system_state_request_failed message=${JSON.stringify(getErrorMessage(error))}`);
     return null;
   }
 }
@@ -369,7 +369,7 @@ function stopLocalBackend() {
 
 async function loadArtifactUploadHeaders() {
   const authState = await loadInstallAuthStateFromDisk((message) => {
-    console.warn(`[Main][LocalBackendBridge] install_auth_state_warning message=${JSON.stringify(message)}`);
+    console.warn(`[Main][SidecarBridge] install_auth_state_warning message=${JSON.stringify(message)}`);
   });
   const installToken = typeof authState?.installToken === 'string'
     ? authState.installToken.trim()
@@ -560,7 +560,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     ...buildLocalRuntimeDiagnosticData(),
   });
   if (process.env.WINDIE_DEBUG_LOCAL_BACKEND_STDOUT === '1') {
-    console.log('[Main][LocalBackendBridge] initialized');
+    console.log('[Main][SidecarBridge] initialized');
   }
 }
 

@@ -127,7 +127,7 @@ function createLocalBackendExecuteToolRuntime({
         data: result.data || result,
       };
     } catch (error) {
-      console.error(`[Main][LocalBackendBridge] tool_execution_failed message=${JSON.stringify(getErrorMessage(error))}`);
+      console.error(`[Main][SidecarBridge] tool_execution_failed message=${JSON.stringify(getErrorMessage(error))}`);
       return {
         success: false,
         error: getErrorMessage(error),
@@ -146,7 +146,7 @@ function createLocalBackendExecuteToolRuntime({
           await fs.promises.unlink(screenshotPath);
         } catch (error) {
           console.warn(
-            `[Main][LocalBackendBridge] screen_capture_verification_cleanup_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
+            `[Main][SidecarBridge] screen_capture_verification_cleanup_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
           );
         }
       };

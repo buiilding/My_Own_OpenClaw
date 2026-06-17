@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main sidecar bridge console labels
+
+- Finding: Electron main sidecar bridge modules still emitted
+  `[Main][LocalBackendBridge]` console labels even though the host adapter now
+  represents a generic sidecar/local-runtime bridge.
+- Change: changed new console output from the bridge, tool-execution, and
+  screenshot materialization helpers to `[Main][SidecarBridge]`, leaving module
+  filenames, exports, IPC channels, and diagnostic path ids unchanged.
+- Validation: focused main host-skin boundary source scan, docs listing,
+  `git diff --check`, and source scan for the retired console prefix.
+- Compatibility: no migration required. This affects diagnostic log copy only;
+  bridge behavior, error envelopes, screenshot artifact handling, and status
+  channels are unchanged.
+
 ### 2026-06-17 local sidecar log prefix
 
 - Finding: the sidecar daemon still emitted a `[LocalBackend]` layer log for

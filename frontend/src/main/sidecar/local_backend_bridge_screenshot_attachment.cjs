@@ -99,7 +99,7 @@ async function unlinkQuietly(targetPath, warn = console.warn) {
     await fsPromises.unlink(targetPath);
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
-      warn(`[Main][LocalBackendBridge] temp_screenshot_delete_failed path=${JSON.stringify(targetPath)}`, error);
+      warn(`[Main][SidecarBridge] temp_screenshot_delete_failed path=${JSON.stringify(targetPath)}`, error);
     }
   }
 }
@@ -146,7 +146,7 @@ async function isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage) {
     return parentRealpath === dirRealpath && stat.isFile() && !stat.isSymbolicLink();
   } catch (error) {
     warn(
-      `[Main][LocalBackendBridge] screenshot_temp_path_rejected path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
+      `[Main][SidecarBridge] screenshot_temp_path_rejected path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
     );
     return false;
   }
@@ -172,7 +172,7 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
     return result;
   }
   if (!(await isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage))) {
-    warn(`[Main][LocalBackendBridge] screenshot_temp_path_unowned path=${JSON.stringify(screenshotPath)}`);
+    warn(`[Main][SidecarBridge] screenshot_temp_path_unowned path=${JSON.stringify(screenshotPath)}`);
     delete data.screenshot_path;
     return result;
   }
@@ -208,13 +208,13 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
     }
   } catch (error) {
     warn(
-      `[Main][LocalBackendBridge] screenshot_artifact_upload_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
+      `[Main][SidecarBridge] screenshot_artifact_upload_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(error))}`,
     );
     try {
       data.screenshot = await readScreenshotInlinePayload(screenshotPath);
     } catch (fallbackError) {
       warn(
-        `[Main][LocalBackendBridge] screenshot_inline_fallback_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(fallbackError))}`,
+        `[Main][SidecarBridge] screenshot_inline_fallback_failed path=${JSON.stringify(screenshotPath)} message=${JSON.stringify(getErrorMessage(fallbackError))}`,
       );
     }
   } finally {
