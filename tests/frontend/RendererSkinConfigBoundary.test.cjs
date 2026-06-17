@@ -50,9 +50,10 @@ describe('renderer skin/config boundary', () => {
     expect(appSource).toContain("import './skin/desktopAgentSkin.css'");
     expect(appSource).not.toContain("import './skin/windieDesktopSkin.css'");
     expect(skinCssFacadeSource).toContain('@import "./windieDesktopSkin.css"');
-    expect(skinCssSource).toContain('--windie-desktop-brand-icon-url');
+    expect(skinCssSource).toContain('--cg-brand-app-icon-url');
     expect(skinCssSource).toContain('windieos.app.png');
-    expect(dashboardShellCssSource).toContain('--windie-desktop-brand-icon-url');
+    expect(dashboardShellCssSource).toContain('--cg-brand-app-icon-url');
+    expect(dashboardShellCssSource).not.toContain('--windie-desktop-brand-icon-url');
     expect(dashboardShellCssSource).not.toContain('windieos.app.png');
   });
 

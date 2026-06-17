@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer brand icon generic CSS token
+
+- Finding: after the brand icon asset moved into the WindieOS renderer skin,
+  the generic dashboard shell stylesheet still referenced the
+  product-specific `--windie-desktop-brand-icon-url` variable as a fallback.
+- Change: changed the WindieOS skin stylesheet to publish the generic
+  `--cg-brand-app-icon-url` token directly and made the dashboard shell consume
+  only that generic token.
+- Validation: focused renderer skin boundary Jest run, stale token scan, and
+  diff check.
+- Compatibility: no migration required. The visible brand icon still resolves
+  to the same bundled `windieos.app.png` asset through the active WindieOS skin.
+
 ### 2026-06-17 SDK package metadata uses generic agent wording
 
 - Finding: TypeScript and Python SDK package descriptions still described the
