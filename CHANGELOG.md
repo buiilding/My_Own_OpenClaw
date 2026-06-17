@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Added main-process desktop-agent IPC channel aliases and switched SDK conversation channel registration/broadcasting off direct product-prefixed strings while preserving wire compatibility.
+
 - Added generic renderer desktop-agent IPC channel aliases and switched SDK command diagnostics/invocation callers off direct product-prefixed constants while preserving existing channel strings.
 
 - Added a generic desktop-agent preload bridge alias for renderer SDK command dispatch.
@@ -1711,6 +1713,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Added main-process desktop-agent IPC channel aliases and switched SDK conversation channel registration/broadcasting off direct product-prefixed strings while preserving wire compatibility.
+
 - Added generic renderer desktop-agent IPC channel aliases and switched SDK command diagnostics/invocation callers off direct product-prefixed constants while preserving existing channel strings.
 
 - Added a generic desktop-agent preload bridge alias for renderer SDK command dispatch.
@@ -3315,6 +3319,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Added main-process desktop-agent IPC channel aliases and switched SDK conversation channel registration/broadcasting off direct product-prefixed strings while preserving wire compatibility.
+
 - Added generic renderer desktop-agent IPC channel aliases and switched SDK command diagnostics/invocation callers off direct product-prefixed constants while preserving existing channel strings.
 
 - Added a generic desktop-agent preload bridge alias for renderer SDK command dispatch.
@@ -3573,6 +3579,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Added main-process desktop-agent IPC channel aliases and switched SDK conversation channel registration/broadcasting off direct product-prefixed strings while preserving wire compatibility.
 
 - Added generic renderer desktop-agent IPC channel aliases and switched SDK command diagnostics/invocation callers off direct product-prefixed constants while preserving existing channel strings.
 
@@ -3862,6 +3870,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Added main-process desktop-agent IPC channel aliases and switched SDK conversation channel registration/broadcasting off direct product-prefixed strings while preserving wire compatibility.
 
 - Added generic renderer desktop-agent IPC channel aliases and switched SDK command diagnostics/invocation callers off direct product-prefixed constants while preserving existing channel strings.
 
@@ -6107,6 +6117,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Added main-process desktop-agent IPC channel aliases and switched SDK conversation channel registration/broadcasting off direct product-prefixed strings while preserving wire compatibility.
 
 - Added generic renderer desktop-agent IPC channel aliases and switched SDK command diagnostics/invocation callers off direct product-prefixed constants while preserving existing channel strings.
 

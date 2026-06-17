@@ -7,9 +7,13 @@ const path = require('path');
 
 const mainRoot = path.resolve(__dirname, '../../frontend/src/main');
 const indexPath = path.join(mainRoot, 'index.cjs');
+const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
+const desktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
+const ipcRendererWindowsPath = path.join(mainRoot, 'ipc/ipc_renderer_windows.cjs');
+const ipcQueryBroadcastPath = path.join(mainRoot, 'ipc/ipc_query_broadcast.cjs');
 const openAICodexOAuthPath = path.join(mainRoot, 'app/openai_codex_oauth.cjs');
 const openAICodexOAuthHandlersPath = path.join(mainRoot, 'ipc/ipc_openai_codex_oauth_handlers.cjs');
 const mainWindowIconRuntimePath = path.join(mainRoot, 'surfaces/main_window_icon_runtime.cjs');
@@ -238,6 +242,30 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('initializeLocalBackendBridge');
     expect(source).not.toContain('stopLocalBackend');
     expect(source).not.toContain('getLocalBackendStatus');
+  });
+
+  test('main SDK conversation channels use desktop-agent aliases', () => {
+    const {
+      DESKTOP_AGENT_SEND_CHANNELS,
+      DESKTOP_AGENT_INVOKE_CHANNELS,
+      DESKTOP_AGENT_ON_CHANNELS,
+    } = require(desktopAgentChannelsPath);
+    expect(DESKTOP_AGENT_SEND_CHANNELS.PENDING_TURN).toBe('windie:pending-turn');
+    expect(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE).toBe('windie:invoke');
+    expect(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT).toBe('windie:conversation-event');
+    expect(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN).toBe('windie:current-turn');
+
+    const genericHostSources = [
+      mainIpcPath,
+      ipcRendererWindowsPath,
+      ipcQueryBroadcastPath,
+    ].map(modulePath => fs.readFileSync(modulePath, 'utf8')).join('\n');
+
+    expect(genericHostSources).toContain('DESKTOP_AGENT_ON_CHANNELS');
+    expect(genericHostSources).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(genericHostSources).not.toMatch(
+      /['"`]windie:(status|conversation-event|memory-store-changed|rows|current-turn|pending-turn|invoke)['"`]/,
+    );
   });
 
   test('main-private host markers use generic desktop-agent naming', () => {

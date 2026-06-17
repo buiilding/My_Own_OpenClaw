@@ -2,6 +2,10 @@
  * Provides the ipc renderer windows module for the Electron main process.
  */
 
+const {
+  DESKTOP_AGENT_ON_CHANNELS,
+} = require('./ipc_desktop_agent_channels.cjs');
+
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
 }
@@ -42,13 +46,13 @@ function trackRendererWindow({
     if (typeof getLatestCurrentTurn === 'function') {
       const latestCurrentTurn = getLatestCurrentTurn();
       if (latestCurrentTurn && typeof latestCurrentTurn === 'object') {
-        webContents.send('windie:current-turn', latestCurrentTurn);
+        webContents.send(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN, latestCurrentTurn);
       }
     }
     if (typeof getLatestPendingTurn === 'function') {
       const latestPendingTurn = getLatestPendingTurn();
       if (latestPendingTurn && typeof latestPendingTurn === 'object') {
-        webContents.send('windie:pending-turn', {
+        webContents.send(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
           type: 'pending',
           pendingTurn: latestPendingTurn,
         });
@@ -65,7 +69,7 @@ function trackRendererWindow({
       if (typeof buildConversationEvent === 'function') {
         const conversationEvent = buildConversationEvent(replayEvent);
         if (conversationEvent) {
-          webContents.send('windie:conversation-event', conversationEvent);
+          webContents.send(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, conversationEvent);
         }
       }
     }
@@ -105,7 +109,12 @@ function broadcastToRenderers({
     win.webContents.send(channel, payload);
     deliveredCount += 1;
   }
-  if (isDebugStreamTraceEnabled() && channel === 'windie:conversation-event' && payload && typeof payload === 'object') {
+  if (
+    isDebugStreamTraceEnabled()
+    && channel === DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT
+    && payload
+    && typeof payload === 'object'
+  ) {
     const eventType = typeof payload.type === 'string' ? payload.type : 'unknown';
     const turnRef = typeof payload.turn_ref === 'string' ? payload.turn_ref : '-';
     const conversationRef = typeof payload.conversation_ref === 'string' ? payload.conversation_ref : '-';

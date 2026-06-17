@@ -74,7 +74,8 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain("ipcMain.handle('windie:invoke'");
+    expect(mainSource).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(mainSource).toContain('ipcMain.handle(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
     expect(mainSource).toContain('handleAgentSdkInvoke(event, payload');
     expect(mainSource).toContain('ensureAgent,');
     expect(mainSource).not.toContain('ensureAgent: ensureWindieAgent');

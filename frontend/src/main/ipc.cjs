@@ -125,6 +125,11 @@ const {
   createIpcEventReplayState,
 } = require('./ipc/ipc_event_replay_state.cjs');
 const {
+  DESKTOP_AGENT_SEND_CHANNELS,
+  DESKTOP_AGENT_INVOKE_CHANNELS,
+  DESKTOP_AGENT_ON_CHANNELS,
+} = require('./ipc/ipc_desktop_agent_channels.cjs');
+const {
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,
 } = require('./app/openai_codex_oauth.cjs');
@@ -795,7 +800,7 @@ function createDirectWakeUpAgentAdapter({
   let closed = false;
 
   function broadcastStatus(status) {
-    broadcastToRenderers('windie:status', status);
+    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.STATUS, status);
   }
 
   function createRuntimeHandle(nextConversationRef) {
@@ -827,11 +832,11 @@ function createDirectWakeUpAgentAdapter({
       } else if (phase) {
         handle.terminal = false;
       }
-      broadcastToRenderers('windie:conversation-event', event);
+      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, event);
       if (event && event.type === 'memory_store_changed') {
-        broadcastToRenderers('windie:memory-store-changed', event);
+        broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.MEMORY_STORE_CHANGED, event);
       }
-      broadcastToRenderers('windie:rows', snapshot.displayRows);
+      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.ROWS, snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
       if (pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)) {
         clearLatestPendingTurn({
@@ -855,7 +860,7 @@ function createDirectWakeUpAgentAdapter({
           log('Failed to sync SDK live-turn surface intent:', error?.message || error);
         }
       }
-      broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
+      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN, snapshot.currentTurn);
       const terminalStatus = statusFromConversationEvent(event, workspacePath);
       if (terminalStatus) {
         broadcastStatus(terminalStatus);
@@ -1359,7 +1364,7 @@ function clearLatestPendingTurn(input = {}) {
   }
   latestPendingTurn = null;
   if (input.broadcast === true) {
-    broadcastToRenderers('windie:pending-turn', {
+    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
       type: 'clear',
       conversationRef: normalizeOptionalString(input.conversationRef)
         || normalizeOptionalString(input.conversation_ref)
@@ -1710,7 +1715,7 @@ function initializeIpc(win, options = {}) {
     handleRendererLiveSurfaceTrace(payload);
   });
 
-  ipcMain.on('windie:pending-turn', (_event, payload = {}) => {
+  ipcMain.on(DESKTOP_AGENT_SEND_CHANNELS.PENDING_TURN, (_event, payload = {}) => {
     const source = payload && typeof payload === 'object' && !Array.isArray(payload)
       ? payload
       : {};
@@ -1722,7 +1727,7 @@ function initializeIpc(win, options = {}) {
         ? source.turnRef.trim()
         : null;
       clearLatestPendingTurn({ conversationRef, turnRef });
-      broadcastToRenderers('windie:pending-turn', {
+      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
         type: 'clear',
         conversationRef,
         turnRef,
@@ -1734,7 +1739,7 @@ function initializeIpc(win, options = {}) {
       return;
     }
     latestPendingTurn = pendingTurn;
-    broadcastToRenderers('windie:pending-turn', {
+    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
       type: 'pending',
       pendingTurn,
     });
@@ -1802,7 +1807,7 @@ function initializeIpc(win, options = {}) {
     },
   });
 
-  ipcMain.handle('windie:invoke', async (event, payload = {}) => (
+  ipcMain.handle(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE, async (event, payload = {}) => (
     handleAgentSdkInvoke(event, payload, {
       handleRendererChatQuery,
       handleRendererStopQuery,

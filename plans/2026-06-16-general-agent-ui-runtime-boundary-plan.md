@@ -1590,3 +1590,26 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing IPC channel strings and
   preload validation remain unchanged; generic renderer code can now use
   desktop-agent channel names.
+
+### 2026-06-17 Main desktop agent IPC channel aliases
+
+- Finding: the generic Electron main SDK host still registered and broadcast
+  SDK conversation channels through hard-coded `windie:*` strings, even after
+  renderer code gained desktop-agent channel aliases.
+- Change: added a main-process `DESKTOP_AGENT_*_CHANNELS` facade over the
+  shared IPC registry and switched main SDK invoke registration, pending-turn
+  intake, conversation/status/current-turn broadcasts, renderer-window replay,
+  and query-send failure broadcasts to the generic aliases.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/MainHostSkinBoundary.test.cjs
+  ../tests/frontend/IpcRendererWindows.test.cjs
+  ../tests/frontend/IpcQuerySendRuntime.test.cjs
+  ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs`; `npm.cmd --prefix
+  frontend test -- --runInBand ../tests/frontend/IpcMainBridge.lifecycle.test.cjs
+  ../tests/frontend/IpcMainBridge.query.test.cjs` passed with the suite's
+  existing post-run Jest open-handle warning; `git diff --check`;
+  `bin\windie docs list`; source scan confirms the main generic host modules
+  use `DESKTOP_AGENT_*_CHANNELS` and the remaining `windie:*` strings live in
+  alias/test compatibility assertions.
+- Compatibility: no migration required. IPC channel strings, preload
+  validation, renderer expectations, and bridge behavior remain unchanged.
