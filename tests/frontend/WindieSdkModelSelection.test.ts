@@ -23,10 +23,10 @@ describe('buildModelSettingsPatch', () => {
     });
   });
 
-  test('accepts provider alias and omits blank optional fields', () => {
+  test('omits blank optional fields', () => {
     expect(buildModelSettingsPatch({
       modelId: 'claude-sonnet-4-20250514',
-      provider: 'anthropic',
+      modelProvider: 'anthropic',
       modelMode: ' ',
       interactionMode: '',
     })).toEqual({
@@ -44,6 +44,14 @@ describe('buildModelSettingsPatch', () => {
     expect(() => buildModelSettingsPatch({
       modelId: 'gpt-5.4',
       modelProvider: ' ',
+    }, 'TestOwner')).toThrow('TestOwner requires a non-empty modelProvider');
+  });
+
+  test('rejects the removed provider field alias', () => {
+    expect(() => buildModelSettingsPatch({
+      modelId: 'claude-sonnet-4-20250514',
+      // @ts-expect-error provider was a compatibility spelling; modelProvider owns the SDK contract.
+      provider: 'anthropic',
     }, 'TestOwner')).toThrow('TestOwner requires a non-empty modelProvider');
   });
 });

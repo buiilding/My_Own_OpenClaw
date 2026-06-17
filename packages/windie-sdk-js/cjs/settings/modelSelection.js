@@ -13,7 +13,7 @@ function coerceNonEmptyString(value) {
 }
 function buildModelSettingsPatch(selection, owner = 'agent.setModel') {
     const modelId = coerceNonEmptyString(selection.modelId);
-    const modelProvider = coerceNonEmptyString(selection.modelProvider ?? selection.provider);
+    const modelProvider = coerceNonEmptyString(selection.modelProvider);
     if (!modelId) {
         throw new Error(`${owner} requires a non-empty modelId`);
     }

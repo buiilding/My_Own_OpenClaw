@@ -7,7 +7,6 @@ import type { JsonRecord } from '../conversation/types.js';
 export type AgentModelSelection = {
   modelId: string;
   modelProvider?: string;
-  provider?: string;
   modelMode?: string;
   interactionMode?: string;
 };
@@ -25,7 +24,7 @@ export function buildModelSettingsPatch(
   owner = 'agent.setModel',
 ): JsonRecord {
   const modelId = coerceNonEmptyString(selection.modelId);
-  const modelProvider = coerceNonEmptyString(selection.modelProvider ?? selection.provider);
+  const modelProvider = coerceNonEmptyString(selection.modelProvider);
   if (!modelId) {
     throw new Error(`${owner} requires a non-empty modelId`);
   }
