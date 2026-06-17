@@ -61,7 +61,6 @@ export function resolveToolOutputCorrelationId(
   const metadata = recordFromUnknown(recordFromUnknown(payload)?.metadata);
   return resolveCorrelationId(
     stringField(payload, 'requestId', 'request_id'),
-    stringField(metadata, 'requestId', 'request_id'),
     stringField(payload, 'toolCallId', 'tool_call_id'),
     stringField(metadata, 'toolCallId', 'tool_call_id'),
     eventId,

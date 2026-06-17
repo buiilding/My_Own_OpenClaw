@@ -25,7 +25,6 @@ type ToolOutputPayload = {
   request_id?: string | null;
   tool_call_id?: string | null;
   metadata?: {
-    request_id?: string | null;
     tool_call_id?: string | null;
   } | null;
 };

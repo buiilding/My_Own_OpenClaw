@@ -54,9 +54,10 @@ Core behavior:
 - `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildArtifactUrl(ref)` when URL missing.
 - `resolveToolOutputCorrelationId` precedence:
 1. `payload.request_id`
-2. `payload.metadata.request_id` (legacy bridge fallback)
-3. event id
-4. `undefined`
+2. `payload.tool_call_id`
+3. `payload.metadata.tool_call_id`
+4. event id
+5. `undefined`
 - `resolveErrorText` precedence:
 1. payload content string
 2. payload message string
@@ -88,9 +89,11 @@ Metadata normalization:
 - tool counters and completion timestamp
 - terminal error state writes (`phase='error'`, `lastError`, `completedAt`)
 
+`tests/frontend/ChatStreamEventUtils.test.ts` locks:
+
+- request/tool-call/event-id precedence for tool-output correlation
 `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx` locks:
 
-- metadata-request-id fallback for tool-output correlation
 - streaming-complete marks last assistant message complete and writes transcript
 - stale `streaming-complete` turn does not complete active-turn assistant rows or write transcript entries
 - duplicate `streaming-complete` events do not duplicate assistant transcript writes

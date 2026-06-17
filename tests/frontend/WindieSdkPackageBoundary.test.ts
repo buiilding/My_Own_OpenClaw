@@ -54,7 +54,6 @@ describe('@windie/sdk package boundary', () => {
 
     expect(resolveToolOutputCorrelationId({
       request_id: '   ',
-      metadata: { request_id: '   ' },
       tool_call_id: ' call-output-1 ',
     }, 'event-1')).toBe('call-output-1');
     expect(resolveToolWaitId({

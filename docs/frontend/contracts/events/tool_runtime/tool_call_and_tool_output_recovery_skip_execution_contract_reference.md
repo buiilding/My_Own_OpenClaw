@@ -131,10 +131,12 @@ SDK tool coordination resolves correlation ids in this order:
 `resolveToolOutputCorrelationId(payload, eventId)` order:
 
 1. `payload.request_id`
-2. `payload.metadata.request_id`
-3. `eventId`
+2. `payload.tool_call_id`
+3. `payload.metadata.tool_call_id`
+4. `eventId`
 
-This allows correlation even when formatter omits explicit `request_id` in output payload but metadata carries it.
+This keeps correlation on canonical output payload fields while still allowing
+tool-call linkage metadata to pair output rows with model-facing tool calls.
 
 ## Tracking and Late-Result Suppression
 
@@ -175,8 +177,9 @@ If synthetic tool events execute unexpectedly:
 If tool-output correlation is missing:
 
 1. inspect `payload.request_id`
-2. inspect `payload.metadata.request_id`
-3. inspect event envelope `id`
+2. inspect `payload.tool_call_id`
+3. inspect `payload.metadata.tool_call_id`
+4. inspect event envelope `id`
 
 If stale-turn cancellations are firing incorrectly:
 

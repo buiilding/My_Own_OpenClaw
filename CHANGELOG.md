@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: remove the legacy `metadata.request_id` tool-output correlation fallback so output pairing uses canonical request, tool-call, metadata tool-call, or event ids.
+
 - Main: added localRuntimeReady diagnostics alongside the legacy localBackendReady field for local sidecar lifecycle readiness.
 
 - backend/llm: remove the local-provider placeholder API key compatibility path so Ollama and LM Studio requests stay credential-free.

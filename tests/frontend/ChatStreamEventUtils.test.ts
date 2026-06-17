@@ -52,25 +52,22 @@ describe('chatStreamEventUtils', () => {
     });
   });
 
-  test('resolveToolOutputCorrelationId prioritizes request id then metadata then event id', () => {
+  test('resolveToolOutputCorrelationId prioritizes request id then tool call then event id', () => {
     expect(
       resolveToolOutputCorrelationId({
         request_id: 'req-1',
-        metadata: { request_id: 'meta-1' },
       }, 'event-1'),
     ).toBe('req-1');
 
     expect(
-      resolveToolOutputCorrelationId({
-        metadata: { request_id: 'meta-1' },
-      }, 'event-1'),
-    ).toBe('meta-1');
+      resolveToolOutputCorrelationId({}, 'event-1'),
+    ).toBe('event-1');
 
     expect(resolveToolOutputCorrelationId({}, 'event-1')).toBe('event-1');
     expect(resolveToolOutputCorrelationId({}, null)).toBeUndefined();
-    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: ' meta-2 ' } }, 'event-1')).toBe('meta-2');
-    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ' }, tool_call_id: ' call-2 ' }, ' event-2 ')).toBe('call-2');
-    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ', tool_call_id: '   ' } }, ' event-3 ')).toBe('event-3');
+    expect(resolveToolOutputCorrelationId({ request_id: '   ' }, 'event-1')).toBe('event-1');
+    expect(resolveToolOutputCorrelationId({ request_id: '   ', tool_call_id: ' call-2 ' }, ' event-2 ')).toBe('call-2');
+    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { tool_call_id: '   ' } }, ' event-3 ')).toBe('event-3');
   });
 
   test('resolveToolCallCorrelationId normalizes correlation/request ids', () => {

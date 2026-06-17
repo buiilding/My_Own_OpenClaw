@@ -49,7 +49,7 @@ function resolveToolCallCorrelationId(payload, eventId) {
 }
 function resolveToolOutputCorrelationId(payload, eventId) {
     const metadata = recordFromUnknown(recordFromUnknown(payload)?.metadata);
-    return resolveCorrelationId(stringField(payload, 'requestId', 'request_id'), stringField(metadata, 'requestId', 'request_id'), stringField(payload, 'toolCallId', 'tool_call_id'), stringField(metadata, 'toolCallId', 'tool_call_id'), eventId) ?? undefined;
+    return resolveCorrelationId(stringField(payload, 'requestId', 'request_id'), stringField(payload, 'toolCallId', 'tool_call_id'), stringField(metadata, 'toolCallId', 'tool_call_id'), eventId) ?? undefined;
 }
 function resolveToolBundleCorrelationId(payload, eventId) {
     return resolveCorrelationId(stringField(payload, 'bundleId', 'bundle_id'), eventId) ?? undefined;
