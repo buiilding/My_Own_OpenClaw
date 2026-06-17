@@ -71,7 +71,8 @@ It only runs when all are true:
 - `result.success !== false`
 - `result.data` is an object
 - `result.data.screenshot_path` is a non-empty string
-- `result.data.screenshot_path` is an absolute direct child of the owned temp directory `${os.tmpdir()}/windieos-screenshots`
+- `result.data.screenshot_path` is an absolute direct child of the owned temp directory `${os.tmpdir()}/desktop-agent-screenshots`
+- legacy direct children of `${os.tmpdir()}/windieos-screenshots` remain accepted for compatibility
 - the filename starts with `windie-shot-`
 - the path is a regular file, not a symlink
 

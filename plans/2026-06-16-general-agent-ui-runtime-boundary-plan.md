@@ -788,3 +788,19 @@ Each completed slice should report:
 - Compatibility: migrated by read-through compatibility. Existing users with
   only the legacy key keep their onboarding completion state; new saves use the
   generic key.
+
+### 2026-06-17 local screenshot temp ownership directory
+
+- Finding: the local sidecar screenshot temp path and Electron main ownership
+  check used a WindieOS-specific temp directory name even though the path is a
+  generic local-runtime file handoff contract.
+- Change: moved new sidecar temp writes and main-process ownership checks to
+  `${os.tmpdir()}/desktop-agent-screenshots`, while keeping
+  `${os.tmpdir()}/windieos-screenshots` accepted at the bridge boundary for
+  compatibility with in-flight or older sidecar results.
+- Validation: focused bridge coverage for screenshot artifact materialization,
+  docs listing, `git diff --check`, and a source scan for the old/new screenshot
+  temp directory names.
+- Compatibility: no persisted migration is required. The old temp directory is
+  still read-compatible for returned screenshot paths, and new temp files use
+  the generic directory.

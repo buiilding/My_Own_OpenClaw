@@ -103,7 +103,8 @@ Response normalization:
 Screenshot result materialization:
 
 - only screenshot tool results run screenshot materialization
-- if the screenshot sidecar returns owned `data.screenshot_path` under `${os.tmpdir()}/windieos-screenshots` with a `windie-shot-` filename, bridge attempts artifact upload (`POST /api/artifacts/`)
+- if the screenshot sidecar returns owned `data.screenshot_path` under `${os.tmpdir()}/desktop-agent-screenshots` with a `windie-shot-` filename, bridge attempts artifact upload (`POST /api/artifacts/`)
+- legacy owned `data.screenshot_path` values under `${os.tmpdir()}/windieos-screenshots` remain accepted for compatibility
 - success path injects `screenshot_ref` + `screenshot_url`
 - upload failure falls back to inline base64 `screenshot`
 - bridge deletes accepted temporary screenshot files and removes `screenshot_path` before returning

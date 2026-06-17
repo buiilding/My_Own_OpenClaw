@@ -26,7 +26,7 @@ from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
-SCREENSHOT_TEMP_DIR_NAME = "windieos-screenshots"
+SCREENSHOT_TEMP_DIR_NAME = "desktop-agent-screenshots"
 SCREENSHOT_TEMP_FILE_PREFIX = "windie-shot-"
 
 

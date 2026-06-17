@@ -6,7 +6,8 @@ const fsPromises = require('fs/promises');
 const os = require('os');
 const path = require('path');
 
-const SCREENSHOT_TEMP_DIR_NAME = 'windieos-screenshots';
+const SCREENSHOT_TEMP_DIR_NAME = 'desktop-agent-screenshots';
+const LEGACY_SCREENSHOT_TEMP_DIR_NAME = 'windieos-screenshots';
 const SCREENSHOT_TEMP_FILE_PREFIX = 'windie-shot-';
 
 function isRecord(value) {
@@ -106,14 +107,23 @@ function resolveOwnedScreenshotTempDir() {
   return path.join(os.tmpdir(), SCREENSHOT_TEMP_DIR_NAME);
 }
 
+function resolveOwnedScreenshotTempDirs() {
+  return [
+    resolveOwnedScreenshotTempDir(),
+    path.join(os.tmpdir(), LEGACY_SCREENSHOT_TEMP_DIR_NAME),
+  ];
+}
+
 async function isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage) {
   if (typeof screenshotPath !== 'string' || !path.isAbsolute(screenshotPath)) {
     return false;
   }
 
   const normalizedPath = path.resolve(screenshotPath);
-  const screenshotDir = path.resolve(resolveOwnedScreenshotTempDir());
-  if (path.dirname(normalizedPath) !== screenshotDir) {
+  const screenshotDir = resolveOwnedScreenshotTempDirs()
+    .map((candidate) => path.resolve(candidate))
+    .find((candidate) => path.dirname(normalizedPath) === candidate);
+  if (!screenshotDir) {
     return false;
   }
   if (!path.basename(normalizedPath).startsWith(SCREENSHOT_TEMP_FILE_PREFIX)) {
