@@ -2643,7 +2643,7 @@ describe('Agent SDK client behavior', () => {
     expect(localRuntime.shutdown).toHaveBeenCalledTimes(1);
   });
 
-  test('wakeUp can explicitly reuse a discovered sidecar daemon for local tools', async () => {
+  test('wakeUp can explicitly reuse a discovered local runtime for local tools', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-daemon-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     await fsPromises.writeFile(
@@ -2764,7 +2764,7 @@ describe('Agent SDK client behavior', () => {
     await expect(provider({
       wakeUp: { tools: [] },
       needsLocalRuntime: true,
-    })).rejects.toThrow(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
+    })).rejects.toThrow(`Timed out waiting for local runtime discovery at ${discoveryFile}`);
   });
 
   test('createAgentLocalRuntimeProvider source keeps generic default discovery path', async () => {

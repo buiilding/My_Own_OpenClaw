@@ -572,7 +572,7 @@ async function waitForDaemonStop(
     }
     await sleep(pollIntervalMs);
   }
-  throw new Error('Timed out waiting for existing local sidecar daemon to stop');
+  throw new Error('Timed out waiting for existing local runtime to stop');
 }
 
 async function shutdownDiscoveredDaemon(
@@ -612,7 +612,7 @@ function resolveDaemonScript(options: AgentAutoSidecarOptions, fs: NodeFsLike, p
     return found;
   }
   throw new Error(
-    'Agent SDK client could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.',
+    'Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.',
   );
 }
 
@@ -791,7 +791,7 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     }
     ownedProcess?.kill?.('SIGTERM');
     ownedProcess = null;
-    throw new Error(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
+    throw new Error(`Timed out waiting for local runtime discovery at ${discoveryFile}`);
   }
 
   return async () => {

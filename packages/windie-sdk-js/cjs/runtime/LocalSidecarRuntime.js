@@ -405,7 +405,7 @@ async function waitForDaemonStop(discovery, fetchImpl, WebSocketImpl, timeoutMs 
         }
         await sleep(pollIntervalMs);
     }
-    throw new Error('Timed out waiting for existing local sidecar daemon to stop');
+    throw new Error('Timed out waiting for existing local runtime to stop');
 }
 async function shutdownDiscoveredDaemon(discovery, fetchImpl, WebSocketImpl, timeoutMs = 2000, pollIntervalMs = 100) {
     const existing = await probeDaemon(discovery, fetchImpl, WebSocketImpl);
@@ -434,7 +434,7 @@ function resolveDaemonScript(options, fs, path) {
     if (found) {
         return found;
     }
-    throw new Error('Agent SDK client could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.');
+    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.');
 }
 function resolveProcessEnv() {
     const processLike = globalThis.process;
@@ -583,7 +583,7 @@ function createAgentLocalRuntimeProvider(options = {}) {
         }
         ownedProcess?.kill?.('SIGTERM');
         ownedProcess = null;
-        throw new Error(`Timed out waiting for local sidecar daemon discovery at ${discoveryFile}`);
+        throw new Error(`Timed out waiting for local runtime discovery at ${discoveryFile}`);
     }
     return async () => {
         if (cachedRuntime) {

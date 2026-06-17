@@ -72,9 +72,9 @@ describe('dashboardConversationLoad', () => {
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: false,
       recentConversationsCount: 0,
-      recentConversationsError: 'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
+      recentConversationsError: 'Failed to list stored conversations: timed out waiting for local runtime discovery',
       retryAttempt: 0,
-      isTransientError: (message) => String(message).toLowerCase().includes('sidecar daemon'),
+      isTransientError: (message) => String(message).toLowerCase().includes('local runtime'),
     })).toBe(true);
 
     expect(shouldRetryRecentConversationsLoad({
@@ -110,7 +110,7 @@ describe('dashboardConversationLoad', () => {
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: false,
       recentConversationsCount: 0,
-      recentConversationsError: 'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
+      recentConversationsError: 'Failed to list stored conversations: timed out waiting for local runtime discovery',
       retryAttempt: 0,
     })).toBe(false);
   });

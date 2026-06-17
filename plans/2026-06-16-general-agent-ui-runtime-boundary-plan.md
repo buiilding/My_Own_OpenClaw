@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime error wording
+
+- Finding: SDK local-runtime startup and discovery failures still surfaced
+  "local sidecar daemon" wording to callers, and the renderer dashboard facade
+  still classified sidecar-daemon-specific conversation-list retry errors.
+- Change: changed TypeScript and Python SDK local-runtime timeout/stop messages
+  to use local-runtime wording, removed sidecar-daemon-specific retry patterns
+  from the renderer dashboard conversation facade, and tightened boundary tests
+  so the old caller-facing timeout wording stays absent.
+- Validation: focused SDK client, renderer conversation-library, dashboard
+  retry, renderer runtime-boundary, and Python SDK tests; SDK package build;
+  stale public-error scan; docs listing; and diff check.
+- Compatibility: no migration required. The existing daemon script file,
+  environment variables, discovery file contract, and `autoSidecar` option
+  remain unchanged; only caller-facing error text and renderer retry matching
+  moved to local-runtime wording.
+
 ### 2026-06-17 Main local-runtime launch config variable naming
 
 - Finding: Electron main still stored desktop local-runtime launch overrides in

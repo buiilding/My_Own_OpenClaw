@@ -166,13 +166,16 @@ describe('DesktopConversationLibraryClient', () => {
 
   test('classifies transient metadata list runtime errors behind the app facade', () => {
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
-      'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
+      'Failed to list stored conversations: timed out waiting for local runtime discovery',
     )).toBe(true);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'Local runtime not ready',
     )).toBe(true);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'Local backend not ready',
+    )).toBe(false);
+    expect(DesktopConversationLibraryClient.isTransientMetadataListError(
+      'timed out waiting for sidecar daemon discovery',
     )).toBe(false);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'hard validation failure',

@@ -1604,7 +1604,7 @@ class AgentSdkClient(RemoteApiClientBase):
         if self._owned_sidecar_process.returncode is None:
             self._owned_sidecar_process.terminate()
         raise Exception(
-            f"Timed out waiting for local sidecar daemon discovery at {self.sidecar_discovery_file}"
+            f"Timed out waiting for local runtime discovery at {self.sidecar_discovery_file}"
         )
 
     async def _probe_discovered_sidecar(

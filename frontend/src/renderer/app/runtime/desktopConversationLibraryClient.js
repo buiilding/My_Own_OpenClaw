@@ -11,8 +11,8 @@ import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';
 const LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS = Object.freeze([
   'local runtime not ready',
-  'sidecar daemon request failed',
-  'timed out waiting for sidecar daemon',
+  'local runtime request failed',
+  'timed out waiting for local runtime',
 ]);
 const TRANSIENT_METADATA_LIST_ERROR_PATTERNS = Object.freeze([
   ...LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS,
@@ -41,7 +41,7 @@ function classifyDiagnosticError(error) {
   if (message.includes('memory store not initialized')) {
     return 'memory_store_not_initialized';
   }
-  if (message.includes('sidecar') || message.includes('local runtime')) {
+  if (message.includes('local runtime')) {
     return 'local_runtime_unavailable';
   }
   return 'runtime_error';

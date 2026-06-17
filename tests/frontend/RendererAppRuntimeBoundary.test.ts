@@ -53,7 +53,10 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain('INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS');
     expect(source).not.toContain('INVOKE_CHANNELS.GET_CHAT_EVENTS');
     expect(source).toContain('TRANSIENT_METADATA_LIST_ERROR_PATTERNS');
+    expect(source).toContain('timed out waiting for local runtime');
     expect(source).not.toContain("message.includes('local backend not ready')");
+    expect(source).not.toContain('sidecar daemon request failed');
+    expect(source).not.toContain('timed out waiting for sidecar daemon');
     expect(source).not.toContain("message.includes('sidecar daemon request failed')");
     expect(source).not.toContain("message.includes('timed out waiting for sidecar daemon')");
   });

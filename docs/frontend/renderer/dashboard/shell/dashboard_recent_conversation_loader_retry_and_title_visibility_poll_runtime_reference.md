@@ -47,8 +47,8 @@ This prevents older async results from overwriting newer user/session state.
 Transient errors are currently recognized by normalized message substring match:
 
 - `local runtime not ready`
-- `sidecar daemon request failed`
-- `timed out waiting for sidecar daemon`
+- `local runtime request failed`
+- `timed out waiting for local runtime`
 - `request timed out`
 - `failed to list stored conversations`
 - `failed to fetch`

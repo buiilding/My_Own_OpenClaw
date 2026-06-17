@@ -579,6 +579,13 @@ async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path
         )
 
 
+def test_python_sdk_local_runtime_errors_use_generic_boundary_wording():
+    source = Path(windie_sdk_module.__file__).read_text(encoding="utf-8")
+
+    assert "Timed out waiting for local runtime discovery" in source
+    assert "Timed out waiting for local sidecar daemon discovery" not in source
+
+
 @pytest.mark.asyncio
 async def test_wake_up_registers_local_tools_plugins_and_mcps():
     sidecar = FakeSidecarRuntime()
