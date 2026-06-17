@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove unused chat-stream correlation helper re-exports now that renderer tool replay imports the SDK correlation helpers directly, and repoint the frontend unused-export audit at the renamed local runtime bridge; no migration is required because runtime correlation behavior and SDK exports are unchanged.
+
 - packages/sdk-js: make public `agent.stream(...)` tool call/output projection consume SDK-shaped `toolName`, `requestId`, and `toolCallId` fields instead of direct backend snake_case identity aliases. No migration is required for backend wire payloads; direct SDK tool events must use canonical SDK identity fields or pass through backend-event normalization.
 - frontend/renderer: replace stale Kimi Code provider labels with Kimi Coding wording in credential UI copy and provider docs; no migration is required because provider ids, credential keys, and config fields are unchanged.
 

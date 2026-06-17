@@ -52,12 +52,9 @@ Core behavior:
 
 - `shouldIgnoreStreamError` suppresses known settings-update transport noise (`"Failed to update settings"`) from user-visible assistant error rows.
 - `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildRuntimeArtifactUrl(ref)` when URL missing.
-- `resolveToolOutputCorrelationId` precedence:
-1. `payload.request_id`
-2. `payload.tool_call_id`
-3. `payload.metadata.tool_call_id`
-4. event id
-5. `undefined`
+- Tool-call and tool-output correlation id normalization is owned by the SDK
+  helper surface imported through `agentSdkClient`, not by
+  `chatStreamEventUtils`.
 - `resolveErrorText` precedence:
 1. payload content string
 2. payload message string
@@ -91,7 +88,8 @@ Metadata normalization:
 
 `tests/frontend/ChatStreamEventUtils.test.ts` locks:
 
-- request/tool-call/event-id precedence for tool-output correlation
+- screenshot attachment normalization, stream-error suppression, and error-text
+  fallback behavior
 `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx` locks:
 
 - streaming-complete marks last assistant message complete and writes transcript

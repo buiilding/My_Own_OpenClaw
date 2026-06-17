@@ -5,8 +5,6 @@
 import {
   buildScreenshotAttachment,
   resolveErrorText,
-  resolveToolCallCorrelationId,
-  resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
 } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils';
 
@@ -50,48 +48,6 @@ describe('chatStreamEventUtils', () => {
       screenshotRef: null,
       screenshotUrl: null,
     });
-  });
-
-  test('resolveToolOutputCorrelationId prioritizes request id then tool call then event id', () => {
-    expect(
-      resolveToolOutputCorrelationId({
-        request_id: 'req-1',
-      }, 'event-1'),
-    ).toBe('req-1');
-
-    expect(
-      resolveToolOutputCorrelationId({}, 'event-1'),
-    ).toBe('event-1');
-
-    expect(resolveToolOutputCorrelationId({}, 'event-1')).toBe('event-1');
-    expect(resolveToolOutputCorrelationId({}, null)).toBeUndefined();
-    expect(resolveToolOutputCorrelationId({ request_id: '   ' }, 'event-1')).toBe('event-1');
-    expect(resolveToolOutputCorrelationId({ request_id: '   ', tool_call_id: ' call-2 ' }, ' event-2 ')).toBe('call-2');
-    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { tool_call_id: '   ' } }, ' event-3 ')).toBe('event-3');
-  });
-
-  test('resolveToolCallCorrelationId normalizes correlation/request ids', () => {
-    expect(resolveToolCallCorrelationId({
-      correlation_id: ' corr-1 ',
-      request_id: 'req-1',
-    })).toBe('corr-1');
-
-    expect(resolveToolCallCorrelationId({
-      correlation_id: '   ',
-      request_id: ' req-2 ',
-    })).toBe('req-2');
-
-    expect(resolveToolCallCorrelationId({
-      correlation_id: '   ',
-      request_id: '   ',
-      tool_call_id: ' call-3 ',
-    })).toBe('call-3');
-
-    expect(resolveToolCallCorrelationId({
-      correlation_id: '   ',
-      request_id: '   ',
-      tool_call_id: '   ',
-    })).toBeUndefined();
   });
 
   test('resolveErrorText prefers payload content then message then fallback', () => {

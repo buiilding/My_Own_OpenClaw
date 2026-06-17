@@ -354,7 +354,8 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 - records transcript tool rows with model metadata from `modelContextRef`
 - persists bundle-call rows as `messageType='tool-bundle'` so replay/rehydrate can preserve bundle provenance instead of degrading them into generic `tool-call` rows
 - stores a typed transcript `structured_payload` for tool rows (single call, bundle call, and tool output details) so past-chat rendering can restore tool-call cards and tool-output details from structured data, and backend rehydrate can prefer the same payload over reparsing display JSON
-- resolves tool-output correlation id fallback via `resolveToolOutputCorrelationId(...)`
+- resolves tool-output correlation id fallback via the SDK correlation helper
+  imported through `agentSdkClient`
 - normalizes screenshot attachment from `payload.screenshot_ref`
 - routes transcript `tool-output` writes through `ConversationRuntime.ts` so backend-stream and frontend-executed tool outputs share one output-detail persistence contract
 

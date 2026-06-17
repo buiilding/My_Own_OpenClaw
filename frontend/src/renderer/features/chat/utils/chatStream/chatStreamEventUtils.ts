@@ -3,10 +3,6 @@
  */
 
 import {
-  resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
-  resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
-} from '../../../../infrastructure/api/agentSdkClient';
-import {
   buildRemoteScreenshotAttachment,
 } from '../../../../infrastructure/services/screenshotMessageState';
 
@@ -19,20 +15,6 @@ const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
 type ErrorPayload = {
   message?: unknown;
   content?: unknown;
-};
-
-type ToolOutputPayload = {
-  request_id?: string | null;
-  tool_call_id?: string | null;
-  metadata?: {
-    tool_call_id?: string | null;
-  } | null;
-};
-
-type ToolCallPayload = {
-  correlation_id?: string | null;
-  request_id?: string | null;
-  tool_call_id?: string | null;
 };
 
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
@@ -55,19 +37,6 @@ export function buildScreenshotAttachment(
   screenshotUrl?: string | null,
 ) {
   return buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
-}
-
-export function resolveToolOutputCorrelationId(
-  payload: ToolOutputPayload | null | undefined,
-  eventId?: string | null,
-) {
-  return resolveSharedToolOutputCorrelationId(payload, eventId);
-}
-
-export function resolveToolCallCorrelationId(
-  payload: ToolCallPayload | null | undefined,
-) {
-  return resolveSharedToolCallCorrelationId(payload);
 }
 
 export function resolveErrorText(payload: ErrorPayload | null | undefined): string {

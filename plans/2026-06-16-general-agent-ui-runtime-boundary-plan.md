@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 chat stream correlation wrapper cleanup
+
+- Finding: `chatStreamEventUtils` still re-exported SDK tool correlation helpers
+  even though renderer replay/tool code imports the SDK facade directly. The
+  wrappers were unused outside their own unit tests.
+- Change: removed the duplicate renderer correlation wrapper exports, kept
+  correlation precedence coverage on the SDK package-boundary tests, and
+  pointed the frontend `knip` CommonJS export ignore at the renamed local
+  runtime bridge instead of the removed local-backend bridge file.
+- Validation: frontend `knip` audit, focused chat-stream utility Jest coverage,
+  SDK package-boundary Jest coverage, docs listing, stale wrapper scan, and
+  `git diff --check`.
+- Compatibility: no migration required. Runtime correlation behavior and SDK
+  helper exports are unchanged.
+
 ### 2026-06-17 SDK public stream tool identity boundary
 
 - Finding: `AgentStreamEvents` still recovered public `agent.stream(...)` tool

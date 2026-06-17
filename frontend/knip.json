@@ -21,6 +21,6 @@
     "src/main/diagnostics/app_diagnostics_store.cjs": ["exports"],
     "src/main/extensions/extension_manifest.cjs": ["exports"],
     "src/main/logging/layer_log_sink.cjs": ["exports"],
-    "src/main/sidecar/local_backend_bridge.cjs": ["exports"]
+    "src/main/sidecar/local_runtime_bridge.cjs": ["exports"]
   }
 }
