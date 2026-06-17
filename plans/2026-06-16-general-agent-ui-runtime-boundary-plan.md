@@ -1568,3 +1568,25 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing preload consumers can keep
   using `window.windie`; new generic renderer code can use `window.desktopAgent`
   through the desktop-agent bridge accessor.
+
+### 2026-06-17 Renderer desktop agent IPC channel aliases
+
+- Finding: generic renderer SDK command dispatch still imported the
+  product-prefixed `INVOKE_CHANNELS.WINDIE_INVOKE` constant even after the
+  preload bridge gained a generic `desktopAgent` alias.
+- Change: added generic `DESKTOP_AGENT_*_CHANNELS` alias groups over the shared
+  IPC registry and switched the SDK command invoke client to use
+  `DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE`, leaving the underlying `windie:*`
+  protocol strings unchanged.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/RendererAppRuntimeBoundary.test.ts
+  ../tests/frontend/PreloadIpcChannels.test.cjs
+  ../tests/frontend/DesktopAgentRuntimeTransport.test.ts
+  ../tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`; `npm.cmd --prefix
+  frontend test -- --runInBand ../tests/frontend/BrowserSessionStore.test.js`;
+  `git diff --check`; `bin\windie docs list`; source scan confirms generic
+  renderer code uses `DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE` and the remaining
+  `INVOKE_CHANNELS.WINDIE_INVOKE` reference is the alias definition.
+- Compatibility: no migration required. Existing IPC channel strings and
+  preload validation remain unchanged; generic renderer code can now use
+  desktop-agent channel names.

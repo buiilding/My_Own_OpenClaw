@@ -2,7 +2,8 @@
  * Implements the agent SDK command invoke client integration for the renderer UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 
 export type AgentSdkCommandResult<T = unknown> = {
   ok?: boolean;
@@ -39,7 +40,7 @@ export async function invokeAgentSdkCommand<T = unknown>(
   const result = bridge
     ? await bridge.invoke(command, payload)
     : await IpcBridge.invoke<AgentSdkCommandResult<T>>(
-      INVOKE_CHANNELS.WINDIE_INVOKE,
+      DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE,
       { command, payload },
     );
 
