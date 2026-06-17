@@ -22,7 +22,6 @@ title: "Backend Core Messages Docs Hub"
 
 ## Code Scope
 
-- `backend/src/core/messages/__init__.py`
 - `backend/src/core/messages/structures.py`
 - `backend/src/core/messages/converters.py`
 - `backend/src/core/types/__init__.py`

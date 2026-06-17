@@ -91,6 +91,9 @@ docstring or compatibility path.
 - `backend/src/core/validation/__init__.py` is intentionally absent; import
   validation helpers from `backend.src.core.validation.validators` or
   `backend.src.core.validation.settings_update_rules`.
+- `backend/src/core/messages/__init__.py` is intentionally absent; import
+  message structures and converters from `backend.src.core.messages.structures`
+  and `backend.src.core.messages.converters`.
 - `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
   exports only the package router; SDK route handlers, models, and service
   helpers live in `router.py`, `models.py`, and `service.py`

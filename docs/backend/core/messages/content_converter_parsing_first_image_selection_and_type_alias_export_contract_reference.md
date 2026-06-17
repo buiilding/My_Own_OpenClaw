@@ -12,7 +12,6 @@ title: "Content Converter Parsing and Multi-Image Preservation Reference"
 
 - `backend/src/core/messages/converters.py`
 - `backend/src/core/messages/structures.py`
-- `backend/src/core/messages/__init__.py`
 - `tests/backend/test_messages_and_converters.py`
 
 ## Converter Input Contract
@@ -64,7 +63,8 @@ Concrete content wrappers:
 
 1. Reintroducing first-image selection would drop user/tool multimodal context.
 2. Altering text join delimiter can shift prompt tokenization and display parity.
-3. Removing package-level alias/message exports can break import stability across modules.
+3. Reintroducing package-level alias/message exports can hide the concrete owner
+   module for message contracts.
 
 ## Related Pages
 

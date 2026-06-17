@@ -36,7 +36,6 @@ backend/src/core/
 │   └── streaming_events.py           # Streaming events for WebSocket: ThinkingEvent, ChunkEvent, ToolCallEvent, etc.
 │
 ├── messages/                          # Message structures and conversion utilities
-│   ├── __init__.py                    # Re-exports message classes and converters
 │   ├── structures.py                  # StoredMessage, MessageContent, TextContent, ImageContent - conversation history structures
 │   └── converters.py                  # content_to_message_content() - converts between LLM and internal message formats
 │
@@ -239,7 +238,8 @@ WebSocket Response
 5. **Event-Driven**: Decoupled communication via EventBus
 6. **Type Safety**: Comprehensive type definitions for IDE support and runtime validation
 7. **Thread Safety**: Critical components use locks for concurrent access
-8. **Backward Compatibility**: `__init__.py` files provide re-exports for gradual migration
+8. **Concrete Imports**: Package directories without live public contracts use
+   namespace packages; callers import from the owning module directly
 
 ## Recent Structure Notes
 

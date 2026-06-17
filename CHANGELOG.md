@@ -26,6 +26,8 @@ All notable changes to WindieOS will be documented in this file.
   contracts resolve through concrete service modules.
 - backend/core: remove the unused `core.validation` package export so validation
   helpers resolve through concrete validation modules.
+- backend/core: remove the unused `core.messages` package export so message
+  contracts resolve through concrete message modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
