@@ -32,6 +32,8 @@ Before coding or answering implementation questions:
   behavior.
 - Search local docs by feature or symptom when orientation is incomplete:
   `bin/windie docs search <query>` or the shorthand `bin/windie docs <query>`.
+  On Windows PowerShell, use `bin\windie.cmd ...`; the extensionless
+  `bin/windie` shim is for Unix-like shells.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
 - When finding or fixing a bug, check `bin/windie --help` and the command
   registry behind it for existing commands tied to the affected runtime or

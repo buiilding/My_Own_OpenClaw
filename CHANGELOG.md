@@ -8,7 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 
 - cli: add a Windows `bin\windie.cmd` wrapper and route `docs list` through
   Node directly so PowerShell does not trigger the file-association picker for
-  extensionless Unix shims.
+  extensionless Unix shims; document the Windows spelling in `AGENTS.md`.
 - frontend/renderer: move settings product copy, tool catalog labels, and
   display-safe tool runtime labels into the WindieOS renderer skin config so
   settings components read as generic desktop agent UI consumers.
