@@ -12,7 +12,6 @@ const {
   FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
   LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
-  LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
@@ -118,9 +117,8 @@ describe('app diagnostics store', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('exports generic local runtime diagnostic owners with legacy path compatibility alias', () => {
+  test('exports local runtime diagnostic owners without backend alias', () => {
     expect(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH).toBe('local_backend.lifecycle');
-    expect(LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH).toBe(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH);
     expect(listDiagnosticPathDefinitions()).toEqual(expect.arrayContaining([
       expect.objectContaining({
         path: APP_DIAGNOSTICS_PATH,

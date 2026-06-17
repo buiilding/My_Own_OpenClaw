@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 diagnostics local runtime lifecycle export alias
+
+- Finding: app diagnostics still exported
+  `LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH` as a backend-named compatibility
+  alias for the Electron-main local-runtime lifecycle path.
+- Change: removed the backend-named export from the diagnostics store and
+  frontend harness mock, keeping `LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH` as
+  the only source constant while preserving the persisted
+  `local_backend.lifecycle` path id for existing diagnostics filters.
+- Validation: focused diagnostics export assertion, local-runtime bridge
+  lifecycle Jest run, lifecycle path scan, and diff check. The broader
+  diagnostics-store test file still requires the `sqlite3` CLI, which was not
+  available in this environment.
+- Compatibility: no storage migration required. Existing diagnostic rows and
+  CLI filters keep using the `local_backend.lifecycle` path string.
+
 ### 2026-06-17 main local-runtime lifecycle docs
 
 - Finding: active Electron-main lifecycle docs still presented
