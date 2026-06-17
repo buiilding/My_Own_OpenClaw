@@ -361,3 +361,15 @@ Each completed slice should report:
   `git diff --check`, and a source scan for the retired test callback name.
 - Compatibility: no migration required. Event channel names and settings UI
   behavior are unchanged.
+
+### 2026-06-17 renderer browser session runtime status variable
+
+- Finding: the browser session store consumed
+  `getLocalRuntimeStatusSnapshot()` but still used backend-prefixed naming for
+  the snapshot.
+- Change: renamed the local variable to `runtimeStatus` while preserving
+  snapshot fields, diagnostics, and browser sync behavior.
+- Validation: focused Jest run for `BrowserSessionStore`, `git diff --check`,
+  and a source scan for the retired variable name.
+- Compatibility: no migration required. Browser-session snapshot shape,
+  diagnostic stage names, and IPC behavior are unchanged.

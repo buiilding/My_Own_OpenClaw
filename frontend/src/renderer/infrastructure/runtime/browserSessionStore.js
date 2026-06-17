@@ -306,20 +306,20 @@ async function syncBrowserSession() {
 }
 
 function handleLocalRuntimeStatusChange() {
-  const backendStatus = getLocalRuntimeStatusSnapshot();
+  const runtimeStatus = getLocalRuntimeStatusSnapshot();
   emitBrowserSessionDiagnostic({
     stage: 'local_runtime_status_observed',
     data: {
-      localRuntimeReady: backendStatus.ready === true,
-      ready: backendStatus.ready === true,
-      status: normalizeString(backendStatus.status) || 'unknown',
+      localRuntimeReady: runtimeStatus.ready === true,
+      ready: runtimeStatus.ready === true,
+      status: normalizeString(runtimeStatus.status) || 'unknown',
     },
-    error: backendStatus.ready === true ? null : normalizeString(backendStatus.error),
+    error: runtimeStatus.ready === true ? null : normalizeString(runtimeStatus.error),
   });
-  if (backendStatus.ready !== true) {
+  if (runtimeStatus.ready !== true) {
     applySnapshot(buildDisconnectedSnapshot({
       localRuntimeReady: false,
-      error: normalizeString(backendStatus.error),
+      error: normalizeString(runtimeStatus.error),
       busyAction: '',
     }));
     return;

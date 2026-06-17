@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: rename browser session local-runtime status variables away from backend-prefixed wording.
+
 - tests/frontend: name the Agent settings capability-event test callback after the runtime capability channel instead of a backend handler.
 
 - frontend/renderer: rename app config backend-sync helpers to runtime-sync terminology while preserving settings payloads and IPC contracts.
