@@ -78,9 +78,9 @@ backend/src/core/
 │   └── vision.py                      # IVisionProvider - vision provider interface protocol
 │
 ├── services/                          # Core service implementations
-│   ├── __init__.py                    # Package exports
 │   ├── agent_factory.py               # AgentFactory - creates sub-agent sessions (scoped AgentSessions) with restricted tools
 │   ├── context_factory.py             # ContextFactory - creates execution contexts for tools
+│   ├── speech_service.py              # SpeechService - runtime-selectable speech interface
 │   ├── tts_service.py                 # TTSService - text-to-speech service implementation
 │   └── wakeword_service.py            # WakewordService - wakeword activation logic and greeting selection policy
 │
