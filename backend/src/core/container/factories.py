@@ -53,13 +53,11 @@ def _create_tool_registry_with_factory(config: AppConfig, agent_factory, cache_m
     return (tool_registry, context_factory)
 
 
-def _create_tool_orchestrator(tool_registry, config: AppConfig, context_factory):
+def _create_tool_orchestrator(tool_registry, context_factory):
     """Create tool orchestrator."""
     from backend.src.tools.orchestrator import ToolResultOrchestrator
 
-    return ToolResultOrchestrator(
-        tool_registry, config, context_factory=context_factory
-    )
+    return ToolResultOrchestrator(tool_registry, context_factory=context_factory)
 
 
 def _create_local_sentence_transformer_provider(

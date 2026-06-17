@@ -6,14 +6,13 @@ tool results and assembling tool result objects for the agent loop.
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
 
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedResponse
-from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.result_helpers import create_empty_tool_results
 from backend.src.tools.result_types import ToolExecutionBatch
@@ -32,7 +31,6 @@ class ToolResultOrchestrator:
     def __init__(
         self,
         tool_registry: ToolRegistry,
-        config: Any,
         context_factory: Optional[ContextFactory] = None,
     ):
         """
@@ -40,18 +38,15 @@ class ToolResultOrchestrator:
 
         Args:
             tool_registry: Registry of available tools
-            config: Application configuration
             context_factory: Optional ContextFactory instance
         """
         self.tool_registry = tool_registry
-        self.config = config
 
         # Use registry's context factory if not provided
         if context_factory is None:
             self.context_factory = tool_registry.context_factory
         else:
             self.context_factory = context_factory
-        self._tool_policy = ToolPolicy.from_config(config)
 
     async def execute_tools_from_response(
         self,
@@ -92,22 +87,3 @@ class ToolResultOrchestrator:
             results.append(result)
         
         return ToolExecutionBatch(tool_results=results)
-
-    def get_available_tools(self) -> List[Dict[str, Any]]:
-        """
-        Get information about all available tools.
-
-        Returns:
-            List of tool information dictionaries
-        """
-        tools = []
-        tool_names = self.tool_registry.get_tool_names()
-        tool_names = self._tool_policy.filter_tool_names(
-            tool_names,
-        )
-
-        for tool_name in tool_names:
-            capabilities = self.tool_registry.get_tool_capabilities(tool_name)
-            if capabilities:
-                tools.append(capabilities)
-        return tools

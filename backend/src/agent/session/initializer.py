@@ -22,7 +22,7 @@ def init_tooling(
         from backend.src.tools.orchestrator import ToolResultOrchestrator
 
         session.tool_orchestrator = ToolResultOrchestrator(
-            session.tool_registry, session.cfg
+            session.tool_registry
         )
     else:
         session.tool_orchestrator = tool_orchestrator

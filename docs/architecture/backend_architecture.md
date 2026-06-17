@@ -274,11 +274,9 @@ Orchestrates tool execution requests by waiting for frontend tool results.
 **Responsibilities**:
 - Wait for frontend tool results (single tools and bundles)
 - Assemble tool result objects for agent processing
-- Provide available tool metadata for inspection
 
 **Key Methods**:
 - `execute_tools_from_response()`: Execute tools from parsed response
-- `get_available_tools()`: Return tool capability metadata
 
 #### ToolPreparer (`agent/tools/preparation/preparer.py`)
 

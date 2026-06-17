@@ -58,10 +58,9 @@ class ToolContainer(containers.DeclarativeContainer):
 
     # Tool Orchestrator - lazy import to avoid circular dependencies
     tool_orchestrator = providers.Factory(
-        lambda registry, cfg, ctx_factory: _create_tool_orchestrator(
-            registry, cfg, ctx_factory
+        lambda registry, ctx_factory: _create_tool_orchestrator(
+            registry, ctx_factory
         ),
         registry=tool_registry,
-        cfg=config,
         ctx_factory=context_factory,
     )

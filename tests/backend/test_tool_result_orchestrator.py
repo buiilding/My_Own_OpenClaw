@@ -10,16 +10,6 @@ from backend.src.tools.orchestrator import ToolResultOrchestrator
 class DummyRegistry:
     def __init__(self):
         self.context_factory = object()
-        self._capabilities = {
-            "foo": {"name": "foo"},
-            "bar": {"name": "bar"},
-        }
-
-    def get_tool_names(self):
-        return ["foo", "bar"]
-
-    def get_tool_capabilities(self, tool_name):
-        return self._capabilities.get(tool_name)
 
 
 class DummySession:
@@ -28,7 +18,7 @@ class DummySession:
 
 @pytest.mark.asyncio
 async def test_execute_tools_from_response_requires_session_ref():
-    orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
+    orchestrator = ToolResultOrchestrator(DummyRegistry())
     response = ParsedResponse(
         original_response="",
         tool_calls=[],
@@ -43,7 +33,7 @@ async def test_execute_tools_from_response_requires_session_ref():
 
 @pytest.mark.asyncio
 async def test_execute_tools_from_response_bundle_missing_id_returns_empty(monkeypatch):
-    orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
+    orchestrator = ToolResultOrchestrator(DummyRegistry())
     tool_calls = [
         ParsedToolCall(
             tool_name="tool-a",
@@ -78,7 +68,7 @@ async def test_execute_tools_from_response_bundle_missing_id_returns_empty(monke
 
 @pytest.mark.asyncio
 async def test_execute_tools_from_response_calls_execute_single_tool(monkeypatch):
-    orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
+    orchestrator = ToolResultOrchestrator(DummyRegistry())
     tool_calls = [
         ParsedToolCall(
             tool_name="tool-a",
@@ -119,7 +109,7 @@ async def test_execute_tools_from_response_calls_execute_single_tool(monkeypatch
 
 @pytest.mark.asyncio
 async def test_execute_tools_from_response_surfaces_missing_request_id_failure():
-    orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
+    orchestrator = ToolResultOrchestrator(DummyRegistry())
     tool_call = ParsedToolCall(
         tool_name="tool-without-request-id",
         parameters={},
@@ -143,11 +133,3 @@ async def test_execute_tools_from_response_surfaces_missing_request_id_failure()
     assert tool_result.success is False
     assert tool_result.result.data == {"status": "missing_request_id"}
     assert "missing request_id metadata" in (tool_result.result.error or "")
-
-
-def test_get_available_tools_returns_capabilities():
-    orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
-
-    tools = orchestrator.get_available_tools()
-
-    assert tools == [{"name": "foo"}, {"name": "bar"}]

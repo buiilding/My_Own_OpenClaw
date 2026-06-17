@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for tool execution wait orchestration: atomic bundle detection, session-required routing, single-vs-bundle future wait semantics, missing request_id failure behavior after pending placeholder removal, stale-screen safety checks, and capability exposure filtering."
+summary: "Deep reference for tool execution wait orchestration: atomic bundle detection, session-required routing, single-vs-bundle future wait semantics, missing request_id failure behavior after pending placeholder removal, and stale-screen safety checks."
 read_when:
   - When changing `ToolResultOrchestrator` routing or single/bundle wait helpers.
   - When debugging skipped tool calls, bundle-id/request-id metadata drift, or SDK-submitted tool-result timeout behavior.
@@ -109,16 +109,6 @@ Per-step handling:
 
 It supports dict and object-like step payloads via `_step_field(...)`.
 
-## Tool Capability Exposure Filtering
-
-`get_available_tools()`:
-
-- reads names from registry
-- filters through `ToolPolicy.filter_tool_names(...)` using the policy's active selection
-- returns capability dicts only for surviving names
-
-This is the policy gate for tool lists shown to LLM/planners.
-
 ## Test-Backed Invariants
 
 `tests/backend/test_tool_result_orchestrator.py` verifies:
@@ -127,7 +117,6 @@ This is the policy gate for tool lists shown to LLM/planners.
 - bundle path with missing `bundle_id` returns empty batch
 - single path preserves one result per parsed tool call, including an explicit
   failure result when `request_id` metadata is missing
-- capability listing returns registry capabilities after selection filter
 
 `tests/backend/test_bundle_detection.py` verifies atomic-bundle rules around `bundle_id` and `request_id`.
 

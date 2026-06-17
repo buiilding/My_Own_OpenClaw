@@ -203,8 +203,9 @@ Result:
 
 ## Available-Tools Listing Coupling
 
-`ToolResultOrchestrator.get_available_tools()` filters tool names via policy
-before returning capability metadata.
+Tool capability metadata is read from `ToolRegistry.get_tool_capabilities(...)`
+at the callers that need it; policy filtering remains at prompt construction,
+parser validation, provider projection, and startup-gating boundaries.
 
 Result:
 

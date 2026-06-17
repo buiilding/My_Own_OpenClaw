@@ -21,7 +21,8 @@ title: "Tool Security Policy and Executor Reference"
 
 The current backend runtime actively enforces tool exposure via `ToolPolicy`:
 
-- `ToolResultOrchestrator` builds `ToolPolicy.from_config(config)`.
+- prompt construction, parser validation, provider projection, and startup
+  gates build `ToolPolicy.from_config(config)` at their owning boundaries.
 - available tool names are filtered by interaction-mode allowlist plus agent capability policy.
 - tool schemas are filtered with the same policy.
 - `mouse_control.find_coordinates_by` method-level restrictions are enforced.
