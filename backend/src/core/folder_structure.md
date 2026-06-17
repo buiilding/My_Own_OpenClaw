@@ -84,7 +84,6 @@ backend/src/core/
 │   └── wakeword_service.py            # WakewordService - wakeword activation logic and greeting selection policy
 │
 ├── security/                          # Security and trust boundary enforcement
-│   ├── __init__.py                    # Package exports
 │   ├── policy.py                      # SecurityPolicy - permission checking, resource limits, audit logging
 │   └── executor.py                    # ToolExecutor - abstract base class, DirectToolExecutor, and runtime executor registry
 │

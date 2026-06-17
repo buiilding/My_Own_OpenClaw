@@ -96,6 +96,8 @@ All notable changes to WindieOS will be documented in this file.
   service callers use concrete LLM modules.
 - backend/sdk: remove the unused backend SDK package export so tool/context
   types are imported from concrete SDK modules.
+- backend/core: remove the unused core security package export so policy
+  and executor primitives are imported from concrete security modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

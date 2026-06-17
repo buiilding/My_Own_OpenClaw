@@ -28,7 +28,6 @@ concrete modules directly.
 - `backend/src/core/container/__init__.py`
 - `backend/src/core/events/__init__.py`
 - `backend/src/core/infrastructure/__init__.py`
-- `backend/src/core/security/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 
 ## Import-Surface Contract
@@ -64,6 +63,9 @@ docstring or compatibility path.
   `backend.src.core.interfaces.embedding`.
 - `backend/src/core/observability/__init__.py` is intentionally absent; import
   metrics contracts from `backend.src.core.observability.trust_boundary_metrics`.
+- `backend/src/core/security/__init__.py` is intentionally absent; import
+  security policy and executor primitives from `backend.src.core.security.policy`
+  and `backend.src.core.security.executor`.
 - `backend/src/core/services/__init__.py` is intentionally absent; import core
   services from concrete modules such as
   `backend.src.core.services.context_factory` or

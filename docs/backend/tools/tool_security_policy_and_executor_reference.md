@@ -109,12 +109,12 @@ process/container strategy is implemented and tested.
 ### Removed Sandbox Executor Placeholder
 
 `ProcessSandboxedExecutor` was removed from `core/security/executor.py` and from
-the `backend.src.core.security` export surface. The runtime no longer exposes a
-sandboxed executor placeholder that raises `NotImplementedError`. Stale
-searches for `ProcessSandboxedExecutor removed` or
+the former `backend.src.core.security` package export surface. The runtime no
+longer exposes a sandboxed executor placeholder that raises
+`NotImplementedError`. Stale searches for `ProcessSandboxedExecutor removed` or
 `ProcessSandboxedExecutor NotImplementedError` should route here. Current code
 exposes only the abstract `ToolExecutor`, the in-process `DirectToolExecutor`,
-and the registry helpers.
+and the registry helpers from `backend.src.core.security.executor`.
 
 ## Integration Status Summary
 
