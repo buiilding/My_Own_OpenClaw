@@ -32,20 +32,20 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 | Change or symptom | First owner | Code roots | Tests |
 | --- | --- | --- | --- |
 | Add a renderer-visible sidecar method | Electron IPC registry and mapper plus sidecar method registry | `frontend/src/shared/ipcChannels.json`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py` | preload/IPC tests, `tests/frontend/LocalBackendBridge*.test.cjs`, `tests/sidecar/test_local_backend.py` |
-| Add a main-only sidecar helper | main bridge helper plus sidecar method registry | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, sidecar handler tests |
+| Add a main-only sidecar helper | main bridge helper plus sidecar method registry | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, sidecar handler tests |
 | Change JSON-RPC protocol validation | protocol core | `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_json_rpc_protocol.py` |
 | Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
-| Change sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, sidecar daemon tests |
+| Change sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, sidecar daemon tests |
 | Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalBackendBridge.rpc.test.cjs`, sidecar memory/conversation tests |
 | Change `execute_tool` behavior | SDK/main local tool runtime plus sidecar tool registry | `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
-| Change browser runtime install/warmup methods | main bridge helper plus local backend browser feature-pack handling | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-backend tests |
-| Change macOS automation permission method | main permission bridge plus sidecar platform helper | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation sidecar tests |
+| Change browser runtime install/warmup methods | main bridge helper plus local backend browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-backend tests |
+| Change macOS automation permission method | main permission bridge plus sidecar platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation sidecar tests |
 
 ## Method Families
 
 ### Direct Main Bridge Calls
 
-These methods are invoked by focused helper code in `sidecar/local_backend_bridge.cjs`
+These methods are invoked by focused helper code in `sidecar/local_runtime_bridge.cjs`
 or local tool runtime code rather than the compiled mapper table.
 
 | Main-side entry | JSON-RPC method | Sidecar handler | Notes |
@@ -95,7 +95,7 @@ channel.
 
 Use this path when renderer does not need a general IPC channel, but Electron main needs a sidecar capability during startup, packaging, browser setup, permission checks, or diagnostics.
 
-1. Add a helper function in `frontend/src/main/sidecar/local_backend_bridge.cjs` or a focused main-process module.
+1. Add a helper function in `frontend/src/main/sidecar/local_runtime_bridge.cjs` or a focused main-process module.
 2. Call `sendRequestOrError(method, params, options)` unless callers should handle thrown errors.
 3. Set a method-specific `timeoutMs` only when the operation is expected to exceed the default.
 4. Register the sidecar method in `LocalBackend._initialize_methods`.

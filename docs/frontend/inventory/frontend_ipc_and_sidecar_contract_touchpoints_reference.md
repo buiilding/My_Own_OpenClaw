@@ -32,11 +32,11 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 
 | Main owner | Sidecar owner | Contract files | Drift symptoms |
 | --- | --- | --- | --- |
-| Local-runtime bridge | JSON-RPC protocol | `main/local_backend_bridge.cjs`, `main/python/core/ipc_protocol.py` | Timed-out or unresolved RPC calls |
+| Local-runtime bridge | JSON-RPC protocol | `main/local_runtime_bridge.cjs`, `main/python/core/ipc_protocol.py` | Timed-out or unresolved RPC calls |
 | RPC mapped handlers | Method signatures | `main/local_backend_bridge_rpc_mappers.cjs`, `main/python/local_backend.py` methods | Param name mismatch and tool failure |
 | Tool-arg normalizer | Tool argument canonicalization path | `main/local_backend_bridge_tool_args.cjs`, `main/python/tools/registry.py` | Missing screenshot display-bounds defaults |
-| Readiness lifecycle | Service startup | `main/local_backend_bridge.cjs`, `main/python/local_backend.py` initialize/run | Process starts but marked unavailable |
-| Memory RPC handlers | Local memory store | `main/local_backend_bridge.cjs`, `main/python/local_backend_memory_handlers.py`, `main/python/memory/local_store.py` | Search/store no-op or parse errors |
+| Readiness lifecycle | Service startup | `main/local_runtime_bridge.cjs`, `main/python/local_backend.py` initialize/run | Process starts but marked unavailable |
+| Memory RPC handlers | Local memory store | `main/local_runtime_bridge.cjs`, `main/python/local_backend_memory_handlers.py`, `main/python/memory/local_store.py` | Search/store no-op or parse errors |
 
 ## Tool Runtime Touchpoints
 

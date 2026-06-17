@@ -36,7 +36,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
@@ -46,5 +46,5 @@ title: "Frontend Main Local-Backend Docs Hub"
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
-- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
+- `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
 - `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`

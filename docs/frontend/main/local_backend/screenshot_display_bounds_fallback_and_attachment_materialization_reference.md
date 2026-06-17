@@ -11,12 +11,12 @@ title: "Screenshot Display-Bounds Fallback and Attachment Materialization Refere
 ## Canonical Modules
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
-- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
+- `tests/frontend/LocalRuntimeDisplayBounds.test.cjs`
 - `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
 
 ## Runtime Ownership
@@ -32,7 +32,7 @@ This behavior is local-runtime bridge specific; non-screenshot tools do not run 
 
 ## Display-Bounds Fallback Resolution
 
-`resolveScreenshotToolDisplayBounds(...)` (`local_backend_bridge_display_bounds.cjs`) resolves fallback bounds with strict precedence:
+`resolveScreenshotToolDisplayBounds(...)` (`local_runtime_display_bounds.cjs`) resolves fallback bounds with strict precedence:
 
 1. call `resolveActiveSurfaceDisplayAffinityForWindows(...)` with:
   - sender `webContents`
@@ -118,7 +118,7 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 
 ## Test-Backed Invariants
 
-`tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`:
+`tests/frontend/LocalRuntimeDisplayBounds.test.cjs`:
 
 - prefers visible sender-window affinity over active query fallback
 - falls back to active query affinity when sender window is hidden

@@ -677,7 +677,7 @@ describe('windie docs index', () => {
     expect(findDocs('getSystemState export removed')[0].path).toBe(
       expectedPath,
     );
-    expect(findDocs('local_backend_bridge.getSystemState removed')[0].path).toBe(
+    expect(findDocs('local_runtime_bridge.getSystemState removed')[0].path).toBe(
       bridgePath,
     );
   });

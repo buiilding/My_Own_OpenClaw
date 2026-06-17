@@ -1,7 +1,7 @@
 ---
 summary: "Frontend protocol error contract covering preload IPC validation failures, websocket bridge reconnect and send-failure synthesis, settings ACK timeout behavior, local-runtime JSON-RPC fallback responses, and wakeword subprocess/helper error status propagation."
 read_when:
-  - When changing `preload.js`, `ipc.cjs`, `local_backend_bridge.cjs`, `wakeword_bridge.cjs`, or `wakeword_bridge_runtime.cjs` error behavior.
+  - When changing `preload.js`, `ipc.cjs`, `local_runtime_bridge.cjs`, `wakeword_bridge.cjs`, or `wakeword_bridge_runtime.cjs` error behavior.
   - When debugging query send failures, settings-sync timeouts, or sidecar process startup failures.
 title: "Frontend IPC, WS Bridge, and Local Runtime Error-Recovery Contract Reference"
 ---
@@ -21,7 +21,7 @@ Primary sources:
 - Main websocket bridge/state: `frontend/src/main/ipc.cjs`
 - Settings-sync ACK timeout helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Synthetic query failure events: `frontend/src/main/ipc/ipc_query_events.cjs`
-- Local-runtime bridge + utils: `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
+- Local-runtime bridge + utils: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 
 Primary error-path tests:
@@ -104,7 +104,7 @@ ACK resolution paths:
 - backend message `type='error'` + matching `id` => failure
 - timeout => failure
 
-## Local Backend Bridge Error Surface (`local_backend_bridge.cjs`)
+## Local Backend Bridge Error Surface (`local_runtime_bridge.cjs`)
 
 ### JSON-RPC request-level failures
 
@@ -180,7 +180,7 @@ When changing error semantics, keep aligned:
 | websocket disconnect/error converge path | `frontend/src/main/ipc.cjs` | socket errors converge into close path; state reset + reconnect timer restoration |
 | query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | failed send emits synthetic backend-style `error` event with preserved turn/session context |
 | settings ACK timeout fallback | `frontend/src/main/ipc.cjs` | unresolved ACKs auto-resolve false after `2500ms`; pending maps cleared on reconnect |
-| local-backend request/process failure handling | `frontend/src/main/sidecar/local_backend_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
+| local-backend request/process failure handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
 | wakeword subprocess failure/status handling | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | startup/exit/stderr failures normalize to `wakeword-status` `{ready:false,error?}` without crashing bridge loops; helper runtime provides deterministic error/status normalization |
 
 ## Related Deep Dives

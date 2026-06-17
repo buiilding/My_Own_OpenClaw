@@ -74,7 +74,7 @@ flowchart LR
 3. Trace the request through SDK main runtime and Electron.
    - SDK conversation runtime: `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`.
    - SDK tool coordinator: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
-   - Electron internal adapter: `frontend/src/main/sidecar/local_backend_bridge.cjs`
+   - Electron internal adapter: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
      exposes `executeToolForBackend(...)` for SDK/main tool routing.
    - Tool execution runtime: `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`.
    - Argument mapper: `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`.
@@ -146,7 +146,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 1. Confirm the backend schema includes the tool and the active policy profile exposes it.
 2. Check the streamed `tool-call` event reaches the SDK main-runtime tool router.
 3. Check `AgentClient.wakeUp(...)` provides the SDK local runtime client and `agent.conversation(...)` dispatches the local runtime call through the SDK tool coordinator.
-4. Check `local_backend_bridge.cjs` exposes `executeToolForBackend(...)`.
+4. Check `local_runtime_bridge.cjs` exposes `executeToolForBackend(...)`.
 5. Check `local_backend_bridge_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.
 6. Check sidecar `ToolRegistry.execute_tool` has the executable name registered.
 7. Add or update one test at the failing boundary, then one adjacent contract test if drift is possible.

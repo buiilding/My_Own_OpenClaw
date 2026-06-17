@@ -54,7 +54,7 @@ Overlay/window control helpers:
 
 Bridge/support modules:
 
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_utils.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`

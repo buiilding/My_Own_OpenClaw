@@ -102,7 +102,7 @@ Primary files:
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
 
 Validation:

@@ -28,7 +28,7 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 
@@ -143,7 +143,7 @@ Removed legacy renderer-callable channels:
 - `set-overlay-focusable`
 - `prepare-overlay-tool-focus`
 
-## Local runtime bridge channels (`local_backend_bridge.cjs`)
+## Local runtime bridge channels (`local_runtime_bridge.cjs`)
 
 These channels are implementation-level main/sidecar bridge channels. Renderer
 feature code uses SDK-shaped `windie:invoke` commands for conversation and
@@ -251,7 +251,7 @@ Keep these in sync whenever adding a channel:
 
 1. `frontend/src/shared/ipcChannels.json`
 2. `channels.ts` expected shared-registry validation
-3. `ipc.cjs` / `index.cjs` / `local_backend_bridge.cjs` / `wakeword_bridge.cjs` handler registration + `wakeword_bridge_runtime.cjs` helper ownership
+3. `ipc.cjs` / `index.cjs` / `local_runtime_bridge.cjs` / `wakeword_bridge.cjs` handler registration + `wakeword_bridge_runtime.cjs` helper ownership
 4. renderer call sites (`IpcBridge.send|invoke|on`)
 
 ## Related Pages

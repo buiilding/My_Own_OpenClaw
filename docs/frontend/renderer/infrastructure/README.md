@@ -28,6 +28,6 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
-- `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/sidecar/local_runtime_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `tests/frontend/PlayerService.test.ts`

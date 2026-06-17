@@ -22,7 +22,7 @@ Primary runtime modules:
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
@@ -59,8 +59,8 @@ Primary protocol tests:
 | outbound payload normalization | SDK `filterBackendPayload(...)` + Electron `ipc_backend_payload_contract.cjs` | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys; client-supplied `screenshot_url` is removed from outbound payloads while keeping supported screenshot refs |
 | query-context enrichment + escaping | SDK `ContextEnrichmentPipeline.ts` | `WindieSdkContextEnrichment.test.ts` + query relay tests | memories, attachment context, and user query render into XML-like content; XML-sensitive values are escaped; disabled or unavailable memory retrieval has explicit fallback behavior |
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
-| SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
-| local runtime RPC shape mapping | handler registration + mapper utilities (`local_backend_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
+| SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_runtime_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
+| local runtime RPC shape mapping | handler registration + mapper utilities (`local_runtime_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
 | overlay IPC registrar ownership boundary | `overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` | overlay phase module registers only overlay-owned channels (`set-responsebox-size`, `set-chatbox-visual-anchor-height`, `show-chatbox`, `hide-chatbox`, `move-chatbox-to`) and does not own deprecated focus/interactivity channels |
 | window-control IPC registrar + display mapping | `window_controls_ipc_runtime.cjs`, `display_query_handler.cjs` | `WindowControlsIpcRuntime.test.cjs`, `DisplayQueryHandler.test.cjs` | `show-main-window` normalization/route emit stays in window-control module; display inventory payload is mapped to stable `{ id, label, isPrimary, bounds, scaleFactor }` |
 | permission IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
@@ -84,7 +84,7 @@ Primary protocol tests:
 | permission IPC runtime channel ownership | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
-| local runtime RPC mapping | `frontend/src/main/sidecar/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
+| local runtime RPC mapping | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract
 

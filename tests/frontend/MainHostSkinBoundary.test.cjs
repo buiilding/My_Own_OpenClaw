@@ -25,7 +25,7 @@ const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime
 const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs');
 const localBackendBridgeModulePaths = [
   localBackendBridgePath,
-  path.join(mainRoot, 'sidecar/local_backend_bridge_display_bounds.cjs'),
+  path.join(mainRoot, 'sidecar/local_runtime_display_bounds.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_execute_tool_runtime.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_rpc_mappers.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_screenshot_attachment.cjs'),

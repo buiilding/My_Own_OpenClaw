@@ -35,7 +35,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 
 ## Session Identity Model

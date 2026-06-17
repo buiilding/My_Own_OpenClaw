@@ -135,6 +135,20 @@ Each completed slice should report:
   path rename; exported bridge function names, IPC channel strings, and status
   payloads are unchanged.
 
+### 2026-06-17 local-runtime display bounds module
+
+- Finding: Electron main screenshot display-bound resolution was already a
+  local-runtime bridge helper, but the private helper module and focused Jest
+  suite still lived under local-backend bridge file names.
+- Change: renamed the helper module and focused test to local-runtime paths,
+  updated the execute-tool bridge import, host-boundary coverage, and current
+  display-bounds docs.
+- Validation: focused display-bounds, execute-tool, and host-boundary Jest
+  tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; screenshot argument shape and display-affinity behavior
+  are unchanged.
+
 ### 2026-06-17 local-runtime supervisor module
 
 - Finding: Electron main local-runtime readiness supervision was already using

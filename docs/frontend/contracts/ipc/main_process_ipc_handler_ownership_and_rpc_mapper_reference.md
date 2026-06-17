@@ -30,7 +30,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
@@ -51,7 +51,7 @@ Main-process handler registration is split by responsibility:
 - permission registration: `permission_ipc_runtime.cjs` (wired by `index.cjs`)
 - chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
 - app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
-- Python sidecar tool + memory bridge: `local_backend_bridge.cjs`
+- Python sidecar tool + memory bridge: `local_runtime_bridge.cjs`
 - wakeword audio process bridge: `wakeword_bridge.cjs`
 
 ## Handler Ownership Matrix
@@ -175,7 +175,7 @@ Visibility runtime owners:
 - `hide-chatbox` behavior (chat/response/context hide and wakeword sync) via `hideChatWindow(...)`
 - `show-main-window` visibility/maximize/focus flow via `showMainWindow(...)`
 
-### `local_backend_bridge.cjs`
+### `local_runtime_bridge.cjs`
 
 Direct `ipcMain.handle`:
 

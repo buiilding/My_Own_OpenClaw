@@ -154,7 +154,7 @@ Likely owner:
 Check:
 
 - `frontend/src/main/app/backend_endpoints.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
 - `WINDIE_BACKEND_HTTP_URL` in sidecar env
 

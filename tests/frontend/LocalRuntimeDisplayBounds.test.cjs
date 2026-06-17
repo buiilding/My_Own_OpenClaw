@@ -2,9 +2,9 @@
 
 const {
   resolveScreenshotToolDisplayBounds,
-} = require('../../frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_display_bounds.cjs');
 
-describe('local_backend_bridge_display_bounds', () => {
+describe('local_runtime_display_bounds', () => {
   test('prefers visible sender display affinity for screenshot tool args', () => {
     const resolveActiveSurfaceDisplayAffinityForWindows = jest.fn(() => ({
       monitor_id: '2',

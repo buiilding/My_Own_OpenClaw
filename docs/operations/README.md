@@ -41,7 +41,7 @@ Likely code:
 
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
 - endpoint-related frontend tests such as `tests/frontend/BackendEndpoints.test.cjs`,
   `tests/frontend/RuntimeEndpointStore.test.ts`, and

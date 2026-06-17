@@ -21,7 +21,7 @@ Primary runtime sources:
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
@@ -219,7 +219,7 @@ Locked by:
 
 ## Frontend Config -> Sidecar Tool Arg State Propagation
 
-`local_backend_bridge.cjs` rewrites shell-tool args with frontend config state:
+`local_runtime_bridge.cjs` rewrites shell-tool args with frontend config state:
 
 - for `run_shell_command` only:
 - for `system_use` only when nested `tool === 'run_shell_command'` and nested `arguments` is an object:

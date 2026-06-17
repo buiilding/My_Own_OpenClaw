@@ -39,7 +39,7 @@ First checks:
 - Electron stdout/stderr,
 - `frontend/src/main/app/backend_endpoints.cjs`,
 - `frontend/src/main/ipc.cjs`,
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`,
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`,
 - debug flags in [Diagnostic Flags](diagnostic_flags.md).
 
 ## Renderer

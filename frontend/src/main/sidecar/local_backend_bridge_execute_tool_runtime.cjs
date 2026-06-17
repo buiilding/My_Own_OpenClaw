@@ -12,7 +12,7 @@ const {
 } = require('./local_backend_bridge_window_visibility.cjs');
 const {
   resolveScreenshotToolDisplayBounds,
-} = require('./local_backend_bridge_display_bounds.cjs');
+} = require('./local_runtime_display_bounds.cjs');
 const {
   materializeScreenshotAttachment,
 } = require('./local_backend_bridge_screenshot_attachment.cjs');

@@ -142,7 +142,7 @@ Likely code:
 - `backend/src/agent/tools/**`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/python/tools/**`
 
 Validate:

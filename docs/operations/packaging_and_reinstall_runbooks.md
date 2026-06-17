@@ -39,7 +39,7 @@ Primary files:
 - `frontend/src/main/python/requirements.runtime.txt`
 - `frontend/electron-builder.bundled-python.yml`
 - `frontend/src/main/app/runtime_paths.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `packages/windie-sdk-js/cjs`
 

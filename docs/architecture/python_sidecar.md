@@ -32,7 +32,7 @@ Release contract:
 **Key files:**
 - Sidecar daemon entrypoint: `frontend/src/main/python/sidecar_daemon.py`
 - LocalBackend implementation: `frontend/src/main/python/local_backend.py`
-- Electron bridge: `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
 - Hosted SDK transport client: `frontend/src/main/python/windie/sdk.py`
 - Tool implementations: `frontend/src/main/python/tools/`

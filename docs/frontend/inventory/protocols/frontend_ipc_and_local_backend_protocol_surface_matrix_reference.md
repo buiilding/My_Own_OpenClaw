@@ -24,7 +24,7 @@ This page maps protocol surfaces across renderer, Electron main, and Python loca
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs` + `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
-- Main-to-sidecar JSON-RPC bridge: `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
+- Main-to-sidecar JSON-RPC bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Renderer `window.ipc` Contract
@@ -49,12 +49,12 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | Channel | Main owner | Notes |
 |---|---|---|
 | `windie:invoke` | `main/ipc.cjs` | Single SDK command router for renderer `window.desktopAgent.invoke(command, payload)`; handles query/stop and SDK-shaped local runtime commands instead of exposing memory/conversation implementation RPC names directly through preload |
-| `capture-screenshot-attachment` | `main/sidecar/local_backend_bridge.cjs` | Maps renderer screenshot attachment capture to local `screenshot` execution |
-| `read-attachment-file` | `main/sidecar/local_backend_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
-| `run-browser-action` | `main/sidecar/local_backend_bridge.cjs` | Maps browser session controls to local `browser` execution |
+| `capture-screenshot-attachment` | `main/sidecar/local_runtime_bridge.cjs` | Maps renderer screenshot attachment capture to local `screenshot` execution |
+| `read-attachment-file` | `main/sidecar/local_runtime_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
+| `run-browser-action` | `main/sidecar/local_runtime_bridge.cjs` | Maps browser session controls to local `browser` execution |
 | `upload-artifact` | `main/ipc.cjs` | Uploads base64 artifact to backend HTTP `/api/artifacts/` |
 | `fetch-artifact-image` | `main/ipc/ipc_artifact_handlers.cjs` | Fetches a backend artifact image through the authenticated artifact handler |
-| `get-system-state` | `main/sidecar/local_backend_bridge.cjs` | Proxies to sidecar `get_system_state` |
+| `get-system-state` | `main/sidecar/local_runtime_bridge.cjs` | Proxies to sidecar `get_system_state` |
 | `get-client-user-id` | `main/ipc.cjs` | Returns connection/user/session/conversation snapshot |
 | `copy-image-to-clipboard` | `main/ipc/ipc_clipboard_image.cjs` | Copies a trusted image URL/data payload into the OS clipboard |
 | `show-image-context-menu` | `main/ipc/ipc_image_context_menu.cjs` | Opens the trusted image context menu and clipboard actions |
@@ -88,7 +88,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `window-minimize` | `main/surfaces/window_controls_ipc_runtime.cjs` | Minimize main window |
 | `window-toggle-maximize` | `main/surfaces/window_controls_ipc_runtime.cjs` | Toggle maximize state; macOS uses native fullscreen instead of Electron maximize |
 | `window-close` | `main/surfaces/window_controls_ipc_runtime.cjs` | Close main window |
-| `get-local-runtime-status` | `main/sidecar/local_backend_bridge.cjs` | Wakes/reads SDK local-runtime status for renderer status surfaces |
+| `get-local-runtime-status` | `main/sidecar/local_runtime_bridge.cjs` | Wakes/reads SDK local-runtime status for renderer status surfaces |
 
 ### `on`/`once` Channels (Main -> Renderer)
 
@@ -103,7 +103,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `windie:pending-turn` | `main/ipc.cjs` | Pending renderer user turn replay/clear events for secondary windows and startup handoff |
 | `transcript-session-sync` | `main/ipc/ipc_transcript_session_sync.cjs` | Normalized transcript session/conversation/user identity snapshot |
 | `ipc-status` | `main/ipc.cjs` | Backend connection + client/user/session snapshot |
-| `local-runtime-status` | `main/sidecar/local_backend_bridge.cjs` | Local SDK sidecar process/readiness status |
+| `local-runtime-status` | `main/sidecar/local_runtime_bridge.cjs` | Local SDK sidecar process/readiness status |
 | `log` | Reserved in preload/typed constants | Main-to-renderer log channel retained in allowlist for renderer listeners |
 | `wakeword-detected` | `main/wakeword_bridge.cjs` | Wakeword detection event (`model`, `confidence`, `score`) |
 | `wakeword-status` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` emits normalized status payloads) | Wakeword subprocess readiness/error |
@@ -233,7 +233,7 @@ Registered callable surface:
 
 ## Local Backend Readiness and Failure Semantics
 
-`local_backend_bridge.cjs` process lifecycle rules:
+`local_runtime_bridge.cjs` process lifecycle rules:
 
 - Readiness probe: sends `ping` and retries up to 10 attempts with exponential delay (`50ms` base, capped `1000ms`) and per-attempt `500ms` response timeout.
 - If max attempts are exhausted, bridge marks backend ready to avoid permanent deadlock.
@@ -245,7 +245,7 @@ Registered callable surface:
 ## Drift Guards
 
 - Preload allowlists and renderer constants should remain in strict parity.
-- IPC handler registration is split across `ipc.cjs`, `surfaces/overlay_phase_ipc_runtime.cjs`, `surfaces/window_controls_ipc_runtime.cjs`, `permissions/permission_ipc_runtime.cjs`, `sidecar/local_backend_bridge.cjs`, and `wakeword/wakeword_bridge.cjs` (with helper split in `wakeword_bridge_runtime.cjs`); ownership drift often appears when adding channels without updating all surfaces.
+- IPC handler registration is split across `ipc.cjs`, `surfaces/overlay_phase_ipc_runtime.cjs`, `surfaces/window_controls_ipc_runtime.cjs`, `permissions/permission_ipc_runtime.cjs`, `sidecar/local_runtime_bridge.cjs`, and `wakeword/wakeword_bridge.cjs` (with helper split in `wakeword_bridge_runtime.cjs`); ownership drift often appears when adding channels without updating all surfaces.
 - JSON-RPC channel maps are centralized in `local_backend_bridge_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
 
 ## Recompute Surface Commands

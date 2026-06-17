@@ -26,7 +26,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs` | Window/tray setup, lifecycle listeners, bridge initializers | Renderer windows + process shutdown |
 | Main overlay/window runtime | `frontend/src/main/surfaces/{overlay_phase_ipc_runtime,window_controls_ipc_runtime}.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/overlay_signal_runtime.cjs`, `frontend/src/main/surfaces/overlay_window_helpers_runtime.cjs` | Split IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
 | Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | SDK-managed WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
-| Main process sidecar bridge | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` | SDK-owned daemon launch/reuse, renderer-visible status, and Electron host helper routing | Tool/system/memory responses |
+| Main process sidecar bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` | SDK-owned daemon launch/reuse, renderer-visible status, and Electron host helper routing | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | Wakeword subprocess lifecycle + binary framing with helper-owned status/error parsing + payload normalization | Wakeword events to renderer/main IPC |
 | Main VM worker bridge | `frontend/src/main/app/{runtime_mode,vm_worker_runtime}.cjs` | Hosted `/api/runs/*` heartbeat polling, run dispatch, stream relay, control-command application | Websocket `stop-query` + `/api/runs/*` event/control updates |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
@@ -58,7 +58,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Tool-call event detected | SDK managed backend session |
 | Tool execution orchestration | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | SDK local runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
-| Sidecar request dispatch | SDK local runtime provider plus `main/sidecar/local_backend_bridge.cjs` RPC mappers |
+| Sidecar request dispatch | SDK local runtime provider plus `main/sidecar/local_runtime_bridge.cjs` RPC mappers |
 | Sidecar tool execution | `main/python/tools/registry.py` + domain tool modules |
 | Result normalization + send | SDK tool coordinator -> managed backend session -> backend `tool-result` |
 

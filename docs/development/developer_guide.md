@@ -43,7 +43,7 @@ frontend/src/
 │   ├── index.cjs      # Electron entry
 │   ├── ipc.cjs        # IPC bridge
 │   ├── wakeword_bridge.cjs  # Wakeword service bridge
-│   ├── local_backend_bridge.cjs  # Local backend bridge
+│   ├── local_runtime_bridge.cjs  # Local backend bridge
 │   └── python/        # Python sidecar
 │       ├── local_backend.py  # Local backend service
 │       ├── core/      # Core utilities
