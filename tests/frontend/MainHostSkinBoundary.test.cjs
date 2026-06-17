@@ -249,6 +249,13 @@ describe('main host skin/config boundary', () => {
     expect(joinedSource).toContain('[Main][LocalRuntimeBridge]');
   });
 
+  test('main sidecar adapter debug stdout flag uses local-runtime wording', () => {
+    const bridgeSource = fs.readFileSync(localBackendBridgePath, 'utf8');
+
+    expect(bridgeSource).toContain('WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT');
+    expect(bridgeSource).not.toContain('WINDIE_DEBUG_LOCAL_BACKEND_STDOUT');
+  });
+
   test('main sidecar adapter active dependencies use local-runtime names', () => {
     const bridgeSource = fs.readFileSync(localBackendBridgePath, 'utf8');
     const supervisorSource = fs.readFileSync(

@@ -560,7 +560,7 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
     status: 'succeeded',
     ...buildLocalRuntimeDiagnosticData(),
   });
-  if (process.env.WINDIE_DEBUG_LOCAL_BACKEND_STDOUT === '1') {
+  if (process.env.WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT === '1') {
     console.log(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} initialized`);
   }
 }

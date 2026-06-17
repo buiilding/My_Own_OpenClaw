@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Main local-runtime stdout debug flag
+
+- Finding: Electron main's local-runtime bridge still used the
+  `WINDIE_DEBUG_LOCAL_BACKEND_STDOUT` diagnostic flag name for local-runtime
+  initialization logging.
+- Change: renamed the active diagnostic flag to
+  `WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT`, updated debug docs, and added a focused
+  main host boundary assertion that rejects the old flag in bridge source.
+- Validation: focused main host skin boundary test, stale flag scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is an ephemeral debug flag rename;
+  runtime behavior and diagnostic event paths are unchanged.
+
 ### 2026-06-17 Frontend docs local-runtime status wording
 
 - Finding: active frontend architecture and IPC docs still described renderer
@@ -1291,8 +1304,10 @@ Each completed slice should report:
   `[Main][LocalBackendBridge]` console labels even though the host adapter now
   represents a generic sidecar/local-runtime bridge.
 - Change: changed new console output from the bridge, tool-execution, and
-  screenshot materialization helpers to `[Main][SidecarBridge]`, leaving module
-  filenames, exports, IPC channels, and diagnostic path ids unchanged.
+  screenshot materialization helpers to `[Main][SidecarBridge]` at this point;
+  a later cleanup renamed the active label to `[Main][LocalRuntimeBridge]`.
+  Module filenames, exports, IPC channels, and diagnostic path ids stayed
+  unchanged.
 - Validation: focused main host-skin boundary source scan, docs listing,
   `git diff --check`, and source scan for the retired console prefix.
 - Compatibility: no migration required. This affects diagnostic log copy only;
