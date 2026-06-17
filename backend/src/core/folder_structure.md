@@ -4,10 +4,7 @@
 
 ```
 backend/src/core/
-├── __init__.py                        # Package initialization
-│
 ├── bootstrap/                         # Application initialization & startup coordination
-│   ├── __init__.py                    # Package exports
 │   ├── coordinator.py                 # InitializationCoordinator - orchestrates startup phases (config → container → services → validation)
 │   ├── handler_initializer.py        # HandlerInitializer - validates WebSocket message handlers are registered via DI container
 │
