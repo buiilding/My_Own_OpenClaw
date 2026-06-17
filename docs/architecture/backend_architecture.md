@@ -40,7 +40,7 @@ Open-source client distributions should assume:
 To reduce feature-change friction in `backend/src/core`, runtime internals were split into smaller seams:
 
 - **Config assembly is centralized** in `backend/src/core/config/runtime.py` so loader/manager/service paths apply the same runtime policies (API key loading + TTS defaults).
-- **Runtime config assembly is now routed through** `backend/src/core/config/loader.py::build_runtime_config()` so `ConfigManager.update_config()` and `ConfigurationService.build_user_config()` share one policy path.
+- **Runtime config assembly is now routed through** `backend/src/core/config/loader.py::build_runtime_config()` so `ConfigManager.update_config()` applies the same policy path used during config loading.
 - **EventBus internals were extracted** into `backend/src/core/infrastructure/event_bus_registry.py` so handler storage/caching and publish flow evolve independently.
 - **TTS internals were modularized** with `backend/src/core/services/tts_cuda.py` and `backend/src/core/services/tts_worker.py` while keeping `TTSService` as the public orchestrator.
 - **Container config refresh was hardened** in `backend/src/core/container/config_updater.py` and `backend/src/core/container/facade.py` to avoid stale references and to correctly reinitialize the embedder.

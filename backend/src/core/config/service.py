@@ -9,18 +9,15 @@ for components that need to react to configuration changes.
 import asyncio
 import logging
 import threading
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
-from pydantic import ValidationError as PydanticValidationError
-
-from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.config import AppConfig, ConfigManager
-from backend.src.core.config.loader import build_runtime_config
 from backend.src.core.config.subscriptions import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
 )
 from backend.src.core.events.bus_events import ConfigChanged
+from backend.src.core.infrastructure.bus import EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -300,39 +297,3 @@ class ConfigurationService:
         )
 
         return _get_default_tts_model_path()
-
-    def build_user_config(self, user_config: Dict[str, Any]) -> AppConfig:
-        """
-        Build complete user configuration by merging global config with user overrides.
-
-        Applies configuration policies:
-        - Sets default TTS model path if TTS is enabled and path is not set
-        - Loads API keys for selected provider
-
-        CONFIGURATION: Runtime policy currently forces `tts_enabled=True`.
-        `speech_mode_enabled` still controls whether speech is used in interactions.
-
-        This method centralizes config building logic to avoid duplication
-        between handlers and session managers.
-
-        Args:
-            user_config: User-specific configuration overrides (dict)
-
-        Returns:
-            Complete AppConfig instance with policies applied and API keys loaded
-        """
-        global_config = self.get_config()
-
-        # Merge: user config overrides global
-        complete_config_dict = {**global_config.model_dump(), **user_config}
-
-        try:
-            validated_config = AppConfig(**complete_config_dict)
-        except PydanticValidationError as e:
-            error_details = {}
-            for error in e.errors():
-                field = ".".join(str(loc) for loc in error["loc"])
-                error_details[field] = error["msg"]
-            raise ValueError(f"Invalid configuration: {error_details}") from e
-
-        return build_runtime_config(validated_config)

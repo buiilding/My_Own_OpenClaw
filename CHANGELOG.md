@@ -88,6 +88,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: delete the unused screen-resolution parser from image
   dimension helpers now that coordinate normalization derives fallback metadata
   from screenshot dimensions.
+- backend/config: remove the unused `ConfigurationService.build_user_config`
+  facade so runtime config policy stays on the active config manager/update
+  path.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
