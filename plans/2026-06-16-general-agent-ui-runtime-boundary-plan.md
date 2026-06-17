@@ -2748,3 +2748,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level local-runtime
   imports still resolve, and direct compatibility-module imports can use
   `WindieLocalSidecarRuntime`.
+
+### 2026-06-17 AgentDefinition default predicate
+
+- Finding: Electron main still checked the backend `windie_default` agent
+  definition mode literal directly when deciding whether the generated SDK
+  definition could be omitted from a query payload.
+- Change: added `isDefaultAgentDefinition(...)` to the SDK agent-definition
+  contract and switched Electron main to that helper, keeping the backend wire
+  mode unchanged while moving the predicate into the SDK boundary.
+- Validation: focused SDK client/package-boundary coverage, main SDK boundary
+  source coverage, docs listing, `git diff --check`, and source scans for the
+  retired direct main-process mode comparison.
+- Compatibility: no migration required. The backend mode value remains
+  `windie_default`; host callers now use the SDK predicate instead of the raw
+  literal.

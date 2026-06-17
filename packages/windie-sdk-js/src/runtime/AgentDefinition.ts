@@ -160,3 +160,7 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
 
   return JSON.parse(JSON.stringify(definition)) as JsonRecord;
 }
+
+export function isDefaultAgentDefinition(definition: unknown): boolean {
+  return isJsonRecord(definition) && definition.mode === 'windie_default';
+}

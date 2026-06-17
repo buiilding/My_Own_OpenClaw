@@ -22,6 +22,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('client.wakeUp({');
     expect(source).toContain('agent.conversation({');
+    expect(source).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');
+    expect(source).not.toContain("generatedAgentDefinition.mode === 'windie_default'");
     expect(source).toContain('localToolLifecycle');
     expect(source).toContain('agentWebSocketImpl');
     expect(source).toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');

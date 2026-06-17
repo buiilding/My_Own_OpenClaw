@@ -161,6 +161,7 @@ const {
 const {
   AgentClient,
   buildAgentDefinition,
+  isDefaultAgentDefinition,
   TraceRecorder,
   createConversationEvent,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
@@ -2139,7 +2140,7 @@ function attachAgentDefinitionContext(payload) {
   const suppliedAgentDefinition = isPlainObject(payload.agent_definition)
     ? payload.agent_definition
     : null;
-  if (generatedAgentDefinition.mode === 'windie_default' && !suppliedAgentDefinition) {
+  if (isDefaultAgentDefinition(generatedAgentDefinition) && !suppliedAgentDefinition) {
     return payload;
   }
 

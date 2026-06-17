@@ -8,6 +8,7 @@ import * as path from 'path';
 
 import {
   buildAgentDefinition,
+  isDefaultAgentDefinition,
   createAgentBackendSocket,
   createAgentBackendTransport,
   createAgentSession,
@@ -264,6 +265,12 @@ describe('Agent SDK client behavior', () => {
       name: 'Desktop Agent',
       mode: 'windie_default',
     });
+    expect(isDefaultAgentDefinition(definition)).toBe(true);
+    expect(isDefaultAgentDefinition({
+      ...definition,
+      mode: 'default_plus_overrides',
+    })).toBe(false);
+    expect(isDefaultAgentDefinition(null)).toBe(false);
   });
 
   test('builds introspection requests against the existing sdk routes', async () => {

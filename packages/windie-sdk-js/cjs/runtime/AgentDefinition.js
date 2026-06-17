@@ -4,6 +4,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildAgentDefinition = buildAgentDefinition;
+exports.isDefaultAgentDefinition = isDefaultAgentDefinition;
 const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -127,4 +128,7 @@ function buildAgentDefinition(options = {}) {
     };
     (0, CapabilityManifest_js_1.stampAgentDefinitionCapabilityMetadata)(definition);
     return JSON.parse(JSON.stringify(definition));
+}
+function isDefaultAgentDefinition(definition) {
+    return isJsonRecord(definition) && definition.mode === 'windie_default';
 }

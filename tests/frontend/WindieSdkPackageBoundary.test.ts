@@ -22,6 +22,7 @@ import {
   AgentChatSession,
   agentBuiltins,
   buildDisplayConversation,
+  isDefaultAgentDefinition,
   createAgentBackendSocket,
   createAgentBackendTransport,
   createAgentLocalRuntimeProvider,
@@ -117,6 +118,7 @@ describe('@windie/sdk package boundary', () => {
     expect(WindieAgentSession).toBe(AgentSession);
     expect(WindieChatSession).toBe(AgentChatSession);
     expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);
+    expect(isDefaultAgentDefinition({ mode: 'windie_default' })).toBe(true);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();
