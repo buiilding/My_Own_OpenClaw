@@ -8,6 +8,7 @@ const path = require('path');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
+const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
 const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
@@ -122,5 +123,20 @@ describe('renderer skin/config boundary', () => {
     expect(apiKeysSource).toContain('providerCredentialSettings');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(apiKeysSource).not.toContain('OpenAI API Key');
+  });
+
+  test('provider model display fallbacks live in renderer skin config', () => {
+    const providerDisplaySource = fs.readFileSync(providerModelDisplaySettingsPath, 'utf8');
+    const modelCardDataSource = fs.readFileSync(
+      path.join(dashboardSectionsRoot, 'modelCardData.js'),
+      'utf8',
+    );
+
+    expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
+    expect(providerDisplaySource).toContain('OpenAI flagship model family');
+    expect(modelCardDataSource).toContain('providerModelDisplaySettings');
+    expect(modelCardDataSource).not.toContain("provider.includes('openai')");
+    expect(modelCardDataSource).not.toContain('OpenAI flagship model family');
+    expect(modelCardDataSource).not.toContain('Agentic coding model');
   });
 });

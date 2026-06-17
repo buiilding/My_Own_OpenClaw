@@ -2,62 +2,20 @@
  * Provides the model card data module for the renderer UI.
  */
 
+import { resolveProviderModelDisplay } from '../../../../app/skin/providerModelDisplaySettings';
+
 function buildModelDescription(model) {
   if (typeof model?.description === 'string' && model.description.trim()) {
     return model.description.trim();
   }
-  const provider = (model?.provider || '').toLowerCase();
-  if (provider.includes('openai')) {
-    return 'OpenAI flagship model family for chat, coding, and agent workflows.';
-  }
-  if (provider.includes('anthropic')) {
-    return 'Advanced reasoning with strong instruction following.';
-  }
-  if (provider.includes('google') || provider.includes('gemini')) {
-    return 'Powerful model family with native multimodal understanding.';
-  }
-  if (provider.includes('mistral')) {
-    return 'General-purpose model tuned for coding, reasoning, and multilingual tasks.';
-  }
-  if (provider.includes('openrouter')) {
-    return 'Unified router for accessing multiple upstream models through one endpoint.';
-  }
-  if (provider.includes('kimi')) {
-    return 'Agentic coding model from Moonshot with strong long-context and multimodal support.';
-  }
-  if (provider.includes('ollama') || provider.includes('local')) {
-    return 'Local model runtime for private on-device workflows.';
-  }
-  return 'General-purpose model suitable for chat, coding and reasoning tasks.';
+  return resolveProviderModelDisplay(model?.provider).description;
 }
 
 function buildModelStrengths(model) {
   if (Array.isArray(model?.strengths) && model.strengths.length > 0) {
     return model.strengths.map((strength) => String(strength));
   }
-  const provider = (model?.provider || '').toLowerCase();
-  if (provider.includes('openai')) {
-    return ['Reasoning', 'Code', 'Vision', 'Multilingual'];
-  }
-  if (provider.includes('anthropic')) {
-    return ['Analysis', 'Writing', 'Safety', 'Long Context'];
-  }
-  if (provider.includes('google') || provider.includes('gemini')) {
-    return ['Multimodal', 'Search', 'Code', 'Efficiency'];
-  }
-  if (provider.includes('mistral')) {
-    return ['Code', 'Reasoning', 'Fast', 'Multilingual'];
-  }
-  if (provider.includes('openrouter')) {
-    return ['Routing', 'Breadth', 'Flexible', 'Context'];
-  }
-  if (provider.includes('kimi')) {
-    return ['Agentic', 'Code', 'Multimodal', 'Long Context'];
-  }
-  if (provider.includes('ollama') || provider.includes('local')) {
-    return ['Private', 'Offline', 'Low Latency', 'Customization'];
-  }
-  return ['Reasoning', 'General', 'Productivity', 'Flexible'];
+  return Array.from(resolveProviderModelDisplay(model?.provider).strengths);
 }
 
 function formatContextHint(contextHint) {

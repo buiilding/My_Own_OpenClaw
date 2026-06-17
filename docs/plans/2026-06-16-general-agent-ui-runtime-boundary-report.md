@@ -525,6 +525,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: added a renderer skin/config provider credential settings module and
   made config storage plus the API-key UI consume that single source without
   changing backend provider policy or persisted config shape.
+- Finding: renderer model-card shaping still embedded provider-specific
+  fallback descriptions and strengths in a generic UI mapper, even though that
+  metadata is display skin/config rather than card projection logic.
+- Change: moved provider model-card fallback descriptions and strengths into
+  renderer skin/config and made the generic model-card mapper consume that
+  resolver while preserving backend catalog metadata precedence.
 
 ## Remaining Findings
 
@@ -604,3 +610,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   environment variables remain unchanged.
 - Renderer provider credential defaults and API-key display specs now live in
   renderer skin/config and are shared by config storage plus settings UI.
+- Renderer provider model-card fallback descriptions and strengths now live in
+  renderer skin/config; backend catalog metadata still wins when present.
