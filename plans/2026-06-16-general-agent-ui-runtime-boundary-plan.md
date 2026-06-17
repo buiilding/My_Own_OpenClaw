@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer runtime endpoint wrapper deletion
+
+- Finding: the renderer had converged on `RuntimeEndpointStore`, but still kept
+  `BackendEndpointStore.ts` as a backend-named compatibility wrapper for older
+  artifact/transcription URL imports.
+- Change: deleted the compatibility wrapper, removed its wrapper-only test and
+  docs references, and left renderer endpoint URL construction on
+  `RuntimeEndpointStore`.
+- Validation: focused runtime endpoint Jest run, active import scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. No active imports of
+  `BackendEndpointStore` remain.
+
 ### 2026-06-17 local runtime bridge docs and harness wording
 
 - Finding: IPC/tool-routing docs and the frontend bridge harness still described

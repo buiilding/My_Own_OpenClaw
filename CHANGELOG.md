@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Recorded the renderer endpoint wrapper deletion in the boundary implementation plan.
+
 - Removed the renderer BackendEndpointStore compatibility wrapper so artifact and transcription URL helpers only resolve through RuntimeEndpointStore.
 
 - Reworded IPC/tool-routing docs and the frontend bridge harness around the Electron local-runtime bridge boundary.
