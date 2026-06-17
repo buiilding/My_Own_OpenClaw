@@ -318,26 +318,6 @@ class AgentSession:
         """Get pending tool result if available."""
         return self.runtime.tool_results.get_pending_result(request_id)
 
-    def remove_pending_tool_result(self, request_id: str) -> bool:
-        """Remove pending tool result."""
-        return self.runtime.tool_results.remove_pending_result(request_id)
-
-    def create_tool_result_future(self, request_id: str):
-        """Create future for a single-tool result."""
-        return self.runtime.tool_results.create_result_future(request_id)
-
-    def remove_tool_result_future(self, request_id: str) -> bool:
-        """Remove result future tracking for request_id."""
-        return self.runtime.tool_results.remove_result_future(request_id)
-
-    def create_bundle_result_future(self, bundle_id: str):
-        """Create future for bundle result."""
-        return self.runtime.tool_results.create_bundle_future(bundle_id)
-
-    def remove_bundle_result_future(self, bundle_id: str) -> bool:
-        """Remove bundle future tracking for bundle_id."""
-        return self.runtime.tool_results.remove_bundle_future(bundle_id)
-
     def get_bundle_result(self, bundle_id: str) -> Optional["ToolResult"]:
         """Get stored bundle result."""
         return self.runtime.tool_results.get_bundled_result(bundle_id)

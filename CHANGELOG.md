@@ -78,6 +78,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.
+- backend/session: remove unused `AgentSession` tool-result future facade
+  methods so wait/execution paths use the owning `ToolResultStorage` surface
+  directly.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead
