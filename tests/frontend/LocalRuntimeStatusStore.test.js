@@ -21,9 +21,11 @@ describe('localRuntimeStatusStore', () => {
         },
       },
       INVOKE_CHANNELS: {
+        GET_LOCAL_RUNTIME_STATUS: 'get-local-backend-status',
         GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
       },
       ON_CHANNELS: {
+        LOCAL_RUNTIME_STATUS: 'local-backend-status',
         LOCAL_BACKEND_STATUS: 'local-backend-status',
       },
     }));
@@ -85,7 +87,7 @@ describe('localRuntimeStatusStore', () => {
     unsubscribe();
   });
 
-  test('keeps legacy IPC channel names at the local runtime transport boundary', () => {
+  test('uses generic local runtime IPC constants over legacy channel strings', () => {
     const source = require('fs').readFileSync(
       require('path').resolve(
         __dirname,
@@ -94,8 +96,10 @@ describe('localRuntimeStatusStore', () => {
       'utf8',
     );
 
-    expect(source).toContain('const GET_LOCAL_RUNTIME_STATUS_CHANNEL = INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS;');
-    expect(source).toContain('const LOCAL_RUNTIME_STATUS_CHANNEL = ON_CHANNELS.LOCAL_BACKEND_STATUS;');
+    expect(source).toContain('const GET_LOCAL_RUNTIME_STATUS_CHANNEL = INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS;');
+    expect(source).toContain('const LOCAL_RUNTIME_STATUS_CHANNEL = ON_CHANNELS.LOCAL_RUNTIME_STATUS;');
+    expect(source).not.toContain('INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS');
+    expect(source).not.toContain('ON_CHANNELS.LOCAL_BACKEND_STATUS');
     expect(source).not.toContain('IpcBridge.on(ON_CHANNELS.LOCAL_BACKEND_STATUS');
     expect(source).not.toContain('IpcBridge.invoke(INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS');
   });

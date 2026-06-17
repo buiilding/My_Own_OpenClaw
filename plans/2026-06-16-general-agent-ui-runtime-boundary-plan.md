@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer local runtime IPC registry aliases
+
+- Finding: the renderer local-runtime status store still depended on
+  local-backend-named IPC registry constants because the shared registry only
+  exposed legacy names for the existing channel strings.
+- Change: added generic `GET_LOCAL_RUNTIME_STATUS` and `LOCAL_RUNTIME_STATUS`
+  aliases to the shared IPC registry and renderer expected-registry parity
+  check, then routed the status store through those aliases.
+- Validation: focused IPC channel parity and local-runtime status store Jest
+  runs, channel alias scan, docs listing, and diff check.
+- Compatibility: no migration required. The underlying channel strings remain
+  `get-local-backend-status` and `local-backend-status`, so preload/main
+  allowlists and handlers stay compatible.
+
 ### 2026-06-17 renderer local runtime status channel aliases
 
 - Finding: renderer `localRuntimeStatusStore` was named for local runtime state
