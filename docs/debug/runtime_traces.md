@@ -481,7 +481,7 @@ Sidecar stdout is JSON-RPC only. Debug by combining Electron bridge logs with si
 
 | Path | Code root |
 | --- | --- |
-| Main bridge process lifecycle | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_backend_supervisor.cjs` |
+| Main bridge process lifecycle | `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs` |
 | Main bridge request mapping | `frontend/src/main/sidecar/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs` |
 | Sidecar protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
 | Tool registry | `frontend/src/main/python/tools/registry.py` |

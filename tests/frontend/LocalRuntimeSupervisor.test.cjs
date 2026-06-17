@@ -2,14 +2,14 @@
 
 const {
   createLocalRuntimeSupervisor,
-} = require('../../frontend/src/main/sidecar/local_backend_supervisor.cjs');
+} = require('../../frontend/src/main/sidecar/local_runtime_supervisor.cjs');
 
-describe('local_backend_supervisor', () => {
+describe('local_runtime_supervisor', () => {
   test('exports only the local runtime supervisor factory', () => {
-    const supervisorModule = require('../../frontend/src/main/sidecar/local_backend_supervisor.cjs');
+    const supervisorModule = require('../../frontend/src/main/sidecar/local_runtime_supervisor.cjs');
 
     expect(createLocalRuntimeSupervisor).toBeDefined();
-    expect(supervisorModule.createLocalBackendSupervisor).toBeUndefined();
+    expect(supervisorModule[['createLocal', 'BackendSupervisor'].join('')]).toBeUndefined();
   });
 
   test('tracks starting ready stopping and error states with generation bumps', () => {

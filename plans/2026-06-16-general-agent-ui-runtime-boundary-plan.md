@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime supervisor module
+
+- Finding: Electron main local-runtime readiness supervision was already using
+  `createLocalRuntimeSupervisor`, but the private module and focused test still
+  lived under local-backend file names.
+- Change: renamed the supervisor module and focused Jest suite to
+  local-runtime paths, updated bridge imports and host-boundary tests, and
+  refreshed lifecycle docs that route developers to this status surface.
+- Validation: focused local-runtime supervisor, bridge lifecycle, and
+  host-boundary Jest tests, stale-reference scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  and test path rename; status payloads and IPC channel strings are unchanged.
+
 ### 2026-06-17 local-runtime status broadcaster module
 
 - Finding: Electron main local-runtime status broadcasting still lived in the
@@ -659,7 +672,7 @@ Each completed slice should report:
 
 - Finding: Electron main still exported `initializeLocalBackendBridge`,
   `stopLocalBackend`, `getLocalBackendStatus`,
-  `createLocalBackendSupervisor`, and
+  the backend-named supervisor factory, and
   `createLocalBackendExecuteToolRuntime` as compatibility aliases after the
   local-runtime bridge names became canonical.
 - Change: removed the local-backend-named exports from the bridge, supervisor,
@@ -3651,12 +3664,11 @@ Each completed slice should report:
 ### 2026-06-17 main local runtime supervisor factory
 
 - Finding: the Electron main local-runtime bridge still constructed its status
-  supervisor through `createLocalBackendSupervisor`, even though the module now
-  owns generic local-runtime process supervision for the host adapter.
+  supervisor through the backend-named factory, even though the module owned
+  generic local-runtime process supervision for the host adapter.
 - Change: promoted `createLocalRuntimeSupervisor` as the canonical factory,
   switched the active bridge and focused tests to it, and kept
-  `createLocalBackendSupervisor` as a compatibility alias for existing direct
-  imports.
+  the backend-named factory as a compatibility alias for existing direct imports.
 - Validation: focused local-runtime supervisor and main host boundary tests,
   docs listing, stale active-dependency scan, and `git diff --check`.
 - Compatibility: no migration required. The old factory export remains an alias

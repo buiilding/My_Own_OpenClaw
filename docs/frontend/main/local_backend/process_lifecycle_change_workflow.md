@@ -22,7 +22,7 @@ flowchart LR
   LaunchOptions --> SDKProvider["SDK local runtime provider"]
   SDKProvider --> Daemon["sidecar_daemon.py"]
   Daemon --> LocalBackend["LocalBackend"]
-  SDKProvider --> Supervisor["local_backend_supervisor"]
+  SDKProvider --> Supervisor["local_runtime_supervisor"]
   Supervisor --> Status["local-runtime-status broadcast"]
   Status --> RendererStore["localRuntimeStatusStore"]
   RendererStore --> Consumers["browser session, permissions, dashboard retries"]
@@ -38,7 +38,7 @@ readiness/status broadcasts.
 | Surface | Code | Role |
 | --- | --- | --- |
 | Bridge composition | `frontend/src/main/sidecar/local_backend_bridge.cjs` | Wires SDK local runtime provider access, status broadcasts, host helper IPC, and sidecar RPC mappers. |
-| Supervisor state | `frontend/src/main/sidecar/local_backend_supervisor.cjs` | Tracks renderer-visible daemon status, ready flag, generation, and last error. |
+| Supervisor state | `frontend/src/main/sidecar/local_runtime_supervisor.cjs` | Tracks renderer-visible daemon status, ready flag, generation, and last error. |
 | Launch options | `frontend/src/main/sidecar/local_runtime_launch_options.cjs` | Resolves desktop daemon command/args/cwd/env/launch context before passing them to the SDK. |
 | Timeout policy | `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
 | Launch target resolution | `frontend/src/main/app/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
@@ -52,7 +52,7 @@ readiness/status broadcasts.
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
 | Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `local_runtime_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
-| `local-runtime-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
+| `local-runtime-status` shows stale ready/error state | Supervisor and status broadcast path | `local_runtime_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
@@ -74,7 +74,7 @@ readiness/status broadcasts.
 | Field | Producer | Consumer contract |
 | --- | --- | --- |
 | `ready` | `buildLocalRuntimeStatusPayload()` and direct status sends | Renderer treats only `true` as ready; everything else gates local-runtime-dependent controls. |
-| `status` | `local_backend_supervisor` snapshot | Renderer defaults missing status to `ready` or `stopped` based on `ready`; keep values stable for debugging. |
+| `status` | `local_runtime_supervisor` snapshot | Renderer defaults missing status to `ready` or `stopped` based on `ready`; keep values stable for debugging. |
 | `error` | launch failure, process error, non-zero exit, supervisor last error | Renderer stores string errors and shows dependent feature failures without inspecting process internals. |
 | `localRuntime` | SDK local runtime snapshot | Diagnostic snapshot for host/status tests. Renderer readiness consumers must not infer process state from this nested object. |
 
@@ -147,7 +147,7 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 
 | Changed behavior | Minimum focused tests |
 | --- | --- |
-| Supervisor generation/status semantics | `cd frontend && npm run test -- ../tests/frontend/LocalBackendSupervisor.test.cjs` |
+| Supervisor generation/status semantics | `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeSupervisor.test.cjs` |
 | SDK provider readiness, unavailable launch plan, shutdown, fail-closed helpers | `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.lifecycle.test.cjs` |
 | Helper RPC mapping, tool routing, screenshot host shaping, JSON-RPC errors | `cd frontend && npm run test -- ../tests/frontend/LocalBackendBridge.rpc.test.cjs` |
 | Renderer status subscription and browser readiness gating | `cd frontend && npm run test -- ../tests/frontend/ChatBrowserSessionControl.test.jsx` plus any direct status-store tests |

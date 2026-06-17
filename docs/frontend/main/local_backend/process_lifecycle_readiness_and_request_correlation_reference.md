@@ -16,7 +16,7 @@ title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 - `frontend/src/main/sidecar/local_backend_bridge_timeout_policy.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_screenshot_attachment.cjs`
-- `frontend/src/main/sidecar/local_backend_supervisor.cjs`
+- `frontend/src/main/sidecar/local_runtime_supervisor.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`
@@ -48,7 +48,7 @@ Electron main owns only host-side behavior:
 1. call the SDK local runtime provider with `{ wakeUp: {}, needsLocalRuntime: true }`
 2. cache the returned runtime
 3. subscribe to daemon events for conversation metadata invalidation
-4. attach a synthetic SDK daemon process ref to `local_backend_supervisor`
+4. attach a synthetic SDK daemon process ref to `local_runtime_supervisor`
 5. emit `local-runtime-status { ready:true, localRuntime }`
 
 If launch option construction or provider resolution fails, the bridge keeps

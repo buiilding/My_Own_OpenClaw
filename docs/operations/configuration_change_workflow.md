@@ -158,7 +158,7 @@ Sidecar env changes must be validated in both source and packaged shape when the
 Primary files:
 
 - `frontend/src/main/sidecar/local_backend_bridge.cjs`
-- `frontend/src/main/sidecar/local_backend_supervisor.cjs`
+- `frontend/src/main/sidecar/local_runtime_supervisor.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
 - `frontend/src/main/python/core/env_flags.py`

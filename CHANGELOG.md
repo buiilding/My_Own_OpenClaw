@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the private Electron main local-runtime supervisor module and focused Jest suite from local-backend to local-runtime paths while preserving status payloads and IPC channel strings. No migration is required.
+
 - Renamed the private Electron main local-runtime status broadcaster module and focused Jest suite from local-backend to local-runtime paths while preserving renderer status payloads and IPC channel strings. No migration is required.
 
 - Renamed Electron main desktop local-runtime launch options from the sidecar-named module path to `local_runtime_launch_options.cjs` and moved private launch helper identifiers to local-runtime wording. No migration is required.

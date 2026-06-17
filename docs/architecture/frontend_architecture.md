@@ -252,7 +252,7 @@ Current ownership boundary:
 
 ### Local Runtime Status Flow
 
-1. Main `local_backend_bridge.cjs` owns renderer-visible local-runtime readiness state through `local_backend_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
+1. Main `local_backend_bridge.cjs` owns renderer-visible local-runtime readiness state through `local_runtime_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
 2. Main emits `local-runtime-status` renderer events when startup/ready/error state changes and exposes `get-local-runtime-status` for initial snapshot reads.
 3. Renderer features that depend on local host capabilities should subscribe to that shared readiness surface instead of racing scoped host IPC calls during startup.
 4. `localRuntimeStatusStore` subscribes to live events before starting the bootstrap read, and ignores bootstrap responses if a newer live event arrived first.
@@ -347,7 +347,7 @@ Primary modules:
 - `main/sidecar/local_backend_bridge.cjs`:
   - Registers scoped host IPC handlers for screenshot attachment, browser controls, system state, memory, and mapped local sidecar RPCs.
   - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
-  - Uses `local_backend_supervisor.cjs` only for renderer-visible local-runtime readiness/status snapshots.
+  - Uses `local_runtime_supervisor.cjs` only for renderer-visible local-runtime readiness/status snapshots.
   - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
   - Screenshot args include virtual desktop bounds so sidecar screenshot capture can keep monitor targeting deterministic; Windows/Linux crop from all-displays captures when needed, while macOS uses direct bounded capture to avoid Retina scaling drift.

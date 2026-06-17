@@ -38,7 +38,7 @@ const {
 const {
   appendLocalRuntimeLifecycleDiagnostic,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
-const { createLocalRuntimeSupervisor } = require('./local_backend_supervisor.cjs');
+const { createLocalRuntimeSupervisor } = require('./local_runtime_supervisor.cjs');
 
 const LOCAL_RUNTIME_BRIDGE_LOG_PREFIX = '[Main][LocalRuntimeBridge]';
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';

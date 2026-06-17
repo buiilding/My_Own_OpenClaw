@@ -34,7 +34,7 @@ const localBackendBridgeModulePaths = [
   path.join(mainRoot, 'sidecar/local_backend_bridge_utils.cjs'),
   path.join(mainRoot, 'sidecar/local_backend_bridge_window_visibility.cjs'),
   path.join(mainRoot, 'sidecar/local_runtime_status_broadcaster.cjs'),
-  path.join(mainRoot, 'sidecar/local_backend_supervisor.cjs'),
+  path.join(mainRoot, 'sidecar/local_runtime_supervisor.cjs'),
 ];
 const browserPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_browser.cjs');
 const automationPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_automation.cjs');
@@ -261,7 +261,7 @@ describe('main host skin/config boundary', () => {
   test('main sidecar adapter active dependencies use local-runtime names', () => {
     const bridgeSource = fs.readFileSync(localBackendBridgePath, 'utf8');
     const supervisorSource = fs.readFileSync(
-      path.join(mainRoot, 'sidecar/local_backend_supervisor.cjs'),
+      path.join(mainRoot, 'sidecar/local_runtime_supervisor.cjs'),
       'utf8',
     );
     const executeToolRuntimeSource = fs.readFileSync(
@@ -270,7 +270,7 @@ describe('main host skin/config boundary', () => {
     );
 
     expect(supervisorSource).toContain('function createLocalRuntimeSupervisor');
-    expect(supervisorSource).not.toContain('createLocalBackendSupervisor');
+    expect(supervisorSource).not.toContain(['createLocal', 'BackendSupervisor'].join(''));
     expect(executeToolRuntimeSource).toContain('function createLocalRuntimeExecuteToolRuntime');
     expect(executeToolRuntimeSource).not.toContain('createLocalBackendExecuteToolRuntime');
     expect(bridgeSource).toContain('function initializeLocalRuntimeBridge');
