@@ -11,13 +11,10 @@ from tools.result import ToolResult
 logger = logging.getLogger(__name__)
 
 
-async def get_system_stats(args: Dict[str, Any]) -> ToolResult:
+async def get_system_stats(_args: Dict[str, Any]) -> ToolResult:
     """
     Get system statistics.
     
-    Args:
-        args: Dictionary (unused, but kept for interface consistency)
-        
     Returns:
         ToolResult with system stats data
     """

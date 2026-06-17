@@ -9,11 +9,6 @@ os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
 
 warnings.filterwarnings(
     "ignore",
-    message=".*open_text is deprecated.*",
-    category=DeprecationWarning,
-)
-warnings.filterwarnings(
-    "ignore",
     message=".*joblib will operate in serial mode.*",
     category=UserWarning,
 )

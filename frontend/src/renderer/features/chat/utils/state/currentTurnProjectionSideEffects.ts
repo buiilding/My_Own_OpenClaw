@@ -1,5 +1,5 @@
 /**
- * Derives legacy chat UI side effects from SDK current-turn projections.
+ * Derives renderer chat UI side effects from SDK current-turn projections.
  */
 
 import type { CurrentTurnToolEvent } from '../../../../infrastructure/api/windieSdkClient';

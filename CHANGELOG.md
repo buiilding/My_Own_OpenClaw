@@ -46,6 +46,8 @@ All notable changes to WindieOS will be documented in this file.
   remove registry normalization for legacy mapping-shaped tool returns.
 - docs/sidecar: rename the sidecar registry reference around the native result
   contract and remove stale troubleshooting guidance for legacy dict returns.
+- tests/frontend/sidecar: remove stale deprecated-warning and legacy/unused
+  wording from current SDK projection and system-stats paths.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the
