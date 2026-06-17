@@ -2862,3 +2862,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Log text changes only; websocket
   routing, backend endpoint state, reconnect behavior, and event payloads are
   unchanged.
+
+### 2026-06-17 main local runtime supervisor factory
+
+- Finding: the Electron main local-runtime bridge still constructed its status
+  supervisor through `createLocalBackendSupervisor`, even though the module now
+  owns generic local-runtime process supervision for the host adapter.
+- Change: promoted `createLocalRuntimeSupervisor` as the canonical factory,
+  switched the active bridge and focused tests to it, and kept
+  `createLocalBackendSupervisor` as a compatibility alias for existing direct
+  imports.
+- Validation: focused local-runtime supervisor and main host boundary tests,
+  docs listing, stale active-dependency scan, and `git diff --check`.
+- Compatibility: no migration required. The old factory export remains an alias
+  to the same supervisor implementation; runtime state and status payloads are
+  unchanged.

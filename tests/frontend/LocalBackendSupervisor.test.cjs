@@ -2,11 +2,17 @@
 
 const {
   createLocalBackendSupervisor,
+  createLocalRuntimeSupervisor,
 } = require('../../frontend/src/main/sidecar/local_backend_supervisor.cjs');
 
 describe('local_backend_supervisor', () => {
+  test('exports the local runtime supervisor as the canonical factory', () => {
+    expect(createLocalRuntimeSupervisor).toBeDefined();
+    expect(createLocalBackendSupervisor).toBe(createLocalRuntimeSupervisor);
+  });
+
   test('tracks starting ready stopping and error states with generation bumps', () => {
-    const supervisor = createLocalBackendSupervisor();
+    const supervisor = createLocalRuntimeSupervisor();
     const processRef = { pid: 101 };
 
     expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({

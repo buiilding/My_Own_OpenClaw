@@ -35,7 +35,7 @@ const {
 const {
   appendLocalRuntimeLifecycleDiagnostic,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
-const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
+const { createLocalRuntimeSupervisor } = require('./local_backend_supervisor.cjs');
 
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
 const DEFAULT_BROWSER_WARMUP_EXPLANATION = 'Open the browser for onboarding and profile setup.';
@@ -50,7 +50,7 @@ let runtimeExecuteTool = async () => ({
   success: false,
   error: 'Local runtime bridge is not initialized.',
 });
-const localRuntimeStatusSupervisor = createLocalBackendSupervisor();
+const localRuntimeStatusSupervisor = createLocalRuntimeSupervisor();
 let sdkLocalRuntime = null;
 let sdkLocalRuntimeEventUnsubscribe = null;
 let sdkLocalRuntimeEventHandler = null;

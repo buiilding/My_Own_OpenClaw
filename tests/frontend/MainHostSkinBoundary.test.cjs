@@ -248,6 +248,19 @@ describe('main host skin/config boundary', () => {
     expect(joinedSource).toContain('[Main][SidecarBridge]');
   });
 
+  test('main sidecar adapter active dependencies use local-runtime names', () => {
+    const bridgeSource = fs.readFileSync(localBackendBridgePath, 'utf8');
+    const supervisorSource = fs.readFileSync(
+      path.join(mainRoot, 'sidecar/local_backend_supervisor.cjs'),
+      'utf8',
+    );
+
+    expect(supervisorSource).toContain('function createLocalRuntimeSupervisor');
+    expect(supervisorSource).toContain('const createLocalBackendSupervisor = createLocalRuntimeSupervisor');
+    expect(bridgeSource).toContain('createLocalRuntimeSupervisor');
+    expect(bridgeSource).not.toContain('createLocalBackendSupervisor');
+  });
+
   test('main composition root consumes local runtime bridge names', () => {
     const source = fs.readFileSync(indexPath, 'utf8');
 

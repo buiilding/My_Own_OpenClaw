@@ -2,7 +2,7 @@
  * Provides local runtime process supervision for the Electron main process.
  */
 
-function createLocalBackendSupervisor({
+function createLocalRuntimeSupervisor({
   onStateChange = () => {},
 } = {}) {
   const state = {
@@ -93,6 +93,9 @@ function createLocalBackendSupervisor({
   };
 }
 
+const createLocalBackendSupervisor = createLocalRuntimeSupervisor;
+
 module.exports = {
   createLocalBackendSupervisor,
+  createLocalRuntimeSupervisor,
 };
