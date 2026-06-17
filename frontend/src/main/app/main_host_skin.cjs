@@ -80,7 +80,7 @@ const workspace = Object.freeze({
 });
 
 const queryEvents = Object.freeze({
-  sendFailure: `Your message wasn't sent because ${productName} isn't connected right now. Try again when the backend reconnects.`,
+  sendFailure: `Your message wasn't sent because ${productName} isn't connected right now. Try again when the connection is restored.`,
   interruptedAfterAccept: `${productName} lost connection before the response finished. Retry this message after reconnecting.`,
   interruptedBeforeAccept: `${productName} lost connection before confirming the message was received. Retry this message after reconnecting.`,
 });

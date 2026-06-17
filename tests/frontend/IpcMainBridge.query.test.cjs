@@ -589,7 +589,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(failNextQuerySend).toBe(false);
     expect(getLatestErrorEvent(mainWindow)).toEqual(expect.objectContaining({
       payload: expect.objectContaining({
-        message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
+        message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the connection is restored.",
       }),
     }));
 

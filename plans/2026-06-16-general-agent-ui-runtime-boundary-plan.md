@@ -214,3 +214,15 @@ Each completed slice should report:
   header scan for the old wording.
 - Compatibility: no migration required. Public bridge compatibility names and
   runtime behavior remain unchanged.
+
+### 2026-06-17 UI send-failure connection copy
+
+- Finding: renderer and main-process send-failure copy told users to wait for
+  "the backend" to reconnect, leaking transport/runtime internals into UI copy.
+- Change: changed renderer skin, main host skin, and the generic query-event
+  fallback to connection-oriented wording.
+- Validation: focused Jest run for `ChatMessageSender`, `IpcMainBridge.query`,
+  `MainHostSkinBoundary`, and `RendererSkinConfigBoundary`, plus a source scan
+  for the old phrase.
+- Compatibility: no migration required. This is user-facing copy only; event
+  payload shape and send-failure behavior are unchanged.

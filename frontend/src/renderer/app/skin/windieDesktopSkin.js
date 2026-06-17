@@ -150,7 +150,7 @@ export const windieDesktopSkin = Object.freeze({
   }),
   chat: Object.freeze({
     emptyTitle: `Welcome to ${productName} Demo`,
-    sendFailureMessage: `Your message wasn't sent because ${productName} isn't connected right now. Try again when the backend reconnects.`,
+    sendFailureMessage: `Your message wasn't sent because ${productName} isn't connected right now. Try again when the connection is restored.`,
     replayPreparationFailureMessage: `Your message was not resent because ${productName} could not prepare the conversation replay. Try reopening the chat and sending again.`,
     browserSession: Object.freeze({
       connectTitle: `Connect the dedicated ${browserName}`,

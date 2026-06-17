@@ -65,7 +65,7 @@ function buildQuerySendFailure({
     payload: {
       message: (
         copy.sendFailure
-        || "Your message wasn't sent because the app isn't connected right now. Try again when the backend reconnects."
+        || "Your message wasn't sent because the app isn't connected right now. Try again when the connection is restored."
       ),
     },
   };

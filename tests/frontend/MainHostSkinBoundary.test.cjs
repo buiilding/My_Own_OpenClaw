@@ -121,6 +121,7 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('WindieOS');
     expect(source).not.toContain("WindieOS isn't connected");
     expect(source).not.toContain('WindieOS lost connection');
+    expect(source).not.toContain('backend reconnects');
   });
 
   test('MCP runtime uses generic defaults instead of product identity', () => {
