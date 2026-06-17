@@ -1192,3 +1192,15 @@ Each completed slice should report:
   `git diff --check`, and stale service-label scan.
 - Compatibility: no migration required. Auth, status payloads, discovery file
   shape, daemon routes, and SDK local-runtime behavior are unchanged.
+
+### 2026-06-17 sidecar JSON-RPC service label
+
+- Finding: the sidecar JSON-RPC `ping` and status payloads still identified
+  their service as `local_backend`, even though the active owner is the local
+  sidecar runtime behind the SDK.
+- Change: changed the diagnostic service label to `local_sidecar_runtime`,
+  documented the `ping` label, and added producer plus daemon RPC coverage.
+- Validation: focused sidecar ping/status/RPC tests, docs listing,
+  `git diff --check`, and stale service-label scan.
+- Compatibility: no migration required. JSON-RPC method names, daemon routes,
+  status fields, tool execution, and SDK local-runtime behavior are unchanged.

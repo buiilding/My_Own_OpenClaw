@@ -68,7 +68,8 @@ The bridge:
 
 Registered in `LocalBackend._initialize_methods()`:
 
-- `ping`: health check
+- `ping`: health check; returns the generic `local_sidecar_runtime` service
+  label.
 - `get_status`: diagnostics (registered tools, memory status)
 - `execute_tool`: execute a named tool with args
 - `get_system_state`: capture system state (optional field selection)

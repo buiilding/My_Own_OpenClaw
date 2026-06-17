@@ -495,7 +495,7 @@ async def test_sidecar_daemon_rpc_endpoint_uses_backend_protocol():
     assert payload == {
         "jsonrpc": "2.0",
         "id": "rpc-1",
-        "result": {"status": "ok", "service": "local_backend"},
+        "result": {"status": "ok", "service": "local_sidecar_runtime"},
     }
 
 

@@ -565,6 +565,15 @@ async def test_handle_execute_tool_browser_packaged_runtime_uses_generic_install
 
 
 @pytest.mark.asyncio
+async def test_handle_ping_reports_local_sidecar_runtime_service():
+    backend = LocalBackend()
+
+    result = await backend._handle_ping()
+
+    assert result == {"status": "ok", "service": "local_sidecar_runtime"}
+
+
+@pytest.mark.asyncio
 async def test_handle_get_status_reports_tools():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({}))
@@ -574,6 +583,7 @@ async def test_handle_get_status_reports_tools():
     backend._find_available_browser_binary = lambda: "/tmp/chromium"  # type: ignore[assignment]
 
     status = await backend._handle_get_status()
+    assert status["service"] == "local_sidecar_runtime"
     assert status["running"] is True
     assert status["tool_count"] == 2
     assert "read_file" in status["registered_tools"]
