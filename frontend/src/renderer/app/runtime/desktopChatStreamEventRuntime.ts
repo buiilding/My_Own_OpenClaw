@@ -44,7 +44,7 @@ function shouldIgnoreForStaleTurn(
   const activeTurnRef = workspace.streamTracking.activeTurnRef;
   const normalizedActiveTurnRef = normalizeTurnRef(activeTurnRef);
   // During awaiting-first-chunk, fail-open on turn-ref mismatch so the first real
-  // backend packets can re-anchor stream state if optimistic local turn wiring
+  // runtime packets can re-anchor stream state if optimistic local turn wiring
   // never seeded this workspace with the current turn ref.
   if (isAwaitingFirstChunkMismatch(workspace, eventTurnRef, normalizedActiveTurnRef)) {
     return false;

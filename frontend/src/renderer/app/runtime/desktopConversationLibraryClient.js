@@ -9,6 +9,20 @@ import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';
+const LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS = Object.freeze([
+  'local runtime not ready',
+  'local backend not ready',
+  'sidecar daemon request failed',
+  'timed out waiting for sidecar daemon',
+]);
+const TRANSIENT_METADATA_LIST_ERROR_PATTERNS = Object.freeze([
+  ...LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS,
+  'request timed out',
+  'failed to list stored conversations',
+  'failed to fetch',
+  'fetch failed',
+  'econnrefused',
+]);
 
 function createDiagnosticId(prefix) {
   const randomUuid = globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function'
@@ -39,15 +53,7 @@ function isTransientMetadataListError(error) {
   if (!message) {
     return false;
   }
-  return message.includes('local runtime not ready')
-    || message.includes('local backend not ready')
-    || message.includes('request timed out')
-    || message.includes('failed to list stored conversations')
-    || message.includes('sidecar daemon request failed')
-    || message.includes('timed out waiting for sidecar daemon')
-    || message.includes('failed to fetch')
-    || message.includes('fetch failed')
-    || message.includes('econnrefused');
+  return TRANSIENT_METADATA_LIST_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
 }
 
 function shortDiagnosticError(error) {

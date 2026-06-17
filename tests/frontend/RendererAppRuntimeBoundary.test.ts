@@ -52,6 +52,20 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).not.toContain('INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS');
     expect(source).not.toContain('INVOKE_CHANNELS.GET_CHAT_EVENTS');
+    expect(source).toContain('TRANSIENT_METADATA_LIST_ERROR_PATTERNS');
+    expect(source).not.toContain("message.includes('local backend not ready')");
+    expect(source).not.toContain("message.includes('sidecar daemon request failed')");
+    expect(source).not.toContain("message.includes('timed out waiting for sidecar daemon')");
+  });
+
+  test('chat stream stale-turn guard uses generic runtime packet wording', async () => {
+    const source = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatStreamEventRuntime.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('runtime packets can re-anchor stream state');
+    expect(source).not.toContain('backend packets can re-anchor stream state');
   });
 
   test('live-turn and agent runtime transport facades use SDK-shaped command invoke for SDK runtime commands', async () => {

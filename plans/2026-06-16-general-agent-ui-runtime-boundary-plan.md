@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer transient runtime error pattern table
+
+- Finding: the renderer conversation-list facade still inlined lower-layer
+  local-backend and sidecar daemon error text inside the transient retry
+  classifier, and one chat stream guard comment described provider packets as
+  backend packets.
+- Change: moved compatibility transient error text into a named local-runtime
+  pattern table, made the classifier consume that table, and reworded the chat
+  stream comment to generic runtime packets.
+- Validation: focused renderer app-runtime and conversation-library Jest runs,
+  renderer runtime wording scan, docs listing, and diff check.
+- Compatibility: no migration required. Transient retry classification still
+  accepts the same lower-layer messages.
+
 ### 2026-06-17 renderer local runtime IPC registry aliases
 
 - Finding: the renderer local-runtime status store still depended on
