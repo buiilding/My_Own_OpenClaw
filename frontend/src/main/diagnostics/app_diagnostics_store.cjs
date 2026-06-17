@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { mainHostSkin } = require('../app/main_host_skin.cjs');
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH = 'conversation.metadata.list';
 const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
@@ -22,7 +23,7 @@ const WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH = 'wakeword.lifecycle';
 const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
 const FRONTEND_INTERACTION_DIAGNOSTICS_PATH = 'frontend.interaction';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
-const APP_DATA_DIR_NAME = 'windieos';
+const DEFAULT_APP_DATA_DIR_NAME = 'desktop-agent';
 
 const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
@@ -232,13 +233,14 @@ function diagnosticsDatabasePath() {
 }
 
 function appUserDataRoot() {
+  const appDataDirName = mainHostSkin?.dataPaths?.appDataDirName || DEFAULT_APP_DATA_DIR_NAME;
   if (process.env.WINDIE_USER_DATA_DIR) {
     return process.env.WINDIE_USER_DATA_DIR;
   }
   if (process.platform === 'win32') {
     return path.join(
       process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
-      APP_DATA_DIR_NAME,
+      appDataDirName,
     );
   }
   if (process.platform === 'darwin') {
@@ -246,12 +248,12 @@ function appUserDataRoot() {
       os.homedir(),
       'Library',
       'Application Support',
-      APP_DATA_DIR_NAME,
+      appDataDirName,
     );
   }
   return path.join(
     process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
-    APP_DATA_DIR_NAME,
+    appDataDirName,
   );
 }
 

@@ -58,7 +58,9 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("const productName = 'WindieOS'");
     expect(skinSource).toContain('identity');
     expect(skinSource).toContain('assets');
+    expect(skinSource).toContain('dataPaths');
     expect(skinSource).toContain('appIconFileName');
+    expect(skinSource).toContain("appDataDirName: 'windieos'");
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -122,6 +124,19 @@ describe('main host skin/config boundary', () => {
     expect(iconSource).toContain("DEFAULT_APP_ICON_FILE_NAME = 'app.png'");
     expect(iconSource).not.toContain('windieos.app.png');
     expect(windowRuntimeSource).toContain('mainHostSkin?.assets?.appIconFileName');
+  });
+
+  test('diagnostics app-data directory name lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const diagnosticsSource = fs.readFileSync(
+      path.join(mainRoot, 'diagnostics/app_diagnostics_store.cjs'),
+      'utf8',
+    );
+
+    expect(skinSource).toContain("appDataDirName: 'windieos'");
+    expect(diagnosticsSource).toContain("DEFAULT_APP_DATA_DIR_NAME = 'desktop-agent'");
+    expect(diagnosticsSource).toContain('mainHostSkin?.dataPaths?.appDataDirName');
+    expect(diagnosticsSource).not.toContain('windieos');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {

@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 diagnostics app-data host skin cleanup
+
+- Finding: the generic Electron diagnostics store still hard-coded the
+  WindieOS app-data directory name for non-Electron fallback diagnostics paths.
+- Change: moved that product-specific directory name into `main_host_skin` and
+  left a generic `desktop-agent` fallback in the diagnostics store.
+- Validation: focused app diagnostics and main host skin boundary Jest tests,
+  stale product-string scan for the diagnostics store, and diff check.
+- Compatibility: no migration required. Electron `app.getPath("userData")` and
+  explicit diagnostics env vars remain unchanged; only the non-Electron
+  diagnostics fallback now reads product skin config.
+
 ### 2026-06-17 sidecar executor folder map cleanup
 
 - Finding: the Python sidecar folder-structure reference still listed the old

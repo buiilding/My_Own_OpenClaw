@@ -24,6 +24,10 @@ const assets = Object.freeze({
   appIconFileName: 'windieos.app.png',
 });
 
+const dataPaths = Object.freeze({
+  appDataDirName: 'windieos',
+});
+
 const browserAutomation = Object.freeze({
   localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -115,6 +119,7 @@ const mainHostSkin = Object.freeze({
   productName,
   identity,
   assets,
+  dataPaths,
   hostedBackend,
   queryEvents,
   bundledRuntime,
