@@ -4,6 +4,7 @@
 
 import { Link2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { windieDesktopSkin } from '../../../app/skin/windieDesktopSkin';
 import { useBrowserSessionControl } from '../../../infrastructure/hooks/useBrowserSessionControl';
 
 function ChatBrowserSessionControl() {
@@ -96,14 +97,17 @@ function ChatBrowserSessionControl() {
 
   const buttonTitle = connected
     ? (currentTabTitle || currentTabUrl || currentTabLabel)
-    : (error || 'Connect the dedicated Windie browser');
+    : (error || windieDesktopSkin.chat.browserSession.connectTitle);
   const controlsDisabled = Boolean(busyAction) || !localBackendReady;
+  const copy = windieDesktopSkin.chat.browserSession;
+  const tabLabel = currentTabLabel || copy.tabFallbackLabel;
+  const tabControlLabel = `${copy.connectedLabelPrefix} ${tabLabel}`;
   const disconnectedButtonLabel = !localBackendReady && error
-    ? 'Browser unavailable'
-    : 'Connect browser';
+    ? copy.unavailableLabel
+    : copy.connectLabel;
   const disconnectedButtonText = localBackendReady
-    ? (busyAction === 'connect' ? 'Connecting browser…' : 'Connect browser')
-    : (error ? 'Browser unavailable' : 'Starting local runtime…');
+    ? (busyAction === 'connect' ? copy.connectingLabel : copy.connectLabel)
+    : (error ? copy.unavailableLabel : copy.startingRuntimeLabel);
 
   return (
     <div className="chat-browser-session-control" ref={rootRef}>
@@ -113,26 +117,26 @@ function ChatBrowserSessionControl() {
             type="button"
             className={`chat-browser-chip chat-browser-button${pickerOpen ? ' is-open' : ''}`}
             title={buttonTitle}
-            aria-label={`Browser Tab: ${currentTabLabel || 'New tab'}`}
+            aria-label={tabControlLabel}
             aria-expanded={pickerOpen}
             onClick={openPicker}
             disabled={controlsDisabled}
           >
             <span className="chat-browser-button-text">
-              {`Browser Tab: ${currentTabLabel || 'New tab'}`}
+              {tabControlLabel}
             </span>
           </button>
           {pickerOpen ? (
             <div
               className="chat-browser-picker"
               role="dialog"
-              aria-label="Browser tab carousel"
+              aria-label={copy.carouselLabel}
             >
               <div className="chat-browser-carousel">
                 <button
                   type="button"
                   className="chat-browser-carousel-arrow"
-                  aria-label="Previous browser tab"
+                  aria-label={copy.previousTabLabel}
                   onClick={() => handleCarouselMove(-1)}
                   disabled={controlsDisabled || tabs.length <= 1}
                 >
@@ -143,13 +147,13 @@ function ChatBrowserSessionControl() {
                     className="chat-browser-carousel-slide"
                     title={buttonTitle}
                   >
-                    {currentTabLabel || 'New tab'}
+                    {tabLabel}
                   </div>
                 </div>
                 <button
                   type="button"
                   className="chat-browser-carousel-arrow"
-                  aria-label="Next browser tab"
+                  aria-label={copy.nextTabLabel}
                   onClick={() => handleCarouselMove(1)}
                   disabled={controlsDisabled || tabs.length <= 1}
                 >
@@ -159,11 +163,11 @@ function ChatBrowserSessionControl() {
               <button
                 type="button"
                 className="chat-browser-disconnect-button"
-                aria-label="Disconnect browser"
+                aria-label={copy.disconnectLabel}
                 onClick={handleDisconnectBrowser}
                 disabled={controlsDisabled}
               >
-                <span>Disconnect browser</span>
+                <span>{copy.disconnectLabel}</span>
                 <Link2 size={16} aria-hidden="true" />
               </button>
             </div>

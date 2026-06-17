@@ -6,7 +6,7 @@ const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
 const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
 
-function isTransientRecentConversationsError(message) {
+function isGenericTransientRecentConversationsError(message) {
   if (typeof message !== 'string') {
     return false;
   }
@@ -14,11 +14,7 @@ function isTransientRecentConversationsError(message) {
   if (!normalized) {
     return false;
   }
-  return normalized.includes('local backend not ready')
-    || normalized.includes('request timed out')
-    || normalized.includes('failed to list stored conversations')
-    || normalized.includes('sidecar daemon request failed')
-    || normalized.includes('timed out waiting for sidecar daemon')
+  return normalized.includes('request timed out')
     || normalized.includes('failed to fetch')
     || normalized.includes('fetch failed')
     || normalized.includes('econnrefused');
@@ -59,11 +55,12 @@ export function shouldRetryRecentConversationsLoad({
   recentConversationsError,
   retryAttempt,
   maxRetryAttempts = MAX_RECENT_CHAT_RETRY_ATTEMPTS,
+  isTransientError = isGenericTransientRecentConversationsError,
 }) {
   return (
     !isLoadingRecentConversations
     && recentConversationsCount === 0
-    && isTransientRecentConversationsError(recentConversationsError)
+    && isTransientError(recentConversationsError)
     && retryAttempt < maxRetryAttempts
   );
 }

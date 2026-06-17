@@ -739,7 +739,7 @@ function buildDesktopAutoSidecarOptionsForAgent() {
     ...(windieAgentWebSocketImpl ? { WebSocketImpl: windieAgentWebSocketImpl } : {}),
   });
   if (plan.ok !== true) {
-    throw new Error(plan.error || 'Windie sidecar daemon launch is unavailable.');
+    throw new Error(plan.error || 'Desktop sidecar daemon launch is unavailable.');
   }
   return plan.options;
 }

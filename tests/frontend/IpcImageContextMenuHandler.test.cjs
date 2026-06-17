@@ -122,7 +122,7 @@ describe('ipc image context menu handler', () => {
     });
 
     expect(result).toEqual({ success: true });
-    await expect(templateEntries[0].click()).rejects.toThrow('not a trusted Windie artifact image');
+    await expect(templateEntries[0].click()).rejects.toThrow('not a trusted artifact image');
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 

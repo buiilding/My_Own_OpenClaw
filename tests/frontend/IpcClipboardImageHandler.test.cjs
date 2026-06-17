@@ -112,7 +112,7 @@ describe('ipc clipboard image handler', () => {
       clipboard,
       nativeImage,
       fetchImpl,
-    })).rejects.toThrow('not a trusted Windie artifact image');
+    })).rejects.toThrow('not a trusted artifact image');
 
     await expect(copyImageToClipboard({
       src: 'https://cdn.example/screenshot.png',
@@ -120,7 +120,7 @@ describe('ipc clipboard image handler', () => {
       nativeImage,
       fetchImpl,
       trustedImageOrigins: ['https://api.windieos.com'],
-    })).rejects.toThrow('not a trusted Windie artifact image');
+    })).rejects.toThrow('not a trusted artifact image');
 
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -186,7 +186,7 @@ describe('ipc clipboard image handler', () => {
       nativeImage,
       fetchImpl,
       trustedImageOrigins: ['https://api.windieos.com'],
-    })).rejects.toThrow('not a trusted Windie artifact image');
+    })).rejects.toThrow('not a trusted artifact image');
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(nativeImage.createFromBuffer).not.toHaveBeenCalled();

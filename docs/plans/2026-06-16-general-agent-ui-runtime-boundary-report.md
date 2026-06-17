@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f8d3a2b2d` (`refactor(sdk): keep context enrichment internals private`)
+- Latest inspected plan checkpoint: `3c478ba47` (`refactor(backend): remove unused parse recovery policy`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -167,6 +167,32 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Validation: focused SDK default-name and package-boundary tests pass.
 - Validation gap: the full `WindieSdkClient.test.ts` file was attempted, but two existing local-runtime provider tests failed because their temporary `python-in-env` launcher was unavailable in this environment.
 
+### 2026-06-16 Renderer Browser Control Skin Slice
+
+- Compaction recovery: recent commits, current worktree state, docs routing, and the plan report were inspected before continuing.
+- Finding: `ChatBrowserSessionControl` still embedded dedicated Windie browser copy directly in a chat component even though renderer product copy should be skin-owned.
+- Decision: extend `windieDesktopSkin.chat` with browser-session labels and titles while preserving the same rendered control behavior.
+- Change: chat browser-session title, connect/unavailable/loading labels, tab labels, carousel labels, and disconnect label now read from the renderer skin.
+- Change: renderer skin boundary tests now cover the chat browser control so product browser copy does not return to the component.
+- Validation: focused browser-control and renderer skin boundary tests pass.
+- Fresh inspection: renderer product naming again appears only in `windieDesktopSkin.js`.
+
+### 2026-06-16 Renderer Conversation Retry Boundary Slice
+
+- Finding: dashboard recent-chat retry policy matched local backend and sidecar daemon error strings directly in a feature utility.
+- Decision: keep feature retry state generic and let the desktop conversation library facade classify runtime-specific transient metadata-list errors.
+- Change: `DesktopConversationLibraryClient.isTransientMetadataListError(...)` owns local-runtime/sidecar transient error matching for conversation metadata loads.
+- Change: `shouldRetryRecentConversationsLoad(...)` now accepts an injected transient-error classifier, with only generic network timeout defaults.
+- Validation: focused dashboard conversation load, desktop conversation library, and dashboard hook tests pass.
+
+### 2026-06-16 Main Generic Adapter Error Slice
+
+- Finding: main-process adapter code still used product-specific wording for a sidecar launch fallback and trusted artifact-image rejection.
+- Decision: make those reusable Electron-host/security-adapter messages generic; product-specific copy remains in `mainHostSkin` where needed.
+- Change: sidecar auto-launch fallback now says the desktop sidecar daemon is unavailable.
+- Change: clipboard/image context-menu artifact URL validation now reports "trusted artifact image" without Windie branding.
+- Validation: focused clipboard image, image context menu, and main host skin boundary tests pass.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -184,6 +210,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK deep modules keep unused internal helpers private.
 - [x] Renderer voice capture internals use generic naming.
 - [x] SDK default agent display names are generic unless hosts pass product identity.
+- [x] Chat browser-session copy reads from the renderer skin.
+- [x] Dashboard recent-chat retry policy consumes app-runtime transient error classification instead of matching sidecar text directly.
+- [x] Reusable main-process adapter errors avoid product-specific fallback wording.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -233,11 +262,20 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts` failed only in two existing local-runtime provider tests because their temporary `python-in-env` launcher was unavailable.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts -t "buildAgentDefinition|auto-registers hosted install auth|package boundary"` passed.
 - `rg -n "WindieOS Agent|Windie Agent|Desktop Agent|name: options.name|name: normalizeString" packages/windie-sdk-js/src/runtime/AgentDefinition.ts packages/windie-sdk-js/src/runtime/WindieClient.ts packages/windie-sdk-js/cjs/runtime/AgentDefinition.js packages/windie-sdk-js/cjs/runtime/WindieClient.js tests/frontend/WindieSdkClient.test.ts` found only the new generic defaults and tests.
+- `bin\windie.cmd docs list` passed during compaction recovery orientation.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/RendererSkinConfigBoundary.test.cjs ../tests/frontend/ChatBrowserSessionControl.test.jsx` passed.
+- `rg -n "dedicated Windie browser|Windie browser|Windie Browser|WindieOS" frontend/src/renderer -g "*.js" -g "*.jsx" -g "*.ts" -g "*.tsx"` found only `windieDesktopSkin.js`.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/DashboardConversationLoad.test.js ../tests/frontend/DesktopConversationLibraryClient.test.ts ../tests/frontend/UseDashboardConversations.test.jsx` passed.
+- `rg -n "sidecar daemon|local backend not ready|failed to list stored conversations" frontend/src/renderer/features/dashboard/utils frontend/src/renderer/features/dashboard/hooks frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js` found runtime-specific matches only in `desktopConversationLibraryClient.js`.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/IpcClipboardImageHandler.test.cjs ../tests/frontend/IpcImageContextMenuHandler.test.cjs ../tests/frontend/MainHostSkinBoundary.test.cjs` passed.
+- `rg -n "trusted Windie artifact|Windie sidecar daemon|WindieOS local backend|Click Grant to install Chromium for WindieOS|Reinstall WindieOS|Failed to open the WindieOS browser|WindieOS could not" frontend/src/main -g "*.cjs"` found no matches outside the host skin/test guard scope.
 
 ## Remaining Findings
 
-- Renderer product naming is now skin-owned in live renderer source. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
+- Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
 - Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, layer-log prefixes, bundled wakeword/sidecar reinstall guidance, local browser warmup, and OAuth callback copy now read related product copy from a host skin. Fresh inspection found WindieOS product naming only in `main_host_skin.cjs` under `frontend/src/main`.
+- Dashboard recent-chat retry state no longer matches sidecar daemon wording in feature utilities; the desktop conversation library facade owns runtime-specific transient metadata-list error classification.
+- Main Electron adapter fallback errors for sidecar launch and artifact-image trust are generic outside the host skin.
 - Voice capture internals now use generic desktop-agent naming. The remaining
   renderer voice references are intentional feature/runtime names, not product
   skin copy.

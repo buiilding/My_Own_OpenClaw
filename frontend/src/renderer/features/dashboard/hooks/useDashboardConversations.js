@@ -395,6 +395,7 @@ function useDashboardConversations({
       recentConversationsCount: recentConversations.length,
       recentConversationsError,
       retryAttempt,
+      isTransientError: DesktopConversationLibraryClient.isTransientMetadataListError,
     })) {
       return undefined;
     }

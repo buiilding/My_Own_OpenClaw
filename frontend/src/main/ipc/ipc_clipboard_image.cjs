@@ -82,7 +82,7 @@ function validateRemoteImageUrl(src, policy = {}) {
 
   const trustedOrigins = resolveTrustedImageOrigins(policy);
   if (!trustedOrigins.has(url.origin) || !isArtifactImagePath(url)) {
-    throw new Error('Image source URL is not a trusted Windie artifact image.');
+    throw new Error('Image source URL is not a trusted artifact image.');
   }
   return url.toString();
 }

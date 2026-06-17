@@ -65,6 +65,7 @@ describe('renderer skin/config boundary', () => {
       'features/chat/hooks/useChatMessageSender.ts',
       'features/chat/hooks/useConversationReplayActions.js',
       'features/chat/components/ChatInterface.jsx',
+      'features/chat/components/ChatBrowserSessionControl.jsx',
       'app/runtime/desktopLiveTurnRuntimeClient.ts',
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
 
@@ -76,6 +77,7 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain("WindieOS isn't connected");
       expect(source).not.toContain('WindieOS could not prepare');
       expect(source).not.toContain('WindieOS runtime');
+      expect(source).not.toContain('dedicated Windie browser');
     }
   });
 

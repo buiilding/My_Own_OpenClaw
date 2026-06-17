@@ -140,6 +140,18 @@ describe('DesktopConversationLibraryClient', () => {
     }));
   });
 
+  test('classifies transient metadata list runtime errors behind the app facade', () => {
+    expect(DesktopConversationLibraryClient.isTransientMetadataListError(
+      'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
+    )).toBe(true);
+    expect(DesktopConversationLibraryClient.isTransientMetadataListError(
+      'Local backend not ready',
+    )).toBe(true);
+    expect(DesktopConversationLibraryClient.isTransientMetadataListError(
+      'hard validation failure',
+    )).toBe(false);
+  });
+
   test('filters loaded display rows to the requested conversation', async () => {
     mockInvokeWindieCommand.mockResolvedValueOnce({
       displayRows: [

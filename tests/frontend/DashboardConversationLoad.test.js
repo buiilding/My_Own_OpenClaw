@@ -45,6 +45,7 @@ describe('dashboardConversationLoad', () => {
       recentConversationsCount: 0,
       recentConversationsError: 'Local backend not ready',
       retryAttempt: 0,
+      isTransientError: (message) => String(message).toLowerCase().includes('local backend'),
     })).toBe(true);
 
     expect(shouldRetryRecentConversationsLoad({
@@ -73,6 +74,7 @@ describe('dashboardConversationLoad', () => {
       recentConversationsCount: 0,
       recentConversationsError: 'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
       retryAttempt: 0,
+      isTransientError: (message) => String(message).toLowerCase().includes('sidecar daemon'),
     })).toBe(true);
 
     expect(shouldRetryRecentConversationsLoad({
@@ -94,6 +96,22 @@ describe('dashboardConversationLoad', () => {
       recentConversationsCount: 0,
       recentConversationsError: 'request timed out',
       retryAttempt: 8,
+    })).toBe(false);
+  });
+
+  test('keeps runtime-specific transient error matching outside the dashboard utility', () => {
+    expect(shouldRetryRecentConversationsLoad({
+      isLoadingRecentConversations: false,
+      recentConversationsCount: 0,
+      recentConversationsError: 'Local backend not ready',
+      retryAttempt: 0,
+    })).toBe(false);
+
+    expect(shouldRetryRecentConversationsLoad({
+      isLoadingRecentConversations: false,
+      recentConversationsCount: 0,
+      recentConversationsError: 'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
+      retryAttempt: 0,
     })).toBe(false);
   });
 });

@@ -34,6 +34,21 @@ function classifyDiagnosticError(error) {
   return 'runtime_error';
 }
 
+function isTransientMetadataListError(error) {
+  const message = String(error?.message || error || '').trim().toLowerCase();
+  if (!message) {
+    return false;
+  }
+  return message.includes('local backend not ready')
+    || message.includes('request timed out')
+    || message.includes('failed to list stored conversations')
+    || message.includes('sidecar daemon request failed')
+    || message.includes('timed out waiting for sidecar daemon')
+    || message.includes('failed to fetch')
+    || message.includes('fetch failed')
+    || message.includes('econnrefused');
+}
+
 function shortDiagnosticError(error) {
   const message = String(error?.message || error || 'Conversation metadata list failed')
     .replace(/\s+/g, ' ')
@@ -78,6 +93,8 @@ function metadataToDashboardConversation(metadata) {
 }
 
 export const DesktopConversationLibraryClient = {
+  isTransientMetadataListError,
+
   async listMetadata(userId, options) {
     const diagnostics = {
       path: CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH,

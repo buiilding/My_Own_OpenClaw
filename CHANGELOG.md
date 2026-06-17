@@ -17,6 +17,11 @@ All notable changes to WindieOS will be documented in this file.
   runtime commands.
 - frontend/renderer: route onboarding, chat empty-state, send/replay failure,
   and live-turn fallback copy through the WindieOS renderer skin config.
+- frontend/renderer: route chat browser-session labels and title copy through
+  the WindieOS renderer skin config so the browser control remains generic UI.
+- frontend/renderer: move recent-chat transient runtime error classification
+  behind the desktop conversation library facade so dashboard retry policy no
+  longer matches sidecar daemon wording directly.
 - frontend/renderer: rename voice capture worklet internals to generic desktop
   agent terms so product naming stays in the renderer skin.
 - frontend/main: route browser and macOS automation permission copy through the
@@ -41,6 +46,8 @@ All notable changes to WindieOS will be documented in this file.
   of exporting an unused module surface.
 - frontend/main: route local browser warmup and OpenAI Codex OAuth callback
   product copy through main host skin config with generic helper fallbacks.
+- frontend/main: use generic Electron-host fallback wording for sidecar launch
+  and trusted artifact-image errors outside the WindieOS host skin.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.
