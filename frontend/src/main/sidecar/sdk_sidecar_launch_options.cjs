@@ -164,8 +164,9 @@ function createDesktopAutoSidecarLaunchPlan({
   authStatePath,
   WebSocketImpl,
   copy = {},
+  resolveLaunchTarget = resolveSidecarLaunchTarget,
 } = {}) {
-  const launchTarget = resolveSidecarLaunchTarget('sidecar_daemon.py');
+  const launchTarget = resolveLaunchTarget('sidecar_daemon.py');
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     return {
       ok: false,
@@ -218,5 +219,4 @@ function createDesktopAutoSidecarLaunchPlan({
 
 module.exports = {
   createDesktopAutoSidecarLaunchPlan,
-  createMissingCommandError,
 };

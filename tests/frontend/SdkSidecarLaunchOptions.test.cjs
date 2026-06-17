@@ -6,7 +6,6 @@ const path = require('path');
 
 const {
   createDesktopAutoSidecarLaunchPlan,
-  createMissingCommandError,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 const {
   mainHostSkin,
@@ -14,14 +13,25 @@ const {
 
 describe('sdk sidecar launch options', () => {
   test('uses host skin copy for packaged missing Python guidance', () => {
-    expect(createMissingCommandError({
+    const plan = createDesktopAutoSidecarLaunchPlan({
       isPackaged: true,
       copy: mainHostSkin.bundledRuntime,
-    })).toBe('Bundled Python runtime not found in app resources. Please reinstall WindieOS.');
+      resolveLaunchTarget: () => ({ kind: 'python', command: null }),
+    });
+
+    expect(plan.ok).toBe(false);
+    expect(plan.error)
+      .toBe('Bundled Python runtime not found in app resources. Please reinstall WindieOS.');
   });
 
   test('uses generic packaged missing Python fallback without host skin copy', () => {
-    expect(createMissingCommandError({ isPackaged: true }))
+    const plan = createDesktopAutoSidecarLaunchPlan({
+      isPackaged: true,
+      resolveLaunchTarget: () => ({ kind: 'python', command: null }),
+    });
+
+    expect(plan.ok).toBe(false);
+    expect(plan.error)
       .toBe('Bundled Python runtime not found in app resources. Please reinstall this app.');
   });
 

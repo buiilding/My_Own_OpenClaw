@@ -32,6 +32,8 @@ All notable changes to WindieOS will be documented in this file.
   while keeping the shared log sink default generic.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
+- frontend/main: keep the sidecar launch missing-command helper private instead
+  of exporting an unused module surface.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.
