@@ -18,6 +18,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieClient = void 0;
-const AgentClient_js_1 = require("./AgentClient.js");
 __exportStar(require("./AgentClient.js"), exports);
+var AgentClient_js_1 = require("./AgentClient.js");
 Object.defineProperty(exports, "WindieClient", { enumerable: true, get: function () { return AgentClient_js_1.AgentClient; } });

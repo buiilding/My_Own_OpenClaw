@@ -811,6 +811,3 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     }
   };
 }
-
-export type SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;
-export const SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;

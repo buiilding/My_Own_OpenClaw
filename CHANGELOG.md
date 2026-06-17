@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK `sidecarDaemon` option and `SidecarDaemonHttpClient` aliases so JS and Python callers use `localRuntimeDaemon` and `AgentLocalRuntimeHttpClient` directly.
+
 - Recorded the renderer endpoint wrapper deletion in the boundary implementation plan.
 
 - Removed the renderer BackendEndpointStore compatibility wrapper so artifact and transcription URL helpers only resolve through RuntimeEndpointStore.

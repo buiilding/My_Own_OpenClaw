@@ -1696,6 +1696,5 @@ class AgentSdkClient(RemoteApiClientBase):
             await session.close()
 
 
-SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient
 WindieSdkAgentSession = AgentSdkAgentSession
 WindieSdkClient = AgentSdkClient

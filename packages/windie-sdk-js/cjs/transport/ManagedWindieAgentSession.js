@@ -18,7 +18,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createManagedWindieAgentSession = exports.ManagedWindieAgentSession = void 0;
-const ManagedAgentSession_js_1 = require("./ManagedAgentSession.js");
 __exportStar(require("./ManagedAgentSession.js"), exports);
+var ManagedAgentSession_js_1 = require("./ManagedAgentSession.js");
 Object.defineProperty(exports, "ManagedWindieAgentSession", { enumerable: true, get: function () { return ManagedAgentSession_js_1.ManagedAgentSession; } });
 Object.defineProperty(exports, "createManagedWindieAgentSession", { enumerable: true, get: function () { return ManagedAgentSession_js_1.createManagedAgentSession; } });

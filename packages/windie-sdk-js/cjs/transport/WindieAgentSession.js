@@ -18,8 +18,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWindieAgentSession = exports.createWindieAgentBackendTransport = exports.WindieAgentSession = void 0;
-const AgentSession_js_1 = require("./AgentSession.js");
 __exportStar(require("./AgentSession.js"), exports);
+var AgentSession_js_1 = require("./AgentSession.js");
 Object.defineProperty(exports, "WindieAgentSession", { enumerable: true, get: function () { return AgentSession_js_1.AgentSession; } });
 Object.defineProperty(exports, "createWindieAgentBackendTransport", { enumerable: true, get: function () { return AgentSession_js_1.createAgentBackendTransport; } });
 Object.defineProperty(exports, "createWindieAgentSession", { enumerable: true, get: function () { return AgentSession_js_1.createAgentSession; } });

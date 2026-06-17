@@ -18,6 +18,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWindieSdkBackendSocket = void 0;
-const BackendSocketFactory_js_1 = require("./BackendSocketFactory.js");
 __exportStar(require("./BackendSocketFactory.js"), exports);
+var BackendSocketFactory_js_1 = require("./BackendSocketFactory.js");
 Object.defineProperty(exports, "createWindieSdkBackendSocket", { enumerable: true, get: function () { return BackendSocketFactory_js_1.createAgentBackendSocket; } });

@@ -5,7 +5,6 @@ from core.windie_sdk_client import (
     AgentSdkAgentSession,
     AgentSdkClient,
     AgentLocalRuntimeHttpClient,
-    SidecarDaemonHttpClient,
     WindieSdkAgentSession,
     WindieSdkClient,
 )
@@ -15,7 +14,6 @@ __all__ = [
     "AgentSdkClient",
     "AgentLocalRuntimeHttpClient",
     "RemoteSemanticClient",
-    "SidecarDaemonHttpClient",
     "WindieSdkAgentSession",
     "WindieSdkClient",
 ]

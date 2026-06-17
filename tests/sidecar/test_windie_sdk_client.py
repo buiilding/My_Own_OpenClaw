@@ -22,13 +22,11 @@ from core import windie_sdk_client as windie_sdk_client_module  # noqa: E402
 from core import (  # noqa: E402
     AgentLocalRuntimeHttpClient as ExportedAgentLocalRuntimeHttpClient,
     AgentSdkClient as ExportedAgentSdkClient,
-    SidecarDaemonHttpClient as ExportedSidecarDaemonHttpClient,
     WindieSdkClient as ExportedWindieSdkClient,
 )
 from core.windie_sdk_client import (  # noqa: E402
     AgentLocalRuntimeHttpClient,
     AgentSdkClient,
-    SidecarDaemonHttpClient,
     WindieSdkClient,
 )
 from windie import sdk as windie_sdk_module  # noqa: E402
@@ -81,11 +79,10 @@ def test_python_sdk_default_sidecar_discovery_path_is_generic():
 
 
 def test_python_sdk_local_runtime_http_client_is_canonical():
-    assert windie_sdk_module.SidecarDaemonHttpClient is (
-        windie_sdk_module.AgentLocalRuntimeHttpClient
-    )
-    assert SidecarDaemonHttpClient is AgentLocalRuntimeHttpClient
-    assert ExportedSidecarDaemonHttpClient is ExportedAgentLocalRuntimeHttpClient
+    assert windie_sdk_module.AgentLocalRuntimeHttpClient is AgentLocalRuntimeHttpClient
+    assert ExportedAgentLocalRuntimeHttpClient is AgentLocalRuntimeHttpClient
+    assert not hasattr(windie_sdk_module, "SidecarDaemonHttpClient")
+    assert not hasattr(windie_sdk_client_module, "SidecarDaemonHttpClient")
 
 
 def test_python_sdk_generated_agent_identity_is_generic():

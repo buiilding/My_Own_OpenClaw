@@ -123,7 +123,6 @@ export type AgentClientOptions = {
   sidecar?: AgentLocalRuntimeClient;
   localToolLifecycle?: LocalToolExecutionLifecycle;
   localRuntimeDaemon?: AgentLocalRuntimeHttpClientOptions;
-  sidecarDaemon?: AgentLocalRuntimeHttpClientOptions;
   ensureLocalRuntime?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
   autoSidecar?: AgentAutoSidecarOptions;
@@ -465,7 +464,7 @@ export class AgentClient {
     if (explicitRuntime) {
       return explicitRuntime;
     }
-    const daemonOptions = this.defaultOptions.localRuntimeDaemon ?? this.defaultOptions.sidecarDaemon;
+    const daemonOptions = this.defaultOptions.localRuntimeDaemon;
     if (daemonOptions) {
       return new AgentLocalRuntimeHttpClient({
         ...daemonOptions,

@@ -28,9 +28,8 @@ title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
 Electron main does not spawn `local_backend.py` as a standalone process. Desktop
 startup builds SDK `autoSidecar` launch options, then `AgentClient.wakeUp()`
 or a bridge helper call resolves the SDK local runtime provider. The SDK starts
-or reuses `sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient` (with
-`SidecarDaemonHttpClient` as a compatibility alias), and unwraps daemon `/rpc`
-JSON-RPC results.
+or reuses `sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient`, and unwraps
+daemon `/rpc` JSON-RPC results.
 
 Electron main owns only host-side behavior:
 

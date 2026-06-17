@@ -713,10 +713,9 @@ The SDK auto sidecar provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns
 `AgentLocalRuntimeHttpClient`, unwraps JSON-RPC `/rpc` responses before callers
 see them, and exposes the runtime to memory, persistence, tool registration,
-and local tool execution. `SidecarDaemonHttpClient` remains a compatibility
-alias for callers that used the sidecar-named HTTP client directly. Discovery
-files are daemon-authored snake_case metadata: the SDK accepts `base_url` plus
-`token` and ignores stale camelCase discovery metadata such as `baseUrl`.
+and local tool execution. Discovery files are daemon-authored snake_case
+metadata: the SDK accepts `base_url` plus `token` and ignores stale camelCase
+discovery metadata such as `baseUrl`.
 Electron remains responsible for host-only behavior around native windows,
 screenshots, display bounds, and artifact upload plumbing.
 
@@ -741,7 +740,6 @@ Non-Electron SDK hosts can override that behavior with:
   and uses `/status`, registration endpoints, `/tools`, and `/execute-tool`.
   This camelCase `baseUrl` option does not change the daemon discovery-file
   contract, which remains canonical `base_url`.
-- `sidecarDaemon`: compatibility alias for `localRuntimeDaemon`.
 - `memory`: enabled by default. When enabled, the SDK obtains backend embeddings,
   asks the sidecar memory index for relevant local memories, injects them into
   model-facing user content, and stores completed turns as episodic memory.

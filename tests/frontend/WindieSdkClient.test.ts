@@ -2207,32 +2207,6 @@ describe('Agent SDK client behavior', () => {
     expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
   });
 
-  test('sidecarDaemon remains a compatibility alias for local runtime daemon options', async () => {
-    mockFetch.mockImplementation(async (url) => {
-      const parsedUrl = String(url);
-      if (parsedUrl.endsWith('/status')) {
-        return jsonResponse({ status: 'ok' }) as any;
-      }
-      return jsonResponse({ version: 1, tools: [] }) as any;
-    });
-    const client = new AgentClient({
-      backendUrl: 'https://api.windieos.com',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'dev-user',
-      sidecarDaemon: {
-        baseUrl: 'http://127.0.0.1:43124',
-        token: 'legacy-daemon-token',
-      },
-    });
-
-    await expect(client.localStatus()).resolves.toEqual({ status: 'ok' });
-
-    const statusCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/status'));
-    expect(statusCall?.[0]).toBe('http://127.0.0.1:43124/status');
-    expect((statusCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('legacy-daemon-token');
-  });
-
   test('wakeUp can expose desktop builtin tools from the sidecar manifest', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),

@@ -18,7 +18,6 @@ import {
   SDK_RUNTIME_COMMANDS,
   ToolExecutionCoordinator,
   AgentLocalRuntimeHttpClient,
-  SidecarDaemonHttpClient,
   AgentChatSession,
   agentBuiltins,
   buildDisplayConversation,
@@ -103,7 +102,6 @@ describe('@windie/sdk package boundary', () => {
     expect(LocalRuntimeConversationStore).toBeDefined();
     expect(SidecarConversationStore).toBe(LocalRuntimeConversationStore);
     expect(AgentLocalRuntimeHttpClient).toBeDefined();
-    expect(SidecarDaemonHttpClient).toBe(AgentLocalRuntimeHttpClient);
     expect(SdkConversationRuntime).toBeDefined();
     expect(SDK_RUNTIME_COMMANDS).toBeDefined();
     expect(createConversationRuntime).toBeDefined();

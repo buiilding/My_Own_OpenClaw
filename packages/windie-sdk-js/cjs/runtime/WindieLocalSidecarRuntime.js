@@ -18,6 +18,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWindieLocalRuntimeProvider = void 0;
-const LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
 __exportStar(require("./LocalSidecarRuntime.js"), exports);
+var LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
 Object.defineProperty(exports, "createWindieLocalRuntimeProvider", { enumerable: true, get: function () { return LocalSidecarRuntime_js_1.createAgentLocalRuntimeProvider; } });

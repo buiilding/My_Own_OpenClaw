@@ -18,6 +18,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieSdkClient = void 0;
-const HostedBackendHttpClient_js_1 = require("./HostedBackendHttpClient.js");
 __exportStar(require("./HostedBackendHttpClient.js"), exports);
+var HostedBackendHttpClient_js_1 = require("./HostedBackendHttpClient.js");
 Object.defineProperty(exports, "WindieSdkClient", { enumerable: true, get: function () { return HostedBackendHttpClient_js_1.AgentHostedBackendClient; } });

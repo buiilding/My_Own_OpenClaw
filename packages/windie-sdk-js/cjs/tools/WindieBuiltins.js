@@ -18,6 +18,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.windieBuiltins = void 0;
-const builtins_js_1 = require("./builtins.js");
 __exportStar(require("./builtins.js"), exports);
+var builtins_js_1 = require("./builtins.js");
 Object.defineProperty(exports, "windieBuiltins", { enumerable: true, get: function () { return builtins_js_1.agentBuiltins; } });
