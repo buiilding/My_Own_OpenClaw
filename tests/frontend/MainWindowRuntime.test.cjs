@@ -527,7 +527,7 @@ describe('main_window_runtime createMainWindow', () => {
       initializeWakewordBridge: jest.fn(),
       showChatWindow: jest.fn().mockReturnValue({ success: true }),
       emitWakewordSttTrigger: jest.fn(),
-      initializeLocalBackendBridge: jest.fn(),
+      initializeLocalRuntimeBridge: jest.fn(),
       getKnownLocalRuntime: jest.fn(),
       ensureLocalRuntime: jest.fn(),
       initializeMainProcessIpc: jest.fn(),
@@ -577,15 +577,15 @@ describe('main_window_runtime createMainWindow', () => {
     }));
   });
 
-  test('passes the permission state path into local backend initialization', () => {
+  test('passes the permission state path into local runtime bridge initialization', () => {
     const { deps } = createDeps({
       permissionStatePath: '/tmp/windieos-permission-state.json',
     });
 
     createMainWindow(deps);
 
-    expect(deps.initializeLocalBackendBridge).toHaveBeenCalledTimes(1);
-    const [getWindows, bridgeOptions] = deps.initializeLocalBackendBridge.mock.calls[0];
+    expect(deps.initializeLocalRuntimeBridge).toHaveBeenCalledTimes(1);
+    const [getWindows, bridgeOptions] = deps.initializeLocalRuntimeBridge.mock.calls[0];
     expect(typeof getWindows).toBe('function');
     expect(bridgeOptions).toEqual(expect.objectContaining({
       getKnownLocalRuntime: deps.getKnownLocalRuntime,

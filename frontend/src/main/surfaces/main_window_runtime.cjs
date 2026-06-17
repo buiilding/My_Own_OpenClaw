@@ -186,7 +186,7 @@ function createMainWindow({
   initializeWakewordBridge,
   showChatWindow,
   emitWakewordSttTrigger,
-  initializeLocalBackendBridge,
+  initializeLocalRuntimeBridge,
   getKnownLocalRuntime = null,
   ensureLocalRuntime = null,
   permissionStatePath = null,
@@ -259,7 +259,7 @@ function createMainWindow({
   }, {
     bundledRuntimeCopy: mainHostSkin?.bundledRuntime,
   });
-  initializeLocalBackendBridge(getWindows, {
+  initializeLocalRuntimeBridge(getWindows, {
     getKnownLocalRuntime,
     ensureLocalRuntime,
     isPackaged: app.isPackaged,

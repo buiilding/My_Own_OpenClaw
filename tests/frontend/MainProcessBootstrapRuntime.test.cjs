@@ -40,7 +40,7 @@ describe('main_process_bootstrap_runtime', () => {
         localToolLifecycle: { beforeExecute: jest.fn() },
         syncSdkLiveTurnSurfaceIntent: jest.fn(),
         initializeWakewordBridge: jest.fn(),
-        initializeLocalBackendBridge: jest.fn(),
+        initializeLocalRuntimeBridge: jest.fn(),
         getKnownLocalRuntime: jest.fn(),
         ensureLocalRuntime: jest.fn(),
         initializeMainProcessIpc: jest.fn(),

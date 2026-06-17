@@ -57,7 +57,7 @@ Creation behavior:
 - initializes:
   - IPC bridge (`initializeIpc`)
   - wakeword bridge (`initializeWakewordBridge`)
-  - local backend bridge (`initializeLocalBackendBridge`)
+  - SDK local runtime bridge (`initializeLocalRuntimeBridge`, adapted from the compatibility `initializeLocalBackendBridge` export at `index.cjs`)
   - main-process IPC registration (`initializeMainProcessIpc`)
 
 Important ownership note:
