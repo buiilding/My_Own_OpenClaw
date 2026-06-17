@@ -17,7 +17,7 @@ import {
   type SdkDisplayRow,
   type TraceTimelineEntry,
 } from '../api/windieSdkClient';
-import { invokeWindieCommand } from '../../app/runtime/windieCommandInvokeClient';
+import { invokeAgentSdkCommand } from '../../app/runtime/agentSdkCommandInvokeClient';
 
 export type DesktopTraceTimelineOptions = {
   turnRef?: string | null;
@@ -30,7 +30,7 @@ export function createDesktopConversationStore(
 ): ConversationStore {
   return {
     async appendEvent(event: ConversationEvent): Promise<void> {
-      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_APPEND_EVENT, {
+      await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_APPEND_EVENT, {
         userId,
         conversationRef: event.conversationRef,
         event,
@@ -42,21 +42,21 @@ export function createDesktopConversationStore(
       }
     },
     async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE, {
+      await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REWRITE, {
         userId,
         conversationRef: plan.conversationRef,
         plan,
       });
     },
     async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
-      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY, {
+      await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REPLACE_COMPACTED_REPLAY, {
         userId,
         conversationRef: snapshot.conversationRef,
         snapshot,
       });
     },
     async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
-      const snapshot = await invokeWindieCommand<{
+      const snapshot = await invokeAgentSdkCommand<{
         state?: { events?: ConversationEvent[] };
       }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD, {
         userId,
@@ -65,7 +65,7 @@ export function createDesktopConversationStore(
       return Array.isArray(snapshot?.state?.events) ? snapshot.state.events : [];
     },
     async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-      const snapshot = await invokeWindieCommand<{
+      const snapshot = await invokeAgentSdkCommand<{
         display?: DisplayConversation;
       }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
         userId,
@@ -79,7 +79,7 @@ export function createDesktopConversationStore(
       };
     },
     async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
-      const snapshot = await invokeWindieCommand<{
+      const snapshot = await invokeAgentSdkCommand<{
         displayRows?: SdkDisplayRow[];
       }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY, {
         userId,
@@ -88,7 +88,7 @@ export function createDesktopConversationStore(
       return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
     },
     async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
-      const snapshot = await invokeWindieCommand<{
+      const snapshot = await invokeAgentSdkCommand<{
         rehydrate?: RehydrateSnapshot;
       }>(SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_REHYDRATE, {
         userId,
@@ -101,14 +101,14 @@ export function createDesktopConversationStore(
       };
     },
     async listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-      const metadata = await invokeWindieCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
+      const metadata = await invokeAgentSdkCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
         userId,
         limit: options?.limit,
       });
       return Array.isArray(metadata) ? metadata : [];
     },
     async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {
-      const metadata = await invokeWindieCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
+      const metadata = await invokeAgentSdkCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
         userId,
         query: options.query,
         limit: options.limit,
@@ -116,18 +116,18 @@ export function createDesktopConversationStore(
       return Array.isArray(metadata) ? metadata : [];
     },
     async deleteConversation(conversationRef: string): Promise<void> {
-      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
+      await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
         userId,
         conversationRef,
       });
     },
     async clearConversations(): Promise<void> {
-      await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL, {
+      await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL, {
         userId,
       });
     },
     async getRevision(conversationRef: string) {
-      return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_GET_REVISION, {
+      return invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_GET_REVISION, {
         userId,
         conversationRef,
       });

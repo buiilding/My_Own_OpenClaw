@@ -8,7 +8,7 @@ import {
 } from '../../infrastructure/api/windieSdkClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
-import { invokeWindieCommand } from './windieCommandInvokeClient';
+import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 
 function optionalString(value: unknown): string | null {
   return normalizeNonEmptyString(value);
@@ -25,7 +25,7 @@ function optionalStringArray(value: unknown): string[] | null {
 }
 
 async function sendStopQuery(conversationRef: string | null, turnRef: string | null): Promise<void> {
-  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
+  await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
     conversation_ref: conversationRef,
     turn_ref: turnRef,
   });
@@ -36,7 +36,7 @@ async function sendQuery(
   workspacePath: string | null,
   messageId: string | null,
 ): Promise<string | null> {
-  const result = await invokeWindieCommand<Record<string, unknown> | null>(
+  const result = await invokeAgentSdkCommand<Record<string, unknown> | null>(
     SDK_RUNTIME_COMMANDS.CONVERSATION_SEND,
     {
       text: optionalString(payload.text) ?? '',
@@ -78,7 +78,7 @@ function optionalRecordArray(value: unknown): Record<string, unknown>[] {
 }
 
 async function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
-  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE, {
+  await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE, {
     conversation_ref: optionalString(payload.conversation_ref) ?? '',
     messages: optionalRecordArray(payload.messages),
     rehydrate_mode: 'replace',
@@ -87,22 +87,22 @@ async function sendRehydrateConversation(payload: Record<string, unknown>, works
 }
 
 async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
-  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
+  await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
     force: payload.force !== false,
     conversation_ref: optionalString(payload.conversation_ref) ?? null,
   });
 }
 
 async function sendWakewordDetected(payload: Record<string, unknown>): Promise<void> {
-  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED, payload);
+  await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED, payload);
 }
 
 async function sendUpdateSettings(payload: Record<string, unknown>): Promise<void> {
-  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE, payload);
+  await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE, payload);
 }
 
 async function sendListModels(): Promise<void> {
-  await invokeWindieCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
+  await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
 }
 
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {

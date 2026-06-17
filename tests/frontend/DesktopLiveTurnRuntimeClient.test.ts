@@ -5,8 +5,8 @@
 const mockGetActiveConversationRef = jest.fn(() => null);
 const mockInvokeWindieCommand = jest.fn();
 
-jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
-  invokeWindieCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
+jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
+  invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({

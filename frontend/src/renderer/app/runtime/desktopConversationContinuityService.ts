@@ -22,7 +22,7 @@ import {
 } from '../../infrastructure/transcript/desktopConversationStore';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { invokeWindieCommand } from './windieCommandInvokeClient';
+import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 type RewriteAndResendInput = {
@@ -76,14 +76,14 @@ function metadataToDashboardConversation(metadata: ConversationMetadata) {
 
 export const DesktopConversationContinuityService = {
   listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-    return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
+    return invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST, {
       userId,
       limit: options?.limit,
     });
   },
 
   async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const snapshot = await invokeWindieCommand<{ display?: DisplayConversation }>(
+    const snapshot = await invokeAgentSdkCommand<{ display?: DisplayConversation }>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
       {
         userId,
@@ -99,7 +99,7 @@ export const DesktopConversationContinuityService = {
   },
 
   async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    const snapshot = await invokeWindieCommand<{ displayRows?: SdkDisplayRow[] }>(
+    const snapshot = await invokeAgentSdkCommand<{ displayRows?: SdkDisplayRow[] }>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_LOAD_DISPLAY,
       {
         userId,
@@ -118,7 +118,7 @@ export const DesktopConversationContinuityService = {
   },
 
   async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const prepared = await invokeWindieCommand<PreparedReplayTurn>(
+    const prepared = await invokeAgentSdkCommand<PreparedReplayTurn>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND,
       {
         userId: input.userId,
@@ -141,7 +141,7 @@ export const DesktopConversationContinuityService = {
   },
 
   async prepareRetryTurn(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const prepared = await invokeWindieCommand<PreparedReplayTurn>(
+    const prepared = await invokeAgentSdkCommand<PreparedReplayTurn>(
       SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN,
       {
         userId: input.userId,
@@ -168,7 +168,7 @@ export const DesktopConversationContinuityService = {
     if (!resolvedConversationRef) {
       return;
     }
-    await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
+    await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_COMPACT, {
       force,
       conversation_ref: resolvedConversationRef,
     });
@@ -182,14 +182,14 @@ export const DesktopConversationContinuityService = {
   },
 
   deleteConversation(userId: string, conversationRef: string) {
-    return invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
+    return invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE, {
       userId,
       conversationRef,
     });
   },
 
   async searchConversations(input: SearchConversationsInput) {
-    const metadata = await invokeWindieCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
+    const metadata = await invokeAgentSdkCommand<ConversationMetadata[]>(SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH, {
       userId: input.userId,
       query: input.query,
       limit: input.limit,

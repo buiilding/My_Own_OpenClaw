@@ -3,13 +3,13 @@
  */
 
 import { createDesktopBackendTransport } from '../../frontend/src/renderer/app/runtime/desktopBackendTransport';
-import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
+import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
-jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
-  invokeWindieCommand: jest.fn(),
+jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
+  invokeAgentSdkCommand: jest.fn(),
 }));
 
-const mockInvokeWindieCommand = invokeWindieCommand as jest.MockedFunction<typeof invokeWindieCommand>;
+const mockInvokeWindieCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
 describe('desktopBackendTransport', () => {
   afterEach(() => {

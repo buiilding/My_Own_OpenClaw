@@ -35,7 +35,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('executeLocalTool:');
     const wakeCall = ipcSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
-    expect(wakeCall).toContain("name: 'WindieOS'");
+    expect(wakeCall).toContain('name: mainHostSkin.identity.sdkAgentName');
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
     expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
     expect(wakeCall).toContain('localToolLifecycle');
@@ -45,8 +45,8 @@ describe('modular sdk refactor completion boundary', () => {
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {
     const source = await read('frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts');
 
-    expect(source).toContain('invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
-    expect(source).toContain('invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
+    expect(source).toContain('invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
+    expect(source).toContain('invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(source).not.toContain('createConversationRuntime');
     expect(source).not.toContain('DesktopSettingsRuntimeClient');
     expect(source).not.toContain('DesktopBackendCommandRuntimeClient');

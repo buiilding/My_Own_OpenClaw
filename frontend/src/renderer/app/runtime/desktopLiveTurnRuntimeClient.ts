@@ -9,7 +9,7 @@ import {
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
-import { invokeWindieCommand } from './windieCommandInvokeClient';
+import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { windieDesktopSkin } from '../skin/windieDesktopSkin';
 
 type CaptureMeta = {
@@ -84,7 +84,7 @@ function throwIfFailedIpcResult(result: unknown): void {
 export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
     const turnRef = optionalString(input.turnRef) ?? undefined;
-    const result = await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND, {
+    const result = await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_SEND, {
       text: input.text,
       conversation_ref: optionalString(input.conversationRef) ?? '',
       query_message_id: turnRef ?? null,
@@ -116,7 +116,7 @@ export const DesktopLiveTurnRuntimeClient = {
       return;
     }
     const resolvedTurnRef = optionalString(turnRef);
-    await invokeWindieCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
+    await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATION_STOP, {
       conversation_ref: resolvedConversationRef,
       turn_ref: resolvedTurnRef,
     });

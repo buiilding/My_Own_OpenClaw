@@ -31,7 +31,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 are no longer current renderer owners:
 
 - conversation loading/listing/searching routes through SDK-shaped
-  `invokeWindieCommand(...)` facades and the desktop `ConversationStore`
+  `invokeAgentSdkCommand(...)` facades and the desktop `ConversationStore`
   adapter
 - display-bounds selection and injection happen in Electron main before sidecar
   screenshot execution
@@ -72,7 +72,7 @@ Defaults:
 
 Error behavior:
 
-- lower-level `invokeWindieCommand(...)` failures propagate to the caller; the
+- lower-level `invokeAgentSdkCommand(...)` failures propagate to the caller; the
   store adapter does not invent fallback transcript rows
 
 ## Runtime Call Sites

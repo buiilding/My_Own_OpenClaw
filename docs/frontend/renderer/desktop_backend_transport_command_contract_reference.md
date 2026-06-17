@@ -2,7 +2,8 @@
 summary: "Renderer and Electron main desktop backend transport command contract for DesktopBackendTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed camelCase query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
-  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeWindieCommand`, Electron main `handleAgentSdkInvoke`, its internal `buildAgentSdkCommandHandlers` table, or shared SDK-shaped command names.
+  - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeAgentSdkCommand`, Electron main `handleAgentSdkInvoke`, its internal `buildAgentSdkCommandHandlers` table, or shared SDK-shaped command names.
+  - When resolving stale references to the removed renderer `windieCommandInvokeClient.ts` file or `invokeWindieCommand(...)` helper; the current generic renderer helper is `agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`.
   - When resolving stale references to the removed `handleWindieSdkInvoke` or `buildWindieSdkCommandHandlers` helper names; the current generic Electron-host helper names are `handleAgentSdkInvoke` and `buildAgentSdkCommandHandlers`.
   - When searching for main ipc buildWindieSdkCommandHandlers SDK_RUNTIME_COMMANDS conversation.send command-shape routing; this transport contract is the current owner.
   - When debugging camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
@@ -15,7 +16,7 @@ title: "Desktop Backend Transport Command Contract Reference"
 
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/windieCommandInvokeClient.ts`
+- `frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient.ts`
 - `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
@@ -59,6 +60,12 @@ members as computed handler keys. The string values remain the wire contract on
 such as `ensureAgent`; the source of truth for adding or renaming a supported
 SDK-shaped command is
 `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`.
+
+The previous renderer helper file `windieCommandInvokeClient.ts` and function
+`invokeWindieCommand(...)` were renamed to
+`agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`. The preload
+bridge and IPC channel still use `window.windie` / `windie:invoke` as the
+existing wire contract; only the renderer helper name changed.
 
 The previous internal helper names `handleWindieSdkInvoke(...)` and
 `buildWindieSdkCommandHandlers(...)` were removed from the Electron main

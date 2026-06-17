@@ -42,7 +42,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(source).toContain('invokeWindieCommand');
+    expect(source).toContain('invokeAgentSdkCommand');
     expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST');
     expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH');
     expect(source).toContain('SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE');
@@ -64,13 +64,13 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
 
-    expect(liveTurnSource).toContain('invokeWindieCommand');
+    expect(liveTurnSource).toContain('invokeAgentSdkCommand');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(liveTurnSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(liveTurnSource).not.toContain('WINDIE_SEND');
     expect(liveTurnSource).not.toContain('WINDIE_STOP');
 
-    expect(backendTransportSource).toContain('invokeWindieCommand');
+    expect(backendTransportSource).toContain('invokeAgentSdkCommand');
     expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_SEND');
     expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_STOP');
     expect(backendTransportSource).toContain('SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE');

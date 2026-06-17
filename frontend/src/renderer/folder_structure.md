@@ -281,7 +281,7 @@ frontend/src/renderer/
            ↓
 3. SDK RUNTIME TRANSPORT
    └─> app/runtime/desktopBackendTransport.ts
-       └─> invokeWindieCommand('conversation.send', payload)
+       └─> invokeAgentSdkCommand('conversation.send', payload)
            └─> Main process (`src/main/ipc.cjs`) allowlists the SDK-shaped command and hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```
 

@@ -22,6 +22,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: move recent-chat transient runtime error classification
   behind the desktop conversation library facade so dashboard retry policy no
   longer matches sidecar daemon wording directly.
+- frontend/renderer: rename the SDK command invoke helper to generic agent SDK
+  terms while preserving the existing `windie:invoke` wire contract.
 - frontend/renderer: rename voice capture worklet internals to generic desktop
   agent terms so product naming stays in the renderer skin.
 - frontend/main: route browser and macOS automation permission copy through the

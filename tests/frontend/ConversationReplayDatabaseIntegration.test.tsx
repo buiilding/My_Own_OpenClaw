@@ -17,7 +17,7 @@ import {
   type ConversationEvent,
   type JsonRecord,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
-import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
+import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 let mockCommandHandler: (command: string, payload?: Record<string, unknown>) => Promise<unknown>;
@@ -25,8 +25,8 @@ let mockSessionConversationRef = 'conv-replay-db';
 let mockSessionUserId: string | null = 'user-replay-db';
 let mockBackendRehydrateFailure: Error | null = null;
 
-jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
-  invokeWindieCommand: jest.fn((command: string, payload?: Record<string, unknown>) => (
+jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
+  invokeAgentSdkCommand: jest.fn((command: string, payload?: Record<string, unknown>) => (
     mockCommandHandler(command, payload)
   )),
 }));
@@ -527,7 +527,7 @@ describe('conversation replay database integration', () => {
       'conv-replay-db',
       'user-replay-db',
     );
-    expect(invokeWindieCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
       messageId: 'stored-user-2',
@@ -581,7 +581,7 @@ describe('conversation replay database integration', () => {
       )).resolves.toBe(true);
     });
 
-    expect(invokeWindieCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
+    expect(invokeAgentSdkCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
       conversationRef: 'conv-replay-db',
       userId: 'user-replay-db',
       messageId: 'stored-user-1',

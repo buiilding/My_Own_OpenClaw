@@ -6,9 +6,9 @@ import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runti
 
 const mockInvokeWindieCommand = jest.fn(async () => undefined);
 
-jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => {
+jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => {
   return {
-    invokeWindieCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
+    invokeAgentSdkCommand: (...args: unknown[]) => mockInvokeWindieCommand(...args),
   };
 });
 

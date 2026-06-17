@@ -203,6 +203,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Validation: focused SDK IPC boundary, replay command, desktop conversation library, and touched docs-index routing tests pass.
 - Validation gap: the full `WindieDocsIndex.test.cjs` suite was attempted and still has unrelated routing failures outside this slice; the single touched docs-index case passes.
 
+### 2026-06-16 Renderer Agent SDK Command Helper Slice
+
+- Concurrent-work recovery: recent commits and uncommitted work were inspected before continuing; a backend remote-wrapper cleanup landed separately and remaining Windows CLI docs edits were treated as out of scope.
+- Finding: renderer app-runtime facades and the desktop conversation store imported `windieCommandInvokeClient.ts` / `invokeWindieCommand(...)`, even though the helper is a generic desktop UI adapter over SDK-shaped commands.
+- Decision: keep the `window.windie` / `windie:invoke` preload and IPC wire contract unchanged, but rename the renderer helper and facade calls to generic agent SDK wording.
+- Change: `windieCommandInvokeClient.ts` is now `agentSdkCommandInvokeClient.ts`; the exported helper is `invokeAgentSdkCommand(...)`, and its fallback error says "Agent SDK command".
+- Change: renderer app-runtime clients, the desktop conversation store adapter, focused tests, and renderer transport docs now use the generic helper name and route stale old-helper searches to the current contract doc.
+- Validation: focused renderer runtime boundary, desktop backend transport, live-turn, settings, voice, memory, conversation library, conversation store, and modular completion boundary tests pass.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -224,6 +233,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Dashboard recent-chat retry policy consumes app-runtime transient error classification instead of matching sidecar text directly.
 - [x] Reusable main-process adapter errors avoid product-specific fallback wording.
 - [x] Main SDK command helper internals use generic agent SDK naming while preserving the `windie:invoke` wire contract.
+- [x] Renderer SDK command helper internals use generic agent SDK naming while preserving the `windie:invoke` wire contract.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -284,6 +294,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieDocsIndex.test.cjs -t "routes renderer backend transport command-shape queries"` passed.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieDocsIndex.test.cjs` was attempted and failed on unrelated docs-search routing cases outside this slice.
 - `rg -n "handleWindieSdkInvoke|buildWindieSdkCommandHandlers|Windie SDK command|deps\\.ensureWindieAgent" frontend/src/main/ipc/ipc_windie_sdk_command_handlers.cjs docs/frontend tests/frontend -g "*.cjs" -g "*.ts" -g "*.md"` found only intentional stale-name routing docs/tests plus unrelated preload validation wording.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/RendererAppRuntimeBoundary.test.ts ../tests/frontend/ModularRefactorCompletionBoundary.test.ts ../tests/frontend/DesktopBackendTransport.test.ts ../tests/frontend/DesktopLiveTurnRuntimeClient.test.ts ../tests/frontend/DesktopSettingsRuntimeClient.test.ts ../tests/frontend/DesktopVoiceRuntimeClient.test.ts ../tests/frontend/DesktopMemoryRuntimeClient.test.ts ../tests/frontend/DesktopConversationLibraryClient.test.ts ../tests/frontend/DesktopConversationStore.test.ts` passed.
+- `rg -n "windieCommandInvokeClient|invokeWindieCommand|WindieCommand|Windie SDK command failed" frontend/src/renderer tests/frontend/RendererAppRuntimeBoundary.test.ts tests/frontend/ModularRefactorCompletionBoundary.test.ts docs/frontend/renderer -g "*.ts" -g "*.tsx" -g "*.js" -g "*.jsx" -g "*.md"` found only intentional stale-name routing docs.
 
 ## Remaining Findings
 
@@ -292,6 +304,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Dashboard recent-chat retry state no longer matches sidecar daemon wording in feature utilities; the desktop conversation library facade owns runtime-specific transient metadata-list error classification.
 - Main Electron adapter fallback errors for sidecar launch and artifact-image trust are generic outside the host skin.
 - Main's strict SDK command allowlist now exposes generic internal helper/dependency names (`handleAgentSdkInvoke`, `buildAgentSdkCommandHandlers`, `ensureAgent`) while keeping the `windie:invoke` IPC channel as the existing wire contract.
+- Renderer app-runtime facades now call `invokeAgentSdkCommand(...)` from `agentSdkCommandInvokeClient.ts` while keeping `window.windie` / `windie:invoke` as the existing preload/IPC wire contract.
 - Voice capture internals now use generic desktop-agent naming. The remaining
   renderer voice references are intentional feature/runtime names, not product
   skin copy.

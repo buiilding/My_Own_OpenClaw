@@ -1,49 +1,49 @@
 /**
- * Implements the windie command invoke client integration for the renderer UI.
+ * Implements the agent SDK command invoke client integration for the renderer UI.
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 
-type WindieCommandResult<T = unknown> = {
+type AgentSdkCommandResult<T = unknown> = {
   ok?: boolean;
   data?: T;
   error?: string;
 };
 
-type WindieCommandBridge = {
+type AgentSdkCommandBridge = {
   invoke: (
     command: string,
     payload?: Record<string, unknown>,
-  ) => Promise<WindieCommandResult>;
+  ) => Promise<AgentSdkCommandResult>;
 };
 
 declare global {
   interface Window {
-    windie?: WindieCommandBridge;
+    windie?: AgentSdkCommandBridge;
   }
 }
 
-function getWindieBridge(): WindieCommandBridge | null {
+function getAgentSdkBridge(): AgentSdkCommandBridge | null {
   if (typeof window === 'undefined') {
     return null;
   }
   return window.windie ?? null;
 }
 
-export async function invokeWindieCommand<T = unknown>(
+export async function invokeAgentSdkCommand<T = unknown>(
   command: string,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
-  const bridge = getWindieBridge();
+  const bridge = getAgentSdkBridge();
   const result = bridge
     ? await bridge.invoke(command, payload)
-    : await IpcBridge.invoke<WindieCommandResult<T>>(
+    : await IpcBridge.invoke<AgentSdkCommandResult<T>>(
       INVOKE_CHANNELS.WINDIE_INVOKE,
       { command, payload },
     );
 
   if (!result || result.ok === false) {
-    throw new Error(result?.error || `Windie SDK command failed: ${command}`);
+    throw new Error(result?.error || `Agent SDK command failed: ${command}`);
   }
 
   return result.data as T;
