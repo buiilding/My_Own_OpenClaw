@@ -3,6 +3,7 @@
  */
 
 import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/shortcuts/agentStopShortcut';
+import { DEFAULT_MODEL_SELECTION } from '../app/skin/modelSelectionDefaults';
 import {
   DEFAULT_PROVIDER_API_KEYS,
   DEFAULT_PROVIDER_OAUTH,
@@ -41,9 +42,9 @@ export const DEFAULT_APPEARANCE_THEME = Object.freeze({
 });
 
 const DEFAULT_FRONTEND_CONFIG = {
-  model_mode: 'online',
-  model_provider: 'openai',
-  selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
+  model_mode: DEFAULT_MODEL_SELECTION.mode,
+  model_provider: DEFAULT_MODEL_SELECTION.provider,
+  selected_model_id: DEFAULT_MODEL_SELECTION.modelId,
   interaction_mode: 'agent',
   speech_mode_enabled: false,
   wakeword_enabled: true,

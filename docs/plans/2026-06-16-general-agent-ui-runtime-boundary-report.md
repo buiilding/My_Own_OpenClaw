@@ -537,6 +537,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: moved chat model provider label overrides into renderer skin/config
   and kept the exported `formatProviderLabel(...)` helper as the generic UI
   facade.
+- Finding: renderer config storage still embedded the default model mode,
+  provider, and model id directly in the generic persistence normalizer.
+- Change: moved default model selection values into renderer skin/config and
+  made config storage initialize from those skin-owned defaults without
+  changing the persisted settings shape.
 
 ## Remaining Findings
 
@@ -620,3 +625,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer skin/config; backend catalog metadata still wins when present.
 - Renderer chat model provider label overrides now live in the shared provider
   display skin config while the model picker keeps its existing formatter API.
+- Renderer default model selection values now live in renderer skin/config;
+  config storage still emits the same `model_mode`, `model_provider`, and
+  `selected_model_id` settings fields.

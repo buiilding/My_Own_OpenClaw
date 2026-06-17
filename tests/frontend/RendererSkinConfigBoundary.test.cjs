@@ -7,6 +7,7 @@ const path = require('path');
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
+const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
@@ -123,6 +124,18 @@ describe('renderer skin/config boundary', () => {
     expect(apiKeysSource).toContain('providerCredentialSettings');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(apiKeysSource).not.toContain('OpenAI API Key');
+  });
+
+  test('default model selection lives in renderer skin config', () => {
+    const modelDefaultsSource = fs.readFileSync(modelSelectionDefaultsPath, 'utf8');
+    const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
+
+    expect(modelDefaultsSource).toContain('DEFAULT_MODEL_SELECTION');
+    expect(modelDefaultsSource).toContain("provider: 'openai'");
+    expect(modelDefaultsSource).toContain("modelId: 'gpt-5.4@@gpt-5-4-none-thinking'");
+    expect(configStorageSource).toContain('modelSelectionDefaults');
+    expect(configStorageSource).not.toContain("model_provider: 'openai'");
+    expect(configStorageSource).not.toContain("selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking'");
   });
 
   test('provider model display fallbacks live in renderer skin config', () => {
