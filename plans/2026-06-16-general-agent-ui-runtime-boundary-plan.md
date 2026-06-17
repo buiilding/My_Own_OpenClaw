@@ -2479,3 +2479,18 @@ Each completed slice should report:
   coverage.
 - Compatibility: no migration required. `WindieLocalRuntimeClient` remains a
   public compatibility type alias.
+
+### 2026-06-17 Agent backend session factory test path
+
+- Finding: SDK client behavior coverage still created websocket sessions,
+  transports, and backend socket failure cases through Windie-prefixed factory
+  aliases even though the canonical transport factories are agent-named.
+- Change: switched those behavior tests to `createAgentBackendSocket`,
+  `createAgentSession`, and `createAgentBackendTransport`, leaving the
+  Windie-prefixed factory alias assertions in the package-boundary test.
+- Validation: focused SDK client Jest coverage, SDK package-boundary Jest
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  Windie-prefixed session/socket factories no longer appear in SDK client
+  behavior coverage.
+- Compatibility: no migration required. The Windie-prefixed factory exports
+  remain public compatibility aliases.

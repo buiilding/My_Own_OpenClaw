@@ -8,9 +8,9 @@ import * as path from 'path';
 
 import {
   buildAgentDefinition,
-  createWindieSdkBackendSocket,
-  createWindieAgentBackendTransport,
-  createWindieAgentSession,
+  createAgentBackendSocket,
+  createAgentBackendTransport,
+  createAgentSession,
   createConversationEvent,
   createAgentLocalRuntimeProvider,
   AgentLocalRuntimeHttpClient,
@@ -164,12 +164,12 @@ describe('WindieSdkClient', () => {
       });
     }
 
-    expect(() => createWindieSdkBackendSocket({
+    expect(() => createAgentBackendSocket({
       WebSocketImpl: undefined as any,
       wsUrl: 'ws://backend.test/ws',
     })).toThrow('Agent SDK backend socket requires WebSocketImpl');
 
-    expect(() => createWindieSdkBackendSocket({
+    expect(() => createAgentBackendSocket({
       WebSocketImpl: FakeWebSocket as any,
       wsUrl: '',
     })).toThrow('Agent SDK backend socket requires wsUrl');
@@ -1473,7 +1473,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('SDK transport creates websocket-backed agent sessions from backend URLs', async () => {
-    const session = createWindieAgentSession({
+    const session = createAgentSession({
       backendUrl: 'https://api.windieos.com',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
@@ -1495,7 +1495,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('SDK backend transport exposes websocket model-list messages', async () => {
-    const session = createWindieAgentSession({
+    const session = createAgentSession({
       backendUrl: 'https://api.windieos.com',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
@@ -1508,7 +1508,7 @@ describe('WindieSdkClient', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createWindieAgentBackendTransport(session, 'conv-models');
+    const transport = createAgentBackendTransport(session, 'conv-models');
     const messageId = await transport.listModels();
 
     expect(messageId).toEqual(expect.any(String));
@@ -1520,7 +1520,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('SDK backend transport preserves agent tool manifest when query context supplies a partial agent definition', async () => {
-    const session = createWindieAgentSession({
+    const session = createAgentSession({
       backendUrl: 'https://api.windieos.com',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
@@ -1546,7 +1546,7 @@ describe('WindieSdkClient', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createWindieAgentBackendTransport(session, 'conv-agent-context', {
+    const transport = createAgentBackendTransport(session, 'conv-agent-context', {
       id: 'transport-agent',
       tools: {
         mode: 'client_only',
@@ -1622,7 +1622,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('SDK backend transport only lets a non-empty query client manifest replace SDK tools', async () => {
-    const session = createWindieAgentSession({
+    const session = createAgentSession({
       backendUrl: 'https://api.windieos.com',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
@@ -1634,7 +1634,7 @@ describe('WindieSdkClient', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createWindieAgentBackendTransport(session, 'conv-agent-context', {
+    const transport = createAgentBackendTransport(session, 'conv-agent-context', {
       id: 'transport-agent',
       tools: {
         mode: 'client_only',
@@ -1707,7 +1707,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('SDK backend transport exposes typed compaction and wakeword messages', async () => {
-    const session = createWindieAgentSession({
+    const session = createAgentSession({
       backendUrl: 'https://api.windieos.com',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
@@ -1720,7 +1720,7 @@ describe('WindieSdkClient', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createWindieAgentBackendTransport(session, 'conv-commands');
+    const transport = createAgentBackendTransport(session, 'conv-commands');
     await transport.compactHistory({
       conversation_ref: 'conv-commands',
       force: true,
@@ -1746,7 +1746,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('SDK backend transport filters strict websocket command payloads', async () => {
-    const session = createWindieAgentSession({
+    const session = createAgentSession({
       backendUrl: 'https://api.windieos.com',
       WebSocketImpl: FakeWebSocket as any,
       userId: 'transport-user',
