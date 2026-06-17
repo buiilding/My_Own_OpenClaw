@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/web-search: remove the unused package export so search capability
   callers stay on concrete owner modules.
 
+- backend/core: remove the unused `core.interfaces` package export so interface
+  contracts are imported from concrete modules.
+
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
 - frontend/main: describe app diagnostics browser and lifecycle ownership as local sidecar bridge ownership while preserving local-backend diagnostic ids and fields.
