@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed legacy Windie-named conversation metadata event fallbacks from the JavaScript SDK local-runtime store; stored rows now load conversation events from canonical event payloads or generic agent SDK metadata keys only. No persisted-data migration is required.
+
 - Removed the TypeScript SDK `SidecarDaemonClientOptions` alias and renamed the internal local-runtime discovery type to `AgentLocalRuntimeDiscovery` so SDK client options stay on the generic agent-runtime contract.
 
 - Removed legacy top-level WebSocket handshake capability fields; clients must send runtime and tool policy through `agent_definition`, and no persisted-data migration is required.

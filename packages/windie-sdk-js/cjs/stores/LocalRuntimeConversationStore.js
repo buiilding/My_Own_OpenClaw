@@ -87,9 +87,7 @@ function storedEventFromRow(row) {
     return normalizeConversationEvent(parseJsonRecord(row.event_payload)
         ?? parseJsonRecord(row.eventPayload)
         ?? metadata?.agent_sdk_conversation_event
-        ?? metadata?.agentSdkConversationEvent
-        ?? metadata?.windie_sdk_conversation_event
-        ?? metadata?.windieSdkConversationEvent);
+        ?? metadata?.agentSdkConversationEvent);
 }
 function textFromEvent(event) {
     for (const key of ['text', 'content', 'finalResponse', 'final_response', 'error']) {

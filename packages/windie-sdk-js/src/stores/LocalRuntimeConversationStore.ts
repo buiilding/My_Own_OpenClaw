@@ -135,9 +135,7 @@ function storedEventFromRow(row: Record<string, unknown>): ConversationEvent | n
     parseJsonRecord(row.event_payload)
     ?? parseJsonRecord(row.eventPayload)
     ?? metadata?.agent_sdk_conversation_event
-    ?? metadata?.agentSdkConversationEvent
-    ?? metadata?.windie_sdk_conversation_event
-    ?? metadata?.windieSdkConversationEvent,
+    ?? metadata?.agentSdkConversationEvent,
   );
 }
 

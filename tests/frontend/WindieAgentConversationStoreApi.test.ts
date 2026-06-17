@@ -177,7 +177,7 @@ describe('Agent public conversation store APIs', () => {
 });
 
 describe('LocalRuntimeConversationStore event payload write params', () => {
-  test('loads generic metadata event payloads before legacy Windie metadata fallbacks', async () => {
+  test('loads generic metadata event payloads and ignores removed Windie metadata keys', async () => {
     const genericEvent: ConversationEvent = createConversationEvent({
       eventId: 'evt-generic',
       type: 'assistant_message',
@@ -185,7 +185,7 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
       revisionId: 'rev-1',
       payload: { text: 'generic metadata' },
     });
-    const legacyEvent: ConversationEvent = createConversationEvent({
+    const ignoredSnakeLegacyEvent: ConversationEvent = createConversationEvent({
       eventId: 'evt-legacy',
       type: 'assistant_message',
       conversationRef: 'conv-1',
@@ -208,12 +208,12 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
               {
                 metadata: {
                   agent_sdk_conversation_event: genericEvent,
-                  windie_sdk_conversation_event: ignoredLegacyEvent,
+                  windie_sdk_conversation_event: ignoredSnakeLegacyEvent,
                 },
               },
               {
                 metadata: JSON.stringify({
-                  windieSdkConversationEvent: legacyEvent,
+                  windieSdkConversationEvent: ignoredLegacyEvent,
                 }),
               },
             ],
@@ -229,7 +229,6 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
 
     await expect(store.loadEvents('conv-1')).resolves.toEqual([
       genericEvent,
-      legacyEvent,
     ]);
   });
 
