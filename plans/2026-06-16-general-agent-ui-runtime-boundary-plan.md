@@ -120,6 +120,33 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer message sender clipboard image alias rejection
+
+- Finding: renderer chat send payload normalization still quietly ignored the
+  removed singular `clipboardImage` key, which could turn a stale image payload
+  into a text-only send.
+- Change: made object sends containing the removed `clipboardImage` key reject
+  before send preparation, and updated sender docs/tests to require canonical
+  `clipboardImages[]`.
+- Validation: focused chat message sender payload test, docs listing, and diff
+  check.
+- Compatibility: no migration required. Current dashboard and minimal-pill
+  composers emit canonical `clipboardImages[]` arrays; stale callers using the
+  removed singular field must update to the array contract.
+
+### 2026-06-17 renderer transcript storage session alias rejection
+
+- Finding: renderer transcript session storage no longer accepted `sessionId`
+  as conversation identity, but a stored payload containing removed session
+  identity keys could still partially preserve `userId`.
+- Change: made stored transcript session payloads containing removed
+  `sessionId` or `session_id` keys discard the whole stored identity and
+  updated transcript docs/tests to lock the fail-closed behavior.
+- Validation: focused transcript storage test, docs listing, and diff check.
+- Compatibility: no migration required. Current renderer writes canonical
+  `conversationRef` and `userId` storage payloads; malformed storage already
+  resets to null session info.
+
 ### 2026-06-17 SDK daemon discovery alias rejection
 
 - Finding: SDK local-runtime daemon discovery skipped `baseUrl`-only discovery
