@@ -684,6 +684,39 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('WindieClient reports generic install registration failures', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse(
+      { error: 'registration unavailable' },
+      { status: 503, statusText: 'Service Unavailable' },
+    ));
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+    });
+
+    await expect(client.wakeUp({ agentId: 'auth-agent' })).rejects.toThrow(
+      'Install registration failed (503 Service Unavailable): {"error":"registration unavailable"}',
+    );
+  });
+
+  test('WindieClient reports generic invalid install registration payloads', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      user_id: 'registered-user',
+      install_id: 'install-1',
+      install_token: '',
+    }));
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+    });
+
+    await expect(client.wakeUp({ agentId: 'auth-agent' })).rejects.toThrow(
+      'Install registration returned an invalid auth payload',
+    );
+  });
+
   test('WindieClient uses env backend URL and install token when constructor options omit them', async () => {
     const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
     const previousApiKey = process.env.WINDIE_API_KEY;

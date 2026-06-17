@@ -229,14 +229,14 @@ class WindieClient {
             body: JSON.stringify({ operating_system: operatingSystem }),
         });
         if (!response.ok) {
-            throw new Error(`Windie install registration failed (${response.status} ${response.statusText}): ${await response.text()}`);
+            throw new Error(`Install registration failed (${response.status} ${response.statusText}): ${await response.text()}`);
         }
         const payload = await response.json();
         const registeredUserId = typeof payload.user_id === 'string' ? payload.user_id.trim() : '';
         const registeredInstallId = typeof payload.install_id === 'string' ? payload.install_id.trim() : '';
         const registeredInstallToken = typeof payload.install_token === 'string' ? payload.install_token.trim() : '';
         if (!registeredUserId || !registeredInstallToken) {
-            throw new Error('Windie install registration returned an invalid auth payload');
+            throw new Error('Install registration returned an invalid auth payload');
         }
         return {
             userId: configuredUserId ?? registeredUserId,
@@ -263,7 +263,7 @@ class WindieClient {
         }
         catch (error) {
             if (this.defaultOptions.defaultUserId) {
-                this.defaultOptions.log?.(`Windie install identity lookup failed; falling back to configured user id: ${error instanceof Error ? error.message : String(error)}`);
+                this.defaultOptions.log?.(`Install identity lookup failed; falling back to configured user id: ${error instanceof Error ? error.message : String(error)}`);
                 return null;
             }
             throw error;

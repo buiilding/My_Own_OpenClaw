@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK install auth error copy
+
+- Finding: SDK install-auth failures still used Windie-specific wording in
+  reusable client error and fallback log messages, even though the install-auth
+  flow is part of the generic agent SDK runtime contract.
+- Change: changed install registration and identity lookup failure copy to
+  generic Agent SDK wording in the TypeScript source and checked-in CJS output,
+  with focused tests for registration failure and invalid auth payload errors.
+- Validation: focused `WindieSdkClient` Jest install-auth copy tests, docs
+  listing, `git diff --check`, and source scan for retired install-auth copy.
+- Compatibility: no migration required. Hosted URL defaults, install-auth route
+  shape, bearer headers, auto-registration conditions, and public SDK symbols
+  are unchanged.
+
 ### 2026-06-17 main diagnostics local runtime lifecycle alias
 
 - Finding: Electron main diagnostics code still used local-backend constant and
