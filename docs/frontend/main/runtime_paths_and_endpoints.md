@@ -12,7 +12,7 @@ title: "Runtime Paths and Endpoints"
 
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/app/runtime_paths.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
@@ -116,7 +116,7 @@ Bundled runtime candidate roots:
 
 This is the canonical sidecar launch resolver used by both:
 
-- `local_backend_bridge.cjs`
+- `local_runtime_bridge.cjs`
 - `wakeword_bridge.cjs`
 
 Resolution behavior:

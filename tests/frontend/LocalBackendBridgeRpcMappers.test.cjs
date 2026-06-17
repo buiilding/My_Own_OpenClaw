@@ -17,7 +17,7 @@ describe('local_backend_bridge_rpc_mappers', () => {
   test('local runtime bridge does not define memory field aliases inline', () => {
     const bridgePath = path.join(
       __dirname,
-      '../../frontend/src/main/sidecar/local_backend_bridge.cjs',
+      '../../frontend/src/main/sidecar/local_runtime_bridge.cjs',
     );
     const bridgeSource = fs.readFileSync(bridgePath, 'utf8');
     const forbiddenInlineAliases = [

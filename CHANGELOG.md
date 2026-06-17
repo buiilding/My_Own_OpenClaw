@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the private Electron main local-runtime bridge composition root from `local_backend_bridge.cjs` to `local_runtime_bridge.cjs` while preserving exported bridge APIs, status payloads, and IPC channel strings. No migration is required.
+
 - Renamed the private Electron main local-runtime supervisor module and focused Jest suite from local-backend to local-runtime paths while preserving status payloads and IPC channel strings. No migration is required.
 
 - Renamed the private Electron main local-runtime status broadcaster module and focused Jest suite from local-backend to local-runtime paths while preserving renderer status payloads and IPC channel strings. No migration is required.

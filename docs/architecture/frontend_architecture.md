@@ -64,7 +64,7 @@ Current runtime behavior also relies on these explicit seams:
 
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `app/main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `app/main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surfaces/surface_runtime.cjs` (window ownership + overlay phase state).
 - **Local sidecar bridge is SDK-owned for lifecycle**:
-  `sidecar/local_backend_bridge.cjs` is the composition root for scoped host IPC
+  `sidecar/local_runtime_bridge.cjs` is the composition root for scoped host IPC
   registration and Electron-only helper behavior. Desktop launch facts are built
   in `ipc.cjs`, passed into one shared `AgentClient` as `autoLocalRuntime`, and
   exposed to bridge code only through SDK `getKnownLocalRuntime` /
@@ -252,7 +252,7 @@ Current ownership boundary:
 
 ### Local Runtime Status Flow
 
-1. Main `local_backend_bridge.cjs` owns renderer-visible local-runtime readiness state through `local_runtime_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
+1. Main `local_runtime_bridge.cjs` owns renderer-visible local-runtime readiness state through `local_runtime_supervisor.cjs`; SDK `AgentClient` owns the actual local runtime lifecycle.
 2. Main emits `local-runtime-status` renderer events when startup/ready/error state changes and exposes `get-local-runtime-status` for initial snapshot reads.
 3. Renderer features that depend on local host capabilities should subscribe to that shared readiness surface instead of racing scoped host IPC calls during startup.
 4. `localRuntimeStatusStore` subscribes to live events before starting the bootstrap read, and ignores bootstrap responses if a newer live event arrived first.
@@ -344,7 +344,7 @@ Primary modules:
 - `renderer/features/chat/session/useRendererConversationSessionInfo.js`:
   - Renderer-facing current-conversation reader that prefers transcript session state and falls back to projected chat-store selection.
   - Keeps dashboard/chat controls from independently choosing between transcript session and `chatStore.activeConversationRef`.
-- `main/sidecar/local_backend_bridge.cjs`:
+- `main/sidecar/local_runtime_bridge.cjs`:
   - Registers scoped host IPC handlers for screenshot attachment, browser controls, system state, memory, and mapped local sidecar RPCs.
   - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
   - Uses `local_runtime_supervisor.cjs` only for renderer-visible local-runtime readiness/status snapshots.

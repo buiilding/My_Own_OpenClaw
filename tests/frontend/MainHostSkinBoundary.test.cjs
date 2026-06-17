@@ -22,7 +22,7 @@ const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime_launch_options.cjs');
-const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_backend_bridge.cjs');
+const localBackendBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs');
 const localBackendBridgeModulePaths = [
   localBackendBridgePath,
   path.join(mainRoot, 'sidecar/local_backend_bridge_display_bounds.cjs'),

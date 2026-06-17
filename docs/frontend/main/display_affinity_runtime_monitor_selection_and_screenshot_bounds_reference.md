@@ -13,7 +13,7 @@ title: "Display-Affinity Monitor Selection and Screenshot Bounds Reference"
 
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
@@ -106,7 +106,7 @@ Stored state access:
 
 ## Screenshot Monitor Routing Contract
 
-`execute-tool` screenshot calls in `local_backend_bridge.cjs` resolve display bounds in strict order:
+`execute-tool` screenshot calls in `local_runtime_bridge.cjs` resolve display bounds in strict order:
 
 1. resolve through `resolveActiveSurfaceDisplayAffinityForWindows(...)`
 2. inside that resolver: visible sender surface affinity when sender is chat/main and visible

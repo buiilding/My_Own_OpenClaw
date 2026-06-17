@@ -74,7 +74,7 @@ describe('main ipc sdk runtime boundary', () => {
 
   test('local runtime status IPC uses shared generic channel constants in main bridge code', async () => {
     const bridgeSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/main/sidecar/local_backend_bridge.cjs'),
+      path.resolve(__dirname, '../../frontend/src/main/sidecar/local_runtime_bridge.cjs'),
       'utf8',
     );
     const broadcasterSource = await fs.readFile(

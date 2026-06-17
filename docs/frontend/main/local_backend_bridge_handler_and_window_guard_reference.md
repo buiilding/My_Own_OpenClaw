@@ -32,7 +32,7 @@ subfolder because the file names remain compatibility names.
 
 ## Bridge Boundary (Condensed)
 
-Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
+Bridge responsibilities in `frontend/src/main/sidecar/local_runtime_bridge.cjs`:
 
 1. assemble desktop launch options and resolve the SDK local runtime provider
 2. publish renderer-visible readiness through `local-runtime-status`
@@ -42,7 +42,7 @@ Bridge responsibilities in `frontend/src/main/sidecar/local_backend_bridge.cjs`:
 
 ## Removed System-State Direct Export
 
-`local_backend_bridge.cjs` no longer exports `getSystemState(fields)`.
+`local_runtime_bridge.cjs` no longer exports `getSystemState(fields)`.
 System-state access is the `get-system-state` IPC handler registered by
 `initializeLocalRuntimeBridge(...)`; the old `initializeLocalBackendBridge(...)`
 export has been removed. The focused behavior reference is
@@ -50,7 +50,7 @@ export has been removed. The focused behavior reference is
 
 ## Canonical Modules
 
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_tool_args.cjs`

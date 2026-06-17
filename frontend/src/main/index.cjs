@@ -48,7 +48,7 @@ const {
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
-} = require('./sidecar/local_backend_bridge.cjs');
+} = require('./sidecar/local_runtime_bridge.cjs');
 const { createVmWorkerRuntime } = require('./app/vm_worker_runtime.cjs');
 const {
   createChatWindow: createChatWindowRuntime,

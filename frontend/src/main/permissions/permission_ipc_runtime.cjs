@@ -4,7 +4,7 @@
 
 const {
   verifyScreenCaptureCapability: verifyRealScreenCaptureCapability,
-} = require('../sidecar/local_backend_bridge.cjs');
+} = require('../sidecar/local_runtime_bridge.cjs');
 const { createPermissionStateStore } = require('./permission_state_store.cjs');
 const {
   checkPermissions,

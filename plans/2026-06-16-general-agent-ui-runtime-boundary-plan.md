@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local-runtime bridge composition module
+
+- Finding: Electron main's SDK local-runtime bridge composition root still used
+  a backend-named file path even though its active exports and runtime behavior
+  are local-runtime host adapter contracts.
+- Change: renamed the composition root to `local_runtime_bridge.cjs` and
+  updated main-process imports, bridge harness references, boundary tests, and
+  docs that point to the root module. Focused helper modules remain as later
+  slices.
+- Validation: focused local-runtime bridge lifecycle/RPC and host-boundary Jest
+  tests, stale root-path scan, docs listing, and diff check.
+- Compatibility: no migration required. This is a private Electron main module
+  path rename; exported bridge function names, IPC channel strings, and status
+  payloads are unchanged.
+
 ### 2026-06-17 local-runtime supervisor module
 
 - Finding: Electron main local-runtime readiness supervision was already using
@@ -1887,7 +1902,7 @@ Each completed slice should report:
 
 ### 2026-06-17 main local runtime ready helper naming
 
-- Finding: `local_backend_bridge.cjs` still named the helper that marks the SDK
+- Finding: `local_runtime_bridge.cjs` still named the helper that marks the SDK
   local runtime supervisor ready as backend-ready.
 - Change: renamed the helper and focused lifecycle test title to local-runtime
   readiness terminology.

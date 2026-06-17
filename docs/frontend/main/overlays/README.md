@@ -16,4 +16,4 @@ title: "Frontend Main Overlay Focus Docs Hub"
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/sidecar/local_backend_bridge_window_visibility.cjs`
-- `frontend/src/main/sidecar/local_backend_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_bridge.cjs`
