@@ -63,7 +63,6 @@ Primary files:
 
 - `frontend/src/main/surfaces/window_platform_policy.cjs`
 - `frontend/src/main/platform/content_protection/index.cjs`
-- `frontend/src/main/platform/content_protection/linux.cjs`
 - `frontend/src/main/platform/content_protection/supported.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
 - `frontend/src/main/surfaces/display_affinity_runtime.cjs`

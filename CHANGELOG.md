@@ -123,6 +123,8 @@ All notable changes to WindieOS will be documented in this file.
   source-map file and its architecture-doc link.
 - backend/agent: inline the single bundle-count policy in `InteractionLoop`
   and delete the unused execution policy module, test, and reference page.
+- frontend/platform: inline Linux content-protection no-op dispatch and delete
+  the separate `content_protection/linux.cjs` module.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

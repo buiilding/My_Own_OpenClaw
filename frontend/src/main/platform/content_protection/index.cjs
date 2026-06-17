@@ -2,8 +2,9 @@
  * Exposes the package entrypoint for the Electron main process.
  */
 
-const linuxRuntime = require('./linux.cjs');
 const supportedRuntime = require('./supported.cjs');
+
+function noopContentProtectionRuntime() {}
 
 function createContentProtectionRuntime(platform) {
   if (platform === 'win32') {
@@ -12,7 +13,7 @@ function createContentProtectionRuntime(platform) {
   if (platform === 'darwin') {
     return supportedRuntime;
   }
-  return linuxRuntime;
+  return noopContentProtectionRuntime;
 }
 
 module.exports = {

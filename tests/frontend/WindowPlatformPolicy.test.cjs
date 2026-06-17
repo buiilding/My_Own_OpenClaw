@@ -45,6 +45,24 @@ describe('window_platform_policy', () => {
     expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
   });
 
+  test('keeps linux content protection as a no-op', () => {
+    const targetWindow = {
+      setContentProtection: jest.fn(),
+    };
+    const policy = createWindowPlatformPolicy({
+      platform: 'linux',
+      warn: jest.fn(),
+    });
+
+    policy.applyContentProtection({
+      targetWindow,
+      windowLabel: 'chat box',
+      enabled: true,
+    });
+
+    expect(targetWindow.setContentProtection).not.toHaveBeenCalled();
+  });
+
   test('activates the native window and its webContents together', () => {
     const webContents = {
       isDestroyed: jest.fn(() => false),

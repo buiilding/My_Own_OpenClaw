@@ -14,7 +14,7 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Linux overlay screenshot guard: `docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md`
 - Main overlay/window code: `frontend/src/main/overlay_*`, `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - Sidecar adapter: `frontend/src/main/python/core/platform/linux.py`
-- Content protection runtime: `frontend/src/main/platform/content_protection/linux.cjs`
+- Content protection dispatch: `frontend/src/main/platform/content_protection/index.cjs` (Linux no-op)
 - Package target: `frontend/package.json` `package:linux`
 - Reinstall helper: `bin/windie reinstall linux`
 
