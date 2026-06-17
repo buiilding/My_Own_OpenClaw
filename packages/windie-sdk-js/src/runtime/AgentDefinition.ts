@@ -131,7 +131,7 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
   const definition: JsonRecord = {
     version: 1,
     id: normalizeString(options.id) || 'windie-default',
-    name: normalizeString(options.name) || 'WindieOS Agent',
+    name: normalizeString(options.name) || 'Desktop Agent',
     mode: (
       systemPromptContent
       || promptLayers.length > 0

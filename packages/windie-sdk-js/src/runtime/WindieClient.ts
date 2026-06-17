@@ -656,7 +656,7 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
   const definition: JsonRecord = {
     version: 1,
     id: options.agentId ?? `windie-agent-${createMessageId()}`,
-    name: options.name ?? 'Windie Agent',
+    name: options.name ?? 'Agent',
     system_prompt: options.systemPrompt
       ? { mode: 'replace', content: options.systemPrompt }
       : undefined,

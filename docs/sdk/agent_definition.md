@@ -17,6 +17,9 @@ The TypeScript SDK owns the data-only builder and capability metadata stamping
 in `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`. Electron main only
 collects host-local inputs such as extension prompt layers, AGENTS.md content,
 workspace path, and operating-system facts before calling the SDK builder.
+When callers omit a display name, `buildAgentDefinition(...)` uses the generic
+`Desktop Agent` default so SDK-authored agent definitions do not embed
+WindieOS product copy outside host skin/config boundaries.
 
 If `agent_definition` is omitted, the backend uses the default WindieOS agent:
 the default backend prompt, built-in tools, backend policy, and normal provider

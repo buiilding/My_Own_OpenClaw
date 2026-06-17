@@ -69,6 +69,10 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/js: keep context-enrichment render helpers, tool-output content shapes,
   capability summaries, and internal diagnostic types private while testing
   escaping through the enrichment pipeline entrypoint.
+- sdk/js: use generic default agent display names in agent-definition and
+  wake-up helpers while letting hosts pass product identity explicitly.
+- docs/sdk: document the generic SDK agent display defaults so host skin/config
+  remains the product identity owner.
 - frontend/chat: route dashboard, pill, Esc, and global stop through a shared
   live-turn target that clears pending turns with their real turn refs.
 - frontend/chat: extract SDK current-turn projection side effects from the

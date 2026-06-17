@@ -11,7 +11,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `e145d3335` (`test(sdk): guard private helper exports`)
+- Latest inspected plan checkpoint: `f8d3a2b2d` (`refactor(sdk): keep context enrichment internals private`)
+- Current behavior: renderer product copy is skin-owned, Electron main product
+  copy is host-skin-owned, voice capture internals use generic naming, and SDK
+  default agent display names are generic unless a host supplies product
+  identity. SDK helper symbols that are not part of the public package boundary
+  stay private behind higher-level runtime APIs.
 
 ## Inspection Log
 
@@ -153,6 +158,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Validation: focused renderer skin, voice runtime boundary, and audio processor tests pass.
 - Fresh inspection: `frontend/src/renderer` product naming now appears only in `windieDesktopSkin.js`.
 
+### 2026-06-16 SDK Default Agent Name Slice
+
+- Finding: SDK agent-definition helpers still used WindieOS/Windie display names as defaults even though Electron main now passes product identity from `mainHostSkin`.
+- Decision: keep backend contract ids/modes unchanged, but make SDK fallback display names generic so custom hosts do not inherit WindieOS presentation copy.
+- Change: `buildAgentDefinition()` now defaults to `Desktop Agent`.
+- Change: `WindieClient.wakeUp()` now defaults the handshake agent name to `Agent` unless a caller supplies `name`.
+- Validation: focused SDK default-name and package-boundary tests pass.
+- Validation gap: the full `WindieSdkClient.test.ts` file was attempted, but two existing local-runtime provider tests failed because their temporary `python-in-env` launcher was unavailable in this environment.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -169,6 +183,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Local browser warmup and OAuth callback copy reads from the host skin on app paths.
 - [x] SDK deep modules keep unused internal helpers private.
 - [x] Renderer voice capture internals use generic naming.
+- [x] SDK default agent display names are generic unless hosts pass product identity.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -215,12 +230,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "summarizeAgentDefinitionCapabilities|compactedReplayFromEvent|normalizeWsUrl" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found those helpers only inside their owning modules plus the private-export boundary test.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/RendererSkinConfigBoundary.test.cjs ../tests/frontend/RendererVoiceRuntimeBoundary.test.ts ../tests/frontend/VoiceAudioProcessorNode.test.ts` passed.
 - `rg -n "WindieOS|Windie Browser|Welcome to WindieOS|WindieOS Demo|Start WindieOS|WindieOS onboarding|WindieOS runtime|WindieOS isn't connected|WindieOS could not|WindieOS is still loading|windieos-capture-processor|WindieOSCaptureProcessor" frontend/src/renderer -g "*.js" -g "*.jsx" -g "*.ts" -g "*.tsx"` found only `windieDesktopSkin.js`.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts` failed only in two existing local-runtime provider tests because their temporary `python-in-env` launcher was unavailable.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts -t "buildAgentDefinition|auto-registers hosted install auth|package boundary"` passed.
+- `rg -n "WindieOS Agent|Windie Agent|Desktop Agent|name: options.name|name: normalizeString" packages/windie-sdk-js/src/runtime/AgentDefinition.ts packages/windie-sdk-js/src/runtime/WindieClient.ts packages/windie-sdk-js/cjs/runtime/AgentDefinition.js packages/windie-sdk-js/cjs/runtime/WindieClient.js tests/frontend/WindieSdkClient.test.ts` found only the new generic defaults and tests.
 
 ## Remaining Findings
 
-- Renderer still has other product-specific strings outside this slice, including onboarding, memory, chat empty state, and runtime error copy. Classify or move them in later slices.
-- Memory settings and memory panel copy are now skin-owned. Remaining renderer product-copy candidates include onboarding, chat empty state, message-send/replay runtime error copy, and workspace/demo test fixtures that may be intentional content rather than skin.
-- Onboarding and chat product copy are now skin-owned. Remaining renderer product-copy candidates include voice/audio implementation identifiers and permission/test fixture content that may be intentional runtime or sample data rather than skin.
 - Renderer product naming is now skin-owned in live renderer source. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
 - Main process composition root, permission services, query event builders, SDK agent name, tray tooltip, MCP client identity, layer-log prefixes, bundled wakeword/sidecar reinstall guidance, local browser warmup, and OAuth callback copy now read related product copy from a host skin. Fresh inspection found WindieOS product naming only in `main_host_skin.cjs` under `frontend/src/main`.
-- SDK deep-module export cleanup is underway: unused helper exports are private, while broader public SDK API naming still intentionally uses Windie-branded class/type names.
+- Voice capture internals now use generic desktop-agent naming. The remaining
+  renderer voice references are intentional feature/runtime names, not product
+  skin copy.
+- SDK default agent display names are generic (`Desktop Agent` from
+  `buildAgentDefinition(...)`, `Agent` from `wakeUp(...)`) so host skin/config
+  remains the product identity owner.
+- SDK deep-module export cleanup is complete for the helpers covered by this
+  slice: `normalizeWsUrl`, `summarizeAgentDefinitionCapabilities`,
+  `compactedReplayFromEvent`, context-enrichment render helpers, tool-output
+  content shapes, capability summaries, and internal diagnostic types are
+  private behind their owning entrypoints. Broader public SDK API naming still
+  intentionally uses Windie-branded class/type names.

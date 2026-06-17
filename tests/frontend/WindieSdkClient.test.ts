@@ -219,6 +219,16 @@ describe('WindieSdkClient', () => {
     expect(definition).not.toHaveProperty('contributionsDir');
   });
 
+  test('buildAgentDefinition uses generic display defaults', () => {
+    const definition = buildAgentDefinition();
+
+    expect(definition).toMatchObject({
+      id: 'windie-default',
+      name: 'Desktop Agent',
+      mode: 'windie_default',
+    });
+  });
+
   test('builds introspection requests against the existing sdk routes', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       config: {
@@ -592,6 +602,9 @@ describe('WindieSdkClient', () => {
     expect(JSON.parse(socket.sent[0])).toMatchObject({
       type: 'handshake',
       user_id: 'registered-user',
+      agent_definition: expect.objectContaining({
+        name: 'Agent',
+      }),
     });
   });
 

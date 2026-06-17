@@ -615,7 +615,7 @@ The SDK builds:
 {
   "version": 1,
   "id": "windie-agent-...",
-  "name": "Windie Agent",
+  "name": "Agent",
   "system_prompt": {
     "mode": "replace",
     "content": "You are a concise coding agent."
@@ -636,6 +636,10 @@ The SDK builds:
   }
 }
 ```
+
+The SDK wake-up path uses the generic `Agent` display name when `name` is not
+provided. Product-specific names should be supplied by the host skin/config
+layer, such as Electron main's `mainHostSkin.identity.sdkAgentName`.
 
 `runtime.operating_system` is detected by the SDK runtime. If callers omit
 `workspacePath`, the TypeScript SDK detects `runtime.workspace_path` from the
