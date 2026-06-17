@@ -31,7 +31,7 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
     purpose: 'Dashboard/sidebar conversation list lifecycle and local history-store reads.',
   },
   [BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH]: {
-    owner: 'Electron main local sidecar bridge',
+    owner: 'Electron main local runtime bridge',
     purpose: 'Browser runtime readiness and chat-header browser action lifecycle before a turn exists.',
   },
   [DESKTOP_STARTUP_DIAGNOSTICS_PATH]: {
@@ -47,8 +47,8 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
     purpose: 'Backend connection and settings/update bridge milestones that are not owned by one conversation turn.',
   },
   [LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH]: {
-    owner: 'Electron main local sidecar bridge',
-    purpose: 'Local sidecar bridge initialization and lifecycle status outside a specific browser action.',
+    owner: 'Electron main local runtime bridge',
+    purpose: 'Local runtime bridge initialization and lifecycle status outside a specific browser action.',
   },
   [MCP_DISCOVERY_DIAGNOSTICS_PATH]: {
     owner: 'Electron main and sidecar MCP runtime',

@@ -42,7 +42,7 @@ frontend/src/
 │   ├── ipc/                               # focused IPC helper runtimes and channel contracts
 │   ├── permissions/                       # permission service, permission IPC, sudo handler, capability domains, state store
 │   ├── sdk/                               # SDK desktop integration helpers and local tool/surface lifecycle hooks
-│   ├── sidecar/                           # local backend/sidecar bridge, daemon manager, RPC transports, readiness, stop policy
+│   ├── sidecar/                           # local runtime bridge, daemon manager, RPC transports, readiness, stop policy
 │   ├── surfaces/                          # BrowserWindow creation, overlays, surface state, window policy, display affinity
 │   ├── wakeword/                          # wakeword subprocess bridge and supervisor
 │   └── python/                            # Sidecar runtime (tools, memory, system, browser)

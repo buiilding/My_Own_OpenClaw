@@ -118,13 +118,17 @@ describe('app diagnostics store', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('exports generic local runtime lifecycle path with legacy diagnostic compatibility alias', () => {
+  test('exports generic local runtime diagnostic owners with legacy path compatibility alias', () => {
     expect(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH).toBe('local_backend.lifecycle');
     expect(LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH).toBe(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH);
     expect(listDiagnosticPathDefinitions()).toEqual(expect.arrayContaining([
       expect.objectContaining({
+        path: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
+        owner: 'Electron main local runtime bridge',
+      }),
+      expect.objectContaining({
         path: LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
-        owner: 'Electron main local sidecar bridge',
+        owner: 'Electron main local runtime bridge',
       }),
     ]));
   });
@@ -415,10 +419,10 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
   });
 
-  test('persists sanitized local sidecar lifecycle diagnostics', () => {
+  test('persists sanitized local runtime lifecycle diagnostics', () => {
     appendDiagnosticEvent({
-      traceId: 'local-backend-diag-test',
-      path: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
+      traceId: 'local-runtime-diag-test',
+      path: LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
       stage: 'bridge_initialized',
       runtime: 'electron-main',
       data: {
@@ -433,7 +437,7 @@ describe('app diagnostics store', () => {
     });
 
     const events = readDiagnosticEvents({
-      pathFilter: LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH,
+      pathFilter: LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
       limit: 10,
     });
     expect(events).toHaveLength(1);

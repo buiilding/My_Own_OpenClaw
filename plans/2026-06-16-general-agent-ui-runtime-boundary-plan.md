@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 diagnostics local runtime owner wording
+
+- Finding: app diagnostics path definitions and trace docs still described the
+  generic host boundary as a local sidecar bridge even after lifecycle
+  diagnostics moved to local-runtime constants.
+- Change: reworded browser-session and local-runtime diagnostics ownership to
+  the Electron main local runtime bridge, updated trace and frontend
+  architecture docs, and locked the registry owner wording in diagnostics tests.
+- Validation: focused diagnostics owner Jest assertion, active source/doc
+  bridge-copy scan, docs listing, and diff check.
+- Compatibility: no migration required. Persisted diagnostics keep the existing
+  `local_backend.lifecycle` path and compatibility alias while registry copy
+  now names the generic runtime owner.
+
 ### 2026-06-17 diagnostics sidecar readiness field removal
 
 - Finding: after active conversation metadata diagnostics moved to
