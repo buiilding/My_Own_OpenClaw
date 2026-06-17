@@ -63,7 +63,7 @@ frontend/src/
 Current runtime behavior also relies on these explicit seams:
 
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `app/main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `app/main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surfaces/surface_runtime.cjs` (window ownership + overlay phase state).
-- **Local sidecar bridge is SDK-owned for lifecycle**:
+- **Local runtime bridge lifecycle is SDK-owned**:
   `sidecar/local_runtime_bridge.cjs` is the composition root for scoped host IPC
   registration and Electron-only helper behavior. Desktop launch facts are built
   in `ipc.cjs`, passed into one shared `AgentClient` as `autoLocalRuntime`, and

@@ -95,12 +95,15 @@ Functionality:
 - Persists/loads frontend config to disk and keeps in-memory config snapshot.
 - Exposes OpenAI Codex OAuth login/logout IPC handlers for non-UI callers; the renderer settings UI does not currently surface OAuth controls.
 
-### 1.3 Local Sidecar Bridge (Main <-> Python)
+### 1.3 Local Runtime Bridge (Main <-> SDK <-> Python)
 
 Primary files:
 
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
+- `frontend/src/main/sidecar/local_runtime_launch_options.cjs`
+- `frontend/src/main/sidecar/local_runtime_supervisor.cjs`
 - `frontend/src/main/sidecar/local_runtime_rpc_mappers.cjs`
+- `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/sidecar/local_runtime_utils.cjs`
 - `frontend/src/main/sidecar/local_runtime_window_visibility.cjs`
@@ -108,11 +111,14 @@ Primary files:
 
 Functionality:
 
-- Starts/stops sidecar process and verifies readiness with ping retries.
-- Correlates JSON-RPC request/response ids and enforces request timeouts.
-- Registers mapped IPC handlers for memory/transcript/system APIs.
-- Executes tool calls and normalizes tool args for local sidecar dispatch.
-- Routes screenshot tool execution through the local-backend window-visibility seam.
+- Builds desktop launch facts and host context for the SDK local runtime provider.
+- Wakes/resolves the SDK-owned sidecar daemon and publishes renderer-visible
+  `local-runtime-status` snapshots.
+- Registers mapped helper IPC handlers for memory/transcript/system APIs and
+  routes them through SDK local-runtime `/rpc`.
+- Executes local tools through SDK `executeTool(...)` while preserving
+  Electron-only screenshot, artifact, display, and window-visibility adapters.
+- Keeps Python `LocalBackend` method execution inside the sidecar daemon.
 
 ### 1.4 Wakeword + Permission Bridges
 

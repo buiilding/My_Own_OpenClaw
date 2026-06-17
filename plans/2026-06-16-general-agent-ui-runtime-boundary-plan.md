@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 frontend inventory local-runtime bridge wording
+
+- Finding: current frontend architecture and inventory docs still framed the
+  Electron main adapter as a local sidecar bridge in places that describe the
+  SDK-owned lifecycle boundary.
+- Change: updated those docs to describe Electron main as owning local-runtime
+  host adapters, launch facts, renderer status projection, helper RPC mapping,
+  and host-only screenshot/artifact/window behavior while keeping Python
+  `LocalBackend` execution inside the sidecar daemon.
+- Validation: docs listing, focused stale wording scan, and diff check.
+- Compatibility: no migration required. This is a docs-only boundary wording
+  cleanup; SDK, IPC, daemon, and sidecar JSON-RPC behavior are unchanged.
+
 ### 2026-06-17 parser trust-boundary import cleanup
 
 - Finding: `backend/src/llm/parser.py` still imported `ParsedToolCall` after

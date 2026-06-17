@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend inventory and routing docs to describe the Electron main local-runtime bridge as SDK-owned lifecycle plus host adapters instead of a local sidecar bridge. No migration is required.
+
 - Removed an unused parser trust-boundary import after parser type ownership moved to `parser_types.py`. No migration is required.
 
 - Removed the `EventHandlerWrapper` compatibility import from the backend event bus runtime; direct imports now use the registry helper module. No persisted-data, storage, API, wire, or settings migration is required.
