@@ -1,18 +1,17 @@
 ---
-summary: "Frontend contract reference for generated schema types vs runtime event guards: removed frontend renderer backendEvents.ts routing, source schema files, preload/main channel enforcement, SDK backend-event typed union, and known drift boundaries."
+summary: "Frontend contract reference for runtime event guards after removal of the unused generated frontend schema: preload/main channel enforcement, SDK backend-event typed union, and known drift boundaries."
 read_when:
-  - When changing `frontend/schema.json`, `frontend/src/types/schema.ts`, or runtime backend-event/type guards.
+  - When changing runtime backend-event/type guards, preload exposure, IPC channel constants, or main-process backend-event forwarding.
+  - When resolving stale references to removed `frontend/schema.json`, removed `frontend/src/types/schema.ts`, or the removed `json-schema-to-typescript` frontend dependency.
   - When debugging channel/event contract drift between preload, SDK backend-event guards, renderer conversation-event ingress, and main-process forwarding.
   - When searching for the removed `frontend/src/renderer/types/backendEvents.ts` renderer event contract; current backend event typing lives in `packages/windie-sdk-js/src/events/backendEvents.ts`.
-title: "Schema Generation and Event Guard Reference"
+title: "Runtime Event Guard Reference"
 ---
 
-# Schema Generation and Event Guard Reference
+# Runtime Event Guard Reference
 
 ## Canonical Modules
 
-- `frontend/schema.json`
-- `frontend/src/types/schema.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -20,13 +19,6 @@ title: "Schema Generation and Event Guard Reference"
 - `frontend/src/main/ipc.cjs`
 
 ## Contract Layers (What Is Authoritative)
-
-### Generated schema layer
-
-- `frontend/src/types/schema.ts` is generated from `frontend/schema.json`.
-- File header explicitly marks it as generated (`json-schema-to-typescript`).
-
-### Runtime guard layer
 
 - SDK runtime uses `packages/windie-sdk-js/src/events/backendEvents.ts` for the
   backend websocket event union and `isBackendEvent(...)`.
@@ -44,13 +36,17 @@ Current practical authority for live runtime behavior:
 4. SDK `backendEventNormalizer.ts` conversation-event projection
 5. renderer `desktopChatStreamIngressRuntime.ts` conversation-event routing
 
-## Generated Schema Usage Boundary
+## Removed Generated Schema Path
 
-`frontend/src/types/schema.ts` is currently not imported by frontend runtime modules (no direct call sites).
+The old generated frontend schema path was deleted:
 
-Implication:
+- `frontend/schema.json`
+- `frontend/src/types/schema.ts`
+- frontend `json-schema-to-typescript` dev dependency
 
-- schema generation provides reference/legacy typing value, but does not directly enforce renderer behavior at runtime today.
+That generated schema had no runtime imports and did not enforce renderer
+behavior. Runtime event validation now lives only in the SDK backend-event guard,
+preload allowlists, IPC channel constants, and main-process forwarding rules.
 
 ## Removed Frontend Renderer backendEvents.ts Route
 
@@ -138,26 +134,23 @@ This yields dual-layer safety:
 
 ## Drift Boundaries to Watch
 
-1. `schema.json` / generated `schema.ts` updated, but runtime guards (`backendEvents.ts`, preload, `ipc.cjs`) not updated.
-2. backend starts emitting a new event type not included in `BACKEND_EVENT_TYPES`.
-3. SDK `backendEventNormalizer.ts` does not project the backend event into the
+1. backend starts emitting a new event type not included in `BACKEND_EVENT_TYPES`.
+2. SDK `backendEventNormalizer.ts` does not project the backend event into the
    conversation event shape expected by renderer handlers.
-4. shared channel registry updated without matching preload/main/runtime tests.
-5. main process forwards payload shape changes that consumer handlers do not expect.
+3. shared channel registry updated without matching preload/main/runtime tests.
+4. main process forwards payload shape changes that consumer handlers do not expect.
 
-## Regeneration and Sync Checklist
+## Runtime Guard Sync Checklist
 
 When changing contract fields:
 
-1. update `frontend/schema.json`
-2. regenerate `frontend/src/types/schema.ts` (using `json-schema-to-typescript` flow)
-3. update `backendEvents.ts` union + payload typing if runtime event shape changed
-4. update `backendEventNormalizer.ts` if the event should reach SDK conversation
+1. update `backendEvents.ts` union + payload typing if runtime event shape changed
+2. update `backendEventNormalizer.ts` if the event should reach SDK conversation
    runtime or renderer chat stream consumers
-5. update `ipcChannels.json` and `channels.ts` expected-registry validation
+3. update `ipcChannels.json` and `channels.ts` expected-registry validation
    together
-6. update `ipc.cjs` normalization/dispatch rules for new message types
-7. update contracts docs and consumer matrix docs
+4. update `ipc.cjs` normalization/dispatch rules for new message types
+5. update contracts docs and consumer matrix docs
 
 ## Related Pages
 

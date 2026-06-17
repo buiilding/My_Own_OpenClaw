@@ -15,11 +15,7 @@
   "ignoreDependencies": [
     "@testing-library/react",
     "eslint-plugin-deprecation",
-    "eslint-plugin-react-compiler",
-    "json-schema-to-typescript"
-  ],
-  "ignore": [
-    "src/types/schema.ts"
+    "eslint-plugin-react-compiler"
   ],
   "ignoreIssues": {
     "src/main/diagnostics/app_diagnostics_store.cjs": ["exports"],

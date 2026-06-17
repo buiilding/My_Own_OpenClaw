@@ -178,4 +178,4 @@ This means adding events to backend wire protocol may require both:
 - [Frontend Backend Event Schema Docs Hub](README.md)
 - [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](../from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
 - [Backend Event Consumer Matrix Reference](../../backend_event_consumer_matrix_reference.md)
-- [Schema Generation and Event Guard Reference](../../schema_generation_and_event_guard_reference.md)
+- [Runtime Event Guard Reference](../../schema_generation_and_event_guard_reference.md)

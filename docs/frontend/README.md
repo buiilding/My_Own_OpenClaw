@@ -216,7 +216,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [IPC Channel and Handler Reference](contracts/ipc_channel_and_handler_reference.md)
 - [Preload Allowlist and Channel-Constant Parity Reference](contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
-- [Schema Generation and Event Guard Reference](contracts/schema_generation_and_event_guard_reference.md)
+- [Runtime Event Guard Reference](contracts/schema_generation_and_event_guard_reference.md)
 - [Memory IPC and RPC Mapping Reference](contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Backend Event Consumer Matrix Reference](contracts/backend_event_consumer_matrix_reference.md)
 - [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
