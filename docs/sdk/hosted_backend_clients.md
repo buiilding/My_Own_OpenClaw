@@ -11,7 +11,7 @@ title: "Hosted Backend Clients"
 WindieOS includes transport-only SDK clients for hosted backend APIs and
 agent-runtime SDK surfaces for local desktop operators. Direct hosted route
 clients are useful for artifacts and SDK HTTP routes. Agent sessions should use
-`WindieClient.wakeUp(...)`, not a raw websocket helper.
+`AgentClient.wakeUp(...)`, not a raw websocket helper.
 
 ## TypeScript Client
 
@@ -26,15 +26,15 @@ Use it for direct backend access to:
 - `/api/artifacts/*`
 - `/api/sdk/*`
 
-The normal TypeScript agent surface is `WindieClient.wakeUp(...)`. It builds the
+The normal TypeScript agent surface is `AgentClient.wakeUp(...)`. It builds the
 low-level `agent_definition`, owns the hosted backend websocket, and routes local
 tool calls through the sidecar daemon. Desktop-style clients use the same API and
 subscribe to the returned conversation runtime:
 
 ```ts
-import { WindieClient } from '@windie/sdk';
+import { AgentClient } from '@windie/sdk';
 
-const client = new WindieClient({
+const client = new AgentClient({
   backendUrl: 'https://api.windieos.com',
   backendSession: 'managed',
   installToken: process.env.WINDIE_INSTALL_TOKEN,
@@ -84,12 +84,12 @@ transport names remain compatibility aliases, but new app-builder code should
 prefer the generic names because the hosted websocket transport is an SDK agent
 runtime concern rather than WindieOS renderer skin state.
 
-`WindieClient.wakeUp(...)` can run on the SDK managed backend session. A host may
+`AgentClient.wakeUp(...)` can run on the SDK managed backend session. A host may
 pass backend endpoints and lifecycle hooks to the client when it needs fallback,
 connection status, or idle-close policy:
 
 ```ts
-const client = new WindieClient({
+const client = new AgentClient({
   backendEndpoints: [
     { backendUrl: 'https://api.windieos.com' },
     { backendUrl: 'http://127.0.0.1:8000' },
@@ -146,5 +146,5 @@ Python websocket agent sessions normalize backend-bound payloads before send:
 
 The transport-only hosted clients do not execute local desktop tools. For
 screenshots, click/type, browser actions, files, and processes, use
-`WindieClient.wakeUp(...)` with a local runtime so the SDK coordinates sidecar
+`AgentClient.wakeUp(...)` with a local runtime so the SDK coordinates sidecar
 execution and backend tool-result return.

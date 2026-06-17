@@ -1,70 +1,20 @@
 "use strict";
 /**
- * Provides the reusable chat session module for the TypeScript SDK runtime.
+ * Provides compatibility exports for the historical Windie-prefixed chat session module.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieChatSession = exports.AgentChatSession = void 0;
-const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
-function normalizeSendInput(input) {
-    return typeof input === 'string' ? { text: input } : input;
-}
-class AgentChatSession {
-    constructor(conversationRef, runtime) {
-        this.conversationRef = conversationRef;
-        this.runtime = runtime;
-    }
-    subscribe(listener) {
-        return this.runtime.subscribe(listener);
-    }
-    onEvent(listener) {
-        return this.runtime.subscribeEvents(listener);
-    }
-    async load() {
-        return this.runtime.load();
-    }
-    async display() {
-        return (await this.load()).display;
-    }
-    async send(input) {
-        return this.runtime.send(normalizeSendInput(input));
-    }
-    async *stream(input) {
-        const seenToolOutputs = new Set();
-        for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
-            const streamEvents = (0, AgentStreamEvents_js_1.toAgentStreamEvents)(runtimeEvent);
-            if (streamEvents.length === 0) {
-                continue;
-            }
-            if (runtimeEvent.type === 'conversation_event') {
-                const keys = (0, AgentStreamEvents_js_1.toolOutputStreamKeys)(runtimeEvent.event);
-                if (keys.some(key => seenToolOutputs.has(key))) {
-                    continue;
-                }
-                keys.forEach(key => seenToolOutputs.add(key));
-            }
-            for (const streamEvent of streamEvents) {
-                yield streamEvent;
-            }
-        }
-    }
-    async editAndResend(input) {
-        return this.runtime.editAndResend(input);
-    }
-    async retry(input = {}) {
-        return this.runtime.retryTurn(input);
-    }
-    async stop(turnRef) {
-        await this.runtime.stop(turnRef ?? null);
-    }
-    async rehydrate() {
-        return this.runtime.rehydrate();
-    }
-    close() {
-        this.runtime.close();
-    }
-    onConversationEvent(listener) {
-        return this.onEvent(listener);
-    }
-}
-exports.AgentChatSession = AgentChatSession;
-exports.WindieChatSession = AgentChatSession;
+__exportStar(require("./AgentChatSession.js"), exports);

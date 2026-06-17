@@ -65,7 +65,7 @@ Renderer feature code
   -> renderer app runtime facades
   -> preload allowlisted IPC
   -> Electron main IPC/runtime modules
-  -> WindieClient.wakeUp(...) + agent.conversation(...) SDK runtime
+  -> AgentClient.wakeUp(...) + agent.conversation(...) SDK runtime
   -> hosted/self-hosted backend HTTP/WebSocket
   -> backend agent loop and provider/tool policy
 ```
@@ -166,8 +166,8 @@ Key entry points:
   `backend/src/agent/execution/interaction_loop.py`,
   `backend/src/llm/providers/`, `backend/src/tools/registry.py`.
 - SDK: `packages/windie-sdk-js/src/index.ts`,
-  `packages/windie-sdk-js/src/runtime/WindieClient.ts`,
-  `packages/windie-sdk-js/src/runtime/WindieAgent.ts`,
+  `packages/windie-sdk-js/src/runtime/AgentClient.ts`,
+  `packages/windie-sdk-js/src/runtime/Agent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`,
   `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`,
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
@@ -198,19 +198,19 @@ first first-party SDK host, not a separate agent implementation.
 
 Key TypeScript SDK surfaces:
 
-- `packages/windie-sdk-js/src/runtime/WindieClient.ts`: public wake-up
+- `packages/windie-sdk-js/src/runtime/AgentClient.ts`: public wake-up
   orchestration, backend websocket/session creation, local runtime setup, and
   tool/plugin/MCP manifest assembly.
-- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`: high-level agent helpers
+- `packages/windie-sdk-js/src/runtime/Agent.ts`: high-level agent helpers
   such as `ask`, `run`, `stream`, model updates, conversation management,
   memory/title commands, system prompt/tool schema commands, and artifact
   helpers.
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
   conversation command/runtime surface over SDK stores and backend transport.
-  Electron main uses `WindieClient.wakeUp(...)`, then
+  Electron main uses `AgentClient.wakeUp(...)`, then
   `agent.conversation(...)`, and forwards SDK `displayRows` / `currentTurn`
   snapshots to renderer surfaces.
-- `packages/windie-sdk-js/src/runtime/WindieChatSession.ts`: chat-style session
+- `packages/windie-sdk-js/src/runtime/AgentChatSession.ts`: chat-style session
   helper for an existing conversation.
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
   conversation command/runtime surface over a store and backend transport.
@@ -265,7 +265,7 @@ MessageInput / chat hook
   -> SDK ConversationRuntime command
   -> SDK-shaped windie:invoke command
   -> Electron main query payload builder
-  -> WindieClient.wakeUp(...) + agent.conversation(...) managed backend session
+  -> AgentClient.wakeUp(...) + agent.conversation(...) managed backend session
   -> backend agent loop
 ```
 

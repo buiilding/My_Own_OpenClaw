@@ -717,13 +717,13 @@ describe('WindieSdkClient', () => {
     );
   });
 
-  test('WindieClient source uses generic hosted default endpoint helper naming', async () => {
+  test('AgentClient source uses generic hosted default endpoint helper naming', async () => {
     const sdkSource = await fsPromises.readFile(
-      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/WindieClient.ts'),
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),
       'utf8',
     );
     const sdkCjsSource = await fsPromises.readFile(
-      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/WindieClient.js'),
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/AgentClient.js'),
       'utf8',
     );
 

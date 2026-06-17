@@ -93,7 +93,7 @@ Client capability metadata now comes from the SDK-authored agent definition and
 its client tool manifest, not a parallel main-process handshake helper. Add or
 debug handshake behavior through `agent_definition.tools.client_manifest`,
 `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`,
-`packages/windie-sdk-js/src/runtime/WindieClient.ts`, current
+`packages/windie-sdk-js/src/runtime/AgentClient.ts`, current
 `tests/frontend/WindieSdkClient.test.ts` coverage, and the backend agent
 definition validation path.
 

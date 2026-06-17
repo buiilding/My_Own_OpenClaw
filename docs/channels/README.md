@@ -112,8 +112,8 @@ Read:
 Likely code:
 
 - backend model-facing schema under `backend/src/tools`
-- SDK runtime under `packages/windie-sdk-js/src/runtime/WindieClient.ts`,
-  `packages/windie-sdk-js/src/runtime/WindieAgent.ts`,
+- SDK runtime under `packages/windie-sdk-js/src/runtime/AgentClient.ts`,
+  `packages/windie-sdk-js/src/runtime/Agent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, and
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - sidecar executable tool under `frontend/src/main/python/tools`

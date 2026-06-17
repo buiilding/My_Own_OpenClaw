@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Moved SDK runtime implementations to generic AgentClient, Agent, and AgentChatSession modules while keeping Windie-prefixed compatibility exports.
+
 - Moved SDK transport implementations to generic AgentSession and ManagedAgentSession modules while keeping Windie-prefixed compatibility exports.
 
 - Updated SDK examples and Electron-main docs to teach AgentClient / Agent as the canonical reusable runtime names, while preserving Windie-prefixed compatibility aliases.
@@ -1739,6 +1741,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Moved SDK runtime implementations to generic AgentClient, Agent, and AgentChatSession modules while keeping Windie-prefixed compatibility exports.
+
 - Moved SDK transport implementations to generic AgentSession and ManagedAgentSession modules while keeping Windie-prefixed compatibility exports.
 
 - Updated SDK examples and Electron-main docs to teach AgentClient / Agent as the canonical reusable runtime names, while preserving Windie-prefixed compatibility aliases.
@@ -3371,6 +3375,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Moved SDK runtime implementations to generic AgentClient, Agent, and AgentChatSession modules while keeping Windie-prefixed compatibility exports.
+
 - Moved SDK transport implementations to generic AgentSession and ManagedAgentSession modules while keeping Windie-prefixed compatibility exports.
 
 - Updated SDK examples and Electron-main docs to teach AgentClient / Agent as the canonical reusable runtime names, while preserving Windie-prefixed compatibility aliases.
@@ -3657,6 +3663,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Moved SDK runtime implementations to generic AgentClient, Agent, and AgentChatSession modules while keeping Windie-prefixed compatibility exports.
 
 - Moved SDK transport implementations to generic AgentSession and ManagedAgentSession modules while keeping Windie-prefixed compatibility exports.
 
@@ -3974,6 +3982,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Moved SDK runtime implementations to generic AgentClient, Agent, and AgentChatSession modules while keeping Windie-prefixed compatibility exports.
 
 - Moved SDK transport implementations to generic AgentSession and ManagedAgentSession modules while keeping Windie-prefixed compatibility exports.
 
@@ -6247,6 +6257,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Moved SDK runtime implementations to generic AgentClient, Agent, and AgentChatSession modules while keeping Windie-prefixed compatibility exports.
 
 - Moved SDK transport implementations to generic AgentSession and ManagedAgentSession modules while keeping Windie-prefixed compatibility exports.
 

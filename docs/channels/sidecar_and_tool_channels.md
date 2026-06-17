@@ -33,9 +33,9 @@ sequenceDiagram
 | Layer | Owns | Code roots |
 | --- | --- | --- |
 | Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/api/processing/formatters`, `backend/src/api/handlers/tool_result.py` |
-| SDK runtime | backend websocket ownership, local runtime startup/reuse, local tool-call routing, display-row projection, `tool-result` / `tool-bundle-result` return | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts` |
+| SDK runtime | backend websocket ownership, local runtime startup/reuse, local tool-call routing, display-row projection, `tool-result` / `tool-bundle-result` return | `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts` |
 | Renderer | projected tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`, `frontend/src/renderer/infrastructure/transcript/*` |
-| Electron main | renderer IPC, direct `WindieClient.wakeUp(...)` customer wiring, desktop sidecar launch option assembly, screenshot artifact upload, system-state bridge, SDK event fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs` |
+| Electron main | renderer IPC, direct `AgentClient.wakeUp(...)` customer wiring, desktop sidecar launch option assembly, screenshot artifact upload, system-state bridge, SDK event fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_backend_bridge.cjs`, `frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs` |
 | Python sidecar daemon | executable tool implementations and dynamic tool registry | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
 
 ## Main IPC Channels
@@ -55,7 +55,7 @@ Renderer code should call the typed IPC bridge instead of raw Electron APIs.
 ## Sidecar Daemon Boundary
 
 The canonical local executor is the token-auth sidecar daemon. Electron main
-passes desktop launch options to `WindieClient`; the SDK starts or reuses the
+passes desktop launch options to `AgentClient`; the SDK starts or reuses the
 daemon and local execution uses daemon HTTP endpoints such as `/execute-tool`.
 
 The older line-oriented JSON-RPC process remains for local memory/service IPC while those services are being carried behind the daemon boundary. It is intentionally separate from hosted backend HTTP/WebSocket contracts.

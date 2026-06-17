@@ -16,7 +16,7 @@ separate backend websocket loops, replay logic, or tool-result routing.
 ## SDK Pages
 
 - [Hosted Backend Clients](hosted_backend_clients.md)
-- [WindieClient Runtime Contract](windie_client_runtime.md)
+- [AgentClient Runtime Contract](windie_client_runtime.md)
 - [SDK Conversation Runtime](conversation_runtime.md)
 - [Agent Definition Contract](agent_definition.md)
 - [SDK Route Change Workflow](sdk_route_change_workflow.md)
@@ -51,7 +51,7 @@ standalone SDK package instead of depending on Electron's `frontend/node_modules
 
 ## Examples
 
-- `examples/cli-agent`: minimal Node CLI using `WindieClient`,
+- `examples/cli-agent`: minimal Node CLI using `AgentClient`,
   `InMemoryConversationStore`, and `conversation.stream()` without Electron:
   `node examples/cli-agent/run.mjs`
 - `examples/simple-chat-cli`: interactive CLI chat against the remote backend
@@ -76,7 +76,7 @@ standalone SDK package instead of depending on Electron's `frontend/node_modules
 
 ## Rule
 
-Use `WindieClient.wakeUp(...)` for agent sessions, including desktop-style
+Use `AgentClient.wakeUp(...)` for agent sessions, including desktop-style
 hosts. The returned `Agent` creates SDK conversation runtimes that send
 user intent, execute model-requested local tools, return tool results, emit
 display/current-turn projections, and expose control commands for connection

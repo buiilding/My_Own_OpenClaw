@@ -16,7 +16,7 @@ title: "SDK Conversation Runtime"
 The TypeScript SDK owns the reusable client-side conversation runtime. The
 Electron desktop is the flagship client, but it should consume SDK projections
 instead of privately shaping transcript, replay, tool, and compaction state.
-External app authors normally use `WindieClient.wakeUp(...)` and
+External app authors normally use `AgentClient.wakeUp(...)` and
 `agent.conversation(...)`. The built-in Electron desktop is a first-party SDK
 host, so its app runtime facades may use lower-level SDK runtime pieces such as
 conversation-runtime factories, managed backend sessions, and tool coordination
@@ -303,7 +303,7 @@ The SDK ships two reusable store adapters:
   from preserved event rows so `getRevision()` and metadata listing advance even
   when the rewrite keeps only old events or no events.
 
-`WindieClient.wakeUp(...)` enables persistence by default. When a sidecar
+`AgentClient.wakeUp(...)` enables persistence by default. When a sidecar
 runtime is available, the agent default store is `SidecarConversationStore`;
 callers only need to pass `store` when they intentionally want a non-default
 adapter. Set `persistence: false` for an in-memory session.

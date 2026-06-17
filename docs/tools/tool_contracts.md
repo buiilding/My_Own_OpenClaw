@@ -124,14 +124,14 @@ Client-local schemas are merged with backend registry schemas before policy filt
 | Built-in local manifest source | `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/windie_shared/browser_contract*` |
 | Generated Electron manifest artifact | `frontend/src/main/generated/builtin_tool_manifest.json`, `scripts/generate-builtin-tool-manifest` |
 | Client manifest validation | `backend/src/tools/client_manifest.py` |
-| Client manifest agent definition | `frontend/src/main/agent/desktop_agent_definition_inputs.cjs`, `frontend/src/main/extensions/tool_manifest.cjs`, `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts` |
+| Client manifest agent definition | `frontend/src/main/agent/desktop_agent_definition_inputs.cjs`, `frontend/src/main/extensions/tool_manifest.cjs`, `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` |
 | Backend tool catalog | `backend/src/tools/tool_catalog.py` |
 | Backend schemas and remote tools | `backend/src/tools/remote_tools/*`, `backend/src/tools/*schema*` |
 | Tool policy and capability filters | `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_health.py` |
 | Prompt merge and projection | `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/tools/provider_projection.py` |
 | Preparation and coordinate resolution | `backend/src/agent/tools/preparation/*` |
 | Sending/waiting/processing | `backend/src/agent/tools/sending/*`, `backend/src/agent/tools/waiting/*`, `backend/src/agent/tools/processing/*` |
-| SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
+| SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Main sidecar bridge | `frontend/src/main/sidecar/local_backend_bridge*.cjs` |
 | Sidecar registry | `frontend/src/main/python/tools/registry.py` |
 

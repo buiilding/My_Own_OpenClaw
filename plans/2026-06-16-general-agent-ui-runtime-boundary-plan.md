@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK runtime modules use Agent filenames
+
+- Finding: after `AgentClient`, `Agent`, and `AgentChatSession` became
+  canonical class names, their implementations still lived in
+  `WindieClient.ts`, `WindieAgent.ts`, and `WindieChatSession.ts`; docs and
+  source-inspection tests also routed maintainers to those compatibility module
+  names as primary files.
+- Change: moved the runtime implementations to `AgentClient.ts`, `Agent.ts`,
+  and `AgentChatSession.ts`, switched SDK internals and root exports to those
+  generic modules, kept Windie-prefixed files as compatibility re-exports,
+  regenerated checked-in CommonJS output, and updated current routing docs.
+- Validation: SDK package build, focused SDK package/client/header tests, CJS
+  runtime alias smoke, docs listing, source scan, and diff check.
+- Compatibility: no migration required. Existing `WindieClient`, `WindieAgent`,
+  and `WindieChatSession` exports and private CJS compatibility module paths
+  continue to resolve to the same runtime constructors.
+
 ### 2026-06-17 SDK transport modules use AgentSession filenames
 
 - Finding: after `AgentSession` and `ManagedAgentSession` became canonical
