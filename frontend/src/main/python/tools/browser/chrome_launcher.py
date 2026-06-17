@@ -2,8 +2,8 @@
 Chrome launcher with auto-detection and CDP support.
 
 Provides automatic Chrome detection, launch, and connection:
-- Uses a WindieOS-dedicated Chrome profile
-- Auto-launches/attaches to a WindieOS CDP instance
+- Uses a dedicated Chrome profile
+- Auto-launches/attaches to a dedicated CDP instance
 - Leaves the user's default Chrome instance untouched
 """
 
@@ -131,7 +131,7 @@ async def is_cdp_download_behavior_supported(
                 if not error:
                     return True
                 logger.warning(
-                    "WindieOS browser CDP endpoint rejected download behavior probe: %s",
+                    "Dedicated browser CDP endpoint rejected download behavior probe: %s",
                     error.get("message", error),
                 )
                 return False
@@ -141,7 +141,7 @@ async def is_cdp_download_behavior_supported(
 
 
 def _iter_windie_chrome_processes(cdp_port: int) -> List[psutil.Process]:
-    """Return Chrome processes that match WindieOS' dedicated profile and CDP port."""
+    """Return Chrome processes that match the dedicated profile and CDP port."""
     user_data_arg = f"--user-data-dir={get_chrome_user_data_dir()}"
     port_arg = f"--remote-debugging-port={cdp_port}"
     matches: List[psutil.Process] = []
@@ -158,7 +158,7 @@ def _iter_windie_chrome_processes(cdp_port: int) -> List[psutil.Process]:
 
 
 async def terminate_windie_chrome_with_cdp(cdp_port: int) -> int:
-    """Terminate only WindieOS-owned Chrome processes for the requested CDP port."""
+    """Terminate only dedicated-profile Chrome processes for the requested CDP port."""
     processes = _iter_windie_chrome_processes(cdp_port)
     if not processes:
         return 0
@@ -167,14 +167,14 @@ async def terminate_windie_chrome_with_cdp(cdp_port: int) -> int:
         try:
             process.terminate()
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            logger.debug("Could not terminate WindieOS browser process: %s", e)
+            logger.debug("Could not terminate dedicated browser process: %s", e)
 
     _, alive = psutil.wait_procs(processes, timeout=3)
     for process in alive:
         try:
             process.kill()
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            logger.debug("Could not kill WindieOS browser process: %s", e)
+            logger.debug("Could not kill dedicated browser process: %s", e)
 
     await asyncio.sleep(CHROME_CHECK_INTERVAL)
     return len(processes)
@@ -182,10 +182,10 @@ async def terminate_windie_chrome_with_cdp(cdp_port: int) -> int:
 
 def get_chrome_user_data_dir() -> Path:
     """
-    Get WindieOS-owned Chrome profile directory.
+    Get the dedicated Chrome profile directory.
 
     This profile is separate from the user's default Chrome profile so
-    credentials and browser state are isolated to WindieOS automation.
+    credentials and browser state are isolated to browser automation.
     """
     system = platform.system()
     home = Path.home()
@@ -225,7 +225,7 @@ async def launch_chrome_with_cdp(
             raise ChromeNotFoundError("Chrome not found. Please install Google Chrome.")
         executable_path = exe.path
 
-    logger.info("Launching WindieOS browser instance with CDP on port %s", cdp_port)
+    logger.info("Launching dedicated browser instance with CDP on port %s", cdp_port)
 
     user_data_dir = get_chrome_user_data_dir()
     user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -295,11 +295,11 @@ async def ensure_chrome_with_cdp(
     headless: bool = False,
 ) -> str:
     """
-    Ensure the WindieOS-dedicated Chrome instance is running with CDP.
+    Ensure the dedicated Chrome instance is running with CDP.
 
     This path intentionally does not inspect/kill the user's default Chrome
-    process. If the WindieOS CDP endpoint is unavailable, it launches a
-    separate Chrome instance with WindieOS profile data.
+    process. If the dedicated CDP endpoint is unavailable, it launches a
+    separate Chrome instance with dedicated profile data.
 
     Args:
         cdp_port: Port for CDP
@@ -314,30 +314,30 @@ async def ensure_chrome_with_cdp(
     """
     cdp_url = f"http://127.0.0.1:{cdp_port}"
 
-    # Case 1: WindieOS CDP endpoint already available and compatible.
+    # Case 1: dedicated CDP endpoint already available and compatible.
     if await is_cdp_available(cdp_url):
         if await is_cdp_download_behavior_supported(cdp_url):
-            logger.info("WindieOS browser with CDP already available at %s", cdp_url)
+            logger.info("Dedicated browser with CDP already available at %s", cdp_url)
             return cdp_url
 
         terminated = await terminate_windie_chrome_with_cdp(cdp_port)
         if terminated:
             logger.warning(
-                "Restarting WindieOS browser because existing CDP endpoint at %s "
+                "Restarting dedicated browser because existing CDP endpoint at %s "
                 "does not support Playwright attach setup",
                 cdp_url,
             )
         else:
             raise ChromeLauncherError(
-                "WindieOS browser CDP endpoint is available but does not support "
-                "Playwright attach setup, and the process is not a WindieOS-owned "
-                "browser that can be restarted safely."
+                "Dedicated browser CDP endpoint is available but does not support "
+                "Playwright attach setup, and the process is not a dedicated "
+                "browser process that can be restarted safely."
             )
 
-    # Case 2: WindieOS CDP endpoint unavailable -> launch dedicated instance.
+    # Case 2: dedicated CDP endpoint unavailable -> launch dedicated instance.
     if auto_launch:
         logger.info(
-            "WindieOS browser CDP endpoint unavailable; launching dedicated instance"
+            "Dedicated browser CDP endpoint unavailable; launching dedicated instance"
         )
         _, cdp_url = await launch_chrome_with_cdp(
             cdp_port=cdp_port,
@@ -347,6 +347,6 @@ async def ensure_chrome_with_cdp(
 
     # Case 3: Cannot proceed
     raise ChromeLauncherError(
-        "WindieOS browser is not running and auto_launch is disabled. "
-        f"Start a WindieOS browser instance with --remote-debugging-port={cdp_port}."
+        "Dedicated browser is not running and auto_launch is disabled. "
+        f"Start a dedicated browser instance with --remote-debugging-port={cdp_port}."
     )

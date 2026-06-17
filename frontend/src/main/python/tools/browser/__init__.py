@@ -1,1 +1,1 @@
-"""WindieOS browser automation package."""
+"""Dedicated browser automation package."""

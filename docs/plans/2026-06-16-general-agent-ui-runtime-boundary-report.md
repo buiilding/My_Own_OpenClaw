@@ -511,6 +511,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   generic Agent SDK runtime boundary.
 - Change: changed those Python SDK diagnostics and module docstring to generic
   Agent SDK wording while preserving public package/class exports.
+- Finding: sidecar browser launcher/runtime diagnostics and docstrings still
+  called the dedicated CDP/profile runtime the WindieOS browser, even though
+  the executable sidecar boundary is a product-neutral dedicated browser
+  adapter.
+- Change: updated browser launcher logs/errors/docstrings and Browser Use
+  adapter docstrings to dedicated-browser wording without renaming the existing
+  helper functions or environment variables.
 
 ## Remaining Findings
 
@@ -585,3 +592,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of embedding WindieOS product naming in executable tool metadata.
 - Python SDK wake-up and local-runtime preflight diagnostics now use generic
   Agent SDK wording. Public Python package and class names remain unchanged.
+- Sidecar browser launcher/runtime diagnostics now describe the dedicated
+  browser CDP/profile boundary generically. Existing helper names and
+  environment variables remain unchanged.

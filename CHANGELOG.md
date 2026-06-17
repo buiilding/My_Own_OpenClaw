@@ -81,6 +81,10 @@ All notable changes to WindieOS will be documented in this file.
   browser tool descriptions and shared browser action metadata.
 - frontend/sidecar: use generic selected-workspace wording in the executable
   shell tool manifest.
+- frontend/sidecar: use generic Agent SDK wording for Python wake-up and
+  local-runtime preflight diagnostics.
+- frontend/sidecar: use generic dedicated-browser wording in browser launcher
+  diagnostics and Browser Use adapter docstrings.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.
@@ -95,6 +99,8 @@ All notable changes to WindieOS will be documented in this file.
   path.
 - backend/tools: remove the unused `ToolCategory` enum and narrow tool
   taxonomy docs/tests to the live `ToolDomain` contract.
+- backend/tools: remove the unused backend-exposed tool-name alias from the
+  tool catalog so callers use the client-executable name surface directly.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

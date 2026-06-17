@@ -1,4 +1,4 @@
-"""Browser Use engine adapter for WindieOS browser tool execution."""
+"""Browser Use engine adapter for dedicated browser tool execution."""
 
 from __future__ import annotations
 
@@ -340,7 +340,7 @@ def _pdf_file_name(file_name: str | None) -> str:
 
 
 class BrowserUseEngineRuntime:
-    """Execute WindieOS browser actions through the maintained Browser Use CLI daemon."""
+    """Execute dedicated browser actions through the maintained Browser Use CLI daemon."""
 
     def __init__(self) -> None:
         self._session = _browser_use_session()
@@ -428,8 +428,8 @@ class BrowserUseEngineRuntime:
         raise BrowserActionError(
             code="BROWSER_USE_ENGINE_ERROR",
             message=(
-                f"Browser Use session '{self._session}' is still running with a non-WindieOS profile after close; "
-                "stop the stale daemon before reconnecting the WindieOS dedicated browser."
+                f"Browser Use session '{self._session}' is still running with a non-dedicated profile after close; "
+                "stop the stale daemon before reconnecting the dedicated browser."
             ),
         )
 

@@ -261,7 +261,7 @@ class TestLaunchChromeWithCdp:
 
 
 class TestTerminateWindieChromeWithCdp:
-    """Test terminating only WindieOS-owned CDP Chrome processes."""
+    """Test terminating only dedicated-profile CDP Chrome processes."""
 
     @pytest.mark.asyncio
     @mock.patch(
@@ -322,10 +322,10 @@ class TestEnsureChromeWithCdp:
     @mock.patch("tools.browser.chrome_launcher.terminate_windie_chrome_with_cdp")
     @mock.patch("tools.browser.chrome_launcher.launch_chrome_with_cdp")
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    async def test_restarts_incompatible_windie_cdp_endpoint(
+    async def test_restarts_incompatible_dedicated_cdp_endpoint(
         self, mock_available, mock_launch, mock_terminate, mock_download_supported
     ):
-        """Restart Windie-owned Chrome when CDP rejects Playwright attach setup."""
+        """Restart dedicated-profile Chrome when CDP rejects Playwright attach setup."""
         mock_available.return_value = True
         mock_download_supported.return_value = False
         mock_terminate.return_value = 1
@@ -342,10 +342,10 @@ class TestEnsureChromeWithCdp:
     @mock.patch("tools.browser.chrome_launcher.is_cdp_download_behavior_supported")
     @mock.patch("tools.browser.chrome_launcher.terminate_windie_chrome_with_cdp")
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    async def test_rejects_incompatible_non_windie_cdp_endpoint(
+    async def test_rejects_incompatible_non_dedicated_cdp_endpoint(
         self, mock_available, mock_terminate, mock_download_supported
     ):
-        """Do not kill or replace a non-Windie process bound to the CDP port."""
+        """Do not kill or replace a non-dedicated process bound to the CDP port."""
         mock_available.return_value = True
         mock_download_supported.return_value = False
         mock_terminate.return_value = 0
@@ -353,7 +353,7 @@ class TestEnsureChromeWithCdp:
         with pytest.raises(Exception) as exc_info:
             await ensure_chrome_with_cdp(auto_launch=True)
 
-        assert "not a WindieOS-owned browser" in str(exc_info.value)
+        assert "not a dedicated browser process" in str(exc_info.value)
 
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
@@ -378,4 +378,5 @@ class TestEnsureChromeWithCdp:
         with pytest.raises(Exception) as exc_info:
             await ensure_chrome_with_cdp(auto_launch=False)
 
+        assert "Dedicated browser is not running" in str(exc_info.value)
         assert "auto_launch is disabled" in str(exc_info.value)
