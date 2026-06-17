@@ -1,5 +1,5 @@
 /**
- * Covers chat model options. behavior in the frontend test suite.
+ * Covers chat model option behavior in the frontend test suite.
  */
 
 import {
@@ -243,7 +243,7 @@ describe('chatModelOptions', () => {
     expect(resolveSelectedReasoningMode(options[0], 'custom-openai-high')).toBeNull();
   });
 
-  test('prefers backend family metadata and injects none mode for non-thinking defaults', () => {
+  test('prefers runtime family metadata and injects none mode for non-thinking defaults', () => {
     const availableModelPool = [
       {
         id: 'claude-sonnet-4-5-base',

@@ -321,3 +321,16 @@ Each completed slice should report:
 - Compatibility: no migration required. This is an internal renderer module
   rename; websocket event names, IPC channels, and playback behavior are
   unchanged.
+
+### 2026-06-17 renderer model catalog metadata wording
+
+- Finding: the renderer model option builder and its route docs still described
+  explicit reasoning-mode order and family metadata as backend-owned, even
+  though the UI consumes a normalized model catalog shape.
+- Change: renamed the internal ordered-mode variable and focused test/docs copy
+  to runtime/model-catalog terminology while preserving the snake-case metadata
+  fields received from the runtime.
+- Validation: focused Jest run for `ChatModelOptions`, docs listing,
+  `git diff --check`, and a source scan for the retired model-options wording.
+- Compatibility: no migration required. Model metadata fields, settings sync,
+  and selected-model behavior are unchanged.

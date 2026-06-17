@@ -105,11 +105,11 @@ function buildReasoningModeOptionsFromVariants(
     }
   });
 
-  const backendOrderedModes = Array.isArray(explicitReasoningModes)
+  const explicitOrderedModes = Array.isArray(explicitReasoningModes)
     ? explicitReasoningModes.map((mode) => normalizeReasoningMode(mode)).filter(Boolean)
     : [];
-  const orderedModes = backendOrderedModes.length > 0
-    ? backendOrderedModes
+  const orderedModes = explicitOrderedModes.length > 0
+    ? explicitOrderedModes
     : [...modeMap.keys()].sort(
       (left, right) => getReasoningSortIndex(left) - getReasoningSortIndex(right),
     );

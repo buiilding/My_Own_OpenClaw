@@ -1,10 +1,12 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
 ### Changed
+
+- frontend/renderer: describe model option family ordering as runtime model catalog metadata instead of backend-owned UI state.
 
 - frontend/renderer: rename the chat audio chunk parser from backend-prefixed wording to audio chunk event terminology while preserving the `audio-chunk` payload contract.
 
