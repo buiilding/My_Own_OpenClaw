@@ -240,7 +240,7 @@ describe('MessageContent', () => {
         message={{
           sender: 'assistant',
           type: 'tool-call',
-          text: 'legacy tool call',
+          text: 'ignored tool call text',
           modelFacingToolCall: {
             id: 'tool_1',
             name: 'read_file',
@@ -267,7 +267,7 @@ describe('MessageContent', () => {
         message={{
           sender: 'assistant',
           type: 'tool-call',
-          text: 'legacy normalized view',
+          text: 'ignored normalized view',
           toolCallDisplayText: '{"id":"tool_2","name":"run_shell_command"}',
           modelFacingToolCall: {
             id: 'tool_2',
@@ -283,21 +283,27 @@ describe('MessageContent', () => {
     );
 
     expect(screen.getByText('{"id":"tool_2","name":"run_shell_command"}')).toBeInTheDocument();
-    expect(screen.queryByText('legacy normalized view')).not.toBeInTheDocument();
+    expect(screen.queryByText('ignored normalized view')).not.toBeInTheDocument();
   });
 
-  test('tool call display falls back to message text when model-facing fields are absent', () => {
+  test('tool call display uses model-facing payload when display text is absent', () => {
     render(
       <MessageContent
         message={{
           sender: 'assistant',
           type: 'tool-call',
-          text: 'call search with query x',
+          text: 'ignored raw row text',
+          modelFacingToolCall: {
+            id: 'tool_3',
+            name: 'search',
+            arguments: { query: 'x' },
+          },
         }}
       />,
     );
 
-    expect(screen.getByText('call search with query x')).toBeInTheDocument();
+    expect(screen.getByText(/"name": "search"/)).toBeInTheDocument();
+    expect(screen.queryByText('ignored raw row text')).not.toBeInTheDocument();
   });
 
   test('renders tool explanation rows as subdued plain text', () => {

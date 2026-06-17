@@ -21,14 +21,14 @@ export default function ToolCallMessage({
       && !Array.isArray(message.modelFacingToolCall)
     )
       ? JSON.stringify(message.modelFacingToolCall, null, 2)
-      : message.text;
+      : '';
   const detailsPayload = (
     message.toolCallDetails
     && typeof message.toolCallDetails === 'object'
     && !Array.isArray(message.toolCallDetails)
   )
     ? message.toolCallDetails
-    : { raw_message_text: message.text };
+    : {};
 
   return (
     <div className="tool-call-container">

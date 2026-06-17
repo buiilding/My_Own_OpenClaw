@@ -73,10 +73,15 @@ function resolveUserText(message) {
 
 function resolveToolMessageText(message) {
   if (message?.type === 'tool-call') {
+    const displayText = normalizeText(message?.toolCallDisplayText);
+    if (displayText) {
+      return displayText;
+    }
     const modelFacingCall = stringifyModelFacingToolCall(message?.modelFacingToolCall);
     if (modelFacingCall) {
       return modelFacingCall;
     }
+    return '';
   }
   if (message?.type === 'tool-output') {
     const modelFacingOutput = normalizeText(message?.modelFacingToolOutput);

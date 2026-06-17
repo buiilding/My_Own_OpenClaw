@@ -64,6 +64,16 @@ describe('messageTokenUsage', () => {
     expect(tag).toMatch(/^tokens~ \d+$/);
   });
 
+  test('ignores raw tool-call text when canonical display fields are absent', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'assistant',
+      type: 'tool-call',
+      text: 'ignored raw preview',
+    });
+
+    expect(tag).toBeNull();
+  });
+
   test('estimates tool-output tokens from model-facing output text', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'assistant',

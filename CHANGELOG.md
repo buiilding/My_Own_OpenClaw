@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: remove raw message-text fallback rendering for tool-call
+  cards so completed tool-call rows must use canonical `toolCallDisplayText` or
+  structured `modelFacingToolCall` payloads.
 - renderer: Persist permission onboarding under the generic desktop agent storage key while keeping legacy WindieOS reads compatible.
 
 - frontend/sdk: remove the legacy `metadata.request_id` tool-output correlation fallback so output pairing uses canonical request, tool-call, metadata tool-call, or event ids.

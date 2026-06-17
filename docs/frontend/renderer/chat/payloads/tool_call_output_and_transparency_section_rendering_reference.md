@@ -159,12 +159,10 @@ Primary preview payload:
 
 1. `message.toolCallDisplayText` string
 2. object `message.modelFacingToolCall` serialized as pretty JSON
-3. fallback raw `message.text`
 
 Details panel payload:
 
 1. object `message.toolCallDetails`
-2. fallback object with `raw_message_text`
 
 This separation keeps default view aligned with model-facing call while preserving raw execution payload in details.
 
