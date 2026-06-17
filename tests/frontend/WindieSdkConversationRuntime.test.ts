@@ -5006,6 +5006,66 @@ describe('Agent SDK conversation runtime core', () => {
     }));
   });
 
+  test('conversation runtime title generation ignores removed provider payload alias', async () => {
+    const transport = createControllableBackendTransport();
+    const generateConversationTitle = jest.fn(async () => ({
+      success: true,
+      title: 'Alias Ignored',
+    }));
+    const rpc = jest.fn(async request => {
+      if (request.method === 'get_conversation_title_state') {
+        return {
+          success: true,
+          data: {
+            conversation_id: 'conv-sdk-runtime',
+            title: '',
+            source: '',
+            is_locked: false,
+            has_title: false,
+          },
+        };
+      }
+      return { success: true, data: { title: request.params.title } };
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      sdkClient: {
+        generateConversationTitle,
+      } as any,
+      localRuntime: { rpc },
+      userId: 'user-sdk-runtime',
+      memoryEnabled: false,
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'ignore provider alias', turnRef: 'turn-title-alias' });
+    transport.emit(backendEvent(
+      'streaming-complete',
+      {
+        final_response: 'The removed provider alias should not reach title generation.',
+        model_id: 'gpt-title',
+        provider: 'removed-provider-alias',
+      },
+      {
+        eventId: 'turn-title-alias-evt-000001-streaming-complete',
+        turnRef: 'turn-title-alias',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(generateConversationTitle).toHaveBeenCalledTimes(1);
+    });
+    expect(generateConversationTitle).toHaveBeenCalledWith({
+      user_id: 'user-sdk-runtime',
+      user_message: 'ignore provider alias',
+      assistant_message: 'The removed provider alias should not reach title generation.',
+      model_id: 'gpt-title',
+    });
+  });
+
   test('conversation runtime title generation failure does not block completed turn storage', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     const transport = createControllableBackendTransport();

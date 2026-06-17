@@ -1857,9 +1857,9 @@ export class SdkConversationRuntime {
 
   private completedTurnModelProvider(event: ConversationEvent): string | undefined {
     const rawPayload = rawBackendPayload(event);
-    return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider', 'provider')
-      ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider', 'provider')
-      ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider', 'provider');
+    return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider')
+      ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider')
+      ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider');
   }
 
   private nextLocalEventId(turnRef: string | null | undefined, type: string): string {

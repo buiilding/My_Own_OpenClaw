@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK conversation title-generation fallback that treated raw `provider` as model-provider metadata; title requests now use only canonical `modelProvider` or backend `model_provider`. No storage, wire-event, or persisted-data migration is required.
+
 - Removed the undocumented SDK `AgentModelSelection.provider` compatibility spelling so model selection accepts only `modelProvider`. SDK callers using `provider` must migrate to `modelProvider`; no storage, wire-event, or persisted-data migration is required.
 
 - Updated Python sidecar runtime docstrings, helper docs, and lifecycle log copy to remove stale local-sidecar-runtime labels while preserving the concrete LocalBackend implementation name. No migration is required.

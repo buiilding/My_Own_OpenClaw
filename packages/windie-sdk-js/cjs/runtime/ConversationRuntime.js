@@ -1608,9 +1608,9 @@ class SdkConversationRuntime {
     }
     completedTurnModelProvider(event) {
         const rawPayload = rawBackendPayload(event);
-        return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider', 'provider')
-            ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider', 'provider')
-            ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider', 'provider');
+        return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider')
+            ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider')
+            ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider');
     }
     nextLocalEventId(turnRef, type) {
         const scope = turnRef && turnRef.trim() ? turnRef.trim() : this.options.conversationRef;
