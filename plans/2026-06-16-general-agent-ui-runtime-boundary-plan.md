@@ -610,3 +610,19 @@ Each completed slice should report:
 - Compatibility: no migration required. The bridge export name and shutdown
   behavior are unchanged; only the generic lifecycle dependency name and log
   copy changed.
+
+### 2026-06-17 main window bootstrap local runtime bridge dependency
+
+- Finding: generic main-window/bootstrap runtime wiring still passed
+  `initializeLocalBackendBridge` through the window creation surface, even
+  though the local-backend name belongs at the sidecar bridge adapter edge.
+- Change: renamed the bootstrap and main-window dependency to
+  `initializeLocalRuntimeBridge`, adapted the existing compatibility bridge
+  export at `index.cjs`, and updated focused bootstrap/window tests and docs.
+- Validation: focused Jest run for `MainProcessBootstrapRuntime` and
+  `MainWindowRuntime`; stale-name scan confirming the old initializer remains
+  only in bridge docs and the `index.cjs` adapter edge; docs listing; and `git
+  diff --check`.
+- Compatibility: no migration required. The sidecar bridge export and
+  initialization behavior are unchanged; only generic main-process dependency
+  names moved to local-runtime wording.
