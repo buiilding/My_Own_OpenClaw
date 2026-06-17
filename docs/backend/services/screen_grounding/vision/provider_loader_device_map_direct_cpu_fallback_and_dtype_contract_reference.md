@@ -21,6 +21,9 @@ title: "Provider Loader Device-Map, Direct, CPU Fallback, and Dtype Contract Ref
 
 - true only if `torch` and `transformers` imports succeed
 - false path logs warning and blocks provider construction (`BaseVisionModel.__init__` raises `ImportError`)
+- Venus additionally requires current `transformers` exports for
+  `AutoModelForVision2Seq` and `AutoProcessor`; missing either disables the
+  provider instead of deferring to an older-transformers runtime branch.
 
 `BaseVisionModel` invariants:
 

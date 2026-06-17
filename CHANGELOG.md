@@ -89,6 +89,8 @@ All notable changes to WindieOS will be documented in this file.
   tool-call payloads retain canonical `arguments`.
 - backend/rehydrate: require plural structured-payload `toolCalls[]` during
   replay instead of accepting the singular `toolCall` alias.
+- backend/vision: require current Venus `transformers` dependencies at import
+  time and drop unused `AutoModel` / `AutoTokenizer` dependency checks.
 - docs/sidecar: rename the sidecar registry reference around the native result
   contract and remove stale troubleshooting guidance for legacy dict returns.
 - tests/frontend/sidecar: remove stale deprecated-warning and legacy/unused

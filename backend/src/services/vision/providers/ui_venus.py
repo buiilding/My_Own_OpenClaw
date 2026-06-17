@@ -39,24 +39,16 @@ VENUS_MODEL_DEPS_AVAILABLE = False
 if VISION_MODELS_AVAILABLE:
     try:
         import torch
-        from transformers import AutoModel, AutoProcessor, AutoTokenizer
+        from transformers import AutoModelForVision2Seq, AutoProcessor
 
-        try:
-            from transformers import AutoModelForVision2Seq
-        except ImportError:  # pragma: no cover - older transformers
-            AutoModelForVision2Seq = None
         VENUS_MODEL_DEPS_AVAILABLE = True
     except Exception as import_error:
         logger.warning("Venus vision dependencies unavailable: %s", import_error)
         torch = None
-        AutoModel = None
-        AutoTokenizer = None
         AutoProcessor = None
         AutoModelForVision2Seq = None
 else:
     torch = None
-    AutoModel = None
-    AutoTokenizer = None
     AutoProcessor = None
     AutoModelForVision2Seq = None
 
@@ -77,8 +69,8 @@ class VenusVisionModel(InternVLModel):
         if (
             not VISION_MODELS_AVAILABLE
             or not VENUS_MODEL_DEPS_AVAILABLE
-            or AutoModel is None
-            or AutoTokenizer is None
+            or AutoProcessor is None
+            or AutoModelForVision2Seq is None
         ):
             raise ImportError("Vision model dependencies not available")
 
@@ -87,8 +79,6 @@ class VenusVisionModel(InternVLModel):
                 f"Loading Venus vision model (Qwen2.5-VL family): {self.model_name}"
             )
 
-            if AutoProcessor is None:
-                raise ImportError("AutoProcessor not available for Venus vision model")
             self.model, self._model_dtype = load_model_with_fallbacks(
                 provider_label="Venus",
                 model_name=self.model_name,
@@ -123,8 +113,6 @@ class VenusVisionModel(InternVLModel):
             raise
 
     def _load_with_device_map(self, dtype):
-        if AutoModelForVision2Seq is None:
-            raise RuntimeError("AutoModelForVision2Seq unavailable")
         return AutoModelForVision2Seq.from_pretrained(
             self.model_name,
             dtype=dtype,
@@ -134,8 +122,6 @@ class VenusVisionModel(InternVLModel):
         ).eval()
 
     def _load_direct(self, dtype, device: str):
-        if AutoModelForVision2Seq is None:
-            raise RuntimeError("AutoModelForVision2Seq unavailable")
         return (
             AutoModelForVision2Seq.from_pretrained(
                 self.model_name,

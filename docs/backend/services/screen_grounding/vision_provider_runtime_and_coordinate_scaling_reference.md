@@ -100,7 +100,7 @@ Failure diagnostics:
 
 Model load specifics:
 
-- uses `AutoModelForVision2Seq` + `AutoProcessor`
+- requires `AutoModelForVision2Seq` + `AutoProcessor`
 - shares base fallback sequence (`device_map -> direct -> CPU`)
 - keeps tokenizer compatibility via `processor.tokenizer` when available
 
