@@ -2584,3 +2584,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level and
   `WindieAgentSession` module imports still resolve to the same websocket
   session runtime objects.
+
+### 2026-06-17 AgentChatSession module compatibility wrapper
+
+- Finding: the canonical SDK chat-session module still exported
+  `WindieChatSession` and Windie-prefixed chat input type aliases directly, so
+  a generic chat convenience module owned historical product naming.
+- Change: moved the Windie-prefixed chat-session value and input type aliases to
+  the `WindieChatSession` compatibility module and package boundary, leaving
+  `AgentChatSession` as the canonical chat session module.
+- Validation: focused SDK package-boundary/private-export coverage, SDK client
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  canonical chat-session module no longer exports Windie-prefixed compatibility
+  names.
+- Compatibility: no migration required. Existing package-level and
+  `WindieChatSession` module imports still resolve to the same chat session
+  runtime objects and types.

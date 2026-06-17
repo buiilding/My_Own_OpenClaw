@@ -145,9 +145,10 @@ SDK interfaces like `ConversationStore` and `LocalToolExecutionLifecycle`, but
 Electron must not reimplement SDK behavior separately.
 
 `agent.chat(...)` returns the generic `AgentChatSession` convenience wrapper
-over `SdkConversationRuntime`. `WindieChatSession` and the matching
-Windie-prefixed chat input types remain compatibility aliases for existing SDK
-callers, but new reusable host code should prefer the `AgentChat*` names.
+over `SdkConversationRuntime`. `AgentChatSession.ts` is the canonical chat
+session module; `WindieChatSession.ts` is the compatibility wrapper for
+existing Windie-prefixed chat session and input type callers. New reusable host
+code should prefer the `AgentChat*` names.
 Likewise, public agent API option and result shapes use generic `Agent*` names
 such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
 `AgentMemoryQuery`, and `AgentStoreMemoryInput`; the matching Windie-prefixed

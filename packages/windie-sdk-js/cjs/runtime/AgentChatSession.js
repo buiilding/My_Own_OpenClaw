@@ -3,7 +3,7 @@
  * Provides the reusable chat session module for the TypeScript SDK runtime.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieChatSession = exports.AgentChatSession = void 0;
+exports.AgentChatSession = void 0;
 const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
 function normalizeSendInput(input) {
     return typeof input === 'string' ? { text: input } : input;
@@ -67,4 +67,3 @@ class AgentChatSession {
     }
 }
 exports.AgentChatSession = AgentChatSession;
-exports.WindieChatSession = AgentChatSession;

@@ -37,6 +37,8 @@ __exportStar(require("./runtime/AgentDefinition.js"), exports);
 __exportStar(require("./runtime/SdkRuntimeCommands.js"), exports);
 __exportStar(require("./runtime/AgentStreamEvents.js"), exports);
 __exportStar(require("./runtime/AgentChatSession.js"), exports);
+var WindieChatSession_js_1 = require("./runtime/WindieChatSession.js");
+Object.defineProperty(exports, "WindieChatSession", { enumerable: true, get: function () { return WindieChatSession_js_1.WindieChatSession; } });
 __exportStar(require("./runtime/Agent.js"), exports);
 __exportStar(require("./runtime/AgentClient.js"), exports);
 __exportStar(require("./runtime/LocalSidecarRuntime.js"), exports);

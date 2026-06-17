@@ -17,4 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.WindieChatSession = void 0;
+const AgentChatSession_js_1 = require("./AgentChatSession.js");
 __exportStar(require("./AgentChatSession.js"), exports);
+Object.defineProperty(exports, "WindieChatSession", { enumerable: true, get: function () { return AgentChatSession_js_1.AgentChatSession; } });

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed chat session compatibility exports into the
+  WindieChatSession wrapper while keeping AgentChatSession generic.
 - sdk: move Windie-prefixed websocket session compatibility exports into the
   WindieAgentSession wrapper while keeping AgentSession generic.
 - sdk: move Windie-prefixed managed session compatibility exports into the
@@ -1844,6 +1846,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed chat session compatibility exports into the
+  WindieChatSession wrapper while keeping AgentChatSession generic.
 - sdk: move Windie-prefixed websocket session compatibility exports into the
   WindieAgentSession wrapper while keeping AgentSession generic.
 - sdk: move Windie-prefixed managed session compatibility exports into the
@@ -3581,6 +3585,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed chat session compatibility exports into the
+  WindieChatSession wrapper while keeping AgentChatSession generic.
 - sdk: move Windie-prefixed websocket session compatibility exports into the
   WindieAgentSession wrapper while keeping AgentSession generic.
 - sdk: move Windie-prefixed managed session compatibility exports into the
@@ -3973,6 +3979,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed chat session compatibility exports into the
+  WindieChatSession wrapper while keeping AgentChatSession generic.
 - sdk: move Windie-prefixed websocket session compatibility exports into the
   WindieAgentSession wrapper while keeping AgentSession generic.
 - sdk: move Windie-prefixed managed session compatibility exports into the
@@ -4395,6 +4403,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: move Windie-prefixed chat session compatibility exports into the
+  WindieChatSession wrapper while keeping AgentChatSession generic.
 - sdk: move Windie-prefixed websocket session compatibility exports into the
   WindieAgentSession wrapper while keeping AgentSession generic.
 - sdk: move Windie-prefixed managed session compatibility exports into the
@@ -6773,6 +6783,8 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- sdk: move Windie-prefixed chat session compatibility exports into the
+  WindieChatSession wrapper while keeping AgentChatSession generic.
 - sdk: move Windie-prefixed websocket session compatibility exports into the
   WindieAgentSession wrapper while keeping AgentSession generic.
 - sdk: move Windie-prefixed managed session compatibility exports into the

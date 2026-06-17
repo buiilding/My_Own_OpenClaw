@@ -27,10 +27,6 @@ export type AgentChatSendInput = string | SendInput;
 export type AgentChatEditInput = EditAndResendInput;
 export type AgentChatRetryInput = RetryTurnInput;
 
-export type WindieChatSendInput = AgentChatSendInput;
-export type WindieChatEditInput = AgentChatEditInput;
-export type WindieChatRetryInput = AgentChatRetryInput;
-
 function normalizeSendInput(input: AgentChatSendInput): SendInput {
   return typeof input === 'string' ? { text: input } : input;
 }
@@ -102,6 +98,3 @@ export class AgentChatSession {
     return this.onEvent(listener);
   }
 }
-
-export type WindieChatSession = AgentChatSession;
-export const WindieChatSession = AgentChatSession;
