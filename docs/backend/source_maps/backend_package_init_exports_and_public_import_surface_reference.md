@@ -13,7 +13,6 @@ curated import contracts. Empty marker-only `__init__.py` files are not kept;
 namespace packages are used for package directories whose callers import
 concrete modules directly.
 
-- `backend/src/api/handlers/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
 - `backend/src/core/events/__init__.py`
@@ -34,7 +33,6 @@ Compatibility implication:
 
 Major aggregator files:
 
-- `backend/src/api/handlers/__init__.py`: handler base + concrete websocket handlers
 - `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
 - `backend/src/core/infrastructure/__init__.py`: bus/cache/exceptions umbrella surface
 - `backend/src/core/events/__init__.py`: base + bus + streaming event model exports
@@ -113,6 +111,9 @@ docstring or compatibility path.
 - `backend/src/api/auth/__init__.py` is intentionally absent; import install
   auth routes/services from concrete modules such as
   `backend.src.api.auth.router` and `backend.src.api.auth.service`.
+- `backend/src/api/handlers/__init__.py` is intentionally absent; import
+  websocket handlers from their concrete modules under
+  `backend.src.api.handlers`.
 - `backend/src/api/infrastructure/__init__.py` is intentionally absent; import
   handler, registry, and error helpers from concrete modules under
   `backend.src.api.infrastructure`.

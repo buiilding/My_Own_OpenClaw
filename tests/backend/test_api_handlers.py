@@ -14,7 +14,7 @@ from backend.src.agent.session.active_query_tracker import (
     ACTIVE_QUERY_STOP_CONSUMED,
     ACTIVE_QUERY_USER_LIMIT,
 )
-from backend.src.api.handlers import query as query_handler_module
+import backend.src.api.handlers.query as query_handler_module
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
