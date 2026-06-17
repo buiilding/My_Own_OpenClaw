@@ -34,7 +34,7 @@ from backend.src.core.infrastructure.error_types.trust_boundary import (
 )
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.llm.parser_extraction import JsonToolCallExtractor
-from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall, ToolCallSchema
+from backend.src.llm.parser_types import ParsedResponse, ToolCallSchema
 from backend.src.llm.parser_validation import ToolCallValidator
 
 if TYPE_CHECKING:

@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 parser trust-boundary import cleanup
+
+- Finding: `backend/src/llm/parser.py` still imported `ParsedToolCall` after
+  parser type ownership moved to `parser_types.py` and direct parser consumers
+  stopped using the parser module as a type surface.
+- Change: removed the unused imported name while leaving parser extraction,
+  validation, timeout, and metrics behavior unchanged.
+- Validation: direct focused pytest for response parser and parser extraction,
+  `py_compile` for `backend/src/llm/parser.py`, stale import scan, and diff
+  check.
+- Compatibility: no migration required. This is an import cleanup only; parser
+  result types and trust-boundary behavior are unchanged.
+
 ### 2026-06-17 Event bus registry export cleanup
 
 - Finding: `backend.src.core.infrastructure.bus` still imported
