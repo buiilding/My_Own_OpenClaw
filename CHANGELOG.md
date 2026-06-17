@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: clarify settings runtime facade IPC wording so it points callers at SDK command IPC instead of backend IPC.
+
 - frontend/renderer: move artifact/transcription URL composition to the
   RuntimeEndpointStore while keeping BackendEndpointStore as a compatibility wrapper.
 

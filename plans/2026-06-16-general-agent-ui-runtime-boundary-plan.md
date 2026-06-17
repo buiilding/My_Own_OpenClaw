@@ -2792,3 +2792,15 @@ Each completed slice should report:
 - Compatibility: no migration required. Endpoint state is still in memory, the
   IPC payload still carries `backendHttpUrl`, and old backend-named imports
   continue to resolve through the wrapper.
+
+### 2026-06-17 renderer settings facade IPC wording
+
+- Finding: the renderer settings runtime facade comment still told callers to
+  avoid "backend IPC" even though the active boundary is SDK command IPC through
+  Electron main.
+- Change: reworded the facade comment to SDK command IPC and added boundary
+  coverage so backend-IPC wording does not return to the renderer settings
+  runtime facade.
+- Validation: focused renderer settings runtime boundary test.
+- Compatibility: no migration required. This is documentation/comment-only;
+  settings commands and IPC wire channels are unchanged.

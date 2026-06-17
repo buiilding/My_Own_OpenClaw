@@ -27,4 +27,14 @@ describe('renderer settings runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('settings runtime facade describes SDK command IPC rather than backend IPC', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('SDK command IPC');
+    expect(source).not.toContain('backend IPC');
+  });
 });

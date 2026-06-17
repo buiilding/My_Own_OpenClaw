@@ -31,7 +31,7 @@ function getDashboardModelListWindow(): DashboardModelListWindow | null {
  * Renderer settings/model command facade for the SDK runtime hosted by Electron main.
  *
  * App-level providers and model settings UI should use this module instead of
- * reaching for low-level backend IPC methods directly.
+ * reaching for low-level SDK command IPC methods directly.
  */
 export const DesktopSettingsRuntimeClient = {
   listModels(): Promise<void> {
