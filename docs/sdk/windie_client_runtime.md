@@ -750,8 +750,9 @@ Non-Electron SDK hosts can override that behavior with:
 
 `AgentToolDefinition`, `AgentLocalRuntimeClient`, `createAgentLocalRuntimeProvider`,
 and related `Agent*` local-runtime names are the generic SDK contract surface.
-The matching `Windie*` local-runtime names remain exported as compatibility
-aliases for existing callers.
+The matching `Windie*` local-runtime names are isolated in the
+`WindieLocalSidecarRuntime` compatibility wrapper and re-exported from the
+package root for existing callers.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly

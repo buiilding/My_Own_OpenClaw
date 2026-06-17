@@ -82,19 +82,6 @@ export type AgentLocalRuntimeProvider<TWakeUpOptions = unknown> = (
   context: AgentLocalRuntimeProviderContext<TWakeUpOptions>,
 ) => Promise<AgentLocalRuntimeClient | undefined> | AgentLocalRuntimeClient | undefined;
 
-export type WindieToolDefinition = AgentToolDefinition;
-export type WindieSkillDefinition = AgentSkillDefinition;
-export type WindieMcpDefinition = AgentMcpDefinition;
-export type WindiePluginDefinition = AgentPluginDefinition;
-export type WindieLocalRuntimeClient = AgentLocalRuntimeClient;
-export type WindieLocalToolExecutionPayload = AgentLocalToolExecutionPayload;
-export type WindieLocalRuntimeEvent = AgentLocalRuntimeEvent;
-export type WindieLocalRuntimeEventListener = AgentLocalRuntimeEventListener;
-export type WindieLocalRuntimeProviderContext<TWakeUpOptions = unknown> =
-  AgentLocalRuntimeProviderContext<TWakeUpOptions>;
-export type WindieLocalRuntimeProvider<TWakeUpOptions = unknown> =
-  AgentLocalRuntimeProvider<TWakeUpOptions>;
-
 export type AgentLocalRuntimeHttpClientOptions = {
   baseUrl: string;
   token: string;
@@ -132,8 +119,6 @@ export type AgentAutoSidecarOptions = {
   fetchImpl?: FetchLike;
   WebSocketImpl?: EventWebSocketConstructor;
 };
-
-export type WindieAutoSidecarOptions = AgentAutoSidecarOptions;
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   if (fetchImpl) {
@@ -827,6 +812,5 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
   };
 }
 
-export const createWindieLocalRuntimeProvider = createAgentLocalRuntimeProvider;
 export type SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;
 export const SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;

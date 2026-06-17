@@ -67,6 +67,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.WindieClient).toBe(canonicalModule.AgentClient);
   });
 
+  test('Windie local sidecar runtime module remains a compatibility wrapper for local runtime', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/runtime/WindieLocalSidecarRuntime.js');
+
+    expect(canonicalModule.createAgentLocalRuntimeProvider).toBeDefined();
+    expect(canonicalModule.createWindieLocalRuntimeProvider).toBeUndefined();
+    expect(compatibilityModule.createAgentLocalRuntimeProvider).toBe(canonicalModule.createAgentLocalRuntimeProvider);
+    expect(compatibilityModule.createWindieLocalRuntimeProvider).toBe(canonicalModule.createAgentLocalRuntimeProvider);
+  });
+
   test('Windie agent module remains a compatibility wrapper for agent runtime', () => {
     const canonicalModule = require('../../packages/windie-sdk-js/cjs/runtime/Agent.js');
     const compatibilityModule = require('../../packages/windie-sdk-js/cjs/runtime/WindieAgent.js');

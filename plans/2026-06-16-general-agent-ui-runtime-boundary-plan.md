@@ -2730,3 +2730,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level model selection
   type imports still resolve, and direct compatibility-module imports can use
   `WindieModelSelection`.
+
+### 2026-06-17 LocalSidecarRuntime module compatibility wrapper
+
+- Finding: the canonical SDK local-runtime module still exported historical
+  Windie-prefixed local runtime, tool, provider, and auto-sidecar names, so the
+  generic local sidecar runtime module owned product-prefixed compatibility
+  naming.
+- Change: moved those aliases and `createWindieLocalRuntimeProvider` to the
+  `WindieLocalSidecarRuntime` compatibility module and package boundary, leaving
+  `LocalSidecarRuntime` as the canonical module for `Agent*` local-runtime
+  contracts and `createAgentLocalRuntimeProvider`.
+- Validation: focused SDK package-boundary/private-export coverage, SDK local
+  runtime behavior coverage, docs listing, `git diff --check`, and source scans
+  confirming the canonical local-runtime module no longer exports
+  Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level local-runtime
+  imports still resolve, and direct compatibility-module imports can use
+  `WindieLocalSidecarRuntime`.

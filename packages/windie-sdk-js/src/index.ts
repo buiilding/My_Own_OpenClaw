@@ -79,6 +79,22 @@ export type {
   WindieWakeUpOptions,
 } from './runtime/WindieClient.js';
 export * from './runtime/LocalSidecarRuntime.js';
+export {
+  createWindieLocalRuntimeProvider,
+} from './runtime/WindieLocalSidecarRuntime.js';
+export type {
+  WindieAutoSidecarOptions,
+  WindieLocalRuntimeClient,
+  WindieLocalRuntimeEvent,
+  WindieLocalRuntimeEventListener,
+  WindieLocalRuntimeProvider,
+  WindieLocalRuntimeProviderContext,
+  WindieLocalToolExecutionPayload,
+  WindieMcpDefinition,
+  WindiePluginDefinition,
+  WindieSkillDefinition,
+  WindieToolDefinition,
+} from './runtime/WindieLocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/BackendSocketFactory.js';
 export {

@@ -48,6 +48,8 @@ __exportStar(require("./runtime/AgentClient.js"), exports);
 var WindieClient_js_1 = require("./runtime/WindieClient.js");
 Object.defineProperty(exports, "WindieClient", { enumerable: true, get: function () { return WindieClient_js_1.WindieClient; } });
 __exportStar(require("./runtime/LocalSidecarRuntime.js"), exports);
+var WindieLocalSidecarRuntime_js_1 = require("./runtime/WindieLocalSidecarRuntime.js");
+Object.defineProperty(exports, "createWindieLocalRuntimeProvider", { enumerable: true, get: function () { return WindieLocalSidecarRuntime_js_1.createWindieLocalRuntimeProvider; } });
 __exportStar(require("./transport/backendEventNormalizer.js"), exports);
 __exportStar(require("./transport/BackendSocketFactory.js"), exports);
 var WindieBackendSocketFactory_js_1 = require("./transport/WindieBackendSocketFactory.js");

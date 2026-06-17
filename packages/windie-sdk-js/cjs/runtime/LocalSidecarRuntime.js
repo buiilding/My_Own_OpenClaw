@@ -36,7 +36,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SidecarDaemonHttpClient = exports.createWindieLocalRuntimeProvider = exports.AgentLocalRuntimeHttpClient = void 0;
+exports.SidecarDaemonHttpClient = exports.AgentLocalRuntimeHttpClient = void 0;
 exports.moduleTool = moduleTool;
 exports.createAgentLocalRuntimeProvider = createAgentLocalRuntimeProvider;
 function resolveFetchImplementation(fetchImpl) {
@@ -601,5 +601,4 @@ function createAgentLocalRuntimeProvider(options = {}) {
         }
     };
 }
-exports.createWindieLocalRuntimeProvider = createAgentLocalRuntimeProvider;
 exports.SidecarDaemonHttpClient = AgentLocalRuntimeHttpClient;
