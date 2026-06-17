@@ -489,7 +489,7 @@ function initializeMainProcessIpc() {
             granted: false,
             reason: browserAutomationCopy.localRuntimeNotReady,
             details: {
-              backend_status: localRuntimeStatus,
+              local_runtime_status: localRuntimeStatus,
             },
           };
         }
@@ -507,7 +507,7 @@ function initializeMainProcessIpc() {
           return {
             granted: true,
             details: {
-              backend_status: payload,
+              local_runtime_status: payload,
               browser_binary_path: browserBinaryPath,
             },
           };
@@ -519,7 +519,7 @@ function initializeMainProcessIpc() {
             granted: false,
             reason: browserAutomationCopy.installBrowserPrompt,
             details: {
-              backend_status: payload,
+              local_runtime_status: payload,
               missing_browser_binary: true,
               browser_binary_available: false,
             },
@@ -534,7 +534,7 @@ function initializeMainProcessIpc() {
           granted: false,
           reason,
           details: {
-            backend_status: payload,
+            local_runtime_status: payload,
             missing_browser_binary: false,
           },
         };

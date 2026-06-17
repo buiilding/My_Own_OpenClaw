@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the backend provider-factory normalization path for old Kimi provider spellings so `kimi_code` and `kimi-code` fail immediately instead of becoming normalized provider keys. No persisted-data migration is required.
+
 - Clarified historical local-runtime status plan notes after the IPC wire rename so earlier compatibility-removal slices no longer describe stale channel-preservation details as current behavior. No migration is required.
 
 - Renamed the local-runtime status IPC wire channels from `get-local-backend-status`/`local-backend-status` to `get-local-runtime-status`/`local-runtime-status`, removing the old compatibility channel names. No persisted-data migration is required.

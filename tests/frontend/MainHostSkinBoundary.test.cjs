@@ -130,6 +130,8 @@ describe('main host skin/config boundary', () => {
     expect(source).toContain("require('./app/main_host_skin.cjs')");
     expect(source).toContain('browserAutomationCopy.localRuntimeNotReady');
     expect(source).toContain('browserAutomationCopy.installBrowserPrompt');
+    expect(source).toContain('local_runtime_status');
+    expect(source).not.toContain(['backend', 'status'].join('_'));
     expect(source).toContain('macAutomationCopy.probeFailure');
     expect(source).toContain('macAutomationCopy.requestFailure');
     expect(source).not.toContain('WindieOS local backend is not ready.');

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 browser permission local-runtime status detail
+
+- Finding: the Electron main browser automation permission adapter still
+  attached local-runtime readiness diagnostics under a backend-shaped
+  details field.
+- Change: renamed that details field to `local_runtime_status` and added main
+  host boundary coverage so browser automation permission details stay
+  local-runtime-shaped.
+- Validation: focused permission/main-host tests, stale details-field scan,
+  docs listing, and diff check.
+- Compatibility: no persisted-data migration required. This details payload is
+  produced for fresh permission checks and is not stored as a durable setting or
+  IPC channel contract.
+
 ### 2026-06-17 local-runtime status IPC wire names
 
 - Finding: the shared IPC registry still exposed backend-named wire channel
@@ -1865,9 +1879,9 @@ Each completed slice should report:
 - Validation: focused Jest run for `MainHostSkinBoundary` and
   `ChatStreamThinkingStatus.transcript`; docs listing; `git diff --check`; and
   stale-name scans for the retired local handler/status wording.
-- Compatibility: no persisted-data migration required. The `backend_status`
-  compatibility payload name is unchanged; the local-runtime status IPC wire
-  rename is tracked in the latest progress note.
+- Compatibility: no persisted-data migration required. The later
+  local-runtime status details payload rename is tracked in the latest progress
+  note.
 
 ### 2026-06-17 main host skin local runtime copy
 
@@ -2643,9 +2657,9 @@ Each completed slice should report:
 - Validation: focused main host skin/boundary test coverage, docs listing,
   `git diff --check`, and source scans for retired backend-prefixed names in the
   main composition root.
-- Compatibility: no migration required. IPC payload compatibility fields such
-  as `backend_status` remain unchanged; only private main-process dependency
-  names moved to local-runtime wording.
+- Compatibility: no migration required. That slice only moved private
+  main-process dependency names to local-runtime wording. The later permission
+  details payload rename is tracked above.
 
 ### 2026-06-17 SDK builtin selection helper alias
 
