@@ -86,7 +86,8 @@ This is intentionally independent from backend/frontend config state.
 
 Startup completion is now sourced from `permissionStore` local persistence:
 
-- storage key: `windieos-permission-onboarding`
+- storage key: `desktop-agent-permission-onboarding`
+- legacy read-compatible key: `windieos-permission-onboarding`
 - persisted fields: `manifest_version`, `completed`, `completed_at`
 - `completeOnboarding()` only requires a manifest version and stores completion even if some permissions are still missing
 - when completion succeeds, `permissionStore.needsOnboarding` flips false and `AppContent` re-renders into the dashboard shell

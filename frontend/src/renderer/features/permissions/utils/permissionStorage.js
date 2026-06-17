@@ -7,10 +7,12 @@ import {
   writeJsonObjectToLocalStorage,
 } from '../../../infrastructure/storage/jsonLocalStorage';
 
-const PERMISSION_ONBOARDING_STORAGE_KEY = 'windieos-permission-onboarding';
+const PERMISSION_ONBOARDING_STORAGE_KEY = 'desktop-agent-permission-onboarding';
+const LEGACY_PERMISSION_ONBOARDING_STORAGE_KEY = 'windieos-permission-onboarding';
 
 function readFromStorage() {
-  return readJsonObjectFromLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY);
+  return readJsonObjectFromLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY)
+    || readJsonObjectFromLocalStorage(LEGACY_PERMISSION_ONBOARDING_STORAGE_KEY);
 }
 
 export function loadPermissionOnboardingState() {

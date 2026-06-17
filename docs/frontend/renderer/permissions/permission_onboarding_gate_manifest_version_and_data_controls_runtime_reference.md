@@ -74,7 +74,8 @@ Response normalization:
 
 `permissionStorage.js` localStorage key:
 
-- `windieos-permission-onboarding`
+- `desktop-agent-permission-onboarding`
+- legacy read-compatible key: `windieos-permission-onboarding`
 
 Persisted fields:
 

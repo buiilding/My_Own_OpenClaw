@@ -774,3 +774,17 @@ Each completed slice should report:
   `sqlite3` CLI is unavailable (`spawnSync sqlite3 ENOENT`).
 - Compatibility: no migration required. Existing `local_backend.lifecycle`
   diagnostic path ids and `localBackendReady` payloads remain accepted.
+
+### 2026-06-17 renderer permission onboarding storage key
+
+- Finding: renderer permission onboarding completion persisted under a
+  WindieOS-specific localStorage key inside the generic permission storage
+  helper.
+- Change: changed writes to the generic
+  `desktop-agent-permission-onboarding` key while keeping a read fallback for
+  the legacy `windieos-permission-onboarding` key.
+- Validation: focused permission storage test, docs listing, `git diff --check`,
+  and source scan for the legacy key.
+- Compatibility: migrated by read-through compatibility. Existing users with
+  only the legacy key keep their onboarding completion state; new saves use the
+  generic key.

@@ -151,6 +151,10 @@ On guard failure:
 
 `permissionStorage.js` uses localStorage key:
 
+- `desktop-agent-permission-onboarding`
+
+Legacy read compatibility:
+
 - `windieos-permission-onboarding`
 
 `loadPermissionOnboardingState()` fail-closes malformed/missing values to:

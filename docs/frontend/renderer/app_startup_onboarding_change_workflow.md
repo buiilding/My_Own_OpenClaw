@@ -132,7 +132,8 @@ Read:
 
 Permission rules:
 
-- storage key is `windieos-permission-onboarding`.
+- storage key is `desktop-agent-permission-onboarding`.
+- legacy `windieos-permission-onboarding` state remains read-compatible.
 - completion is valid only when stored `manifest_version` matches the current
   manifest version.
 - `needsOnboarding` is based on completion-for-manifest, not directly on every

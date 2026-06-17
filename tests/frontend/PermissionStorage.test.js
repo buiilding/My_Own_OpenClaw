@@ -8,7 +8,8 @@ import {
 } from '../../frontend/src/renderer/features/permissions/utils/permissionStorage';
 
 describe('permission onboarding storage', () => {
-  const STORAGE_KEY = 'windieos-permission-onboarding';
+  const STORAGE_KEY = 'desktop-agent-permission-onboarding';
+  const LEGACY_STORAGE_KEY = 'windieos-permission-onboarding';
 
   beforeEach(() => {
     window.localStorage.clear();
@@ -32,6 +33,18 @@ describe('permission onboarding storage', () => {
 
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe(JSON.stringify(saved));
     expect(loadPermissionOnboardingState()).toEqual(saved);
+  });
+
+  test('loads legacy completed state without rewriting the old key', () => {
+    const saved = {
+      manifest_version: 'v1',
+      completed: true,
+      completed_at: '2026-03-03T00:00:00.000Z',
+    };
+    window.localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(saved));
+
+    expect(loadPermissionOnboardingState()).toEqual(saved);
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
   test('fails closed for malformed JSON', () => {
