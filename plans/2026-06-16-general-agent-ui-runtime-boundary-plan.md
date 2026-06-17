@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK sidecar conversation store wrapper deletion
+
+- Finding: the SDK still exposed `SidecarConversationStore` as a
+  compatibility wrapper after `LocalRuntimeConversationStore` became the
+  canonical durable local-runtime store surface.
+- Change: deleted the sidecar-named store modules, removed the public package
+  export, updated SDK docs to point only at `LocalRuntimeConversationStore`,
+  and changed package-boundary tests to lock the wrapper removal in place.
+- Validation: focused SDK package-boundary Jest tests, stale-reference scan,
+  docs listing, and diff check.
+- Compatibility: no migration required for the first-party app. SDK callers
+  must import `LocalRuntimeConversationStore` directly.
+
 ### 2026-06-17 frontend local-runtime bridge guidance wording
 
 - Finding: active frontend and Electron-main routing docs still described the
