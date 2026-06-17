@@ -115,7 +115,7 @@ Safety constraints include:
 `tools/browser/file_store.py` owns browser-local file paths. Relative browser file paths resolve under the browser file root, defaulting to:
 
 ```text
-~/.windieos/browser
+~/.desktop-agent/browser
 ```
 
 Absolute browser file paths and `..` escapes are invalid. Browser file actions must stay under the browser file root instead of becoming general filesystem operations.

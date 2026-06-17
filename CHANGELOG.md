@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated browser runtime docs to remove legacy Browser Use session and browser file-root reuse guidance while preserving generic desktop-agent defaults. No migration is required.
+
 - Renamed macOS Automation permission adapter failure diagnostics from backend_result to local_runtime_result so local-runtime ownership is reflected in internal metadata. No migration is required.
 
 - Removed the `package:*:bundled-python` npm compatibility aliases; Windows reinstall and packaging docs now use the canonical platform package commands. No storage, API, wire-event, or persisted-data migration is required.

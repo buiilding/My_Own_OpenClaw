@@ -29,7 +29,7 @@ WindieOS no longer keeps a direct browser-controller execution path in this stac
 | Windows profile path | `%LOCALAPPDATA%/windieos/BrowserProfile` |
 | Linux profile path | `~/.config/windieos/BrowserProfile` |
 
-Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`. The default session name is `desktop-agent`; set `WINDIE_BROWSER_USE_SESSION=windieos` only when intentionally reusing a legacy Browser Use session.
+Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`. The default session name is `desktop-agent`; use `WINDIE_BROWSER_USE_SESSION` only for diagnostics or isolated local sessions.
 
 ## Connect Flow
 
@@ -76,8 +76,8 @@ Default file root:
 ~/.desktop-agent/browser
 ```
 
-Set `WINDIE_BROWSER_FILES_DIR=~/.windieos/browser` only when intentionally
-reusing files written by the legacy browser file root.
+Set `WINDIE_BROWSER_FILES_DIR` only when a diagnostic run needs an isolated
+browser file root.
 
 Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and screenshots should resolve paths through this helper when the path is browser-owned. Browser-owned file paths must be relative to the browser file root; absolute paths and `..` escapes are rejected instead of falling through to arbitrary filesystem locations.
 
