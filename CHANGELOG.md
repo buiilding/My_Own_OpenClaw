@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed an unused OpenAI Responses runtime import and documented the provider import cleanup. No migration is required.
+
 - Removed an unused OpenAI Responses input-builder import. No migration is required.
 
 - Documented removal of unused private main-window and renderer helper exports for icon resolution, desktop-agent bridge access, and provider display fallback tables. No migration is required.

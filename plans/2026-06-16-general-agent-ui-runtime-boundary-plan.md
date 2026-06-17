@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 OpenAI Responses import cleanup
+
+- Finding: the backend OpenAI Responses input/runtime helpers still imported
+  `json` and `build_openai_responses_input` after request construction moved to
+  normalized content/tool payload helpers.
+- Change: removed those unused imports while leaving Responses input validation,
+  image detail preservation, params construction, and tool-call shaping
+  unchanged.
+- Validation: `py_compile` for the OpenAI Responses input/runtime helpers,
+  stale import usage scans, and diff check. Focused backend pytest collection
+  was attempted but could not run because the `jarvis` conda env is unavailable
+  and the fallback shell lacks backend dependencies (`fastapi`, `litellm`).
+- Compatibility: no migration required. This is a backend provider helper
+  import cleanup only; request payloads and provider behavior are unchanged.
+
 ### 2026-06-17 main/renderer private export cleanup
 
 - Finding: a few generic main-window and renderer skin/runtime helpers were

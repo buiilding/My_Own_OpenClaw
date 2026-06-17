@@ -22,7 +22,6 @@ from backend.src.core.infrastructure.user_facing_errors import (
 )
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.openai_responses_input import (
-    build_openai_responses_input,
     build_openai_responses_params,
 )
 from backend.src.llm.providers.openai_responses_payload import (
