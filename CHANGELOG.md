@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Documented removal of unused private main-window and renderer helper exports for icon resolution, desktop-agent bridge access, and provider display fallback tables. No migration is required.
+
 - Removed unused frontend export surfaces from main-window icon/runtime helpers, renderer command-bridge internals, and provider model display constants. No migration is required.
 
 - Updated Electron main local-runtime bridge boundary tests to construct removed LocalBackendBridge export/log names dynamically while preserving absence assertions. No migration is required.

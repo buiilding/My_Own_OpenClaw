@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main/renderer private export cleanup
+
+- Finding: a few generic main-window and renderer skin/runtime helpers were
+  still exported even though they are implementation details inside their owning
+  modules.
+- Change: removed the unused helper exports for icon filename normalization,
+  host-skin icon path resolving, desktop-agent bridge access, and provider model
+  display fallback tables while keeping their internal behavior and boundary
+  tests.
+- Validation: focused MainWindowIconRuntime, MainWindowRuntime, and
+  MainHostSkinBoundary Jest tests plus stale export-reference scan.
+- Compatibility: no migration required. These were private implementation
+  helpers; app icon resolution, tray/window creation, desktop-agent command
+  invocation, and provider display metadata behavior are unchanged.
+
 ### 2026-06-17 local-runtime bridge prose cleanup
 
 - Finding: a current test title and two current docs still described validation
