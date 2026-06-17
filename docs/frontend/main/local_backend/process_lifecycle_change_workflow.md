@@ -102,7 +102,7 @@ Packaged sidecar behavior is different from source mode and must be validated se
 | User-facing errors | Avoid machine-specific stack traces; use actionable runtime or reinstall guidance. |
 
 If a source-mode change works but packaged mode fails, inspect
-`runtime_paths.cjs`, Electron Builder file inclusion, and the `autoSidecar` env
+`runtime_paths.cjs`, Electron Builder file inclusion, and the `autoLocalRuntime` env
 passed to the SDK provider before changing Python sidecar code.
 
 ## Renderer Consumer Rules

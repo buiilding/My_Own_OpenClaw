@@ -95,7 +95,7 @@ type AgentLocalRuntimeDiscovery = AgentLocalRuntimeHttpClientOptions & {
   launch?: Record<string, string> | null;
 };
 
-export type AgentAutoSidecarOptions = {
+export type AgentAutoLocalRuntimeOptions = {
   discoveryFile?: string;
   command?: string;
   args?: string[];
@@ -591,7 +591,7 @@ async function shutdownDiscoveredDaemon(
   return true;
 }
 
-function resolveDaemonScript(options: AgentAutoSidecarOptions, fs: NodeFsLike, path: NodePathLike): string {
+function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, fs: NodeFsLike, path: NodePathLike): string {
   const processLike = (globalThis as unknown as {
     process?: { cwd?: () => string; env?: Record<string, string | undefined> };
   }).process;
@@ -612,7 +612,7 @@ function resolveDaemonScript(options: AgentAutoSidecarOptions, fs: NodeFsLike, p
     return found;
   }
   throw new Error(
-    'Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.',
+    'Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.',
   );
 }
 
@@ -623,7 +623,7 @@ function resolveProcessEnv(): LocalRuntimeLaunchEnvironment {
   return processLike?.env ?? {};
 }
 
-function buildSpawnEnv(options: AgentAutoSidecarOptions): LocalRuntimeLaunchEnvironment {
+function buildSpawnEnv(options: AgentAutoLocalRuntimeOptions): LocalRuntimeLaunchEnvironment {
   if (options.envMode === 'replace') {
     return { ...(options.env ?? {}) };
   }
@@ -634,7 +634,7 @@ function buildSpawnEnv(options: AgentAutoSidecarOptions): LocalRuntimeLaunchEnvi
 }
 
 function resolveDaemonLaunchCommand(
-  options: AgentAutoSidecarOptions,
+  options: AgentAutoLocalRuntimeOptions,
   fs: NodeFsLike,
   path: NodePathLike,
   discoveryFile: string,
@@ -666,7 +666,7 @@ function resolveDaemonLaunchCommand(
 }
 
 export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
-  options: AgentAutoSidecarOptions = {},
+  options: AgentAutoLocalRuntimeOptions = {},
 ): AgentLocalRuntimeProvider<TWakeUpOptions> {
   let cachedRuntime: AgentLocalRuntimeClient | undefined;
   let pendingRuntimePromise: Promise<AgentLocalRuntimeClient | undefined> | null = null;

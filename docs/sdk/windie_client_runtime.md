@@ -437,7 +437,7 @@ Standalone local tool callers should use the root client instead of creating an
 agent solely to reach the sidecar:
 
 ```ts
-const client = new AgentClient({ autoSidecar });
+const client = new AgentClient({ autoLocalRuntime });
 await client.executeTool({
   toolName: "browser",
   args: {
@@ -687,11 +687,11 @@ runtime through the same SDK manager. Electron main does not create a daemon
 HTTP client or a second local-runtime provider for the desktop daemon path.
 Instead, Electron computes desktop launch options (Python or packaged daemon
 command, args, cwd, environment, auth/permission paths, discovery path, and
-launch context), passes them as `autoSidecar` to one shared `AgentClient`, and
+launch context), passes them as `autoLocalRuntime` to one shared `AgentClient`, and
 hands `client.getKnownLocalRuntime()` / `client.localRuntime({ reason })`
 resolvers to host IPC facades such as browser control and local-backend status.
 
-The SDK auto sidecar provider reads the daemon discovery file, validates launch
+The SDK auto-local-runtime provider reads the daemon discovery file, validates launch
 context when one is provided, starts or reuses `sidecar_daemon.py`, owns
 `AgentLocalRuntimeHttpClient`, unwraps JSON-RPC `/rpc` responses before callers
 see them, and exposes the runtime to memory, persistence, tool registration,
@@ -702,12 +702,12 @@ Electron remains responsible for host-only behavior around native windows,
 screenshots, display bounds, and artifact upload plumbing.
 
 By default, the provider shuts down a healthy discovered daemon and starts a fresh
-one. Set `autoSidecar.reuseExisting = true` only for hosts that intentionally want
+one. Set `autoLocalRuntime.reuseExisting = true` only for hosts that intentionally want
 to attach to a daemon whose launch context matches the supplied options.
 
 Non-Electron SDK hosts can override that behavior with:
 
-- `autoSidecar`: daemon script or explicit command/args, discovery file,
+- `autoLocalRuntime`: daemon script or explicit command/args, discovery file,
   host/port, timeout, cwd, env/env mode, optional launch context, Python command,
   and optional `pythonArgs` launcher prefix for the default Node provider.
   Repo-local examples use this to run `scripts/python-in-env sidecar python`

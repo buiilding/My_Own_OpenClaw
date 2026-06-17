@@ -753,7 +753,7 @@ function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
 function buildDesktopLocalRuntimeOptions() {
   return process.env.NODE_ENV === 'test'
     ? { autoStartLocalRuntime: false }
-    : { autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
+    : { autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
 }
 
 function createDesktopAgentClient() {

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed AgentClient automatic local runtime launch option from autoSidecar to autoLocalRuntime. No persisted-data, wire, discovery-file, or daemon protocol migration is required.
+
 - Renamed AgentClient explicit local runtime constructor option from sidecar to localRuntime. No persisted-data migration is required.
 
 - Removed unused Python sidecar module `__all__` wildcard export lists from platform selection and shared browser contract modules while preserving the public `windie` SDK export surface. No persisted-data migration is required.

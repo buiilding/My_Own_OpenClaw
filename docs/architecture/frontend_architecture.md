@@ -66,7 +66,7 @@ Current runtime behavior also relies on these explicit seams:
 - **Local sidecar bridge is SDK-owned for lifecycle**:
   `sidecar/local_backend_bridge.cjs` is the composition root for scoped host IPC
   registration and Electron-only helper behavior. Desktop launch facts are built
-  in `ipc.cjs`, passed into one shared `AgentClient` as `autoSidecar`, and
+  in `ipc.cjs`, passed into one shared `AgentClient` as `autoLocalRuntime`, and
   exposed to bridge code only through SDK `getKnownLocalRuntime` /
   `localRuntime({ reason })` resolvers. The SDK owns daemon startup/reuse, RPC
   unwrapping, and tool execution transport. Electron keeps host-only

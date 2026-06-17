@@ -748,8 +748,12 @@ describe('Agent SDK client behavior', () => {
 
     expect(sdkSource).toContain('localRuntime?: AgentLocalRuntimeClient');
     expect(sdkSource).toContain('this.defaultOptions.localRuntime');
+    expect(sdkSource).toContain('autoLocalRuntime?: AgentAutoLocalRuntimeOptions');
+    expect(sdkSource).toContain('this.defaultOptions.autoLocalRuntime');
     expect(sdkSource).not.toContain('sidecar?: AgentLocalRuntimeClient');
     expect(sdkSource).not.toContain('this.defaultOptions.sidecar');
+    expect(sdkSource).not.toContain('autoSidecar?: AgentAutoSidecarOptions');
+    expect(sdkSource).not.toContain('this.defaultOptions.autoSidecar');
   });
 
   test('AgentClient uses env backend URL and install token when constructor options omit them', async () => {
@@ -2687,7 +2691,7 @@ describe('Agent SDK client behavior', () => {
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
-      autoSidecar: {
+      autoLocalRuntime: {
         discoveryFile,
         reuseExisting: true,
         startTimeoutMs: 50,

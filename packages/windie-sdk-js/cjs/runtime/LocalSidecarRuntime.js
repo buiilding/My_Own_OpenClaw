@@ -434,7 +434,7 @@ function resolveDaemonScript(options, fs, path) {
     if (found) {
         return found;
     }
-    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.');
+    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.');
 }
 function resolveProcessEnv() {
     const processLike = globalThis.process;

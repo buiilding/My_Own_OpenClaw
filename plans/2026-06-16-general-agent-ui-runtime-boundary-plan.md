@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 AgentClient auto local runtime option
+
+- Finding: the reusable SDK `AgentClient` still exposed automatic local runtime
+  startup through the `autoSidecar` option and `AgentAutoSidecarOptions` type,
+  even though the public host contract is local-runtime launch configuration.
+- Change: renamed the option to `autoLocalRuntime`, renamed the SDK option type
+  to `AgentAutoLocalRuntimeOptions`, updated Electron main to pass the generic
+  option, regenerated CommonJS output, and refreshed active SDK/frontend docs.
+- Validation: SDK package build, focused SDK client and main runtime-boundary
+  tests, stale option scan, docs listing, and diff check.
+- Compatibility: no persisted-data, storage, wire, discovery-file, or daemon
+  protocol migration is required. This intentionally changes the public
+  TypeScript SDK constructor option name while preserving the lower local
+  sidecar daemon process, auth header, and discovery-file contracts.
+
 ### 2026-06-17 AgentClient explicit local runtime option
 
 - Finding: the reusable SDK `AgentClient` still accepted an explicit local

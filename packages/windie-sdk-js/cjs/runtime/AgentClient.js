@@ -317,7 +317,7 @@ class AgentClient {
         if (!this.autoLocalRuntimeProvider) {
             this.autoLocalRuntimeProvider = (0, LocalSidecarRuntime_js_1.createAgentLocalRuntimeProvider)({
                 fetchImpl: this.defaultOptions.fetchImpl,
-                ...(this.defaultOptions.autoSidecar ?? {}),
+                ...(this.defaultOptions.autoLocalRuntime ?? {}),
             });
         }
         const runtime = await this.autoLocalRuntimeProvider(context);

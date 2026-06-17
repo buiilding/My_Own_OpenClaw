@@ -20,7 +20,7 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
 ## Process Startup Path
 
 - Electron main computes desktop launch options and passes them to
-  `AgentClient` as SDK `autoSidecar` options.
+  `AgentClient` as SDK `autoLocalRuntime` options.
 - The SDK starts/reuses `sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient`
   and unwraps daemon JSON-RPC `/rpc` responses before callers see them.
 - The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the
@@ -39,7 +39,7 @@ Entrypoint:
 SDK daemon startup sequence:
 
 1. resolve main/chat/response window resolvers
-2. create SDK `autoSidecar` launch options from desktop paths/env/auth state
+2. create SDK `autoLocalRuntime` launch options from desktop paths/env/auth state
 3. register IPC handlers that lazily call the SDK local runtime provider for
    daemon-backed local JSON-RPC methods
 4. normal agent startup calls `AgentClient.wakeUp()`, which starts or reuses the
@@ -117,8 +117,8 @@ Additional mapped handlers are registered through compiled mapper definitions (`
 If sidecar shows ready=false indefinitely:
 
 1. verify `sdk_sidecar_launch_options.cjs` can build a valid daemon launch plan
-2. inspect SDK auto-sidecar discovery context and daemon `/status` failures
-3. inspect daemon stderr lines forwarded through `autoSidecar.onStderrLine`
+2. inspect SDK auto-local-runtime discovery context and daemon `/status` failures
+3. inspect daemon stderr lines forwarded through `autoLocalRuntime.onStderrLine`
 
 If helper calls fail unexpectedly:
 

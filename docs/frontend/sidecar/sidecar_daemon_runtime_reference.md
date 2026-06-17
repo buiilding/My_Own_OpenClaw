@@ -20,7 +20,7 @@ The daemon:
 - writes a discovery file containing `pid`, `host`, `port`, canonical `base_url`,
   `token`, `created_at`, and non-secret launch context for backend URL,
   auth-state path, packaging mode, and sidecar feature flags
-- is started/reused by the SDK auto-sidecar provider from desktop launch options
+- is started/reused by the SDK auto-local-runtime provider from desktop launch options
   supplied by Electron main
 - owns the app-session `LocalBackend` instance and its `LocalMemoryStore`
 - exposes built-in sidecar tools through the existing `ToolRegistry`
@@ -52,7 +52,7 @@ Every endpoint requires the token in either:
 - `x-windie-sidecar-token: <token>`
 - `Authorization: Bearer <token>`
 
-The SDK auto-sidecar provider probes the discovery file first. If `/status`
+The SDK auto-local-runtime provider probes the discovery file first. If `/status`
 succeeds with the stored token and the discovery launch context matches the
 current backend/auth/summarizer launch options, the SDK reuses that daemon. If
 discovery is missing, stale, or from a daemon launched with different startup

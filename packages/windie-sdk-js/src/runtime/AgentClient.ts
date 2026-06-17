@@ -43,7 +43,7 @@ import {
   createAgentLocalRuntimeProvider,
   AgentLocalRuntimeHttpClient,
   type AgentLocalRuntimeHttpClientOptions,
-  type AgentAutoSidecarOptions,
+  type AgentAutoLocalRuntimeOptions,
   type AgentLocalRuntimeClient,
   type AgentLocalRuntimeProvider,
   type AgentMcpDefinition,
@@ -125,7 +125,7 @@ export type AgentClientOptions = {
   localRuntimeDaemon?: AgentLocalRuntimeHttpClientOptions;
   ensureLocalRuntime?: AgentLocalRuntimeProvider<AgentWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
-  autoSidecar?: AgentAutoSidecarOptions;
+  autoLocalRuntime?: AgentAutoLocalRuntimeOptions;
   memory?: AgentRuntimeFeatureOption;
   persistence?: AgentRuntimeFeatureOption;
 };
@@ -517,7 +517,7 @@ export class AgentClient {
     if (!this.autoLocalRuntimeProvider) {
       this.autoLocalRuntimeProvider = createAgentLocalRuntimeProvider<AgentWakeUpOptions>({
         fetchImpl: this.defaultOptions.fetchImpl,
-        ...(this.defaultOptions.autoSidecar ?? {}),
+        ...(this.defaultOptions.autoLocalRuntime ?? {}),
       });
     }
     const runtime = await this.autoLocalRuntimeProvider(context);
