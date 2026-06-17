@@ -43,22 +43,22 @@ describe('dashboardConversationLoad', () => {
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: false,
       recentConversationsCount: 0,
-      recentConversationsError: 'Local backend not ready',
+      recentConversationsError: 'Local runtime not ready',
       retryAttempt: 0,
-      isTransientError: (message) => String(message).toLowerCase().includes('local backend'),
+      isTransientError: (message) => String(message).toLowerCase().includes('local runtime'),
     })).toBe(true);
 
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: true,
       recentConversationsCount: 0,
-      recentConversationsError: 'Local backend not ready',
+      recentConversationsError: 'Local runtime not ready',
       retryAttempt: 0,
     })).toBe(false);
 
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: false,
       recentConversationsCount: 1,
-      recentConversationsError: 'Local backend not ready',
+      recentConversationsError: 'Local runtime not ready',
       retryAttempt: 0,
     })).toBe(false);
 
@@ -103,7 +103,7 @@ describe('dashboardConversationLoad', () => {
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: false,
       recentConversationsCount: 0,
-      recentConversationsError: 'Local backend not ready',
+      recentConversationsError: 'Local runtime not ready',
       retryAttempt: 0,
     })).toBe(false);
 

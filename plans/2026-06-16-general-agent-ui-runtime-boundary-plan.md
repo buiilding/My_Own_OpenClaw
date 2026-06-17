@@ -165,3 +165,16 @@ Each completed slice should report:
 - Validation: focused Jest run for `UseDashboardConversations`.
 - Compatibility: no migration required. IPC status channel names remain
   unchanged.
+
+### 2026-06-17 renderer conversation list transient errors
+
+- Finding: the desktop conversation library facade still used local-backend
+  wording as the primary transient startup error match for recent conversation
+  loads.
+- Change: added local-runtime transient error wording and updated focused tests,
+  while retaining the legacy local-backend phrase as compatibility for older
+  error payloads.
+- Validation: focused Jest run for `DesktopConversationLibraryClient` and
+  `DashboardConversationLoad`.
+- Compatibility: no migration required. Existing local-backend error text still
+  triggers retry behavior.

@@ -145,6 +145,9 @@ describe('DesktopConversationLibraryClient', () => {
       'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
     )).toBe(true);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
+      'Local runtime not ready',
+    )).toBe(true);
+    expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'Local backend not ready',
     )).toBe(true);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(

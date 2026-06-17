@@ -39,7 +39,8 @@ function isTransientMetadataListError(error) {
   if (!message) {
     return false;
   }
-  return message.includes('local backend not ready')
+  return message.includes('local runtime not ready')
+    || message.includes('local backend not ready')
     || message.includes('request timed out')
     || message.includes('failed to list stored conversations')
     || message.includes('sidecar daemon request failed')
