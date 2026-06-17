@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Changed the Python sidecar daemon to reject removed camelCase MCP server-spec and execution metadata fields instead of silently ignoring them. Callers must use canonical snake_case daemon payload fields; no persisted-data, storage, settings, credential, permission, or backend wire migration is required.
+
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - Changed extension contribution manifest loading to reject removed alias and camelCase fields instead of silently ignoring them. Extension authors must use documented snake_case manifest fields; no persisted-data, wire, storage, settings, or event-payload migration is required.

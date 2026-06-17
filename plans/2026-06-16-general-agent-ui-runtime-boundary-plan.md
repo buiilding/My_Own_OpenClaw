@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 Python sidecar MCP alias rejection
+
+- Finding: the Python sidecar daemon still ignored removed camelCase MCP server
+  spec and execution metadata fields, letting stale extension/local-runtime
+  callers look accepted while their metadata was dropped.
+- Change: added a daemon-side removed-key guard for MCP server specs and MCP
+  execution metadata, returns a 400 for invalid execute-tool payloads, and
+  updated sidecar runtime docs/tests to require canonical snake_case fields.
+- Validation: focused sidecar daemon pytest target, docs listing, and diff
+  check. The broader `bin\windie test sidecar -- tests/sidecar/test_sidecar_daemon.py -q`
+  invocation expanded to the full sidecar suite and hit unrelated Windows/path
+  failures.
+- Compatibility: callers using removed camelCase MCP fields such as
+  `timeoutMs`, `toolPrefix`, `requestId`, or `conversationRef` must migrate to
+  canonical snake_case daemon payload fields. No persisted-data, storage,
+  settings, credential, permission, or backend wire migration is required.
+
 ### 2026-06-17 renderer agent runtime transport alias
 
 - Finding: the renderer desktop-agent runtime transport module had been renamed

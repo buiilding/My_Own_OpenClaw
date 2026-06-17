@@ -142,6 +142,14 @@ Each server spec includes:
 - `tool_prefix`
 - optional fallback `tools`
 
+Removed camelCase server-spec fields such as `timeoutMs`, `toolPrefix`,
+`mcpId`, and `extensionId` are rejected at registration instead of ignored.
+
+MCP execution metadata also rejects removed camelCase fields such as
+`requestId`, `toolCallId`, `correlationId`, `bundleId`, `turnRef`, and
+`conversationRef`; callers must send the daemon's snake_case execution metadata
+keys.
+
 The daemon starts the MCP process over stdio, runs `initialize`, discovers `tools/list`, exposes each MCP tool as a sidecar runtime tool, and forwards execution to `tools/call`.
 
 ## Permissions

@@ -93,6 +93,12 @@ def normalize_string(value: Any) -> str:
     return value.strip() if isinstance(value, str) and value.strip() else ""
 
 
+def reject_removed_keys(payload: dict[str, Any], keys: set[str], label: str) -> None:
+    removed = sorted(key for key in keys if key in payload)
+    if removed:
+        raise ValueError(f"{label} does not support removed field(s): {', '.join(removed)}")
+
+
 def sanitize_diagnostic_text(
     value: Any, *, max_length: int = MAX_DIAGNOSTIC_TEXT_LENGTH
 ) -> str:
@@ -325,6 +331,18 @@ def append_mcp_diagnostic_event(
 
 
 def build_mcp_execution_context(payload: dict[str, Any]) -> dict[str, Any]:
+    reject_removed_keys(
+        payload,
+        {
+            "requestId",
+            "toolCallId",
+            "correlationId",
+            "bundleId",
+            "turnRef",
+            "conversationRef",
+        },
+        "MCP execution metadata",
+    )
     request_id = (
         normalize_string(payload.get("request_id"))
         or normalize_string(payload.get("correlation_id"))
@@ -464,6 +482,11 @@ class McpServerSpec:
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> "McpServerSpec":
+        reject_removed_keys(
+            payload,
+            {"timeoutMs", "toolPrefix", "mcpId", "extensionId"},
+            "MCP server spec",
+        )
         server_id = normalize_string(payload.get("id"))
         command = normalize_string(payload.get("command"))
         if not server_id:
@@ -1319,9 +1342,13 @@ class SidecarDaemon:
                 {"success": False, "error": "tool_name is required"}, status=400
             )
         args = normalize_object(payload.get("args"))
-        context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(
-            build_mcp_execution_context(normalize_object(payload))
-        )
+        try:
+            execution_context = build_mcp_execution_context(normalize_object(payload))
+        except ValueError as exc:
+            return web.json_response(
+                {"success": False, "error": str(exc)}, status=400
+            )
+        context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(execution_context)
         try:
             result = await self.backend._handle_execute_tool(
                 tool_name=tool_name,

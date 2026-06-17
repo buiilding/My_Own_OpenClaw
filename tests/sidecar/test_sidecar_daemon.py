@@ -186,25 +186,24 @@ def test_mcp_server_spec_uses_canonical_snake_case_fields():
     assert spec.extension_id == "extension-notes"
 
 
-def test_mcp_server_spec_rejects_name_only_identifier_and_ignores_camel_aliases():
+def test_mcp_server_spec_rejects_name_only_identifier_and_camel_aliases():
     with pytest.raises(ValueError, match="MCP server id is required"):
         McpServerSpec.from_payload({"name": "notes", "command": "fake-mcp-server"})
 
-    spec = McpServerSpec.from_payload(
-        {
-            "id": "notes",
-            "command": "fake-mcp-server",
-            "timeoutMs": 9000,
-            "toolPrefix": "local_notes",
-            "mcpId": "mcp-notes",
-            "extensionId": "extension-notes",
-        }
-    )
-
-    assert spec.timeout_ms == 15000
-    assert spec.tool_prefix is None
-    assert spec.mcp_id is None
-    assert spec.extension_id is None
+    with pytest.raises(
+        ValueError,
+        match="MCP server spec does not support removed field\\(s\\): extensionId, mcpId, timeoutMs, toolPrefix",
+    ):
+        McpServerSpec.from_payload(
+            {
+                "id": "notes",
+                "command": "fake-mcp-server",
+                "timeoutMs": 9000,
+                "toolPrefix": "local_notes",
+                "mcpId": "mcp-notes",
+                "extensionId": "extension-notes",
+            }
+        )
 
 
 def test_mcp_execution_context_uses_canonical_snake_case_metadata():
@@ -230,22 +229,21 @@ def test_mcp_execution_context_uses_canonical_snake_case_metadata():
     }
 
 
-def test_mcp_execution_context_ignores_camel_case_metadata_aliases():
-    context = build_mcp_execution_context(
-        {
-            "requestId": "req-1",
-            "toolCallId": "call-1",
-            "correlationId": "corr-1",
-            "bundleId": "bundle-1",
-            "turnRef": "turn-1",
-            "conversationRef": "conv-1",
-        }
-    )
-
-    assert context["request_id"] == ""
-    assert context["conversation_ref"] == ""
-    assert context["data"] == {}
-    assert context["trace_id"].startswith("mcp-execution-")
+def test_mcp_execution_context_rejects_camel_case_metadata_aliases():
+    with pytest.raises(
+        ValueError,
+        match="MCP execution metadata does not support removed field\\(s\\): bundleId, conversationRef, correlationId, requestId, toolCallId, turnRef",
+    ):
+        build_mcp_execution_context(
+            {
+                "requestId": "req-1",
+                "toolCallId": "call-1",
+                "correlationId": "corr-1",
+                "bundleId": "bundle-1",
+                "turnRef": "turn-1",
+                "conversationRef": "conv-1",
+            }
+        )
 
 
 @pytest.mark.asyncio
@@ -426,6 +424,30 @@ async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
 
     assert response.status == 400
     assert payload == {"success": False, "error": "tool_name is required"}
+    assert backend.calls == []
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
+    backend = FakeBackendWithExecuteTool()
+    daemon = SidecarDaemon(backend=backend, token="test-token")
+
+    response = await daemon.handle_execute_tool(
+        FakeRequest(
+            {
+                "tool_name": "read_file",
+                "args": {"file_path": "/tmp/a"},
+                "requestId": "req-1",
+            }
+        )
+    )
+    payload = json.loads(response.text)
+
+    assert response.status == 400
+    assert payload == {
+        "success": False,
+        "error": "MCP execution metadata does not support removed field(s): requestId",
+    }
     assert backend.calls == []
 
 

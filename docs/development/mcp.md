@@ -89,6 +89,10 @@ declare multiple server processes.
 | `tool_prefix` | no | Override generated model-visible tool prefix. |
 | `tools` | no | Fallback tool schemas if live `tools/list` discovery fails. |
 
+The sidecar registration boundary rejects removed camelCase fields such as
+`timeoutMs`, `toolPrefix`, `mcpId`, and `extensionId`; use the snake_case
+fields above.
+
 ## Tool Naming
 
 MCP tools are exposed to the model as:
@@ -162,6 +166,9 @@ enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP
 tools are not left executable through stale registry entries.
 Execution also checks the latest local allowlist before calling a gated MCP
 tool, so stale model-visible tool calls are refused after disablement.
+Execution diagnostics accept snake_case metadata (`request_id`,
+`tool_call_id`, `correlation_id`, `bundle_id`, `turn_ref`,
+`conversation_ref`) and reject removed camelCase metadata aliases.
 
 ## CUA Driver
 
