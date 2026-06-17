@@ -272,7 +272,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         type: 'search-source',
         text: 'Searched example.com',
         sourceEventType: 'web-search-progress',
-        sourceChannel: 'windie:rows',
+        sourceChannel: 'sdk:display-rows',
         turnRef: 'turn-search',
         toolName: 'web_search',
         correlationId: 'req-search-1',

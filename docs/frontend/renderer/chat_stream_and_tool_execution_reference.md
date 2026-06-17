@@ -108,7 +108,9 @@ Thinking status constants from `chatStreamThinkingStatus.ts`:
 
 `useConversationRuntimeProjectionStream` listens to SDK `windie:current-turn` and
 `windie:rows` projections, then maps SDK display rows through
-`buildChatMessagesFromSdkDisplayRows(...)`.
+`buildChatMessagesFromSdkDisplayRows(...)`. Display-row presentation metadata
+uses `sdk:display-rows` as its source label; the `windie:rows` name is only the
+Electron IPC transport channel.
 
 Renderer-only annotations such as prompt transparency, tool schemas, full message
 details, feedback, and token counts are merged back into matching SDK-projected

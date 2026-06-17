@@ -963,3 +963,18 @@ Each completed slice should report:
 - Compatibility: no migration required. The field is presentation metadata on
   in-memory current-turn projections; Electron IPC channels and persisted
   conversation events remain unchanged.
+
+### 2026-06-17 renderer display-row presentation source channel
+
+- Finding: the renderer SDK display-row adapter still stamped retained
+  tool-progress rows with `sourceChannel: windie:rows`, mixing an Electron IPC
+  channel name into dev/source presentation metadata.
+- Change: added the generic `sdk:display-rows` source-channel constant and used
+  it for display-row-derived chat message metadata, while leaving the
+  `windie:rows` IPC channel unchanged.
+- Validation: focused display-row projection and source-badge Jest coverage,
+  docs listing, `git diff --check`, and a stale scan for product-named
+  presentation source-channel labels.
+- Compatibility: no migration required. The field is renderer presentation
+  metadata for dev/source labeling; IPC names and SDK display-row payloads are
+  unchanged.

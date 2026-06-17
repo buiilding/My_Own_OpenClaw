@@ -14,6 +14,7 @@ import {
   buildRemoteScreenshotAttachments,
   resolveScreenshotAttachmentState,
 } from '../services/screenshotMessageState';
+import { SDK_DISPLAY_ROWS_SOURCE_CHANNEL } from '../../features/chat/utils/message/sourceChannels';
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;
@@ -214,7 +215,7 @@ function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
     sourceEventType: typeof rawEventType === 'string' && rawEventType.trim()
       ? rawEventType
       : 'web-search-progress',
-    sourceChannel: 'windie:rows',
+    sourceChannel: SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
     turnRef: message.turnRef ?? undefined,
     timestamp: message.timestamp,
     toolName: message.toolName ?? undefined,
