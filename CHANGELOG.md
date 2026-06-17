@@ -112,6 +112,9 @@ All notable changes to WindieOS will be documented in this file.
   runtime status while preserving existing IPC channel names.
 - docs/frontend: align local-runtime status store and screenshot task seam
   references with the current renderer and Electron main module boundaries.
+- frontend/renderer: rename browser-session readiness snapshots from
+  local-backend to local-runtime terminology while preserving IPC status
+  channels.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

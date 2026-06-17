@@ -143,3 +143,15 @@ Each completed slice should report:
 - Validation: focused Jest run for `LocalBackendBridgeWindowVisibility`.
 - Compatibility: no migration required. Screenshot tool routing and task error
   propagation remain unchanged.
+
+### 2026-06-17 renderer browser session runtime readiness
+
+- Finding: the renderer browser-session store exposed `localBackendReady` even
+  though readiness now comes from the local runtime status store.
+- Change: renamed the renderer browser-session snapshot/control field to
+  `localRuntimeReady`; diagnostics tests that cover separate app diagnostic
+  compatibility payloads remain unchanged.
+- Validation: focused Jest run for `BrowserSessionStore` and
+  `ChatBrowserSessionControl`.
+- Compatibility: no migration required. IPC status channel names remain
+  unchanged.

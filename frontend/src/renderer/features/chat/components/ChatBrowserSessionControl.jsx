@@ -11,7 +11,7 @@ function ChatBrowserSessionControl() {
   const rootRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const {
-    localBackendReady,
+    localRuntimeReady,
     connected,
     currentTargetId,
     currentTabLabel,
@@ -63,26 +63,26 @@ function ChatBrowserSessionControl() {
   ), [currentTargetId, tabs]);
 
   const openPicker = useCallback(() => {
-    if (!localBackendReady || !connected || busyAction) {
+    if (!localRuntimeReady || !connected || busyAction) {
       return;
     }
     setPickerOpen((current) => !current);
-  }, [busyAction, connected, localBackendReady]);
+  }, [busyAction, connected, localRuntimeReady]);
 
   const handleConnectBrowser = useCallback(() => {
-    if (busyAction || !localBackendReady) {
+    if (busyAction || !localRuntimeReady) {
       return;
     }
     void connectBrowser();
-  }, [busyAction, connectBrowser, localBackendReady]);
+  }, [busyAction, connectBrowser, localRuntimeReady]);
 
   const handleDisconnectBrowser = useCallback(() => {
-    if (busyAction || !localBackendReady) {
+    if (busyAction || !localRuntimeReady) {
       return;
     }
     void disconnectBrowser();
     setPickerOpen(false);
-  }, [busyAction, disconnectBrowser, localBackendReady]);
+  }, [busyAction, disconnectBrowser, localRuntimeReady]);
 
   const handleCarouselMove = useCallback((step) => {
     if (tabs.length <= 1) {
@@ -98,14 +98,14 @@ function ChatBrowserSessionControl() {
   const buttonTitle = connected
     ? (currentTabTitle || currentTabUrl || currentTabLabel)
     : (error || windieDesktopSkin.chat.browserSession.connectTitle);
-  const controlsDisabled = Boolean(busyAction) || !localBackendReady;
+  const controlsDisabled = Boolean(busyAction) || !localRuntimeReady;
   const copy = windieDesktopSkin.chat.browserSession;
   const tabLabel = currentTabLabel || copy.tabFallbackLabel;
   const tabControlLabel = `${copy.connectedLabelPrefix} ${tabLabel}`;
-  const disconnectedButtonLabel = !localBackendReady && error
+  const disconnectedButtonLabel = !localRuntimeReady && error
     ? copy.unavailableLabel
     : copy.connectLabel;
-  const disconnectedButtonText = localBackendReady
+  const disconnectedButtonText = localRuntimeReady
     ? (busyAction === 'connect' ? copy.connectingLabel : copy.connectLabel)
     : (error ? copy.unavailableLabel : copy.startingRuntimeLabel);
 

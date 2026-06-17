@@ -51,12 +51,12 @@ function normalizeTab(tab) {
 }
 
 function buildDisconnectedSnapshot({
-  localBackendReady = false,
+  localRuntimeReady = false,
   error = '',
   busyAction = '',
 } = {}) {
   return Object.freeze({
-    localBackendReady,
+    localRuntimeReady,
     connected: false,
     currentTargetId: '',
     currentTabLabel: '',
@@ -70,7 +70,7 @@ function buildDisconnectedSnapshot({
 
 function snapshotsMatch(current, next) {
   if (
-    current.localBackendReady !== next.localBackendReady
+    current.localRuntimeReady !== next.localRuntimeReady
     || current.connected !== next.connected
     || current.currentTargetId !== next.currentTargetId
     || current.currentTabLabel !== next.currentTabLabel
@@ -100,7 +100,7 @@ function snapshotsMatch(current, next) {
 }
 
 let currentSnapshot = buildDisconnectedSnapshot();
-let localBackendUnsubscribe = null;
+let localRuntimeUnsubscribe = null;
 let pollIntervalId = null;
 let interactivePollingRequests = 0;
 let syncRequestId = 0;
@@ -212,7 +212,7 @@ function refreshPollingState() {
     typeof window === 'undefined'
     || storeSubscribers.size === 0
     || currentSnapshot.connected !== true
-    || currentSnapshot.localBackendReady !== true
+    || currentSnapshot.localRuntimeReady !== true
   ) {
     return;
   }
@@ -227,13 +227,13 @@ function invalidateBrowserSessionSync() {
 }
 
 async function syncBrowserSession() {
-  if (currentSnapshot.localBackendReady !== true) {
+  if (currentSnapshot.localRuntimeReady !== true) {
     emitBrowserSessionDiagnostic({
       stage: 'status_sync_suppressed',
       data: {
-        localBackendReady: false,
+        localRuntimeReady: false,
         suppressed: true,
-        reason: 'local_backend_not_ready',
+        reason: 'local_runtime_not_ready',
       },
     });
     return;
@@ -250,7 +250,7 @@ async function syncBrowserSession() {
 
     if (status.connected !== true) {
       applySnapshot(buildDisconnectedSnapshot({
-        localBackendReady: currentSnapshot.localBackendReady,
+        localRuntimeReady: currentSnapshot.localRuntimeReady,
         error: '',
         busyAction: currentSnapshot.busyAction,
       }));
@@ -284,7 +284,7 @@ async function syncBrowserSession() {
       : [currentTab, ...tabs];
 
     applySnapshot(Object.freeze({
-      localBackendReady: currentSnapshot.localBackendReady,
+      localRuntimeReady: currentSnapshot.localRuntimeReady,
       connected: true,
       currentTargetId: currentTab.targetId,
       currentTabLabel: currentTab.label,
@@ -305,12 +305,12 @@ async function syncBrowserSession() {
   }
 }
 
-function handleLocalBackendStatusChange() {
+function handleLocalRuntimeStatusChange() {
   const backendStatus = getLocalRuntimeStatusSnapshot();
   emitBrowserSessionDiagnostic({
-    stage: 'local_backend_status_observed',
+    stage: 'local_runtime_status_observed',
     data: {
-      localBackendReady: backendStatus.ready === true,
+      localRuntimeReady: backendStatus.ready === true,
       ready: backendStatus.ready === true,
       status: normalizeString(backendStatus.status) || 'unknown',
     },
@@ -318,7 +318,7 @@ function handleLocalBackendStatusChange() {
   });
   if (backendStatus.ready !== true) {
     applySnapshot(buildDisconnectedSnapshot({
-      localBackendReady: false,
+      localRuntimeReady: false,
       error: normalizeString(backendStatus.error),
       busyAction: '',
     }));
@@ -326,22 +326,22 @@ function handleLocalBackendStatusChange() {
   }
 
   updateSnapshot({
-    localBackendReady: true,
+    localRuntimeReady: true,
     error: currentSnapshot.connected ? currentSnapshot.error : '',
   });
   void syncBrowserSession();
 }
 
 function ensureRuntimeSubscription() {
-  if (localBackendUnsubscribe) {
+  if (localRuntimeUnsubscribe) {
     return;
   }
 
-  localBackendUnsubscribe = subscribeLocalRuntimeStatusStore(() => {
-    handleLocalBackendStatusChange();
+  localRuntimeUnsubscribe = subscribeLocalRuntimeStatusStore(() => {
+    handleLocalRuntimeStatusChange();
   });
 
-  handleLocalBackendStatusChange();
+  handleLocalRuntimeStatusChange();
 }
 
 function disposeRuntimeSubscriptionIfIdle() {
@@ -349,12 +349,12 @@ function disposeRuntimeSubscriptionIfIdle() {
     return;
   }
 
-  localBackendUnsubscribe?.();
-  localBackendUnsubscribe = null;
+  localRuntimeUnsubscribe?.();
+  localRuntimeUnsubscribe = null;
   stopPolling();
   interactivePollingRequests = 0;
   applySnapshot(buildDisconnectedSnapshot({
-    localBackendReady: getLocalRuntimeStatusSnapshot().ready === true,
+    localRuntimeReady: getLocalRuntimeStatusSnapshot().ready === true,
     error: '',
   }));
 }
@@ -414,14 +414,14 @@ export function enableInteractiveBrowserSessionPolling() {
 }
 
 export async function connectBrowserSession() {
-  if (currentSnapshot.localBackendReady !== true) {
+  if (currentSnapshot.localRuntimeReady !== true) {
     emitBrowserSessionDiagnostic({
       stage: 'connect_suppressed',
       data: {
-        localBackendReady: false,
+        localRuntimeReady: false,
         busyAction: currentSnapshot.busyAction,
         suppressed: true,
-        reason: 'local_backend_not_ready',
+        reason: 'local_runtime_not_ready',
       },
     });
     return;
@@ -431,7 +431,7 @@ export async function connectBrowserSession() {
     emitBrowserSessionDiagnostic({
       stage: 'connect_suppressed',
       data: {
-        localBackendReady: true,
+        localRuntimeReady: true,
         busyAction: currentSnapshot.busyAction,
         suppressed: true,
         reason: 'busy',
@@ -447,7 +447,7 @@ export async function connectBrowserSession() {
     status: 'started',
     requestId,
     data: {
-      localBackendReady: true,
+      localRuntimeReady: true,
       busyAction: 'connect',
       action: 'connect',
     },
@@ -462,7 +462,7 @@ export async function connectBrowserSession() {
       requestId,
       durationMs: Date.now() - startedAt,
       data: {
-        localBackendReady: true,
+        localRuntimeReady: true,
         action: 'connect',
         success: true,
       },
@@ -477,7 +477,7 @@ export async function connectBrowserSession() {
       requestId,
       durationMs: Date.now() - startedAt,
       data: {
-        localBackendReady: true,
+        localRuntimeReady: true,
         action: 'connect',
         success: false,
       },
@@ -489,7 +489,7 @@ export async function connectBrowserSession() {
 }
 
 export async function disconnectBrowserSession() {
-  if (currentSnapshot.localBackendReady !== true || currentSnapshot.busyAction) {
+  if (currentSnapshot.localRuntimeReady !== true || currentSnapshot.busyAction) {
     return;
   }
 
@@ -498,7 +498,7 @@ export async function disconnectBrowserSession() {
   try {
     await runBrowserAction('close');
     applySnapshot(buildDisconnectedSnapshot({
-      localBackendReady: currentSnapshot.localBackendReady,
+      localRuntimeReady: currentSnapshot.localRuntimeReady,
       error: '',
       busyAction: '',
     }));
@@ -513,7 +513,7 @@ export async function disconnectBrowserSession() {
 export async function switchBrowserSessionTab(targetId) {
   const nextTargetId = normalizeString(targetId);
   if (
-    currentSnapshot.localBackendReady !== true
+    currentSnapshot.localRuntimeReady !== true
     || currentSnapshot.busyAction
     || !nextTargetId
     || nextTargetId === currentSnapshot.currentTargetId

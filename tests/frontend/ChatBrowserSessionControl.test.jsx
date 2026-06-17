@@ -44,9 +44,9 @@ function createBrowserToolHandler(session) {
 
     if (channel === 'get-local-backend-status') {
       return {
-        ready: session.localBackendReady !== false,
-        status: session.localBackendReady === false ? 'starting' : 'ready',
-        error: session.localBackendError || '',
+        ready: session.localRuntimeReady !== false,
+        status: session.localRuntimeReady === false ? 'starting' : 'ready',
+        error: session.localRuntimeError || '',
       };
     }
 
@@ -144,7 +144,7 @@ describe('ChatBrowserSessionControl', () => {
   test('shows connect browser when the browser is disconnected and switches to the active tab label after connecting', async () => {
     const session = {
       connected: false,
-      localBackendReady: true,
+      localRuntimeReady: true,
       currentTargetId: '',
       tabs: [
         { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -174,7 +174,7 @@ describe('ChatBrowserSessionControl', () => {
   test('opens the carousel, switches tabs, and disconnects the browser', async () => {
     const session = {
       connected: true,
-      localBackendReady: true,
+      localRuntimeReady: true,
       currentTargetId: '0',
       tabs: [
         { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -220,7 +220,7 @@ describe('ChatBrowserSessionControl', () => {
 
     const session = {
       connected: true,
-      localBackendReady: true,
+      localRuntimeReady: true,
       currentTargetId: '0',
       tabs: [
         { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -248,10 +248,10 @@ describe('ChatBrowserSessionControl', () => {
     ).toBeInTheDocument();
   });
 
-  test('waits for the local backend ready signal before issuing browser tool calls', async () => {
+  test('waits for the local runtime ready signal before issuing browser tool calls', async () => {
     const session = {
       connected: true,
-      localBackendReady: false,
+      localRuntimeReady: false,
       currentTargetId: '0',
       tabs: [
         { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -268,10 +268,10 @@ describe('ChatBrowserSessionControl', () => {
       channel === 'run-browser-action'
     ));
     if (issuedBrowserToolCall) {
-      throw new Error('Browser tool should not be called before the local backend is ready.');
+      throw new Error('Browser tool should not be called before the local runtime is ready.');
     }
 
-    session.localBackendReady = true;
+    session.localRuntimeReady = true;
     await act(async () => {
       mockListeners.get('local-backend-status')?.({ ready: true });
     });
@@ -290,8 +290,8 @@ describe('ChatBrowserSessionControl', () => {
   test('shows browser unavailable when the local runtime status reports a startup failure', async () => {
     const session = {
       connected: false,
-      localBackendReady: false,
-      localBackendError: 'daemon unavailable',
+      localRuntimeReady: false,
+      localRuntimeError: 'daemon unavailable',
       currentTargetId: '',
       tabs: [],
     };
@@ -308,7 +308,7 @@ describe('ChatBrowserSessionControl', () => {
   test('shows connecting browser while the connect action is in flight', async () => {
     const session = {
       connected: false,
-      localBackendReady: true,
+      localRuntimeReady: true,
       currentTargetId: '',
       tabs: [
         { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },

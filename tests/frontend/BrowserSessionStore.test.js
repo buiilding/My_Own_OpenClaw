@@ -126,7 +126,7 @@ describe('browserSessionStore', () => {
     unsubscribe();
   });
 
-  test('suppresses browser connect actions until the local backend is ready', async () => {
+  test('suppresses browser connect actions until the local runtime is ready', async () => {
     mockGetLocalRuntimeStatusSnapshot.mockReturnValue({
       ready: false,
       status: 'starting',
@@ -136,7 +136,7 @@ describe('browserSessionStore', () => {
       if (channel === 'windie:invoke') {
         return { ok: true, data: { stored: true } };
       }
-      throw new Error('Browser actions should not run before local backend readiness.');
+      throw new Error('Browser actions should not run before local runtime readiness.');
     });
 
     const {
@@ -163,10 +163,10 @@ describe('browserSessionStore', () => {
     unsubscribe();
   });
 
-  test('syncs the browser session when the local backend becomes ready', async () => {
-    let localBackendListener = null;
+  test('syncs the browser session when the local runtime becomes ready', async () => {
+    let localRuntimeListener = null;
     mockSubscribeLocalRuntimeStatusStore.mockImplementation((listener) => {
-      localBackendListener = listener;
+      localRuntimeListener = listener;
       return jest.fn();
     });
     mockGetLocalRuntimeStatusSnapshot.mockReturnValue({
@@ -214,7 +214,7 @@ describe('browserSessionStore', () => {
     const unsubscribe = subscribeBrowserSessionStore(jest.fn());
     await flushPromises();
     expect(getBrowserSessionSnapshot()).toEqual(expect.objectContaining({
-      localBackendReady: false,
+      localRuntimeReady: false,
       connected: false,
     }));
     expect(mockInvoke).not.toHaveBeenCalledWith(
@@ -227,14 +227,14 @@ describe('browserSessionStore', () => {
       status: 'ready',
       error: '',
     });
-    localBackendListener();
+    localRuntimeListener();
     await flushPromises();
 
     expect(mockInvoke).toHaveBeenCalledWith('run-browser-action', expect.objectContaining({
       action: 'status',
     }));
     expect(getBrowserSessionSnapshot()).toEqual(expect.objectContaining({
-      localBackendReady: true,
+      localRuntimeReady: true,
       connected: true,
       currentTabLabel: 'Docs',
     }));
