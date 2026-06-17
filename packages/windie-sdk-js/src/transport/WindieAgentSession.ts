@@ -57,7 +57,7 @@ export type WindieAgentStopInput = {
   turnRef?: string | null;
 };
 
-type WindieAgentEventMap = {
+type AgentSessionEventMap = {
   open: void;
   close: { code?: number; reason?: string; wasClean?: boolean };
   'socket-error': unknown;
@@ -67,15 +67,15 @@ type WindieAgentEventMap = {
   [K in BackendEventType]: Extract<BackendEvent, { type: K }>;
 };
 
-type WindieAgentEventName = keyof WindieAgentEventMap;
-type WindieAgentListener<T> = (payload: T) => void;
+type AgentSessionEventName = keyof AgentSessionEventMap;
+type AgentSessionListener<T> = (payload: T) => void;
 
 export type WindieAgentSessionRuntime = {
   waitForOpen(): Promise<void>;
   isOpen(): boolean;
-  on<TEvent extends WindieAgentEventName>(
+  on<TEvent extends AgentSessionEventName>(
     event: TEvent,
-    listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,
+    listener: AgentSessionListener<AgentSessionEventMap[TEvent]>,
   ): () => void;
   query(payload: WindieAgentQueryInput): Promise<string>;
   stopQuery(input?: WindieAgentStopInput | null): Promise<string>;
@@ -185,7 +185,7 @@ function normalizeClosePayload(payload: unknown): { code?: number; reason?: stri
 }
 
 export class WindieAgentSession {
-  private readonly listeners = new Map<WindieAgentEventName, Set<WindieAgentListener<unknown>>>();
+  private readonly listeners = new Map<AgentSessionEventName, Set<AgentSessionListener<unknown>>>();
   private readonly detachSocketListeners: Array<() => void> = [];
   private readonly readyPromise: Promise<void>;
   private resolveReady: (() => void) | null = null;
@@ -229,7 +229,7 @@ export class WindieAgentSession {
         if (isBackendEvent(parsed)) {
           this.emit('message', parsed);
           this.emit('event', parsed);
-          this.emit(parsed.type, parsed as WindieAgentEventMap[BackendEventType]);
+          this.emit(parsed.type, parsed as AgentSessionEventMap[BackendEventType]);
         } else {
           this.emit('message', parsed);
         }
@@ -240,7 +240,7 @@ export class WindieAgentSession {
       attachSocketListener(this.socket, 'close', payload => {
         const closePayload = normalizeClosePayload(payload);
         if (!this.isReady) {
-          this.rejectReady?.(new Error('Windie agent session closed before handshake completed'));
+          this.rejectReady?.(new Error('Agent SDK session closed before handshake completed'));
         }
         this.emit('close', closePayload);
         this.detachSocketListeners.splice(0).forEach(detach => detach());
@@ -265,15 +265,15 @@ export class WindieAgentSession {
     return this.isReady;
   }
 
-  on<TEvent extends WindieAgentEventName>(
+  on<TEvent extends AgentSessionEventName>(
     event: TEvent,
-    listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,
+    listener: AgentSessionListener<AgentSessionEventMap[TEvent]>,
   ): () => void {
-    const bucket = this.listeners.get(event) ?? new Set<WindieAgentListener<unknown>>();
-    bucket.add(listener as WindieAgentListener<unknown>);
+    const bucket = this.listeners.get(event) ?? new Set<AgentSessionListener<unknown>>();
+    bucket.add(listener as AgentSessionListener<unknown>);
     this.listeners.set(event, bucket);
     return () => {
-      bucket.delete(listener as WindieAgentListener<unknown>);
+      bucket.delete(listener as AgentSessionListener<unknown>);
       if (bucket.size === 0) {
         this.listeners.delete(event);
       }
@@ -353,9 +353,9 @@ export class WindieAgentSession {
     return id;
   }
 
-  private emit<TEvent extends WindieAgentEventName>(
+  private emit<TEvent extends AgentSessionEventName>(
     event: TEvent,
-    payload: WindieAgentEventMap[TEvent],
+    payload: AgentSessionEventMap[TEvent],
   ): void {
     const bucket = this.listeners.get(event);
     if (!bucket) {

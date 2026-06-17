@@ -24,7 +24,7 @@ import {
 import { createWindieSdkBackendSocket } from './BackendSocketFactory.js';
 import { filterBackendPayload } from './backendPayloadContract.js';
 
-type WindieAgentEventMap = {
+type AgentSessionEventMap = {
   open: void;
   close: { code?: number; reason?: string; wasClean?: boolean };
   'socket-error': unknown;
@@ -34,8 +34,8 @@ type WindieAgentEventMap = {
   [K in BackendEventType]: Extract<BackendEvent, { type: K }>;
 };
 
-type WindieAgentEventName = keyof WindieAgentEventMap;
-type WindieAgentListener<T> = (payload: T) => void;
+type AgentSessionEventName = keyof AgentSessionEventMap;
+type AgentSessionListener<T> = (payload: T) => void;
 
 export type WindieManagedBackendEndpoint = {
   backendUrl?: string;
@@ -90,7 +90,7 @@ function resolveEndpointWsUrl(endpoint: WindieManagedBackendEndpoint): string {
 }
 
 export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
-  private readonly listeners = new Map<WindieAgentEventName, Set<WindieAgentListener<unknown>>>();
+  private readonly listeners = new Map<AgentSessionEventName, Set<AgentSessionListener<unknown>>>();
   private readonly endpoints: WindieManagedBackendEndpoint[];
   private activeEndpointIndex = 0;
   private readonly session: ManagedBackendSession;
@@ -152,7 +152,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
           return;
         }
         this.emit('event', event);
-        this.emit(event.type, event as WindieAgentEventMap[BackendEventType]);
+        this.emit(event.type, event as AgentSessionEventMap[BackendEventType]);
       },
       log: options.log,
     });
@@ -166,15 +166,15 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     return this.session.isOpen();
   }
 
-  on<TEvent extends WindieAgentEventName>(
+  on<TEvent extends AgentSessionEventName>(
     event: TEvent,
-    listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,
+    listener: AgentSessionListener<AgentSessionEventMap[TEvent]>,
   ): () => void {
-    const bucket = this.listeners.get(event) ?? new Set<WindieAgentListener<unknown>>();
-    bucket.add(listener as WindieAgentListener<unknown>);
+    const bucket = this.listeners.get(event) ?? new Set<AgentSessionListener<unknown>>();
+    bucket.add(listener as AgentSessionListener<unknown>);
     this.listeners.set(event, bucket);
     return () => {
-      bucket.delete(listener as WindieAgentListener<unknown>);
+      bucket.delete(listener as AgentSessionListener<unknown>);
       if (bucket.size === 0) {
         this.listeners.delete(event);
       }
@@ -250,7 +250,7 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     await this.waitForOpen();
     const id = this.session.sendMessage(type, payload, messageId ?? null);
     if (!id) {
-      throw new Error(`Windie managed agent session could not send ${type}`);
+      throw new Error(`Agent SDK managed session could not send ${type}`);
     }
     return id;
   }
@@ -267,9 +267,9 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
     return true;
   }
 
-  private emit<TEvent extends WindieAgentEventName>(
+  private emit<TEvent extends AgentSessionEventName>(
     event: TEvent,
-    payload: WindieAgentEventMap[TEvent],
+    payload: AgentSessionEventMap[TEvent],
   ): void {
     const bucket = this.listeners.get(event);
     if (!bucket) {

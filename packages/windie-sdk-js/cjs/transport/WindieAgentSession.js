@@ -142,7 +142,7 @@ class WindieAgentSession {
         this.detachSocketListeners.push(attachSocketListener(this.socket, 'close', payload => {
             const closePayload = normalizeClosePayload(payload);
             if (!this.isReady) {
-                this.rejectReady?.(new Error('Windie agent session closed before handshake completed'));
+                this.rejectReady?.(new Error('Agent SDK session closed before handshake completed'));
             }
             this.emit('close', closePayload);
             this.detachSocketListeners.splice(0).forEach(detach => detach());

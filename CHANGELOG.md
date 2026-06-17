@@ -60,6 +60,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/js: use generic Agent SDK wording for internal diagnostics, local-runtime
   failures, managed-backend session logs, and model-selection validation while
   preserving public Windie SDK API names.
+- sdk/js: rename private transport listener helper types and session failure
+  diagnostics to generic agent-session wording while preserving public exports.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

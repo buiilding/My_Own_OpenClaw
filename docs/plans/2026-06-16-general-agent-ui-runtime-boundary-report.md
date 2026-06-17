@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `b6cd213d0` (`refactor(renderer): make markdown cleanup provider agnostic`)
+- Latest inspected plan checkpoint: `83412b277` (`refactor(renderer): remove no-op tool stream handler`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -20,7 +20,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   guard markers use generic desktop-agent naming. SDK internal diagnostics use
   generic Agent SDK wording while preserving current public Windie API names,
   renderer markdown cleanup no longer depends on provider identity, and the
-  obsolete renderer no-op tool-stream shim has been removed.
+  obsolete renderer no-op tool-stream shim has been removed. SDK private
+  transport listener helpers and session failure diagnostics use generic
+  agent-session wording while public Windie transport exports remain stable.
 
 ## Inspection Log
 
@@ -281,6 +283,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: chat stream dispatch now returns handled for tool call/output/bundle events with an inline SDK-projection ownership note.
 - Change: renderer chat runtime boundary tests now assert the old no-op hook remains deleted and that current-turn projection side effects still own tool rows.
 
+### 2026-06-16 SDK Private Transport Naming Slice
+
+- Worktree recovery: recent commits and remaining unrelated schema/docs/package worktree edits were inspected and preserved outside this SDK slice.
+- Finding: SDK transport modules still used Windie-specific private listener helper type names and two Windie-specific internal session failure messages even though public transport export names remain intentionally stable.
+- Decision: rename only private event-map/listener helper types and private diagnostics to generic agent-session wording, leaving exported `WindieAgentSession`/`ManagedWindieAgentSession` names untouched.
+- Change: `WindieAgentSession.ts` and `ManagedWindieAgentSession.ts` now use `AgentSessionEventMap`, `AgentSessionEventName`, and `AgentSessionListener` for private listener plumbing.
+- Change: checked-in CJS output now reports generic Agent SDK session failures for pre-handshake close and managed send failures.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -311,6 +321,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Main IPC SDK runtime logs use generic Agent SDK wording while preserving public SDK APIs.
 - [x] Main IPC SDK customer internals use generic agent/client names while preserving public SDK APIs and wire contracts.
 - [x] SDK runtime diagnostics and local-runtime failures use generic Agent SDK wording while preserving public Windie API names.
+- [x] SDK private transport listener helpers use generic agent-session naming while preserving public exports.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -394,6 +405,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "provider|modelProvider|modelId|Gemini|gemini|google|normalizeGemini|isGeminiProvider" frontend/src/renderer/infrastructure/llmOutputContract.ts frontend/src/renderer/features/chat/utils/message/markdownMessageRendering.js frontend/src/renderer/features/chat/components/message/content/MarkdownMessage.jsx tests/frontend/LlmOutputContract.test.ts tests/frontend/MarkdownMessage.test.jsx` found only a provider-free test title.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/RendererChatRuntimeBoundary.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx` passed.
 - `rg -n "useChatStreamToolHandlers|ChatStreamToolHandlers" frontend/src/renderer tests/frontend -g "*.ts" -g "*.tsx" -g "*.js" -g "*.jsx" -g "*.cjs"` found only the renderer boundary assertion for the deleted hook path.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts -t "createWindieAgentSession|managed backend|package boundary|WebSocket"` passed.
+- `rg -n "type WindieAgentEvent|WindieAgentListener|WindieAgentEventMap|Windie agent session|Windie managed agent session" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found no matches.
+- `git diff --check` passed.
 
 ## Remaining Findings
 
@@ -440,3 +454,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK runtime diagnostics, request/local-runtime failures, managed-session logs,
   and model-selection validation now use generic Agent SDK wording. Public
   `WindieClient`/`WindieAgent` API names remain unchanged.
+- SDK transport listener plumbing uses generic private agent-session type names.
+  Exported Windie SDK transport names remain unchanged.

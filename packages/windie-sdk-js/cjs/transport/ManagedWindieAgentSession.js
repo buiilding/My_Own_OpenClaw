@@ -159,7 +159,7 @@ class ManagedWindieAgentSession {
         await this.waitForOpen();
         const id = this.session.sendMessage(type, payload, messageId ?? null);
         if (!id) {
-            throw new Error(`Windie managed agent session could not send ${type}`);
+            throw new Error(`Agent SDK managed session could not send ${type}`);
         }
         return id;
     }
