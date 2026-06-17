@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK client and agent wrapper deletion
+
+- Finding: the SDK still exposed `WindieClient`, `WindieAgent`, and
+  Windie-prefixed client/agent type aliases after `AgentClient` and `Agent`
+  became the canonical reusable SDK runtime contracts.
+- Change: deleted the Windie-prefixed client and agent compatibility modules,
+  removed package-root compatibility exports, updated SDK docs, and switched
+  focused package-boundary/private-export tests to canonical `AgentClient` and
+  `Agent` contracts with removed-wrapper coverage.
+- Validation: SDK package build, focused package-boundary, private-export, and
+  SDK runtime-header Jest tests, stale-reference scan, docs listing, and diff
+  check.
+- Compatibility: no migration required for the first-party app. SDK callers
+  must use `AgentClient`, `Agent`, and `Agent*` client/agent option/result
+  types directly.
+
 ### 2026-06-17 SDK chat and local-runtime wrapper deletion
 
 - Finding: the SDK still exposed `WindieChatSession`,
