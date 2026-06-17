@@ -10,7 +10,7 @@ The frontend Python sidecar provides local tool execution, memory management, sy
 
 ```
 frontend/src/main/python/
-├── local_backend.py                    # Main local backend service - JSON-RPC 2.0 protocol handler, tool execution, memory operations, system state
+├── local_backend.py                    # Main local sidecar runtime service - JSON-RPC 2.0 protocol handler, tool execution, memory operations, system state
 ├── wakeword_service.py                # Wakeword detection service - openWakeWord integration, binary protocol over stdin/stdout
 ├── requirements.txt                    # Python dependencies (faiss-cpu, aiosqlite, aiohttp, pyautogui, pynput, psutil, etc.)
 │

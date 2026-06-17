@@ -251,3 +251,14 @@ Each completed slice should report:
   source scan for the old lifecycle phrases.
 - Compatibility: no migration required. Protocol names, class names, file names,
   and runtime behavior are unchanged.
+
+### 2026-06-17 Python sidecar module docs copy
+
+- Finding: the sidecar entrypoint module docstring and folder-structure doc
+  still described `local_backend.py` as a WindieOS/local-backend service.
+- Change: updated those descriptions to local-sidecar-runtime terminology and
+  extended the sidecar source-copy guard to cover the folder-structure doc.
+- Validation: focused pytest for the source-copy guard plus a source scan for
+  the old module/doc phrases.
+- Compatibility: no migration required. Entrypoint filename and JSON-RPC
+  protocol behavior are unchanged.

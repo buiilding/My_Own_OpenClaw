@@ -24,10 +24,12 @@ def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
             local_backend_module.__file__,
             memory_handlers_module.__file__,
             Path(local_backend_module.__file__).parent / "core" / "__init__.py",
+            Path(local_backend_module.__file__).parent / "folder_structure.md",
         ]
     )
 
     assert "local sidecar runtime" in sources
+    assert "Local backend service for WindieOS" not in sources
     assert "Main local backend service" not in sources
     assert "Initializing local backend" not in sources
     assert "Shutting down local backend" not in sources

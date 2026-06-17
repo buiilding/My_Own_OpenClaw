@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Local backend service for WindieOS.
+Local sidecar runtime service.
 
 Handles tool execution, system state collection, memory operations,
 and wake-word detection. Communicates with Electron main process

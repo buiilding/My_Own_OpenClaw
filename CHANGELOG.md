@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: align the Python sidecar entrypoint docstring and folder-structure guide with local sidecar runtime terminology.
+
 - frontend/sidecar: describe Python sidecar runtime docstrings and lifecycle logs as local sidecar runtime behavior while preserving LocalBackend compatibility names.
 
 - tests/frontend: align dashboard startup retry coverage with local-runtime readiness wording while keeping legacy local-backend compatibility covered in the facade tests.
@@ -1427,6 +1429,8 @@ All notable changes to WindieOS will be documented in this file.
   empty-stream abort.
 
 ### Changed
+
+- frontend/sidecar: align the Python sidecar entrypoint docstring and folder-structure guide with local sidecar runtime terminology.
 
 - frontend/sidecar: describe Python sidecar runtime docstrings and lifecycle logs as local sidecar runtime behavior while preserving LocalBackend compatibility names.
 
@@ -2876,6 +2880,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: align the Python sidecar entrypoint docstring and folder-structure guide with local sidecar runtime terminology.
+
 - frontend/sidecar: describe Python sidecar runtime docstrings and lifecycle logs as local sidecar runtime behavior while preserving LocalBackend compatibility names.
 
 - tests/frontend: align dashboard startup retry coverage with local-runtime readiness wording while keeping legacy local-backend compatibility covered in the facade tests.
@@ -2978,6 +2984,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- frontend/sidecar: align the Python sidecar entrypoint docstring and folder-structure guide with local sidecar runtime terminology.
 
 - frontend/sidecar: describe Python sidecar runtime docstrings and lifecycle logs as local sidecar runtime behavior while preserving LocalBackend compatibility names.
 
@@ -3111,6 +3119,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- frontend/sidecar: align the Python sidecar entrypoint docstring and folder-structure guide with local sidecar runtime terminology.
 
 - frontend/sidecar: describe Python sidecar runtime docstrings and lifecycle logs as local sidecar runtime behavior while preserving LocalBackend compatibility names.
 
@@ -5200,6 +5210,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- frontend/sidecar: align the Python sidecar entrypoint docstring and folder-structure guide with local sidecar runtime terminology.
 
 - frontend/sidecar: describe Python sidecar runtime docstrings and lifecycle logs as local sidecar runtime behavior while preserving LocalBackend compatibility names.
 
