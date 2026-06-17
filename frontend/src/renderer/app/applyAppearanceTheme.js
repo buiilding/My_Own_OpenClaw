@@ -70,7 +70,7 @@ function resolveThemeSection(config, themeId) {
 }
 
 function applyThemeVariables(target, theme) {
-  target.style.setProperty('--windie-blue', theme.accent);
+  target.style.setProperty('--agent-accent', theme.accent);
   target.style.setProperty('--accent', theme.accent);
   target.style.setProperty('--appearance-background', theme.background);
   target.style.setProperty('--appearance-foreground', theme.foreground);

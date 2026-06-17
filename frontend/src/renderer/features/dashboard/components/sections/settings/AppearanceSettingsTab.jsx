@@ -42,7 +42,7 @@ function normalizeThemeConfig(config) {
 }
 
 function getPillTextColor(value) {
-  return String(value || '').toUpperCase() === '#FFFFFF' ? 'var(--windie-black)' : '#ffffff';
+  return String(value || '').toUpperCase() === '#FFFFFF' ? 'var(--agent-black)' : '#ffffff';
 }
 
 function AppearanceSettingsTab({ config, onConfigChange }) {

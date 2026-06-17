@@ -76,7 +76,7 @@ describe('applyAppearanceTheme', () => {
     expect(target.dataset.agentTheme).toBe('light');
     expect(target.dataset.agentTranslucentSidebar).toBe('false');
     expect(target.style.colorScheme).toBe('light');
-    expect(target.style.getPropertyValue('--windie-blue')).toBe('#007AFF');
+    expect(target.style.getPropertyValue('--agent-accent')).toBe('#007AFF');
     expect(target.style.getPropertyValue('--appearance-background')).toBe('#FAFCFF');
     expect(target.style.getPropertyValue('--appearance-foreground')).toBe('#111827');
     expect(target.style.getPropertyValue('--appearance-contrast')).toBe('52');

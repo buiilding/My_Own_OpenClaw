@@ -496,7 +496,7 @@
 }
 
 .clone-model-api-keys-toggle:hover {
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
 }
 
 .clone-model-api-keys-content {
@@ -826,7 +826,7 @@
 }
 
 .clone-model-chevron.hovered {
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
   transform: translateX(2px);
 }
 

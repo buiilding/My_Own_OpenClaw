@@ -267,12 +267,12 @@ body.cg-scroll-locked,
     linear-gradient(90deg, rgba(0, 122, 255, 0.2), rgba(0, 122, 255, 0.06));
   color: var(--ui-text-primary);
   box-shadow:
-    inset 3px 0 0 var(--windie-blue),
-    0 0 22px -18px var(--windie-blue-glow);
+    inset 3px 0 0 var(--agent-accent),
+    0 0 22px -18px var(--agent-accent-glow);
 }
 
 .cg-nav-item.active .cg-nav-item-icon {
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
 }
 
 .cg-nav-item-icon {

@@ -8,36 +8,36 @@
   --font-ui: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
 
-  --windie-blue: #007aff;
-  --windie-blue-hover: #0055dd;
-  --windie-blue-soft: rgba(0, 122, 255, 0.16);
-  --windie-blue-glow: rgba(0, 122, 255, 0.38);
-  --windie-pale: #a6d8ff;
-  --windie-black: #050505;
-  --windie-gray: #111111;
-  --windie-gray-light: #1a1a1a;
+  --agent-accent: #007aff;
+  --agent-accent-hover: #0055dd;
+  --agent-accent-soft: rgba(0, 122, 255, 0.16);
+  --agent-accent-glow: rgba(0, 122, 255, 0.38);
+  --agent-accent-pale: #a6d8ff;
+  --agent-black: #050505;
+  --agent-gray: #111111;
+  --agent-gray-light: #1a1a1a;
   --appearance-background: #181818;
   --appearance-foreground: #ffffff;
   --appearance-contrast: 60;
 
-  --bg-base: var(--windie-black);
-  --bg-muted: var(--windie-gray);
-  --surface: var(--windie-gray-light);
+  --bg-base: var(--agent-black);
+  --bg-muted: var(--agent-gray);
+  --surface: var(--agent-gray-light);
   --surface-strong: #202020;
-  --surface-muted: var(--windie-gray);
+  --surface-muted: var(--agent-gray);
   --surface-ink: #080808;
 
   --text-primary: #ececec;
   --text-muted: #b9b9b9;
   --text-soft: #8b8b8b;
 
-  --accent: var(--windie-blue);
-  --accent-strong: var(--windie-blue-hover);
-  --accent-soft: var(--windie-blue-soft);
+  --accent: var(--agent-accent);
+  --accent-strong: var(--agent-accent-hover);
+  --accent-soft: var(--agent-accent-soft);
 
   --warning: #e3a84f;
   --danger: #f87171;
-  --success: var(--windie-pale);
+  --success: var(--agent-accent-pale);
 
   --border: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.2);
@@ -63,10 +63,10 @@
   --pill-scrim: rgba(0, 0, 0, 0.68);
   --pill-shadow:
     0 24px 60px rgba(0, 0, 0, 0.56),
-    0 0 28px -18px var(--windie-blue-glow);
+    0 0 28px -18px var(--agent-accent-glow);
   --pill-shadow-strong:
     0 30px 64px -22px rgba(0, 0, 0, 0.82),
-    0 0 36px -18px var(--windie-blue-glow),
+    0 0 36px -18px var(--agent-accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --pill-backdrop-blur: 24px;
   --pill-shell-bg:
@@ -104,15 +104,15 @@
   --ui-shadow: var(--pill-shadow);
   --ui-shadow-strong: var(--pill-shadow-strong);
   --ui-backdrop-blur: var(--pill-backdrop-blur);
-  --ui-send-bg: var(--windie-blue);
-  --ui-send-bg-hover: var(--windie-blue-hover);
+  --ui-send-bg: var(--agent-accent);
+  --ui-send-bg-hover: var(--agent-accent-hover);
   --ui-send-bg-disabled: rgba(52, 76, 106, 0.82);
   --ui-send-text: rgba(255, 255, 255, 1);
   --ui-neutral-white: #ffffff;
   --ui-neutral-black: #000000;
-  --ui-brand-dot-bg: var(--windie-blue);
+  --ui-brand-dot-bg: var(--agent-accent);
   --ui-brand-dot-fg: var(--ui-neutral-white);
-  --ui-gpt-dot-bg: var(--windie-blue);
+  --ui-gpt-dot-bg: var(--agent-accent);
   --ui-on-accent: var(--ui-neutral-white);
   --ui-settings-swatch-bg: var(--ui-neutral-black);
   --ui-toggle-thumb-on: var(--ui-neutral-white);
@@ -120,12 +120,12 @@
 
 :root[data-agent-theme='light'] {
   color-scheme: light;
-  --windie-blue-hover: color-mix(in srgb, var(--windie-blue) 82%, #003c9d 18%);
-  --windie-blue-soft: color-mix(in srgb, var(--windie-blue) 14%, transparent 86%);
-  --windie-blue-glow: color-mix(in srgb, var(--windie-blue) 28%, transparent 72%);
+  --agent-accent-hover: color-mix(in srgb, var(--agent-accent) 82%, #003c9d 18%);
+  --agent-accent-soft: color-mix(in srgb, var(--agent-accent) 14%, transparent 86%);
+  --agent-accent-glow: color-mix(in srgb, var(--agent-accent) 28%, transparent 72%);
 
-  --bg-base: color-mix(in srgb, var(--appearance-background) 94%, var(--windie-blue) 6%);
-  --bg-muted: color-mix(in srgb, var(--appearance-background) 90%, var(--windie-blue) 10%);
+  --bg-base: color-mix(in srgb, var(--appearance-background) 94%, var(--agent-accent) 6%);
+  --bg-muted: color-mix(in srgb, var(--appearance-background) 90%, var(--agent-accent) 10%);
   --surface: color-mix(in srgb, var(--appearance-background) 94%, #eef5ff 6%);
   --surface-strong: color-mix(in srgb, var(--appearance-background) 88%, #dbeafe 12%);
   --surface-muted: color-mix(in srgb, var(--appearance-background) 92%, #e5edf7 8%);
@@ -138,22 +138,22 @@
   --border: color-mix(in srgb, var(--appearance-foreground) 12%, transparent 88%);
   --border-strong: color-mix(in srgb, var(--appearance-foreground) 22%, transparent 78%);
 
-  --pill-surface-bg: color-mix(in srgb, var(--appearance-background) 90%, var(--windie-blue) 4%);
+  --pill-surface-bg: color-mix(in srgb, var(--appearance-background) 90%, var(--agent-accent) 4%);
   --pill-surface-raised-bg: color-mix(in srgb, var(--appearance-background) 96%, #dceeff 4%);
   --pill-border: color-mix(in srgb, var(--appearance-foreground) 13%, transparent 87%);
   --pill-border-soft: color-mix(in srgb, var(--appearance-foreground) 12%, transparent 88%);
   --pill-border-subtle: color-mix(in srgb, var(--appearance-foreground) 8%, transparent 92%);
   --pill-text-primary: var(--appearance-foreground);
   --pill-text-muted: color-mix(in srgb, var(--appearance-foreground) 58%, transparent 42%);
-  --pill-hover-bg: color-mix(in srgb, var(--windie-blue) 8%, transparent 92%);
-  --pill-hover-strong-bg: color-mix(in srgb, var(--windie-blue) 15%, transparent 85%);
+  --pill-hover-bg: color-mix(in srgb, var(--agent-accent) 8%, transparent 92%);
+  --pill-hover-strong-bg: color-mix(in srgb, var(--agent-accent) 15%, transparent 85%);
   --pill-scrim: rgba(15, 23, 42, 0.18);
   --pill-shadow:
     0 24px 60px rgba(15, 23, 42, 0.13),
-    0 0 28px -20px var(--windie-blue-glow);
+    0 0 28px -20px var(--agent-accent-glow);
   --pill-shadow-strong:
     0 30px 64px -26px rgba(15, 23, 42, 0.28),
-    0 0 36px -22px var(--windie-blue-glow),
+    0 0 36px -22px var(--agent-accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
   --pill-shell-bg:
     linear-gradient(
@@ -162,7 +162,7 @@
       color-mix(in srgb, var(--appearance-background) 92%, #dbeafe 8%) 100%
     );
   --pill-shell-ambient:
-    radial-gradient(1200px 760px at 12% -18%, color-mix(in srgb, var(--windie-blue) 13%, transparent 87%), transparent 58%),
+    radial-gradient(1200px 760px at 12% -18%, color-mix(in srgb, var(--agent-accent) 13%, transparent 87%), transparent 58%),
     radial-gradient(920px 620px at 100% 0%, rgba(166, 216, 255, 0.2), transparent 54%);
   --pill-sidebar-bg:
     linear-gradient(
@@ -201,7 +201,7 @@
   --ui-scrim: var(--pill-scrim);
   --ui-shadow: var(--pill-shadow);
   --ui-shadow-strong: var(--pill-shadow-strong);
-  --ui-send-bg-disabled: color-mix(in srgb, var(--windie-blue) 26%, #d5e3f4 74%);
+  --ui-send-bg-disabled: color-mix(in srgb, var(--agent-accent) 26%, #d5e3f4 74%);
   --ui-send-text: #ffffff;
   --ui-neutral-white: #ffffff;
   --ui-neutral-black: #101318;

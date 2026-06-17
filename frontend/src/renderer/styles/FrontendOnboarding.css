@@ -17,7 +17,7 @@
   background:
     radial-gradient(circle at top left, rgba(0, 122, 255, 0.2), transparent 30%),
     radial-gradient(circle at top right, rgba(166, 216, 255, 0.1), transparent 20%),
-    linear-gradient(180deg, var(--windie-black) 0%, #020202 100%);
+    linear-gradient(180deg, var(--agent-black) 0%, #020202 100%);
   color: #f3f3f3;
 }
 
@@ -152,7 +152,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 20px 44px rgba(0, 0, 0, 0.34),
-    0 0 30px -18px var(--windie-blue-glow);
+    0 0 30px -18px var(--agent-accent-glow);
 }
 
 .frontend-onboarding-stop-flow-keybind-label {
@@ -233,24 +233,24 @@
 
 .frontend-onboarding-button.secondary {
   color: #e2e2e2;
-  background: var(--windie-gray);
+  background: var(--agent-gray);
 }
 
 .frontend-onboarding-button.secondary:hover {
-  background: var(--windie-gray-light);
+  background: var(--agent-gray-light);
   border-color: rgba(0, 122, 255, 0.34);
 }
 
 .frontend-onboarding-button.primary {
   color: #ffffff;
-  background: var(--windie-blue);
-  border-color: var(--windie-blue);
-  box-shadow: 0 0 20px -8px var(--windie-blue-glow);
+  background: var(--agent-accent);
+  border-color: var(--agent-accent);
+  box-shadow: 0 0 20px -8px var(--agent-accent-glow);
 }
 
 .frontend-onboarding-button.primary:hover {
-  background: var(--windie-blue-hover);
-  border-color: var(--windie-blue-hover);
+  background: var(--agent-accent-hover);
+  border-color: var(--agent-accent-hover);
 }
 
 .frontend-onboarding-permissions-section {
@@ -309,7 +309,7 @@
   border: 1px solid rgba(0, 122, 255, 0.24) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 0 28px -24px var(--windie-blue-glow) !important;
+    0 0 28px -24px var(--agent-accent-glow) !important;
   outline: 0;
   border-radius: 22px;
   padding: 16px 18px;
@@ -401,17 +401,17 @@
 }
 
 .frontend-onboarding-permission-reason.status-granted {
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
   text-shadow: 0 0 18px rgba(0, 122, 255, 0.18);
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permission-reason.status-granted,
 .frontend-onboarding-card-permissions .frontend-onboarding-permission-granted {
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permission-granted-icon {
-  background: var(--windie-blue);
+  background: var(--agent-accent);
   border-color: rgba(166, 216, 255, 0.72);
   color: #ffffff;
 }
@@ -432,7 +432,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
   font-size: 13px;
   font-weight: 600;
   min-width: 112px;
@@ -451,7 +451,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--windie-blue);
+  background: var(--agent-accent);
   border: 1px solid rgba(166, 216, 255, 0.62);
   color: #ffffff;
   font-size: 12px;

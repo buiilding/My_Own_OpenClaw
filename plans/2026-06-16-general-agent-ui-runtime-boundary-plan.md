@@ -860,3 +860,16 @@ Each completed slice should report:
   attributes.
 - Compatibility: no migration required. The attributes are runtime DOM state,
   not persisted storage, IPC, SDK, or backend contracts.
+
+### 2026-06-17 renderer appearance palette variables
+
+- Finding: generic renderer styles still used product-named `--windie-*`
+  palette custom properties for accent, neutral, and glow colors.
+- Change: renamed the shared palette variables to `--agent-*` names while
+  preserving the same values and leaving the WindieOS skin asset variable in
+  the skin stylesheet.
+- Validation: focused appearance, onboarding, app provider, dashboard/chat CSS,
+  permission gate, and settings Jest run; docs listing; `git diff --check`; and
+  stale scan for retired product-named palette variables.
+- Compatibility: no migration required. The custom properties are runtime CSS
+  implementation details and do not affect stored appearance settings.

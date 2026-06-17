@@ -301,10 +301,10 @@
 }
 
 .clone-settings-theme-mode-segment button.active {
-  background: color-mix(in srgb, var(--windie-blue) 18%, var(--ui-panel-bg) 82%);
+  background: color-mix(in srgb, var(--agent-accent) 18%, var(--ui-panel-bg) 82%);
   color: var(--ui-text-primary);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--windie-blue) 32%, transparent 68%),
+    inset 0 0 0 1px color-mix(in srgb, var(--agent-accent) 32%, transparent 68%),
     0 8px 20px rgba(0, 0, 0, 0.16);
 }
 
@@ -412,7 +412,7 @@
 
 .clone-settings-contrast-control input {
   width: 100%;
-  accent-color: var(--windie-blue);
+  accent-color: var(--agent-accent);
 }
 
 .clone-settings-contrast-control output {
@@ -493,9 +493,9 @@
 }
 
 .clone-settings-primary-button {
-  border: 1px solid var(--windie-blue);
+  border: 1px solid var(--agent-accent);
   border-radius: 999px;
-  background: var(--windie-blue);
+  background: var(--agent-accent);
   color: #ffffff;
   cursor: pointer;
   flex-shrink: 0;
@@ -504,13 +504,13 @@
   letter-spacing: 0.01em;
   min-width: 156px;
   padding: 7px 14px;
-  box-shadow: 0 0 18px -10px var(--windie-blue-glow);
+  box-shadow: 0 0 18px -10px var(--agent-accent-glow);
   transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, opacity 140ms ease;
 }
 
 .clone-settings-primary-button:hover:not(:disabled) {
-  background: var(--windie-blue-hover);
-  border-color: var(--windie-blue-hover);
+  background: var(--agent-accent-hover);
+  border-color: var(--agent-accent-hover);
   transform: translateY(-1px);
 }
 
@@ -526,7 +526,7 @@
 }
 
 .clone-settings-action-status-success {
-  color: var(--windie-pale);
+  color: var(--agent-accent-pale);
 }
 
 .clone-settings-action-status-error {
