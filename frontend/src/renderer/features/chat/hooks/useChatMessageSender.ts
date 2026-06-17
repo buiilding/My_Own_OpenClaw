@@ -20,7 +20,8 @@ import {
   dispatchPreparedDesktopChatTurn,
   prepareDesktopChatSend,
 } from '../utils/messageSender/desktopChatSendPreparation';
-import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../../infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_SEND_CHANNELS } from '../../../infrastructure/ipc/channels';
 
 const chatSkin = desktopAgentSkin.chat;
 
@@ -85,7 +86,7 @@ export function useChatMessageSender(
         conversationRef: preparedTurn.conversationRef,
         turnRef: preparedTurn.turnRef,
       });
-      IpcBridge.send(SEND_CHANNELS.WINDIE_PENDING_TURN, {
+      IpcBridge.send(DESKTOP_AGENT_SEND_CHANNELS.PENDING_TURN, {
         type: 'clear',
         conversationRef: preparedTurn.conversationRef,
         turnRef: preparedTurn.turnRef,

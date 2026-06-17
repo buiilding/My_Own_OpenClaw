@@ -23,7 +23,8 @@ import {
 import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 type RewriteAndResendInput = {
   conversationRef: string;
@@ -198,7 +199,7 @@ export const DesktopConversationContinuityService = {
   },
 
   subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {
-    return IpcBridge.on(ON_CHANNELS.WINDIE_CONVERSATION_METADATA_INVALIDATED, (event) => {
+    return IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED, (event) => {
       if (!event || typeof event !== 'object' || Array.isArray(event)) {
         return;
       }

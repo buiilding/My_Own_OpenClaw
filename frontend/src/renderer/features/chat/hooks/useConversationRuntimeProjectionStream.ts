@@ -3,7 +3,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../../infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_ON_CHANNELS } from '../../../infrastructure/ipc/channels';
 import { useChatStore } from '../stores/chatStore';
 import type { ChatMessage, SdkCurrentTurnProjection } from '../stores/chatStore';
 import type {
@@ -166,10 +167,10 @@ export function useConversationRuntimeProjectionStream(): void {
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
 
   useEffect(() => {
-    if (!ON_CHANNELS.WINDIE_PENDING_TURN) {
+    if (!DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN) {
       return undefined;
     }
-    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_PENDING_TURN, (payload: unknown) => {
+    const removeListener = IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, (payload: unknown) => {
       applyPendingTurnBroadcast(payload);
     });
     return () => {
@@ -178,10 +179,10 @@ export function useConversationRuntimeProjectionStream(): void {
   }, [applyPendingTurnBroadcast]);
 
   useEffect(() => {
-    if (!ON_CHANNELS.WINDIE_CURRENT_TURN) {
+    if (!DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN) {
       return undefined;
     }
-    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_CURRENT_TURN, (payload: unknown) => {
+    const removeListener = IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN, (payload: unknown) => {
       const payloadRecord = payload && typeof payload === 'object'
         ? payload as Record<string, unknown>
         : {};
@@ -264,10 +265,10 @@ export function useConversationRuntimeProjectionStream(): void {
   ]);
 
   useEffect(() => {
-    if (!ON_CHANNELS.WINDIE_ROWS) {
+    if (!DESKTOP_AGENT_ON_CHANNELS.ROWS) {
       return undefined;
     }
-    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_ROWS, (payload: unknown) => {
+    const removeListener = IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.ROWS, (payload: unknown) => {
       if (!isSdkDisplayRows(payload)) {
         return;
       }

@@ -1613,3 +1613,34 @@ Each completed slice should report:
   alias/test compatibility assertions.
 - Compatibility: no migration required. IPC channel strings, preload
   validation, renderer expectations, and bridge behavior remain unchanged.
+
+### 2026-06-17 Renderer desktop agent listener channel aliases
+
+- Finding: renderer chat, dashboard, memory, and conversation-continuity
+  consumers still subscribed to or sent SDK conversation channels through
+  product-prefixed `ON_CHANNELS.WINDIE_*` / `SEND_CHANNELS.WINDIE_*` constants
+  even though the renderer IPC registry now exposes desktop-agent aliases.
+- Change: switched SDK conversation-event, current-turn, rows,
+  metadata-invalidation, memory-store, and pending-turn renderer consumers to
+  `DESKTOP_AGENT_ON_CHANNELS` / `DESKTOP_AGENT_SEND_CHANNELS`, and updated the
+  renderer folder map plus focused listener test utilities.
+- Validation: `npm.cmd --prefix frontend test -- --runInBand
+  ../tests/frontend/RendererChatRuntimeBoundary.test.ts
+  ../tests/frontend/ChatStreamMessageUpdates.test.ts
+  ../tests/frontend/ConversationSessionRuntime.test.ts`; `npm.cmd --prefix
+  frontend test -- --runInBand ../tests/frontend/UseDashboardConversations.test.jsx
+  ../tests/frontend/MemorySection.test.jsx
+  ../tests/frontend/DesktopConversationContinuityService.test.ts`; `npm.cmd
+  --prefix frontend test -- --runInBand ../tests/frontend/ChatMessageSender.test.tsx
+  ../tests/frontend/PendingTurnLiveSurfaceIntegration.test.js
+  ../tests/frontend/PendingStopLiveSurfaceIntegration.test.jsx`; `npm.cmd
+  --prefix frontend test -- --runInBand
+  ../tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx
+  ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx
+  ../tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`; `git diff
+  --check`; `bin\windie docs list`; source scan confirms remaining direct
+  Windie channel constants are alias definitions or negative compatibility
+  assertions.
+- Compatibility: no migration required. Renderer bridge validation, IPC
+  strings, pending-turn behavior, conversation projections, memory refresh, and
+  dashboard reload semantics remain unchanged.

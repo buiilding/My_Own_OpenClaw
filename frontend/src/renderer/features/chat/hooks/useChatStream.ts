@@ -3,7 +3,8 @@
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge } from '../../../infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_ON_CHANNELS } from '../../../infrastructure/ipc/channels';
 import type { ConversationEvent } from '../../../infrastructure/api/agentSdkClient';
 import {
   useChatStore,
@@ -227,7 +228,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_CONVERSATION_EVENT, (data: unknown) => {
+    const removeListener = IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, (data: unknown) => {
       handleConversationEventIngress(data as ConversationEvent, {
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         setActiveConversationRef,

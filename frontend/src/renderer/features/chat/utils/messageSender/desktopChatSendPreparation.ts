@@ -2,7 +2,8 @@
  * Provides the desktop chat send preparation module for the renderer UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_SEND_CHANNELS } from '../../../../infrastructure/ipc/channels';
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
@@ -190,7 +191,7 @@ function acceptPendingTurn({
   };
   const store = useChatStore.getState();
   store.acceptPendingTurn(pendingTurn);
-  IpcBridge.send(SEND_CHANNELS.WINDIE_PENDING_TURN, {
+  IpcBridge.send(DESKTOP_AGENT_SEND_CHANNELS.PENDING_TURN, {
     type: 'pending',
     pendingTurn,
   });

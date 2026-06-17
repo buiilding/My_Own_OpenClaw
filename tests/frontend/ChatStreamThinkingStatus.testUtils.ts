@@ -3,7 +3,8 @@
  */
 
 import { renderHook } from '@testing-library/react';
-import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { DESKTOP_AGENT_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
 import { useConversationRuntimeProjectionStream } from '../../frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
@@ -86,7 +87,7 @@ export function setMockActiveConversationRef(conversationRef: string | null) {
 
 function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void>) {
   return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
-    const conversationEventHandler = handlers[ON_CHANNELS.WINDIE_CONVERSATION_EVENT];
+    const conversationEventHandler = handlers[DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT];
     expect(conversationEventHandler).toEqual(expect.any(Function));
     if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
       const eventRecord = event as Record<string, unknown>;
@@ -111,7 +112,7 @@ function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void
 
 function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => void>) {
   return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
-    const conversationEventHandler = handlers[ON_CHANNELS.WINDIE_CONVERSATION_EVENT];
+    const conversationEventHandler = handlers[DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT];
     if (!conversationEventHandler) {
       return;
     }
@@ -175,12 +176,12 @@ export function registerBackendAndProjectionListeners(enableTranscript = true) {
       { injectConversationRef: false },
     ),
     emitConversationRuntimeUpdated: (payload: unknown) => {
-      const projectionHandler = handlers[ON_CHANNELS.WINDIE_CURRENT_TURN];
+      const projectionHandler = handlers[DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN];
       expect(projectionHandler).toEqual(expect.any(Function));
       projectionHandler(payload);
     },
     emitDisplayRows: (payload: unknown) => {
-      const rowsHandler = handlers[ON_CHANNELS.WINDIE_ROWS];
+      const rowsHandler = handlers[DESKTOP_AGENT_ON_CHANNELS.ROWS];
       expect(rowsHandler).toEqual(expect.any(Function));
       rowsHandler(payload);
     },
