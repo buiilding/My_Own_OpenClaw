@@ -558,6 +558,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   should be supplied by host permission surfaces.
 - Change: changed the verifier fallback reasons to generic app wording and
   added focused sidecar tests for consent-needed and denied states.
+- Finding: the sidecar daemon still advertised itself as the WindieOS sidecar
+  in MCP client metadata and CLI help, even though this executable is the local
+  sidecar runtime boundary.
+- Change: changed the daemon MCP client identity and CLI description to generic
+  Desktop Agent/local sidecar wording with a boundary assertion.
 
 ## Remaining Findings
 
@@ -651,3 +656,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executable paths.
 - Sidecar macOS System Events automation verifier fallback reasons now use
   generic app wording; host permission copy remains the product-specific layer.
+- Sidecar daemon MCP client identity and CLI help now use generic local sidecar
+  wording.

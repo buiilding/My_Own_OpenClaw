@@ -21,6 +21,15 @@ from sidecar_daemon import (  # noqa: E402
 )
 
 
+def test_sidecar_daemon_identity_copy_is_product_neutral():
+    source = Path(sidecar_daemon.__file__).read_text(encoding="utf-8")
+
+    assert "Desktop Agent sidecar" in source
+    assert "Run the local sidecar daemon." in source
+    assert "WindieOS sidecar" not in source
+    assert "Run the WindieOS sidecar daemon." not in source
+
+
 class FakeRequest:
     def __init__(self, payload=None, headers=None):
         self._payload = payload or {}

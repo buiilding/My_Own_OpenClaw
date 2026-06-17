@@ -101,6 +101,8 @@ All notable changes to WindieOS will be documented in this file.
   packaged browser and wakeword runtime dependency failures.
 - frontend/sidecar: use generic app wording in macOS System Events automation
   verifier fallback reasons.
+- frontend/sidecar: use generic daemon client identity and CLI help copy for
+  the local sidecar daemon.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

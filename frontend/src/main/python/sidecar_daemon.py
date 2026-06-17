@@ -731,7 +731,7 @@ class McpStdioClient:
             {
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {"roots": {"listChanged": False}, "sampling": {}},
-                "clientInfo": {"name": "WindieOS sidecar", "version": "1"},
+                "clientInfo": {"name": "Desktop Agent sidecar", "version": "1"},
             },
         )
         await self.notify("notifications/initialized")
@@ -1468,7 +1468,7 @@ async def run_daemon(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the WindieOS sidecar daemon.")
+    parser = argparse.ArgumentParser(description="Run the local sidecar daemon.")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--token", default=None)
