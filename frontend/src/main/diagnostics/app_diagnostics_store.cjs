@@ -27,7 +27,7 @@ const APP_DATA_DIR_NAME = 'windieos';
 
 const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
-    owner: 'SDK + sidecar conversation store',
+    owner: 'SDK + local runtime conversation store',
     purpose: 'Dashboard/sidebar conversation list lifecycle and local history-store reads.',
   },
   [BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH]: {

@@ -123,6 +123,10 @@ describe('app diagnostics store', () => {
     expect(LOCAL_BACKEND_LIFECYCLE_DIAGNOSTICS_PATH).toBe(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH);
     expect(listDiagnosticPathDefinitions()).toEqual(expect.arrayContaining([
       expect.objectContaining({
+        path: APP_DIAGNOSTICS_PATH,
+        owner: 'SDK + local runtime conversation store',
+      }),
+      expect.objectContaining({
         path: BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
         owner: 'Electron main local runtime bridge',
       }),

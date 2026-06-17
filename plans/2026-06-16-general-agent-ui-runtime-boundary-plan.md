@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 conversation diagnostics local runtime owner
+
+- Finding: the conversation metadata diagnostics registry still named the
+  sidecar conversation store directly even though the public boundary is SDK
+  projection/listing plus local runtime storage.
+- Change: reworded the diagnostics owner to `SDK + local runtime conversation
+  store` and locked it in the diagnostics owner test.
+- Validation: focused diagnostics owner Jest assertion, owner-copy scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. The diagnostic path and stored row shape
+  are unchanged.
+
 ### 2026-06-17 diagnostics local runtime owner wording
 
 - Finding: app diagnostics path definitions and trace docs still described the
