@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `8569cefb2` (`fix(sdk): reject invalid managed endpoints cleanly`)
+- Latest inspected plan checkpoint: `ae80ba6be` (`refactor(sdk): genericize generated agent ids`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -26,7 +26,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   and managed endpoint configuration failures reject connection waiters
   immediately with generic endpoint wording. SDK-generated default agent IDs
   now use generic `agent-*` values while the existing backend mode remains
-  unchanged.
+  unchanged. Preload SDK-command validation failures use generic Agent SDK
+  wording while the `window.windie` bridge contract remains stable.
 
 ## Inspection Log
 
@@ -313,6 +314,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: `WindieClient.wakeUp()` now generates `agent-*` IDs when `agentId` is omitted.
 - Change: SDK tests and the hosted runtime docs now describe the generic generated IDs.
 
+### 2026-06-16 Preload SDK Invoke Diagnostic Slice
+
+- Worktree recovery: after the generated-ID commit, recent commits and the clean worktree were inspected before continuing.
+- Finding: the preload `window.windie.invoke(...)` bridge preserved the intentional wire contract but still reported invalid command and unavailable invoke-channel failures with Windie-specific SDK wording.
+- Decision: preserve the `window.windie` bridge and `windie:invoke` IPC channel as compatibility contracts, but make preload validation diagnostics generic Agent SDK wording.
+- Change: invalid command names now reject with "Invalid Agent SDK command".
+- Change: missing SDK invoke channel validation now reports "Agent SDK invoke channel is not available".
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -346,6 +355,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK private transport listener helpers use generic agent-session naming while preserving public exports.
 - [x] SDK managed endpoint validation rejects immediately with generic wording.
 - [x] SDK-generated default agent IDs use generic values while preserving backend mode contracts.
+- [x] Preload SDK-command bridge diagnostics use generic Agent SDK wording while preserving wire contracts.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -438,6 +448,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `rg -n "Managed Windie agent endpoint requires|Managed agent endpoint requires|Windie agent endpoint|Timed out connecting to backend for agent-session" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found only the new generic endpoint diagnostic and its focused assertion.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts -t "buildAgentDefinition uses generic display defaults|agent context|agent definition|wakeUp registers local module tools"` passed.
 - `rg -n "windie-default|windie-agent-" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend/WindieSdkClient.test.ts docs/sdk/windie_client_runtime.md -g "*.ts" -g "*.js" -g "*.cjs" -g "*.md"` found no matches.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/PreloadIpcChannels.test.cjs` passed.
+- `rg -n "Invalid Windie SDK command|Windie SDK invoke channel|Invalid Agent SDK command|Agent SDK invoke channel" frontend/src/preload.js tests/frontend/PreloadIpcChannels.test.cjs docs/plans/2026-06-16-general-agent-ui-runtime-boundary-report.md` found only the new generic preload wording.
 
 ## Remaining Findings
 
@@ -491,3 +503,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK-generated default agent IDs now use generic `agent-default` and `agent-*`
   values. Explicit caller IDs and the backend `windie_default` mode contract
   remain unchanged.
+- Preload SDK-command validation diagnostics now use generic Agent SDK wording.
+  The `window.windie` bridge and `windie:invoke` channel remain the existing
+  wire contracts.

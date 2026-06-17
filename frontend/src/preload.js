@@ -70,10 +70,10 @@ contextBridge.exposeInMainWorld('ipc', {
 contextBridge.exposeInMainWorld('windie', {
   invoke: (command, payload) => {
     if (typeof command !== 'string' || !command.trim()) {
-      return Promise.reject(new Error('Invalid Windie SDK command'));
+      return Promise.reject(new Error('Invalid Agent SDK command'));
     }
     if (!VALID_INVOKE_CHANNELS.has(INVOKE_CHANNELS.WINDIE_INVOKE)) {
-      return Promise.reject(new Error('Windie SDK invoke channel is not available'));
+      return Promise.reject(new Error('Agent SDK invoke channel is not available'));
     }
     return ipcRenderer.invoke(INVOKE_CHANNELS.WINDIE_INVOKE, {
       command,

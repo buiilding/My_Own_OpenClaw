@@ -67,6 +67,8 @@ All notable changes to WindieOS will be documented in this file.
   wording.
 - sdk/js: use generic generated agent IDs for default SDK agent definitions
   while preserving explicit caller-provided IDs and the existing backend mode.
+- frontend/preload: use generic Agent SDK wording for SDK-command bridge
+  validation failures while preserving the `window.windie` bridge contract.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

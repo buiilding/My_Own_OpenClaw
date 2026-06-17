@@ -80,7 +80,7 @@ describe('preload IPC channel registry', () => {
     });
   });
 
-  test('exposes SDK-shaped Windie command invoke over one IPC channel', async () => {
+  test('exposes SDK-shaped command invoke over one IPC channel', async () => {
     await expect(exposedWindie.invoke('memories.clearAll', {})).resolves.toBe('ok');
 
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
@@ -89,9 +89,9 @@ describe('preload IPC channel registry', () => {
     });
   });
 
-  test('rejects invalid Windie command names before IPC', async () => {
+  test('rejects invalid Agent SDK command names before IPC', async () => {
     await expect(exposedWindie.invoke('', { userId: 'user-1' })).rejects.toThrow(
-      'Invalid Windie SDK command',
+      'Invalid Agent SDK command',
     );
     expect(ipcRendererMock.invoke).not.toHaveBeenCalledWith('windie:invoke', expect.anything());
   });
