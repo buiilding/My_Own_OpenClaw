@@ -2333,6 +2333,22 @@ Each completed slice should report:
   plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
 - Compatibility: no migration required. This is docs-only terminology cleanup.
 
+### 2026-06-17 Electron main local runtime launch plan alias
+
+- Finding: Electron main still imported and called the desktop launch helper
+  through `createDesktopAutoSidecarLaunchPlan` and logged process spawns as
+  `[Main][SidecarBridge] spawned sidecar daemon`, even though the host-facing
+  boundary is local-runtime launch option assembly.
+- Change: added `createDesktopLocalRuntimeLaunchPlan` as the preferred main
+  launch helper, switched IPC client wake-up wiring to the generic name, kept
+  `createDesktopAutoSidecarLaunchPlan` as a compatibility alias, and changed
+  the spawn log marker to `[Main][LocalRuntimeLaunch] spawned local runtime`.
+- Validation: focused launch-helper and IPC boundary Jest coverage, docs
+  listing, `git diff --check`, and source scans for intentional compatibility
+  alias usage.
+- Compatibility: no migration required. The SDK `autoSidecar` option shape,
+  daemon script target, discovery file, and sidecar log routing are unchanged.
+
 ### 2026-06-17 Agent SDK focused test headers
 
 - Finding: focused Agent SDK tests for model selection, managed backend

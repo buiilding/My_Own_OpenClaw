@@ -5,15 +5,20 @@ const os = require('os');
 const path = require('path');
 
 const {
+  createDesktopLocalRuntimeLaunchPlan,
   createDesktopAutoSidecarLaunchPlan,
 } = require('../../frontend/src/main/sidecar/sdk_sidecar_launch_options.cjs');
 const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
-describe('sdk sidecar launch options', () => {
+describe('sdk local runtime launch options', () => {
+  test('keeps the legacy auto-sidecar export as a local runtime launch alias', () => {
+    expect(createDesktopAutoSidecarLaunchPlan).toBe(createDesktopLocalRuntimeLaunchPlan);
+  });
+
   test('uses host skin copy for packaged missing Python guidance', () => {
-    const plan = createDesktopAutoSidecarLaunchPlan({
+    const plan = createDesktopLocalRuntimeLaunchPlan({
       isPackaged: true,
       copy: mainHostSkin.bundledRuntime,
       resolveLaunchTarget: () => ({ kind: 'python', command: null }),
@@ -25,7 +30,7 @@ describe('sdk sidecar launch options', () => {
   });
 
   test('uses generic packaged missing Python fallback without host skin copy', () => {
-    const plan = createDesktopAutoSidecarLaunchPlan({
+    const plan = createDesktopLocalRuntimeLaunchPlan({
       isPackaged: true,
       resolveLaunchTarget: () => ({ kind: 'python', command: null }),
     });
@@ -36,7 +41,7 @@ describe('sdk sidecar launch options', () => {
   });
 
   test('includes source identity in daemon launch context', () => {
-    const plan = createDesktopAutoSidecarLaunchPlan({
+    const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });
 
@@ -49,7 +54,7 @@ describe('sdk sidecar launch options', () => {
   });
 
   test('desktop launch owns a fresh sidecar instead of reusing discovered daemons', () => {
-    const plan = createDesktopAutoSidecarLaunchPlan({
+    const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });
 
@@ -61,7 +66,7 @@ describe('sdk sidecar launch options', () => {
   });
 
   test('desktop launch uses a generic daemon discovery path by default', () => {
-    const plan = createDesktopAutoSidecarLaunchPlan({
+    const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });
 
@@ -82,7 +87,7 @@ describe('sdk sidecar launch options', () => {
         ...originalEnv,
         WINDIE_SIDECAR_LOG_FILE: logFile,
       };
-      const plan = createDesktopAutoSidecarLaunchPlan({
+      const plan = createDesktopLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
       });
 
@@ -103,6 +108,37 @@ describe('sdk sidecar launch options', () => {
       expect(log).toContain('[SidecarDaemon] listening pid=123');
     } finally {
       stderrWrite.mockRestore();
+      process.env = originalEnv;
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test('process spawn events write generic local runtime launch logs', () => {
+    const originalEnv = process.env;
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-main-log-'));
+    const logFile = path.join(tempDir, 'main.log');
+
+    try {
+      process.env = {
+        ...originalEnv,
+        WINDIE_MAIN_LOG_FILE: logFile,
+      };
+      const plan = createDesktopLocalRuntimeLaunchPlan({
+        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      });
+
+      expect(plan.ok).toBe(true);
+      plan.options.onProcessSpawn({
+        command: 'python',
+        cwd: 'C:\\work',
+      });
+
+      const log = fs.readFileSync(logFile, 'utf8');
+      expect(log).toContain(
+        '[Main][LocalRuntimeLaunch] spawned local runtime command="python" cwd="C:\\\\work"',
+      );
+      expect(log).not.toContain('[Main][SidecarBridge] spawned sidecar daemon');
+    } finally {
       process.env = originalEnv;
       fs.rmSync(tempDir, { recursive: true, force: true });
     }

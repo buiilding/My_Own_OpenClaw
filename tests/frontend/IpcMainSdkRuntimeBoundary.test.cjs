@@ -24,7 +24,10 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agent.conversation({');
     expect(source).toContain('localToolLifecycle');
     expect(source).toContain('agentWebSocketImpl');
-    expect(source).toContain('autoSidecar: buildDesktopAutoSidecarOptionsForAgent()');
+    expect(source).toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
+    expect(source).toContain('createDesktopLocalRuntimeLaunchPlan');
+    expect(source).not.toContain('buildDesktopAutoSidecarOptionsForAgent');
+    expect(source).not.toContain('createDesktopAutoSidecarLaunchPlan');
     expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(source).not.toContain('WindieAgent.startDesktop');
     expect(source).not.toContain('ensureDaemonBackedLocalRuntime');

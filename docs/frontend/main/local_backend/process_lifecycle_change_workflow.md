@@ -51,7 +51,7 @@ readiness/status broadcasts.
 
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
-| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | SDK auto-sidecar launch options | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
+| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `sdk_sidecar_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
 | `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalSidecarRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |

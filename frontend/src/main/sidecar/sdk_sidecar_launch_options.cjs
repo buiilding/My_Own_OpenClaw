@@ -1,5 +1,5 @@
 /**
- * Provides the sdk sidecar launch options module for the Electron main process.
+ * Provides local runtime launch options for the Electron main process.
  */
 
 const fs = require('fs');
@@ -157,7 +157,7 @@ function writeSidecarDaemonLogLine(line, {
   return true;
 }
 
-function createDesktopAutoSidecarLaunchPlan({
+function createDesktopLocalRuntimeLaunchPlan({
   backendEndpoints,
   discoveryFile = DEFAULT_DAEMON_DISCOVERY_PATH,
   isPackaged = false,
@@ -208,7 +208,7 @@ function createDesktopAutoSidecarLaunchPlan({
         const cwd = typeof details.cwd === 'string' ? details.cwd : '';
         appendLayerLogLine(
           'main',
-          `[Main][SidecarBridge] spawned sidecar daemon command=${JSON.stringify(command)} cwd=${JSON.stringify(cwd)}`,
+          `[Main][LocalRuntimeLaunch] spawned local runtime command=${JSON.stringify(command)} cwd=${JSON.stringify(cwd)}`,
         );
       },
       onStdoutLine: (line) => writeSidecarDaemonLogLine(line, { filter: false }),
@@ -218,6 +218,9 @@ function createDesktopAutoSidecarLaunchPlan({
   };
 }
 
+const createDesktopAutoSidecarLaunchPlan = createDesktopLocalRuntimeLaunchPlan;
+
 module.exports = {
+  createDesktopLocalRuntimeLaunchPlan,
   createDesktopAutoSidecarLaunchPlan,
 };

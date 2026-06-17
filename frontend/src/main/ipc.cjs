@@ -156,7 +156,7 @@ const {
   buildDesktopAgentDefinitionInputs,
 } = require('./agent/desktop_agent_definition_inputs.cjs');
 const {
-  createDesktopAutoSidecarLaunchPlan,
+  createDesktopLocalRuntimeLaunchPlan,
 } = require('./sidecar/sdk_sidecar_launch_options.cjs');
 const {
   AgentClient,
@@ -734,8 +734,8 @@ function buildManagedBackendEndpoints() {
   }));
 }
 
-function buildDesktopAutoSidecarOptionsForAgent() {
-  const plan = createDesktopAutoSidecarLaunchPlan({
+function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
+  const plan = createDesktopLocalRuntimeLaunchPlan({
     ...(desktopAutoSidecarLaunchConfig || {}),
     backendEndpoints: {
       httpUrl: backendEndpointState.getHttpUrl(),
@@ -744,7 +744,7 @@ function buildDesktopAutoSidecarOptionsForAgent() {
     ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
   });
   if (plan.ok !== true) {
-    throw new Error(plan.error || 'Desktop sidecar daemon launch is unavailable.');
+    throw new Error(plan.error || 'Desktop local runtime launch is unavailable.');
   }
   return plan.options;
 }
@@ -752,7 +752,7 @@ function buildDesktopAutoSidecarOptionsForAgent() {
 function buildDesktopLocalRuntimeOptions() {
   return process.env.NODE_ENV === 'test'
     ? { autoStartLocalRuntime: false }
-    : { autoSidecar: buildDesktopAutoSidecarOptionsForAgent() };
+    : { autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
 }
 
 function createDesktopAgentClient() {

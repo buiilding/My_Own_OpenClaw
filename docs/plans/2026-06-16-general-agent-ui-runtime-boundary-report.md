@@ -31,7 +31,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
   runtime errors omit a message. SDK local-runtime auto-start discovery and
-  stop timeout diagnostics use generic local sidecar daemon wording.
+  stop timeout diagnostics use generic local sidecar daemon wording. Electron
+  main now calls the desktop local-runtime launch plan API and emits generic
+  local-runtime launch logs while preserving the sidecar daemon implementation
+  and compatibility launch alias.
 
 ## Inspection Log
 
