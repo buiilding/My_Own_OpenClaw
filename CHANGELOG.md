@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
+
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
 
 - backend/llm: remove the unused prompts package export so prompt callers import constructor, metadata, manager, and repo-instruction helpers from owner modules.
@@ -1572,6 +1574,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
+
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
 
 - Frontend docs: route user-message projection and tool-result delivery through the SDK runtime boundary, with a boundary test denying stale renderer/main ownership wording.
@@ -3056,6 +3060,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
+
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
 
 - Frontend docs: route user-message projection and tool-result delivery through the SDK runtime boundary, with a boundary test denying stale renderer/main ownership wording.
@@ -3194,6 +3200,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
 
 ### Changed
+
+- Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
 
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
 
@@ -3363,6 +3371,8 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+
+- Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
 
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
 
@@ -5488,6 +5498,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+
+- Main host: use generic desktop-agent permission-state fallback naming when Electron userDataPath is unavailable.
 
 - Main host: move WindieOS hosted backend defaults into host skin config while preserving backend endpoint resolution behavior.
 

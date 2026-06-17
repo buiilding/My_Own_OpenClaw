@@ -706,3 +706,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Default endpoint values, `BACKEND_*`
   overrides, `WINDIE_DEFAULT_BACKEND_*` overrides, and endpoint output shapes
   are unchanged.
+
+### 2026-06-17 main permission state fallback filename
+
+- Finding: the generic permission state store still used a WindieOS-specific
+  hidden filename for its no-user-data fallback path, even though normal app
+  storage is already supplied through Electron `userDataPath`.
+- Change: changed the fallback filename prefix to generic desktop-agent wording
+  and added focused store coverage for the fallback resolver.
+- Validation: focused permission state store test, docs listing,
+  `git diff --check`, and source scan for the retired fallback filename.
+- Compatibility: no migration required. Packaged/source runtime callers pass
+  `userDataPath` or explicit `statePath`, so persisted permission state paths
+  are unchanged outside the no-user-data fallback.

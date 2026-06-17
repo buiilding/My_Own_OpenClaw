@@ -7,6 +7,7 @@ const path = require('path');
 
 const PERMISSION_STATE_FILENAME = 'permission-state.json';
 const PERMISSION_STATE_VERSION = 1;
+const DEFAULT_PERMISSION_STATE_PREFIX = 'desktop-agent';
 const stateUpdateQueues = new Map();
 
 function resolveStatePath(deps = {}) {
@@ -16,7 +17,7 @@ function resolveStatePath(deps = {}) {
   if (typeof deps.userDataPath === 'string' && deps.userDataPath.trim()) {
     return path.join(deps.userDataPath, PERMISSION_STATE_FILENAME);
   }
-  return path.join(process.cwd(), `.windieos-${PERMISSION_STATE_FILENAME}`);
+  return path.join(process.cwd(), `.${DEFAULT_PERMISSION_STATE_PREFIX}-${PERMISSION_STATE_FILENAME}`);
 }
 
 function normalizePermissionEntry(rawEntry) {

@@ -579,7 +579,7 @@ describe('main_window_runtime createMainWindow', () => {
 
   test('passes the permission state path into local runtime bridge initialization', () => {
     const { deps } = createDeps({
-      permissionStatePath: '/tmp/windieos-permission-state.json',
+      permissionStatePath: '/tmp/desktop-agent-permission-state.json',
     });
 
     createMainWindow(deps);
@@ -591,7 +591,7 @@ describe('main_window_runtime createMainWindow', () => {
       getKnownLocalRuntime: deps.getKnownLocalRuntime,
       ensureLocalRuntime: deps.ensureLocalRuntime,
       isPackaged: false,
-      permissionStatePath: '/tmp/windieos-permission-state.json',
+      permissionStatePath: '/tmp/desktop-agent-permission-state.json',
       authStatePath: expect.stringContaining(`${require('path').sep}windieos${require('path').sep}install-auth.json`),
     }));
     expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
