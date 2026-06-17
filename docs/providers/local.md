@@ -1,5 +1,5 @@
 ---
-summary: "Local provider guide for WindieOS covering Ollama, LM Studio, model discovery, placeholder API keys, base URLs, and tests."
+summary: "Local provider guide for WindieOS covering Ollama, LM Studio, model discovery, credential-free local requests, base URLs, and tests."
 read_when:
   - When changing local model behavior, Ollama or LM Studio discovery, model_mode local behavior, or local provider base URLs.
   - When debugging local models that do not list, fail completion, or drift from online provider request behavior.
@@ -28,7 +28,7 @@ WindieOS supports local LLM providers for Ollama and LM Studio. They are registe
 | Ollama | `ollama` | `http://localhost:11434/v1` | Model discovery uses Ollama-compatible local endpoints. |
 | LM Studio | `lmstudio` | `http://localhost:1234/v1` | Model discovery reads local server model list payloads. |
 
-Local providers use a placeholder API key for LiteLLM compatibility. Do not require real credentials for local model mode.
+Local providers do not require API keys. Do not require credentials for local model mode.
 
 ## Runtime Behavior
 

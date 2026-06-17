@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for local LLM providers (Ollama/LM Studio): request param compatibility, list-model endpoint normalization, and shared async HTTP client cleanup lifecycle."
+summary: "Deep reference for local LLM providers (Ollama/LM Studio): request parameter wiring, list-model endpoint normalization, and shared async HTTP client cleanup lifecycle."
 read_when:
   - When changing local provider model-list behavior or endpoint URL construction.
-  - When debugging local provider request compatibility with LiteLLM or leaked/stale HTTP clients.
-title: "Model Listing, Connection Pooling, and Placeholder Key Reference"
+  - When debugging local provider request parameters or leaked/stale HTTP clients.
+title: "Model Listing and Connection Pooling Reference"
 ---
 
-# Model Listing, Connection Pooling, and Placeholder Key Reference
+# Model Listing and Connection Pooling Reference
 
 ## Canonical Modules
 
@@ -15,16 +15,12 @@ title: "Model Listing, Connection Pooling, and Placeholder Key Reference"
 - `backend/src/llm/providers/__init__.py`
 - `tests/backend/test_local_llm_providers.py`
 
-## Local Provider Request Compatibility
+## Local Provider Request Parameters
 
 `LocalLLMProvider` inherits completion/stream plumbing from `OnlineLLMProvider`, then mutates transport params:
 
 - sets `custom_llm_provider = "openai"`
-- injects `api_key = "placeholder"` when key is absent
-
-Reason:
-
-- local backends do not require real API keys, but LiteLLM compatibility paths may reject null/empty key state.
+- leaves `api_key` as `None`; local backends do not require real credentials
 
 Both Ollama and LM Studio providers require non-empty `base_url`; invalid values raise provider-specific `ValueError` during initialization.
 
@@ -91,7 +87,7 @@ Canonicalized URL values are used in factory cache keys, so equivalent trailing-
 `tests/backend/test_local_llm_providers.py` verifies:
 
 - missing base URL raises clear provider-specific errors
-- placeholder API key and `custom_llm_provider=openai` are injected
+- local request params keep `api_key=None` and set `custom_llm_provider=openai`
 - Ollama tags endpoint URL normalization (`/v1` stripping and `/v1` fallback host)
 - LM Studio `/models` endpoint shape handling
 - model row trimming/filtering for invalid ids
@@ -100,9 +96,8 @@ Canonicalized URL values are used in factory cache keys, so equivalent trailing-
 
 ## Drift Hotspots
 
-1. removing placeholder API-key injection can break local requests through LiteLLM compatibility checks.
-2. weakening URL normalization can fragment provider-factory cache and duplicate HTTP client pools.
-3. bypassing shared helper normalization can leak malformed model rows into renderer model selectors.
+1. weakening URL normalization can fragment provider-factory cache and duplicate HTTP client pools.
+2. bypassing shared helper normalization can leak malformed model rows into renderer model selectors.
 
 ## Related Pages
 

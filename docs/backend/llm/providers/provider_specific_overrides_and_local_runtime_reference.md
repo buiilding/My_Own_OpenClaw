@@ -150,7 +150,7 @@ Detailed Kimi-only stream behavior:
 - inherits online completion/stream framework.
 - overrides request params:
   - `custom_llm_provider = "openai"`
-  - placeholder API key injected when absent (`LOCAL_PROVIDER_PLACEHOLDER_API_KEY`).
+  - `api_key` remains `None` for local providers.
 - requires non-empty `base_url` for local concrete providers.
 
 ## Shared HTTP client lifecycle
@@ -193,7 +193,7 @@ Shared helper `_list_models_from_json_endpoint(...)`:
 Detailed local-provider runtime behavior:
 
 - [Backend Local Provider Docs Hub](local/README.md)
-- [Model Listing, Connection Pooling, and Placeholder Key Reference](local/model_listing_connection_pooling_and_placeholder_key_reference.md)
+- [Model Listing and Connection Pooling Reference](local/model_listing_connection_pooling_reference.md)
 - [Local Provider HTTP Client Docs Hub](local/http_client/README.md)
 - [Shared Async Client Lifecycle and Finalizer Cleanup Runtime Reference](local/http_client/shared_async_client_lifecycle_and_finalizer_cleanup_runtime_reference.md)
 
@@ -242,7 +242,7 @@ Static online catalogs and dynamic local catalogs stay separate in response:
 `tests/backend/test_local_llm_providers.py` verifies:
 
 - local providers require valid base URL.
-- local request params inject placeholder API key + custom provider flag.
+- local request params keep `api_key=None` + set the custom provider flag.
 - Ollama and LM Studio listing endpoint construction and filtering semantics.
 - HTTP client singleton behavior under concurrent access.
 
@@ -255,6 +255,5 @@ Static online catalogs and dynamic local catalogs stay separate in response:
 ## Drift Hotspots
 
 1. Changing Kimi delta assembly without preserving both OpenAI and Anthropic shapes can drop tool calls mid-stream.
-2. Removing placeholder API-key logic can break local LiteLLM compatibility paths.
-3. Weakening URL canonicalization inflates provider-factory cache entries and duplicates client pools.
-4. Treating all provider failures as fatal in local model discovery removes partial availability behavior.
+2. Weakening URL canonicalization inflates provider-factory cache entries and duplicates client pools.
+3. Treating all provider failures as fatal in local model discovery removes partial availability behavior.

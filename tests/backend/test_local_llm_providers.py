@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock
 import pytest
 
 from backend.src.llm.providers.local import (
-    LOCAL_PROVIDER_PLACEHOLDER_API_KEY,
     LocalLLMProvider,
     LMStudioProvider,
     OllamaProvider,
@@ -156,12 +155,12 @@ async def test_lmstudio_list_models_trims_and_filters_blank_ids(monkeypatch):
     ]
 
 
-def test_local_provider_request_params_set_placeholder_api_key():
+def test_local_provider_request_params_keep_api_key_none():
     provider = OllamaProvider(base_url="http://localhost:11434/v1")
     params = provider._build_request_params("llama3", [{"role": "user", "content": "hi"}])
 
     assert params["custom_llm_provider"] == "openai"
-    assert params["api_key"] == LOCAL_PROVIDER_PLACEHOLDER_API_KEY
+    assert params["api_key"] is None
 
 
 def test_ollama_build_tags_url_helper():

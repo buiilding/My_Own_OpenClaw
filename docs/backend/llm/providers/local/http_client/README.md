@@ -15,7 +15,7 @@ title: "Backend Local Provider HTTP Client Docs Hub"
 ## Related Pages
 
 - [Backend Local Provider Docs Hub](../README.md)
-- [Model Listing, Connection Pooling, and Placeholder Key Reference](../model_listing_connection_pooling_and_placeholder_key_reference.md)
+- [Model Listing and Connection Pooling Reference](../model_listing_connection_pooling_reference.md)
 - [Provider-Specific Overrides and Local Runtime Reference](../../provider_specific_overrides_and_local_runtime_reference.md)
 
 ## Code Scope

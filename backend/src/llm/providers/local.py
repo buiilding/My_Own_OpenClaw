@@ -12,12 +12,6 @@ from backend.src.llm.providers.online import OnlineLLMProvider
 
 logger = logging.getLogger(__name__)
 
-# Placeholder API key for local providers that require it for LiteLLM compatibility
-# Local providers (Ollama, LM Studio) don't use real API keys, but LiteLLM may
-# require a non-None value for certain API compatibility checks
-LOCAL_PROVIDER_PLACEHOLDER_API_KEY = "placeholder"
-
-
 class LocalLLMProvider(OnlineLLMProvider):
     """Base provider for local LLMs like Ollama and LMStudio."""
 
@@ -211,10 +205,7 @@ class LocalLLMProvider(OnlineLLMProvider):
     ) -> Dict[str, Any]:
         _ = model
         _ = runtime_model_id
-        # Local models often need to be told they are compatible with OpenAI's API
         params["custom_llm_provider"] = "openai"
-        if not params.get("api_key"):
-            params["api_key"] = LOCAL_PROVIDER_PLACEHOLDER_API_KEY
         return params
 
     @abstractmethod

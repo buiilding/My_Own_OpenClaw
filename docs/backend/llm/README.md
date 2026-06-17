@@ -21,7 +21,7 @@ title: "Backend LLM Docs Hub"
 - [Backend Kimi Provider Docs Hub](providers/kimi/README.md)
 - [Stream Tool-Call Aggregation and Fail-Closed Argument Parsing Reference](providers/kimi/stream_tool_call_aggregation_and_fail_closed_argument_parsing_reference.md)
 - [Backend Local Provider Docs Hub](providers/local/README.md)
-- [Model Listing, Connection Pooling, and Placeholder Key Reference](providers/local/model_listing_connection_pooling_and_placeholder_key_reference.md)
+- [Model Listing and Connection Pooling Reference](providers/local/model_listing_connection_pooling_reference.md)
 - [Prompt Constructor and Transparency Metadata Reference](prompts/prompt_constructor_and_transparency_metadata_reference.md)
 - [Prompt Manager and System Prompt Lifecycle Reference](prompts/prompt_manager_and_system_prompt_lifecycle_reference.md)
 

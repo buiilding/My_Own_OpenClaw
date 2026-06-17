@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: remove the local-provider placeholder API key compatibility path so Ollama and LM Studio requests stay credential-free.
+
 - Renderer: moved the WindieOS dashboard brand icon URL into renderer skin CSS so the generic dashboard shell consumes a skin asset token.
 
 - backend/history: remove stored-history message-type alias fallbacks so rehydrate normalizes frontend labels before strict conversation-history replacement.
