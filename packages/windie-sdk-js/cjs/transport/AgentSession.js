@@ -6,7 +6,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WindieAgentSession = exports.createWindieAgentBackendTransport = exports.AgentSession = exports.createWindieAgentSession = void 0;
+exports.AgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
 exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
@@ -64,7 +64,6 @@ function createAgentSession(options) {
         agent_definition: options.agentDefinition,
     });
 }
-exports.createWindieAgentSession = createAgentSession;
 function attachSocketListener(socket, event, listener) {
     if (typeof socket.addEventListener === 'function') {
         socket.addEventListener(event, listener);
@@ -307,8 +306,6 @@ function createAgentBackendTransport(session, conversationRef, agentDefinition) 
         close: async () => session.close(1000, 'conversation-runtime-close'),
     };
 }
-exports.createWindieAgentBackendTransport = createAgentBackendTransport;
-exports.WindieAgentSession = AgentSession;
 function cloneJsonRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return {};

@@ -2567,3 +2567,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level and
   `ManagedWindieAgentSession` module imports still resolve to the same managed
   session runtime objects.
+
+### 2026-06-17 AgentSession module compatibility wrapper
+
+- Finding: the canonical SDK websocket session module still exported
+  `WindieAgentSession` compatibility names directly, so generic transport code
+  owned historical product-prefixed aliases.
+- Change: moved Windie-prefixed session value, factory, backend-transport
+  factory, and type aliases to the `WindieAgentSession` compatibility module
+  and package boundary, leaving `AgentSession` as the canonical websocket
+  transport module.
+- Validation: focused SDK package-boundary/private-export coverage, SDK client
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  canonical session module no longer exports Windie-prefixed compatibility
+  names.
+- Compatibility: no migration required. Existing package-level and
+  `WindieAgentSession` module imports still resolve to the same websocket
+  session runtime objects.

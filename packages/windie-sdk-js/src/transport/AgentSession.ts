@@ -34,8 +34,6 @@ export type AgentSessionOptions = {
   agentDefinition?: JsonRecord;
 };
 
-export type WindieAgentSessionOptions = AgentSessionOptions;
-
 export type AgentQueryInput = {
   text: string;
   conversationRef: string;
@@ -52,16 +50,12 @@ export type AgentQueryInput = {
   turnRef?: string | null;
 };
 
-export type WindieAgentQueryInput = AgentQueryInput;
-
 export type AgentStopInput = {
   conversation_ref?: string | null;
   conversationRef?: string | null;
   turn_ref?: string | null;
   turnRef?: string | null;
 };
-
-export type WindieAgentStopInput = AgentStopInput;
 
 type AgentSessionEventMap = {
   open: void;
@@ -96,8 +90,6 @@ export type AgentSessionRuntime = {
   syncIdleTimer?(reason?: string): void;
   close(code?: number, reason?: string): void;
 };
-
-export type WindieAgentSessionRuntime = AgentSessionRuntime;
 
 export function resolveWebSocketImplementation(WebSocketImpl?: WebSocketConstructor): WebSocketConstructor {
   if (WebSocketImpl) {
@@ -153,8 +145,6 @@ export function createAgentSession(options: AgentSessionOptions): AgentSession {
     agent_definition: options.agentDefinition,
   });
 }
-
-export const createWindieAgentSession = createAgentSession;
 
 function attachSocketListener(
   socket: WebSocketLike,
@@ -446,11 +436,6 @@ export function createAgentBackendTransport(
     close: async () => session.close(1000, 'conversation-runtime-close'),
   };
 }
-
-export const createWindieAgentBackendTransport = createAgentBackendTransport;
-
-export type WindieAgentSession = AgentSession;
-export const WindieAgentSession = AgentSession;
 
 function cloneJsonRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

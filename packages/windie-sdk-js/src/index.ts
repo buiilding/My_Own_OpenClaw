@@ -52,20 +52,26 @@ export {
   AgentSession,
   createAgentBackendTransport,
   createAgentSession,
+} from './transport/AgentSession.js';
+export {
   createWindieAgentBackendTransport,
   createWindieAgentSession,
   WindieAgentSession,
-} from './transport/AgentSession.js';
+} from './transport/WindieAgentSession.js';
 export type {
   AgentQueryInput,
   AgentSessionOptions,
   AgentSessionRuntime,
   AgentStopInput,
-  WindieAgentSessionOptions,
   WebSocketConstructor,
   WebSocketLike,
-  WindieAgentQueryInput,
 } from './transport/AgentSession.js';
+export type {
+  WindieAgentSessionOptions,
+  WindieAgentQueryInput,
+  WindieAgentSessionRuntime,
+  WindieAgentStopInput,
+} from './transport/WindieAgentSession.js';
 
 export type {
   BackendEvent,

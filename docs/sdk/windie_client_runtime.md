@@ -62,9 +62,10 @@ Ownership rules:
   defines the public `AgentSessionOptions`, `AgentQueryInput`,
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
   `createAgentSession`, and `createAgentBackendTransport` contracts alongside
-  `WebSocketLike` and `WebSocketConstructor`. `AgentSession` is the canonical
-  websocket session class, and the Windie-prefixed session names remain
-  compatibility aliases. `BackendSocketFactory.ts` exposes
+  `WebSocketLike` and `WebSocketConstructor`. `AgentSession.ts` is the
+  canonical websocket session module; `WindieAgentSession.ts` is the
+  compatibility wrapper for historical Windie-prefixed session names.
+  `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`, with
   `createWindieSdkBackendSocket` and `WindieSdkBackendSocketOptions` kept as
   compatibility aliases. `ManagedAgentSession.ts` is the canonical managed
@@ -782,7 +783,8 @@ backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backen
 
 `AgentSession` is now transport-only. It connects, handshakes, sends
 queries/results, and emits raw backend events. It does not execute local tools.
-`WindieAgentSession` is the compatibility export for the same constructor.
+`WindieAgentSession` remains available from the compatibility module and
+package boundary for the same constructor.
 `ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
 that need connection waiters, reconnect scheduling, endpoint fallback, idle
 disconnect, typed backend sends, and raw event parsing. Electron main consumes

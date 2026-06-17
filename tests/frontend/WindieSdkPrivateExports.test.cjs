@@ -2,8 +2,16 @@
 
 describe('@windie/sdk private helper exports', () => {
   test('transport module keeps websocket URL normalization private', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/transport/AgentSession.js');
     const sessionModule = require('../../packages/windie-sdk-js/cjs/transport/WindieAgentSession.js');
 
+    expect(canonicalModule.AgentSession).toBeDefined();
+    expect(canonicalModule.WindieAgentSession).toBeUndefined();
+    expect(canonicalModule.createWindieAgentSession).toBeUndefined();
+    expect(canonicalModule.createWindieAgentBackendTransport).toBeUndefined();
+    expect(sessionModule.WindieAgentSession).toBe(canonicalModule.AgentSession);
+    expect(sessionModule.createWindieAgentSession).toBe(canonicalModule.createAgentSession);
+    expect(sessionModule.createWindieAgentBackendTransport).toBe(canonicalModule.createAgentBackendTransport);
     expect(sessionModule.createWindieAgentSession).toBeDefined();
     expect(sessionModule.deriveWsUrl).toBeDefined();
     expect(sessionModule.normalizeWsUrl).toBeUndefined();
