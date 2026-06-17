@@ -2725,6 +2725,17 @@ Each completed slice should report:
   retired renderer facade filename.
 - Compatibility: no migration required. This is documentation routing only.
 
+### 2026-06-17 renderer API barrel topology cleanup
+
+- Finding: frontend architecture maps still listed the retired
+  `frontend/src/renderer/infrastructure/api/index.ts` barrel after renderer
+  imports moved directly through the `agentSdkClient.ts` facade.
+- Change: removed the stale barrel entry from the frontend architecture and
+  renderer folder maps while preserving the active hosted SDK facade route.
+- Validation: docs listing, `git diff --check`, and stale-path scans for the
+  removed API index entry.
+- Compatibility: no migration required. This is documentation topology only.
+
 ### 2026-06-17 main wrapper tombstone test cleanup
 
 - Finding: main-runtime boundary tests still probed the retired
