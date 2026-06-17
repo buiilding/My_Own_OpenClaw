@@ -89,6 +89,8 @@ All notable changes to WindieOS will be documented in this file.
   contract.
 - backend/api: require SDK/client-prepared query `content` at websocket ingress
   and remove the legacy backend `<user_query>` text wrapper.
+- sdk/js: reject removed `query_context` query payloads in the private
+  enrichment boundary and stop reading camelCase attachment-context payloads.
 - frontend/sidecar: return native `ToolResult` from the `wait` and
   `get_system_stats` tools instead of relying on registry dict-result
   normalization.

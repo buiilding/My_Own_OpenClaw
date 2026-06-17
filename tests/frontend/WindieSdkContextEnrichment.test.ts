@@ -86,7 +86,6 @@ describe('SDK context enrichment pipeline', () => {
       payload: {
         attachment_context: 'file body',
         memory_retrieval_enabled: true,
-        query_context: { legacy: true },
       },
       sdkClient: sdkClient as never,
       localRuntime: localRuntime as never,
@@ -151,6 +150,45 @@ describe('SDK context enrichment pipeline', () => {
         status: 'succeeded',
       }),
     ]));
+  });
+
+  test('rejects removed query_context payloads instead of dropping them', async () => {
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(),
+      },
+    };
+
+    await expect(enrichQueryPayload({
+      text: 'what now?',
+      conversationRef: 'conv-legacy-query-context',
+      userId: 'user-1',
+      payload: {
+        query_context: { legacy: true },
+      },
+      sdkClient: sdkClient as never,
+      localRuntime: null,
+    })).rejects.toThrow('SDK query payload no longer accepts query_context');
+  });
+
+  test('rejects camelCase attachment context raw payloads', async () => {
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(),
+      },
+    };
+
+    await expect(enrichQueryPayload({
+      text: 'plain query',
+      conversationRef: 'conv-camel-attachment',
+      userId: 'user-1',
+      payload: {
+        attachmentContext: 'legacy file body',
+      },
+      sdkClient: sdkClient as never,
+      localRuntime: null,
+      memoryEnabled: false,
+    })).rejects.toThrow('SDK query payload no longer accepts attachmentContext');
   });
 
   test('merges unwrapped sidecar search trace metadata into durable trace events', async () => {

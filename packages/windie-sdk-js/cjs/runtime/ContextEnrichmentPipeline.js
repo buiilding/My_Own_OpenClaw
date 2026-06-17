@@ -151,12 +151,16 @@ async function enrichQueryPayload(input) {
     const sourcePayload = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload)
         ? { ...input.payload }
         : {};
+    if (Object.prototype.hasOwnProperty.call(sourcePayload, 'query_context')) {
+        throw new Error('SDK query payload no longer accepts query_context');
+    }
+    if (Object.prototype.hasOwnProperty.call(sourcePayload, 'attachmentContext')) {
+        throw new Error('SDK query payload no longer accepts attachmentContext');
+    }
     const attachmentContext = typeof sourcePayload.attachment_context === 'string'
         ? sourcePayload.attachment_context
-        : (typeof sourcePayload.attachmentContext === 'string' ? sourcePayload.attachmentContext : null);
-    delete sourcePayload.query_context;
+        : null;
     delete sourcePayload.attachment_context;
-    delete sourcePayload.attachmentContext;
     delete sourcePayload.memory_retrieval_enabled;
     let memories = { episodic: [], semantic: [] };
     if (input.memoryEnabled === false) {
