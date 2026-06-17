@@ -96,6 +96,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.createWindieSdkBackendSocket).toBe(canonicalModule.createAgentBackendSocket);
   });
 
+  test('Windie hosted backend client module remains a compatibility wrapper for hosted backend client', () => {
+    const canonicalModule = require('../../packages/windie-sdk-js/cjs/transport/HostedBackendHttpClient.js');
+    const compatibilityModule = require('../../packages/windie-sdk-js/cjs/transport/WindieHostedBackendHttpClient.js');
+
+    expect(canonicalModule.AgentHostedBackendClient).toBeDefined();
+    expect(canonicalModule.WindieSdkClient).toBeUndefined();
+    expect(compatibilityModule.AgentHostedBackendClient).toBe(canonicalModule.AgentHostedBackendClient);
+    expect(compatibilityModule.WindieSdkClient).toBe(canonicalModule.AgentHostedBackendClient);
+  });
+
   test('capability manifest module keeps summarization behind stamping API', () => {
     const manifestModule = require('../../packages/windie-sdk-js/cjs/runtime/CapabilityManifest.js');
 

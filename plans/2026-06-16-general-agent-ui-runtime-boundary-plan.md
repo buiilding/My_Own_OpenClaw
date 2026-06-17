@@ -2665,3 +2665,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing package-level socket factory
   imports still resolve, and direct compatibility-module imports can use
   `WindieBackendSocketFactory`.
+
+### 2026-06-17 HostedBackendHttpClient module compatibility wrapper
+
+- Finding: the canonical SDK hosted backend HTTP client still exported
+  `WindieSdkClient` and Windie-prefixed install identity, query options, and
+  client options type aliases directly, so the generic hosted client module
+  owned historical product naming.
+- Change: moved the Windie-prefixed hosted client value and type aliases to the
+  `WindieHostedBackendHttpClient` compatibility module and package boundary,
+  leaving `HostedBackendHttpClient` as the canonical hosted HTTP client module.
+- Validation: focused SDK package-boundary/private-export coverage, SDK hosted
+  client behavior coverage, docs listing, `git diff --check`, and source scans
+  confirming the canonical hosted backend client module no longer exports
+  Windie-prefixed compatibility names.
+- Compatibility: no migration required. Existing package-level hosted client
+  imports still resolve, and direct compatibility-module imports can use
+  `WindieHostedBackendHttpClient`.

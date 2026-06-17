@@ -76,7 +76,6 @@ export type AgentInstallIdentityResponse = {
   user_id: string;
   install_id: string;
 };
-export type WindieInstallIdentityResponse = AgentInstallIdentityResponse;
 
 export type SdkToolSchemasResponse = {
   config: SdkConfigSnapshot;
@@ -319,14 +318,12 @@ export type AgentSdkQueryOptions = {
   modelProvider?: string;
   interactionMode?: SdkInteractionMode;
 };
-export type WindieSdkQueryOptions = AgentSdkQueryOptions;
 
 export type AgentHostedBackendClientOptions = {
   httpBaseUrl: string;
   fetchImpl?: FetchLike;
   authToken?: string;
 };
-export type WindieSdkClientOptions = AgentHostedBackendClientOptions;
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   if (fetchImpl) {
@@ -697,6 +694,3 @@ export class AgentHostedBackendClient {
     return headers;
   }
 }
-
-export type WindieSdkClient = AgentHostedBackendClient;
-export const WindieSdkClient = AgentHostedBackendClient;
