@@ -90,7 +90,7 @@ Owns IPC startup state hydration:
 
 ### `AgentClient.wakeUp(...)` and `agent.conversation(...)`
 
-Own Windie SDK runtime lifecycle construction:
+Own Agent SDK runtime lifecycle construction:
 
 - resolves install identity from the install token and builds the authenticated
   SDK handshake

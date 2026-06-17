@@ -2028,3 +2028,21 @@ Each completed slice should report:
   tests/frontend/WindieAgentConversationStoreApi.test.ts`.
 - Compatibility: no migration required. `WindieAgent` alias coverage remains
   in the SDK package-boundary tests.
+
+### 2026-06-17 Agent SDK current architecture docs wording
+
+- Finding: current architecture/channel docs still described the reusable SDK
+  boundary as the "Windie SDK runtime", "Windie SDK desktop agent", or an
+  Electron main "SDK customer" instead of the generic Agent SDK host/runtime.
+- Change: updated the SDK architecture, channel routing matrix, and IPC helper
+  boundary reference to use Agent SDK runtime/host wording for current paths.
+- Validation: `bin\windie docs list`; `rg -n "Windie SDK runtime|Windie
+  SDK desktop agent|Electron main SDK customer|SDK customer"
+  docs/development/agent_architecture_reference.md
+  docs/channels/channel_routing_matrix.md
+  docs/frontend/main/ipc_helper_module_split_and_runtime_boundary_reference.md`;
+  `git diff --check -- docs/development/agent_architecture_reference.md
+  docs/channels/channel_routing_matrix.md
+  docs/frontend/main/ipc_helper_module_split_and_runtime_boundary_reference.md
+  plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`.
+- Compatibility: no migration required. This is docs-only terminology cleanup.

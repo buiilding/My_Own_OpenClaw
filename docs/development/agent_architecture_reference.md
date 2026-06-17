@@ -33,7 +33,7 @@ WindieOS/
 │       └── core/                  # config, validation, logging, events, interfaces
 ├── frontend/                      # Electron desktop app, React renderer, Python sidecar
 │   └── src/
-│       ├── main/                  # Electron main, IPC, direct SDK customer wiring, sidecar bridge
+│       ├── main/                  # Electron main, IPC, direct Agent SDK host wiring, sidecar bridge
 │       ├── main/python/           # local Python sidecar: tools, memory, browser, system
 │       ├── preload.js             # context-isolated IPC allowlist bridge
 │       ├── renderer/              # React app, chat, dashboard, settings, voice surfaces
@@ -193,7 +193,7 @@ For deeper source maps, start with `docs/getting-started/docs_hub.md`,
 
 ## SDK Architecture
 
-The Windie SDK runtime is the reusable agent/client boundary. Electron is the
+The Agent SDK runtime is the reusable agent/client boundary. Electron is the
 first first-party SDK host, not a separate agent implementation.
 
 Key TypeScript SDK surfaces:
