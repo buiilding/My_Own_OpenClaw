@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Renamed the Electron main local-runtime lifecycle diagnostics path from local_backend.lifecycle to local_runtime.lifecycle for new rows. No persisted-data, API, wire, settings, or storage migration is required.
+
 - Renamed the TypeScript SDK local runtime module from LocalSidecarRuntime to LocalRuntime and removed the old package path. No persisted-data, wire, discovery-file, or daemon protocol migration is required.
 
 - Removed stale backend core exception facade references from source-map docs after the `exceptions.py` and `error_types/__init__.py` surfaces were deleted. No persisted-data migration is required.

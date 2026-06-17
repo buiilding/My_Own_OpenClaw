@@ -33,24 +33,12 @@ class LoadedSidecarPlugins:
     errors: list[dict[str, str]] = field(default_factory=list)
 
 
-def _has_contribution_folders(candidate: Path) -> bool:
-    return any((candidate / name).exists() for name in ("plugins", "skills", "mcps"))
-
-
 def resolve_default_contribution_root() -> Path:
     env_dir = os.getenv("WINDIE_AGENT_CONTRIBUTIONS_DIR")
     if env_dir:
         return Path(env_dir).expanduser().resolve()
 
-    cwd_candidate = Path.cwd()
-    if _has_contribution_folders(cwd_candidate):
-        return cwd_candidate.resolve()
-
-    repo_root_candidate = Path(__file__).resolve().parents[5]
-    if _has_contribution_folders(repo_root_candidate):
-        return repo_root_candidate.resolve()
-
-    return repo_root_candidate.resolve()
+    return Path(__file__).resolve().parents[5]
 
 
 def load_sidecar_plugin_tools(

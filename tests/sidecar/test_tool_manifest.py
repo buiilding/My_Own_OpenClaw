@@ -5,6 +5,7 @@ import json
 import sys
 from pathlib import Path
 
+from tools.extension_loader import resolve_default_contribution_root
 from tools.manifest import (
     EXPOSED_TO_BACKEND_TOOL_NAMES,
     build_sidecar_capability_schema,
@@ -189,3 +190,22 @@ def test_registry_loads_plugin_entrypoint_and_manifest(
     assert "sidecar_plugin_notes_save_note" in sys.modules
     legacy_module_name = "windie" "_plugin_notes_save_note"
     assert legacy_module_name not in sys.modules
+
+
+def test_default_contribution_root_ignores_ambient_cwd_contribution_folders(
+    tmp_path: Path,
+    monkeypatch,
+):
+    (tmp_path / "plugins").mkdir()
+    monkeypatch.chdir(tmp_path)
+
+    assert resolve_default_contribution_root() == REPO_ROOT
+
+
+def test_default_contribution_root_honors_explicit_environment_override(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setenv("WINDIE_AGENT_CONTRIBUTIONS_DIR", str(tmp_path))
+
+    assert resolve_default_contribution_root() == tmp_path.resolve()

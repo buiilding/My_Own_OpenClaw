@@ -179,7 +179,7 @@ App diagnostic paths:
   stdout as `[ElectronTrace]`, including backend connection, frontend query
   send, backend event milestones, tool call/output markers, and settings update
   send/ack summaries.
-- `local_backend.lifecycle`: Electron main local-runtime bridge
+- `local_runtime.lifecycle`: Electron main local-runtime bridge
   initialization and lifecycle status outside a specific browser action.
 - `permission.probe`: Electron main permission probe/request and workspace
   activation diagnostics by default. Rows include permission id, platform,

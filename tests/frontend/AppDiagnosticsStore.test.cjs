@@ -118,7 +118,7 @@ describe('app diagnostics store', () => {
   });
 
   test('exports local runtime diagnostic owners without backend alias', () => {
-    expect(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH).toBe('local_backend.lifecycle');
+    expect(LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH).toBe('local_runtime.lifecycle');
     expect(listDiagnosticPathDefinitions()).toEqual(expect.arrayContaining([
       expect.objectContaining({
         path: APP_DIAGNOSTICS_PATH,

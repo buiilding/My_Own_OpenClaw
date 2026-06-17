@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 diagnostics local-runtime lifecycle path
+
+- Finding: Electron main diagnostics still emitted local-runtime lifecycle rows
+  under the backend-named `local_backend.lifecycle` path even after callers and
+  helper names moved to local-runtime terminology.
+- Change: renamed the active diagnostics path to `local_runtime.lifecycle`,
+  updated lifecycle docs, focused diagnostics tests, and bridge harness mocks.
+- Validation: focused diagnostics/bridge tests, stale path scan, docs listing,
+  and diff check.
+- Compatibility: no persisted-data, API, wire, settings, or storage migration
+  is required. This changes an ephemeral diagnostics filter/path string for new
+  rows; existing historical diagnostic rows remain readable as stored events.
+
 ### 2026-06-17 SDK local runtime module rename
 
 - Finding: the SDK still exposed generic local-runtime contracts from the
@@ -750,14 +763,14 @@ Each completed slice should report:
   alias for the Electron-main local-runtime lifecycle path.
 - Change: removed the backend-named export from the diagnostics store and
   frontend harness mock, keeping `LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH` as
-  the only source constant while preserving the persisted
-  `local_backend.lifecycle` path id for existing diagnostics filters.
+  the only source constant. A later cleanup renamed the active diagnostics path
+  to `local_runtime.lifecycle`.
 - Validation: focused diagnostics export assertion, local-runtime bridge
   lifecycle Jest run, lifecycle path scan, and diff check. The broader
   diagnostics-store test file still requires the `sqlite3` CLI, which was not
   available in this environment.
-- Compatibility: no storage migration required. Existing diagnostic rows and
-  CLI filters keep using the `local_backend.lifecycle` path string.
+- Compatibility: no storage migration required. Existing diagnostic rows remain
+  readable as stored events; new lifecycle rows now use `local_runtime.lifecycle`.
 
 ### 2026-06-17 main local-runtime lifecycle docs
 
@@ -988,9 +1001,8 @@ Each completed slice should report:
   architecture docs, and locked the registry owner wording in diagnostics tests.
 - Validation: focused diagnostics owner Jest assertion, active source/doc
   bridge-copy scan, docs listing, and diff check.
-- Compatibility: no migration required. Persisted diagnostics keep the existing
-  `local_backend.lifecycle` path and compatibility alias while registry copy
-  now names the generic runtime owner.
+- Compatibility: no migration required. Persisted diagnostics remain readable
+  as stored events; new lifecycle rows now use `local_runtime.lifecycle`.
 
 ### 2026-06-17 diagnostics sidecar readiness field removal
 
@@ -1407,13 +1419,14 @@ Each completed slice should report:
   helper names for the local runtime lifecycle diagnostic path, even though the
   path now represents SDK local-runtime/sidecar lifecycle status.
 - Change: introduced generic local-runtime diagnostics constant/helper names for
-  main code while preserving the legacy exported names and the durable
-  `local_backend.lifecycle` path id for existing diagnostics filters.
+  main code while preserving the legacy exported names. A later cleanup renamed
+  the active path id to `local_runtime.lifecycle`.
 - Validation: focused diagnostics alias and local bridge lifecycle Jest tests,
   docs listing, `git diff --check`, and source scan for remaining lifecycle
   helper references.
-- Compatibility: no migration required. Stored diagnostic path ids, CLI path
-  filters, environment flag names, and legacy module exports remain available.
+- Compatibility: no migration required. Historical diagnostic rows remain
+  readable as stored events; active lifecycle filters now use
+  `local_runtime.lifecycle`.
 
 ### 2026-06-17 renderer local runtime status store
 
@@ -2067,8 +2080,9 @@ Each completed slice should report:
   fields, docs listing, and `git diff --check`. The sqlite-backed
   `AppDiagnosticsStore` suite still cannot run in this environment because the
   `sqlite3` CLI is unavailable (`spawnSync sqlite3 ENOENT`).
-- Compatibility: no migration required. Existing `local_backend.lifecycle`
-  diagnostic path ids and `localBackendReady` payloads remain accepted.
+- Compatibility: no migration required. Historical `local_backend.lifecycle`
+  rows and `localBackendReady` payloads remain readable as stored events; new
+  lifecycle diagnostics use `local_runtime.lifecycle`.
 
 ### 2026-06-17 renderer permission onboarding storage key
 

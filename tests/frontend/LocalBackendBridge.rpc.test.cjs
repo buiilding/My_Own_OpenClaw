@@ -70,7 +70,7 @@ describe('local_backend_bridge RPC handlers', () => {
     initBridge();
 
     expect(appendDiagnosticEvent).toHaveBeenCalledWith(expect.objectContaining({
-      path: 'local_backend.lifecycle',
+      path: 'local_runtime.lifecycle',
       data: expect.objectContaining({
         ready: false,
         localRuntimeReady: false,

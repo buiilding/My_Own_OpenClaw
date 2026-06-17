@@ -31,11 +31,13 @@ The active loader does not read an `extensions/<id>/extension.json` package
 shape, `plugin/index.cjs`, or an Electron-main plugin tool execution surface.
 Some local checkouts may still contain an empty legacy `extensions/` directory;
 it is not the contribution root and is not tracked as the current authoring
-surface. Plugin tools are sidecar tools: Electron main reads `plugin.json` for
-the model-facing client manifest, and the Python sidecar loads the same
-`plugin.json` to execute the declared Python entrypoints. Use this page for
-extension package, plugin, MCP, skills, and sidecar-tool contribution layout.
-Use the frontend sidecar tools docs for built-in
+surface. Default discovery uses the WindieOS repo root, or
+`WINDIE_AGENT_CONTRIBUTIONS_DIR` when set; it does not infer contribution roots
+from the process working directory. Plugin tools are sidecar tools: Electron
+main reads `plugin.json` for the model-facing client manifest, and the Python
+sidecar loads the same `plugin.json` to execute the declared Python
+entrypoints. Use this page for extension package, plugin, MCP, skills, and
+sidecar-tool contribution layout. Use the frontend sidecar tools docs for built-in
 computer/system/filesystem/shell/browser tool runtime behavior.
 
 ## Choose The Surface

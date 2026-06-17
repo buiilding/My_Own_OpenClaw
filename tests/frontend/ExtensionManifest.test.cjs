@@ -7,12 +7,14 @@ const os = require('os');
 const path = require('path');
 
 const {
+  clearExtensionRuntimeCache,
   loadAgentExtensionRegistry,
   loadExtensionMcpServers,
   loadExtensionPluginTools,
   loadExtensionSettingsPanels,
   loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
+  resolveDefaultContributionRoot,
 } = require('../../frontend/src/main/extensions/extension_manifest.cjs');
 
 function writeExtensionRegistry() {
@@ -91,6 +93,11 @@ function writeExtensionRegistry() {
 }
 
 describe('extension registry loader', () => {
+  afterEach(() => {
+    clearExtensionRuntimeCache();
+    delete process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR;
+  });
+
   test('loads divided plugin, skill, and MCP roots', () => {
     const contributionRoot = writeExtensionRegistry();
 
@@ -214,5 +221,25 @@ describe('extension registry loader', () => {
         content: '# Blank Priority\n\nUse the blank priority skill.',
       },
     ]);
+  });
+
+  test('default contribution root ignores ambient cwd contribution folders', () => {
+    const previousCwd = process.cwd();
+    const cwdContributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-cwd-contributions-'));
+    fs.mkdirSync(path.join(cwdContributionRoot, 'plugins'), { recursive: true });
+    process.chdir(cwdContributionRoot);
+
+    try {
+      expect(resolveDefaultContributionRoot()).toBe(path.resolve(__dirname, '../../'));
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  test('default contribution root still honors explicit environment override', () => {
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-env-contributions-'));
+    process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR = contributionRoot;
+
+    expect(resolveDefaultContributionRoot()).toBe(path.resolve(contributionRoot));
   });
 });

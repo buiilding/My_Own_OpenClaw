@@ -8,25 +8,11 @@ const yaml = require('js-yaml');
 
 const extensionRuntimeCache = new Map();
 
-function hasContributionFolders(candidateDir) {
-  return ['plugins', 'skills', 'mcps'].some((folderName) => (
-    fs.existsSync(path.join(candidateDir, folderName))
-  ));
-}
-
 function resolveDefaultContributionRoot() {
   if (process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR) {
     return path.resolve(process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR);
   }
-  const cwdCandidate = path.resolve(process.cwd());
-  if (hasContributionFolders(cwdCandidate)) {
-    return cwdCandidate;
-  }
-  const repoRootCandidate = path.resolve(__dirname, '../../../..');
-  if (hasContributionFolders(repoRootCandidate)) {
-    return repoRootCandidate;
-  }
-  return repoRootCandidate;
+  return path.resolve(__dirname, '../../../..');
 }
 
 function normalizeString(value) {

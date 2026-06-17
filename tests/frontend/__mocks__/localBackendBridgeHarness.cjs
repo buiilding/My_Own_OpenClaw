@@ -59,7 +59,7 @@ jest.mock('../../../frontend/src/main/diagnostics/app_diagnostics_store.cjs', ()
   DESKTOP_STARTUP_DIAGNOSTICS_PATH: 'desktop.startup',
   FRONTEND_INTERACTION_DIAGNOSTICS_PATH: 'frontend.interaction',
   IPC_BRIDGE_DIAGNOSTICS_PATH: 'ipc.bridge',
-  LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH: 'local_backend.lifecycle',
+  LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH: 'local_runtime.lifecycle',
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH: 'surface.visibility',
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH: 'wakeword.lifecycle',
   appendDiagnosticEvent: (...args) => mockAppendDiagnosticEvent(...args),

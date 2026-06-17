@@ -86,7 +86,7 @@ Important main-process flags:
 | `WINDIE_DEBUG_IPC_STDOUT=1` | Mirrors compact IPC bridge diagnostics and generic bridge status to stdout as `[IPC Bridge]` / `[ElectronTrace]` lines. |
 | `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors desktop startup diagnostics to stdout as `[Main][StartupMetrics]` lines. |
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors wakeword lifecycle diagnostics to stdout as `[Wakeword]` lines. |
-| `WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the `local_backend.lifecycle` path to stdout. |
+| `WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the `local_runtime.lifecycle` path to stdout. |
 | `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors surface visibility and frontend interaction diagnostics to stdout as compact lines. |
 | `WINDIE_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer durable `backend.compaction` trace rows for turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
@@ -100,7 +100,7 @@ rows:
 bin/windie diagnostics paths
 bin/windie diagnostics list --path desktop.startup --limit 50
 bin/windie diagnostics list --path ipc.bridge --limit 50
-bin/windie diagnostics list --path local_backend.lifecycle --limit 50
+bin/windie diagnostics list --path local_runtime.lifecycle --limit 50
 bin/windie diagnostics list --path wakeword.lifecycle --limit 50
 ```
 
