@@ -75,6 +75,9 @@ Notable behavior:
 - `conversation_ref`: pass-through from payload conversation ref
 
 Artifact-backed `screenshot_ref`/`screenshot_refs` are stored as refs and resolved later by prompt construction.
+The module does not keep a separate helper that collapses artifact screenshot
+lists back into `image_data`; inline screenshots and artifact refs stay distinct
+at this boundary.
 
 ## `query_execution_stream_state.py` Contract
 

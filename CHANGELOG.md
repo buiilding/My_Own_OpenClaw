@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/query: remove the unused query image-data collapse helper now that query input shaping keeps inline screenshots and artifact refs separate; no migration is required because query payload fields, screenshot ref normalization, prompt image resolution, API events, and storage are unchanged.
+
 - docs/frontend: remove stale chat-stream correlation-wrapper references after renderer helpers moved to direct SDK correlation imports. No migration is required because this is documentation-only cleanup.
 - frontend/renderer: remove unused chat-stream correlation helper re-exports now that renderer tool replay imports the SDK correlation helpers directly, and repoint the frontend unused-export audit at the renamed local runtime bridge; no migration is required because runtime correlation behavior and SDK exports are unchanged.
 

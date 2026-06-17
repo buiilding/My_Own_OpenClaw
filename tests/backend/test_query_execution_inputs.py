@@ -2,7 +2,6 @@
 
 from backend.src.api.schemas.incoming import QueryMessage
 from backend.src.api.services.query_execution_support.query_execution_inputs import (
-    build_query_image_data,
     resolve_query_execution_inputs,
 )
 
@@ -36,13 +35,6 @@ def _build_message(
             "repo_instruction_messages": repo_instruction_messages,
         },
     )
-
-
-def test_build_query_image_data_for_none_single_and_multi():
-    assert build_query_image_data(None) is None
-    assert build_query_image_data([]) is None
-    assert build_query_image_data(["only"]) == "only"
-    assert build_query_image_data(["a", "b"]) == ["a", "b"]
 
 
 def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fields():

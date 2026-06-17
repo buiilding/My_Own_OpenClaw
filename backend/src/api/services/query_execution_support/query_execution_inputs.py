@@ -33,17 +33,6 @@ class QueryExecutionInputs:
     runtime_system_state: Optional[dict[str, str]]
 
 
-def build_query_image_data(
-    resolved_screenshots: Optional[List[str]],
-) -> Optional[Union[str, List[str]]]:
-    """Convert screenshot list into process_query-compatible image_data shape."""
-    if not resolved_screenshots:
-        return None
-    if len(resolved_screenshots) == 1:
-        return resolved_screenshots[0]
-    return resolved_screenshots
-
-
 def resolve_query_execution_inputs(
     message: "QueryMessage",
     *,

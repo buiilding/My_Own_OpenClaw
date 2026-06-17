@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 query image-data collapse helper removal
+
+- Finding: `query_execution_inputs.py` still exported `build_query_image_data`,
+  an old helper for collapsing resolved screenshot lists back into
+  `image_data`. Current query ingress keeps inline screenshots in `image_data`
+  and artifact refs in `image_refs`, and the helper was used only by its own
+  test.
+- Change: removed the unused helper and its self-test, and documented that this
+  boundary no longer collapses artifact refs into inline image data.
+- Validation: focused backend input test command attempted, import/compile
+  checks, stale helper scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Query payload fields, screenshot ref
+  normalization, prompt image resolution, API events, and storage are unchanged.
+
 ### 2026-06-17 chat stream correlation wrapper cleanup
 
 - Finding: `chatStreamEventUtils` still re-exported SDK tool correlation helpers
