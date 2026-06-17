@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: remove the stale `turn_ref` retry command fixture from the replay IPC bridge coverage so `conversation.prepareRetryTurn` tests exercise the canonical `turnRef` path. No migration is required because this is test-only alignment with an already-enforced SDK command contract.
+
 - frontend/main: remove snake_case permission trace-context helper aliases so permission probes use `conversationRef` and `turnRef` for conversation trace routing; snake_case-only helper inputs now fall back to app diagnostics. No migration is required because backend/query payload fields are unchanged.
 
 - frontend/main: remove snake_case app diagnostics helper input aliases so Electron main diagnostics helpers and surface visibility callers use canonical camelCase fields; SQLite diagnostic columns remain unchanged. No migration is required because persisted diagnostic rows keep the same schema.

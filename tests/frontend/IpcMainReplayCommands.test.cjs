@@ -188,7 +188,7 @@ describe('ipc.cjs replay command handling', () => {
         conversationRef: 'conv-ipc-retry',
         workspacePath: '/tmp/windie-retry-workspace',
         messageId: 'assistant-retry',
-        turn_ref: 'turn-retry',
+        turnRef: 'turn-retry',
         payload: {
           retry_reason: 'user-requested',
         },

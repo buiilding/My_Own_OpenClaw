@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 replay retry test alias cleanup
+
+- Finding: the replay command bridge test still sent the removed `turn_ref`
+  alias to `conversation.prepareRetryTurn`, contradicting the strict SDK command
+  handler that now rejects edit/retry snake_case aliases.
+- Change: switched the replay retry fixture to canonical `turnRef` so the test
+  exercises the supported command path instead of stale compatibility behavior.
+- Validation: focused replay command and SDK runtime-boundary Jest suites plus
+  diff checks.
+- Compatibility: no migration required. This is test-only alignment with an
+  already-enforced command contract.
+
 ### 2026-06-17 permission trace context alias removal
 
 - Finding: Electron main permission IPC trace routing still accepted
