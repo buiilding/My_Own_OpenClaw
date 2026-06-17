@@ -915,3 +915,20 @@ Each completed slice should report:
 - Compatibility: no migration required. The module path is internal to the
   renderer/tests/docs; persisted data, IPC channels, backend routes, and public
   SDK exports are unchanged.
+
+### 2026-06-17 main diagnostics local backend readiness removal
+
+- Finding: after the diagnostics path began emitting `localRuntimeReady`, main
+  diagnostics still accepted and persisted the legacy `localBackendReady`
+  payload key.
+- Change: removed `localBackendReady` from the app diagnostics allowlist and
+  stopped mapping it into local sidecar lifecycle diagnostics; tests now assert
+  only the local-runtime readiness field.
+- Validation: focused local bridge diagnostics Jest run, docs listing,
+  `git diff --check`, and source scan for remaining `localBackendReady`
+  references. The sqlite-backed `AppDiagnosticsStore` suite remains blocked in
+  this environment because the `sqlite3` CLI is unavailable
+  (`spawnSync sqlite3 ENOENT`).
+- Compatibility: no migration required. App diagnostics are append-only
+  transient records, and current producers/consumers now use
+  `localRuntimeReady`; older stored diagnostic payloads are historical data.

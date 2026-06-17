@@ -176,7 +176,7 @@ describe('app diagnostics store', () => {
       status: 'succeeded',
       runtime: 'electron-main',
       data: {
-        localBackendReady: true,
+        localRuntimeReady: true,
         ready: true,
         action: 'connect',
         tabCount: 2,
@@ -195,7 +195,7 @@ describe('app diagnostics store', () => {
       traceId: 'browser-diag-test',
       stage: 'status_bootstrap',
       data: expect.objectContaining({
-        localBackendReady: true,
+        localRuntimeReady: true,
         ready: true,
         action: 'connect',
         tabCount: 2,
@@ -391,7 +391,6 @@ describe('app diagnostics store', () => {
         action: 'bridge_initialized',
         status: 'ready',
         ready: true,
-        localBackendReady: true,
         localRuntimeReady: true,
         hasClient: true,
         hasDiscoveryPath: true,
@@ -408,7 +407,6 @@ describe('app diagnostics store', () => {
       action: 'bridge_initialized',
       status: 'ready',
       ready: true,
-      localBackendReady: true,
       localRuntimeReady: true,
       hasClient: true,
       hasDiscoveryPath: true,
