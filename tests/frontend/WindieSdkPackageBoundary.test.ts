@@ -26,14 +26,12 @@ import {
   ManagedAgentSession,
   createConversationRuntime,
   createManagedAgentSession,
-  createWindieLocalRuntimeProvider,
   moduleTool,
   resolveModelFacingToolCallId,
   resolveToolCallCorrelationId,
   resolveToolEventCorrelationId,
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
-  WindieChatSession,
   type AgentChatSendInput,
   type AgentClientOptions,
   type AgentInstallAuthOptions,
@@ -60,9 +58,6 @@ import {
   type WindieClientOptions,
   type WindieInstallAuthOptions,
   type WindieLocalRuntimeRequest,
-  type WindieLocalRuntimeClient,
-  type WindieToolDefinition,
-  type WindieChatSendInput,
   type WindieMemoryQuery,
   type WindieAgentQueryOptions,
   type WindieAgentStopOptions,
@@ -91,8 +86,8 @@ describe('@windie/sdk package boundary', () => {
     expect(ManagedAgentSession).toBeDefined();
     expect(createManagedAgentSession).toBeDefined();
     expect(AgentSession).toBeDefined();
-    expect(WindieChatSession).toBe(AgentChatSession);
-    expect(createWindieLocalRuntimeProvider).toBe(createAgentLocalRuntimeProvider);
+    expect(AgentChatSession).toBeDefined();
+    expect(createAgentLocalRuntimeProvider).toBeDefined();
     expect(isDefaultAgentDefinition({ mode: 'windie_default' })).toBe(true);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
@@ -159,9 +154,8 @@ describe('@windie/sdk package boundary', () => {
 
   test('exports generic chat session input aliases', () => {
     const input: AgentChatSendInput = 'hello';
-    const compatibilityInput: WindieChatSendInput = input;
 
-    expect(compatibilityInput).toBe('hello');
+    expect(input).toBe('hello');
   });
 
   test('exports generic agent API option aliases', () => {
@@ -253,18 +247,16 @@ describe('@windie/sdk package boundary', () => {
       module: 'example.tools:save_note',
       schema: { type: 'object', properties: {} },
     };
-    const compatibilityTool: WindieToolDefinition = tool;
     const runtime: AgentLocalRuntimeClient = {
       registerModuleTool: async () => ({ ok: true }),
     };
-    const compatibilityRuntime: WindieLocalRuntimeClient = runtime;
 
-    expect(moduleTool(compatibilityTool as AgentToolDefinition & { module: string })).toMatchObject({
+    expect(moduleTool(tool as AgentToolDefinition & { module: string })).toMatchObject({
       name: 'save_note',
       execution_target: 'sidecar',
       argument_resolution: 'passthrough',
     });
-    expect(compatibilityRuntime.registerModuleTool).toBeDefined();
+    expect(runtime.registerModuleTool).toBeDefined();
   });
 
   test('exports canonical tool correlation alias resolution', () => {

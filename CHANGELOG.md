@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Removed the SDK `WindieChatSession` and `WindieLocalSidecarRuntime` compatibility modules so hosts use the canonical `AgentChat*` and `Agent*` local-runtime contracts directly. No migration is required beyond updating callers that still imported the removed aliases.
+
 - Removed the SDK `WindieAgentSession` compatibility module so hosted transport callers use `AgentSession` and `createAgentSession` directly.
 
 - Removed the SDK `WindieAgentStreamEvents` compatibility module so TypeScript callers use `AgentStreamEvent` types directly.

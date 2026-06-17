@@ -20,14 +20,6 @@ export * from './runtime/AgentDefinition.js';
 export * from './runtime/SdkRuntimeCommands.js';
 export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/AgentChatSession.js';
-export {
-  WindieChatSession,
-} from './runtime/WindieChatSession.js';
-export type {
-  WindieChatEditInput,
-  WindieChatRetryInput,
-  WindieChatSendInput,
-} from './runtime/WindieChatSession.js';
 export * from './runtime/Agent.js';
 export {
   WindieAgent,
@@ -62,22 +54,6 @@ export type {
   WindieWakeUpOptions,
 } from './runtime/WindieClient.js';
 export * from './runtime/LocalSidecarRuntime.js';
-export {
-  createWindieLocalRuntimeProvider,
-} from './runtime/WindieLocalSidecarRuntime.js';
-export type {
-  WindieAutoSidecarOptions,
-  WindieLocalRuntimeClient,
-  WindieLocalRuntimeEvent,
-  WindieLocalRuntimeEventListener,
-  WindieLocalRuntimeProvider,
-  WindieLocalRuntimeProviderContext,
-  WindieLocalToolExecutionPayload,
-  WindieMcpDefinition,
-  WindiePluginDefinition,
-  WindieSkillDefinition,
-  WindieToolDefinition,
-} from './runtime/WindieLocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';

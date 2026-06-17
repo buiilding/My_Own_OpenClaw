@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK chat and local-runtime wrapper deletion
+
+- Finding: the SDK still exposed `WindieChatSession`,
+  `WindieLocalSidecarRuntime`, `createWindieLocalRuntimeProvider`, and
+  Windie-prefixed local-runtime type aliases after `AgentChatSession` and the
+  `Agent*` local-runtime contracts became canonical.
+- Change: deleted the Windie-prefixed chat and local-runtime compatibility
+  modules, removed root compatibility exports, updated SDK docs, and switched
+  focused package-boundary/private-export tests to canonical `AgentChat*` and
+  `Agent*` local-runtime contracts with removed-wrapper coverage.
+- Validation: SDK package build, focused package-boundary, private-export, and
+  SDK runtime-header Jest tests, stale-reference scan, docs listing, and diff
+  check.
+- Compatibility: no migration required for the first-party app. SDK callers
+  must use `AgentChatSession`, `AgentChat*` input types,
+  `createAgentLocalRuntimeProvider`, and `Agent*` local-runtime types directly.
+
 ### 2026-06-17 SDK session and stream events wrapper deletion
 
 - Finding: the SDK still exposed `WindieAgentSession` transport helpers,

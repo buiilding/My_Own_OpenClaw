@@ -56,14 +56,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
-  test('Windie chat session module remains a compatibility wrapper for agent chat session', () => {
+  test('Windie chat session compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/AgentChatSession.js');
-    const compatibilityModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/WindieChatSession.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/runtime/WindieChatSession.js',
+    );
 
     expect(canonicalModule.AgentChatSession).toBeDefined();
     expect(canonicalModule.WindieChatSession).toBeUndefined();
-    expect(compatibilityModule.AgentChatSession).toBe(canonicalModule.AgentChatSession);
-    expect(compatibilityModule.WindieChatSession).toBe(canonicalModule.AgentChatSession);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('Windie client module remains a compatibility wrapper for agent client runtime', () => {
@@ -76,14 +78,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(compatibilityModule.WindieClient).toBe(canonicalModule.AgentClient);
   });
 
-  test('Windie local sidecar runtime module remains a compatibility wrapper for local runtime', () => {
+  test('Windie local sidecar runtime compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/LocalSidecarRuntime.js');
-    const compatibilityModule = loadCjs('../../packages/windie-sdk-js/cjs/runtime/WindieLocalSidecarRuntime.js');
+    const removedModulePath = path.resolve(
+      __dirname,
+      '../../packages/windie-sdk-js/cjs/runtime/WindieLocalSidecarRuntime.js',
+    );
 
     expect(canonicalModule.createAgentLocalRuntimeProvider).toBeDefined();
     expect(canonicalModule.createWindieLocalRuntimeProvider).toBeUndefined();
-    expect(compatibilityModule.createAgentLocalRuntimeProvider).toBe(canonicalModule.createAgentLocalRuntimeProvider);
-    expect(compatibilityModule.createWindieLocalRuntimeProvider).toBe(canonicalModule.createAgentLocalRuntimeProvider);
+    expect(fs.existsSync(removedModulePath)).toBe(false);
   });
 
   test('Windie agent module remains a compatibility wrapper for agent runtime', () => {

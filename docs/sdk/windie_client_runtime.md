@@ -146,9 +146,8 @@ Electron must not reimplement SDK behavior separately.
 
 `agent.chat(...)` returns the generic `AgentChatSession` convenience wrapper
 over `SdkConversationRuntime`. `AgentChatSession.ts` is the canonical chat
-session module; `WindieChatSession.ts` is the compatibility wrapper for
-existing Windie-prefixed chat session and input type callers. New reusable host
-code should prefer the `AgentChat*` names.
+session module; the old Windie-prefixed chat session module has been removed so
+host code uses the `AgentChat*` names directly.
 Likewise, public agent API option and result shapes use generic `Agent*` names
 such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
 `AgentMemoryQuery`, and `AgentStoreMemoryInput`; the matching Windie-prefixed
@@ -739,9 +738,8 @@ Non-Electron SDK hosts can override that behavior with:
 
 `AgentToolDefinition`, `AgentLocalRuntimeClient`, `createAgentLocalRuntimeProvider`,
 and related `Agent*` local-runtime names are the generic SDK contract surface.
-The matching `Windie*` local-runtime names are isolated in the
-`WindieLocalSidecarRuntime` compatibility wrapper and re-exported from the
-package root for existing callers.
+The SDK no longer exposes the historical `Windie*` local-runtime aliases; SDK
+callers should import the `Agent*` local-runtime names directly.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `localRuntimeDaemon`, or `ensureLocalRuntime` explicitly
