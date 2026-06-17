@@ -1,6 +1,6 @@
 # windie-sdk
 
-Python SDK boundary for waking Windie agents from external clients.
+Python SDK boundary for waking agents from external clients.
 
 The package installs as `windie-sdk` and imports as `windie`.
 

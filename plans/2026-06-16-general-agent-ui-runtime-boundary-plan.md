@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK package metadata uses generic agent wording
+
+- Finding: TypeScript and Python SDK package descriptions still described the
+  public packages as waking "Windie agents" even though the SDK API is now the
+  generic Agent SDK boundary with Windie-prefixed exports preserved only as
+  compatibility.
+- Change: updated JS package metadata and Python package README/pyproject copy
+  to say the SDK wakes agents and routes local runtime tools.
+- Validation: package JSON parse, Python TOML parse, retired-copy source scan,
+  and diff check.
+- Compatibility: no migration required. Package names, import paths, keywords,
+  and compatibility exports are unchanged.
+
 ### 2026-06-17 Backend templates and audio helpers use generic wording
 
 - Finding: the backend SDK tool template and transcription audio-frame helper
