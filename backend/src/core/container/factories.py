@@ -214,7 +214,7 @@ def _create_ocr_service(config: AppConfig):
             config.ocr_backend,
         )
         return None
-    from backend.src.services.ocr import OcrService
+    from backend.src.services.ocr.ocr_service import OcrService
 
     return OcrService()
 
@@ -226,7 +226,7 @@ def _create_ocr_provider(config: AppConfig, service=None):
     if config.ocr_backend == "local":
         if service is None:
             return None
-        from backend.src.services.ocr import LocalOcrProvider
+        from backend.src.services.ocr.provider import LocalOcrProvider
 
         return LocalOcrProvider(service, model_id=config.ocr_model)
     if config.ocr_backend == "remote-http":
@@ -236,7 +236,7 @@ def _create_ocr_provider(config: AppConfig, service=None):
         ):
             logger.error("OCR backend remote-http requires ocr_remote_service_url")
             return None
-        from backend.src.services.ocr import RemoteHttpOcrProvider
+        from backend.src.services.ocr.remote_provider import RemoteHttpOcrProvider
 
         return RemoteHttpOcrProvider(
             service_url=config.ocr_remote_service_url,

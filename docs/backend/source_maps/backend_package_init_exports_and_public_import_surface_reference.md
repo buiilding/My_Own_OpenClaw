@@ -34,7 +34,6 @@ concrete modules directly.
 - `backend/src/llm/models/__init__.py`
 - `backend/src/llm/prompts/__init__.py`
 - `backend/src/sdk/__init__.py`
-- `backend/src/services/ocr/__init__.py`
 - `backend/src/services/vision/__init__.py`
 
 ## Import-Surface Contract
@@ -134,6 +133,10 @@ docstring or compatibility path.
 - `backend/src/services/artifacts/__init__.py` is intentionally absent;
   import `ArtifactStore` and `ArtifactMeta` from
   `backend.src.services.artifacts.store`.
+- `backend/src/services/ocr/__init__.py` is intentionally absent; import OCR
+  service and providers from `backend.src.services.ocr.ocr_service`,
+  `backend.src.services.ocr.provider`, and
+  `backend.src.services.ocr.remote_provider`.
 
 Remaining `__init__.py` files matter only when they publish a live import
 contract or route-registration surface.

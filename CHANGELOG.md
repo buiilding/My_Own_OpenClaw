@@ -70,6 +70,8 @@ All notable changes to WindieOS will be documented in this file.
   registration imports concrete router modules.
 - backend/services: remove the unused artifact service package export so
   artifact callers import `ArtifactStore` from the concrete store module.
+- backend/services: remove the unused OCR service package export so inference
+  wiring imports OCR providers and service classes from concrete modules.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 
