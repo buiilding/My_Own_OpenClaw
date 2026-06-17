@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- Updated frontend local-runtime docs hubs, sidecar workflow labels, node maps, and Python sidecar source copy to remove stale local-backend/local-sidecar wording while preserving historical file paths and concrete implementation names. No migration is required.
+
 - Deleted the reintroduced Electron main conversation-event broadcast wrapper and routed callers directly to the SDK backend-event normalizer. No storage, API, wire-event, or persisted-data migration is required.
 
 - Removed the SDK conversation title-generation fallback that treated raw `provider` as model-provider metadata; title requests now use only canonical `modelProvider` or backend `model_provider`. No storage, wire-event, or persisted-data migration is required.
