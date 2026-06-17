@@ -474,3 +474,15 @@ Each completed slice should report:
 - Compatibility: no migration required. Status supervisor behavior,
   `local-backend-status` payloads, and SDK runtime bootstrap behavior are
   unchanged.
+
+### 2026-06-17 main local runtime bridge failure copy
+
+- Finding: local sidecar bridge fallback errors still described SDK local
+  runtime bridge failures as local-backend bridge failures.
+- Change: updated initialization/stopped fallback error copy and focused
+  lifecycle expectations to local-runtime bridge terminology.
+- Validation: focused Jest run for `LocalBackendBridge.lifecycle`; `git diff
+  --check`; and a stale-phrase scan for the retired error strings.
+- Compatibility: no migration required. Public bridge method names,
+  `local-backend-status` compatibility channel names, and failure control flow
+  are unchanged.

@@ -41,14 +41,14 @@ const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from t
 const DEFAULT_BROWSER_WARMUP_EXPLANATION = 'Open the browser for onboarding and profile setup.';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
-  reason: 'Local backend bridge is not initialized.',
+  reason: 'Local runtime bridge is not initialized.',
   details: {
     initialized: false,
   },
 });
 let runtimeExecuteTool = async () => ({
   success: false,
-  error: 'Local backend bridge is not initialized.',
+  error: 'Local runtime bridge is not initialized.',
 });
 const localRuntimeStatusSupervisor = createLocalBackendSupervisor();
 let sdkLocalRuntime = null;
@@ -137,7 +137,7 @@ function clearSdkLocalRuntime() {
 function createStoppedToolExecutor() {
   return async () => ({
     success: false,
-    error: 'Local backend bridge is stopped.',
+    error: 'Local runtime bridge is stopped.',
   });
 }
 

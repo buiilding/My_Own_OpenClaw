@@ -118,7 +118,7 @@ describe('local_backend_bridge SDK sidecar lifecycle', () => {
       args: { file_path: '/tmp/a' },
     })).resolves.toEqual({
       success: false,
-      error: 'Local backend bridge is stopped.',
+      error: 'Local runtime bridge is stopped.',
     });
     await expect(handlers['get-local-backend-status']()).resolves.toEqual(
       expect.objectContaining({

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: use local-runtime bridge wording for local sidecar bridge fallback errors.
+
 - frontend/main: rename the local runtime readiness helper away from backend-ready terminology.
 
 - frontend/main: rename local status broadcaster internals to local-runtime terminology while preserving local-backend status channel compatibility.
