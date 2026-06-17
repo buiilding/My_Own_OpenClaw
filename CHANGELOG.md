@@ -104,6 +104,8 @@ All notable changes to WindieOS will be documented in this file.
   typed schemas are imported from concrete type modules.
 - backend/agent-tools: remove the unused tool-sending package export so
   the agent executor imports ToolSender from the concrete sender module.
+- backend/agent-tools: remove the unused tool-waiting package export so
+  session initialization imports result waiting components directly.
 
 - docs/frontend: describe sidecar browser helpers as adapter-owned local sidecar behavior and align query-send failure examples with connection-oriented copy.
 

@@ -221,7 +221,7 @@ def test_init_tool_result_handler_wires_dependencies_and_initializes_runtime(
             self.router = router
 
     monkeypatch.setattr(
-        "backend.src.agent.tools.waiting.ToolResultReceiver",
+        "backend.src.agent.tools.waiting.receiver.ToolResultReceiver",
         DummyToolResultReceiver,
     )
     monkeypatch.setattr(
@@ -229,7 +229,7 @@ def test_init_tool_result_handler_wires_dependencies_and_initializes_runtime(
         DummyScreenshotProcessor,
     )
     monkeypatch.setattr(
-        "backend.src.agent.tools.waiting.ToolResultRouter",
+        "backend.src.agent.tools.waiting.router.ToolResultRouter",
         DummyToolResultRouter,
     )
     monkeypatch.setattr(initializer, "ToolResultHandler", DummyToolResultHandler)

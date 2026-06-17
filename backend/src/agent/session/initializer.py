@@ -5,7 +5,7 @@ from typing import Optional
 from backend.src.agent.compaction.engine import CompactionEngine
 from backend.src.agent.session.runtime_state import SessionRuntimeState
 from backend.src.agent.session.state import ConversationHistory
-from backend.src.agent.tools.waiting import ToolResultHandler
+from backend.src.agent.tools.waiting.handler import ToolResultHandler
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.llm.prompts import PromptConstructor
@@ -80,7 +80,8 @@ def init_session_state(session) -> None:
 def init_tool_result_handler(session) -> None:
     """Initialize tool result routing and storage."""
     from backend.src.agent.tools.preparation.screenshot import ScreenshotProcessor
-    from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
+    from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
+    from backend.src.agent.tools.waiting.router import ToolResultRouter
 
     if not hasattr(session, "runtime"):
         init_session_state(session)

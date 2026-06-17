@@ -21,7 +21,6 @@ concrete modules directly.
 - `backend/src/agent/tools/preparation/screenshot/__init__.py`
 - `backend/src/agent/tools/preparation/types/__init__.py`
 - `backend/src/agent/tools/processing/__init__.py`
-- `backend/src/agent/tools/waiting/__init__.py`
 - `backend/src/api/handlers/__init__.py`
 - `backend/src/core/config/__init__.py`
 - `backend/src/core/container/__init__.py`
@@ -86,6 +85,11 @@ docstring or compatibility path.
   `backend.src.agent.tools.waiting.storage.result_storage`.
 - `backend/src/agent/tools/sending/__init__.py` is intentionally absent; import
   `ToolSender` from `backend.src.agent.tools.sending.sender`.
+- `backend/src/agent/tools/waiting/__init__.py` is intentionally absent; import
+  tool-result waiting components from concrete modules such as
+  `backend.src.agent.tools.waiting.handler`,
+  `backend.src.agent.tools.waiting.receiver`, and
+  `backend.src.agent.tools.waiting.router`.
 - `backend/src/api/auth/__init__.py` is intentionally absent; import install
   auth routes/services from concrete modules such as
   `backend.src.api.auth.router` and `backend.src.api.auth.service`.
