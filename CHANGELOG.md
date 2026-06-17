@@ -29,6 +29,8 @@ All notable changes to WindieOS will be documented in this file.
   behavior.
 - frontend/renderer: rename voice capture worklet internals to generic desktop
   agent terms so product naming stays in the renderer skin.
+- frontend/renderer: make assistant markdown transport cleanup provider-agnostic
+  and stop threading model/provider identity through the markdown component path.
 - frontend/main: route browser and macOS automation permission copy through the
   WindieOS main host skin config so the Electron composition root stays focused
   on host adapters.
@@ -56,6 +58,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/js: use generic Agent SDK wording for internal diagnostics, local-runtime
   failures, managed-backend session logs, and model-selection validation while
   preserving public Windie SDK API names.
+- frontend/contracts: delete the unused generated frontend schema artifact and
+  `json-schema-to-typescript` dependency so event validation is documented
+  through the live SDK/preload/IPC guard surfaces only.
 - frontend/main: route bundled wakeword and sidecar reinstall guidance through
   main host skin config while keeping launch helpers generic.
 - frontend/main: keep the sidecar launch missing-command helper private instead

@@ -6,12 +6,9 @@ import { resolveLlmOutputContract } from '../../frontend/src/renderer/infrastruc
 
 describe('resolveLlmOutputContract', () => {
   test('keeps plain markdown output by default', () => {
-    const contract = resolveLlmOutputContract('Hello **world**', {
-      provider: 'openai',
-    });
+    const contract = resolveLlmOutputContract('Hello **world**');
     expect(contract.source).toBe('markdown');
     expect(contract.markdown).toBe('Hello **world**');
-    expect(contract.provider).toBe('openai');
     expect(contract.mathEnabled).toBe(true);
   });
 
@@ -24,7 +21,6 @@ describe('resolveLlmOutputContract', () => {
           { type: 'list', items: ['A', 'B'] },
         ],
       }),
-      { provider: 'openai' },
     );
     expect(contract.source).toBe('structured-json');
     expect(contract.markdown.includes('## Result')).toBe(true);
@@ -32,10 +28,9 @@ describe('resolveLlmOutputContract', () => {
     expect(contract.markdown.includes('- A')).toBe(true);
   });
 
-  test('normalizes gemini escaped delimiters and newlines', () => {
+  test('normalizes escaped transport delimiters and newlines', () => {
     const contract = resolveLlmOutputContract(
       'Equation: \\\\(a_1 + a_2\\\\)\\\\nAnd set: \\\\[x^2 + y^2 = 1\\\\]',
-      { provider: 'gemini' },
     );
     expect(contract.markdown.includes('a_1 + a_2')).toBe(true);
     expect(contract.markdown.includes('x^2 + y^2 = 1')).toBe(true);
@@ -44,7 +39,7 @@ describe('resolveLlmOutputContract', () => {
     expect(contract.markdown.includes('\nAnd set:')).toBe(true);
   });
 
-  test('normalizes latex delimiters for non-gemini providers', () => {
+  test('normalizes latex delimiters for assistant output', () => {
     const contract = resolveLlmOutputContract(
       [
         'Compare this:',
@@ -54,7 +49,6 @@ describe('resolveLlmOutputContract', () => {
         '',
         String.raw`Inline: \(\alpha + \beta\)`,
       ].join('\n'),
-      { provider: 'openai' },
     );
 
     expect(contract.markdown.includes(String.raw`\[`)).toBe(false);
@@ -67,7 +61,7 @@ describe('resolveLlmOutputContract', () => {
   test('preserves latex delimiters when math rendering is disabled', () => {
     const contract = resolveLlmOutputContract(
       String.raw`Use \(x + 1\) and \[y + 2\] literally.`,
-      { provider: 'openai', enableMath: false },
+      { enableMath: false },
     );
 
     expect(contract.mathEnabled).toBe(false);
@@ -83,7 +77,6 @@ describe('resolveLlmOutputContract', () => {
         '',
         String.raw`Outside \(\gamma\)`,
       ].join('\n'),
-      { provider: 'openai' },
     );
 
     expect(contract.markdown.includes('```tex')).toBe(true);
@@ -91,10 +84,9 @@ describe('resolveLlmOutputContract', () => {
     expect(contract.markdown.includes(String.raw`Outside $\gamma$`)).toBe(true);
   });
 
-  test('strips accidental wrapper html tokens for gemini outputs', () => {
+  test('strips accidental wrapper html tokens for transport outputs', () => {
     const contract = resolveLlmOutputContract(
       '<div><p>Hello world</p></div>',
-      { provider: 'gemini' },
     );
     expect(contract.markdown).toBe('Hello world');
   });

@@ -10,8 +10,6 @@ import { buildMarkdownRenderModel } from '../../../utils/message/markdownMessage
 export default function MarkdownMessage({
   text,
   sender = 'assistant',
-  modelProvider = null,
-  modelId = null,
   findQuery = '',
   findMatchIndexes = [],
   activeFindMatchIndex = null,
@@ -20,10 +18,8 @@ export default function MarkdownMessage({
     () => buildMarkdownRenderModel({
       text,
       sender,
-      modelProvider,
-      modelId,
     }),
-    [text, sender, modelProvider, modelId],
+    [text, sender],
   );
   const html = useMemo(
     () => highlightSanitizedHtml(
@@ -45,8 +41,6 @@ export default function MarkdownMessage({
 MarkdownMessage.propTypes = {
   text: PropTypes.string,
   sender: PropTypes.oneOf(['user', 'assistant']),
-  modelProvider: PropTypes.string,
-  modelId: PropTypes.string,
   findQuery: PropTypes.string,
   findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
   activeFindMatchIndex: PropTypes.number,

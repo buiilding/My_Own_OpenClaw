@@ -11,14 +11,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `d1ba700ea` (`refactor(main): genericize sdk customer identifiers`)
+- Latest inspected plan checkpoint: `6d4d6f2c1` (`refactor(sdk): genericize runtime diagnostic wording`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
   identity. SDK helper symbols that are not part of the public package boundary
   stay private behind higher-level runtime APIs, and renderer/main-private
   guard markers use generic desktop-agent naming. SDK internal diagnostics use
-  generic Agent SDK wording while preserving current public Windie API names.
+  generic Agent SDK wording while preserving current public Windie API names,
+  and renderer markdown cleanup no longer depends on provider identity.
 
 ## Inspection Log
 
@@ -262,6 +263,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: SDK source and checked-in CJS output now use Agent SDK wording for websocket listener support, managed backend session lifecycle, hosted/local request failures, sidecar discovery/local-tool errors, local runtime capability failures, memory/title/backend processing warnings, compaction debug logs, and model selection validation.
 - Change: focused SDK tests now expect the generic diagnostic wording.
 
+### 2026-06-16 Renderer Markdown Provider Boundary Slice
+
+- Worktree recovery: after the SDK diagnostics commit, recent commits and the clean worktree were inspected before continuing.
+- Finding: renderer markdown normalization still accepted model/provider identity so it could special-case provider transport artifacts during display rendering.
+- Decision: keep markdown and math rendering in the renderer, but make transport-artifact cleanup provider-agnostic and stop threading provider/model identity through `MarkdownMessage`.
+- Change: `resolveLlmOutputContract(...)` now normalizes escaped transport artifacts through a generic option and no longer returns provider/model metadata.
+- Change: `buildMarkdownRenderModel(...)`, `MarkdownMessage`, and `MessageContent` no longer pass provider/model identity into the markdown display path.
+- Change: markdown/output contract tests now cover provider-free assistant rendering and escaped transport cleanup.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -285,6 +295,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Main SDK command helper internals use generic agent SDK naming while preserving the `windie:invoke` wire contract.
 - [x] Renderer SDK command helper internals use generic agent SDK naming while preserving the `windie:invoke` wire contract.
 - [x] Renderer-private onboarding, settings, wakeword, and replay markers use generic desktop-agent naming.
+- [x] Renderer markdown transport cleanup is provider-agnostic and display-only.
 - [x] Main-private log, renderer-console, collapse, and screenshot-suppression markers use generic desktop-agent naming.
 - [x] Main local-runtime bridge fallback wording is generic while preserving SDK-owned runtime lifecycle.
 - [x] Main IPC SDK runtime logs use generic Agent SDK wording while preserving public SDK APIs.
@@ -369,6 +380,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkConversationRuntime.test.ts ../tests/frontend/WindieAgentConversationStoreApi.test.ts -t "localRuntime does not wake hosted agent when auto-start is disabled|agent.setModel validates SDK model selections|logs compaction debug output|conversation runtime title generation failure|conversation.append_event compaction debug"` passed for the matching SDK client/conversation-runtime cases.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieAgentConversationStoreApi.test.ts -t "logs successful compaction event storage after sidecar RPC succeeds"` passed.
 - `rg -n "Windie SDK|WindieClient local runtime|WindieAgent\\.setModel|WindieClient could not locate|WindieClient local tools|WindieClient persistence|WindieClient memory|WindieClient install" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found old diagnostic wording only in public command/test names and boundary assertions.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/LlmOutputContract.test.ts ../tests/frontend/MarkdownMessage.test.jsx ../tests/frontend/MessageContent.test.jsx` passed.
+- `rg -n "provider|modelProvider|modelId|Gemini|gemini|google|normalizeGemini|isGeminiProvider" frontend/src/renderer/infrastructure/llmOutputContract.ts frontend/src/renderer/features/chat/utils/message/markdownMessageRendering.js frontend/src/renderer/features/chat/components/message/content/MarkdownMessage.jsx tests/frontend/LlmOutputContract.test.ts tests/frontend/MarkdownMessage.test.jsx` found only a provider-free test title.
 
 ## Remaining Findings
 
@@ -394,6 +407,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   retry state, and replay-send error tags now use generic desktop-agent marker
   names; old Windie-specific markers remain only in boundary assertions that
   prevent reintroduction.
+- Renderer markdown rendering no longer receives provider/model identity for
+  display normalization; escaped transport-artifact cleanup is generic and
+  assistant-display scoped.
 - Voice capture internals now use generic desktop-agent naming. The remaining
   renderer voice references are intentional feature/runtime names, not product
   skin copy.

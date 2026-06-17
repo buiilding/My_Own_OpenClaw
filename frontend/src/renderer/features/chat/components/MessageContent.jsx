@@ -90,8 +90,6 @@ export default function MessageContent({
           <MarkdownMessage
             text={message.text}
             sender={message.sender}
-            modelProvider={message.modelProvider || null}
-            modelId={message.modelId || null}
             findQuery={findQuery}
             findMatchIndexes={findMatchIndexes}
             activeFindMatchIndex={activeFindMatchIndex}
@@ -105,8 +103,6 @@ export default function MessageContent({
     <MarkdownMessage
       text={message.text}
       sender={message.sender}
-      modelProvider={message.modelProvider || null}
-      modelId={message.modelId || null}
       findQuery={findQuery}
       findMatchIndexes={findMatchIndexes}
       activeFindMatchIndex={activeFindMatchIndex}

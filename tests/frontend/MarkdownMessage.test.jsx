@@ -8,7 +8,7 @@ import { render } from '@testing-library/react';
 import MarkdownMessage from '../../frontend/src/renderer/features/chat/components/message/content/MarkdownMessage';
 
 describe('MarkdownMessage', () => {
-  test('renders latex math for assistant messages from non-gemini providers', () => {
+  test('renders latex math for assistant messages without provider context', () => {
     const { container } = render(
       <MarkdownMessage
         text={[
@@ -18,7 +18,6 @@ describe('MarkdownMessage', () => {
           String.raw`\]`,
         ].join('\n')}
         sender="assistant"
-        modelProvider="openai"
       />,
     );
 

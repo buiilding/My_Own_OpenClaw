@@ -5,17 +5,14 @@
 type LlmOutputRenderSource = 'markdown' | 'structured-json';
 
 interface LlmOutputContractOptions {
-  provider?: string | null;
-  modelId?: string | null;
   enableMath?: boolean;
+  normalizeTransportArtifacts?: boolean;
   stripAccidentalHtmlTokens?: boolean;
 }
 
 interface LlmOutputContract {
   markdown: string;
   source: LlmOutputRenderSource;
-  provider: string;
-  modelId: string;
   mathEnabled: boolean;
 }
 
@@ -24,10 +21,6 @@ function normalizeString(value: unknown): string {
     return '';
   }
   return value.trim();
-}
-
-function normalizeProvider(value: unknown): string {
-  return normalizeString(value).toLowerCase();
 }
 
 function mapOutsideFencedCodeBlocks(input: string, transform: (segment: string) => string): string {
@@ -102,7 +95,7 @@ function stripAccidentalHtmlWrappers(input: string): string {
   return normalized;
 }
 
-function normalizeGeminiTransportArtifacts(input: string, stripAccidentalHtmlTokens: boolean): string {
+function normalizeEscapedTransportArtifacts(input: string, stripAccidentalHtmlTokens: boolean): string {
   let normalized = input.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   normalized = normalized
     .replace(/\\r\\n/g, '\n')
@@ -242,17 +235,12 @@ function tryStructuredJsonToMarkdown(input: string): string | null {
   return null;
 }
 
-function isGeminiProvider(provider: string): boolean {
-  return provider === 'gemini' || provider === 'google';
-}
-
 export function resolveLlmOutputContract(
   rawText: string,
   options: LlmOutputContractOptions = {},
 ): LlmOutputContract {
-  const provider = normalizeProvider(options.provider);
-  const modelId = normalizeString(options.modelId);
   const mathEnabled = options.enableMath !== false;
+  const normalizeTransportArtifacts = options.normalizeTransportArtifacts !== false;
   const stripAccidentalHtmlTokens = options.stripAccidentalHtmlTokens !== false;
 
   const baseText = typeof rawText === 'string' ? rawText : '';
@@ -260,8 +248,8 @@ export function resolveLlmOutputContract(
   const source: LlmOutputRenderSource = structuredMarkdown ? 'structured-json' : 'markdown';
   let markdown = structuredMarkdown || baseText;
 
-  if (isGeminiProvider(provider)) {
-    markdown = normalizeGeminiTransportArtifacts(markdown, stripAccidentalHtmlTokens);
+  if (normalizeTransportArtifacts) {
+    markdown = normalizeEscapedTransportArtifacts(markdown, stripAccidentalHtmlTokens);
   }
   if (mathEnabled) {
     markdown = normalizeLatexMathDelimiters(markdown);
@@ -270,8 +258,6 @@ export function resolveLlmOutputContract(
   return {
     markdown,
     source,
-    provider,
-    modelId,
     mathEnabled,
   };
 }
