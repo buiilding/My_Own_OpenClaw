@@ -1043,3 +1043,16 @@ Each completed slice should report:
   `WindieModelSelection` imports.
 - Compatibility: no migration required. Type-only alias; public SDK exports and
   runtime payloads are unchanged.
+
+### 2026-06-17 replay integration SDK command errors
+
+- Finding: the replay database integration test still mocked preparation
+  failures with legacy "Windie SDK command" wording even though the Electron
+  main command handler now emits generic "Agent SDK command" errors.
+- Change: updated the test fixture and assertions to use the current generic
+  command error wording.
+- Validation: `git diff --check` and source scan for legacy command-error
+  wording. Focused `ConversationReplayDatabaseIntegration` is blocked in this
+  shell because its Python SQLite bridge invokes `python`, which resolves to
+  the Windows Store alias instead of an installed interpreter.
+- Compatibility: no migration required. Test-only wording alignment.

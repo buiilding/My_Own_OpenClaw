@@ -468,8 +468,8 @@ describe('conversation replay database integration', () => {
         if (payload.userId !== 'user-replay-db') {
           throw new Error(
             payload.userId
-              ? 'Windie SDK command user id does not match the active user.'
-              : 'Windie SDK command requires an active user id.',
+              ? 'Agent SDK command user id does not match the active user.'
+              : 'Agent SDK command requires an active user id.',
           );
         }
         const store = new SidecarConversationStore({
@@ -657,12 +657,12 @@ describe('conversation replay database integration', () => {
     {
       label: 'missing',
       userId: null,
-      error: 'Windie SDK command requires an active user id.',
+      error: 'Agent SDK command requires an active user id.',
     },
     {
       label: 'stale',
       userId: 'user-stale',
-      error: 'Windie SDK command user id does not match the active user.',
+      error: 'Agent SDK command user id does not match the active user.',
     },
   ])('reports preparation failure when transcript session user binding is $label', async ({ userId, error }) => {
     mockSessionUserId = userId;
