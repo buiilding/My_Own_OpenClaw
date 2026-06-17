@@ -29,7 +29,6 @@ from backend.src.api.services.query_execution_support.query_execution_inputs imp
     resolve_query_execution_inputs,
 )
 from backend.src.api.services.query_execution_support.query_execution_pipeline_events import (
-    emit_completion_events,
     process_pipeline_event,
 )
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
@@ -460,21 +459,3 @@ class QueryExecutionService:
             stream_context=stream_context,
         )
 
-    async def _emit_completion_events(
-        self,
-        *,
-        pipeline: StreamPipeline,
-        tts_service: Any,
-        msg_id: str,
-        stream_context: dict[str, Any],
-        completion_text: str,
-        saw_text_chunk: bool,
-    ) -> bool:
-        return await emit_completion_events(
-            pipeline=pipeline,
-            tts_service=tts_service,
-            msg_id=msg_id,
-            stream_context=stream_context,
-            completion_text=completion_text,
-            saw_text_chunk=saw_text_chunk,
-        )

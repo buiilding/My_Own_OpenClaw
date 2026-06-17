@@ -578,35 +578,6 @@ def test_resolve_query_completion_text_prefers_event_completion_then_state_fallb
 
 
 @pytest.mark.asyncio
-async def test_emit_completion_events_emits_backfill_chunk_then_terminal_event():
-    observed = []
-
-    class _Pipeline:
-        async def process(self, event, tts_service, msg_id, context):
-            observed.append((event, tts_service, msg_id, context))
-
-    service = _build_service()
-    stream_context = {"user_id": "u-1"}
-
-    saw_text_chunk = await service._emit_completion_events(
-        pipeline=_Pipeline(),
-        tts_service=None,
-        msg_id="turn-1",
-        stream_context=stream_context,
-        completion_text="final text",
-        saw_text_chunk=False,
-    )
-
-    assert saw_text_chunk is True
-    assert isinstance(observed[0][0], ChunkEvent)
-    assert observed[0][0].content == "final text"
-    assert isinstance(observed[1][0], StreamingCompleteEvent)
-    assert observed[1][0].final_response == "final text"
-    assert observed[0][3] is stream_context
-    assert observed[1][3] is stream_context
-
-
-@pytest.mark.asyncio
 async def test_process_pipeline_event_forwards_event_and_context():
     observed = {}
 
@@ -633,29 +604,6 @@ async def test_process_pipeline_event_forwards_event_and_context():
         "msg_id": "turn-1",
         "context": context,
     }
-
-
-@pytest.mark.asyncio
-async def test_emit_completion_events_skips_backfill_when_chunk_already_seen():
-    observed = []
-
-    class _Pipeline:
-        async def process(self, event, tts_service, msg_id, context):
-            observed.append(event)
-
-    service = _build_service()
-    saw_text_chunk = await service._emit_completion_events(
-        pipeline=_Pipeline(),
-        tts_service=None,
-        msg_id="turn-1",
-        stream_context={"user_id": "u-1"},
-        completion_text="already streamed",
-        saw_text_chunk=True,
-    )
-
-    assert saw_text_chunk is True
-    assert len(observed) == 1
-    assert isinstance(observed[0], StreamingCompleteEvent)
 
 
 @pytest.mark.asyncio

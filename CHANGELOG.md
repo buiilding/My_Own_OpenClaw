@@ -91,6 +91,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/session: remove unused private `SessionManager` pending-stop/default
   conversation pass-throughs now that `ActiveQueryTracker` and
   `SessionRegistry` own those paths directly.
+- backend/query: remove the unused private completion-emission wrapper from
+  `QueryExecutionService` and keep backfill/terminal emission owned by the
+  query execution pipeline-events helper.
 - sdk/js: use generic default agent display names in agent-definition and
   wake-up helpers while letting hosts pass product identity explicitly.
 - docs/sdk: document the generic SDK agent display defaults so host skin/config

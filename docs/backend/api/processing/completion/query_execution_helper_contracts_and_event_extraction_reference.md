@@ -34,7 +34,7 @@ supported event shapes:
 - `extract_assistant_full_text`
 - `extract_streaming_complete_text`
 - `resolve_completion_text`
-- `_emit_completion_events`
+- `query_execution_pipeline_events.emit_completion_events`
 
 These helpers isolate parsing logic from transport/tts orchestration.
 
@@ -112,7 +112,7 @@ Note: `resolve_completion_text` only uses chunk aggregation when `saw_text_chunk
 
 ## Synthetic Completion Emission Contract
 
-`_emit_completion_events(...)` behavior:
+`query_execution_pipeline_events.emit_completion_events(...)` behavior:
 
 - if no chunk has been seen and resolved completion text exists:
 - emits synthetic `ChunkEvent(content=completion_text)` first
@@ -125,7 +125,7 @@ Return value updates `saw_text_chunk` so caller state remains consistent.
 When stream iteration finishes without terminal event:
 
 - service logs warning
-- reuses same completion-resolver + `_emit_completion_events` path
+- reuses the same completion-resolver + `emit_completion_events(...)` path
 
 This keeps end-of-stream behavior uniform regardless of whether terminal event came from upstream model stream.
 

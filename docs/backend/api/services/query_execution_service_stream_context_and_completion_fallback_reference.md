@@ -71,13 +71,14 @@ Prompt construction owns later artifact hydration, image preprocessing, and imag
 
 ## Runtime System-State Seeding
 
-`_resolve_query_runtime_system_state(...)` extracts only string values for:
+`query_execution_runtime.resolve_query_runtime_system_state(...)` extracts only string values for:
 
 - `active_window`
 - `mouse_position`
 - `screen_resolution`
 
-`_apply_query_runtime_system_state(...)` then:
+`agent_instance.process_query(...)` applies the resolved runtime state to the
+session runtime:
 
 - no-ops if agent lacks `set_current_system_state`
 - merges extracted fields over existing state from `get_current_system_state` when available
@@ -148,7 +149,7 @@ directly from `QueryExecutionService.execute(...)`.
 3. last assistant-full content
 4. fallback constant: `I completed the requested action(s), but the model returned an empty final response.`
 
-### Completion emission (`_emit_completion_events`)
+### Completion emission (`query_execution_pipeline_events.emit_completion_events`)
 
 - emits synthetic `ChunkEvent` if no chunk was seen and completion text is non-empty
 - always emits terminal `StreamingCompleteEvent`
@@ -183,8 +184,11 @@ Within `async with TTSSession(...)`:
 - screenshot ref trimming, blank-ref drop behavior, and single-ref fallback when `screenshot_refs` is blank-only
 - per-ref artifact failure handling that preserves successful refs
 - direct helper passthrough for event extraction primitives
-- completion backfill ordering (`ChunkEvent` before `StreamingCompleteEvent`) and stream-context reuse in helper forwarding
 - post-terminal backend events are ignored after `streaming-complete`
+
+`tests/backend/test_query_execution_pipeline_events.py` validates:
+
+- completion backfill ordering (`ChunkEvent` before `StreamingCompleteEvent`) and stream-context reuse in helper forwarding
 
 `tests/backend/test_query_event_extraction.py` validates resolver precedence and empty-chunk fallback behavior.
 
@@ -195,7 +199,7 @@ Within `async with TTSSession(...)`:
 3. replacing per-query shared context with per-event dicts increases allocation churn and may introduce metadata drift.
 4. making screenshot-ref lookup fatal can block query handling on artifact outages.
 5. skipping cancelled-turn pending tool-call reconciliation can leave staged IDs unresolved and break tool history continuity.
-6. terminal-missing fallback path currently depends on class symbol `_resolve_completion_text`; if wrapper removal continues without matching call-site update, fallback completion can regress.
+6. terminal-missing fallback path depends on `complete_query_stream(...)`; changing that helper without preserving backfill ordering can regress fallback completion.
 
 ## Related Pages
 

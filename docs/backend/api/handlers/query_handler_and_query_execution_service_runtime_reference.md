@@ -164,7 +164,7 @@ Resolved in `_resolve_completion_text(...)` using:
 
 ### Backfill contract
 
-`_emit_completion_events(...)` emits:
+`query_execution_pipeline_events.emit_completion_events(...)` emits:
 
 - synthetic `ChunkEvent` when no text chunk was seen and completion text is non-empty
 - terminal `StreamingCompleteEvent` always

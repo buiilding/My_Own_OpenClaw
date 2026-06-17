@@ -126,12 +126,12 @@ post-terminal side-effect contract testable in one place.
 `QueryExecutionService` currently keeps thin wrappers for support-module helpers:
 
 - `_finalize_pending_tool_calls_on_cancel`
-- `_apply_query_runtime_system_state`
 - `_build_stream_context`
 - `_process_pipeline_event`
-- `_emit_completion_events`
 
-These wrappers preserve a stable test seam while main helper logic lives in dedicated modules.
+Completion emission is not wrapped by `QueryExecutionService`; call sites use
+`complete_query_stream(...)`, which delegates to
+`query_execution_pipeline_events.emit_completion_events(...)`.
 
 ## Drift Hotspots
 
