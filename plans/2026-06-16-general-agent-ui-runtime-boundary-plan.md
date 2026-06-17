@@ -2522,3 +2522,17 @@ Each completed slice should report:
   legacy hosted client class no longer appears in SDK client behavior coverage.
 - Compatibility: no migration required. `WindieSdkClient` remains a public
   compatibility alias.
+
+### 2026-06-17 AgentClient behavior test path
+
+- Finding: the main SDK client behavior suite still constructed and labeled
+  runtime behavior through the `WindieClient` compatibility alias even though
+  `AgentClient` is the canonical durable conversation/runtime client.
+- Change: switched the behavior-suite helper, runtime instantiations, and test
+  titles to `AgentClient`, leaving `WindieClient` compatibility coverage in the
+  package-boundary test.
+- Validation: focused SDK client Jest coverage, SDK package-boundary Jest
+  coverage, docs listing, `git diff --check`, and source scans confirming the
+  legacy runtime client class no longer appears in SDK client behavior coverage.
+- Compatibility: no migration required. `WindieClient` remains a public
+  compatibility alias.
