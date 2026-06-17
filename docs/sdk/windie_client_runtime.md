@@ -614,7 +614,7 @@ The SDK builds:
 ```json
 {
   "version": 1,
-  "id": "windie-agent-...",
+  "id": "agent-...",
   "name": "Agent",
   "system_prompt": {
     "mode": "replace",

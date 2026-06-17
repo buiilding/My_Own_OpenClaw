@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `c9a636cb1` (`refactor(sdk): genericize private transport listener names`)
+- Latest inspected plan checkpoint: `8569cefb2` (`fix(sdk): reject invalid managed endpoints cleanly`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -24,7 +24,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   transport listener helpers and session failure diagnostics use generic
   agent-session wording while public Windie transport exports remain stable,
   and managed endpoint configuration failures reject connection waiters
-  immediately with generic endpoint wording.
+  immediately with generic endpoint wording. SDK-generated default agent IDs
+  now use generic `agent-*` values while the existing backend mode remains
+  unchanged.
 
 ## Inspection Log
 
@@ -302,6 +304,15 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: `ManagedBackendSession.ensureConnected(...)` now clears/rejects waiters when `connect({ force: true })` throws before a socket exists.
 - Change: the websocket contract test covers the invalid endpoint path and asserts the generic diagnostic without leaking an open connection waiter.
 
+### 2026-06-16 SDK Default Agent ID Slice
+
+- Worktree recovery: recent commits and concurrent backend/client-contract worktree edits were inspected before continuing, and the dirty backend/sidecar/docs contract files were left outside this SDK slice.
+- Finding: SDK fallback display names were generic, but generated default agent IDs still used `windie-default` and `windie-agent-*` when callers did not supply an explicit ID.
+- Decision: keep public `WindieClient`/`WindieAgent` names and the backend `windie_default` mode contract unchanged, but make SDK-generated default IDs generic.
+- Change: `buildAgentDefinition()` now defaults to `agent-default`.
+- Change: `WindieClient.wakeUp()` now generates `agent-*` IDs when `agentId` is omitted.
+- Change: SDK tests and the hosted runtime docs now describe the generic generated IDs.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -334,6 +345,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK runtime diagnostics and local-runtime failures use generic Agent SDK wording while preserving public Windie API names.
 - [x] SDK private transport listener helpers use generic agent-session naming while preserving public exports.
 - [x] SDK managed endpoint validation rejects immediately with generic wording.
+- [x] SDK-generated default agent IDs use generic values while preserving backend mode contracts.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -424,6 +436,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkManagedBackendSession.test.ts --runInBand` passed.
 - `npm.cmd test -- --runTestsByPath ../tests/frontend/FrontendBackendWebsocketContract.test.cjs --runInBand` was attempted and timed out with no output; the focused endpoint assertion and managed-backend session suite pass.
 - `rg -n "Managed Windie agent endpoint requires|Managed agent endpoint requires|Windie agent endpoint|Timed out connecting to backend for agent-session" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend -g "*.ts" -g "*.js" -g "*.cjs"` found only the new generic endpoint diagnostic and its focused assertion.
+- `npm.cmd test -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts -t "buildAgentDefinition uses generic display defaults|agent context|agent definition|wakeUp registers local module tools"` passed.
+- `rg -n "windie-default|windie-agent-" packages/windie-sdk-js/src packages/windie-sdk-js/cjs tests/frontend/WindieSdkClient.test.ts docs/sdk/windie_client_runtime.md -g "*.ts" -g "*.js" -g "*.cjs" -g "*.md"` found no matches.
 
 ## Remaining Findings
 
@@ -474,3 +488,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Exported Windie SDK transport names remain unchanged.
 - SDK managed endpoint validation now uses generic endpoint wording and rejects
   invalid endpoint configuration without leaving connection waiters alive.
+- SDK-generated default agent IDs now use generic `agent-default` and `agent-*`
+  values. Explicit caller IDs and the backend `windie_default` mode contract
+  remain unchanged.

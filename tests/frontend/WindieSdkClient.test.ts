@@ -223,7 +223,7 @@ describe('WindieSdkClient', () => {
     const definition = buildAgentDefinition();
 
     expect(definition).toMatchObject({
-      id: 'windie-default',
+      id: 'agent-default',
       name: 'Desktop Agent',
       mode: 'windie_default',
     });
@@ -1478,7 +1478,7 @@ describe('WindieSdkClient', () => {
       text: 'u got the mcp',
       conversation_ref: 'conv-agent-context',
       agent_definition: {
-        id: 'windie-default',
+        id: 'agent-default',
         tools: {
           mode: 'default_plus_client',
           enabled_remote_tools: [],
@@ -1511,7 +1511,7 @@ describe('WindieSdkClient', () => {
       type: 'query',
       payload: {
         agent_definition: {
-          id: 'windie-default',
+          id: 'agent-default',
           tools: {
             mode: 'default_plus_client',
             client_manifest: {
@@ -3575,6 +3575,7 @@ describe('WindieSdkClient', () => {
       user_id: 'dev-user',
       agent_definition: {
         version: 1,
+        id: expect.stringMatching(/^agent-/),
         system_prompt: { mode: 'replace', content: 'You are concise.' },
         tools: {
           mode: 'client_only',

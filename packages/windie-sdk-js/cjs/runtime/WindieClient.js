@@ -421,7 +421,7 @@ function validateLocalRuntimeFeatures(localRuntime, runtimeFeatures) {
 function buildWakeUpAgentDefinition(options, tools) {
     const definition = {
         version: 1,
-        id: options.agentId ?? `windie-agent-${(0, WindieAgentSession_js_1.createMessageId)()}`,
+        id: options.agentId ?? `agent-${(0, WindieAgentSession_js_1.createMessageId)()}`,
         name: options.name ?? 'Agent',
         system_prompt: options.systemPrompt
             ? { mode: 'replace', content: options.systemPrompt }

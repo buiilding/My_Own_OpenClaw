@@ -655,7 +655,7 @@ function validateLocalRuntimeFeatures(
 function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRecord[]): JsonRecord {
   const definition: JsonRecord = {
     version: 1,
-    id: options.agentId ?? `windie-agent-${createMessageId()}`,
+    id: options.agentId ?? `agent-${createMessageId()}`,
     name: options.name ?? 'Agent',
     system_prompt: options.systemPrompt
       ? { mode: 'replace', content: options.systemPrompt }

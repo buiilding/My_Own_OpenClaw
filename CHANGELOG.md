@@ -65,6 +65,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/js: reject managed endpoint configuration failures immediately without
   leaving connection waiters alive, and use generic managed-agent endpoint
   wording.
+- sdk/js: use generic generated agent IDs for default SDK agent definitions
+  while preserving explicit caller-provided IDs and the existing backend mode.
 - frontend/contracts: delete the unused generated frontend schema artifact and
   `json-schema-to-typescript` dependency so event validation is documented
   through the live SDK/preload/IPC guard surfaces only.

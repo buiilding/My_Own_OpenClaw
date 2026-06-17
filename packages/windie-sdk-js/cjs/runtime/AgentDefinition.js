@@ -101,7 +101,7 @@ function buildAgentDefinition(options = {}) {
     }
     const definition = {
         version: 1,
-        id: normalizeString(options.id) || 'windie-default',
+        id: normalizeString(options.id) || 'agent-default',
         name: normalizeString(options.name) || 'Desktop Agent',
         mode: (systemPromptContent
             || promptLayers.length > 0
