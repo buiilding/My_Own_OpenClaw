@@ -1,1 +1,0 @@
-"""Dedicated browser automation package."""

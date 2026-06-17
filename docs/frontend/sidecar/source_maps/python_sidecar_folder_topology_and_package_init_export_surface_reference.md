@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar-owned source topology map and package `__init__` export surfaces across core and tool subpackages."
+summary: "Deep reference for sidecar-owned source topology map and remaining package `__init__` export surfaces."
 read_when:
   - When updating sidecar package boundaries or contributor-facing topology docs.
   - When changing sidecar package public exports.
@@ -12,11 +12,6 @@ This page documents:
 
 - `frontend/src/main/python/folder_structure.md`
 - `frontend/src/main/python/core/__init__.py`
-- `frontend/src/main/python/tools/__init__.py`
-- `frontend/src/main/python/tools/browser/__init__.py`
-- `frontend/src/main/python/tools/computer/__init__.py`
-- `frontend/src/main/python/tools/filesystem/__init__.py`
-- `frontend/src/main/python/tools/system/__init__.py`
 
 ## Sidecar Topology Source Map Contract
 
@@ -35,29 +30,24 @@ Maintenance rule:
 
 ## Sidecar Package `__init__` Surface Contract
 
-Minimal package markers:
+`core/__init__.py` remains an export surface for the SDK client and semantic
+client helpers used by tests and local backend wiring.
 
-- `core/__init__.py`, `tools/__init__.py`, `tools/computer/__init__.py`, `tools/filesystem/__init__.py`, and `tools/system/__init__.py` are mostly package markers with short domain descriptions
+Marker-only files are intentionally absent for `tools/`, tool category
+subpackages, and `windie_shared/`. Import tool and shared browser-contract
+runtime code from concrete modules such as `tools.system.shell_tool`,
+`tools.browser.browser_tool`, and `windie_shared.browser_contract`.
 
-The retired `tools/memory` package no longer defines a sidecar tool export; local memory is handled through sidecar JSON-RPC methods and memory runtime modules.
-
-## Browser Package Export
-
-`tools/browser/__init__.py` defines the public sidecar browser import surface:
-
-- Chrome detection helpers
-- Chrome launcher helpers/errors
-- Browser schema argument models
-- `execute_browser`
-
-Current browser runtime execution is not exported through a first-party controller. It flows through `browser_tool.py` and the Browser Use CLI adapter in `browser_use_engine.py`.
+The retired `tools/memory` package no longer defines a sidecar tool export;
+local memory is handled through sidecar JSON-RPC methods and memory runtime
+modules.
 
 ## Refactor Safety Checklist
 
 When moving sidecar modules:
 
 1. update `folder_structure.md` topology narrative
-2. preserve or intentionally migrate `__init__.py` exports
+2. preserve or intentionally migrate live `__init__.py` exports
 3. update docs under `docs/frontend/sidecar/*` that link import paths
 
 ## Related Docs
