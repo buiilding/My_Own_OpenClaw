@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sidecar: update the frontend Python folder-structure source map to show
+  `sidecar_daemon.py` as the SDK local-runtime entrypoint and `/rpc` as the
+  active JSON-RPC transport; no migration is required because this changes docs
+  only.
 - docs/architecture: label the local tool execution lane as the Python sidecar
   daemon in the tool-system diagram; no migration is required because this
   changes docs only.

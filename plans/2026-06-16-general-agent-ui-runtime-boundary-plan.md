@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 sidecar folder structure daemon transport wording
+
+- Finding: the checked-in frontend Python folder-structure source map still
+  described Electron spawning `local_backend.py` directly and using stdin/stdout
+  JSON-RPC even though the SDK local runtime starts `sidecar_daemon.py` and uses
+  daemon HTTP `/rpc`.
+- Change: updated the overview, file map, runtime flow, tool result flow, and
+  service communication section to route through `sidecar_daemon.py` with
+  `LocalRuntimeService` as the in-process method registry.
+- Validation: docs listing, scoped diff check, and focused stale transport
+  wording scan.
+- Compatibility: no migration required. Documentation-only cleanup; daemon
+  launch, RPC payloads, credentials, permissions, storage, and event payloads
+  are unchanged.
+
 ### 2026-06-18 tool-system sidecar daemon diagram wording
 
 - Finding: the tool-system architecture diagram still labeled the local tool

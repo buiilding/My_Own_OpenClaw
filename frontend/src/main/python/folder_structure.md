@@ -2,7 +2,7 @@
 
 ## Overview
 
-The frontend Python sidecar provides local tool execution, memory management, system state collection, and wakeword detection for the Electron desktop application. It communicates with the Electron main process via JSON-RPC 2.0 protocol over stdin/stdout.
+The frontend Python sidecar provides local tool execution, memory management, system state collection, and wakeword detection for the Electron desktop application. The SDK-owned local runtime starts `sidecar_daemon.py`, then sends JSON-RPC 2.0 envelopes to the daemon HTTP `/rpc` endpoint.
 
 ---
 
@@ -10,12 +10,13 @@ The frontend Python sidecar provides local tool execution, memory management, sy
 
 ```
 frontend/src/main/python/
-├── local_backend.py                    # Main Python sidecar runtime service - JSON-RPC 2.0 protocol handler, tool execution, memory operations, system state
+├── sidecar_daemon.py                   # HTTP/WebSocket daemon entrypoint for SDK local-runtime /rpc, tools, plugins, MCP, events, and shutdown
+├── local_backend.py                    # LocalRuntimeService implementation - JSON-RPC method registry, tool execution, memory operations, system state
 ├── wakeword_service.py                # Wakeword detection service - openWakeWord integration, binary protocol over stdin/stdout
 ├── requirements.txt                    # Python dependencies (faiss-cpu, aiosqlite, aiohttp, pyautogui, pynput, psutil, etc.)
 │
 ├── core/                               # Core infrastructure modules
-│   ├── ipc_protocol.py                # JSONRPCProtocol - JSON-RPC 2.0 protocol handler for stdin/stdout communication
+│   ├── ipc_protocol.py                # JSONRPCProtocol - transport-independent JSON-RPC 2.0 request validation and dispatch
 │   ├── remote_semantic_client.py      # RemoteSemanticClient - HTTP client for backend semantic summarization API
 │   ├── system_state.py                # get_system_state() - Cross-platform system state collection (active window, mouse, clipboard, stats)
 │   ├── executors.py                   # Shared interactive/background ThreadPoolExecutor lifecycle for blocking operations
@@ -67,13 +68,13 @@ frontend/src/main/python/
 ### Python Sidecar Runtime Flow
 
 ```
-1. ELECTRON MAIN PROCESS
-   └─> Spawns Python subprocess (local_backend.py)
-       └─> stdin/stdout for JSON-RPC 2.0 protocol
+1. SDK LOCAL RUNTIME
+   └─> Starts or reuses Python daemon (sidecar_daemon.py)
+       └─> HTTP /rpc for JSON-RPC 2.0 envelopes
            ↓
 2. INITIALIZATION
-   └─> local_backend.py
-       ├─> LocalRuntimeService.__init__()
+   └─> sidecar_daemon.py
+       ├─> LocalRuntimeService.__init__() from local_backend.py
        │   ├─> JSONRPCProtocol() - Initialize protocol handler
        │   └─> ToolRegistry() - Register all tools
        │
@@ -83,23 +84,22 @@ frontend/src/main/python/
                ├─> Load/create FAISS indices (episodic.faiss.index, semantic.faiss.index)
                └─> Load vector ID mappings
            ↓
-3. MAIN LOOP
-   └─> LocalRuntimeService.run()
-       ├─> Read JSON-RPC request from stdin (one line per message)
-       ├─> JSONRPCProtocol.process_line() - Parse and validate
+3. DAEMON RPC DISPATCH
+   └─> sidecar_daemon.py POST /rpc
+       ├─> JSONRPCProtocol.handle_request() - Validate and dispatch
        ├─> Route to registered method handler
        │   ├─> execute_tool - ToolRegistry.execute_tool()
        │   ├─> get_system_state - core.system_state.get_system_state()
        │   ├─> search_memory_by_embedding - LocalMemoryStore.search_by_embedding()
        │   └─> store_memory_by_embedding - LocalMemoryStore.add()
-       └─> Send JSON-RPC response to stdout
+       └─> Return JSON-RPC response through daemon HTTP response
 ```
 
 ### Tool Execution Flow
 
 ```
 1. JSON-RPC REQUEST
-   └─> local_backend.py
+   └─> sidecar_daemon.py /rpc
        └─> LocalRuntimeService._handle_execute_tool()
            ↓
 2. TOOL REGISTRY
@@ -117,7 +117,7 @@ frontend/src/main/python/
 4. TOOL RESULT
    └─> tools/result.py
        └─> ToolResult.to_dict() - Convert to JSON-RPC response format
-           └─> Return to Electron main process
+           └─> Return through SDK local-runtime daemon response
 ```
 
 ### Memory Storage Flow
@@ -256,7 +256,7 @@ frontend/src/main/python/
 ## Service Communication Patterns
 
 ### JSON-RPC 2.0 (Python Sidecar Runtime)
-- **Protocol**: JSON-RPC 2.0 over stdin/stdout (one line per message)
+- **Protocol**: JSON-RPC 2.0 envelopes over sidecar daemon HTTP `/rpc`
 - **Methods**: execute_tool, get_system_state, search_memory_by_embedding, store_memory_by_embedding, ping, get_status
 - **Error Handling**: Standard JSON-RPC error codes
 
