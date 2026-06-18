@@ -227,6 +227,13 @@ describe('main host skin/config boundary', () => {
     }
   });
 
+  test('local runtime launch fallback avoids conda-environment-specific copy', () => {
+    const source = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
+
+    expect(source).toContain('local-runtime Python executable');
+    expect(source).not.toContain('frontend_jarvis Python executable');
+  });
+
   test('local runtime helpers consume host copy with generic defaults', () => {
     const localRuntimeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
 

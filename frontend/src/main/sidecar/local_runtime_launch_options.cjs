@@ -54,7 +54,7 @@ function createMissingCommandError({ isPackaged, copy = {} } = {}) {
     return copy.missingPythonRuntime
       || 'Bundled Python runtime not found in app resources. Please reinstall this app.';
   }
-  return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the frontend_jarvis Python executable.';
+  return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the local-runtime Python executable.';
 }
 
 function resolveLocalRuntimeSourceStamp(launchTarget) {

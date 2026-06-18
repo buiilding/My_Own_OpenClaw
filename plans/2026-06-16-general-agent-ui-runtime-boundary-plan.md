@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 generic local-runtime Python guidance
+
+- Finding: Electron main's dev/source local-runtime launch fallback still told
+  users to set `WINDIE_PYTHON_PATH` to the `frontend_jarvis` Python executable,
+  keeping environment-specific setup copy inside the generic host adapter.
+- Change: reworded the fallback to "local-runtime Python executable" while
+  preserving the existing `WINDIE_PYTHON_PATH` compatibility env var, and added
+  focused launch/host-skin tests so the conda-environment-specific copy does
+  not return.
+- Validation: focused local-runtime launch and main host skin boundary Jest
+  tests, targeted stale-copy scan, docs listing, and diff check.
+- Compatibility: no migration required. The env var name, launch target
+  resolution order, packaged runtime copy, sidecar daemon startup, endpoint
+  selection, IPC channels, credentials, permissions, storage, and provider
+  policy are unchanged.
+
 ### 2026-06-18 renderer-local theme settings wording
 
 - Finding: the settings section reference still used broad frontend wording for

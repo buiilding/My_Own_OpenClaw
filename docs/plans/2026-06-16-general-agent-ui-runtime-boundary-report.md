@@ -89,9 +89,33 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   remaining sentence-case frontend-sidecar live docs now use local runtime
   sidecar labels, and packaged endpoint fallback docs use desktop-local
   loopback wording. Renderer settings docs now describe local theme editor
-  values as renderer-local presentation state.
+  values as renderer-local presentation state. Electron main dev/source
+  local-runtime launch fallback copy now describes a generic local-runtime
+  Python executable instead of a frontend conda environment while preserving
+  the existing `WINDIE_PYTHON_PATH` env var.
 
 ## Inspection Log
+
+### 2026-06-18 Generic Local-Runtime Python Guidance Slice
+
+- Worktree was clean after `43da56854` before this slice, with `main` ahead of
+  `origin/main` by 818 commits.
+- Product-name and runtime-boundary scans showed renderer/main product copy
+  largely confined to skins/config, but Electron main's dev/source missing
+  Python fallback still named the `frontend_jarvis` environment directly.
+- Finding: the generic Electron host adapter should not bake in
+  conda-environment-specific setup copy. The `WINDIE_PYTHON_PATH` env var
+  remains a compatibility contract, but the guidance can point at the
+  local-runtime Python executable generically.
+- Change: reworded the fallback in
+  `frontend/src/main/sidecar/local_runtime_launch_options.cjs` and added
+  focused launch-plan plus main-host-skin boundary tests for the generic copy.
+- Validation: focused local-runtime launch and main host skin boundary Jest
+  tests, targeted stale-copy scan, docs listing, and diff check.
+- Compatibility: no migration required. The env var name, launch target
+  resolution order, packaged runtime copy, sidecar daemon startup, endpoint
+  selection, IPC channels, credentials, permissions, storage, and provider
+  policy are unchanged.
 
 ### 2026-06-18 Renderer-Local Theme Settings Wording Slice
 
