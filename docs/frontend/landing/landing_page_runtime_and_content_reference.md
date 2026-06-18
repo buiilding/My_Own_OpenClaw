@@ -76,7 +76,7 @@ If section `id` changes, update all anchor emitters in `HeroSection`, `Available
 
 Landing content is statically defined inside components (not fetched at runtime):
 
-- `WhySection`: feature cards for OS-level control, vision-first interaction, sidecar execution, memory, browser automation, provider choice.
+- `WhySection`: feature cards for desktop session as runtime, vision-first interaction, local runtime tool execution, memory, browser automation, provider choice.
 - `HowItWorksSection`: 4-step flow array with `number`, `title`, `description`, `code`.
 - `AvailableTodaySection`: category matrix (`Core`, `Tools`, `Memory`, `Browser`) with per-item status.
 - `PrivacySection`: `privacyFeatures` + `privacyHighlights` arrays for trust claims.

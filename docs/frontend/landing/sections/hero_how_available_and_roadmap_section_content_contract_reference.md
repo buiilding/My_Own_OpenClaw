@@ -35,11 +35,11 @@ The four documented modules form the main narrative spine between hero claim, wo
 Primary responsibilities:
 
 - show launch-state badge (`Now Available`)
-- present top-level one-line positioning (`Desktop assistant`)
+- present top-level one-line positioning (`Desktop runtime for personal AI agents`)
 - provide two top CTA anchors:
   - `Get Started` -> `#download`
   - `See How It Works` -> `#how-it-works`
-- render three short feature chips (`Vision-First`, `Local Memory`, `Privacy First`)
+- render three short feature chips (`Desktop-Native`, `Local Memory`, `Privacy First`)
 
 Animation/styling contract:
 

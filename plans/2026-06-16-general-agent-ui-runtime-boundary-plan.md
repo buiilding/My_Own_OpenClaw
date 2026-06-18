@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 landing reference docs public-copy boundary
+
+- Finding: landing reference docs still documented the older Desktop assistant hero, OS-level control feature card, sidecar execution feature wording, and placeholder footer-link contract after the UI moved to desktop-runtime/local-runtime copy and real resource links.
+- Change: updated the landing section references to match the committed hero, why, how-it-works, and footer copy, and added a boundary guard that rejects the stale landing docs phrases.
+- Validation: focused ModularRefactorCompletionBoundary Jest coverage, stale landing-doc copy scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes frontend landing docs and guard coverage only; landing runtime code, routes, anchors, SDK/local-runtime behavior, settings, and persisted data are unchanged.
+
 ### 2026-06-17 backend unused exception modules
 
 - Finding: configuration, tooling, memory, and session exception modules under

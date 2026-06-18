@@ -167,6 +167,27 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('Use sidecar tools for local machine control');
   });
 
+  test('landing docs track desktop runtime and local runtime public copy', async () => {
+    const landingDocs = await Promise.all([
+      read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),
+      read('docs/frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md'),
+      read('docs/frontend/landing/sections/why_privacy_cta_footer_and_shared_intro_component_contract_reference.md'),
+    ]);
+    const landingDocText = landingDocs.join('\n');
+
+    expect(landingDocText).toContain('Desktop runtime for personal AI agents');
+    expect(landingDocText).toContain('Desktop-Native');
+    expect(landingDocText).toContain('desktop session as runtime');
+    expect(landingDocText).toContain('local runtime tool execution');
+    expect(landingDocText).toContain('documentation link (`https://github.com/buiilding/WindieOS/blob/main/docs/README.md`)');
+    expect(landingDocText).not.toContain('Desktop assistant');
+    expect(landingDocText).not.toContain('OS-level control');
+    expect(landingDocText).not.toContain('local sidecar tool execution');
+    expect(landingDocText).not.toContain('sidecar execution, memory');
+    expect(landingDocText).not.toContain('documentation button placeholder');
+    expect(landingDocText).not.toContain('mixed real/placeholder links');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend-landing: align landing reference docs with the desktop-runtime/local-runtime public copy and real footer links; no migration is required because this updates documentation and guard coverage only.
 - backend/core: remove unused configuration, tooling, memory, and session exception modules so the core error hierarchy only carries live LLM and trust-boundary errors; no migration is required because runtime code did not import the deleted wrappers and API/error payload contracts are unchanged.
 - docs/sdk: describe public AgentClient local execution, builtin manifests, tool-result cleanup, and SDK examples through the local-runtime contract instead of sidecar-facing public wording; no migration is required because this changes SDK docs and guard coverage only.
 - frontend/landing: describe public tool execution and footer identity through the local runtime/desktop-runtime contract instead of sidecar or desktop-assistant wording; no migration is required because this changes landing copy and focused tests only.

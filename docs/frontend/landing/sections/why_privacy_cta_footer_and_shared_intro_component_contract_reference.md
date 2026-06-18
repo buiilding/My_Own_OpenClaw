@@ -52,9 +52,9 @@ Content source:
 
 Notable card claims:
 
-- OS-level control
+- desktop session as runtime
 - vision-first interaction
-- local sidecar tool execution
+- local runtime tool execution
 - persistent memory
 - browser automation
 - multi-provider model support
@@ -114,7 +114,7 @@ Section id:
 Primary CTA actions:
 
 - GitHub link (`https://github.com/buiilding/WindieOS`)
-- documentation button placeholder (`href="#"`)
+- documentation link (`https://github.com/buiilding/WindieOS/blob/main/docs/README.md`)
 
 Meta row:
 
@@ -125,8 +125,8 @@ Meta row:
 Footer link groups:
 
 - `Product` links to in-page anchors (`#why-windieos`, `#how-it-works`, `#available-today`, `#roadmap`)
-- `Resources` contains mixed real/placeholder links
-- `Legal` contains mixed real/placeholder links including `#privacy`
+- `Resources` links to GitHub, documentation, installation, and changelog targets
+- `Legal` links to the repository license and the in-page privacy section
 
 Year contract:
 
@@ -136,7 +136,7 @@ Year contract:
 
 1. Changing section ids in Why/Privacy/Download without syncing anchor emitters breaks in-page navigation.
 2. Landing capability/privacy claims are static arrays and can drift from actual backend/frontend behavior if not updated with releases.
-3. Placeholder `href="#"` links in CTA/footer should be audited before production marketing use.
+3. CTA/footer links should stay real targets; do not reintroduce placeholder `href="#"` entries.
 4. Changes to `ProviderStackIcon` impact multiple sections and can unintentionally alter visual consistency.
 
 ## Related Pages
