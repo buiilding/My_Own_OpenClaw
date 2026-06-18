@@ -154,6 +154,7 @@ CONCRETE_MODULES = [
 ]
 
 REMOVED_MODULE_FACADES = [
+    "backend/src/core/config/domains.py",
     "backend/src/core/infrastructure/cache.py",
     "backend/src/core/security/executor.py",
     "backend/src/tools/browser/schemas.py",

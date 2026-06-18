@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend config-domain view module
+
+- Finding: `backend/src/core/config/domains.py` exposed dataclass projections over
+  `AppConfig`, but exact reference scans showed only a self-referential config
+  model test and no live backend owner importing those views.
+- Change: deleted the unused module, removed its test-only imports/coverage,
+  added a deletion guard, and clarified bootstrap docs that backend config code
+  reads `AppConfig` or focused owner modules directly.
+- Validation: py_compile for edited backend tests, focused deletion-guard pytest,
+  focused surviving config-model pytest, docs search routing, exact stale-reference
+  scan, and diff checks. The broader focused pytest suite was attempted but the
+  fallback environment has unrelated Windows path expectation failures and still
+  lacks `litellm` for the namespace import sweep after `jarvis` was unavailable.
+- Compatibility: no migration required. This removes an unused backend-internal
+  projection layer only; config fields, settings payloads, runtime normalization,
+  provider routing, and persisted data are unchanged.
+
 ### 2026-06-17 backend Kimi provider removed-name branch
 
 - Finding: `backend/src/llm/providers/factory.py` still carried a dedicated set

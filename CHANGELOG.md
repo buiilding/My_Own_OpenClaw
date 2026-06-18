@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused config-domain view module so backend config ownership stays on AppConfig plus focused runtime owners; no migration is required because no live code imported the domain projections and config payloads/settings are unchanged.
 - backend/llm: remove the dedicated Kimi removed-provider-name branch so unsupported Kimi spellings use the normal unavailable-provider path; no migration is required because current accepted provider keys, config fields, credentials, API payloads, and provider routing are unchanged.
 - packages/sdk-js: emit query screenshot capture trace rows as `local-runtime` / `local_runtime_capture` and accept `local-runtime` trace runtime values; older persisted `sidecar_capture` rows remain historical diagnostics and need no migration.
 - examples/sdk: describe public local tool and repo-agent examples as SDK local-runtime daemon/plugin/tool flows instead of sidecar-facing prose; no migration is required because this changes example docs, metadata copy, and guard coverage only.

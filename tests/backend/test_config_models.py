@@ -22,15 +22,6 @@ from backend.src.core.config.models import (
     Preferences,
     SecurityLimits,
 )
-from backend.src.core.config.domains import (
-    browser_runtime_config,
-    memory_config,
-    provider_model_config,
-    security_transport_config,
-    session_runtime_config,
-)
-
-
 class TestOpenAIConfig:
     """Tests for OpenAIConfig model."""
 
@@ -298,32 +289,6 @@ class TestAppConfig:
             "get_open_windows",
             "web_search",
         }
-
-    def test_domain_views_group_runtime_config_by_owner(self):
-        config = AppConfig(
-            model_provider="anthropic",
-            selected_model_id="claude-sonnet",
-            query_timeout=123,
-            browser_automation_enabled=True,
-            embedding_model="embed-v1",
-            websocket_max_concurrent_tasks=9,
-        )
-
-        provider_view = provider_model_config(config)
-        session_view = session_runtime_config(config)
-        browser_view = browser_runtime_config(config)
-        memory_view = memory_config(config)
-        security_view = security_transport_config(config)
-
-        assert provider_view.model_provider == "anthropic"
-        assert provider_view.selected_model_id == "claude-sonnet"
-        assert session_view.query_timeout == 123
-        assert session_view.include_query_screenshot is True
-        assert browser_view.browser_automation_enabled is True
-        assert browser_view.include_query_screenshot is True
-        assert memory_view.embedding_model == "embed-v1"
-        assert security_view.websocket_max_concurrent_tasks == 9
-        assert security_view.security_limits == config.security_limits
 
     def test_get_tool_allowlist_agent_mode(self):
         config = AppConfig(interaction_mode="agent")

@@ -54,7 +54,7 @@ Core model:
 
 - `core/config/models.py:AppConfig`
 
-Notable config domains:
+Notable config field groups:
 
 - Provider selection: `model_mode`, `model_provider`, `selected_model_id`, provider blocks
 - Runtime limits: parser size/time constraints, websocket limits, artifact size limits
@@ -66,6 +66,10 @@ Runtime normalization (`core/config/runtime.py` via loader helpers):
 - Enforces runtime defaults and API-key resolution for chosen provider
 - Forces runtime `tts_enabled` policy
 - Resolves default TTS model path per platform
+
+Backend code reads these fields from `AppConfig` or focused owner modules
+directly. The unused config-domain view module has been removed so there is no
+parallel projection layer to keep in sync with `AppConfig`.
 
 ## Config Loading and Updates
 
