@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: inject WindieOS hosted backend default endpoint override env
+  names from the main host skin instead of hardcoding them inside the generic
+  backend endpoint resolver.
 - main/runtime: inject WindieOS VM mode environment variable names from the
   main host skin instead of hardcoding them inside the generic runtime-mode
   helper.

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Hosted Endpoint Env Skin Boundary
+
+- Finding: `backend_endpoints.cjs` already read hosted backend URLs from the
+  main host skin, but still hardcoded the WindieOS hosted-default override env
+  names `WINDIE_DEFAULT_BACKEND_HTTP_URL` and
+  `WINDIE_DEFAULT_BACKEND_WS_URL` inside the generic endpoint resolver.
+- Change: moved those override env names into `mainHostSkin.hostedBackend.env`,
+  taught the resolver to consume host-supplied hosted-backend env keys, and
+  added coverage for a non-Windie host env map plus boundary guards that keep
+  WindieOS endpoint names out of the generic resolver source.
+- Validation: focused backend endpoint and main host skin Jest coverage plus a
+  targeted source scan for hosted endpoint URL/env names.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL` through
+  injected host skin config; explicit `BACKEND_*`, loopback override, hosted
+  default, endpoint candidate, and artifact URL behavior are unchanged.
+
 ### 2026-06-18 Main VM Mode Env Skin Boundary
 
 - Finding: `runtime_mode.cjs` still hardcoded `WINDIE_VM_MODE` and

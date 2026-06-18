@@ -5,8 +5,7 @@
  * - BACKEND_WS_URL   (highest priority for WebSocket URL)
  * - BACKEND_HTTP_URL (highest priority for HTTP base URL)
  * - BACKEND_HOST + BACKEND_PORT (explicit endpoint override)
- * - WINDIE_DEFAULT_BACKEND_HTTP_URL / WINDIE_DEFAULT_BACKEND_WS_URL
- *   (optional hosted-default overrides for all app modes)
+ * - host-supplied hosted-default override env keys
  */
 
 const { mainHostSkin } = require('./main_host_skin.cjs');
@@ -14,6 +13,10 @@ const { mainHostSkin } = require('./main_host_skin.cjs');
 const DEFAULT_LOOPBACK_BACKEND_HOST = '127.0.0.1';
 const DEFAULT_LOOPBACK_BACKEND_PORT = '8765';
 const DEFAULT_HOSTED_BACKEND = mainHostSkin.hostedBackend;
+const DEFAULT_HOSTED_BACKEND_ENV = Object.freeze({
+  defaultHttpUrl: 'AGENT_DEFAULT_BACKEND_HTTP_URL',
+  defaultWsUrl: 'AGENT_DEFAULT_BACKEND_WS_URL',
+});
 
 function trimTrailingSlash(value) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -107,13 +110,35 @@ function dedupeEndpointCandidates(candidates = []) {
   return normalized;
 }
 
-function resolveHostedDefaultEndpoints(env) {
+function normalizeHostedBackendConfig(hostedBackend = DEFAULT_HOSTED_BACKEND) {
+  const config = hostedBackend && typeof hostedBackend === 'object'
+    ? hostedBackend
+    : {};
+  const envConfig = config.env && typeof config.env === 'object'
+    ? config.env
+    : {};
+  return {
+    httpUrl: config.httpUrl,
+    wsUrl: config.wsUrl,
+    env: {
+      defaultHttpUrl: typeof envConfig.defaultHttpUrl === 'string'
+        ? envConfig.defaultHttpUrl
+        : DEFAULT_HOSTED_BACKEND_ENV.defaultHttpUrl,
+      defaultWsUrl: typeof envConfig.defaultWsUrl === 'string'
+        ? envConfig.defaultWsUrl
+        : DEFAULT_HOSTED_BACKEND_ENV.defaultWsUrl,
+    },
+  };
+}
+
+function resolveHostedDefaultEndpoints(env, hostedBackend = DEFAULT_HOSTED_BACKEND) {
+  const hostedConfig = normalizeHostedBackendConfig(hostedBackend);
   const explicitDefaultHttpUrl = normalizeUrl(
-    env.WINDIE_DEFAULT_BACKEND_HTTP_URL,
+    env[hostedConfig.env.defaultHttpUrl],
     ['http:', 'https:'],
   );
   const explicitDefaultWsUrl = normalizeUrl(
-    env.WINDIE_DEFAULT_BACKEND_WS_URL,
+    env[hostedConfig.env.defaultWsUrl],
     ['ws:', 'wss:'],
   );
   if (explicitDefaultHttpUrl && explicitDefaultWsUrl) {
@@ -132,8 +157,8 @@ function resolveHostedDefaultEndpoints(env) {
     };
   }
   return {
-    httpUrl: DEFAULT_HOSTED_BACKEND.httpUrl,
-    wsUrl: DEFAULT_HOSTED_BACKEND.wsUrl,
+    httpUrl: hostedConfig.httpUrl,
+    wsUrl: hostedConfig.wsUrl,
   };
 }
 
@@ -146,7 +171,7 @@ function resolveLoopbackFallbackEndpoints(env) {
   return { httpUrl, wsUrl };
 }
 
-function resolveBackendEndpoints(env = process.env) {
+function resolveBackendEndpoints(env = process.env, options = {}) {
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
 
@@ -154,7 +179,7 @@ function resolveBackendEndpoints(env = process.env) {
   let wsUrl = explicitWsUrl;
 
   if (!httpUrl && !wsUrl) {
-    const [fallback] = resolveBackendEndpointCandidates(env);
+    const [fallback] = resolveBackendEndpointCandidates(env, options);
     httpUrl = fallback.httpUrl;
     wsUrl = fallback.wsUrl;
   } else if (httpUrl && !wsUrl) {
@@ -170,7 +195,8 @@ function resolveBackendEndpoints(env = process.env) {
   };
 }
 
-function resolveBackendEndpointCandidates(env = process.env) {
+function resolveBackendEndpointCandidates(env = process.env, options = {}) {
+  const hostedBackend = options?.hostedBackend || DEFAULT_HOSTED_BACKEND;
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
   const explicitHostOrPortOverride = (
@@ -197,7 +223,7 @@ function resolveBackendEndpointCandidates(env = process.env) {
   }
 
   return dedupeEndpointCandidates([
-    resolveHostedDefaultEndpoints(env),
+    resolveHostedDefaultEndpoints(env, hostedBackend),
   ]);
 }
 

@@ -19,6 +19,10 @@ const hostedBackend = Object.freeze({
   httpUrl: 'https://api.windieos.com',
   wsUrl: 'wss://api.windieos.com/ws',
   runsApiKeyHeader: 'x-windie-runs-key',
+  env: Object.freeze({
+    defaultHttpUrl: 'WINDIE_DEFAULT_BACKEND_HTTP_URL',
+    defaultWsUrl: 'WINDIE_DEFAULT_BACKEND_WS_URL',
+  }),
 });
 
 const vmWorker = Object.freeze({

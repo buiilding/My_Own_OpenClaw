@@ -173,6 +173,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main Hosted Endpoint Env Skin Boundary
+
+- Worktree was clean after `3286bc018`, with `main` ahead of `origin/main` by
+  872 commits.
+- Current renderer direct-IPC, sidecar/backend import, main host product/env,
+  and stale wording scans were inspected before editing.
+- Finding: `backend_endpoints.cjs` already read hosted backend URLs from the
+  main host skin, but still hardcoded the WindieOS hosted-default override env
+  names `WINDIE_DEFAULT_BACKEND_HTTP_URL` and
+  `WINDIE_DEFAULT_BACKEND_WS_URL` inside the generic endpoint resolver.
+- Change: moved those override env names into `mainHostSkin.hostedBackend.env`,
+  taught the resolver to consume host-supplied hosted-backend env keys, and
+  added coverage for a non-Windie host env map plus boundary guards that keep
+  WindieOS endpoint names out of the generic resolver source.
+- Validation: focused backend endpoint and main host skin Jest coverage plus a
+  targeted source scan for hosted endpoint URL/env names.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL` through
+  injected host skin config; explicit `BACKEND_*`, loopback override, hosted
+  default, endpoint candidate, and artifact URL behavior are unchanged.
+
 ### 2026-06-18 Main VM Mode Env Skin Boundary
 
 - Worktree was clean after `ca6bc86db`, with `main` ahead of `origin/main` by

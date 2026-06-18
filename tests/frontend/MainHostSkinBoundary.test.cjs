@@ -74,6 +74,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('https://api.windieos.com');
     expect(skinSource).toContain('wss://api.windieos.com/ws');
     expect(skinSource).toContain("runsApiKeyHeader: 'x-windie-runs-key'");
+    expect(skinSource).toContain("defaultHttpUrl: 'WINDIE_DEFAULT_BACKEND_HTTP_URL'");
+    expect(skinSource).toContain("defaultWsUrl: 'WINDIE_DEFAULT_BACKEND_WS_URL'");
     expect(skinSource).toContain('vmWorker');
     expect(skinSource).toContain("vmMode: 'WINDIE_VM_MODE'");
     expect(skinSource).toContain("vmWorkerMode: 'WINDIE_VM_WORKER_MODE'");
@@ -123,6 +125,8 @@ describe('main host skin/config boundary', () => {
     expect(backendEndpointSource).toContain('mainHostSkin.hostedBackend');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
+    expect(backendEndpointSource).not.toContain('WINDIE_DEFAULT_BACKEND_HTTP_URL');
+    expect(backendEndpointSource).not.toContain('WINDIE_DEFAULT_BACKEND_WS_URL');
     expect(runtimeModeSource).toContain('runtimeModeEnv');
     expect(runtimeModeSource).not.toContain('WINDIE_VM_MODE');
     expect(runtimeModeSource).not.toContain('WINDIE_VM_WORKER_MODE');

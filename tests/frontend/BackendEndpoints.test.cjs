@@ -31,7 +31,7 @@ describe('backend_endpoints artifact url selection', () => {
 });
 
 describe('backend_endpoints hosted defaults', () => {
-  test('uses loopback fallback naming for internal endpoint defaults', () => {
+  test('uses host config for hosted endpoint defaults and loopback fallback naming', () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/app/backend_endpoints.cjs'),
       'utf8',
@@ -39,6 +39,8 @@ describe('backend_endpoints hosted defaults', () => {
 
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_HOST');
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_PORT');
+    expect(source).toContain('mainHostSkin.hostedBackend');
+    expect(source).toContain('normalizeHostedBackendConfig');
     expect(source).toContain(
       'Backend endpoint resolution for Electron main process and local runtime consumers.',
     );
@@ -51,6 +53,8 @@ describe('backend_endpoints hosted defaults', () => {
     expect(source).not.toContain(['resolveLocal', 'FallbackEndpoints'].join(''));
     expect(source).not.toContain(['explicitLocal', 'HostOrPort'].join(''));
     expect(source).not.toContain(['local', 'Candidates'].join(''));
+    expect(source).not.toContain('WINDIE_DEFAULT_BACKEND_HTTP_URL');
+    expect(source).not.toContain('WINDIE_DEFAULT_BACKEND_WS_URL');
   });
 
   test('uses canonical hosted-default override pair', () => {
@@ -63,6 +67,27 @@ describe('backend_endpoints hosted defaults', () => {
       httpUrl: 'https://staging.windieos.com',
       wsUrl: 'wss://staging.windieos.com/ws',
       wsOrigin: 'https://staging.windieos.com',
+    });
+  });
+
+  test('supports non-Windie hosted-default override env names from host config', () => {
+    const env = {
+      AGENT_DEFAULT_BACKEND_HTTP_URL: 'https://agent.example.com/',
+      AGENT_DEFAULT_BACKEND_WS_URL: 'wss://agent.example.com/ws',
+    };
+    const hostedBackend = {
+      httpUrl: 'https://default.example.com',
+      wsUrl: 'wss://default.example.com/ws',
+      env: {
+        defaultHttpUrl: 'AGENT_DEFAULT_BACKEND_HTTP_URL',
+        defaultWsUrl: 'AGENT_DEFAULT_BACKEND_WS_URL',
+      },
+    };
+
+    expect(resolveBackendEndpoints(env, { hostedBackend })).toEqual({
+      httpUrl: 'https://agent.example.com',
+      wsUrl: 'wss://agent.example.com/ws',
+      wsOrigin: 'https://agent.example.com',
     });
   });
 
