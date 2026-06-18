@@ -8,7 +8,7 @@ title: "Window and Input Matrix"
 
 # Window and Input Matrix
 
-Window and input behavior spans Electron main and the Python sidecar. Electron owns WindieOS windows and overlay policy. The Python sidecar owns host-window discovery and local input/tool execution.
+Window and input behavior spans Electron main and the local runtime. Electron owns WindieOS windows and overlay policy. The local runtime owns host-window discovery and local input/tool execution through the current Python sidecar implementation.
 
 ## Owner Map
 

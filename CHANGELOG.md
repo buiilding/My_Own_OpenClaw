@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route filesystem/shell and platform local-authority owner
+  wording through the local runtime while keeping Python sidecar implementation
+  details explicit. No migration required.
 - docs/tools: align first-read local tool routing and schema workflow wording
   so local-runtime executable authority owns what can run locally while Python
   sidecar remains the concrete implementation. No migration required.

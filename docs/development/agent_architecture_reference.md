@@ -254,8 +254,9 @@ WindieOS frontend has four live runtimes:
   IPC handlers, endpoint diagnostics, permission prompts, direct Agent SDK
   startup, sidecar supervision, wakeword supervision, screenshots, and platform
   policy.
-- Python sidecar owns local authority: filesystem, shell/process, computer use,
-  browser mechanics, local memory, system state, and wakeword subprocess code.
+- Local runtime owns local authority through the current Python sidecar
+  implementation: filesystem, shell/process, computer use, browser mechanics,
+  local memory, system state, and wakeword subprocess code.
 
 Frontend query flow:
 

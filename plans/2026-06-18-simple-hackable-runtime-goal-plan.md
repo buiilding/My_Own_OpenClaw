@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a filesystem/platform local-authority wording slice by
+  routing the filesystem/shell workflow, window/input matrix, platform change
+  workflow, and agent architecture reference through local-runtime authority
+  while keeping Python sidecar implementation details explicit. The modular
+  stale-mention guard now catches Python-sidecar-as-owner variants for local
+  execution, host-window discovery, host OS automation, and local authority.
+  Validation: focused modular docs boundary test, docs listing, exact stale
+  phrase scan, and diff checks. No migration required; no code path, payload,
+  storage, IPC, settings, tool schema, credential, permission, hosted URL, or
+  provider-policy behavior changed.
 - 2026-06-18: completed a first-read local tool authority wording slice by
   updating `docs/getting-started/docs_hub.md`,
   `docs/frontend/sidecar_tool_change_workflow.md`, and

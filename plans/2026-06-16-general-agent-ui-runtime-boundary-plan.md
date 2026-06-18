@@ -9508,6 +9508,24 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 Filesystem and Platform Local Authority Wording
+
+- Finding: filesystem/shell and platform routing docs still presented the
+  Python sidecar as the reusable owner for local execution, host-window
+  discovery, host OS automation, and local authority, even though the current
+  boundary is local-runtime authority backed by the Python sidecar
+  implementation.
+- Change: reworded the filesystem/shell workflow, window/input matrix, platform
+  change workflow, and agent architecture reference to route those
+  responsibilities through local runtime authority, and extended the modular
+  stale-mention guard to catch Python-sidecar-as-owner variants.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, filesystem/shell/computer
+  behavior, platform adapters, tool payloads/results, storage, IPC channels,
+  settings, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-18 Frontend Architecture AgentRuntimeTransport Wording
 
 - Finding: `docs/architecture/frontend_architecture.md` still named
