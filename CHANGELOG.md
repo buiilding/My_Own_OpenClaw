@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/mcp: rename generic MCP client-info fallback copy from Desktop
+  Agent to Desktop Runtime in Electron main and the Python sidecar; no
+  migration is required because MCP protocol fields, server specs, tool names,
+  tool results, storage, and the WindieOS host-supplied main client identity
+  remain unchanged.
 - docs/browser: describe the Browser Use daemon boundary as a
   desktop-runtime session while preserving the literal `desktop-agent`
   default session name; no migration is required because Browser Use state,

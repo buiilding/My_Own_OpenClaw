@@ -119,6 +119,20 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 MCP client fallback desktop-runtime identity
+
+- Finding: Electron main MCP fallback client info and the Python sidecar MCP
+  initialize payload still used Desktop Agent wording even though MCP execution
+  belongs to the desktop/local-runtime boundary.
+- Change: renamed the generic fallback client names to Desktop Runtime and
+  Desktop Runtime sidecar, and updated boundary tests plus the historical
+  runtime-boundary report breadcrumb.
+- Validation: focused MCP runtime and main host skin Jest coverage, focused
+  sidecar daemon pytest, docs check, stale MCP identity scan, and diff check.
+- Compatibility: no migration required. MCP protocol shape, server specs, tool
+  names, tool results, storage, and host-supplied WindieOS MCP identity are
+  unchanged; only generic fallback client metadata changes.
+
 ### 2026-06-18 browser daemon descriptive boundary wording cleanup
 
 - Finding: browser docs described the Browser Use daemon boundary as a

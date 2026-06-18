@@ -754,7 +754,7 @@ class McpStdioClient:
             {
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {"roots": {"listChanged": False}, "sampling": {}},
-                "clientInfo": {"name": "Desktop Agent sidecar", "version": "1"},
+                "clientInfo": {"name": "Desktop Runtime sidecar", "version": "1"},
             },
         )
         await self.notify("notifications/initialized")

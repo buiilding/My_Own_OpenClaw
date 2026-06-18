@@ -12,7 +12,7 @@ const { loadExtensionMcpServers } = require('./extension_manifest.cjs');
 const DEFAULT_MCP_PROTOCOL_VERSION = '2024-11-05';
 const DEFAULT_MCP_REQUEST_TIMEOUT_MS = 15000;
 const DEFAULT_MCP_CLIENT_INFO = Object.freeze({
-  name: 'Desktop Agent',
+  name: 'Desktop Runtime',
   version: '0.0.0',
 });
 

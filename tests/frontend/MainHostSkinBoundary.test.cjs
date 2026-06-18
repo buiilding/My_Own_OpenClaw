@@ -194,7 +194,7 @@ describe('main host skin/config boundary', () => {
   test('MCP runtime uses generic defaults instead of product identity', () => {
     const source = fs.readFileSync(mcpRuntimePath, 'utf8');
 
-    expect(source).toContain("name: 'Desktop Agent'");
+    expect(source).toContain("name: 'Desktop Runtime'");
     expect(source).not.toContain("name: 'WindieOS'");
   });
 
