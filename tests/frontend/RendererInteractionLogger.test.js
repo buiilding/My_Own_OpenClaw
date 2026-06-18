@@ -1,5 +1,5 @@
 /**
- * Covers frontend interaction logger. behavior in the frontend test suite.
+ * Covers renderer interaction logger behavior in the frontend test suite.
  */
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -15,13 +15,13 @@ import fs from 'fs';
 import path from 'path';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
-  installFrontendInteractionLogger,
+  installRendererInteractionLogger,
   logUserSentMessage,
-} from '../../frontend/src/renderer/infrastructure/interaction/frontendInteractionLogger';
+} from '../../frontend/src/renderer/infrastructure/interaction/rendererInteractionLogger';
 
 const retiredDesktopAgentFlag = (suffix) => `__DESKTOP_${'AGENT'}_${suffix}__`;
 
-describe('frontendInteractionLogger', () => {
+describe('rendererInteractionLogger', () => {
   let cleanup = null;
   let consoleSpy = null;
 
@@ -43,12 +43,12 @@ describe('frontendInteractionLogger', () => {
 
   test('logs buttons by accessible label', () => {
     document.body.innerHTML = '<button aria-label="Open settings"><span></span></button>';
-    cleanup = installFrontendInteractionLogger();
+    cleanup = installRendererInteractionLogger();
 
     document.querySelector('button').click();
 
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: expect.objectContaining({
         action: 'settings_button_clicked',
         event: 'click',
@@ -66,13 +66,13 @@ describe('frontendInteractionLogger', () => {
         Planning notes
       </button>
     `;
-    cleanup = installFrontendInteractionLogger();
+    cleanup = installRendererInteractionLogger();
 
     document.querySelector('button').click();
 
     expect(consoleSpy).not.toHaveBeenCalled();
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: expect.objectContaining({
         action: 'chat_clicked',
         target: expect.objectContaining({
@@ -84,7 +84,7 @@ describe('frontendInteractionLogger', () => {
 
   test('logs settings button clicks', () => {
     document.body.innerHTML = '<button><span>Settings</span></button>';
-    cleanup = installFrontendInteractionLogger();
+    cleanup = installRendererInteractionLogger();
 
     document.querySelector('button').click();
 
@@ -99,7 +99,7 @@ describe('frontendInteractionLogger', () => {
       </label>
     `;
     const checkbox = document.querySelector('input');
-    cleanup = installFrontendInteractionLogger();
+    cleanup = installRendererInteractionLogger();
 
     checkbox.checked = true;
     checkbox.dispatchEvent(new Event('change', { bubbles: true }));
@@ -120,7 +120,7 @@ describe('frontendInteractionLogger', () => {
 
     expect(consoleSpy).not.toHaveBeenCalled();
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: expect.objectContaining({
         action: 'message_sent',
         event: 'send-message',
@@ -143,7 +143,7 @@ describe('frontendInteractionLogger', () => {
     });
 
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: expect.objectContaining({
         schemaVersion: 1,
         action: 'message_sent',
@@ -166,7 +166,7 @@ describe('frontendInteractionLogger', () => {
     });
 
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: expect.objectContaining({
         messageText: '[redacted]',
         messageTextRedacted: true,
@@ -187,7 +187,7 @@ describe('frontendInteractionLogger', () => {
     });
 
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: expect.objectContaining({
         messageText: '[redacted]',
         messageTextRedacted: true,
@@ -195,7 +195,7 @@ describe('frontendInteractionLogger', () => {
     }));
   });
 
-  test('prints compact frontend interaction summaries only when debug stdout is enabled', () => {
+  test('prints compact renderer interaction summaries only when debug stdout is enabled', () => {
     window.__DESKTOP_RUNTIME_DEBUG_SURFACE_STDOUT__ = true;
 
     logUserSentMessage({
@@ -206,7 +206,7 @@ describe('frontendInteractionLogger', () => {
     });
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      '[FrontendInteraction] action=message_sent event=send-message view=main label="-" target=-',
+      '[RendererInteraction] action=message_sent event=send-message view=main label="-" target=-',
     );
   });
 
@@ -238,7 +238,7 @@ describe('frontendInteractionLogger', () => {
     expect(consoleSpy).not.toHaveBeenCalled();
   });
 
-  test('feature code does not write ad hoc frontend interaction logs', () => {
+  test('feature code does not write ad hoc renderer interaction logs', () => {
     const featureRoot = path.resolve(__dirname, '../../frontend/src/renderer/features');
     const sources = [];
     const visit = (dir) => {
@@ -257,9 +257,9 @@ describe('frontendInteractionLogger', () => {
 
     const offenders = sources
       .filter(([, source]) => (
-        source.includes('[FrontendInteraction]')
-        || source.includes("source: 'frontend-interaction'")
-        || source.includes('source: "frontend-interaction"')
+        source.includes('[RendererInteraction]')
+        || source.includes("source: 'renderer-interaction'")
+        || source.includes('source: "renderer-interaction"')
       ))
       .map(([absolute]) => path.relative(featureRoot, absolute));
 

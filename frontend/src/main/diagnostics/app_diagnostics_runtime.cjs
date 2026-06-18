@@ -4,9 +4,9 @@
 
 const {
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
-  FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
   LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
+  RENDERER_INTERACTION_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
@@ -107,13 +107,13 @@ function appendDesktopStartupDiagnostic(input = {}, options = {}) {
   }, options);
 }
 
-function appendFrontendInteractionDiagnostic(entry = {}, options = {}) {
+function appendRendererInteractionDiagnostic(entry = {}, options = {}) {
   const target = entry.target && typeof entry.target === 'object' && !Array.isArray(entry.target)
     ? entry.target
     : {};
   return appendAppRuntimeDiagnostic({
-    traceId: normalizeString(entry.traceId) || diagnosticId('frontend-interaction'),
-    path: FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+    traceId: normalizeString(entry.traceId) || diagnosticId('renderer-interaction'),
+    path: RENDERER_INTERACTION_DIAGNOSTICS_PATH,
     stage: normalizeString(entry.action) || 'unknown',
     status: 'succeeded',
     runtime: 'renderer',
@@ -262,9 +262,9 @@ function appendWakewordLifecycleDiagnostic(input = {}, options = {}) {
 
 module.exports = {
   appendDesktopStartupDiagnostic,
-  appendFrontendInteractionDiagnostic,
   appendIpcBridgeDiagnostic,
   appendLocalRuntimeLifecycleDiagnostic,
+  appendRendererInteractionDiagnostic,
   appendSurfaceVisibilityDiagnostic,
   appendWakewordLifecycleDiagnostic,
 };

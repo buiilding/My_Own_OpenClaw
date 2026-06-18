@@ -3,7 +3,7 @@
  */
 
 const {
-  appendFrontendInteractionDiagnostic: appendFrontendInteractionDiagnosticRuntime,
+  appendRendererInteractionDiagnostic: appendRendererInteractionDiagnosticRuntime,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
 const {
   appendLayerLogLine,
@@ -20,7 +20,7 @@ function shouldIncludeMessageText({
   return allowMessageText === true && isDev === true;
 }
 
-function normalizeFrontendInteractionEntry(entry = {}, options = {}) {
+function normalizeRendererInteractionEntry(entry = {}, options = {}) {
   const source = (
     entry
     && typeof entry === 'object'
@@ -28,7 +28,7 @@ function normalizeFrontendInteractionEntry(entry = {}, options = {}) {
   ) ? entry : {};
   const normalized = {
     schemaVersion: INTERACTION_SCHEMA_VERSION,
-    source: 'frontend-interaction',
+    source: 'renderer-interaction',
     action: typeof source.action === 'string' ? source.action : 'unknown',
     event: typeof source.event === 'string' ? source.event : 'unknown',
     view: typeof source.view === 'string' ? source.view : 'unknown',
@@ -69,7 +69,7 @@ function compactDiagnosticValue(value, maxLength = 80) {
     : normalized;
 }
 
-function formatFrontendInteractionSummary(entry = {}) {
+function formatRendererInteractionSummary(entry = {}) {
   const target = entry.target && typeof entry.target === 'object' && !Array.isArray(entry.target)
     ? entry.target
     : {};
@@ -85,18 +85,18 @@ function formatFrontendInteractionSummary(entry = {}) {
 function handleRendererLog(payload = {}, {
   log = console.log,
   diagnosticsOptions = {},
-  appendFrontendInteractionDiagnostic = appendFrontendInteractionDiagnosticRuntime,
+  appendRendererInteractionDiagnostic = appendRendererInteractionDiagnosticRuntime,
   writeRendererLogLine = appendLayerLogLine,
 } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return false;
   }
-  if (payload.source === 'frontend-interaction') {
-    const entry = normalizeFrontendInteractionEntry(payload.entry || {}, diagnosticsOptions);
-    appendFrontendInteractionDiagnostic(entry);
-    writeRendererLogLine('renderer', `[Renderer][interaction] ${formatFrontendInteractionSummary(entry)}`);
+  if (payload.source === 'renderer-interaction') {
+    const entry = normalizeRendererInteractionEntry(payload.entry || {}, diagnosticsOptions);
+    appendRendererInteractionDiagnostic(entry);
+    writeRendererLogLine('renderer', `[Renderer][interaction] ${formatRendererInteractionSummary(entry)}`);
     if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1') {
-      log(`[FrontendInteraction][renderer] ${formatFrontendInteractionSummary(entry)}`);
+      log(`[RendererInteraction][renderer] ${formatRendererInteractionSummary(entry)}`);
     }
     return true;
   }

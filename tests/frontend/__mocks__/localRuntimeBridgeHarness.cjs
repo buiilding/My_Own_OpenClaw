@@ -57,7 +57,7 @@ jest.mock('../../../frontend/src/main/diagnostics/app_diagnostics_store.cjs', ()
   APP_DIAGNOSTICS_PATH: 'conversation.metadata.list',
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH: 'browser.session_control',
   DESKTOP_STARTUP_DIAGNOSTICS_PATH: 'desktop.startup',
-  FRONTEND_INTERACTION_DIAGNOSTICS_PATH: 'frontend.interaction',
+  RENDERER_INTERACTION_DIAGNOSTICS_PATH: 'renderer.interaction',
   IPC_BRIDGE_DIAGNOSTICS_PATH: 'ipc.bridge',
   LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH: 'local_runtime.lifecycle',
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH: 'surface.visibility',

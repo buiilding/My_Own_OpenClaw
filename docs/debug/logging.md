@@ -1,8 +1,8 @@
 ---
-summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, layer log sink helpers such as ensureLogFile and resolveRendererVerboseLogFile, frontend interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
+summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, layer log sink helpers such as ensureLogFile and resolveRendererVerboseLogFile, renderer interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
 read_when:
   - When desktop logs, layer logs, or runtime logs are missing, too noisy, or needed to isolate a bug.
-  - When changing logging setup, launch scripts, frontend interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
+  - When changing logging setup, launch scripts, renderer interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
   - When resolving layer log sink helper references such as `ensureLogFile`, `resolveRendererVerboseLogFile`, renderer verbose logs, or `bin/windie logs renderer --verbose`.
 title: "Logging"
 ---
@@ -90,7 +90,7 @@ Important main-process flags:
 | `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors desktop startup diagnostics to stdout as `[Main][StartupMetrics]` lines. |
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors wakeword lifecycle diagnostics to stdout as `[Wakeword]` lines. |
 | `WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the `local_runtime.lifecycle` path to stdout. |
-| `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors surface visibility and frontend interaction diagnostics to stdout as compact lines. |
+| `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors surface visibility and renderer interaction diagnostics to stdout as compact lines. |
 | `WINDIE_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer durable `backend.compaction` trace rows for turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm --prefix frontend run test:ghost-cursor` for OS tool ghost overlay debugging. |
@@ -136,7 +136,7 @@ as app diagnostics instead of being printed to stdout by default. Inspect them
 with:
 
 ```bash
-bin/windie diagnostics list --path frontend.interaction --limit 50
+bin/windie diagnostics list --path renderer.interaction --limit 50
 ```
 
 Rows include action, event, view, target tag/type/role, and safe counts. They do
@@ -146,7 +146,7 @@ user content.
 Renderer interaction logging is intentionally narrow. Feature code should use
 only the public interaction logger surface:
 
-- `installFrontendInteractionLogger()` installs the document-level click/change
+- `installRendererInteractionLogger()` installs the document-level click/change
   listener from the renderer app entrypoint.
 - `logUserSentMessage(...)` records the explicit send-message breadcrumb used by
   the chat send path.
@@ -158,9 +158,9 @@ or agent-branded window toggle prefixes are no longer read by the renderer
 logger.
 
 Target description, entry construction, summary formatting, and generic
-interaction dispatch stay private to `frontendInteractionLogger.js`. Electron
+interaction dispatch stay private to `rendererInteractionLogger.js`. Electron
 main owns the final diagnostic normalization and stdout summary formatting after
-the renderer sends the `frontend-interaction` payload through `renderer-log`.
+the renderer sends the `renderer-interaction` payload through `renderer-log`.
 
 | Trace | Code root | Enablement |
 | --- | --- | --- |

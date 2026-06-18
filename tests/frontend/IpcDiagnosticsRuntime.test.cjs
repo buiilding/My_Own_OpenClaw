@@ -13,38 +13,38 @@ describe('ipc_diagnostics_runtime', () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test('routes frontend interaction logs through the interaction label with production redaction', () => {
+  test('routes renderer interaction logs through the interaction label with production redaction', () => {
     const log = jest.fn();
     const writeRendererLogLine = jest.fn();
-    const appendFrontendInteractionDiagnostic = jest.fn();
+    const appendRendererInteractionDiagnostic = jest.fn();
 
     expect(handleRendererLog({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: { event: 'send', messageText: 'secret user text', messageTextLength: 16 },
-    }, { log, appendFrontendInteractionDiagnostic, writeRendererLogLine })).toBe(true);
+    }, { log, appendRendererInteractionDiagnostic, writeRendererLogLine })).toBe(true);
 
     expect(log).not.toHaveBeenCalled();
     expect(writeRendererLogLine).toHaveBeenCalledWith(
       'renderer',
       expect.stringContaining('[Renderer][interaction]'),
     );
-    expect(appendFrontendInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+    expect(appendRendererInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       schemaVersion: 1,
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       action: 'unknown',
       event: 'send',
       messageText: '[redacted]',
       messageTextRedacted: true,
       messageTextLength: 16,
     }));
-    expect(JSON.stringify(appendFrontendInteractionDiagnostic.mock.calls[0])).not.toContain('secret user text');
+    expect(JSON.stringify(appendRendererInteractionDiagnostic.mock.calls[0])).not.toContain('secret user text');
   });
 
-  test('formats frontend interaction entries as compact terminal summaries', () => {
+  test('formats renderer interaction entries as compact terminal summaries', () => {
     const writeRendererLogLine = jest.fn();
 
     expect(handleRendererLog({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: {
         action: 'button_clicked',
         event: 'click',
@@ -54,7 +54,7 @@ describe('ipc_diagnostics_runtime', () => {
           tagName: 'button',
         },
       },
-    }, { writeRendererLogLine, appendFrontendInteractionDiagnostic: jest.fn() })).toBe(true);
+    }, { writeRendererLogLine, appendRendererInteractionDiagnostic: jest.fn() })).toBe(true);
 
     expect(writeRendererLogLine).toHaveBeenCalledWith(
       'renderer',
@@ -77,17 +77,17 @@ describe('ipc_diagnostics_runtime', () => {
   });
 
   test('allows message text only when diagnostics opt in and build is non-production', () => {
-    const appendFrontendInteractionDiagnostic = jest.fn();
+    const appendRendererInteractionDiagnostic = jest.fn();
 
     expect(handleRendererLog({
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: {
         action: 'message_sent',
         event: 'send-message',
         messageText: 'diagnostic text',
       },
     }, {
-      appendFrontendInteractionDiagnostic,
+      appendRendererInteractionDiagnostic,
       diagnosticsOptions: {
         allowMessageText: true,
         isDev: true,
@@ -95,7 +95,7 @@ describe('ipc_diagnostics_runtime', () => {
       writeRendererLogLine: jest.fn(),
     })).toBe(true);
 
-    expect(appendFrontendInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+    expect(appendRendererInteractionDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       messageText: 'diagnostic text',
       messageTextRedacted: false,
     }));

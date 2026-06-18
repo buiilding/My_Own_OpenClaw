@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
 const {
-  appendFrontendInteractionDiagnostic,
+  appendRendererInteractionDiagnostic,
   appendSurfaceVisibilityDiagnostic,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs');
 
@@ -55,10 +55,10 @@ describe('app diagnostics runtime', () => {
     expect(JSON.stringify(event)).not.toContain('guard-snake');
   });
 
-  test('frontend interaction diagnostics ignore removed conversation_ref alias', () => {
+  test('renderer interaction diagnostics ignore removed conversation_ref alias', () => {
     const appendDiagnosticEvent = jest.fn(event => event);
 
-    const event = appendFrontendInteractionDiagnostic({
+    const event = appendRendererInteractionDiagnostic({
       action: 'button_clicked',
       event: 'click',
       conversation_ref: 'conv-snake',

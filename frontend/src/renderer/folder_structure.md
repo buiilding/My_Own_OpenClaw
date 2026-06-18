@@ -185,7 +185,7 @@ frontend/src/renderer/
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
 │   │
 │   ├── interaction/                      # Frontend interaction diagnostics
-│   │   └── frontendInteractionLogger.js # frontendInteractionLogger - capture-phase click/control-change logging and send-message traces
+│   │   └── rendererInteractionLogger.js # rendererInteractionLogger - capture-phase click/control-change logging and send-message traces
 │   │
 │   ├── ipc/                              # IPC communication layer
 │   │   ├── bridge.ts                   # IpcBridge - Type-safe IPC wrapper with channel validation (send, invoke, on, once)
@@ -536,11 +536,11 @@ App
 
 ### Frontend Interaction Logs
 
-- `infrastructure/interaction/frontendInteractionLogger.js` installs one capture-phase renderer listener for user clicks and control changes.
+- `infrastructure/interaction/rendererInteractionLogger.js` installs one capture-phase renderer listener for user clicks and control changes.
 - Click logs include the resolved control label, element role/type, class/test id metadata, and current renderer view.
 - Chat rows provide an explicit interaction label so logs include the visible chat title when a user opens a chat.
 - Message sends log from `useChatMessageSender` after the message is accepted into UI state, with message text redacted by default and only exposed by an explicit diagnostic flag.
-- Interaction logs use schema version `1`, are sent over `SEND_CHANNELS.RENDERER_LOG`, and are normalized/redacted again by Electron main before being stored under the `frontend.interaction` diagnostics path.
+- Interaction logs use schema version `1`, are sent over `SEND_CHANNELS.RENDERER_LOG`, and are normalized/redacted again by Electron main before being stored under the `renderer.interaction` diagnostics path.
 
 ---
 

@@ -21,7 +21,7 @@ const IPC_BRIDGE_DIAGNOSTICS_PATH = 'ipc.bridge';
 const LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH = 'local_runtime.lifecycle';
 const WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH = 'wakeword.lifecycle';
 const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
-const FRONTEND_INTERACTION_DIAGNOSTICS_PATH = 'frontend.interaction';
+const RENDERER_INTERACTION_DIAGNOSTICS_PATH = 'renderer.interaction';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime';
 
@@ -38,7 +38,7 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
     owner: 'Electron main process lifecycle',
     purpose: 'Desktop startup samples, process metrics, single-instance routing, and app quit cleanup.',
   },
-  [FRONTEND_INTERACTION_DIAGNOSTICS_PATH]: {
+  [RENDERER_INTERACTION_DIAGNOSTICS_PATH]: {
     owner: 'Renderer interaction logger through Electron main',
     purpose: 'Sanitized UI interaction breadcrumbs without labels, chat text, or message content.',
   },
@@ -558,12 +558,12 @@ module.exports = {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
-  FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
   LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  RENDERER_INTERACTION_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,

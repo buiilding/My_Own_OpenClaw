@@ -15,7 +15,7 @@ import {
   setConversationWorkspaceBinding,
   workspaceSelectionToBinding,
 } from '../../../../infrastructure/workspace/conversationWorkspaceBinding';
-import { logUserSentMessage } from '../../../../infrastructure/interaction/frontendInteractionLogger';
+import { logUserSentMessage } from '../../../../infrastructure/interaction/rendererInteractionLogger';
 import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
   ensureConversationRefForSend,

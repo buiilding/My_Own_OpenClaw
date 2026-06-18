@@ -173,7 +173,7 @@ App diagnostic paths:
   request lifecycle before a conversation turn exists.
 - `desktop.startup`: Electron main startup metrics, single-instance behavior,
   and app shutdown cleanup.
-- `frontend.interaction`: renderer UI interaction breadcrumbs normalized through
+- `renderer.interaction`: renderer UI interaction breadcrumbs normalized through
   Electron main without raw labels, chat text, or message text.
 - `ipc.bridge`: compact Electron main bridge milestones formerly mirrored to
   stdout as `[ElectronTrace]`, including backend connection, frontend query

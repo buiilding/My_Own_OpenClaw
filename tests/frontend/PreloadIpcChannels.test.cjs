@@ -127,7 +127,7 @@ describe('preload IPC channel registry', () => {
 
   test('allows shared send channels from the central registry', () => {
     exposedIpc.send('renderer-log', {
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: { action: 'button_clicked' },
     });
     exposedIpc.send('live-surface-trace', {
@@ -136,7 +136,7 @@ describe('preload IPC channel registry', () => {
     });
 
     expect(ipcRendererMock.send).toHaveBeenCalledWith('renderer-log', {
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: { action: 'button_clicked' },
     });
     expect(ipcRendererMock.send).toHaveBeenCalledWith('live-surface-trace', {

@@ -37,7 +37,7 @@ LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
 | `WINDIE_DEBUG_STARTUP_STDOUT=1` | Mirrors `desktop.startup` diagnostics to stdout as `[Main][StartupMetrics]` lines. |
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors `wakeword.lifecycle` diagnostics to stdout as `[Wakeword]` lines. |
 | `WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the `local_runtime.lifecycle` path to stdout. |
-| `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors `surface.visibility` and `frontend.interaction` diagnostics to stdout as compact surface/interaction lines. |
+| `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors `surface.visibility` and `renderer.interaction` diagnostics to stdout as compact surface/interaction lines. |
 | `WINDIE_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer `bin/windie trace ... --path backend.compaction` for durable turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enables OS tool ghost overlay debugging; used by `npm --prefix frontend run test:ghost-cursor`. |

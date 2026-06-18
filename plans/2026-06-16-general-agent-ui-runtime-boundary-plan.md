@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer interaction diagnostics boundary
+
+- Finding: renderer UI interaction diagnostics still used
+  `frontend-interaction`, `frontend.interaction`, and frontend-named helper
+  exports even though the active owner is the renderer logger normalized by
+  Electron main.
+- Change: renamed the active renderer logger module/test, main diagnostics
+  source/path/helper, preload example payloads, and debug docs to
+  `renderer-interaction` / `renderer.interaction`.
+- Validation: focused renderer interaction, IPC diagnostics runtime,
+  diagnostics runtime, and preload Jest coverage; exact stale-name scan; main
+  diagnostics syntax checks; docs listing; and diff check. The storage-backed
+  diagnostics suite was attempted but this shell has no `sqlite3` executable on
+  PATH, so persistence cases could not run here.
+- Compatibility: no migration required. This changes local diagnostic
+  inspection labels and internal renderer-log payload routing only; UI event
+  schema version, redaction behavior, IPC channel names, stored conversations,
+  backend websocket payloads, credentials, permissions, and provider policy are
+  unchanged.
+
 ### 2026-06-18 SDK current-turn execution-skipped field
 
 - Finding: renderer current-turn side effects still preserved typing state by
@@ -2517,7 +2537,7 @@ Each completed slice should report:
   canonical browser-only diagnostics.
 - Change: removed legacy flag reads, updated interaction logger tests to assert
   the old flags are ignored, and updated logging docs.
-- Validation: focused frontend interaction logger Jest test, docs listing,
+- Validation: focused renderer interaction logger Jest test, docs listing,
   stale flag scan, and diff check.
 - Compatibility: no migration required for first-party code. Browser debug
   snippets must use `__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__`

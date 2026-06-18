@@ -1,5 +1,5 @@
 /**
- * Provides the frontend interaction logger module for the renderer UI.
+ * Provides the renderer interaction logger module for the renderer UI.
  */
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
@@ -182,10 +182,10 @@ function normalizeInteractionDetails(details = {}, {
   return normalized;
 }
 
-function createFrontendInteractionEntry(action, details = {}, options = {}) {
+function createRendererInteractionEntry(action, details = {}, options = {}) {
   return {
     schemaVersion: INTERACTION_SCHEMA_VERSION,
-    source: 'frontend-interaction',
+    source: 'renderer-interaction',
     action,
     view: getRendererView(),
     timestamp: new Date().toISOString(),
@@ -206,7 +206,7 @@ function compactInteractionValue(value, maxLength = 80) {
     : normalized;
 }
 
-function formatFrontendInteractionSummary(entry = {}) {
+function formatRendererInteractionSummary(entry = {}) {
   const target = entry.target && typeof entry.target === 'object' && !Array.isArray(entry.target)
     ? entry.target
     : {};
@@ -219,14 +219,14 @@ function formatFrontendInteractionSummary(entry = {}) {
   ].join(' ');
 }
 
-function logFrontendInteraction(action, details = {}) {
-  const payload = createFrontendInteractionEntry(action, details);
+function logRendererInteraction(action, details = {}) {
+  const payload = createRendererInteractionEntry(action, details);
   if (isWindowFlagEnabled('__DESKTOP_RUNTIME_DEBUG_SURFACE_STDOUT__')) {
-    console.log(`[FrontendInteraction] ${formatFrontendInteractionSummary(payload)}`);
+    console.log(`[RendererInteraction] ${formatRendererInteractionSummary(payload)}`);
   }
   try {
     IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, {
-      source: 'frontend-interaction',
+      source: 'renderer-interaction',
       entry: payload,
     });
   } catch (_error) {
@@ -241,7 +241,7 @@ function handleClick(event) {
   }
   const { element, ...target } = description;
   const action = classifyClickAction(element, target.label);
-  logFrontendInteraction(action, {
+  logRendererInteraction(action, {
     event: 'click',
     target,
   });
@@ -257,7 +257,7 @@ function handleChange(event) {
   const checked = inputType === 'checkbox' || inputType === 'radio'
     ? element.checked === true
     : undefined;
-  logFrontendInteraction('control_changed', {
+  logRendererInteraction('control_changed', {
     event: 'change',
     target,
     checked,
@@ -273,7 +273,7 @@ export function logUserSentMessage({
   imageCount = 0,
   readableFileCount = 0,
 } = {}) {
-  logFrontendInteraction('message_sent', {
+  logRendererInteraction('message_sent', {
     event: 'send-message',
     conversationRef,
     senderSurface,
@@ -285,7 +285,7 @@ export function logUserSentMessage({
   });
 }
 
-export function installFrontendInteractionLogger() {
+export function installRendererInteractionLogger() {
   if (installedCleanup || typeof document === 'undefined') {
     return installedCleanup || (() => {});
   }

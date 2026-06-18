@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/main: rename the active renderer interaction diagnostics source,
+  path, helper, and docs from frontend-interaction/frontend.interaction to
+  renderer-interaction/renderer.interaction so UI breadcrumbs are owned by the
+  renderer runtime boundary; no migration is required because diagnostic rows
+  are local best-effort inspection data and payload shape/redaction behavior is
+  unchanged.
 - sdk/renderer: expose skipped local execution state as `executionSkipped` on
   SDK current-turn tool events and presentation entries so renderer side
   effects no longer inspect raw tool metadata; no migration is required because

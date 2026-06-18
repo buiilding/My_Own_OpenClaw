@@ -9,12 +9,12 @@ const {
   APP_DIAGNOSTICS_PATH,
   BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH,
   DESKTOP_STARTUP_DIAGNOSTICS_PATH,
-  FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
   IPC_BRIDGE_DIAGNOSTICS_PATH,
   LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
   MCP_DISCOVERY_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
+  RENDERER_INTERACTION_DIAGNOSTICS_PATH,
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
@@ -309,11 +309,11 @@ describe('app diagnostics store', () => {
     expect(JSON.stringify(events[0])).not.toContain('do not store');
   });
 
-  test('persists sanitized frontend interaction diagnostics without labels', () => {
+  test('persists sanitized renderer interaction diagnostics without labels', () => {
     appendDiagnosticEvent({
       traceId: 'interaction-diag-test',
       spanId: 'interaction-span-test',
-      path: FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+      path: RENDERER_INTERACTION_DIAGNOSTICS_PATH,
       stage: 'button_clicked',
       status: 'succeeded',
       runtime: 'renderer',
@@ -331,7 +331,7 @@ describe('app diagnostics store', () => {
     });
 
     const events = readDiagnosticEvents({
-      pathFilter: FRONTEND_INTERACTION_DIAGNOSTICS_PATH,
+      pathFilter: RENDERER_INTERACTION_DIAGNOSTICS_PATH,
       limit: 10,
     });
     expect(events).toHaveLength(1);
