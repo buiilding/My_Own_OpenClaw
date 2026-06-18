@@ -74,7 +74,7 @@ Coverage note:
 
 ## Drift Hotspots
 
-1. Renaming payload keys (`text`/`status`) without synchronized frontend contract updates breaks stream rendering.
+1. Renaming payload keys (`text`/`status`) without synchronized SDK/renderer contract updates breaks stream rendering.
 2. Removing required-field guard can emit invalid empty chunks/thought events and cause noisy UI updates.
 3. Converting skip semantics from `None` to raised exceptions changes stream-pipeline failure behavior.
 

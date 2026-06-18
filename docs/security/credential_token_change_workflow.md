@@ -199,7 +199,7 @@ Edit:
 
 - `backend/src/api/routes/websocket/connection.py` for handshake auth and identity binding.
 - `backend/src/api/schemas/common.py` if handshake fields change.
-- frontend websocket client header construction if auth header transport changes.
+- SDK/Electron websocket client header construction if auth header transport changes.
 - session cleanup/runtime code only if identity lifecycle changes.
 
 Validate:

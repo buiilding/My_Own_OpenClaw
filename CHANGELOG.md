@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/runtime: align active contract-touchpoint docs with renderer,
   Electron main, SDK local-runtime, Python sidecar, and backend ownership
   instead of stale frontend-owned/frontend-backend boundary wording.
+- docs/gateway: align active security, endpoint, websocket, and formatter
+  workflow docs with SDK/Electron websocket transport and renderer contract
+  ownership instead of stale frontend websocket/client contract wording.
 - tests/main: extend the host-skin boundary guard so the hosted runs API auth
   header remains skin-owned instead of moving back into the generic VM worker
   runtime.

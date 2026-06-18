@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Websocket Workflow Docs Client Boundary Wording
+
+- Finding: active security, operations, gateway, and formatter workflow docs
+  still described websocket auth/header, endpoint, and stream-payload drift in
+  stale frontend websocket or frontend contract terms, even though the current
+  owners are SDK/Electron websocket transport and renderer-facing contract
+  consumers.
+- Change: reworded those docs to name SDK/Electron client transport, desktop
+  client endpoint tests, and SDK/renderer contract updates; expanded the
+  modular boundary guard to cover those active docs and retired phrases.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scans for the touched docs, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  auth headers, endpoint selection, websocket payloads, formatter output, and
+  renderer stream behavior are unchanged.
+
 ### 2026-06-18 Active Contract Docs Boundary Wording
 
 - Finding: active docs still described contract touchpoints as

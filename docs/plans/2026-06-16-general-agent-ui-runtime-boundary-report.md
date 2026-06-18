@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Websocket Workflow Docs Client Boundary Wording
+
+- Worktree was clean after `2d8f61c4a`, with `main` ahead of `origin/main` by
+  863 commits.
+- Recent commits, the current plan/report, and repo-wide stale-wording scans
+  were inspected before editing docs.
+- Finding: active security, operations, gateway, and formatter workflow docs
+  still described websocket auth/header, endpoint, and stream-payload drift in
+  stale frontend websocket or frontend contract terms, even though the current
+  owners are SDK/Electron websocket transport and renderer-facing contract
+  consumers.
+- Change: reworded those docs to name SDK/Electron client transport, desktop
+  client endpoint tests, and SDK/renderer contract updates; expanded the
+  modular boundary guard to cover those active docs and retired phrases.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scans for the touched docs, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  auth headers, endpoint selection, websocket payloads, formatter output, and
+  renderer stream behavior are unchanged.
+
 ### 2026-06-18 Active Contract Docs Boundary Wording
 
 - Worktree was clean after `c9bbb849a`, with `main` ahead of `origin/main` by
