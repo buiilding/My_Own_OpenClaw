@@ -86,7 +86,7 @@ Ownership rules:
   `AgentSdkQueryOptions`, and `AgentInstallIdentityResponse` names for
   reusable SDK host code.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
-  auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
+  auto-start/reuse, local runtime event subscriptions, local-runtime-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and
   `moduleTool(...)` registration helpers.
 - the SDK `AgentClient` runtime module owns wake-up orchestration, websocket
@@ -740,10 +740,10 @@ Non-Electron SDK hosts can override that behavior with:
   This camelCase `baseUrl` option does not change the daemon discovery-file
   contract, which remains canonical `base_url`.
 - `memory`: enabled by default. When enabled, the SDK obtains backend embeddings,
-  asks the sidecar memory index for relevant local memories, injects them into
+  asks the local runtime memory index for relevant local memories, injects them into
   model-facing user content, and stores completed turns as episodic memory.
 - `persistence`: enabled by default. When enabled, `agent.chat()` and
-  `agent.conversation()` use the sidecar-backed default conversation store so
+  `agent.conversation()` use the local-runtime-backed default conversation store so
   chat event history survives process restart.
 
 `AgentToolDefinition`, `AgentLocalRuntimeClient`, `createAgentLocalRuntimeProvider`,

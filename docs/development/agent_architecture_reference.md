@@ -220,7 +220,7 @@ Key TypeScript SDK surfaces:
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: client-local
   tool claim, execution callback, result correlation, and backend result return.
 - `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`: local runtime
-  daemon discovery/start/reuse, sidecar-backed storage, builtin tool selection,
+  daemon discovery/start/reuse, local-runtime-backed storage, builtin tool selection,
   local memory/title RPCs, and module-tool registration helpers.
 
 SDK ownership rules:
@@ -309,6 +309,6 @@ portion as the dashboard instead of maintaining a divergent response model.
   `windie:status` -> renderer projection and transcript side effects.
 - Tool turn: backend model-visible tool call -> SDK desktop-agent tool router ->
   sidecar executable tool -> SDK result return -> backend history.
-- Conversation history: renderer-visible transcript and sidecar-backed SDK store
+- Conversation history: renderer-visible transcript and local-runtime-backed SDK store
   are durable local authority; backend sessions are inference state that can be
   rebuilt from local transcript.

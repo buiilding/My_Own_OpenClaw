@@ -37,7 +37,7 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
 | backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
-| local tool execution | SDK local runtime | the local runtime runs sidecar-backed tools; it does not own conversation replay semantics |
+| local tool execution | SDK local runtime | the local runtime runs local-runtime-backed tools; it does not own conversation replay semantics |
 | backend provider history | backend | provider-safe history remains backend-owned after result ingress |
 
 ## Event Model
@@ -308,7 +308,7 @@ The SDK ships two reusable store adapters:
   `getRevision()` and metadata listing advance even when the rewrite keeps only
   old events or no events.
 
-`AgentClient.wakeUp(...)` enables persistence by default. When a sidecar
+`AgentClient.wakeUp(...)` enables persistence by default. When a local
 runtime is available, the agent default store is `LocalRuntimeConversationStore`;
 callers only need to pass `store` when they intentionally want a non-default
 adapter. Set `persistence: false` for an in-memory session.
@@ -316,11 +316,11 @@ adapter. Set `persistence: false` for an in-memory session.
 `LocalRuntimeConversationStore` stores backend producer metadata separately from
 local order. Backend events write `producer = "backend"`,
 `producer_event_id = eventId`, and `producer_sequence =
-payload.backendSequence`. SDK/sidecar-created events keep SDK-owned event ids.
+payload.backendSequence`. SDK/local-runtime-created events keep SDK-owned event ids.
 The sidecar still assigns `message_index` locally, and display/replay loading
 orders by `message_index` rather than backend sequence.
 
-Electron's sidecar-backed store is a first-party adapter. It is allowed to know
+Electron's local-runtime-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.
 Desktop chat code should call public conversation commands through the desktop
 runtime facade and render SDK projections, not depend on the adapter as its
@@ -340,7 +340,7 @@ continuity service.
 
 ## History DB Read Model Boundary
 
-Electron sidecar-backed stores persist normalized conversation events in
+Electron local-runtime-backed stores persist normalized conversation events in
 `history/history.db` under `conversation_events`. That database exposes
 `conversation_display_messages` as a diagnostic and prototyping read model for
 visible chat rows, but first-party UI code should still call SDK/store display
@@ -443,7 +443,7 @@ store.loadForRehydrate(conversationRef)
   -> backendTransport.rehydrateConversation(...)
 ```
 
-Electron may provide a sidecar-backed store adapter and agent runtime transport, but
+Electron may provide a local-runtime-backed store adapter and agent runtime transport, but
 it should not duplicate projection, provider-history filtering, compacted
 replay, or delete orchestration in feature code. Desktop facades can expose
 commands such as `loadForDisplay`, `rehydrateFromStore`, and
@@ -456,7 +456,7 @@ Responsibility split:
 
 - SDK owns conversation semantics, display projection, rehydrate projection, and
   continuity orchestration.
-- Electron owns local IPC, sidecar-backed persistence, and renderer wiring.
+- Electron owns local IPC, local-runtime-backed persistence, and renderer wiring.
 - Sidecar owns durable rows, ordering, list/search/title/delete queries, and
   SQLite/FAISS mechanics.
 - SDK local-runtime clients own the raw sidecar event subscription surface.

@@ -149,22 +149,31 @@ describe('modular sdk refactor completion boundary', () => {
     const sdkDocs = await Promise.all([
       read('docs/sdk/README.md'),
       read('docs/sdk/windie_client_runtime.md'),
+      read('docs/sdk/conversation_runtime.md'),
       read('docs/sdk/hosted_backend_clients.md'),
       read('docs/sdk/tool_authoring.md'),
     ]);
     const sdkDocText = sdkDocs.join('\n');
+    const architectureText = await read('docs/development/agent_architecture_reference.md');
 
     expect(sdkDocText).toContain('local-runtime module-tool SDK example');
     expect(sdkDocText).toContain('local-runtime plugin SDK example');
     expect(sdkDocText).toContain('local runtime tool manifest');
     expect(sdkDocText).toContain('local runtime tool-result data');
+    expect(sdkDocText).toContain('local-runtime-backed default conversation store');
     expect(sdkDocText).not.toContain('sidecar runtime client');
     expect(sdkDocText).not.toContain('sidecar tool manifest');
     expect(sdkDocText).not.toContain('sidecar execution');
+    expect(sdkDocText).not.toContain('sidecar-backed conversation');
+    expect(sdkDocText).not.toContain('sidecar-backed default conversation store');
+    expect(sdkDocText).not.toContain('Electron sidecar-backed stores');
+    expect(sdkDocText).not.toContain('sidecar-backed SDK store');
     expect(sdkDocText).not.toContain('minimal sidecar module-tool');
     expect(sdkDocText).not.toContain('runnable sidecar plugin');
     expect(sdkDocText).not.toContain('sidecar local tool implementation');
     expect(sdkDocText).not.toContain('Use sidecar tools for local machine control');
+    expect(architectureText).not.toContain('sidecar-backed storage');
+    expect(architectureText).not.toContain('sidecar-backed SDK store');
   });
 
   test('landing docs track desktop runtime and local runtime public copy', async () => {

@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime-backed store docs boundary
+
+- Finding: SDK conversation and AgentClient docs still called default persistence and Electron store adapters sidecar-backed, which put the Python implementation name in the reusable SDK store contract.
+- Change: changed SDK and architecture docs to say local-runtime-backed stores/persistence/storage and extended boundary coverage to reject the stale sidecar-backed SDK-store phrases.
+- Validation: focused ModularRefactorCompletionBoundary Jest coverage, stale sidecar-backed SDK-doc scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes documentation and guard coverage only; conversation store APIs, SQLite rows, SDK local-runtime behavior, Python sidecar storage mechanics, settings, and persisted data are unchanged.
+
 ### 2026-06-17 sidecar status service local-runtime label
 
 - Finding: the Python local runtime ping/status diagnostics still returned `service: local_sidecar_runtime`, even though the public local execution boundary is the SDK local runtime and exact usage scans found only focused tests consuming that value.
