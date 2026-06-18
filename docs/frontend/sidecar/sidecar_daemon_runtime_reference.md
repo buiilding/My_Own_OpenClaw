@@ -49,7 +49,7 @@ file field.
 
 Every endpoint requires the token in either:
 
-- `x-windie-sidecar-token: <token>`
+- `x-agent-local-runtime-token: <token>`
 - `Authorization: Bearer <token>`
 
 The SDK auto-local-runtime provider probes the discovery file first. If `/status`

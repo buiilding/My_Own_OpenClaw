@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentLocalRuntimeHttpClient = void 0;
 exports.moduleTool = moduleTool;
 exports.createAgentLocalRuntimeProvider = createAgentLocalRuntimeProvider;
+const LOCAL_RUNTIME_TOKEN_HEADER = 'x-agent-local-runtime-token';
 function resolveFetchImplementation(fetchImpl) {
     if (fetchImpl) {
         return fetchImpl;
@@ -159,7 +160,7 @@ class AgentLocalRuntimeHttpClient {
         }
         const socket = new WebSocketImpl(buildEventWebSocketUrl(this.baseUrl), {
             headers: {
-                'x-windie-sidecar-token': this.token,
+                [LOCAL_RUNTIME_TOKEN_HEADER]: this.token,
             },
         });
         this.eventSocket = socket;
@@ -236,7 +237,7 @@ class AgentLocalRuntimeHttpClient {
     }
     async request(path, init) {
         const headers = new Headers(init.headers);
-        headers.set('x-windie-sidecar-token', this.token);
+        headers.set(LOCAL_RUNTIME_TOKEN_HEADER, this.token);
         const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
             ...init,
             headers,

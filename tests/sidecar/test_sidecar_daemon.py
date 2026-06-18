@@ -287,17 +287,28 @@ async def test_sidecar_daemon_rejects_missing_or_invalid_token():
     daemon = LocalRuntimeDaemon(token="test-token")
     missing = await daemon._auth_middleware(FakeRequest(), daemon.handle_health)
     invalid = await daemon._auth_middleware(
-        FakeRequest(headers={"x-windie-sidecar-token": "bad"}),
+        FakeRequest(headers={"x-agent-local-runtime-token": "bad"}),
         daemon.handle_health,
     )
     valid = await daemon._auth_middleware(
-        FakeRequest(headers={"x-windie-sidecar-token": "test-token"}),
+        FakeRequest(headers={"x-agent-local-runtime-token": "test-token"}),
+        daemon.handle_health,
+    )
+    bearer_valid = await daemon._auth_middleware(
+        FakeRequest(headers={"authorization": "Bearer test-token"}),
+        daemon.handle_health,
+    )
+    retired_header_name = "x-" + "windie-sidecar-token"
+    retired_header = await daemon._auth_middleware(
+        FakeRequest(headers={retired_header_name: "test-token"}),
         daemon.handle_health,
     )
 
     assert missing.status == 401
     assert invalid.status == 401
     assert valid.status == 200
+    assert bearer_valid.status == 200
+    assert retired_header.status == 401
 
 
 @pytest.mark.asyncio

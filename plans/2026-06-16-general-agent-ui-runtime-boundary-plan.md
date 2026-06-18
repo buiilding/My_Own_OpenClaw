@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 local-runtime token header boundary
+
+- Finding: the TypeScript SDK local-runtime client, Python SDK client, sidecar daemon auth middleware, tests, and daemon docs still used the product/implementation-named `x-windie-sidecar-token` header on the reusable local-runtime daemon contract.
+- Change: introduced the canonical `x-agent-local-runtime-token` header across TS SDK source/CJS, Python SDK, daemon auth, docs, and focused tests; kept existing `Authorization: Bearer <token>` support and added coverage proving the retired named header no longer authenticates.
+- Validation: focused WindieSdkClient local-runtime Jest paths, focused sidecar daemon and Python SDK pytest coverage, sidecar Python py_compile, docs listing, exact retired-header scan, and scoped diff check.
+- Compatibility: no persisted-data migration required. Daemon tokens are transient discovery/session secrets; supported callers should use `x-agent-local-runtime-token` or the existing bearer auth path, while the retired sidecar-named header now fails closed.
+
 ### 2026-06-18 general local execution routing docs
 
 - Finding: public routing, security, gateway, memory, and diagnostic docs still described the reusable local tool path as sidecar execution or sidecar results after the SDK/main local-runtime boundary became the current public contract.

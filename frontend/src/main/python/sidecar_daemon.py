@@ -31,6 +31,7 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "desktop-runtime" / "local-runtime-daemon.json"
 )
+LOCAL_RUNTIME_TOKEN_HEADER = "x-agent-local-runtime-token"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
 MCP_EXECUTION_DIAGNOSTICS_PATH = "mcp.execution"
@@ -853,7 +854,7 @@ class LocalRuntimeDaemon:
     async def _auth_middleware(
         self, request: web.Request, handler: Any
     ) -> web.StreamResponse:
-        supplied = request.headers.get("x-windie-sidecar-token", "")
+        supplied = request.headers.get(LOCAL_RUNTIME_TOKEN_HEADER, "")
         auth_header = request.headers.get("authorization", "")
         if auth_header.lower().startswith("bearer "):
             supplied = auth_header[7:].strip()

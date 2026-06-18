@@ -110,7 +110,7 @@ async def test_agent_local_runtime_http_client_errors_use_generic_wording():
         await client.status()
 
     _, _, headers = client._session.last_get
-    assert headers == {"x-windie-sidecar-token": "runtime-token"}
+    assert headers == {"x-agent-local-runtime-token": "runtime-token"}
 
 
 @pytest.mark.asyncio

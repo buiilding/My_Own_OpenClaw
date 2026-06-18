@@ -25,6 +25,7 @@ from windie._unicode_sanitizer import sanitize_surrogates
 DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "desktop-runtime" / "local-runtime-daemon.json"
 )
+LOCAL_RUNTIME_TOKEN_HEADER = "x-agent-local-runtime-token"
 DEFAULT_LOCAL_RUNTIME_START_TIMEOUT_SECONDS = 10.0
 DEFAULT_LOCAL_RUNTIME_POLL_INTERVAL_SECONDS = 0.1
 
@@ -519,7 +520,7 @@ class AgentLocalRuntimeHttpClient:
             self._session = None
 
     def _headers(self) -> dict[str, str]:
-        return {"x-windie-sidecar-token": self.token}
+        return {LOCAL_RUNTIME_TOKEN_HEADER: self.token}
 
     async def _request_json(
         self,

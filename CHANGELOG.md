@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/sidecar: rename the local-runtime daemon token header from `x-windie-sidecar-token` to `x-agent-local-runtime-token`, keeping `Authorization: Bearer <token>` as the alternate auth path; no persisted-data migration is required because daemon tokens are transient discovery/session secrets, and callers must use the new local-runtime header or bearer auth.
 - docs/runtime-boundary: route general public tool, security, gateway, memory, and routing docs through SDK/main local-execution wording instead of sidecar-execution/result labels; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - tests: move remaining retired `desktop-agent` literals in boundary assertions and SDK fixtures behind neutral custom-agent or constructed-string coverage so active stale-name scans only report intentional migration docs.
 - sidecar: rename the internal Python JSON-RPC service and memory mixin from `LocalBackend` to `LocalRuntimeService` / `LocalRuntimeMemoryHandlersMixin` while preserving the `local_backend.py` launch module, daemon `/rpc` contract, JSON-RPC method names, tool schemas, storage, and package targets.

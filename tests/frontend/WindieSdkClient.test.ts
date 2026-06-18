@@ -2295,9 +2295,9 @@ describe('Agent SDK client behavior', () => {
 
     const statusCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/status'));
     const registerCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools/register-module'));
-    expect((statusCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
+    expect((statusCall?.[1]?.headers as Headers).get('x-agent-local-runtime-token')).toBe('daemon-token');
     expect(registerCall?.[1]?.method).toBe('POST');
-    expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
+    expect((registerCall?.[1]?.headers as Headers).get('x-agent-local-runtime-token')).toBe('daemon-token');
   });
 
   test('wakeUp can expose desktop builtin tools from the local runtime manifest', async () => {
@@ -2787,14 +2787,14 @@ describe('Agent SDK client behavior', () => {
 
     const registerCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools/register-module'));
     expect(registerCall?.[0]).toBe('http://127.0.0.1:43123/tools/register-module');
-    expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('auto-token');
+    expect((registerCall?.[1]?.headers as Headers).get('x-agent-local-runtime-token')).toBe('auto-token');
 
     mockFetch.mockClear();
     const tools = await client.listTools();
     expect(tools?.tools?.[0]?.name).toBe('save_note');
     const listCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools'));
     expect(listCall?.[0]).toBe('http://127.0.0.1:43123/tools');
-    expect((listCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('auto-token');
+    expect((listCall?.[1]?.headers as Headers).get('x-agent-local-runtime-token')).toBe('auto-token');
   });
 
   test('createAgentLocalRuntimeProvider reuses discovery metadata directly', async () => {
@@ -2828,7 +2828,7 @@ describe('Agent SDK client behavior', () => {
       }),
     );
     const headers = mockFetch.mock.calls[0][1]?.headers as Headers;
-    expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
+    expect(headers.get('x-agent-local-runtime-token')).toBe('provider-token');
   });
 
   test('createAgentLocalRuntimeProvider reports generic discovery timeout wording', async () => {

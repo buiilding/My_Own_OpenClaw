@@ -4,6 +4,8 @@
 
 import type { JsonRecord } from '../conversation/types.js';
 
+const LOCAL_RUNTIME_TOKEN_HEADER = 'x-agent-local-runtime-token';
+
 type FetchLike = typeof fetch;
 type EventWebSocketLike = {
   close?: () => void;
@@ -260,7 +262,7 @@ export class AgentLocalRuntimeHttpClient implements AgentLocalRuntimeClient {
     }
     const socket = new WebSocketImpl(buildEventWebSocketUrl(this.baseUrl), {
       headers: {
-        'x-windie-sidecar-token': this.token,
+        [LOCAL_RUNTIME_TOKEN_HEADER]: this.token,
       },
     });
     this.eventSocket = socket;
@@ -342,7 +344,7 @@ export class AgentLocalRuntimeHttpClient implements AgentLocalRuntimeClient {
 
   private async request<TResponse>(path: string, init: RequestInit): Promise<TResponse> {
     const headers = new Headers(init.headers);
-    headers.set('x-windie-sidecar-token', this.token);
+    headers.set(LOCAL_RUNTIME_TOKEN_HEADER, this.token);
     const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
       ...init,
       headers,
