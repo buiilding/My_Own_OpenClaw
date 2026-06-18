@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat pending-turn desktop IPC through a renderer app
+  runtime client instead of importing the send channel from chat hooks and
+  message-send utilities.
 - sdk/runtime: require hosts to provide a local-runtime launch command, daemon
   script, or daemon-script environment override instead of guessing WindieOS
   repository sidecar paths from the SDK.

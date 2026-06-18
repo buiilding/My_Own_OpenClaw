@@ -3,9 +3,9 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
-import { DESKTOP_RUNTIME_SEND_CHANNELS } from '../../../../infrastructure/ipc/channels';
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
+import { DesktopPendingTurnRuntimeClient } from '../../../../app/runtime/desktopPendingTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
@@ -190,10 +190,7 @@ function acceptPendingTurn({
   };
   const store = useChatStore.getState();
   store.acceptPendingTurn(pendingTurn);
-  IpcBridge.send(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, {
-    type: 'pending',
-    pendingTurn,
-  });
+  DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
 }
 
 async function runSendSurfaceWindowPolicy({

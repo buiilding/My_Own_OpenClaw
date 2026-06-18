@@ -16,6 +16,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient.ts`
 - `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
 - `frontend/src/main/ipc.cjs`
@@ -68,6 +69,11 @@ members as computed handler keys. The string values remain the wire contract on
 such as `ensureAgent`; the source of truth for adding or renaming a supported
 SDK-shaped command is
 `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`.
+
+`desktopPendingTurnRuntimeClient.ts` owns the renderer adapter for the desktop
+pending-turn IPC send channel. Chat hooks and message-send utilities update
+their local store state, then call this runtime client instead of importing
+desktop IPC channel constants directly.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

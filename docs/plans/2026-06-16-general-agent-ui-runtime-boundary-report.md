@@ -137,8 +137,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SDK local-runtime auto-start now requires a host command, explicit daemon
   script, or daemon-script environment override instead of guessing WindieOS
   repository sidecar paths.
+  Renderer chat send and stop code now routes desktop pending-turn IPC through
+  a renderer app runtime client instead of importing the desktop send channel
+  directly from chat hooks and message-send utilities.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Pending-Turn Runtime Client Slice
+
+- Worktree was clean after `44651b3c2`, with `main` ahead of `origin/main` by
+  838 commits.
+- Finding: chat send and stop feature code imported desktop pending-turn IPC
+  channel constants directly, keeping a host transport detail in chat hooks and
+  message-send preparation.
+- Change: added `DesktopPendingTurnRuntimeClient` under the renderer app
+  runtime layer and routed pending-turn set/clear calls through it.
+- Validation: focused renderer chat boundary test, pending-turn/send/stop
+  integration tests, docs listing, and diff check.
+- Compatibility: no migration required. Pending-turn IPC channel strings,
+  payload shapes, local store behavior, SDK query commands, Electron main
+  handlers, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 SDK Local Runtime Launch Boundary Slice
 

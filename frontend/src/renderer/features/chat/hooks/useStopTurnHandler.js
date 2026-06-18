@@ -5,8 +5,7 @@
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
-import { IpcBridge } from '../../../infrastructure/ipc/bridge';
-import { DESKTOP_RUNTIME_SEND_CHANNELS } from '../../../infrastructure/ipc/channels';
+import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 import { resolveStopTurnTarget } from '../utils/state/stopQueryState';
 
 export function useStopTurnHandler({
@@ -48,8 +47,7 @@ export function useStopTurnHandler({
     }
     if (stopTarget.source === 'pending-turn') {
       try {
-        IpcBridge.send(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, {
-          type: 'clear',
+        DesktopPendingTurnRuntimeClient.clear({
           conversationRef: stopTarget.conversationRef,
           turnRef: stopTarget.turnRef,
         });

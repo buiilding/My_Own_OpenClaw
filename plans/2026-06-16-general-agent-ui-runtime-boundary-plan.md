@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Pending-Turn Runtime Client
+
+- Finding: chat send and stop feature code imported desktop pending-turn IPC
+  channel constants directly, keeping a host transport detail in chat hooks and
+  message-send preparation.
+- Change: added `DesktopPendingTurnRuntimeClient` under the renderer app
+  runtime layer and routed pending-turn set/clear calls through it.
+- Validation: focused renderer chat boundary test, pending-turn/send/stop
+  integration tests, docs listing, and diff check.
+- Compatibility: no migration required. Pending-turn IPC channel strings,
+  payload shapes, local store behavior, SDK query commands, Electron main
+  handlers, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 SDK Local Runtime Launch Boundary
 
 - Finding: the SDK local-runtime provider still guessed WindieOS repository

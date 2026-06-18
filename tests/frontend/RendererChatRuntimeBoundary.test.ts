@@ -568,6 +568,34 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.compactHistory');
   });
 
+  test('chat send and stop code routes pending-turn IPC through app runtime client', async () => {
+    const checkedPaths = [
+      path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
+      path.join(chatRoot, 'hooks/useStopTurnHandler.js'),
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+    ];
+    const offenders: string[] = [];
+
+    for (const filePath of checkedPaths) {
+      const source = await fs.readFile(filePath, 'utf8');
+      if (
+        source.includes('DESKTOP_RUNTIME_SEND_CHANNELS')
+        || source.includes('PENDING_TURN')
+        || source.includes('infrastructure/ipc/channels')
+      ) {
+        offenders.push(path.relative(rendererRoot, filePath));
+      }
+    }
+
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(offenders).toEqual([]);
+    expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
