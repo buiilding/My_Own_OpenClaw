@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar-owned source topology map and remaining package `__init__` export surfaces."
+summary: "Deep reference for the Python local-runtime implementation source topology map and remaining package `__init__` export surfaces."
 read_when:
   - When updating sidecar package boundaries or contributor-facing topology docs.
   - When changing sidecar package public exports.
@@ -15,7 +15,8 @@ This page documents:
 
 ## Sidecar Topology Source Map Contract
 
-`frontend/src/main/python/folder_structure.md` is the source-owned topology narrative for sidecar runtime boundaries.
+`frontend/src/main/python/folder_structure.md` is the source-owned topology
+narrative for the Python local-runtime implementation boundaries.
 
 It documents:
 

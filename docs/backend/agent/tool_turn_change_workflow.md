@@ -206,7 +206,7 @@ SDK/main owners:
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 
-Sidecar owners:
+Local-runtime implementation owners:
 
 - `frontend/src/main/python/tools/**`
 - `frontend/src/main/python/core/**`

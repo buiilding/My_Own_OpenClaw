@@ -16,7 +16,7 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
 
 ## Tool Surface
 
-| Tool | Purpose | Sidecar owner |
+| Tool | Purpose | Local-runtime implementation owner |
 | --- | --- | --- |
 | `read_file` | Read text files with pagination, binary guards, and truncation behavior | `frontend/src/main/python/tools/filesystem/read_file_tool.py` |
 | `replace` | Apply strict/lenient replacements and patch chunks atomically | `frontend/src/main/python/tools/filesystem/replace_tool.py`, `replace_engine.py` |

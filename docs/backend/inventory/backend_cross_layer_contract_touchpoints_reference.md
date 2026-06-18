@@ -40,7 +40,7 @@ This reference lists backend-owned contracts that have direct SDK, renderer, or 
 
 ## Browser Contract Touchpoints
 
-| Backend owner | Contract files | Sidecar owners | Contract note |
+| Backend owner | Contract files | Local-runtime implementation owners | Contract note |
 | --- | --- | --- | --- |
 | Browser unified args | `backend/src/tools/browser/shared_contract_loader.py`, `backend/src/tools/remote_tools/browser.py` | `frontend/src/main/python/windie_shared/browser_contract*.py` and sidecar `browser_tool.py` | Action names + optional fields must stay aligned |
 | Remote browser stub payload | `backend/src/tools/remote_tools/browser.py` | Sidecar `browser_tool.py`, `browser_use_engine.py` | Payload transport keys must preserve action/args shape |

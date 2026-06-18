@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sidecar: route sidecar workflow, daemon manifest, topology, and
+  cross-layer owner-table wording through local-runtime implementation labels
+  while keeping Python sidecar source paths and tests visible. No migration
+  required.
 - docs/desktop: label the wakeword main-file entry as the local-runtime
   wakeword service implementation instead of a sidecar-owned service. No
   migration required.

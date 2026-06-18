@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a sidecar docs owner-label slice by updating the
+  sidecar workflow, daemon runtime reference, Python source-map reference,
+  cross-layer contract tables, filesystem/shell tool table, backend tool-turn
+  workflow, and Python sidecar architecture endpoint list so executable tools,
+  browser automation, memory, wakeword, daemon `/tools`, MCP exposure, topology,
+  and owner-table wording use local-runtime implementation labels instead of
+  sidecar-owned public ownership labels. Validation: focused modular docs
+  boundary test, docs listing, exact stale sidecar owner-label scan, and diff
+  checks. No migration required; no code path, payload, storage, IPC, settings,
+  tool schema, credential, permission, hosted URL, provider-policy, daemon
+  discovery, MCP execution, wakeword, browser, memory, or local tool behavior
+  changed.
 - 2026-06-18: completed a desktop wakeword main-file label follow-up by naming
   `frontend/src/main/python/wakeword_service.py` as the local-runtime wakeword
   service implementation instead of a sidecar-owned service in the desktop

@@ -30,7 +30,7 @@ This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, 
 
 ## Main <-> Sidecar JSON-RPC Touchpoints
 
-| Main owner | Sidecar owner | Contract files | Drift symptoms |
+| Main owner | Local-runtime implementation owner | Contract files | Drift symptoms |
 | --- | --- | --- | --- |
 | Local-runtime bridge | JSON-RPC protocol | `main/local_runtime_bridge.cjs`, `main/python/core/ipc_protocol.py` | Timed-out or unresolved RPC calls |
 | SDK local-runtime callers | Method signatures | SDK local-runtime store/client code, `main/python/local_backend.py` methods | Param name mismatch and tool failure |
@@ -40,7 +40,7 @@ This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, 
 
 ## Tool Runtime Touchpoints
 
-| Desktop client owner | Sidecar owner | Contract files | Contract note |
+| Desktop client owner | Local-runtime implementation owner | Contract files | Contract note |
 | --- | --- | --- | --- |
 | SDK conversation/tool runtime | Tool registry | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `main/python/tools/registry.py`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | Tool names and correlation ids must match exactly |
 | Tool payload shaping | Tool result envelope | `ToolExecutionPayloads.ts`, `main/python/tools/result.py` | `success/error/output` key stability |

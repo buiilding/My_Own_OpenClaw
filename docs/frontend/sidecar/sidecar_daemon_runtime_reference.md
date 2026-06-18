@@ -109,7 +109,7 @@ POST /rpc
 WS   /events
 ```
 
-`/tools` returns the executable local tool manifest. This is sidecar-owned diagnostic/execution shape, not the backend's policy-filtered model-visible schema.
+`/tools` returns the executable local tool manifest. This is local-runtime diagnostic/execution shape, not the backend's policy-filtered model-visible schema.
 
 `POST /rpc` accepts the existing local JSON-RPC envelope and dispatches it through `LocalRuntimeService.protocol.handle_request(...)`. It exists so Electron can keep existing memory/status/system-state IPC handlers while using the daemon as the only Python runtime owner.
 
@@ -175,7 +175,7 @@ MCP execution metadata also rejects removed camelCase fields such as
 `conversationRef`; callers must send the daemon's snake_case execution metadata
 keys.
 
-The daemon starts the MCP process over stdio, runs `initialize`, discovers `tools/list`, exposes each MCP tool as a sidecar runtime tool, and forwards execution to `tools/call`.
+The daemon starts the MCP process over stdio, runs `initialize`, discovers `tools/list`, exposes each MCP tool as a local-runtime tool, and forwards execution to `tools/call`.
 
 ## Permissions
 
