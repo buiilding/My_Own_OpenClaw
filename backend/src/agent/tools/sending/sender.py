@@ -2,7 +2,7 @@
 Tool sender.
 
 Dispatches prepared tool calls to the correct execution surface:
-- frontend-executed tools emit tool-call / tool-bundle events only
+- local-runtime tools emit tool-call / tool-bundle events only
 - backend-executed tools run immediately and emit their own tool-output events
 """
 import asyncio
@@ -113,7 +113,7 @@ class ToolSender:
         if preparation_result.errors and not preparation_result.bundle_id:
             return
         
-        # Send frontend or backend execution events for prepared tools.
+        # Send local-runtime or backend execution events for prepared tools.
         if preparation_result.bundle_id:
             if bundle_contains_backend_tool(preparation_result.resolved_calls, session):
                 error_msg = (

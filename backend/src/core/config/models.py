@@ -319,8 +319,8 @@ class AppConfig(BaseModel):
     history_compaction_prompt: Optional[str] = None
 
     # Tool Execution Settings
-    # This section is largely redundant as tools execute on the frontend
-    # but kept for backend-specific tool configurations if any
+    # Backend-owned remote tool configuration. Local tools execute through the
+    # client-provided local-runtime manifest.
     brave_search: BraveSearchConfig = Field(default_factory=BraveSearchConfig)
 
     # Vision Model Settings

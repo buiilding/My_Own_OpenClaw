@@ -22,7 +22,7 @@ def create_tool_result_object(
     Args:
         tool_call: The tool call that was executed
         tool_result: The result from tool execution
-        execution_time: Execution time in seconds (default 0.1 for frontend-executed tools)
+        execution_time: Execution time in seconds (default 0.1 for externally executed tools)
         
     Returns:
         ToolExecutionResult object

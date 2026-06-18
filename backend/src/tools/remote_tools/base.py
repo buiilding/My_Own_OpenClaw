@@ -1,5 +1,5 @@
 """
-Shared base types for frontend-executed remote tools.
+Shared base types for local-runtime-executed remote tools.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class RemoteToolResult:
     """
-    Result wrapper indicating execution must happen on the frontend.
+    Result wrapper indicating execution must happen in the local runtime.
     """
 
     def __init__(self, tool_name: str, args: Dict[str, Any], request_id: str):
@@ -36,7 +36,7 @@ class RemoteToolResult:
 
 class RemoteToolBase:
     """
-    Base mixin for tools that only provide schema/validation in backend.
+    Base mixin for tools that only provide schema/validation in the backend.
     """
 
     required_permissions: set[Permission] = set()
