@@ -28,6 +28,10 @@ const dataPaths = Object.freeze({
   appDataDirName: 'windieos',
 });
 
+const logging = Object.freeze({
+  logDirSegments: Object.freeze(['.windie', 'logs']),
+});
+
 const browserAutomation = Object.freeze({
   localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -111,6 +115,7 @@ const mainHostSkin = Object.freeze({
   identity,
   assets,
   dataPaths,
+  logging,
   hostedBackend,
   queryEvents,
   bundledRuntime,

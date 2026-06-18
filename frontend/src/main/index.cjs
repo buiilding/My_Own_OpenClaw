@@ -102,9 +102,11 @@ const {
   writeChatPillVisibilityIntent,
 } = require('./surfaces/chat_pill_visibility_intent_store.cjs');
 const {
+  configureLayerLogSink,
   installConsoleLayerLog,
 } = require('./logging/layer_log_sink.cjs');
 
+configureLayerLogSink(mainHostSkin.logging);
 installConsoleLayerLog({
   layer: 'main',
   logPrefix: mainHostSkin.identity.logPrefix,

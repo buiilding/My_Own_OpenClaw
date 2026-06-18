@@ -9,13 +9,20 @@ const {
   appendLayerLogSessionBanner,
   appendRendererVerboseLogLine,
   appendRendererVerboseLogSessionBanner,
+  configureLayerLogSink,
+  getLayerLogDirectory,
   installConsoleLayerLog,
   resolveLayerLogFile,
+  resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 const retiredDesktopAgentMarker = (suffix) => `__desktop${'Agent'}${suffix}`;
 
 describe('layer_log_sink', () => {
+  beforeEach(() => {
+    configureLayerLogSink();
+  });
+
   test('uses desktop-runtime private console guard markers', () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, '../../frontend/src/main/logging/layer_log_sink.cjs'),
@@ -34,13 +41,30 @@ describe('layer_log_sink', () => {
     const repoRoot = path.resolve(__dirname, '../..');
 
     expect(resolveLayerLogFile('main', {})).toBe(
-      path.join(repoRoot, '.windie', 'logs', 'main.log'),
+      path.join(repoRoot, '.desktop-runtime', 'logs', 'main.log'),
+    );
+    expect(resolveRendererVerboseLogFile({})).toBe(
+      path.join(repoRoot, '.desktop-runtime', 'logs', 'renderer.verbose.log'),
     );
     expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
       .toBe('/tmp/renderer.log');
     expect(resolveLayerLogFile('vite', { WINDIE_VITE_LOG_FILE: 'logs/vite.log' }))
       .toBe(path.join(repoRoot, 'logs', 'vite.log'));
     expect(resolveLayerLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '0' })).toBeNull();
+  });
+
+  test('accepts host-provided log directory config', () => {
+    const repoRoot = path.resolve(__dirname, '../..');
+
+    expect(configureLayerLogSink({ logDirSegments: ['.windie', 'logs'] }))
+      .toBe(path.join(repoRoot, '.windie', 'logs'));
+    expect(getLayerLogDirectory()).toBe(path.join(repoRoot, '.windie', 'logs'));
+    expect(resolveLayerLogFile('main', {})).toBe(
+      path.join(repoRoot, '.windie', 'logs', 'main.log'),
+    );
+    expect(resolveRendererVerboseLogFile({})).toBe(
+      path.join(repoRoot, '.windie', 'logs', 'renderer.verbose.log'),
+    );
   });
 
   test('appends layer-owned lines', () => {

@@ -6,10 +6,14 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
+const { mainHostSkin } = require('../src/main/app/main_host_skin.cjs');
 const {
+  configureLayerLogSink,
   createLayerLogStream,
   resolveLayerLogFile,
 } = require('../src/main/logging/layer_log_sink.cjs');
+
+configureLayerLogSink(mainHostSkin.logging);
 
 function parseOptions(argv) {
   return {

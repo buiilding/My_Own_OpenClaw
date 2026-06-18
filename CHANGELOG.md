@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: move the source-run layer log directory default into the
+  WindieOS host skin so the generic Electron log sink defaults to
+  `.desktop-runtime/logs` while the app and CLI still resolve `.windie/logs`;
+  no migration is required because env overrides and emitted log filenames are
+  unchanged for WindieOS runs.
 - docs/backend: route the backend tool-turn change workflow through
   SDK/main local-runtime ownership instead of frontend/sidecar execution
   shorthand; no migration is required because this is docs/test wording only.

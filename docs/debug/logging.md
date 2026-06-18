@@ -48,13 +48,16 @@ diagnostic paths when proving what a runtime emitted; the aggregate stream is
 useful for quick startup context, but it should not be parsed to reassign events
 to renderer, main, sidecar, or SDK owners.
 
-`frontend/src/main/logging/layer_log_sink.cjs` owns layer log path resolution,
-file initialization, append APIs, renderer verbose log writes, and console
-mirroring. `bin/windie logs ...` uses `resolveLayerLogFile(...)`,
-`resolveRendererVerboseLogFile(...)`, and `ensureLogFile(...)` so CLI log
-inspection can create or tail the correct file. Runtime feature code should use
-layer append/banner APIs or the owning diagnostic path instead of resolving log
-files directly.
+`frontend/src/main/logging/layer_log_sink.cjs` owns generic layer log path
+resolution, file initialization, append APIs, renderer verbose log writes, and
+console mirroring. The default generic scratch path is configurable by the host;
+the WindieOS host skin sets source runs to `.windie/logs`, and the Electron
+entrypoint, launcher, and `bin/windie logs ...` configure the sink from that
+skin before resolving defaults. CLI log inspection uses
+`resolveLayerLogFile(...)`, `resolveRendererVerboseLogFile(...)`, and
+`ensureLogFile(...)` so it can create or tail the correct file. Runtime feature
+code should use layer append/banner APIs or the owning diagnostic path instead
+of resolving log files directly.
 
 Useful commands:
 
@@ -70,8 +73,8 @@ WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log bin/windie start desktop
 npm --prefix frontend run test:ghost-cursor
 ```
 
-The default `.windie/logs/*` directory is repo-local WindieOS
-scratch space. Set the `WINDIE_<LAYER>_LOG_FILE` or
+The default `.windie/logs/*` directory is repo-local WindieOS scratch space
+provided by the host skin. Set the `WINDIE_<LAYER>_LOG_FILE` or
 `WINDIE_RENDERER_VERBOSE_LOG_FILE` overrides when a run must keep writing to a
 legacy or externally managed path.
 

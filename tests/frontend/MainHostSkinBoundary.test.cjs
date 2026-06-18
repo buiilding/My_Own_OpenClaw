@@ -62,6 +62,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('dataPaths');
     expect(skinSource).toContain('appIconFileName');
     expect(skinSource).toContain("appDataDirName: 'windieos'");
+    expect(skinSource).toContain('logging');
+    expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -198,8 +200,18 @@ describe('main host skin/config boundary', () => {
     const source = fs.readFileSync(layerLogSinkPath, 'utf8');
 
     expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Runtime]'");
+    expect(source).toContain("DEFAULT_LOG_DIR_SEGMENTS = Object.freeze(['.desktop-runtime', 'logs'])");
+    expect(source).toContain('configureLayerLogSink');
+    expect(source).not.toContain(".windie");
     expect(source).not.toContain('Unknown Windie log layer');
     expect(source).not.toContain('[WindieOS]');
+  });
+
+  test('main composition root configures layer logs through the host skin', () => {
+    const source = fs.readFileSync(indexPath, 'utf8');
+
+    expect(source).toContain('configureLayerLogSink(mainHostSkin.logging)');
+    expect(source).not.toContain(".windie");
   });
 
   test('bundled runtime helpers use generic defaults instead of product reinstall copy', () => {

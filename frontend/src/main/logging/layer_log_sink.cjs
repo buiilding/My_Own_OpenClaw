@@ -7,13 +7,14 @@ const path = require('path');
 const util = require('util');
 
 const REPO_ROOT = path.resolve(__dirname, '../../../..');
-const LOG_DIR = path.join(REPO_ROOT, '.windie', 'logs');
+const DEFAULT_LOG_DIR_SEGMENTS = Object.freeze(['.desktop-runtime', 'logs']);
 const VALID_LOG_LAYERS = new Set(['frontend', 'vite', 'main', 'renderer', 'sidecar']);
 const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
 const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopRuntimeConsoleStreamErrorGuardInstalled';
 const CONSOLE_LAYER_LOG_INSTALLED = '__desktopRuntimeLayerLogInstalled';
 const CONSOLE_LAYER_LOG_ORIGINALS = '__desktopRuntimeLayerLogOriginals';
 const DEFAULT_LOG_PREFIX = '[Desktop Runtime]';
+let configuredLogDir = path.join(REPO_ROOT, ...DEFAULT_LOG_DIR_SEGMENTS);
 
 function normalizeLayer(layer) {
   const normalized = String(layer || '').trim().toLowerCase();
@@ -27,7 +28,31 @@ function envKeyForLayer(layer) {
   return `WINDIE_${normalizeLayer(layer).toUpperCase()}_LOG_FILE`;
 }
 
-function resolveLayerLogFile(layer, env = process.env) {
+function resolveLogDirConfig(config = {}) {
+  const explicitLogDir = config?.logDir;
+  if (typeof explicitLogDir === 'string' && explicitLogDir.trim()) {
+    const value = explicitLogDir.trim();
+    return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
+  }
+  const logDirSegments = Array.isArray(config?.logDirSegments)
+    ? config.logDirSegments
+    : DEFAULT_LOG_DIR_SEGMENTS;
+  const segments = logDirSegments
+    .map((segment) => String(segment || '').trim())
+    .filter(Boolean);
+  return path.join(REPO_ROOT, ...segments);
+}
+
+function configureLayerLogSink(config = {}) {
+  configuredLogDir = resolveLogDirConfig(config);
+  return configuredLogDir;
+}
+
+function getLayerLogDirectory() {
+  return configuredLogDir;
+}
+
+function resolveLayerLogFile(layer, env = process.env, options = {}) {
   const normalizedLayer = normalizeLayer(layer);
   const configured = env[envKeyForLayer(normalizedLayer)];
   if (configured === '0' || configured === 'false') {
@@ -37,10 +62,11 @@ function resolveLayerLogFile(layer, env = process.env) {
     const value = configured.trim();
     return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
   }
-  return path.join(LOG_DIR, `${normalizedLayer}.log`);
+  const logDir = resolveLogDirConfig({ logDir: options.logDir || getLayerLogDirectory() });
+  return path.join(logDir, `${normalizedLayer}.log`);
 }
 
-function resolveRendererVerboseLogFile(env = process.env) {
+function resolveRendererVerboseLogFile(env = process.env, options = {}) {
   const configured = env.WINDIE_RENDERER_VERBOSE_LOG_FILE;
   if (configured === '0' || configured === 'false') {
     return null;
@@ -49,7 +75,8 @@ function resolveRendererVerboseLogFile(env = process.env) {
     const value = configured.trim();
     return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
   }
-  return path.join(LOG_DIR, RENDERER_VERBOSE_LOG_FILE_NAME);
+  const logDir = resolveLogDirConfig({ logDir: options.logDir || getLayerLogDirectory() });
+  return path.join(logDir, RENDERER_VERBOSE_LOG_FILE_NAME);
 }
 
 function ensureLogFile(logFile, {
@@ -73,12 +100,13 @@ function ensureLogFile(logFile, {
 function createLayerLogStream(layer, {
   env = process.env,
   fsImpl = fs,
+  logDir = null,
   now = () => new Date(),
   sessionLabel = null,
   logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
-  const logFile = resolveLayerLogFile(normalizedLayer, env);
+  const logFile = resolveLayerLogFile(normalizedLayer, env, { logDir });
   if (!logFile) {
     return null;
   }
@@ -154,10 +182,11 @@ function prefixLayerLine(layer, line, prefix = '') {
 function appendLayerLogLine(layer, line, {
   env = process.env,
   fsImpl = fs,
+  logDir = null,
   prefix = '',
 } = {}) {
   const normalizedLayer = normalizeLayer(layer);
-  const logFile = resolveLayerLogFile(normalizedLayer, env);
+  const logFile = resolveLayerLogFile(normalizedLayer, env, { logDir });
   if (!logFile) {
     return false;
   }
@@ -192,13 +221,15 @@ function appendLogFileLine(logFile, line, {
 function appendRendererVerboseLogLine(line, {
   env = process.env,
   fsImpl = fs,
+  logDir = null,
 } = {}) {
-  return appendLogFileLine(resolveRendererVerboseLogFile(env), line, { fsImpl });
+  return appendLogFileLine(resolveRendererVerboseLogFile(env, { logDir }), line, { fsImpl });
 }
 
 function appendLayerLogSessionBanner(layer, {
   env = process.env,
   fsImpl = fs,
+  logDir = null,
   now = () => new Date(),
   sessionLabel = null,
   logPrefix = DEFAULT_LOG_PREFIX,
@@ -208,20 +239,21 @@ function appendLayerLogSessionBanner(layer, {
   return appendLayerLogLine(
     normalizedLayer,
     `\n${logPrefix} ${label} ${now().toISOString()}`,
-    { env, fsImpl },
+    { env, fsImpl, logDir },
   );
 }
 
 function appendRendererVerboseLogSessionBanner({
   env = process.env,
   fsImpl = fs,
+  logDir = null,
   now = () => new Date(),
   sessionLabel = 'renderer verbose console log session',
   logPrefix = DEFAULT_LOG_PREFIX,
 } = {}) {
   return appendRendererVerboseLogLine(
     `\n${logPrefix} ${sessionLabel} ${now().toISOString()}`,
-    { env, fsImpl },
+    { env, fsImpl, logDir },
   );
 }
 
@@ -229,6 +261,7 @@ function installConsoleLayerLog({
   layer = 'main',
   consoleObject = console,
   env = process.env,
+  logDir = null,
   methods = ['log', 'info', 'warn', 'error', 'debug'],
   processObject = process,
   sessionLabel = null,
@@ -241,6 +274,7 @@ function installConsoleLayerLog({
   }
   appendLayerLogSessionBanner(normalizedLayer, {
     env,
+    logDir,
     sessionLabel: sessionLabel || `${normalizedLayer} console log session`,
     logPrefix,
   });
@@ -252,7 +286,7 @@ function installConsoleLayerLog({
     originals[method] = consoleObject[method].bind(consoleObject);
     consoleObject[method] = (...args) => {
       try {
-        appendLayerLogLine(normalizedLayer, formatConsoleArgs(args), { env });
+        appendLayerLogLine(normalizedLayer, formatConsoleArgs(args), { env, logDir });
       } catch (_error) {
         // Logging must not break the runtime path that emitted the log.
       }
@@ -283,9 +317,11 @@ module.exports = {
   appendLayerLogSessionBanner,
   appendRendererVerboseLogLine,
   appendRendererVerboseLogSessionBanner,
+  configureLayerLogSink,
   createLayerLogStream,
   ensureLogFile,
   formatConsoleArgs,
+  getLayerLogDirectory,
   installConsoleLayerLog,
   resolveLayerLogFile,
   resolveRendererVerboseLogFile,

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main layer-log host skin config
+
+- Finding: the generic Electron main `layer_log_sink` still hardcoded the
+  WindieOS repo-local `.windie/logs` source-run scratch directory, which made
+  the reusable host logging infrastructure carry first-party product path
+  policy.
+- Change: added a generic log-sink configuration hook with a
+  `.desktop-runtime/logs` fallback, moved the WindieOS `.windie/logs` default
+  into `main_host_skin`, and configured the Electron entrypoint, Electron
+  launcher, and `windie` CLI runner from that skin before resolving log files.
+- Validation: focused layer-log, main host-skin boundary, Electron launcher,
+  and Windie CLI Jest coverage plus docs listing, product-path source scans,
+  and diff checks.
+- Compatibility: no migration required. WindieOS source runs and
+  `bin/windie logs ...` still use `.windie/logs`; layer log filenames, env
+  override keys, IPC, credentials, permissions, storage, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-18 backend tool-turn workflow local-runtime ownership
 
 - Finding: the backend tool-turn change workflow still described local tool

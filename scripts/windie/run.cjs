@@ -5,10 +5,14 @@
 const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { mainHostSkin } = require('../../frontend/src/main/app/main_host_skin.cjs');
 const {
   appendLayerLogLine,
   appendLayerLogSessionBanner,
+  configureLayerLogSink,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
+
+configureLayerLogSink(mainHostSkin.logging);
 
 function commandForPlatform(command, args = []) {
   if (process.platform === 'win32') {
