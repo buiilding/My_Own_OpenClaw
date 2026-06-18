@@ -3,6 +3,13 @@
  */
 
 import type { JsonRecord } from '../conversation/types.js';
+import {
+  AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS,
+  AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_REQUIRED_MESSAGE,
+  AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS,
+  AGENT_LOCAL_RUNTIME_PYTHON_ENV_KEYS,
+  readRuntimeEnv,
+} from './RuntimeEnv.js';
 
 const LOCAL_RUNTIME_TOKEN_HEADER = 'x-agent-local-runtime-token';
 
@@ -596,14 +603,11 @@ function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, path: NodePa
     process?: { env?: Record<string, string | undefined> };
   }).process;
   const explicit = options.daemonScript
-    ?? processLike?.env?.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT
-    ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
+    ?? readRuntimeEnv(processLike?.env, AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS);
   if (explicit) {
     return path.resolve(explicit);
   }
-  throw new Error(
-    'Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT (legacy WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT is also supported).',
-  );
+  throw new Error(AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_REQUIRED_MESSAGE);
 }
 
 function resolveProcessEnv(): LocalRuntimeLaunchEnvironment {
@@ -642,8 +646,7 @@ function resolveDaemonLaunchCommand(
   const processEnv = resolveProcessEnv();
   const daemonScript = resolveDaemonScript(options, path);
   const pythonCommand = options.pythonCommand
-    ?? processEnv.AGENT_LOCAL_RUNTIME_PYTHON
-    ?? processEnv.WINDIE_PYTHON
+    ?? readRuntimeEnv(processEnv, AGENT_LOCAL_RUNTIME_PYTHON_ENV_KEYS)
     ?? 'python3';
   return {
     command: pythonCommand,
@@ -679,8 +682,7 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     const processEnv = resolveProcessEnv();
     const discoveryFile = path.resolve(
       options.discoveryFile
-        ?? processEnv.AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
-        ?? processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
+        ?? readRuntimeEnv(processEnv, AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS)
         ?? path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;

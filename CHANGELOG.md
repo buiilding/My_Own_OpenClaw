@@ -63,6 +63,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/python: accept generic `AGENT_BACKEND_HTTP_URL` and
   `AGENT_BACKEND_AUTH_STATE_PATH` env names for Python SDK hosted clients while
   preserving WindieOS env aliases for existing Electron-launched sidecars.
+- sdk/runtime: centralize TypeScript SDK `AGENT_*` and legacy `WINDIE_*` env
+  fallbacks in the runtime env contract instead of spelling product-specific
+  aliases inside AgentClient and local-runtime orchestration methods.
 - sdk/local-runtime: treat daemon discovery launch contexts as compatibility
   supersets so generic Agent SDK and WindieOS launch keys do not force local
   runtime restart loops.

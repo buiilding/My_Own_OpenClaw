@@ -23,6 +23,7 @@ export * from './runtime/AgentChatSession.js';
 export * from './runtime/Agent.js';
 export * from './runtime/AgentClient.js';
 export * from './runtime/LocalRuntime.js';
+export * from './runtime/RuntimeEnv.js';
 export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
 export * from './transport/ManagedBackendSession.js';

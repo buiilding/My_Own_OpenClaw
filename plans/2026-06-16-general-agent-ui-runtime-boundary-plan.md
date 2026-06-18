@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK Runtime Env Contract Boundary
+
+- Finding: the TypeScript SDK already preferred generic `AGENT_*` env aliases,
+  but `AgentClient` and `LocalRuntime` still spelled legacy WindieOS env names
+  inside hosted endpoint, install token, daemon script, Python command, and
+  daemon discovery fallback logic.
+- Change: added a `RuntimeEnv` SDK runtime contract module with named env key
+  groups and compatibility error messages, routed `AgentClient` and the
+  local-runtime provider through that contract, and exported the contract from
+  the SDK package.
+- Validation: full SDK client Jest coverage, focused SDK env source guards,
+  CommonJS syntax checks, SDK env-name source scan, docs listing, and
+  diff-check validation. Frontend typecheck remains blocked by pre-existing
+  renderer artifact/chat store typing errors outside this SDK slice.
+- Compatibility: no migration required. Generic hosts should continue using
+  `AGENT_*` env names, while existing WindieOS `WINDIE_BACKEND_URL`,
+  `WINDIE_API_KEY`, `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`, `WINDIE_PYTHON`, and
+  `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` callers still work through the
+  centralized compatibility table; backend APIs, daemon discovery payloads,
+  IPC, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Main Diagnostics Error Marker Skin Boundary
 
 - Finding: `app_diagnostics_store.cjs` no longer imported the WindieOS host

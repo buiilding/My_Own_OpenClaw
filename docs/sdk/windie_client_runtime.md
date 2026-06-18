@@ -447,6 +447,12 @@ user-message ordinal fallbacks.
 12. Route backend events to callers and route local `tool-call` events to the local runtime.
 13. Project display transcript and rehydrate snapshots from normalized events.
 
+SDK env fallback names are defined in `runtime/RuntimeEnv` as named key groups.
+The reusable `AgentClient` and local-runtime provider consume those key groups
+instead of spelling product-specific compatibility aliases inside orchestration
+methods. Generic hosts should prefer `AGENT_*`; the legacy `WINDIE_*` names
+remain compatibility aliases in the env contract only.
+
 Set both `memory: false` and `persistence: false` when a client wants a
 stateless backend-only session and does not request local builtins, module
 tools, plugins, or MCPs. In that case `wakeUp` does not require or start a

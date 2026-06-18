@@ -39,6 +39,7 @@ __exportStar(require("./runtime/AgentChatSession.js"), exports);
 __exportStar(require("./runtime/Agent.js"), exports);
 __exportStar(require("./runtime/AgentClient.js"), exports);
 __exportStar(require("./runtime/LocalRuntime.js"), exports);
+__exportStar(require("./runtime/RuntimeEnv.js"), exports);
 __exportStar(require("./transport/BackendSocketFactory.js"), exports);
 __exportStar(require("./transport/HostedBackendHttpClient.js"), exports);
 __exportStar(require("./transport/ManagedBackendSession.js"), exports);

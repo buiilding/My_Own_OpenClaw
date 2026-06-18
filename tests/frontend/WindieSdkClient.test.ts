@@ -826,9 +826,19 @@ describe('Agent SDK client behavior', () => {
       path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/AgentClient.js'),
       'utf8',
     );
+    const runtimeEnvSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/RuntimeEnv.ts'),
+      'utf8',
+    );
+    const runtimeEnvCjsSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/RuntimeEnv.js'),
+      'utf8',
+    );
 
-    expect(sdkSource).toContain('Agent SDK backend URL is required');
-    expect(sdkCjsSource).toContain('Agent SDK backend URL is required');
+    expect(runtimeEnvSource).toContain('Agent SDK backend URL is required');
+    expect(runtimeEnvCjsSource).toContain('Agent SDK backend URL is required');
+    expect(sdkSource).toContain('AGENT_BACKEND_URL_REQUIRED_MESSAGE');
+    expect(sdkCjsSource).toContain('AGENT_BACKEND_URL_REQUIRED_MESSAGE');
     expect(sdkSource).not.toContain('https://api.windieos.com');
     expect(sdkCjsSource).not.toContain('https://api.windieos.com');
   });
@@ -850,6 +860,14 @@ describe('Agent SDK client behavior', () => {
       path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/LocalRuntime.js'),
       'utf8',
     );
+    const runtimeEnvSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/RuntimeEnv.ts'),
+      'utf8',
+    );
+    const runtimeEnvCjsSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/RuntimeEnv.js'),
+      'utf8',
+    );
 
     expect(sdkSource).toContain('localRuntime?: AgentLocalRuntimeClient');
     expect(sdkSource).toContain('this.defaultOptions.localRuntime');
@@ -864,13 +882,15 @@ describe('Agent SDK client behavior', () => {
     expect(localRuntimeSource).toContain('AgentAutoLocalRuntimeOptions');
     expect(localRuntimeSource).not.toContain('AgentAutoSidecarOptions');
     expect(localRuntimeSource).toContain('AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT');
-    expect(localRuntimeSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
+    expect(localRuntimeSource).not.toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
     expect(localRuntimeSource).not.toContain('WINDIE_SIDECAR_DAEMON_SCRIPT');
-    expect(localRuntimeCjsSource).toContain('autoLocalRuntime.daemonScript');
+    expect(runtimeEnvCjsSource).toContain('autoLocalRuntime.daemonScript');
     expect(localRuntimeCjsSource).not.toContain('autoSidecar.daemonScript');
     expect(localRuntimeCjsSource).toContain('AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT');
-    expect(localRuntimeCjsSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
+    expect(localRuntimeCjsSource).not.toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
     expect(localRuntimeCjsSource).not.toContain('WINDIE_SIDECAR_DAEMON_SCRIPT');
+    expect(runtimeEnvSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
+    expect(runtimeEnvCjsSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
   });
 
   test('AgentClient uses generic env backend URL and install token when constructor options omit them', async () => {
@@ -3024,11 +3044,14 @@ describe('Agent SDK client behavior', () => {
       expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'local-runtime-daemon.json')");
       expect(source).not.toContain('WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE');
       expect(source).toContain('AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
-      expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
+      expect(source).not.toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
       expect(source).not.toContain('frontend/src/main/python/sidecar_daemon.py');
       expect(source).not.toContain('src/main/python/sidecar_daemon.py');
-      expect(source).toContain('autoLocalRuntime.command');
     }
+    expect(runtimeSource).toContain('options.command');
+    expect(runtimeSource).toContain('options.daemonScript');
+    expect(runtimeCjsSource).toContain('options.command');
+    expect(runtimeCjsSource).toContain('options.daemonScript');
     expect(runtimeSource).not.toContain('SidecarDaemonClientOptions');
     expect(runtimeSource).not.toContain('SidecarDaemonDiscovery');
     expect(runtimeSource).not.toContain('SidecarLaunchEnvironment');
@@ -3041,6 +3064,46 @@ describe('Agent SDK client behavior', () => {
     expect(runtimeCjsSource).toContain('Node local runtime provider');
     expect(runtimeSource).not.toContain('Node sidecar runtime provider');
     expect(runtimeCjsSource).not.toContain('Node sidecar runtime provider');
+  });
+
+  test('SDK runtime env compatibility aliases live in the runtime env contract', async () => {
+    const runtimeEnvSource = await fsPromises.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/RuntimeEnv.ts'),
+      'utf8',
+    );
+    const runtimeEnvCjsSource = await fsPromises.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/runtime/RuntimeEnv.js'),
+      'utf8',
+    );
+    const sdkSource = await fsPromises.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),
+      'utf8',
+    );
+    const localRuntimeSource = await fsPromises.readFile(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalRuntime.ts'),
+      'utf8',
+    );
+
+    for (const source of [runtimeEnvSource, runtimeEnvCjsSource]) {
+      expect(source).toContain('AGENT_BACKEND_URL_ENV_KEYS');
+      expect(source).toContain('WINDIE_BACKEND_URL');
+      expect(source).toContain('AGENT_INSTALL_TOKEN_ENV_KEYS');
+      expect(source).toContain('WINDIE_API_KEY');
+      expect(source).toContain('AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS');
+      expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
+      expect(source).toContain('AGENT_LOCAL_RUNTIME_PYTHON_ENV_KEYS');
+      expect(source).toContain('WINDIE_PYTHON');
+      expect(source).toContain('AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS');
+      expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
+    }
+
+    expect(sdkSource).toContain('readGlobalRuntimeEnv(AGENT_BACKEND_URL_ENV_KEYS)');
+    expect(sdkSource).toContain('readGlobalRuntimeEnv(AGENT_INSTALL_TOKEN_ENV_KEYS)');
+    expect(sdkSource).not.toContain("'WINDIE_BACKEND_URL'");
+    expect(sdkSource).not.toContain("'WINDIE_API_KEY'");
+    expect(localRuntimeSource).toContain('readRuntimeEnv(processEnv, AGENT_LOCAL_RUNTIME_PYTHON_ENV_KEYS)');
+    expect(localRuntimeSource).not.toContain('processEnv.WINDIE_PYTHON');
+    expect(localRuntimeSource).not.toContain('processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
   });
 
   test('createAgentLocalRuntimeProvider rejects camelCase discovery metadata', async () => {

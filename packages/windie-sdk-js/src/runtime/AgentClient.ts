@@ -51,6 +51,12 @@ import {
   type AgentSkillDefinition,
   type AgentToolDefinition,
 } from './LocalRuntime.js';
+import {
+  AGENT_BACKEND_URL_REQUIRED_MESSAGE,
+  AGENT_BACKEND_URL_ENV_KEYS,
+  AGENT_INSTALL_TOKEN_ENV_KEYS,
+  readGlobalRuntimeEnv,
+} from './RuntimeEnv.js';
 
 export type AgentRuntimeFeatureOption = boolean | {
   enabled?: boolean;
@@ -310,13 +316,11 @@ export class AgentClient {
     const resolvedBackendUrl = backendUrl
       ?? this.defaultOptions.backendUrl
       ?? this.defaultOptions.httpBaseUrl
-      ?? readFirstRuntimeEnv(['AGENT_BACKEND_URL', 'WINDIE_BACKEND_URL']);
+      ?? readGlobalRuntimeEnv(AGENT_BACKEND_URL_ENV_KEYS);
     if (resolvedBackendUrl) {
       return resolvedBackendUrl;
     }
-    throw new Error(
-      'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set AGENT_BACKEND_URL (legacy WINDIE_BACKEND_URL is also supported).',
-    );
+    throw new Error(AGENT_BACKEND_URL_REQUIRED_MESSAGE);
   }
 
   private createSdkClient(backendUrl: string, authToken?: string): AgentHostedBackendClient {
@@ -389,7 +393,7 @@ export class AgentClient {
       options.installToken
       ?? configured.installToken
       ?? this.defaultOptions.installToken
-      ?? readFirstRuntimeEnv(['AGENT_INSTALL_TOKEN', 'WINDIE_API_KEY'])
+      ?? readGlobalRuntimeEnv(AGENT_INSTALL_TOKEN_ENV_KEYS)
     )?.trim();
     const configuredUserId = options.userId ?? configured.userId ?? this.defaultOptions.defaultUserId;
     if (installToken) {
@@ -749,25 +753,6 @@ function detectOperatingSystem(): string {
 
 function normalizeRuntimePath(path: unknown): string | undefined {
   return typeof path === 'string' && path.trim() ? path.trim() : undefined;
-}
-
-function readRuntimeEnv(key: string): string | undefined {
-  const value = (globalThis as unknown as {
-    process?: {
-      env?: Record<string, string | undefined>;
-    };
-  }).process?.env?.[key];
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
-}
-
-function readFirstRuntimeEnv(keys: readonly string[]): string | undefined {
-  for (const key of keys) {
-    const value = readRuntimeEnv(key);
-    if (value) {
-      return value;
-    }
-  }
-  return undefined;
 }
 
 function detectWorkspacePath(): string | undefined {

@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentLocalRuntimeHttpClient = void 0;
 exports.moduleTool = moduleTool;
 exports.createAgentLocalRuntimeProvider = createAgentLocalRuntimeProvider;
+const RuntimeEnv_js_1 = require("./RuntimeEnv.js");
 const LOCAL_RUNTIME_TOKEN_HEADER = 'x-agent-local-runtime-token';
 function resolveFetchImplementation(fetchImpl) {
     if (fetchImpl) {
@@ -418,12 +419,11 @@ async function shutdownDiscoveredDaemon(discovery, fetchImpl, WebSocketImpl, tim
 function resolveDaemonScript(options, path) {
     const processLike = globalThis.process;
     const explicit = options.daemonScript
-        ?? processLike?.env?.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT
-        ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
+        ?? (0, RuntimeEnv_js_1.readRuntimeEnv)(processLike?.env, RuntimeEnv_js_1.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS);
     if (explicit) {
         return path.resolve(explicit);
     }
-    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT (legacy WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT is also supported).');
+    throw new Error(RuntimeEnv_js_1.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_REQUIRED_MESSAGE);
 }
 function resolveProcessEnv() {
     const processLike = globalThis.process;
@@ -452,8 +452,7 @@ function resolveDaemonLaunchCommand(options, fs, path, discoveryFile) {
     const processEnv = resolveProcessEnv();
     const daemonScript = resolveDaemonScript(options, path);
     const pythonCommand = options.pythonCommand
-        ?? processEnv.AGENT_LOCAL_RUNTIME_PYTHON
-        ?? processEnv.WINDIE_PYTHON
+        ?? (0, RuntimeEnv_js_1.readRuntimeEnv)(processEnv, RuntimeEnv_js_1.AGENT_LOCAL_RUNTIME_PYTHON_ENV_KEYS)
         ?? 'python3';
     return {
         command: pythonCommand,
@@ -483,8 +482,7 @@ function createAgentLocalRuntimeProvider(options = {}) {
         const { fs, os, path, childProcess } = modules;
         const processEnv = resolveProcessEnv();
         const discoveryFile = path.resolve(options.discoveryFile
-            ?? processEnv.AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
-            ?? processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
+            ?? (0, RuntimeEnv_js_1.readRuntimeEnv)(processEnv, RuntimeEnv_js_1.AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS)
             ?? path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json'));
         const fetchImpl = options.fetchImpl;
         const expectedLaunchContext = normalizeLaunchContext(options.launchContext);
