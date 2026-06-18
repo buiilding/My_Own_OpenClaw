@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/sidecar: rename the Python daemon class from `SidecarDaemon`
+  to `LocalRuntimeDaemon`, keeping the daemon process contract, discovery
+  file, auth headers, routes, and log lines unchanged; no migration is
+  required because the class is an internal sidecar implementation detail.
+
 - frontend/renderer: rename the dashboard startup model-list session guard
   from a stale desktop-agent global key to a generic desktop-runtime key,
   with focused tests guarding the retired key; no migration is required

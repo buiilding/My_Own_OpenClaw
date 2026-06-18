@@ -15,7 +15,7 @@ import sidecar_daemon  # noqa: E402
 from sidecar_daemon import (  # noqa: E402
     McpServerSpec,
     McpStdioClient,
-    SidecarDaemon,
+    LocalRuntimeDaemon,
     build_mcp_execution_context,
     resolve_mcp_command_for_spawn,
     write_discovery_file,
@@ -39,6 +39,7 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert 'emit_sidecar_layer_log("[LocalBackend]", "status requested")' not in source
     assert '"[SidecarDaemon] listening' not in source
     assert '"[SidecarDaemon] stopping' not in source
+    assert "class SidecarDaemon" not in source
 
 
 def test_sidecar_daemon_default_discovery_path_is_generic():
@@ -283,7 +284,7 @@ async def test_mcp_stdout_reader_failure_fails_pending_request(tmp_path: Path, m
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_rejects_missing_or_invalid_token():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     missing = await daemon._auth_middleware(FakeRequest(), daemon.handle_health)
     invalid = await daemon._auth_middleware(
         FakeRequest(headers={"x-windie-sidecar-token": "bad"}),
@@ -301,7 +302,7 @@ async def test_sidecar_daemon_rejects_missing_or_invalid_token():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_health_endpoint_reports_generic_service():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
 
     response = await daemon.handle_health(FakeRequest())
     payload = json.loads(response.text)
@@ -316,7 +317,7 @@ async def test_sidecar_daemon_health_endpoint_reports_generic_service():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_status_endpoint_reports_runtime_boundary():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
     response = await daemon.handle_status(FakeRequest())
@@ -364,7 +365,7 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
 
     async def save_note(args):
         return {"success": True, "data": {"output": args["text"]}}
@@ -395,7 +396,7 @@ async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_errors():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     ws = FakeEventSocket()
     daemon.events.add(ws)
 
@@ -421,7 +422,7 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
     backend = FakeBackendWithExecuteTool()
-    daemon = SidecarDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest({"toolName": "read_file", "args": {"file_path": "/tmp/a"}})
@@ -436,7 +437,7 @@ async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
     backend = FakeBackendWithExecuteTool()
-    daemon = SidecarDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest(
@@ -460,7 +461,7 @@ async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sync(capsys):
     backend = FakeBackendWithExecuteTool()
-    daemon = SidecarDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest({"tool_name": "browser", "args": {"action": "status"}})
@@ -478,7 +479,7 @@ async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sy
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(capsys):
     backend = FakeBackendWithExecuteTool()
-    daemon = SidecarDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest({"tool_name": "browser", "args": {"action": "click", "index": 4}})
@@ -495,7 +496,7 @@ async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(ca
 @pytest.mark.asyncio
 async def test_sidecar_daemon_binds_backend_event_sink_to_event_socket():
     backend = FakeBackendWithEventSink()
-    daemon = SidecarDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
     ws = FakeEventSocket()
     daemon.events.add(ws)
 
@@ -516,7 +517,7 @@ async def test_sidecar_daemon_binds_backend_event_sink_to_event_socket():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_rpc_endpoint_uses_backend_protocol():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
 
     response = await daemon.handle_rpc(
         FakeRequest(
@@ -559,7 +560,7 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
     )
     monkeypatch.syspath_prepend(str(tmp_path))
 
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     registration = await daemon.handle_register_module(
         FakeRequest(
             {
@@ -622,7 +623,7 @@ async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: P
         encoding="utf-8",
     )
 
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     registration = await daemon.handle_register_plugin(
         FakeRequest({"path": str(plugin_dir)})
     )
@@ -642,7 +643,7 @@ async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: P
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_registers_mcp_tools_without_restart():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
     registration = await daemon.handle_register_mcp(
@@ -692,7 +693,7 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_preserves_mcp_structured_content():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["cua-driver"] = FakeStructuredMcpClient()
 
     registration = await daemon.handle_register_mcp(
@@ -736,7 +737,7 @@ async def test_sidecar_daemon_preserves_mcp_structured_content():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_omits_promoted_mcp_image_bytes_from_output():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["vision"] = FakeImageMcpClient()
 
     registration = await daemon.handle_register_mcp(
@@ -787,7 +788,7 @@ async def test_sidecar_daemon_records_mcp_execution_diagnostics(
 ):
     diagnostics_db = tmp_path / "diagnostics.db"
     monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
     registration = await daemon.handle_register_mcp(
@@ -865,7 +866,7 @@ async def test_sidecar_daemon_records_mcp_registration_diagnostics(
 ):
     diagnostics_db = tmp_path / "diagnostics.db"
     monkeypatch.setenv("WINDIE_APP_DIAGNOSTICS_DB", str(diagnostics_db))
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
     registration = await daemon.handle_register_mcp(
@@ -912,7 +913,7 @@ async def test_sidecar_daemon_records_mcp_registration_diagnostics(
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_reconciles_removed_mcp_tools():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     daemon.mcp_clients["notes"] = FakeMcpClient()
 
     first = await daemon.handle_register_mcp(
@@ -940,7 +941,7 @@ async def test_sidecar_daemon_reconciles_removed_mcp_tools():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_events_channel_handles_control_messages():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     ws = FakeEventSocket()
 
     await daemon.handle_event_control_message(ws, '{"id":"1","type":"ping"}')
@@ -968,7 +969,7 @@ async def test_sidecar_daemon_events_channel_handles_control_messages():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_shutdown_endpoint_signals_daemon_loop():
-    daemon = SidecarDaemon(token="test-token")
+    daemon = LocalRuntimeDaemon(token="test-token")
     shutdown_event = asyncio.Event()
     daemon.bind_shutdown_event(shutdown_event)
 
@@ -998,7 +999,7 @@ async def test_sidecar_daemon_close_shuts_down_browser_runtime(monkeypatch):
         "shutdown_browser_runtime",
         fake_shutdown_browser_runtime,
     )
-    daemon = SidecarDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
 
     await daemon.close()
 

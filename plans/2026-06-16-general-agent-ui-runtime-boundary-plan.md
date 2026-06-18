@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local-runtime daemon class naming
+
+- Finding: the Python sidecar daemon process already emitted local-runtime
+  lifecycle labels and the SDK had removed sidecar-daemon aliases, but the
+  concrete daemon class was still named `SidecarDaemon`.
+- Change: renamed the class to `LocalRuntimeDaemon`, updated daemon tests to
+  instantiate the new class directly, and added a source guard against the
+  retired class declaration.
+- Validation: sidecar daemon py_compile, focused sidecar daemon pytest,
+  focused LocalRuntimeLaunchOptions Jest test, docs listing, and stale-class
+  scan.
+- Compatibility: no migration required. The daemon filename, launch command,
+  discovery file, auth headers, HTTP/WebSocket routes, logs, SDK client
+  options, storage, and tool execution payloads are unchanged.
+
+
 ### 2026-06-18 renderer model-list guard key
 
 - Finding: the renderer settings runtime facade still used a stale

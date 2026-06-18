@@ -811,7 +811,7 @@ class McpStdioClient:
         self.initialized = False
 
 
-class SidecarDaemon:
+class LocalRuntimeDaemon:
     def __init__(
         self, *, backend: LocalBackend | None = None, token: str | None = None
     ):
@@ -1463,7 +1463,7 @@ async def run_daemon(
     token: str | None = None,
     discovery_file: Path = DEFAULT_DISCOVERY_FILE,
 ) -> None:
-    daemon = SidecarDaemon(token=token)
+    daemon = LocalRuntimeDaemon(token=token)
     await daemon.backend.initialize()
     shutdown_event = asyncio.Event()
     daemon.bind_shutdown_event(shutdown_event)
