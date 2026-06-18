@@ -1,5 +1,5 @@
 ---
-summary: "Tools hub for WindieOS model-facing tools, sidecar executable tools, browser automation, filesystem/shell actions, and tool-result contracts."
+summary: "Tools hub for WindieOS model-facing tools, local-runtime executable tools, browser automation, filesystem/shell actions, and tool-result contracts."
 read_when:
   - When adding, removing, or changing tools.
   - When debugging tool-call payloads, local execution, or tool-result handling.
@@ -12,10 +12,10 @@ WindieOS tools are split between frontend/sidecar-owned local schemas and execut
 
 ## Tool Families
 
-- [Tool Contracts](tool_contracts.md) explains local manifest schemas, backend remote schemas, sidecar execution, request ids, bundle results, and parity tests.
+- [Tool Contracts](tool_contracts.md) explains local manifest schemas, backend remote schemas, local execution, request ids, bundle results, and parity tests.
 - [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) routes model-visible schema, policy, provider projection, sidecar parity, SDK/main dispatch, and result-contract changes.
 - [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to schema owners, sidecar executors, use cases, policy gates, and tests.
-- [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, sidecar execution, result ingress, history, and loop continuation.
+- [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, local execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.
 - [Web Search Tool](web_search.md) covers backend-owned `web_search`, OpenAI native search, Gemini native grounding, Brave fallback, visibility policy, and result validation.
 - [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures to the right owner.
@@ -23,7 +23,7 @@ WindieOS tools are split between frontend/sidecar-owned local schemas and execut
 - [Browser Tool](browser.md) covers the dedicated Windie browser runtime, browser action schemas, snapshots, and backend-sidecar parity.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests.
 - [Filesystem and Shell Tools](filesystem_shell.md) covers `read_file`, `replace`, shell/process execution, and output formatting.
-- [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) routes file/shell changes across backend schema, SDK/main dispatch, Electron bridge argument shaping, sidecar execution, sudo policy, sessions, results, and tests.
+- [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) routes file/shell changes across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests.
 
 ## Current Tool Catalogs
 
@@ -49,7 +49,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 ## Change Path
 
 1. Use [Tool Catalog Matrix](tool_catalog_matrix.md) to identify the static owner.
-2. Use [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) to route schema, visibility, provider, sidecar, SDK/main, and result-contract changes.
+2. Use [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) to route schema, visibility, provider, local-runtime, SDK/main, and result-contract changes.
 3. Use [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) to identify any visibility gate.
 4. Use [Browser Change Workflow](../browser/browser_change_workflow.md) for browser-specific schema, CDP, snapshot, ref, file, or renderer-session changes.
 5. Use [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) for file read/edit, shell command, background process, sudo, working-directory, and local output-shaping changes.

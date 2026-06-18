@@ -1,5 +1,5 @@
 ---
-summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, sidecar execution, result ingress, history, loop continuation, and removed ToolRunnerHook callback/turn-guard test routing."
+summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, local execution, result ingress, history, loop continuation, and removed ToolRunnerHook callback/turn-guard test routing."
 read_when:
   - When changing tool-call dispatch, bundle execution, request ids, tool-result payloads, screenshots, or model-facing history.
   - When debugging a tool that was called by the model but did not execute or did not re-enter backend history correctly.
@@ -29,9 +29,9 @@ event router.
 5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the frontend.
-8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the sidecar daemon/local executor.
-9. The local runtime invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
-10. Sidecar executes the local action and returns a normalized `ToolResult`.
+8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the configured local executor.
+9. The local runtime invokes the Python sidecar daemon or JSON-RPC tool registry behind that local-executor boundary.
+10. The Python sidecar executes the local action and returns a normalized `ToolResult`.
 11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
 13. Backend reads raw `data.output`, truncates that raw text only as needed for
@@ -74,7 +74,7 @@ Single-tool path:
 - failed SDK tool results keep `success: false`, include `error`, and carry raw
   failure text in `data.output` when available.
 - backend does not emit accepted local SDK results back as `tool-output`.
-  The SDK local execution path owns the UI row for sidecar results; backend
+  The SDK local execution path owns the UI row for local results; backend
   result ingress consumes `data.output` plus screenshot fields for
   waiting/model-history only.
 - backend history projection may truncate raw `data.output` before the next
@@ -107,7 +107,7 @@ If a tool hangs, inspect request-id state in this order:
 
 1. backend emitted `tool-call` or `tool-bundle`
 2. SDK runtime received and started it
-3. sidecar executed or returned a validation/runtime error
+3. local executor ran or returned a validation/runtime error
 4. SDK runtime sent result back with matching request or bundle id
 5. backend waiting storage resolved and cleaned it
 6. SDK normalized tool-output event was stored for display and future rehydrate projections

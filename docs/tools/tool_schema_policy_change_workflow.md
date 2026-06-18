@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/local execution, and tool-result contracts."
+summary: "Workflow for changing WindieOS model-visible tool schemas, policy gates, provider projection, local-runtime parity, SDK/local execution, and tool-result contracts."
 read_when:
   - When adding, removing, renaming, hiding, exposing, or changing a model-visible WindieOS tool.
   - When changing tool argument schemas, descriptions, capability gates, profiles, coordinate methods, provider-native projections, frontend executable payloads, or sidecar registry exposure.
@@ -9,7 +9,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 # Tool Schema and Policy Change Workflow
 
-Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and sidecar local execution.
+Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and Python sidecar local executor implementation.
 
 The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas; the Python sidecar owns the concrete local tool implementations. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
@@ -78,7 +78,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots; passthrough sidecar payload shape is left to frontend/sidecar validation.
 4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
 5. SDK main runtime dispatches local execution through Electron main.
-6. Electron main forwards the executable request to the sidecar daemon/JSON-RPC runtime.
+6. Electron main forwards the executable request to the SDK local runtime daemon/JSON-RPC bridge.
 7. Sidecar registry executes the local tool implementation and returns a normalized result.
 8. SDK main runtime submits `tool-result` or `tool-bundle-result` back to the backend.
 9. Backend transforms the result into model-facing history and resumes the loop.
@@ -89,7 +89,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 2. Add or update the Agent SDK/local-runtime manifest entry that defines the model-facing local schema.
 3. Add a fallback `ToolCatalogEntry` in `backend/src/tools/tool_catalog.py` only when hosted/default backend exposure still needs one.
 4. Add policy gates when the tool depends on permissions, browser runtime, provider health, workspace state, local authority, or a capability family.
-5. Add or update backend preparation only if model-facing fields must be grounded or translated before sidecar execution.
+5. Add or update backend preparation only if model-facing fields must be grounded or translated before local execution.
 6. Add the sidecar implementation and register it in `frontend/src/main/python/tools/registry.py`.
 7. Add the tool name to `BUILTIN_TOOL_ORDER` in `frontend/src/main/python/tools/manifest.py` only if backend parity should require it.
 8. Update SDK/main local execution code only if the tool needs special handling for screenshots, artifacts, display context, bundle behavior, or result shaping.

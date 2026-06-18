@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 tool docs local-execution boundary
+
+- Finding: public tool-routing docs still used `sidecar execution` as the cross-runtime boundary, which blurred SDK/main local execution orchestration with the Python sidecar executor implementation.
+- Change: rewrote the tools hub, tool contracts, tool execution lifecycle, tool schema workflow, and filesystem/shell workflow to route through SDK local runtime/local execution wording while preserving the sidecar as the concrete local executor.
+- Validation: focused `ModularRefactorCompletionBoundary` Jest coverage, exact stale-phrase scan for the selected tool-routing docs, and scoped diff check.
+- Compatibility: docs and boundary-test coverage only; runtime behavior, SDK APIs, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 renderer local-runtime tool docs
 
 - Finding: frontend renderer runtime docs still routed local tool execution through sidecar-daemon wording even though renderer surfaces should describe the SDK local runtime as the public execution boundary.

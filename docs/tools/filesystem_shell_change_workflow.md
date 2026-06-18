@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing or debugging WindieOS filesystem and shell tools across backend model-visible schemas, SDK/local dispatch, Electron bridge argument shaping, sidecar execution, process sessions, sudo policy, results, and tests."
+summary: "Workflow for changing or debugging WindieOS filesystem and shell tools across backend model-visible schemas, SDK/local dispatch, Electron bridge argument shaping, local execution, process sessions, sudo policy, results, and tests."
 read_when:
   - When changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, `open_app`, or `wait`.
   - When a file edit, file read, shell command, background process, sudo prompt, working directory, output truncation, or local tool result behaves differently from what the model requested.
@@ -91,7 +91,7 @@ flowchart LR
    - `replace` should require absolute paths for existing-file edits.
 - Missing-file creation through `replace` should remain narrow: exactly one unconstrained operation with `old_string=''`.
 - Backend `ReplaceArgs` rejects ambiguous edit-mode combinations before the
-  request reaches SDK/main or sidecar execution. A valid payload uses exactly
+  request reaches SDK/main or local execution. A valid payload uses exactly
   one mode: `replacements` or `patch_chunks`; a single edit is a one-item
   `replacements` list.
 - Multi-operation and patch-chunk edits must validate before writing.

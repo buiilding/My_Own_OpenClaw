@@ -1,5 +1,5 @@
 ---
-summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, frontend tool manifest builder ownership, sidecar local tools, bundles, request ids, and validation."
+summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, frontend tool manifest builder ownership, local-runtime executable tools, bundles, request ids, and validation."
 read_when:
   - When changing tool schemas or tool result payloads.
   - When debugging backend/frontend/sidecar tool drift.
@@ -17,7 +17,8 @@ WindieOS uses two tool-schema contracts:
 The public client sends local tool schemas through
 `agent_definition.tools.client_manifest` during websocket handshake; the hosted
 backend validates that manifest, applies policy/provider projection, and can
-resolve high-level or grounded intent into a simpler executable sidecar action.
+resolve high-level or grounded intent into a simpler local-runtime executable
+action.
 Built-in local tool schemas are generated from the frontend/sidecar Python
 contract into
 `frontend/src/main/generated/builtin_tool_manifest.json`, which Electron loads
@@ -42,9 +43,9 @@ with the arguments emitted for that tool.
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No sidecar parity is needed, but provider projection and policy still apply. |
-| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | frontend/sidecar `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the sidecar manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
+| client-local manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | frontend/sidecar `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
-| sidecar-only helper | no until exposed | sidecar | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
+| local-executor-only helper | no until exposed | local executor | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
 
 ## Client Tool Manifest Shape
@@ -75,14 +76,14 @@ Client-local schemas are merged with backend registry schemas before policy filt
    handshake.
 4. Backend validates accepted/rejected manifest entries.
 5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
-6. Prompt construction merges accepted dynamic client-local schemas with backend remote schemas; accepted built-in sidecar names keep backend catalog specs.
+6. Prompt construction merges accepted dynamic client-local schemas with backend remote schemas; accepted built-in local tool names keep backend catalog specs.
 7. Tool policy and provider/capability health narrow the exposed schema for the current session.
 8. Backend emits transparency for accepted/rejected manifest entries, final tool schemas, and active `client_prompt_layers`.
 9. The model emits a tool call.
 10. Backend parser and preparation code validates, normalizes, and enriches the call.
 11. Backend sends the executable payload over websocket as `tool-call` or `tool-bundle`.
-12. SDK runtime dispatches through Electron main to the sidecar daemon/local executor.
-13. Main/sidecar execute local work through the daemon or JSON-RPC bridge.
+12. SDK runtime dispatches through Electron main to the SDK local runtime/local executor.
+13. Main/local executor run local work through the daemon or JSON-RPC bridge.
 14. SDK runtime returns `tool-result` or `tool-bundle-result`.
 15. Backend transforms the result into model-facing history and continues the loop.
 
@@ -91,7 +92,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 - `agent_definition.tools.client_manifest` is capability input to backend
   validation; sidecar `entrypoint` is executable implementation.
 - `schema` is the developer-authored extension schema field; `function_tool_schema` is the backend-normalized model-facing shape.
-- For built-in sidecar tool names, backend validation accepts the manifest but
+- For built-in local tool names, backend validation accepts the manifest but
   provider-visible schemas come from the backend tool catalog. The sidecar
   manifest schema is used for capability validation and dispatch metadata, not
   final provider description authority.
@@ -99,7 +100,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
   argument boundary explicit when `schema` contains backend grounding metadata.
 - `argument_resolution=passthrough` means model args should already be executable; `backend_grounding` means backend preparation may resolve higher-level intent first.
 - `request_id`, `bundle_id`, `tool_call_id`, and renderer `correlation_id` join different stages. Do not collapse them unless the producer and consumer really share the same domain.
-- Local sidecar results must put model-facing text in `data.output`. Structured
+- Local runtime results must put model-facing text in `data.output`. Structured
   fields may remain in the payload for UI/debugging, but backend history reads
   only `output` and does not infer text from tool-specific fields such as
   `snapshot`, `extracted_content`, or `matches`.
@@ -114,7 +115,8 @@ Client-local schemas are merged with backend registry schemas before policy filt
   result.
 - Backend may truncate raw `data.output` with the selected model's tokenizer
   when available, then falls back to the conservative character estimate.
-- Backend remote tools can be model-visible without sidecar entries. Sidecar helpers can exist without model visibility.
+- Backend remote tools can be model-visible without local-runtime entries. Local
+  helper implementations can exist without model visibility.
 - Provider-native declarations can coexist with function schemas, but policy must still prevent disabled helper schemas from leaking back into the prompt.
 
 ## Files to Inspect
@@ -151,4 +153,4 @@ For a step-by-step change route across these owners, use [Tool Schema and Policy
 - Contract updates must preserve raw tool or MCP payloads when wrappers add
   WindieOS-native metadata.
 - Do not use renderer display rows as proof that model-facing schema, prepared
-  arguments, and sidecar execution contracts all agree.
+  arguments, and local execution contracts all agree.
