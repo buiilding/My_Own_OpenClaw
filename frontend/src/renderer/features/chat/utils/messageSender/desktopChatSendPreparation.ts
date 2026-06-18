@@ -2,12 +2,12 @@
  * Provides the desktop chat send preparation module for the renderer UI.
  */
 
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../../app/runtime/desktopPendingTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopWindowRuntimeClient } from '../../../../app/runtime/desktopWindowRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
 import { fetchActiveWorkspaceSelection } from '../../../../infrastructure/workspace/workspaceAccess';
 import {
@@ -200,7 +200,7 @@ async function runSendSurfaceWindowPolicy({
 }): Promise<void> {
   if (shouldReturnToChatboxOnSend) {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+      await DesktopWindowRuntimeClient.showChatbox({ focus: false });
     } catch (error) {
       console.warn('[useChatMessageSender] Failed to show chatbox:', error);
     }

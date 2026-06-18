@@ -143,8 +143,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer chat stream debug utilities now route live-surface trace IPC through
   a renderer app runtime client instead of importing the trace send channel
   directly.
+  Renderer message-send preparation now routes send-surface chatbox restore
+  through a renderer app runtime window client instead of invoking the window
+  IPC channel directly.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Chatbox Window Runtime Client Slice
+
+- Worktree was clean after `61fcea72c`, with `main` ahead of `origin/main` by
+  840 commits.
+- Finding: message-send preparation invoked the desktop `show-chatbox` IPC
+  channel directly while applying return-to-chatbox policy.
+- Change: added `DesktopWindowRuntimeClient` under the renderer app runtime
+  layer and routed send-surface chatbox restore through it.
+- Validation: focused renderer chat boundary test, chat message sender tests,
+  docs listing, and diff check.
+- Compatibility: no migration required. `show-chatbox` channel strings, payload
+  shapes, send-surface policy, screenshot/resource handling, SDK query commands,
+  Electron main handlers, storage, credentials, and provider policy are
+  unchanged.
 
 ### 2026-06-18 Renderer Live-Surface Trace Runtime Client Slice
 

@@ -612,6 +612,22 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
   });
 
+  test('chat send preparation routes chatbox window policy through app runtime client', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('SHOW_CHATBOX');
+    expect(source).not.toContain('IpcBridge.invoke');
+    expect(source).toContain('DesktopWindowRuntimeClient.showChatbox');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_CHATBOX');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

@@ -18,6 +18,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient.ts`
 - `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
 - `frontend/src/main/ipc.cjs`
@@ -80,6 +81,11 @@ desktop IPC channel constants directly.
 live-surface trace IPC send channel. Chat stream debug utilities decide whether
 to emit diagnostics and build redacted payloads, then call this runtime client
 instead of importing desktop IPC channel constants directly.
+
+`desktopWindowRuntimeClient.ts` owns renderer adapter calls for desktop window
+commands used by generic chat runtime flows, such as restoring the chatbox after
+overlay-origin sends. Chat send preparation applies the UI policy and calls this
+runtime client instead of importing window IPC channel constants directly.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

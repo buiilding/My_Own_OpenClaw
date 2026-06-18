@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Chatbox Window Runtime Client
+
+- Finding: message-send preparation invoked the desktop `show-chatbox` IPC
+  channel directly while applying return-to-chatbox policy.
+- Change: added `DesktopWindowRuntimeClient` under the renderer app runtime
+  layer and routed send-surface chatbox restore through it.
+- Validation: focused renderer chat boundary test, chat message sender tests,
+  docs listing, and diff check.
+- Compatibility: no migration required. `show-chatbox` channel strings, payload
+  shapes, send-surface policy, screenshot/resource handling, SDK query commands,
+  Electron main handlers, storage, credentials, and provider policy are
+  unchanged.
+
 ### 2026-06-18 Renderer Live-Surface Trace Runtime Client
 
 - Finding: chat stream debug utilities imported the live-surface trace IPC send

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat send-surface chatbox restore through a renderer
+  app runtime window client instead of invoking the window IPC channel directly
+  from message-send preparation.
 - renderer/runtime: route chat live-surface trace forwarding through a renderer
   app runtime client instead of importing the trace IPC channel from chat stream
   utilities.
