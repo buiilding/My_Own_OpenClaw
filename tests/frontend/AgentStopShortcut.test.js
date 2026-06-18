@@ -133,8 +133,8 @@ describe('agent stop shortcut helper', () => {
     expect(isAgentStopShortcutEvent(modifiedEvent)).toBe(false);
   });
 
-  test('accepts Esc alias and rejects repeat or non-event inputs', () => {
-    expect(isAgentStopShortcutEvent({ key: 'Esc', repeat: false })).toBe(true);
+  test('rejects Esc alias, repeat, and non-event inputs', () => {
+    expect(isAgentStopShortcutEvent({ key: 'Esc', repeat: false })).toBe(false);
     expect(isAgentStopShortcutEvent({ key: 'Escape', repeat: true })).toBe(false);
     expect(isAgentStopShortcutEvent(null)).toBe(false);
   });

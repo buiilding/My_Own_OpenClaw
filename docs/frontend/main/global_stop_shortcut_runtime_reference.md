@@ -29,8 +29,10 @@ the SDK-shaped query runtime:
    the latest SDK current turn first, a renderer pending turn second, and the
    active conversation only as an idle fallback.
 
-Focused chat and dashboard windows still support plain `Esc`; the global
-shortcut exists for stop-from-anywhere behavior while another app has focus.
+Focused chat and dashboard windows still support plain `Esc`; the renderer
+keyboard handler accepts the canonical DOM `KeyboardEvent.key === "Escape"`
+value and does not keep the older `"Esc"` key alias. The global shortcut exists
+for stop-from-anywhere behavior while another app has focus.
 
 ## Main Runtime Rules
 

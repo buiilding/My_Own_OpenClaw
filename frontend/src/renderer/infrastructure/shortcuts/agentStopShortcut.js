@@ -61,9 +61,7 @@ export function isAgentStopShortcutEvent(event) {
   if (event.repeat) {
     return false;
   }
-  const key = String(event.key || '');
-  const normalizedKey = key.toLowerCase();
-  if (normalizedKey !== 'escape' && normalizedKey !== 'esc') {
+  if (event.key !== 'Escape') {
     return false;
   }
   return !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;

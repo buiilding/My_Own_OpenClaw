@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 focused stop shortcut Esc key alias
+
+- Finding: the focused renderer stop shortcut accepted the older DOM `Esc` key
+  spelling in addition to canonical `KeyboardEvent.key === "Escape"`, even
+  though current browser/Electron key events and docs use `Escape`.
+- Change: removed the `Esc` alias branch, inverted focused shortcut coverage to
+  reject the alias, and documented the canonical focused-window key contract in
+  the global stop shortcut runtime reference.
+- Validation: focused `AgentStopShortcut.test.js` Jest coverage, docs search
+  routing, exact alias scan, and diff checks.
+- Compatibility: no migration required. This is transient focused-window
+  keyboard handling only; the visible `Esc` label, global accelerator catalog,
+  settings payloads, IPC status, and stop-query routing are unchanged.
+
 ### 2026-06-17 MCP control local-runtime refresh naming
 
 - Finding: Electron main MCP control already accepted a `localRuntime` object, but the private refresh helper and focused test names still described the path as refreshing through sidecar.
