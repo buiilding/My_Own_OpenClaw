@@ -223,16 +223,16 @@ App diagnostic paths:
   explicitly supplies both `conversationRef` and `turnRef`, the same sanitized
   path may be written as a hidden conversation `trace_event` because it is then
   part of a real user turn.
-- `mcp.discovery`: sidecar-owned MCP discovery and stdio initialization,
+- `mcp.discovery`: local-runtime MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.
 - `mcp.enablement`: Electron main MCP dashboard toggle and desktop UI config
   persistence lifecycle, including whether a renderer save preserved MCP
   enablement from loaded main config or disk.
-- `mcp.registration`: sidecar-owned SDK/local-runtime MCP registration
+- `mcp.registration`: local-runtime MCP registration
   lifecycle, including `/mcps/register` request, replace/reconcile, and
   registered tool counts.
-- `mcp.execution`: sidecar-owned MCP `tools/call` execution for MCP tools that
+- `mcp.execution`: local-runtime MCP `tools/call` execution for MCP tools that
   have already been discovered and registered into the local tool manifest.
 - `surface.visibility`: chat pill and response-overlay show/hide decisions,
   phase-driven window decisions, guard refs, requested visibility, and final

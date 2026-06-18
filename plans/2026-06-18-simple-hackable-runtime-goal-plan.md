@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed an MCP diagnostics owner-label slice by updating the
+  runtime trace playbook so `mcp.discovery`, `mcp.registration`, and
+  `mcp.execution` use local-runtime MCP ownership labels instead of
+  sidecar-owned diagnostics. The modular docs stale-mention guard now rejects
+  the retired MCP sidecar-owned phrases. Validation: focused modular docs
+  boundary test, docs listing, exact stale MCP-owner phrase scan, and diff
+  checks. No migration required; no code path, payload, storage, IPC, settings,
+  tool schema, credential, permission, hosted URL, provider-policy, MCP
+  process, or raw MCP result preservation behavior changed.
 - 2026-06-18: completed a voice/wakeword ownership wording slice by routing
   public wakeword model/protocol ownership through the local-runtime wakeword
   helper while keeping the Python sidecar wakeword service visible as the
