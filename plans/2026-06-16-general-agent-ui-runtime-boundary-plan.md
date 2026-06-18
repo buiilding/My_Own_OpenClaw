@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 sidecar daemon user-data path resolver
+
+- Finding: `sidecar_daemon.py` duplicated platform app-data path logic already
+  owned by `core.user_data_paths`, including a separate `windieos` path table
+  for diagnostics and daemon-local storage.
+- Change: extended the shared Python local-runtime path helper with explicit
+  opt-in options for daemon override, XDG, and Windows fallback behavior, then
+  routed the daemon wrapper through that helper and documented the data-path
+  contract.
+- Validation: focused sidecar user-data and daemon pytest coverage, sidecar
+  source guard, docs listing, and diff check.
+- Compatibility: no migration required. Default paths remain
+  `%APPDATA%/windieos`, `~/Library/Application Support/windieos`, or
+  `~/.config/windieos` for existing helper callers; daemon-specific
+  `WINDIE_USER_DATA_DIR`, XDG, and Windows fallback behavior is preserved.
+
 ### 2026-06-18 frontend runtime surface local-runtime wording
 
 - Finding: the frontend runtime surface reference still described `ipc.cjs` as

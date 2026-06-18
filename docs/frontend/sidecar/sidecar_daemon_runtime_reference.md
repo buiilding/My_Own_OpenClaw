@@ -65,6 +65,23 @@ discovery entries with non-loopback hosts, unsupported schemes, userinfo, paths,
 queries, or fragments before sending the sidecar token, and delete invalid
 reusable discovery files before launching a replacement daemon.
 
+## Local Data Paths
+
+The daemon resolves diagnostics and local-runtime user-data paths through
+`core.user_data_paths.app_user_data_root(...)` instead of carrying its own
+platform path table. Default paths remain unchanged:
+
+- Windows: `%APPDATA%/windieos`, or `~/AppData/Roaming/windieos` for daemon
+  fallback/test contexts when `%APPDATA%` is absent
+- macOS: `~/Library/Application Support/windieos`
+- Linux: `$XDG_CONFIG_HOME/windieos` for daemon contexts that opt into XDG, or
+  `~/.config/windieos` when no XDG root is provided
+
+`WINDIE_USER_DATA_DIR` overrides the daemon user-data root for tests and
+special local runs. Other Python local-runtime code uses the same helper while
+preserving its existing defaults unless it explicitly opts into daemon-style
+fallbacks.
+
 ## Endpoints
 
 ```text

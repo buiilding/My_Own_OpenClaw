@@ -31,6 +31,8 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert 'emit_sidecar_layer_log("[LocalRuntime]", "status requested")' in source
     assert '"[LocalRuntimeDaemon] listening' in source
     assert '"[LocalRuntimeDaemon] stopping' in source
+    assert "resolve_app_user_data_root(" in source
+    assert 'Path.home() / "Library" / "Application Support" / "windieos"' not in source
     assert "WindieOS sidecar" not in source
     assert "Run the WindieOS sidecar daemon." not in source
     assert "WINDIE_SIDECAR_SOURCE_PATH" not in source

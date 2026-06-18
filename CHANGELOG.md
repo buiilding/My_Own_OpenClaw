@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   use artifact-backed `screenshot_ref`/`screenshot_refs` only; no migration is
   included because first-party screenshot capture already uploads artifacts
   before backend send, and backend validation now rejects query `screenshot`.
+- frontend/sidecar: route sidecar daemon user-data path resolution through the
+  shared Python local-runtime path helper while preserving daemon override,
+  XDG, and Windows fallback behavior; no migration is required because default
+  paths and persisted storage locations are unchanged.
 - docs/frontend: align the frontend runtime surface reference with SDK-backed
   query/session relay ownership and Python local-runtime execution wording
   instead of stale backend-transport and sidecar ownership shorthand; no

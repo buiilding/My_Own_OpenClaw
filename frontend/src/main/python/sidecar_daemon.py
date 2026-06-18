@@ -22,6 +22,7 @@ from typing import Any
 
 from aiohttp import web
 
+from core.user_data_paths import app_user_data_root as resolve_app_user_data_root
 from local_backend import LocalRuntimeService
 from tools.result import ToolResult
 
@@ -183,23 +184,12 @@ def serialize_diagnostic_args(args: list[str]) -> str:
 
 
 def app_user_data_root() -> Path:
-    override = normalize_string(os.getenv("WINDIE_USER_DATA_DIR"))
-    if override:
-        return Path(override)
-    if sys_platform := os.getenv("WINDIE_TEST_PLATFORM"):
-        platform_name = sys_platform
-    else:
-        import sys
-
-        platform_name = sys.platform
-    if platform_name == "win32":
-        return (
-            Path(os.getenv("APPDATA") or (Path.home() / "AppData" / "Roaming"))
-            / "windieos"
-        )
-    if platform_name == "darwin":
-        return Path.home() / "Library" / "Application Support" / "windieos"
-    return Path(os.getenv("XDG_CONFIG_HOME") or (Path.home() / ".config")) / "windieos"
+    return resolve_app_user_data_root(
+        platform_name=normalize_string(os.getenv("WINDIE_TEST_PLATFORM")) or None,
+        override_env_key="WINDIE_USER_DATA_DIR",
+        allow_windows_home_fallback=True,
+        honor_xdg_config_home=True,
+    )
 
 
 def diagnostics_database_path() -> Path:
