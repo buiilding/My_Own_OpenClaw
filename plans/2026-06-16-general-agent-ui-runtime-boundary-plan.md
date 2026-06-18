@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Channel Routing Desktop Local Owner Wording
+
+- Finding: the channel routing matrix still labeled the local owner and payload
+  sections as frontend/sidecar ownership.
+- Change: renamed the matrix owner column to desktop/local owner, payload
+  sections to desktop client and Python sidecar owners, and guarded the stale
+  labels.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; IPC
+  channels, payload shapes, SDK/main routing, Python sidecar JSON-RPC behavior,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Agent SDK Runtime Channel Wording
 
 - Finding: channel routing, tool lifecycle, stream-event, and memory IPC docs

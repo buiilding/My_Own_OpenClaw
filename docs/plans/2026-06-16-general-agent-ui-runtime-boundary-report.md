@@ -111,9 +111,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   now describe diagnostic values as local-runtime JSON-RPC/payload data instead
   of sidecar payloads. Channel routing, tool lifecycle, stream-event, and
   memory IPC docs now use Agent SDK backend transport/runtime/API wording
-  instead of SDK-agent phrasing for command and projection paths.
+  instead of SDK-agent phrasing for command and projection paths. The channel
+  routing matrix now names desktop/local owners and desktop client/Python
+  sidecar payload ownership instead of frontend/sidecar labels.
 
 ## Inspection Log
+
+### 2026-06-18 Channel Routing Desktop Local Owner Wording Slice
+
+- Worktree was clean after `22bcf37fd`, with `main` ahead of `origin/main` by
+  827 commits.
+- Finding: the channel routing matrix still labeled the local owner column and
+  payload sections as frontend/sidecar ownership.
+- Change: renamed the matrix owner column to desktop/local owner, payload
+  sections to desktop client and Python sidecar owners, and guarded the stale
+  labels.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; IPC
+  channels, payload shapes, SDK/main routing, Python sidecar JSON-RPC behavior,
+  storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Agent SDK Runtime Channel Wording Slice
 

@@ -371,6 +371,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('SDK agent stream-event module');
     expect(docText).not.toContain('public SDK agent APIs');
     expect(docText).not.toContain('SDK main runtime');
+    expect(docText).not.toContain('Frontend/sidecar owner');
+    expect(docText).not.toContain('Frontend-owned payloads:');
+    expect(docText).not.toContain('Sidecar-owned payloads:');
   });
 
   test('renderer settings docs use renderer-local presentation wording', async () => {

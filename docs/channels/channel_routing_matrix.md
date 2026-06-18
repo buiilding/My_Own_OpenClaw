@@ -12,7 +12,7 @@ This matrix maps entry channels to the transport and code that own them. Start h
 
 ## Routing Matrix
 
-| Channel | Primary input | Transport path | Backend owner | Frontend/sidecar owner | Validate |
+| Channel | Primary input | Transport path | Backend owner | Desktop/local owner | Validate |
 | --- | --- | --- | --- | --- | --- |
 | Dashboard chat query | dashboard composer submit | renderer `windie:invoke` command `conversation.send` -> Electron main Agent SDK host -> Agent SDK backend transport -> `/ws` `query` | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `frontend/src/renderer/features/chat/**`, `frontend/src/main/ipc.cjs`, Agent SDK host | backend query tests, frontend chat/IPC tests |
 | Minimal pill query | overlay composer submit | overlay renderer IPC -> Electron main -> `/ws` `query` | same backend query path | `frontend/src/renderer/app/ChatBox*.jsx`, overlay IPC/window runtime | overlay/main-process tests, query-send tests |
@@ -38,7 +38,7 @@ Backend-owned payloads:
 - `/api/sdk/*`, `/api/artifacts/*`, `/api/runs/*`, `/api/embeddings/*`, and `/api/semantic/*` request/response models
 - transcription websocket provider protocol normalization
 
-Frontend-owned payloads:
+Desktop client-owned payloads:
 
 - renderer-to-main IPC channel payloads
 - renderer-local config and settings subset
@@ -46,7 +46,7 @@ Frontend-owned payloads:
 - renderer chat state and transcript queue payloads
 - sidecar JSON-RPC request envelopes created by Electron main
 
-Sidecar-owned payloads:
+Python sidecar-owned payloads:
 
 - executable tool argument validation
 - local JSON-RPC method responses
