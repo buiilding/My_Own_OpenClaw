@@ -2,10 +2,10 @@
 
 import pytest
 from frontend.src.main.python.tools.schemas import (
-    MouseControlArgs as SidecarMouseControlArgs,
+    MouseControlArgs as LocalRuntimeMouseControlArgs,
 )
 from frontend.src.main.python.tools.schemas import (
-    ScrollControlArgs as SidecarScrollControlArgs,
+    ScrollControlArgs as LocalRuntimeScrollControlArgs,
 )
 
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
@@ -338,7 +338,7 @@ async def test_resolve_tool_with_coordinates_supports_scroll_control_prediction(
 
 
 @pytest.mark.asyncio
-async def test_resolved_mouse_drag_payload_is_valid_sidecar_input(monkeypatch):
+async def test_resolved_mouse_drag_payload_is_valid_local_runtime_input(monkeypatch):
     session, screenshot_manager = _create_session_and_manager(
         screenshot_id="shot-drag-parity",
         capture_meta={
@@ -369,20 +369,24 @@ async def test_resolved_mouse_drag_payload_is_valid_sidecar_input(monkeypatch):
         resolved_call,
         session,
         screenshot_manager,
-        "drag-sidecar-parity",
+        "drag-local-runtime-parity",
     )
 
     _sanitize_resolved_call_for_executor(resolved_call)
-    sidecar_args = SidecarMouseControlArgs.model_validate(resolved_call.parameters)
-    assert sidecar_args.action == "drag"
-    assert sidecar_args.x == 837
-    assert sidecar_args.y == 515
-    assert sidecar_args.drag_to_x == 1381
-    assert sidecar_args.drag_to_y == 751
+    local_runtime_args = LocalRuntimeMouseControlArgs.model_validate(
+        resolved_call.parameters
+    )
+    assert local_runtime_args.action == "drag"
+    assert local_runtime_args.x == 837
+    assert local_runtime_args.y == 515
+    assert local_runtime_args.drag_to_x == 1381
+    assert local_runtime_args.drag_to_y == 751
 
 
 @pytest.mark.asyncio
-async def test_resolved_scroll_prediction_payload_is_valid_sidecar_input(monkeypatch):
+async def test_resolved_scroll_prediction_payload_is_valid_local_runtime_input(
+    monkeypatch,
+):
     session, screenshot_manager = _create_session_and_manager(
         screenshot_id="shot-scroll-parity",
         capture_meta={
@@ -413,16 +417,18 @@ async def test_resolved_scroll_prediction_payload_is_valid_sidecar_input(monkeyp
         resolved_call,
         session,
         screenshot_manager,
-        "scroll-sidecar-parity",
+        "scroll-local-runtime-parity",
     )
 
     _sanitize_resolved_call_for_executor(resolved_call)
-    sidecar_args = SidecarScrollControlArgs.model_validate(resolved_call.parameters)
-    assert sidecar_args.action == "scroll_down"
-    assert sidecar_args.x == 320
-    assert sidecar_args.y == 480
-    assert sidecar_args.clicks == 6
-    assert sidecar_args.wait == 0.4
+    local_runtime_args = LocalRuntimeScrollControlArgs.model_validate(
+        resolved_call.parameters
+    )
+    assert local_runtime_args.action == "scroll_down"
+    assert local_runtime_args.x == 320
+    assert local_runtime_args.y == 480
+    assert local_runtime_args.clicks == 6
+    assert local_runtime_args.wait == 0.4
     assert (
         resolved_call.metadata["coordinate_contract"]["screenshot_id"]
         == "shot-scroll-parity"

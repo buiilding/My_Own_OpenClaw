@@ -391,7 +391,7 @@ async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_f
 
 
 @pytest.mark.asyncio
-async def test_prepare_single_frontend_mouse_control_shape_is_left_to_sidecar():
+async def test_prepare_single_frontend_mouse_control_shape_is_left_to_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -487,7 +487,7 @@ async def test_prepare_invalid_grounded_scroll_tool_returns_preparation_error():
 
 
 @pytest.mark.asyncio
-async def test_prepare_bundle_frontend_mouse_control_shape_is_left_to_sidecar():
+async def test_prepare_bundle_frontend_mouse_control_shape_is_left_to_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -656,7 +656,7 @@ def test_tool_call_has_manual_coordinates_rejects_bool_coordinates():
 
 
 @pytest.mark.asyncio
-async def test_prepare_allows_frontend_keyboard_tool_shape_for_sidecar_validation():
+async def test_prepare_allows_frontend_keyboard_tool_shape_for_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -682,7 +682,7 @@ async def test_prepare_allows_frontend_keyboard_tool_shape_for_sidecar_validatio
 
 
 @pytest.mark.asyncio
-async def test_prepare_allows_frontend_system_tool_shape_for_sidecar_validation():
+async def test_prepare_allows_frontend_system_tool_shape_for_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -710,7 +710,7 @@ async def test_prepare_allows_frontend_system_tool_shape_for_sidecar_validation(
 
 
 @pytest.mark.asyncio
-async def test_prepare_allows_frontend_browser_tool_shape_for_sidecar_validation():
+async def test_prepare_allows_frontend_browser_tool_shape_for_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
