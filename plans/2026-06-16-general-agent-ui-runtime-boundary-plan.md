@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK MCP registration options alias removal
+
+- Finding: `AgentRegisterMcpOptions` only renamed the `{ replace?: boolean }`
+  options object accepted by `Agent.registerMcps`, and exact scans found no
+  callers outside the defining module.
+- Change: removed the exported type alias, inlined the options shape on
+  `registerMcps`, and added package-boundary coverage so the alias stays absent.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK TypeScript
+  `--noEmit` compile, Agent.registerMcps docs route lookup, and stale alias scan.
+- Compatibility: no repo migration required because there were no internal
+  callers. External SDK callers should type MCP registration options directly as
+  `{ replace?: boolean }` when needed.
+
 ### 2026-06-18 SDK raw backend listener alias removal
 
 - Finding: `RawBackendEventListener` only renamed the raw backend event callback

@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove the unused exported `AgentRegisterMcpOptions` type alias
+  so `Agent.registerMcps` uses the direct `{ replace?: boolean }` options
+  shape; no runtime, storage, or wire-payload migration is required.
 - sdk/js: remove the unused exported `RawBackendEventListener` type alias;
   `subscribeRawBackendEvents` now uses the direct `(event: BackendEvent) => void`
   listener shape, with no websocket, storage, or runtime behavior change.

@@ -91,10 +91,6 @@ export type AgentOwner = {
   shutdownLocalRuntime?(): Promise<void>;
 };
 
-export type AgentRegisterMcpOptions = {
-  replace?: boolean;
-};
-
 function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): void {
   const details = [
     `stage=${diagnostic.stage}`,
@@ -549,7 +545,7 @@ export class Agent {
 
   async registerMcps(
     mcps: AgentMcpDefinition[],
-    options: AgentRegisterMcpOptions = {},
+    options: { replace?: boolean } = {},
   ): Promise<{ registration: JsonRecord; toolSchemas: JsonRecord[] }> {
     const localRuntime = await this.ensureLocalRuntime('MCP registration');
     if (typeof localRuntime.registerMcp !== 'function') {
