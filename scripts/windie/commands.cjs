@@ -19,7 +19,7 @@ const {
   inspectDiagnosticTrace,
   listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
-  windieUserDataRoot,
+  appUserDataRoot,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 const {
   configureLayerLogSink,
@@ -145,7 +145,7 @@ function nodeScriptArgs(relativePath, args = []) {
 }
 
 function historyDatabasePath() {
-  return path.join(windieUserDataRoot(), 'history', 'history.db');
+  return path.join(appUserDataRoot(), 'history', 'history.db');
 }
 
 function historyTableNames() {

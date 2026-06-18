@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - cli/commits: raise the buffered capture capacity used by Windie CLI history
   scans so `windie commits search` no longer fails with `spawnSync git ENOBUFS`
   in large repos.
+- cli/history: use the exported desktop user-data root helper for history DB
+  lookups so `windie conversation messages` no longer crashes with
+  `windieUserDataRoot is not a function`.
 - ops/deploy: stream the `.sh` remote backend update script from the GitHub
   Actions deploy workflow so pushes to `main` can update and restart the
   hosted backend after extensionless script shims were removed.
