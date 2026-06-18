@@ -51,11 +51,6 @@ WEBKIT_DIR="${HOME}/Library/WebKit/windieos"
 WEBKIT_BUNDLE_DIR="${HOME}/Library/WebKit/${BUNDLE_ID}"
 HTTP_STORAGE_DIR="${HOME}/Library/HTTPStorages/${BUNDLE_ID}"
 SAVED_STATE_DIR="${HOME}/Library/Saved Application State/${BUNDLE_ID}.savedState"
-LEGACY_APP_STATE_DIRS=(
-  "${HOME}/Library/Application Support/WindieOS"
-  "${HOME}/Library/Caches/WindieOS"
-  "${HOME}/Library/WebKit/WindieOS"
-)
 LOG_FILE="${WINDIE_LOG_FILE:-${HOME}/windieos-packaged-run.log}"
 SIDECAR_LOG_LEVEL="${WINDIE_SIDECAR_LOG_LEVEL:-ERROR}"
 PYTHON_BUILD="${WINDIE_PYTHON_BUILD:-}"
@@ -255,7 +250,6 @@ rm -rf \
   "${WEBKIT_BUNDLE_DIR}" \
   "${HTTP_STORAGE_DIR}" \
   "${SAVED_STATE_DIR}"
-rm -rf "${LEGACY_APP_STATE_DIRS[@]}"
 rm -f "${LOG_FILE}"
 
 echo "[reinstall-windieos-macos] cleaning previous build artifacts"

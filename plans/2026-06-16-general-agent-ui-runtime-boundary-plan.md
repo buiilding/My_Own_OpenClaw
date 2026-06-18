@@ -120,6 +120,35 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend prepared-tool local-runtime test wording
+
+- Finding: backend coordinate-scaling and tool-preparer tests still described
+  prepared computer-use payloads as sidecar input or sidecar validation, even
+  though the backend boundary prepares executable local-runtime payloads and
+  leaves concrete validation/execution below that boundary.
+- Change: renamed the focused test names, local schema aliases, request ids, and
+  assertion variables to local-runtime input/validation wording.
+- Validation: focused backend coordinate-scaling and tool-preparer pytest
+  coverage, exact stale test-phrase scan, and scoped diff check.
+- Compatibility: no migration required. This changes tests only; backend tool
+  preparation behavior, model-facing tool shapes, executable payload schemas,
+  sidecar implementation modules, storage, and API payloads are unchanged.
+
+### 2026-06-18 macOS reinstall legacy state cleanup
+
+- Finding: the local macOS reinstall helper still deleted capitalized
+  `WindieOS` Application Support, Caches, and WebKit state directories even
+  though current packaged reset ownership is the lowercase `windieos` app-data
+  root plus bundle-id-specific state paths.
+- Change: removed the legacy state-directory array and deletion call, and
+  tightened package-script coverage so only current WindieOS install/state names
+  remain in the helper.
+- Validation: focused package-script Jest coverage, shell syntax check, exact
+  legacy state-path scan, and scoped diff check.
+- Compatibility: no migration is provided for the retired capitalized app-data
+  paths. Current lowercase app data, bundle-id state cleanup, app install
+  removal, TCC reset, logs, credentials, and package behavior are unchanged.
+
 ### 2026-06-18 preload Agent SDK bridge naming boundary
 
 - Finding: the preload bridge that exposes SDK-shaped commands over the desktop

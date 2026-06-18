@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tests: rename focused prepared-tool payload assertions from sidecar
+  input/validation wording to local-runtime input/validation wording; no
+  migration is required because this changes test names, request ids, and local
+  aliases only, leaving backend preparation behavior and executable payload
+  schemas unchanged.
+- scripts/macOS: remove capitalized `WindieOS` legacy app-state cleanup from
+  the local reinstall helper so resets only target current lowercase
+  `windieos` and bundle-id state paths; no migration is provided for the
+  retired app-data names.
 - frontend/preload: rename the active preload Agent SDK command bridge
   implementation and focused test harness away from internal desktop-agent
   wording while preserving the existing `window.desktopAgent` compatibility

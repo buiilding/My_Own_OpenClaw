@@ -56,10 +56,13 @@ describe('frontend package scripts', () => {
     for (const staleStatePath of [
       'Application Support/desktop-assistant',
       'Application Support/DesktopAssistant',
+      'Application Support/WindieOS',
       'Caches/desktop-assistant',
       'Caches/DesktopAssistant',
+      'Caches/WindieOS',
       'WebKit/desktop-assistant',
       'WebKit/DesktopAssistant',
+      'WebKit/WindieOS',
     ]) {
       expect(macosReinstallScript).not.toContain(staleStatePath);
     }
