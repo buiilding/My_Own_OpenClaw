@@ -5,8 +5,8 @@
 import {
   extractTextFromHtml,
   toSanitizedMarkdownHtml,
-} from '../../../../infrastructure/markdown';
-import { resolveLlmOutputContract } from '../../../../infrastructure/llmOutputContract';
+  resolveLlmOutputContract,
+} from '../../../../app/runtime/desktopMarkdownRuntimeClient';
 
 export function buildMarkdownRenderModel({
   text,

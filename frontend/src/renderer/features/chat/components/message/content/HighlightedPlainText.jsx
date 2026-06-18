@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { highlightPlainTextToHtml } from '../../../../../infrastructure/markdown';
+import { highlightPlainTextToHtml } from '../../../../../app/runtime/desktopMarkdownRuntimeClient';
 
 export default function HighlightedPlainText({
   as: Component = 'span',

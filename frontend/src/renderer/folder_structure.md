@@ -30,6 +30,7 @@ frontend/src/renderer/
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
+│   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC

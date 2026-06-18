@@ -2,7 +2,7 @@
  * Provides the thread find state module for the renderer UI.
  */
 
-import { collectTextMatches } from '../../../../infrastructure/markdown';
+import { collectTextMatches } from '../../../../app/runtime/desktopMarkdownRuntimeClient';
 import { buildMarkdownRenderModel } from './markdownMessageRendering';
 
 function resolveToolCallSearchText(message) {

@@ -500,6 +500,28 @@ describe('renderer chat runtime boundary', () => {
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
   });
 
+  test('chat markdown display reads renderer markdown helpers through app runtime client', async () => {
+    const files = [
+      path.join(chatRoot, 'utils/message/markdownMessageRendering.js'),
+      path.join(chatRoot, 'utils/message/threadFindState.js'),
+      path.join(chatRoot, 'components/message/content/MarkdownMessage.jsx'),
+      path.join(chatRoot, 'components/message/content/HighlightedPlainText.jsx'),
+    ];
+    const markdownClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMarkdownRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const source = await fs.readFile(file, 'utf8');
+      expect(source).not.toContain('infrastructure/markdown');
+      expect(source).not.toContain('infrastructure/llmOutputContract');
+      expect(source).toContain('desktopMarkdownRuntimeClient');
+    }
+    expect(markdownClientSource).toContain('infrastructure/markdown');
+    expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
+  });
+
   test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];

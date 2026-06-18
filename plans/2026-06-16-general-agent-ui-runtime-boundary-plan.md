@@ -8087,3 +8087,18 @@ Each completed slice should report:
 - Compatibility: no migration required. SDK event types, send input resource
   shape, model-selection shape, replay correlation resolution, and projection
   state are unchanged.
+
+### 2026-06-18 renderer markdown runtime facade boundary
+
+- Finding: chat markdown rendering utilities and message content components
+  still imported renderer infrastructure markdown and LLM-output helpers
+  directly from feature code.
+- Change: added `desktopMarkdownRuntimeClient.ts` as the renderer app runtime
+  facade for markdown rendering, plain-text extraction, find highlighting, and
+  LLM output normalization, then routed chat display consumers through it.
+- Validation: focused markdown, LLM-output, message-content, and renderer
+  boundary Jest coverage, direct feature import scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Sanitized HTML output, math handling,
+  find highlighting, plain-text extraction, and transport-artifact normalization
+  are unchanged.

@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { highlightSanitizedHtml } from '../../../../../infrastructure/markdown';
+import { highlightSanitizedHtml } from '../../../../../app/runtime/desktopMarkdownRuntimeClient';
 import { buildMarkdownRenderModel } from '../../../utils/message/markdownMessageRendering';
 
 export default function MarkdownMessage({
