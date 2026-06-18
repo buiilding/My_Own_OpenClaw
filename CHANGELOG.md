@@ -6,6 +6,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: remove shared provider last-usage fallback storage so stream
+  usage diagnostics and normalized stream payloads come only from request-local
+  provider context; no migration is required because public diagnostics now
+  report unavailable usage instead of reading stale cross-request provider state.
+- docs/frontend: route renderer command playbook and renderer folder-map wording
+  through SDK/runtime facades instead of direct backend transport shorthand; no
+  migration is required because this is docs/source-map wording and boundary
+  test coverage only.
 - backend/sdk: remove rehydrate message-type alias compatibility by having the
   SDK emit canonical stored `MessageType` values and rejecting explicit
   non-canonical labels at the backend rehydrate boundary; no migration is

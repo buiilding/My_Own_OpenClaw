@@ -12,19 +12,20 @@ Use this playbook for common frontend change scenarios.
 
 ## Playbooks
 
-### 1) Add a new renderer -> backend command
+### 1) Add a new renderer -> SDK/runtime command
 
-1. Add runtime facade method and backend transport mapping under `renderer/app/runtime`.
+1. Add a runtime facade method under `renderer/app/runtime`.
 2. Add IPC channel constant if needed in `renderer/infrastructure/ipc/channels.ts`.
 3. Handle channel in `main/ipc.cjs`.
-4. Relay to backend websocket with stable message type/payload.
-5. Add or align backend incoming schema and handler.
+4. Route through the SDK runtime command or host adapter that owns the behavior.
+5. Only add or align backend websocket schema/handler code when the command is
+   explicitly a hosted-backend capability.
 
 Validation:
 
 - Renderer IPC invoke/send tests.
 - Main IPC handler tests.
-- End-to-end query/control flow tests.
+- SDK runtime or end-to-end query/control flow tests.
 
 ### 2) Add new SDK conversation-event consumption in UI
 

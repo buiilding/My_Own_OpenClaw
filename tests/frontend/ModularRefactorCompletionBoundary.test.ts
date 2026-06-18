@@ -396,7 +396,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/agent/tool_turn_change_workflow.md'),
       read('docs/backend/llm/prompts/prompt_context_change_workflow.md'),
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
-      read('docs/backend/tools/frontend_tool_bridge_and_policy.md'),
+      read('docs/backend/tools/local_runtime_tool_bridge_and_policy.md'),
       read('docs/backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
       read('docs/concepts/agent_loop.md'),
@@ -536,7 +536,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/browser/browser_troubleshooting.md',
       'docs/browser/browser_change_workflow.md',
       'docs/backend/agent/tool_turn_change_workflow.md',
-      'docs/backend/tools/execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md',
+      'docs/backend/tools/execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md',
       'docs/debug/error_failure_change_workflow.md',
       'docs/debug/observability_change_workflow.md',
       'docs/debug/runtime_traces.md',
@@ -606,6 +606,12 @@ describe('modular sdk refactor completion boundary', () => {
         'broadcasts `local-user-message`',
         '`local-user-message` for cross-window/replay parity',
         'main synthetic `local-user-message`',
+        'Add a new renderer -> backend command',
+        'backend transport mapping under `renderer/app/runtime`',
+        'Request models list from backend',
+        'backend communication (dependency injection)',
+        'Handles model listing events from backend',
+        'Backend sends audio-chunk event',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

@@ -155,7 +155,7 @@ frontend/src/renderer/
 │   │
 │   ├── settings/                         # Settings feature module
 │   │   └── hooks/                       # Settings business logic hooks
-│   │       └── useSettingsManagement.ts # useSettingsManagement - Handles model listing events from backend
+│   │       └── useSettingsManagement.ts # useSettingsManagement - Handles model listing events from the runtime settings channel
 │   │
 │   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI
@@ -250,7 +250,7 @@ frontend/src/renderer/
 4. CONTEXT INITIALIZATION
    ├─> app/providers/AppConfigContext.jsx
    │   ├─> Load config from localStorage (optimistic state)
-   │   ├─> Request models list from backend
+   │   ├─> Request models list through the desktop settings runtime
    │   └─> Set up IPC listeners
    │
    └─> app/providers/AppStatusContext.jsx
@@ -412,7 +412,7 @@ frontend/src/renderer/
 
 ```
 1. AUDIO CHUNK EVENT
-   └─> Backend sends audio-chunk event
+   └─> Runtime forwards audio-chunk event
        └─> IPC: ON_CHANNELS.AUDIO_CHUNK
            ↓
 2. AUDIO PLAYER SERVICE
@@ -457,7 +457,7 @@ frontend/src/renderer/
 
 7. **Pure Services**: Infrastructure services (PlayerService, system-state capture, artifact helpers) have no React dependencies
 
-8. **Callback Pattern**: Services accept callbacks for UI updates and backend communication (dependency injection)
+8. **Callback Pattern**: Services accept callbacks for UI updates and runtime communication (dependency injection)
 
 9. **Transparency Sections**: Collapsible sections for system prompts, tool schemas, and full messages (debugging/transparency)
 

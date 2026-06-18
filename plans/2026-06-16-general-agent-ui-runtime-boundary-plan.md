@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer command playbook runtime wording
+
+- Finding: the frontend change-path playbook and renderer source folder map
+  still described ordinary renderer commands/settings callbacks as direct
+  backend transport communication, even though renderer code should route
+  through SDK/runtime facades and Electron host adapters.
+- Change: reworded the playbook and renderer folder map around SDK/runtime
+  command ownership, settings model-list events, audio chunk forwarding, and
+  callback communication, then extended the modular boundary test to keep the
+  stale backend-transport shorthand out.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  wording scan, and diff check.
+- Compatibility: no migration required. This is docs/source-map wording and
+  boundary coverage only; IPC channels, backend websocket payloads, settings
+  storage, permissions, credentials, and local-runtime execution are unchanged.
+
 ### 2026-06-18 SDK rehydrate canonical message-type boundary
 
 - Finding: backend rehydrate still accepted renderer/source message labels such
