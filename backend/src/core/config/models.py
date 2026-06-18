@@ -87,7 +87,6 @@ class MistralConfig(BaseModel):
 class LMStudioConfig(BaseModel):
     """Configuration for LMStudio (local) provider."""
 
-    model: str = ""  # Not used, models are discovered
     base_url: str = "http://localhost:1234/v1"
 
 

@@ -87,8 +87,15 @@ class TestLMStudioConfig:
 
     def test_default_values(self):
         config = LMStudioConfig()
-        assert config.model == ""
         assert config.base_url == "http://localhost:1234/v1"
+
+    def test_removed_model_field_is_ignored(self):
+        config = LMStudioConfig.model_validate(
+            {"model": "unused-local-model", "base_url": "http://lmstudio:1234/v1"}
+        )
+
+        assert not hasattr(config, "model")
+        assert config.base_url == "http://lmstudio:1234/v1"
 
 
 class TestKimiCodingConfig:

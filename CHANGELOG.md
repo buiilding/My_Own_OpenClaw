@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/config: remove the unused `lmstudio.model` config field because LM
+  Studio models are discovered from the local server; no migration is required
+  because supplied unknown config keys continue to be ignored by the config
+  model and runtime selection uses `selected_model_id`.
 - backend/llm: remove shared provider last-usage fallback storage so stream
   usage diagnostics and normalized stream payloads come only from request-local
   provider context; no migration is required because public diagnostics now
