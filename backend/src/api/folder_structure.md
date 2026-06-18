@@ -10,37 +10,31 @@ The API layer handles all client communication, message routing, processing, and
 
 ```
 backend/src/api/
-├── __init__.py                        # Package initialization and exports
 ├── schemas/                           # Pydantic models for incoming/outgoing API contracts
-│   ├── __init__.py                    # Schema package exports
 │   ├── agent_definition.py            # Wake-up agent definition schema
 │   ├── common.py                      # Shared message/context schema pieces
 │   ├── incoming.py                    # Incoming WebSocket message discriminated union
 │   └── outgoing.py                    # Outgoing WebSocket event payload schemas
 ├── deps.py                            # FastAPI dependency injection (app-lifespan-scoped container access)
 ├── contracts/                         # CONTRACT ADAPTER - API-local seam for message/formatter registries
-│   ├── __init__.py                    # Package marker and migration note (future core-owned source)
 │   ├── message_types.py               # Canonical incoming/outgoing message type constants
 │   ├── formatter_specs.py             # Canonical event->formatter registration spec
 │   └── registry.py                    # Contract views and drift-validation helpers
 │
 ├── transport/                         # TRANSPORT LAYER - Thread-safe WebSocket communication
-│   ├── __init__.py                    # Exports: WebSocketSender, TransportSender, WebSocketTransportSender, SafeWebSocket
 │   ├── protocol.py                    # WebSocketSender Protocol - Type-safe interface for WebSocket operations
 │   ├── sender.py                      # TransportSender ABC and WebSocketTransportSender - Transport abstraction layer
 │   └── websocket.py                   # SafeWebSocket - Thread-safe WebSocket wrapper with queue-based message sending
 │
 ├── infrastructure/                     # INFRASTRUCTURE LAYER - Base classes and utilities
-│   ├── __init__.py                    # Exports: MessageHandler, MessageHandlerRegistry, error utilities
 │   ├── handler.py                     # MessageHandler - Abstract base class for all message handlers
 │   ├── registry.py                    # MessageHandlerRegistry - Routes messages to appropriate handlers by type
 │   └── errors.py                      # Error handling utilities - Standardized error responses and sanitization
 │
 ├── routes/                            # ENTRY POINT LAYER - FastAPI route definitions
-│   ├── __init__.py                    # Package initialization
+│   ├── __init__.py                    # API_ROUTERS app assembly registration surface
 │   │
 │   ├── websocket/                     # WebSocket routes - Real-time bidirectional communication
-│   │   ├── __init__.py                # Package router export
 │   │   ├── connection.py              # Connection lifecycle - Handshake, cleanup, session management
 │   │   ├── json_parse.py              # JSON parse helpers
 │   │   ├── loop_runtime.py            # Receive-loop task admission and message scheduling
@@ -50,35 +44,28 @@ backend/src/api/
 │   │   └── task_manager.py            # Task tracking - Concurrency limits, task cancellation, cleanup
 │   │
 │   └── memory/                        # Memory-related REST endpoints
-│       ├── __init__.py                # Package exports: embeddings, semantic routers
 │       ├── embeddings/                # Embeddings route package (/api/embeddings)
-│       │   ├── __init__.py            # Package exports (router + models)
 │       │   ├── models.py              # Pydantic request/response models
 │       │   ├── router.py              # REST endpoint handlers
 │       │   └── service.py             # Embedding provider helpers
 │       ├── health.py                  # Memory health helper route
 │       └── semantic/                  # Semantic memory route package (/api/semantic)
-│           ├── __init__.py            # Package exports
 │           ├── models.py              # Semantic summarize/title request and response models
 │           ├── parser.py              # LLM response parsing helpers
 │           ├── router.py              # REST endpoint handlers
 │           └── service.py             # Semantic summarization service
 │
 ├── handlers/                           # HANDLER LAYER - Message type-specific processing
-│   ├── __init__.py                    # Exports: All handler classes and base types
 │   ├── query.py                       # QueryMessageHandler - Processes user queries, orchestrates agent interaction
 │   ├── settings.py                    # ListModelsHandler - Handles model listing requests
 │   ├── tool_result.py                 # ToolResultHandler - Routes tool execution results from frontend to AgentSession (delegates processing)
 │   └── wakeword.py                    # WakewordHandler - Handles wakeword detection and activation
 │
 └── processing/                         # PROCESSING LAYER - Event formatting, TTS, and streaming
-    ├── __init__.py                    # Exports: StreamPipeline, ResponseFormatter
-    │
     ├── pipeline.py                    # StreamPipeline - Orchestrates event processing through composable stages
     ├── formatter.py                   # ResponseFormatter - Main formatter that dispatches to event-specific formatters
     │
     ├── formatters/                     # Event formatters - Individual formatters for each event type
-    │   ├── __init__.py                # Exports: All formatter classes
     │   ├── base.py                    # EventFormatter - Abstract base class for all event formatters
     │   ├── chunk.py                   # ChunkEventFormatter - Formats streaming text chunks
     │   ├── thinking.py                # ThinkingEventFormatter - Formats LLM thinking/status events
@@ -94,7 +81,6 @@ backend/src/api/
     │   └── tool_bundle.py             # ToolBundleEventFormatter - Formats tool bundle events
     │
     └── tts/                            # Text-to-Speech processing
-        ├── __init__.py                # Exports: TTSManager, TTSProcessor
         ├── manager.py                 # TTSManager - Manages TTS service lifecycle (init, streaming, cleanup)
         └── processor.py               # TTSProcessor - Filters code blocks and JSON from TTS output
 ```

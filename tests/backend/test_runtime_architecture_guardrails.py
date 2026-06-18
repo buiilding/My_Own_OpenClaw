@@ -73,3 +73,16 @@ def test_backend_modules_do_not_publish_wildcard_export_lists():
         if path in allowed_export_surfaces:
             continue
         assert not _assigns_dunder_all(path), path
+
+
+def test_api_topology_map_does_not_document_removed_package_exports():
+    source_map = _read("backend/src/api/folder_structure.md")
+
+    assert source_map.count("__init__.py") == 1
+    assert "API_ROUTERS app assembly registration surface" in source_map
+    assert "Package initialization and exports" not in source_map
+    assert "Package marker" not in source_map
+    assert "Package exports" not in source_map
+    assert "Schema package exports" not in source_map
+    assert "Package router export" not in source_map
+    assert "Exports:" not in source_map
