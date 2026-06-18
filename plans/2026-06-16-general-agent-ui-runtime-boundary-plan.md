@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 tool-development desktop-host wording
+
+- Finding: the tool-development guide still said the SDK/Electron frontend
+  sends the `agent_definition.tools.client_manifest`, even though the manifest
+  handoff belongs to the SDK plus Electron desktop host boundary.
+- Change: reworded the guide to SDK/Electron desktop host and expanded the
+  modular boundary guard for the retired phrase.
+- Validation: focused modular boundary Jest, targeted stale phrase scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  client manifest shape, Electron host assembly, SDK agent definitions, tool
+  schemas, local-runtime dispatch, credentials, permissions, provider policy,
+  and storage are unchanged.
+
 ### 2026-06-18 orientation docs desktop-host wording
 
 - Finding: concept, installation, SDK agent-definition, and mobile planning

@@ -824,6 +824,7 @@ describe('modular sdk refactor completion boundary', () => {
         'split across backend, frontend, and sidecar',
         'without the Electron frontend',
         'run the Electron frontend',
+        'SDK/Electron frontend sends',
         'SDK/main dispatches executable tool calls through Electron main to the sidecar',
         'Local execution belongs in renderer/Electron/sidecar code',
         'ipc.cjs keeps backend transport and frontend session state',

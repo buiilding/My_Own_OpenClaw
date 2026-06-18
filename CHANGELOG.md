@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: align tool-development client-manifest guidance with the
+  SDK/Electron desktop host boundary.
 - docs/concepts/sdk: align runtime-model, installation, SDK agent-definition,
   and mobile-planning docs with Electron desktop app/main, renderer, and SDK
   local-runtime ownership wording.

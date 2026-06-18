@@ -68,8 +68,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   sidecar ownership. Concept, installation, SDK agent-definition, and mobile
   planning docs now use Electron desktop app/main, renderer, and SDK
   local-runtime ownership wording instead of broad Electron frontend labels.
+  Tool-development guidance now routes the client-manifest handoff through the
+  SDK/Electron desktop host boundary.
 
 ## Inspection Log
+
+### 2026-06-18 Tool-Development Desktop-Host Wording Slice
+
+- Worktree was clean after `575c24802` before this slice, with `main` ahead of
+  `origin/main` by 809 commits.
+- Recent scans showed current docs/source mostly reduced to guards or report
+  history, with one live tool-development line still describing client-manifest
+  handoff as SDK/Electron frontend behavior.
+- Finding: that guide blurred the Electron desktop host boundary that assembles
+  and sends `agent_definition.tools.client_manifest`.
+- Change: reworded the guide to SDK/Electron desktop host and expanded the
+  modular boundary guard for the retired phrase.
+- Validation: focused modular boundary Jest, targeted stale phrase scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  client manifest shape, Electron host assembly, SDK agent definitions, tool
+  schemas, local-runtime dispatch, credentials, permissions, provider policy,
+  and storage are unchanged.
 
 ### 2026-06-18 Orientation Docs Desktop-Host Wording Slice
 

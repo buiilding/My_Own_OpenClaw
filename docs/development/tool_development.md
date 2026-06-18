@@ -52,7 +52,7 @@ WindieOS tools.
 Current runtime note:
 
 - the live backend and sidecar registries expose direct tool names only
-- the SDK/Electron frontend sends `agent_definition.tools.client_manifest`
+- the SDK/Electron desktop host sends `agent_definition.tools.client_manifest`
   during websocket handshake so client-local tool schemas can be extended
   without editing backend schema code.
 - local-runtime plugin tools put model-facing JSON Schema files under
