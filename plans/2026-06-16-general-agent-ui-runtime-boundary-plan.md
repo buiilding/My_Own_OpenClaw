@@ -8521,3 +8521,21 @@ Each completed slice should report:
   plugin/MCP registration, storage, permissions, credentials, hosted backend
   URL handling, and provider policy are unchanged; only copy and Python error
   strings changed.
+
+### 2026-06-18 Python local-runtime feature-pack path boundary
+
+- Finding: optional Python feature-pack installs still used a
+  `sidecar_feature_packs` user-data subdirectory and
+  `_resolve_sidecar_python_root()` helper even though feature packs are
+  reusable local-runtime capability payloads.
+- Change: changed the default feature-pack install subdirectory to
+  `local_runtime_feature_packs`, renamed the requirements-root helper to
+  `_resolve_local_runtime_python_root()`, and added focused tests/source guards.
+- Validation: focused feature-pack installer and local backend pytest coverage,
+  compile checks, source scans, docs listing, and `git diff --check`.
+- Compatibility: no automatic migration. Existing feature packs installed under
+  `sidecar_feature_packs` are no longer discovered by the default source/dev
+  path and may need reinstall into `local_runtime_feature_packs`; packaged app
+  behavior, requirements file selection, browser feature-pack markers,
+  JSON-RPC methods, tool names/schemas, permissions, credentials, storage
+  roots, hosted backend URL handling, and provider policy are unchanged.

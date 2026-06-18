@@ -1,5 +1,5 @@
 """
-Runtime feature-pack installer for optional sidecar capabilities.
+Runtime feature-pack installer for optional local-runtime capabilities.
 
 Feature packs are installed into a user-writable site-packages directory so
 packaged app resources remain immutable.
@@ -29,10 +29,10 @@ def _resolve_user_data_root() -> Path:
 
 
 def get_feature_pack_site_packages_dir() -> Path:
-    return _resolve_user_data_root() / "sidecar_feature_packs" / "site-packages"
+    return _resolve_user_data_root() / "local_runtime_feature_packs" / "site-packages"
 
 
-def _resolve_sidecar_python_root() -> Path:
+def _resolve_local_runtime_python_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
@@ -40,7 +40,7 @@ def _resolve_requirements_file(feature_pack: str) -> Path:
     requirements_name = _FEATURE_PACK_REQUIREMENTS.get(feature_pack)
     if not requirements_name:
         raise RuntimeError(f"Unknown feature pack: {feature_pack}")
-    return _resolve_sidecar_python_root() / requirements_name
+    return _resolve_local_runtime_python_root() / requirements_name
 
 
 def _is_module_available(module_name: str) -> bool:

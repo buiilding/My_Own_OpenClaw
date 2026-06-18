@@ -75,6 +75,8 @@ All notable changes to WindieOS will be documented in this file.
   sidecar path terms to local-runtime path terms.
 - sidecar/runtime: describe reusable Python service, core protocol, and tool
   helpers with local-runtime copy instead of sidecar runtime/tool wording.
+- sidecar/runtime: default optional feature-pack installs to
+  `local_runtime_feature_packs` instead of the old sidecar-named directory.
 - sidecar/extensions: accept generic `AGENT_CONTRIBUTIONS_DIR` local-runtime
   plugin contribution-root configuration while preserving the WindieOS alias.
 - sidecar/daemon: name the daemon-owned `LocalRuntimeService` dependency as
