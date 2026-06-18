@@ -8341,3 +8341,17 @@ Each completed slice should report:
   overrides continue to work, generic hosts can use the Agent env names, and
   default app-data directory names, diagnostics schema, storage formats,
   permissions, credentials, IPC, and provider policy are unchanged.
+
+### 2026-06-18 mock-memory seed target-user env alias boundary
+
+- Finding: the deterministic mock-memory seed helper still read only
+  `WINDIE_MOCK_USER_ID` and `WINDIE_USER_ID` for target-user selection, even
+  though the helper seeds generic local history and memory demo data.
+- Change: made target-user resolution read `AGENT_MOCK_USER_ID` and
+  `AGENT_USER_ID` before the WindieOS aliases while preserving existing
+  de-duplication order.
+- Validation: focused seed-helper pytest coverage, source scans, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS seed env names
+  continue to work, generic hosts can use the Agent names, and seed storage
+  paths, schemas, cleanup rules, and inserted mock payloads are unchanged.

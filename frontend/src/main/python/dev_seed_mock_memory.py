@@ -15,6 +15,10 @@ from core.user_data_paths import app_user_data_root
 
 DEFAULT_USER_ID = "default_user"
 MOCK_SOURCE = "mock_seed_dashboard"
+ENV_AGENT_MOCK_USER_ID = "AGENT_MOCK_USER_ID"
+ENV_MOCK_USER_ID = "WINDIE_MOCK_USER_ID"
+ENV_AGENT_USER_ID = "AGENT_USER_ID"
+ENV_USER_ID = "WINDIE_USER_ID"
 
 MOCK_CONVERSATIONS: List[Dict[str, Any]] = [
     {
@@ -199,8 +203,10 @@ def _history_dir() -> Path:
 def _target_user_ids() -> List[str]:
     candidates = [
         DEFAULT_USER_ID,
-        os.getenv("WINDIE_MOCK_USER_ID"),
-        os.getenv("WINDIE_USER_ID"),
+        os.getenv(ENV_AGENT_MOCK_USER_ID),
+        os.getenv(ENV_MOCK_USER_ID),
+        os.getenv(ENV_AGENT_USER_ID),
+        os.getenv(ENV_USER_ID),
         os.getenv("USER"),
         os.getenv("USERNAME"),
         os.getenv("LOGNAME"),

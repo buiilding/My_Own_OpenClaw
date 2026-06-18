@@ -39,9 +39,11 @@ Execution returns process exit code from the Python script (`0` on success).
 `_target_user_ids()` builds target users in order and de-duplicates:
 
 1. `default_user`
-2. `WINDIE_MOCK_USER_ID`
-3. `WINDIE_USER_ID`
-4. shell user ids (`USER`, `USERNAME`, `LOGNAME`)
+2. `AGENT_MOCK_USER_ID`
+3. `WINDIE_MOCK_USER_ID`
+4. `AGENT_USER_ID`
+5. `WINDIE_USER_ID`
+6. shell user ids (`USER`, `USERNAME`, `LOGNAME`)
 
 ## Storage Path Resolution by OS
 

@@ -77,6 +77,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/daemon: accept generic `AGENT_USER_DATA_DIR` and
   `AGENT_APP_DIAGNOSTICS_DB` daemon data-path env aliases while preserving
   WindieOS aliases.
+- frontend/testing: accept generic `AGENT_MOCK_USER_ID` and `AGENT_USER_ID`
+  target-user aliases in the mock-memory seed helper while preserving WindieOS
+  aliases.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.
