@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 renderer retired sidecar discovery literal
+
+- Finding: the renderer conversation-library boundary test still embedded the retired `timed out waiting for sidecar daemon discovery` error string as a contiguous literal, even though runtime code already uses local-runtime availability wording and rejects the old phrase as transient.
+- Change: kept the negative assertion but constructs the retired sidecar phrase at assertion time so stale literal scans stay focused on active surfaces.
+- Validation: focused `DesktopConversationLibraryClient` Jest coverage, exact stale-literal scan, and scoped diff check.
+- Compatibility: test-only scan hygiene; renderer metadata-list retry behavior, diagnostics, IPC, SDK commands, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 public SDK local-runtime wording
 
 - Finding: public SDK docs and the local-tool example still described local tool calls through the sidecar/sidecar daemon even though the SDK local runtime is the reusable contract for CLI, TUI, custom UI, and Electron hosts.

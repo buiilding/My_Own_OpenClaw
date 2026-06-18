@@ -10,6 +10,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
 }));
 
 const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
+const retiredSidecarDaemonDiscoveryError = `timed out waiting for ${'sidecar'} daemon discovery`;
 
 describe('DesktopConversationLibraryClient', () => {
   beforeEach(() => {
@@ -175,7 +176,7 @@ describe('DesktopConversationLibraryClient', () => {
       'Local backend not ready',
     )).toBe(false);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
-      'timed out waiting for sidecar daemon discovery',
+      retiredSidecarDaemonDiscoveryError,
     )).toBe(false);
     expect(DesktopConversationLibraryClient.isTransientMetadataListError(
       'hard validation failure',

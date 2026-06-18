@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- Hid a retired sidecar-daemon discovery error literal inside renderer conversation-library boundary tests while preserving the negative assertion.
 - Reworded public SDK docs and the local-tool example to describe local tool execution through the SDK local runtime instead of sidecar-facing prose.
 - Changed the SDK agent-definition fallback display name from `Desktop Agent` to `Agent` so non-desktop SDK consumers do not inherit desktop-host assumptions.
 - frontend/main: remove the dormant OpenAI Codex OAuth IPC launcher, helper modules,
