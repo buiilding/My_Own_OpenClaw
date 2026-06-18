@@ -13,10 +13,6 @@ class ClientPromptLayerValidationResult:
     accepted: list[dict[str, Any]] = field(default_factory=list)
     rejected: list[dict[str, str]] = field(default_factory=list)
 
-    @property
-    def accepted_ids(self) -> list[str]:
-        return [layer["id"] for layer in self.accepted]
-
 
 def validate_client_prompt_layers(
     raw_layers: list[dict[str, Any]] | None,
@@ -87,31 +83,6 @@ def validate_client_prompt_layers(
         )
     )
     return ClientPromptLayerValidationResult(accepted=accepted, rejected=rejected)
-
-
-def apply_client_prompt_layers_to_session(
-    session: Any,
-    validation_result: ClientPromptLayerValidationResult,
-) -> dict[str, int]:
-    """Apply accepted prompt layers to the active session and prompt builder."""
-
-    layers = [dict(layer) for layer in validation_result.accepted]
-    runtime = getattr(session, "runtime", None)
-    if runtime is not None:
-        runtime.client_prompt_layers = layers
-    prompt_builder = getattr(session, "prompt_builder", None)
-    if prompt_builder is not None:
-        setattr(prompt_builder, "client_prompt_layers", list(layers))
-    return {
-        "runtime_prompt_layer_count": len(
-            getattr(runtime, "client_prompt_layers", []) if runtime is not None else []
-        ),
-        "prompt_builder_prompt_layer_count": len(
-            getattr(prompt_builder, "client_prompt_layers", [])
-            if prompt_builder is not None
-            else []
-        ),
-    }
 
 
 def prompt_layer_id_sample(layers: list[dict[str, Any]], limit: int = 8) -> list[str]:
