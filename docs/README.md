@@ -444,7 +444,7 @@ contracts.
 - [**Sidecar Wait, Window, and Stats Runtime**](frontend/sidecar/tools/system/wait_window_stats_runtime_reference.md) - Non-blocking wait behavior, platform window targeting rules, and shared psutil metrics collector contracts
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/local_backend_jsonrpc_reference.md) - Main-process bridge method map and local-runtime JSON-RPC contract details
 - [**Sidecar Process Lifecycle**](frontend/sidecar/local_backend_process_lifecycle_reference.md) - Python sidecar spawn env/readiness probe loop, request correlation/timeouts, and restart/failure recovery behavior
-- [**Sidecar Core Docs Hub**](frontend/sidecar/core/README.md) - Sub-hub for low-level sidecar core modules: JSON-RPC dispatcher, stdout framing, shutdown helpers, backend URL resolution, remote semantic client, and thread-pool lifecycle
+- [**Sidecar Core Docs Hub**](frontend/sidecar/core/README.md) - Sub-hub for low-level sidecar core modules: JSON-RPC dispatcher, stdout framing, backend URL resolution, remote semantic client, and thread-pool lifecycle
 - [**Sidecar Services Docs Hub**](frontend/sidecar/services/README.md) - Sub-hub for standalone Python sidecar entrypoint services: wakeword binary framing/model bootstrap behavior
 - [**Sidecar JSON-RPC Protocol + Stdout Framing**](frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md) - JSON-RPC validation/dispatch and notification suppression semantics plus stdout JSON-line contract
 - [**Sidecar Backend Config Runtime**](frontend/sidecar/core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md) - Backend endpoint env precedence, URL normalization, and default endpoint behavior
