@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs/browser: describe the Browser Use daemon boundary as a
+  desktop-runtime session while preserving the literal `desktop-agent`
+  default session name; no migration is required because Browser Use state,
+  paths, environment variables, and runtime behavior are unchanged.
 - backend/tools: replace `open_app` sidecar lifecycle wording with detached
   desktop-process language across backend schemas, sidecar manifest, generated
   built-in manifest, and tool docs; no migration is required because tool

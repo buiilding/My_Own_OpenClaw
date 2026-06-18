@@ -119,6 +119,21 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 browser daemon descriptive boundary wording cleanup
+
+- Finding: browser docs described the Browser Use daemon boundary as a
+  desktop-agent session even though the conceptual host/runtime boundary is
+  desktop-runtime; the literal `desktop-agent` default session name is still
+  current Browser Use state and should remain documented.
+- Change: renamed descriptive Browser Use session wording to
+  desktop-runtime, preserved the `desktop-agent` default session literal, and
+  extended modular boundary coverage for the retired descriptive phrases.
+- Validation: focused modular refactor boundary Jest coverage, targeted
+  browser docs phrase scan, and scoped `git diff --check`.
+- Compatibility: no migration required. Browser Use home/session values,
+  environment variables, daemon state, paths, tool schemas, settings, and
+  runtime behavior are unchanged.
+
 ### 2026-06-18 open-app detached process wording cleanup
 
 - Finding: `open_app` still exposed sidecar/agent lifecycle wording in the
