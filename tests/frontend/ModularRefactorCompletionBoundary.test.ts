@@ -130,6 +130,21 @@ describe('modular sdk refactor completion boundary', () => {
     expect(readme).not.toContain('sidecar plugin package registration');
   });
 
+  test('public local-runtime examples avoid sidecar-facing descriptions', async () => {
+    const localToolReadme = await read('examples/local-tool-extension/README.md');
+    const repoAgentReadme = await read('examples/repo-agent-extension/README.md');
+    const repoAgentManifest = await read('examples/repo-agent-extension/plugin.json');
+    const publicExampleText = [localToolReadme, repoAgentReadme, repoAgentManifest].join('\n');
+
+    expect(publicExampleText).toContain('local-runtime daemon discovery');
+    expect(publicExampleText).toContain('local-runtime plugin example');
+    expect(publicExampleText).toContain('local-runtime tool implementation');
+    expect(publicExampleText).not.toContain('sidecar daemon discovery');
+    expect(publicExampleText).not.toContain('Windie sidecar plugin');
+    expect(publicExampleText).not.toContain('sidecar plugin manifest');
+    expect(publicExampleText).not.toContain('local sidecar tool implementation');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

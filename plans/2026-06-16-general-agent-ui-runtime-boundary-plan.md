@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK public example local-runtime prose
+
+- Finding: runnable SDK example docs and repo-agent plugin metadata still
+  described public extension flows as sidecar daemon discovery, sidecar plugin
+  metadata, and local sidecar tool implementation even though `AgentClient`
+  exposes the local-runtime boundary.
+- Change: changed the local-tool and repo-agent examples to local-runtime
+  daemon/plugin/tool prose, and added boundary coverage for the public example
+  docs and manifest metadata.
+- Validation: focused modular SDK refactor boundary Jest coverage, docs
+  listing, stale public-example phrase scan, and diff checks.
+- Compatibility: no migration required. This changes example README and
+  manifest description copy plus tests only; plugin schema, Python entrypoint,
+  module-tool registration, SDK payloads, and daemon startup are unchanged.
+
 ### 2026-06-17 SDK README local-runtime example prose
 
 - Finding: the public TypeScript SDK README used the current `autoLocalRuntime`
