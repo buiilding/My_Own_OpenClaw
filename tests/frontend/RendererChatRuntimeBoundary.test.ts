@@ -406,6 +406,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('payload.rawEvent');
+    expect(source).not.toContain('payload.sourceEvent');
     expect(source).not.toContain('rawConversationRef');
     expect(source).not.toContain('rawUserId');
     expect(source).toContain('event.conversationRef');

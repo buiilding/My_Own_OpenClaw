@@ -220,11 +220,11 @@ class SdkConversationRuntime {
         if (!this.options.transport || this.detachTransport) {
             return;
         }
-        this.detachTransport = this.options.transport.subscribe(rawEvent => {
-            if (!(0, backendEvents_js_1.isBackendEvent)(rawEvent)) {
+        this.detachTransport = this.options.transport.subscribe(sourceEvent => {
+            if (!(0, backendEvents_js_1.isBackendEvent)(sourceEvent)) {
                 return;
             }
-            const event = (0, backendEventNormalizer_js_1.normalizeBackendEventToConversationEvent)(rawEvent, {
+            const event = (0, backendEventNormalizer_js_1.normalizeBackendEventToConversationEvent)(sourceEvent, {
                 fallbackRevisionId: this.state.revisionId,
                 fallbackConversationRef: this.options.conversationRef,
                 fallbackTurnRef: this.state.activeTurnRef ?? undefined,

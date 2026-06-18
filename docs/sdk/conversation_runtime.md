@@ -385,11 +385,11 @@ backend, and memory-pipeline responsibilities.
 Desktop metadata and transparency projection also consumes SDK-normalized
 payloads directly. Renderer handlers should read SDK `system_prompt`,
 `user_message_metadata`, `assistant_message`, and `tool_schemas_metadata` fields
-instead of unwrapping backend `payload.rawEvent` metadata events.
+instead of unwrapping backend `payload.sourceEvent` metadata diagnostics.
 
 Desktop terminal projection follows the same rule. Renderer terminal handlers
 read SDK `turn_error` and `usage_updated` payloads directly; they should not
-reconstruct backend `error` or `token-count` events from `payload.rawEvent`.
+reconstruct backend `error` or `token-count` events from `payload.sourceEvent`.
 `usage_updated` is telemetry only; it should not clear live send state or
 advance the response phase. Completion and error phase ownership stays with
 `snapshot.currentTurn`.
@@ -397,7 +397,7 @@ advance the response phase. Completion and error phase ownership stays with
 Desktop reasoning projection consumes SDK `currentTurn.reasoningText` from the
 conversation runtime snapshot. Renderer UI/debug state may keep the source label
 `llm-thought` for continuity, but the handler should not reconstruct backend
-`llm-thought` events from `payload.rawEvent` or consume normalized
+`llm-thought` events from `payload.sourceEvent` or consume normalized
 `reasoning_delta` as a separate live-state path.
 
 Desktop assistant live text consumes SDK `currentTurn.assistantText` from the
@@ -408,7 +408,7 @@ not be renderer live-row or active-turn state fallbacks.
 Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
-`payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
+`payload.sourceEvent` to recover backend `conversation_ref` or `user_id`.
 Completed-turn model metadata is normalized onto `payload.modelId` and
 `payload.modelProvider` before runtime title generation, so runtime code does
 not unwrap backend-wire payloads to recover model identity.
@@ -436,7 +436,7 @@ The SDK payload exposes normalized fields such as `toolName`, `args`,
 request/correlation ids, and `userId`, while `structuredPayload` carries backend
 detail fields needed for transcript trace rows. Renderer active tool-call
 display should come from `snapshot.currentTurn.toolEvents`, and should not
-reconstruct backend `tool-call` events from `payload.rawEvent`.
+reconstruct backend `tool-call` events from `payload.sourceEvent`.
 
 Desktop tool-output transcript persistence may consume SDK `tool_output`
 directly. The SDK payload exposes normalized identity, request/correlation id,
@@ -446,14 +446,14 @@ For `tool_output` and `tool_progress`, normalized `correlationId` prefers
 backend `payload.correlation_id` and falls back to `payload.request_id`.
 Renderer active tool-output display should come from
 `snapshot.currentTurn.toolEvents`, and should not reconstruct backend
-`tool-output` events from `payload.rawEvent`.
+`tool-output` events from `payload.sourceEvent`.
 
 Desktop tool-bundle transcript persistence may consume SDK `tool_bundle_call`
 directly. The SDK payload exposes normalized bundle identity, correlation id,
 tool list, and user id, while `structuredPayload` carries backend detail fields
 used for transcript trace rows. Renderer active bundle display should come from
 `snapshot.currentTurn.toolEvents`, and should not reconstruct backend
-`tool-bundle` events from `payload.rawEvent`.
+`tool-bundle` events from `payload.sourceEvent`.
 
 ## Continuity Service Rule
 
@@ -506,7 +506,7 @@ Completed compaction without replacement history also normalizes to
 SDK only uses `compaction_applied` when replay-safe replacement entries are
 present. SDK compaction payloads expose renderer-facing camelCase fields such as
 `summaryText`, `replacementHistoryPreview`, and `replacementHistoryEntries`, so
-renderer handlers do not need to unwrap `payload.rawEvent`. Applied compaction
+renderer handlers do not need to unwrap `payload.sourceEvent`. Applied compaction
 payloads also expose replay fields (`entries`, `entryCount`, `complete`,
 `active`, `sourceRevisionId`, `sourceTurnRef`, and `createdAt`) so store
 adapters can use the persisted `compaction_applied` event itself as the compacted

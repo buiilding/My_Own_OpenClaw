@@ -154,6 +154,25 @@ Each completed slice should report:
   projection behavior, raw backend debug subscription, provider policy,
   credentials, and local-runtime execution are unchanged.
 
+### 2026-06-18 SDK Source Event Diagnostic Metadata
+
+- Finding: SDK-normalized conversation event payloads still exposed backend
+  diagnostic packets under `payload.rawEvent`, which made projection consumers
+  and docs speak in raw-backend terms even though the conversation event is the
+  public SDK boundary.
+- Change: renamed the normalized diagnostic field to `payload.sourceEvent`,
+  updated SDK runtime internals and checked-in CJS parity, and kept renderer
+  boundary coverage from unwrapping either old `rawEvent` or new `sourceEvent`
+  diagnostics.
+- Validation: focused SDK conversation runtime and renderer chat boundary tests,
+  targeted raw-event/source-event scans, docs listing, and diff check.
+- Compatibility: intentional SDK normalized event payload field rename. No
+  runtime or storage migration is required for live behavior; existing stored
+  historical rows with `payload.rawEvent` remain diagnostic-only, while new SDK
+  normalized rows use `payload.sourceEvent`. Backend websocket packets,
+  projections, raw backend debug subscription, provider policy, credentials,
+  and local-runtime execution are unchanged.
+
 ### 2026-06-18 Renderer Agent Extension Runtime Client
 
 - Finding: `AgentSettingsTab` still imported agent extension metadata and

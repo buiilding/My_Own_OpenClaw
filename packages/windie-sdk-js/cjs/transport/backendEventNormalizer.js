@@ -132,7 +132,7 @@ function backendEventMetadata(event) {
     return {
         backendSequence: backendSequenceOf(event),
         sourceEventType: event.type,
-        rawEvent: event,
+        sourceEvent: event,
     };
 }
 function numberField(record, key) {
@@ -259,7 +259,7 @@ function missingBackendIdentityEvent(event, base) {
             sourceEventType: event.type,
             backendEventId: typeof event.event_id === 'string' ? event.event_id : null,
             backendSequence: backendSequenceOf(event),
-            rawEvent: event,
+            sourceEvent: event,
         },
     });
 }

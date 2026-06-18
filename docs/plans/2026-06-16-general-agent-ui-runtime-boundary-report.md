@@ -173,6 +173,29 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 SDK Source Event Diagnostic Metadata
+
+- Worktree was clean after `bc1120989`, with `main` ahead of `origin/main` by
+  858 commits.
+- Recent SDK transport/projection commits, SDK conversation docs, and relevant
+  uncommitted changes were inspected before touching normalized event metadata.
+- Finding: SDK-normalized conversation event payloads still exposed backend
+  diagnostic packets under `payload.rawEvent`, which made projection consumers
+  and docs speak in raw-backend terms even though the conversation event is the
+  public SDK boundary.
+- Change: renamed the normalized diagnostic field to `payload.sourceEvent`,
+  updated SDK runtime internals and checked-in CJS parity, and kept renderer
+  boundary coverage from unwrapping either old `rawEvent` or new `sourceEvent`
+  diagnostics.
+- Validation: focused SDK conversation runtime and renderer chat boundary tests,
+  targeted raw-event/source-event scans, docs listing, and diff check.
+- Compatibility: intentional SDK normalized event payload field rename. No
+  runtime or storage migration is required for live behavior; existing stored
+  historical rows with `payload.rawEvent` remain diagnostic-only, while new SDK
+  normalized rows use `payload.sourceEvent`. Backend websocket packets,
+  projections, raw backend debug subscription, provider policy, credentials,
+  and local-runtime execution are unchanged.
+
 ### 2026-06-18 SDK Backend-Wire Normalizer Package Boundary
 
 - Worktree was clean after `8d3e0d353`, with `main` ahead of `origin/main` by

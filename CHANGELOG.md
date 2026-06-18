@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: rename normalized backend packet diagnostics from `rawEvent` to
+  `sourceEvent` so conversation events expose SDK source metadata rather than
+  raw-backend terminology.
 - sdk/runtime: keep the backend-wire event normalizer out of the top-level SDK
   package export while preserving the internal transport module for SDK runtime
   and protocol-test use.

@@ -157,7 +157,7 @@ function backendEventMetadata(event: BackendEvent): JsonRecord {
   return {
     backendSequence: backendSequenceOf(event),
     sourceEventType: event.type,
-    rawEvent: event as unknown as JsonRecord,
+    sourceEvent: event as unknown as JsonRecord,
   };
 }
 
@@ -308,7 +308,7 @@ function missingBackendIdentityEvent(
       sourceEventType: event.type,
       backendEventId: typeof event.event_id === 'string' ? event.event_id : null,
       backendSequence: backendSequenceOf(event),
-      rawEvent: event as unknown as JsonRecord,
+      sourceEvent: event as unknown as JsonRecord,
     },
   });
 }

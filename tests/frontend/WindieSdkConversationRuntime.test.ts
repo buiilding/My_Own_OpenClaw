@@ -13,7 +13,6 @@ import {
   createConversationEvent,
   createInitialConversationRuntimeState,
   InMemoryConversationStore,
-  normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
   reduceConversationRuntimeState,
   SdkConversationRuntime,
   toAgentStreamEvents,
@@ -25,6 +24,9 @@ import {
   type AgentRuntimeEvent,
   type AgentStreamEvent,
 } from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+import {
+  normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
+} from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
 import { mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -1905,7 +1907,7 @@ describe('Agent SDK conversation runtime core', () => {
         message: 'backend failed',
         content: 'backend failed',
         userId: 'user-sdk-runtime',
-        rawEvent: expect.objectContaining({ type: 'error' }),
+        sourceEvent: expect.objectContaining({ type: 'error' }),
       }),
     });
   });
@@ -1931,7 +1933,7 @@ describe('Agent SDK conversation runtime core', () => {
       turnRef: null,
       revisionId: 'rev-fallback',
       payload: expect.objectContaining({
-        rawEvent: expect.objectContaining({
+        sourceEvent: expect.objectContaining({
           payload: expect.objectContaining({
             turnRef: 'turn-payload-camel',
             revisionId: 'rev-payload-camel',
@@ -1960,7 +1962,7 @@ describe('Agent SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         message: 'Internal server error. Start a new chat and try again.',
         content: 'Internal server error. Start a new chat and try again.',
-        rawEvent: expect.objectContaining({ type: 'error' }),
+        sourceEvent: expect.objectContaining({ type: 'error' }),
       }),
     });
   });
@@ -2001,7 +2003,7 @@ describe('Agent SDK conversation runtime core', () => {
         prompt_tokens: 12,
         total_tokens: 15,
         usage_source: 'provider',
-        rawEvent: expect.objectContaining({ type: 'token-count' }),
+        sourceEvent: expect.objectContaining({ type: 'token-count' }),
       }),
     });
   });
@@ -2020,7 +2022,7 @@ describe('Agent SDK conversation runtime core', () => {
       turnRef: 'turn-reasoning',
       payload: expect.objectContaining({
         text: 'thinking through it',
-        rawEvent: expect.objectContaining({ type: 'llm-thought' }),
+        sourceEvent: expect.objectContaining({ type: 'llm-thought' }),
       }),
     });
   });
@@ -2072,7 +2074,7 @@ describe('Agent SDK conversation runtime core', () => {
         correlationId: 'corr-search-1',
         sourceEventType: 'web-search-progress',
         structuredPayload: expect.objectContaining({ query: 'example' }),
-        rawEvent: expect.objectContaining({ type: 'web-search-progress' }),
+        sourceEvent: expect.objectContaining({ type: 'web-search-progress' }),
       }),
     });
   });
