@@ -15,8 +15,8 @@ from typing import Any, Callable, Dict
 
 from tools.extension_loader import (
     TOOL_NAME_PATTERN,
-    load_sidecar_plugin_path,
-    load_sidecar_plugin_tools,
+    load_local_runtime_plugin_path,
+    load_local_runtime_plugin_tools,
 )
 from tools.manifest import EXPOSED_TO_BACKEND_TOOL_NAMES, build_sidecar_tool_manifest
 from tools.result import ToolResult
@@ -96,7 +96,7 @@ class ToolRegistry:
         )
 
     def _register_plugin_tools(self) -> None:
-        loaded_plugins = load_sidecar_plugin_tools()
+        loaded_plugins = load_local_runtime_plugin_tools()
         for error in loaded_plugins.errors:
             logger.warning(
                 "Failed to load plugin tool from %s: %s",
@@ -174,8 +174,8 @@ class ToolRegistry:
         *,
         plugin_path: str,
     ) -> dict[str, Any]:
-        """Load sidecar plugin tools from a local package path."""
-        loaded_plugins = load_sidecar_plugin_path(plugin_path)
+        """Load local-runtime plugin tools from a local package path."""
+        loaded_plugins = load_local_runtime_plugin_path(plugin_path)
         registered: list[dict[str, Any]] = []
         for error in loaded_plugins.errors:
             logger.warning(

@@ -5419,3 +5419,18 @@ Each completed slice should report:
 - Compatibility: no migration required. This removes an unused backend-internal
   future-hook facade; tool schemas, local-runtime dispatch, policy filtering,
   stored settings, and persisted data are unchanged.
+
+### 2026-06-18 sidecar plugin loader local-runtime naming
+
+- Finding: sidecar plugin loader internals still used sidecar-plugin helper
+  names even after public docs and scaffold output moved to local-runtime
+  plugin terminology.
+- Change: renamed the internal loader result and load helpers to local-runtime
+  plugin names while keeping the public registry method, JSON-RPC route, and
+  contribution manifest paths unchanged.
+- Validation: py_compile, focused sidecar plugin/registry/manifest tests,
+  extension scaffold test, focused docs boundary tests, docs listing, stale
+  helper-name scan, and diff checks.
+- Compatibility: no migration required. `plugin.json`, `schemas/`,
+  `python/`, entrypoints, JSON-RPC registration, and tool results are
+  unchanged.

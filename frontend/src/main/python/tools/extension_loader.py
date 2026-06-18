@@ -1,4 +1,4 @@
-"""Load sidecar plugin tools from repo-level plugins/*/plugin.json."""
+"""Load local-runtime plugin tools from repo-level plugins/*/plugin.json."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ class LoadedPluginTool:
 
 
 @dataclass(slots=True)
-class LoadedSidecarPlugins:
+class LoadedLocalRuntimePlugins:
     tools: dict[str, LoadedPluginTool] = field(default_factory=dict)
     errors: list[dict[str, str]] = field(default_factory=list)
 
@@ -41,15 +41,15 @@ def resolve_default_contribution_root() -> Path:
     return Path(__file__).resolve().parents[5]
 
 
-def load_sidecar_plugin_tools(
+def load_local_runtime_plugin_tools(
     contributions_dir: str | os.PathLike[str] | None = None,
-) -> LoadedSidecarPlugins:
+) -> LoadedLocalRuntimePlugins:
     root = (
         Path(contributions_dir).expanduser().resolve()
         if contributions_dir
         else resolve_default_contribution_root()
     )
-    result = LoadedSidecarPlugins()
+    result = LoadedLocalRuntimePlugins()
     plugins_root = root / "plugins"
     if not plugins_root.exists():
         return result
@@ -70,12 +70,12 @@ def load_sidecar_plugin_tools(
     return result
 
 
-def load_sidecar_plugin_path(
+def load_local_runtime_plugin_path(
     plugin_path: str | os.PathLike[str],
-) -> LoadedSidecarPlugins:
+) -> LoadedLocalRuntimePlugins:
     """Load tools from one plugin directory, a plugins root, or a contribution root."""
     path = Path(plugin_path).expanduser().resolve()
-    result = LoadedSidecarPlugins()
+    result = LoadedLocalRuntimePlugins()
     if not path.exists():
         result.errors.append(
             {
@@ -103,7 +103,7 @@ def load_sidecar_plugin_path(
     return result
 
 
-def _load_plugin(plugin_dir: Path, result: LoadedSidecarPlugins) -> None:
+def _load_plugin(plugin_dir: Path, result: LoadedLocalRuntimePlugins) -> None:
     manifest = _read_json(plugin_dir / "plugin.json")
     plugin_id = _read_string(manifest.get("id")) or plugin_dir.name
     for raw_tool in (
