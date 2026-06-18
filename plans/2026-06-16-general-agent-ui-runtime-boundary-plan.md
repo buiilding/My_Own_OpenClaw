@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config settings sync boundary
+
+- Finding: IPC settings sync preserved local-only desktop UI config fields
+  through frontend-named getter, setter, and cached-load dependency slots even
+  though the module coordinates main-process settings sync to the Agent SDK
+  backend transport.
+- Change: promoted desktop UI config dependency slots for settings sync,
+  switched the active main-process construction and focused settings-sync tests
+  to the canonical names, and kept frontend-named slots as compatibility
+  fallbacks.
+- Validation: focused settings-sync and IPC bridge lifecycle Jest coverage,
+  settings-sync/main syntax checks, stale active-settings-slot scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Backend settings payload filtering,
+  local-only MCP enablement preservation, persisted config filename, IPC
+  channels, payload shape, redaction, credentials, permissions, and provider
+  policy are unchanged.
+
 ### 2026-06-18 main desktop UI config startup hydration boundary
 
 - Finding: IPC startup hydration still accepted and used frontend-named config

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: promote desktop UI config dependency names in IPC settings sync so
+  local-only config preservation and initial settings hydration no longer use
+  frontend-named slots; no migration is required because backend settings
+  payload filtering and local config persistence behavior are unchanged.
 - main: promote desktop UI config dependency names in IPC startup hydration so
   startup cache hydration and MCP refresh callbacks no longer use
   frontend-named slots; no migration is required because persisted config,

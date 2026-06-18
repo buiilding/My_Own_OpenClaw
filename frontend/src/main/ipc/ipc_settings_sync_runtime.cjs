@@ -28,8 +28,11 @@ function copyStringArray(value) {
 }
 
 function createIpcSettingsSyncRuntime({
+  getLatestDesktopUiConfig,
   getLatestFrontendConfig,
+  setLatestDesktopUiConfig,
   setLatestFrontendConfig,
+  loadCachedDesktopUiConfig,
   loadCachedFrontendConfig,
   isConnected,
   isBackendRuntimeConnected,
@@ -42,6 +45,9 @@ function createIpcSettingsSyncRuntime({
   let hasAttemptedInitialSettingsSync = false;
   let pendingSettingsSyncPromise = null;
   const pendingSettingsSyncs = new Map();
+  const getLatestConfig = getLatestDesktopUiConfig || getLatestFrontendConfig;
+  const setLatestConfig = setLatestDesktopUiConfig || setLatestFrontendConfig;
+  const loadCachedConfig = loadCachedDesktopUiConfig || loadCachedFrontendConfig;
 
   function reset() {
     hasAttemptedInitialSettingsSync = false;
@@ -65,7 +71,7 @@ function createIpcSettingsSyncRuntime({
       return { ...config };
     }
 
-    const latestEnabled = copyStringArray(getLatestFrontendConfig?.()?.[MCP_ENABLED_CONFIG_KEY]);
+    const latestEnabled = copyStringArray(getLatestConfig?.()?.[MCP_ENABLED_CONFIG_KEY]);
     if (latestEnabled) {
       return {
         ...config,
@@ -74,7 +80,7 @@ function createIpcSettingsSyncRuntime({
     }
 
     try {
-      const cachedConfig = await loadCachedFrontendConfig?.();
+      const cachedConfig = await loadCachedConfig?.();
       const cachedEnabled = copyStringArray(cachedConfig?.[MCP_ENABLED_CONFIG_KEY]);
       if (cachedEnabled) {
         return {
@@ -83,7 +89,7 @@ function createIpcSettingsSyncRuntime({
         };
       }
     } catch (error) {
-      log(`Failed to load cached frontend config while preserving local fields: ${error?.message || error}`);
+      log(`Failed to load cached desktop UI config while preserving local fields: ${error?.message || error}`);
     }
 
     return { ...config };
@@ -102,7 +108,7 @@ function createIpcSettingsSyncRuntime({
     if (!backendConfig) {
       return Promise.resolve(false);
     }
-    setLatestFrontendConfig?.(await preserveLocalOnlyConfigFields(config));
+    setLatestConfig?.(await preserveLocalOnlyConfigFields(config));
 
     if (!isBackendRuntimeConnected?.()) {
       try {
@@ -147,15 +153,15 @@ function createIpcSettingsSyncRuntime({
     }
     hasAttemptedInitialSettingsSync = true;
 
-    let config = getLatestFrontendConfig?.();
+    let config = getLatestConfig?.();
     if (!config) {
       try {
-        config = await loadCachedFrontendConfig?.();
+        config = await loadCachedConfig?.();
         if (config) {
-          setLatestFrontendConfig?.({ ...config });
+          setLatestConfig?.({ ...config });
         }
       } catch (error) {
-        log(`Failed to load cached frontend config for initial settings sync: ${error?.message || error}`);
+        log(`Failed to load cached desktop UI config for initial settings sync: ${error?.message || error}`);
       }
     }
     if (!config) {

@@ -206,11 +206,11 @@ const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
-  getLatestFrontendConfig: () => latestFrontendConfig,
-  setLatestFrontendConfig: (config) => {
+  getLatestDesktopUiConfig: () => latestFrontendConfig,
+  setLatestDesktopUiConfig: (config) => {
     latestFrontendConfig = config;
   },
-  loadCachedFrontendConfig: () => loadCachedFrontendConfigFromDisk(),
+  loadCachedDesktopUiConfig: () => loadCachedFrontendConfigFromDisk(),
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,

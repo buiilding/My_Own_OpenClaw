@@ -21,8 +21,8 @@ describe('ipc_settings_sync_runtime', () => {
   test('sendSettingsUpdate strips renderer-only config fields', async () => {
     const updateSettings = jest.fn(async () => 'settings-msg-1');
     const runtime = createIpcSettingsSyncRuntime({
-      getLatestFrontendConfig: () => null,
-      setLatestFrontendConfig: jest.fn(),
+      getLatestDesktopUiConfig: () => null,
+      setLatestDesktopUiConfig: jest.fn(),
       isBackendRuntimeConnected: () => true,
       ensureBackendConnection: jest.fn(),
       updateSettings,
@@ -69,10 +69,10 @@ describe('ipc_settings_sync_runtime', () => {
   test('sendSettingsUpdate connects, sends update-settings, and resolves on ack', async () => {
     const ensureBackendConnection = jest.fn(async () => {});
     const updateSettings = jest.fn(async () => 'settings-msg-1');
-    const setLatestFrontendConfig = jest.fn();
+    const setLatestDesktopUiConfig = jest.fn();
     const runtime = createIpcSettingsSyncRuntime({
-      getLatestFrontendConfig: () => ({ selected_model_id: 'model-1' }),
-      setLatestFrontendConfig,
+      getLatestDesktopUiConfig: () => ({ selected_model_id: 'model-1' }),
+      setLatestDesktopUiConfig,
       isBackendRuntimeConnected: () => false,
       ensureBackendConnection,
       updateSettings,
@@ -90,7 +90,7 @@ describe('ipc_settings_sync_runtime', () => {
 
     await expect(promise).resolves.toBe(true);
     expect(ensureBackendConnection).toHaveBeenCalledWith('update-settings:renderer');
-    expect(setLatestFrontendConfig).toHaveBeenCalledWith(expect.objectContaining({
+    expect(setLatestDesktopUiConfig).toHaveBeenCalledWith(expect.objectContaining({
       selected_model_id: 'model-2',
     }));
     expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
@@ -98,14 +98,14 @@ describe('ipc_settings_sync_runtime', () => {
 
   test('sendSettingsUpdate preserves local MCP enablement in latest config', async () => {
     const updateSettings = jest.fn(async () => 'settings-msg-1');
-    const setLatestFrontendConfig = jest.fn();
+    const setLatestDesktopUiConfig = jest.fn();
     const runtime = createIpcSettingsSyncRuntime({
-      getLatestFrontendConfig: () => ({
+      getLatestDesktopUiConfig: () => ({
         selected_model_id: 'model-1',
         agent_enabled_mcp_servers: ['mcp:cua-driver'],
       }),
-      setLatestFrontendConfig,
-      loadCachedFrontendConfig: jest.fn(async () => {
+      setLatestDesktopUiConfig,
+      loadCachedDesktopUiConfig: jest.fn(async () => {
         throw new Error('disk should not be needed');
       }),
       isBackendRuntimeConnected: () => true,
@@ -123,7 +123,7 @@ describe('ipc_settings_sync_runtime', () => {
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBe(true);
-    expect(setLatestFrontendConfig).toHaveBeenCalledWith({
+    expect(setLatestDesktopUiConfig).toHaveBeenCalledWith({
       selected_model_id: 'model-2',
       agent_enabled_mcp_servers: ['mcp:cua-driver'],
     });
@@ -132,11 +132,11 @@ describe('ipc_settings_sync_runtime', () => {
 
   test('sendSettingsUpdate preserves disk MCP enablement when latest config is incomplete', async () => {
     const updateSettings = jest.fn(async () => 'settings-msg-1');
-    const setLatestFrontendConfig = jest.fn();
+    const setLatestDesktopUiConfig = jest.fn();
     const runtime = createIpcSettingsSyncRuntime({
-      getLatestFrontendConfig: () => ({ selected_model_id: 'model-1' }),
-      setLatestFrontendConfig,
-      loadCachedFrontendConfig: jest.fn(async () => ({
+      getLatestDesktopUiConfig: () => ({ selected_model_id: 'model-1' }),
+      setLatestDesktopUiConfig,
+      loadCachedDesktopUiConfig: jest.fn(async () => ({
         selected_model_id: 'model-1',
         agent_enabled_mcp_servers: ['mcp:cua-driver'],
       })),
@@ -155,7 +155,7 @@ describe('ipc_settings_sync_runtime', () => {
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBe(true);
-    expect(setLatestFrontendConfig).toHaveBeenCalledWith({
+    expect(setLatestDesktopUiConfig).toHaveBeenCalledWith({
       selected_model_id: 'model-2',
       agent_enabled_mcp_servers: ['mcp:cua-driver'],
     });
@@ -164,11 +164,11 @@ describe('ipc_settings_sync_runtime', () => {
 
   test('ensureInitialSettingsSync loads cached config once and waits for pending ack', async () => {
     const updateSettings = jest.fn(async () => 'settings-msg-1');
-    const setLatestFrontendConfig = jest.fn();
+    const setLatestDesktopUiConfig = jest.fn();
     const runtime = createIpcSettingsSyncRuntime({
-      getLatestFrontendConfig: () => null,
-      setLatestFrontendConfig,
-      loadCachedFrontendConfig: jest.fn(async () => ({ model_provider: 'openai' })),
+      getLatestDesktopUiConfig: () => null,
+      setLatestDesktopUiConfig,
+      loadCachedDesktopUiConfig: jest.fn(async () => ({ model_provider: 'openai' })),
       isConnected: () => true,
       isBackendRuntimeConnected: () => true,
       ensureBackendConnection: jest.fn(),
@@ -182,7 +182,7 @@ describe('ipc_settings_sync_runtime', () => {
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBeUndefined();
-    expect(setLatestFrontendConfig).toHaveBeenCalledWith({ model_provider: 'openai' });
+    expect(setLatestDesktopUiConfig).toHaveBeenCalledWith({ model_provider: 'openai' });
     expect(updateSettings).toHaveBeenCalledTimes(1);
 
     await runtime.ensureInitialSettingsSync();
