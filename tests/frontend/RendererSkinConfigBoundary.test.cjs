@@ -248,6 +248,8 @@ describe('renderer skin/config boundary', () => {
     const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
 
     expect(configFilterSource).toContain('renderer only persists its local subset of runtime settings');
+    expect(configFilterSource).toContain('RENDERER_CONFIG_FIELDS');
+    expect(configFilterSource).not.toContain('FRONTEND_CONFIG_FIELDS');
     expect(configFilterSource).not.toContain('subset of the backend configuration');
     expect(configFilterSource).not.toContain('configuration object from backend');
     expect(configStorageSource).toContain('desktop settings runtime');

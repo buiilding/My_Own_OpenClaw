@@ -6,7 +6,7 @@
 /**
  * Fields that the renderer is allowed to manage and persist locally.
  */
-const FRONTEND_CONFIG_FIELDS = [
+const RENDERER_CONFIG_FIELDS = [
   'model_mode',
   'model_provider',
   'selected_model_id',
@@ -39,7 +39,7 @@ export function filterFrontendConfig(config) {
   }
 
   const filtered = {};
-  for (const field of FRONTEND_CONFIG_FIELDS) {
+  for (const field of RENDERER_CONFIG_FIELDS) {
     if (field in config) {
       filtered[field] = config[field];
     }

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer config filter private allowlist boundary
+
+- Finding: `configFilter.js` had already been reworded as renderer-managed
+  config, but its private allowlist constant was still named
+  `FRONTEND_CONFIG_FIELDS`; one renderer config reference also mislabeled the
+  renderer allowlist as backend `CLIENT_SETTINGS_PATCH_FIELDS`.
+- Change: renamed the private allowlist to `RENDERER_CONFIG_FIELDS`, kept the
+  exported `filterFrontendConfig(...)` compatibility helper, corrected the
+  renderer config docs, and added a boundary assertion against the retired
+  private constant name.
+- Validation: focused renderer config filter/boundary Jest tests, docs
+  listing, stale private constant scan, and diff check.
+- Compatibility: no migration required. Renderer config fields, localStorage
+  and disk payloads, IPC channels, backend settings sync, permissions,
+  credentials, and SDK projections are unchanged.
+
 ### 2026-06-18 backend client settings patch validator boundary
 
 - Finding: backend validation and settings handlers still named the live

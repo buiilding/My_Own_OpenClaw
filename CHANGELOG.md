@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename the private config filter allowlist to
+  `RENDERER_CONFIG_FIELDS` while preserving the exported `filterFrontendConfig`
+  compatibility helper.
 - backend: rename the `update-settings` allowlist validator from frontend
   config to client settings patch terminology while preserving accepted fields
   and payload shape.

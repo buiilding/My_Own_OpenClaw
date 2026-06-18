@@ -24,7 +24,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 
 ## Renderer-Owned Config Allowlist (`configFilter`)
 
-Backend `CLIENT_SETTINGS_PATCH_FIELDS` currently allows:
+`RENDERER_CONFIG_FIELDS` currently allows:
 
 - `model_mode`
 - `model_provider`
