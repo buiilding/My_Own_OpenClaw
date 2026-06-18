@@ -9385,3 +9385,19 @@ Each completed slice should report:
   embedding calls, memory index/search behavior, sidecar test commands,
   JSON-RPC methods, IPC channels, credentials, permissions, hosted backend URLs,
   and provider policy are unchanged.
+
+### 2026-06-18 backend docs local-runtime memory prompt boundary
+
+- Finding: backend prompt-context and semantic/embedding service docs still
+  routed prompt memory context and embedding-space behavior through
+  sidecar-memory wording, even though backend owns hosted semantic routes and
+  the SDK/local-runtime boundary owns memory retrieval/search behavior.
+- Change: reworded prompt-context and backend service workflows to
+  local-runtime memory and local-runtime hosted helper client terminology; added
+  exact stale guards.
+- Validation: focused modular-boundary guard, docs listing, backend stale scan,
+  and diff checks.
+- Compatibility: no migration required. Prompt constructor behavior, semantic
+  route payloads, embedding provider metadata, remote-client error handling,
+  JSON-RPC methods, IPC channels, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged.

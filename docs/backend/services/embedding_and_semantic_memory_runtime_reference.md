@@ -203,8 +203,8 @@ Frontend runtimes consume backend memory services through owned boundaries:
 
 Operational implications:
 
-- backend embedder unavailability (`503`) disables sidecar semantic memory indexing quality
-- semantic route timeout/failure impacts periodic summarization pipeline in sidecar memory service
+- backend embedder unavailability (`503`) disables local-runtime semantic memory indexing quality
+- semantic route timeout/failure impacts the local-runtime memory summarization pipeline
 
 ## Debug Checklist
 

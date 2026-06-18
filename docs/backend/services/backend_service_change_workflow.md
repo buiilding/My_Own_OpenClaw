@@ -35,7 +35,7 @@ Do not put service policy into API route functions or renderer code. Routes shou
 - Keep heavyweight model imports lazy enough that disabled or remote modes can start without local model dependencies.
 - Provider health and circuit breakers should fail capabilities predictably instead of repeatedly invoking dead local/remote providers.
 - Service errors returned to clients should be structured and sanitized while logs retain enough evidence for debugging.
-- Keep provider identity metadata stable when sidecar memory or clients use it to detect embedding-space changes.
+- Keep provider identity metadata stable when local-runtime memory or hosted helper clients use it to detect embedding-space changes.
 
 ## Change Sequence
 
@@ -75,9 +75,9 @@ When changing embedding or semantic memory services:
 
 - Preserve embedding provider/model/version metadata and `embedding_space_version` semantics.
 - Keep disabled/remote embedding deployments lightweight by avoiding eager local model imports.
-- Keep sidecar remote-client behavior in mind: sidecar memory may treat embedding unavailability as non-fatal.
+- Keep local-runtime remote-client behavior in mind: local-runtime memory may treat embedding unavailability as non-fatal.
 - Test health routes, route serialization, provider failure, and config rebind behavior.
-- Update memory route and sidecar memory docs if the route response or failure behavior changes.
+- Update memory route and local-runtime memory docs if the route response or failure behavior changes.
 
 ## Audio and Token Checklist
 

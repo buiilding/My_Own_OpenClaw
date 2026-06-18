@@ -76,6 +76,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/architecture: align architecture, backend-history, provider, evidence,
   and test-selection memory routing labels with local-runtime memory ownership.
   No migration required.
+- docs/backend: route prompt-context and semantic/embedding service memory
+  guidance through local-runtime memory instead of sidecar-memory ownership. No
+  migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.
