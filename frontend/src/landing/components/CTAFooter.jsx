@@ -81,7 +81,7 @@ const CTAFooter = () => {
           <div className="footer-content">
             <div className="footer-brand">
               <span className="footer-logo">WindieOS</span>
-              <p className="footer-tagline">Desktop assistant</p>
+              <p className="footer-tagline">Desktop runtime for personal AI agents</p>
             </div>
             
             <div className="footer-links">

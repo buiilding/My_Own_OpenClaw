@@ -19,7 +19,7 @@ const HowItWorksSection = () => {
     {
       number: '03',
       title: 'Act with Permission',
-      description: 'The local sidecar executes tools: clicking, typing, navigating, editing files, or running commands. Sensitive actions stay visible and permissioned.',
+      description: 'The local runtime executes tools: clicking, typing, navigating, editing files, or running commands. Sensitive actions stay visible and permissioned.',
       code: 'windie.tools.click(x=450, y=320)'
     },
     {

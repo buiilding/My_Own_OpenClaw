@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 landing local-runtime public copy boundary
+
+- Finding: the public landing page still described local tool execution through sidecar/desktop-assistant wording, exposing implementation details above the SDK local-runtime and desktop-runtime product boundary.
+- Change: changed the how-it-works, why, and footer copy to use local runtime / desktop runtime language, and refreshed focused landing assertions to guard the old public phrases.
+- Validation: focused landing Jest coverage, stale public-copy scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes browser-facing landing copy and tests only; Electron runtime, SDK/local-runtime execution, Python sidecar implementation, tool schemas, settings, and persisted data are unchanged.
+
 ### 2026-06-17 backend config-domain view module
 
 - Finding: `backend/src/core/config/domains.py` exposed dataclass projections over

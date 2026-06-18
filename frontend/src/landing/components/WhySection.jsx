@@ -37,7 +37,7 @@ const WhySection = () => {
         </svg>
       ),
       title: 'Local Tool Execution',
-      description: 'A lightweight Python sidecar runs locally on your machine, executing tools and commands through explicit contracts while keeping machine authority local.'
+      description: 'The local runtime executes tools and commands through explicit contracts while keeping machine authority local.'
     },
     {
       icon: (

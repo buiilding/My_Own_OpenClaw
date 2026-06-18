@@ -30,7 +30,7 @@ describe('LandingPage', () => {
     expect(brandElements.length).toBeGreaterThan(0);
     
     // Check for subtitle
-    const subtitleElements = screen.getAllByText(/Desktop assistant/i);
+    const subtitleElements = screen.getAllByText(/Desktop runtime for personal AI agents/i);
     expect(subtitleElements.length).toBeGreaterThan(0);
   });
 });
@@ -40,8 +40,8 @@ describe('HeroSection', () => {
     render(<HeroSection />);
     
     expect(screen.getByText('WindieOS')).toBeInTheDocument();
-    expect(screen.getByText('Desktop assistant')).toBeInTheDocument();
-    expect(screen.getByText(/OS-level AI assistant/)).toBeInTheDocument();
+    expect(screen.getByText('Desktop runtime for personal AI agents')).toBeInTheDocument();
+    expect(screen.getByText(/turns your desktop session into an AI workspace/)).toBeInTheDocument();
     expect(screen.getByText('Get Started')).toBeInTheDocument();
     expect(screen.getByText('See How It Works')).toBeInTheDocument();
   });
@@ -49,7 +49,7 @@ describe('HeroSection', () => {
   it('renders feature highlights', () => {
     render(<HeroSection />);
     
-    expect(screen.getByText('Vision-First')).toBeInTheDocument();
+    expect(screen.getByText('Desktop-Native')).toBeInTheDocument();
     expect(screen.getByText('Local Memory')).toBeInTheDocument();
     expect(screen.getByText('Privacy First')).toBeInTheDocument();
   });
@@ -66,9 +66,11 @@ describe('WhySection', () => {
   it('renders all feature cards', () => {
     render(<WhySection />);
     
-    expect(screen.getByText('OS-Level Control')).toBeInTheDocument();
+    expect(screen.getByText('Desktop Session as Runtime')).toBeInTheDocument();
     expect(screen.getByText('Vision-First Interaction')).toBeInTheDocument();
     expect(screen.getByText('Local Tool Execution')).toBeInTheDocument();
+    expect(screen.getByText(/The local runtime executes tools and commands/)).toBeInTheDocument();
+    expect(screen.queryByText(/Python sidecar runs locally/)).not.toBeInTheDocument();
     expect(screen.getByText('Persistent Memory')).toBeInTheDocument();
     expect(screen.getByText('Browser Automation')).toBeInTheDocument();
     expect(screen.getByText('Multi-Provider Support')).toBeInTheDocument();
@@ -85,10 +87,12 @@ describe('HowItWorksSection', () => {
   it('renders all steps', () => {
     render(<HowItWorksSection />);
     
-    expect(screen.getByText('Capture Context')).toBeInTheDocument();
+    expect(screen.getByText('Start from the Desktop')).toBeInTheDocument();
     expect(screen.getByText('Understand Intent')).toBeInTheDocument();
-    expect(screen.getByText('Execute Actions')).toBeInTheDocument();
+    expect(screen.getByText('Act with Permission')).toBeInTheDocument();
     expect(screen.getByText('Learn & Remember')).toBeInTheDocument();
+    expect(screen.getByText(/The local runtime executes tools/)).toBeInTheDocument();
+    expect(screen.queryByText(/local sidecar executes tools/)).not.toBeInTheDocument();
   });
 });
 
@@ -177,6 +181,7 @@ describe('CTAFooter', () => {
     expect(screen.getByText('Product')).toBeInTheDocument();
     expect(screen.getByText('Resources')).toBeInTheDocument();
     expect(screen.getByText('Legal')).toBeInTheDocument();
+    expect(screen.getByText('Desktop runtime for personal AI agents')).toBeInTheDocument();
   });
 
   it('uses real targets for resource and legal links', () => {
