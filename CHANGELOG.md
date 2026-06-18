@@ -61,6 +61,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/tools: accept generic `AGENT_PERMISSION_STATE_PATH` permission-state
   env configuration for workspace-relative filesystem and shell path
   resolution while preserving the WindieOS host-skin alias.
+- sidecar/runtime: accept generic `AGENT_INTERACTIVE_WORKERS` and
+  `AGENT_BACKGROUND_WORKERS` executor override env names while preserving the
+  WindieOS sidecar aliases.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.

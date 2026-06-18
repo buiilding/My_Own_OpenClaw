@@ -8253,3 +8253,18 @@ Each completed slice should report:
   `WINDIE_PERMISSION_STATE_PATH` launches continue to work, generic hosts can
   use `AGENT_PERMISSION_STATE_PATH`, and the persisted permission-state file
   format and workspace authority semantics are unchanged.
+
+### 2026-06-18 Python executor env alias boundary
+
+- Finding: Python sidecar executor pool sizing still read only
+  `WINDIE_INTERACTIVE_WORKERS` and `WINDIE_BACKGROUND_WORKERS`, even though
+  bounded interactive/background executors are reusable local-runtime behavior
+  rather than WindieOS product policy.
+- Change: made executor worker override resolution read generic
+  `AGENT_INTERACTIVE_WORKERS` and `AGENT_BACKGROUND_WORKERS` first with the
+  WindieOS aliases preserved.
+- Validation: focused executor pytest coverage, source scans, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS executor env
+  overrides continue to work, generic hosts can use the `AGENT_*` names, and
+  default worker counts/thread-pool lifecycle behavior are unchanged.

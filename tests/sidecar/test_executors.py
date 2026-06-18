@@ -74,3 +74,21 @@ def test_interactive_executor_uses_env_override(monkeypatch):
     interactive = executors.get_interactive_executor()
 
     assert interactive._max_workers == 5
+
+
+def test_interactive_executor_prefers_agent_env_override(monkeypatch):
+    monkeypatch.setenv(executors.ENV_INTERACTIVE_WORKERS, "5")
+    monkeypatch.setenv(executors.ENV_AGENT_INTERACTIVE_WORKERS, "3")
+
+    interactive = executors.get_interactive_executor()
+
+    assert interactive._max_workers == 3
+
+
+def test_background_executor_supports_agent_env_override(monkeypatch):
+    monkeypatch.setenv(executors.ENV_BACKGROUND_WORKERS, "2")
+    monkeypatch.setenv(executors.ENV_AGENT_BACKGROUND_WORKERS, "6")
+
+    background = executors.get_background_executor()
+
+    assert background._max_workers == 6

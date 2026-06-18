@@ -17,6 +17,8 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+ENV_AGENT_INTERACTIVE_WORKERS = "AGENT_INTERACTIVE_WORKERS"
+ENV_AGENT_BACKGROUND_WORKERS = "AGENT_BACKGROUND_WORKERS"
 ENV_INTERACTIVE_WORKERS = "WINDIE_INTERACTIVE_WORKERS"
 ENV_BACKGROUND_WORKERS = "WINDIE_BACKGROUND_WORKERS"
 
@@ -55,11 +57,19 @@ def _parse_worker_override(raw_value: Optional[str], default: int) -> int:
     return parsed
 
 
+def _read_first_env(names: tuple[str, ...]) -> Optional[str]:
+    for name in names:
+        raw_value = os.getenv(name)
+        if raw_value is not None:
+            return raw_value
+    return None
+
+
 def _resolve_interactive_workers(max_workers: Optional[int]) -> int:
     if isinstance(max_workers, int) and max_workers > 0:
         return max_workers
     return _parse_worker_override(
-        os.getenv(ENV_INTERACTIVE_WORKERS),
+        _read_first_env((ENV_AGENT_INTERACTIVE_WORKERS, ENV_INTERACTIVE_WORKERS)),
         _default_interactive_workers(),
     )
 
@@ -68,7 +78,7 @@ def _resolve_background_workers(max_workers: Optional[int]) -> int:
     if isinstance(max_workers, int) and max_workers > 0:
         return max_workers
     return _parse_worker_override(
-        os.getenv(ENV_BACKGROUND_WORKERS),
+        _read_first_env((ENV_AGENT_BACKGROUND_WORKERS, ENV_BACKGROUND_WORKERS)),
         _default_background_workers(),
     )
 
