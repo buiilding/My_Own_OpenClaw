@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   wording instead of stale SDK agent/main runtime labels.
 - docs/sidecar: finish local runtime sidecar labels in system-state and setup
   docs, including packaged endpoint fallback wording.
+- docs/renderer: describe local theme editor values as renderer-local
+  presentation state.
 - docs/channels: align local tool channel maps with SDK/main local-runtime
   routing and Python sidecar executor wording.
 - tests/docs: rename the websocket incoming contract test and references from

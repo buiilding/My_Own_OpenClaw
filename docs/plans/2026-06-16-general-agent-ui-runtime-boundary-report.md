@@ -88,9 +88,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   runtime/tool-router wording instead of SDK agent/main runtime labels. The
   remaining sentence-case frontend-sidecar live docs now use local runtime
   sidecar labels, and packaged endpoint fallback docs use desktop-local
-  loopback wording.
+  loopback wording. Renderer settings docs now describe local theme editor
+  values as renderer-local presentation state.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer-Local Theme Settings Wording Slice
+
+- Worktree was clean after `09c7a65cf` before this slice, with `main` ahead of
+  `origin/main` by 817 commits.
+- Recent scans showed stale frontend/backend and sidecar labels reduced to
+  guard strings and report history, with only a live settings reference still
+  using broad frontend wording for theme editor values.
+- Finding: those theme values are renderer presentation state persisted through
+  renderer config; the wording should not imply a broad frontend runtime owner.
+- Change: reworded the settings section reference to renderer-local theme
+  editor values and added a modular boundary guard for the retired phrase.
+- Validation: focused modular boundary test, targeted stale-label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  renderer config persistence, theme application, settings IPC, backend
+  settings sync, storage, credentials, permissions, and provider policy are
+  unchanged.
 
 ### 2026-06-18 Local Runtime Sidecar Label Follow-Up Slice
 
@@ -98,7 +117,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `origin/main` by 816 commits.
 - Recent commits showed a prior local runtime sidecar label cleanup, while
   current scans still found sentence-case frontend-sidecar wording in the system-state
-  docs hub and setup guide plus one "frontend-local" packaged endpoint fallback
+  docs hub and setup guide plus one broad frontend packaged endpoint fallback
   label.
 - Finding: those labels preserved the old frontend-owned sidecar and endpoint
   mental model in live docs even though the sidecar is the local runtime

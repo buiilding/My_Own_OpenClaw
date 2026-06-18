@@ -120,11 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer-local theme settings wording
+
+- Finding: the settings section reference still used broad frontend wording for
+  local theme editor values, even though those values are renderer presentation state.
+- Change: reworded the theme-editor ownership notes to renderer-local wording
+  and added a modular boundary guard for the retired phrase.
+- Validation: focused modular boundary test, targeted stale-label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  renderer config persistence, theme application, settings IPC, backend
+  settings sync, storage, credentials, permissions, and provider policy are
+  unchanged.
+
 ### 2026-06-18 local runtime sidecar label follow-up
 
 - Finding: a sentence-case sidecar hub summary and setup guide still used a
-  frontend-sidecar label for the Python sidecar, and packaged endpoint docs still used
-  a "frontend-local" loopback fallback label.
+  frontend-sidecar label for the Python sidecar, and packaged endpoint docs
+  still used a broad frontend loopback fallback label.
 - Change: reworded those live docs to local runtime sidecar and desktop-local
   endpoint fallback labels, and widened the modular boundary guard to catch
   sentence-case frontend-sidecar wording.

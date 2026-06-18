@@ -38,7 +38,7 @@ Current visible tab ids:
 Routing model:
 
 - `general` renders live settings controls (`GeneralTab`)
-- `appearance` renders frontend-local theme editing controls for light/dark accent, background, foreground, fonts, translucent sidebar, and contrast values
+- `appearance` renders renderer-local theme editing controls for light/dark accent, background, foreground, fonts, translucent sidebar, and contrast values
 - `agent` renders custom instructions, extension runtime diagnostics, and local/remote tool toggles
 - `workspace` renders workspace permission/status controls
 - `browser` renders Windie browser permission/status controls
@@ -97,7 +97,7 @@ storage. The dashboard thread uses it to either:
 
 ## Appearance Tab Ownership Model
 
-`AppearanceSettingsTab` owns frontend-local theme editor values:
+`AppearanceSettingsTab` owns renderer-local theme editor values:
 
 - light, dark, or system theme mode
 - light and dark accent/background/foreground colors
@@ -159,7 +159,7 @@ Exception:
 
 1. Replacing context-driven wakeword setter with direct config patches can desync suppression-aware wakeword state.
 2. Adding new settings tabs requires updating both the shared `SETTINGS_TABS` registry and `renderTabContent()` routing in `SettingsSection.jsx`.
-3. Theme editor values should remain frontend-local unless a future runtime theme engine explicitly consumes them.
+3. Theme editor values should remain renderer-local unless a future runtime theme engine explicitly consumes them.
 4. Treating local-only `voice` selector as persisted config without wiring provider updates.
 
 ## Related Pages

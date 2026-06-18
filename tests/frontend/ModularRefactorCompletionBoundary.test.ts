@@ -368,6 +368,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('SDK main runtime');
   });
 
+  test('renderer settings docs use renderer-local presentation wording', async () => {
+    const source = await read(
+      'docs/frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md',
+    );
+
+    expect(source).toContain('renderer-local theme editor values');
+    expect(source).not.toContain('frontend-local theme');
+  });
+
   test('frontend architecture docs route tool prep through local execution wording', async () => {
     const docs = await Promise.all([
       read('docs/architecture/frontend_architecture.md'),
