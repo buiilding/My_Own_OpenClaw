@@ -2,7 +2,7 @@
 summary: "ADR 004 for the WindieOS browser extension auto-attach boundary, keeping current dedicated-browser CDP behavior separate from future extension-mode attachment."
 read_when:
   - When changing browser launch, attach, dedicated profile, browser extension, or browser session ownership behavior.
-  - When deciding whether browser automation should attach to arbitrary user browser sessions or remain in the WindieOS-owned browser runtime.
+  - When deciding whether browser automation should attach to arbitrary user browser sessions or remain in the dedicated browser runtime.
 title: "ADR 004: Browser Extension Auto-Attach Boundary"
 ---
 
@@ -10,15 +10,15 @@ title: "ADR 004: Browser Extension Auto-Attach Boundary"
 
 ## Status
 
-Proposed. Current implementation remains dedicated WindieOS browser control through the sidecar browser runtime and CDP profile ownership.
+Proposed. Current implementation remains dedicated browser control through the sidecar browser runtime and CDP profile ownership.
 
 ## Context
 
-WindieOS browser automation currently relies on a WindieOS-owned browser runtime:
+WindieOS browser automation currently relies on a dedicated browser runtime:
 
 - dedicated browser profile
 - Browser Use sidecar adapter
-- WindieOS CDP launch/connect flow
+- desktop CDP launch/connect flow
 - strict backend/sidecar browser action schema
 - explicit browser availability/permission checks
 
@@ -30,7 +30,7 @@ Do not treat extension auto-attach as current browser behavior.
 
 Current behavior:
 
-- keep dedicated WindieOS browser runtime and profile ownership
+- keep dedicated browser runtime and profile ownership
 - use Browser Use through the sidecar adapter
 - prefer installed Chrome/Chromium-family browsers through the fixed detection priority
 - keep browser action execution in the sidecar/browser runtime

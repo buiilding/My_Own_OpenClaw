@@ -19,7 +19,7 @@ playwright install chromium
 
 `browser-use[cli]` is installed from the sidecar requirements and is the maintained browser automation engine.
 
-To verify the WindieOS browser runtime boundary:
+To verify the dedicated browser runtime boundary:
 
 ```bash
 cd WindieOS
@@ -318,7 +318,7 @@ User: Close the browser
 
 ### "Cannot connect to Chrome"
 
-**Problem:** Windie dedicated browser instance failed to launch/attach
+**Problem:** Dedicated browser instance failed to launch/attach
 
 **Fix:**
 ```bash

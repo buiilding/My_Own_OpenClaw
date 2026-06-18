@@ -43,7 +43,7 @@ Backend runtime gate in `RemoteBrowserTool`:
 Sidecar enforcement is action-aware and runtime-focused:
 
 - `browser_tool` validates grouped `BrowserControlArgs` before execution
-- `browser_use_engine.py` maps canonical actions to Browser Use CLI calls or Windie-owned helpers
+- `browser_use_engine.py` maps canonical actions to Browser Use CLI calls or dedicated-profile helpers
 - Browser Use numeric indexes remain the runtime element-reference model
 
 Result:

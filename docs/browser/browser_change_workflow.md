@@ -128,7 +128,7 @@ Validate:
 - default CDP host stays localhost-only.
 - `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches)
   override is parsed and tested.
-- profile path remains Windie-owned and separate from the user's normal browser profile.
+- profile path remains dedicated and separate from the user's normal browser profile.
 - failed launch tears down partial processes cleanly.
 - status/connect payloads still include enough data for renderer session controls.
 

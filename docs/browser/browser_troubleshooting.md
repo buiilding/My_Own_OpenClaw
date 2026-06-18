@@ -32,7 +32,7 @@ Checks:
 If the log contains `Protocol error (Browser.setDownloadBehavior): Browser context
 management is not supported`, the CDP endpoint accepted the websocket
 connection but rejected the command Playwright sends during attach setup. The
-launcher should restart only a matching WindieOS-owned Chrome process on that
+launcher should restart only a matching dedicated-profile Chrome process on that
 port; if another process owns the port, stop it manually or choose a different
 `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches).
 

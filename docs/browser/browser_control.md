@@ -530,14 +530,14 @@ playwright install chromium
        │                                   │ Browser Use / CDP
        │                            ┌──────▼──────┐
        │                            │    Chrome   │
-       │                            │  (WindieOS  │
+       │                            │ (dedicated  │
        │                            │  profile)   │
        │                            └─────────────┘
 ```
 
 - **Backend**: Exposes tool schema to LLM, orchestrates execution
-- **Sidecar**: Adapts browser actions to Browser Use and the WindieOS CDP profile
-- **Chrome**: WindieOS-owned profile controlled through localhost CDP
+- **Sidecar**: Adapts browser actions to Browser Use and the dedicated CDP profile
+- **Chrome**: Dedicated profile controlled through localhost CDP
 
 ## Browser Support
 
