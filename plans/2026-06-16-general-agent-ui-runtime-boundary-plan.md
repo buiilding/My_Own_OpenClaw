@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Agent SDK Runtime IPC Helper Naming
+
+- Finding: Electron main query/settings/model IPC helpers and failure copy
+  still used `*ThroughSdkAgent` names and "SDK agent" wording for generic
+  Agent SDK runtime command routing.
+- Change: renamed the internal helper/dependency/test surface to
+  `*ThroughAgentSdkRuntime`, changed query send failure copy to "Agent SDK
+  runtime", and reworded live query/IPC docs to the same boundary language.
+- Validation: focused main IPC/query/VM-worker Jest tests, targeted stale
+  helper and docs scans, docs listing, and diff check.
+- Compatibility: no migration required. This is internal Electron-main helper
+  naming plus failure-copy wording only; IPC channels, command names, SDK API
+  calls, backend websocket payloads, credentials, permissions, storage, and
+  provider policy are unchanged.
+
 ### 2026-06-18 SDK-Shaped Query Send-Failure Broadcast
 
 - Finding: `ipc_query_broadcast.cjs` still built a backend-shaped local error

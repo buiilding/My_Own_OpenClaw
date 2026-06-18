@@ -78,10 +78,10 @@ Split boundary:
 - `ipc.cjs` is the Agent SDK host: it imports `Agent`, starts the desktop
   agent with only normal public startup inputs (`apiKey`, `workspace`,
   `appName`), subscribes to SDK rows/status/events/current-turn/connection
-  outputs, and exposes thin `windie:*` IPC handlers that call SDK agent methods.
+  outputs, and exposes thin `windie:*` IPC handlers that call Agent SDK methods.
 - `ipc.cjs` owns renderer-facing lifecycle orchestration and IPC handler registration.
 - `ipc_agent_sdk_command_handlers.cjs` owns the strict SDK command allowlist
-  behind `windie:invoke` and receives Electron-main state and SDK agent methods
+  behind `windie:invoke` and receives Electron-main state and Agent SDK methods
   as injected dependencies.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.

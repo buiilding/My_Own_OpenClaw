@@ -217,7 +217,7 @@ renderer wire channel names:
 allowlist and routes conversation commands such as `conversation.send` and
 `conversation.stop` into the live SDK runtime. `ipc.cjs` registers the IPC
 handler through `handleAgentSdkInvoke(...)` and injects Electron-main state,
-settings gates, diagnostics, and SDK agent functions through generic
+settings gates, diagnostics, and Agent SDK runtime functions through generic
 dependencies such as `ensureAgent`:
 
 - backend connection gating
@@ -285,7 +285,7 @@ generic `to-backend` router or direct chat query IPC handlers.
 11. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
 12. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
 13. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
-   `ipc.cjs` and dispatched to explicit SDK agent/conversation methods.
+   `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.
 14. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
 

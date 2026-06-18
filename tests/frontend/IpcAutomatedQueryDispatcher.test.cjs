@@ -36,7 +36,7 @@ function createHarness(overrides = {}) {
       ...payload,
       agent_definition: { mode: 'test' },
     })),
-    sendQueryThroughSdkAgent: jest.fn(async () => 'sdk-message-1'),
+    sendQueryThroughAgentSdkRuntime: jest.fn(async () => 'sdk-message-1'),
     getState: jest.fn(() => ({
       currentUserId: 'user-1',
       isFirstQuery,
@@ -89,7 +89,7 @@ describe('ipc_automated_query_dispatcher', () => {
       ok: false,
       error: 'closed',
     });
-    expect(deps.sendQueryThroughSdkAgent).not.toHaveBeenCalled();
+    expect(deps.sendQueryThroughAgentSdkRuntime).not.toHaveBeenCalled();
   });
 
   test('builds and dispatches automated queries through the SDK runtime', async () => {
@@ -120,7 +120,7 @@ describe('ipc_automated_query_dispatcher', () => {
       currentUserId: 'user-1',
       isFirstQuery: true,
     }));
-    expect(deps.sendQueryThroughSdkAgent).toHaveBeenCalledWith({
+    expect(deps.sendQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
       messageId: 'query-message-1',
       payload: {
         text: 'inspect app',

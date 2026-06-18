@@ -9,7 +9,7 @@ function createAutomatedQueryDispatcher({
   getPendingSettingsSyncPromise,
   buildQueryPayload,
   attachAgentDefinitionContext,
-  sendQueryThroughSdkAgent,
+  sendQueryThroughAgentSdkRuntime,
   getState,
   setCurrentConversationRef,
   setFirstQuery,
@@ -62,12 +62,12 @@ function createAutomatedQueryDispatcher({
     const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
 
     const queryMessageId = uuidGenerator();
-    const messageId = await sendQueryThroughSdkAgent({
+    const messageId = await sendQueryThroughAgentSdkRuntime({
       payload: payloadWithAgentDefinition,
       messageId: queryMessageId,
     });
     if (!messageId) {
-      return { ok: false, error: 'Failed to send query through SDK agent' };
+      return { ok: false, error: 'Failed to send query through Agent SDK runtime' };
     }
 
     setCurrentConversationRef(conversationRef);

@@ -176,7 +176,7 @@ describe('ipc.cjs replay command handling', () => {
     expect(sdk.runtime.prepareEditAndResend).toHaveBeenCalledTimes(1);
   });
 
-  test('routes retry preparation through the same SDK agent adapter', async () => {
+  test('routes retry preparation through the same Agent SDK runtime adapter', async () => {
     const sdk = installMockAgentClient();
     const bridge = initIpc();
 

@@ -31,7 +31,7 @@ title: "Query Payload and Relay Reference"
 Main receives live chat query invokes on the SDK-shaped `windie:invoke` command
 channel with `command: 'conversation.send'`.
 Electron main is the desktop Agent SDK host: it prepares host-only query
-context, calls the SDK agent, and forwards SDK projections back to renderer
+context, calls the Agent SDK runtime, and forwards SDK projections back to renderer
 windows. There is no generic renderer `to-backend` compatibility relay for SDK
 runtime commands.
 
@@ -40,7 +40,7 @@ Common input normalization:
 - shallow-copies object payload only
 - drops malformed payloads early through query preparation validation
 
-Endpoint context for SDK agent calls:
+Endpoint context for Agent SDK runtime calls:
 
 - websocket send target, origin, hosted defaults, and endpoint environment
   overrides are owned by `AgentClient` managed backend options
@@ -57,10 +57,10 @@ Special `windie:invoke` command paths:
 
 - `conversation.send`: prepares the renderer query, runs the initial settings gate, and sends the backend websocket `query` through the Agent SDK runtime
 - `conversation.stop`: sends backend websocket `stop-query` through the Agent SDK runtime
-- `settings.update`: delegates to the settings ACK pipeline through the SDK agent
-- `models.list`: requests model list through the SDK agent once connected
-- `conversation.rehydrate`: rehydrates backend inference history through the SDK agent
-- `conversation.compact`: asks backend to compact the active conversation through the SDK agent
+- `settings.update`: delegates to the settings ACK pipeline through the Agent SDK runtime
+- `models.list`: requests model list through the Agent SDK runtime once connected
+- `conversation.rehydrate`: rehydrates backend inference history through the Agent SDK runtime
+- `conversation.compact`: asks backend to compact the active conversation through the Agent SDK runtime
 - `wakeword.detected`: passes through the initial settings sync gate before backend send
 
 ## Initial Settings ACK Gate Before Query
@@ -125,7 +125,7 @@ Output from `buildQueryPayload(...)`:
 
 The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with memory and attachment context before the backend websocket send.
 
-### 5) SDK agent send + failure fallback
+### 5) Agent SDK Runtime Send + Failure Fallback
 
 - sends the backend websocket message through the Agent SDK runtime with stable message id
 - on send failure, builds and emits an SDK `turn_error` conversation event

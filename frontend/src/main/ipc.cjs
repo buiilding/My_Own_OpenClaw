@@ -214,7 +214,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  updateSettings: (payload) => updateSettingsThroughSdkAgent(payload),
+  updateSettings: (payload) => updateSettingsThroughAgentSdkRuntime(payload),
   traceSettingsUpdate: (config, source, msgId) => electronMainTraceLogger.traceSettingsUpdate(
     config,
     source,
@@ -1770,8 +1770,8 @@ function initializeIpc(win, options = {}) {
     ensureBackendConnection,
     ensureInitialSettingsSync,
     getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-    sendQueryThroughSdkAgent,
-    stopQueryThroughSdkAgent,
+    sendQueryThroughAgentSdkRuntime,
+    stopQueryThroughAgentSdkRuntime,
     setResponseOverlayPhase,
     resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
       backendEndpointState.getHttpUrl(),
@@ -1818,12 +1818,12 @@ function initializeIpc(win, options = {}) {
         ensureAgent,
         resolveWorkspacePathForAgent,
         sendSettingsUpdate,
-        requestModelListThroughSdkAgent,
+        requestModelListThroughAgentSdkRuntime,
         isBackendRuntimeConnected,
         ensureBackendConnection,
         ensureInitialSettingsSync,
         getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-        sendWakewordDetectedThroughSdkAgent,
+        sendWakewordDetectedThroughAgentSdkRuntime,
         appendAppDiagnostic,
       },
     })
@@ -1831,7 +1831,7 @@ function initializeIpc(win, options = {}) {
 
 }
 
-async function sendQueryThroughSdkAgent({ payload = {}, messageId = null } = {}) {
+async function sendQueryThroughAgentSdkRuntime({ payload = {}, messageId = null } = {}) {
   try {
     const sourcePayload = isPlainObject(payload) ? payload : {};
     const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
@@ -1859,7 +1859,7 @@ async function sendQueryThroughSdkAgent({ payload = {}, messageId = null } = {})
   }
 }
 
-async function stopQueryThroughSdkAgent(payload = {}) {
+async function stopQueryThroughAgentSdkRuntime(payload = {}) {
   if (!activeAgent) {
     return false;
   }
@@ -1879,17 +1879,17 @@ async function stopQueryThroughSdkAgent(payload = {}) {
   return true;
 }
 
-async function updateSettingsThroughSdkAgent(payload = {}) {
+async function updateSettingsThroughAgentSdkRuntime(payload = {}) {
   const agent = await ensureAgent({ reason: 'update-settings' });
   return agent.updateSettings(payload);
 }
 
-async function requestModelListThroughSdkAgent() {
+async function requestModelListThroughAgentSdkRuntime() {
   const agent = await ensureAgent({ reason: 'list-models' });
   return agent.requestModelList();
 }
 
-async function sendWakewordDetectedThroughSdkAgent(payload = {}) {
+async function sendWakewordDetectedThroughAgentSdkRuntime(payload = {}) {
   const agent = await ensureAgent({ reason: 'wakeword-detected' });
   return agent.wakewordDetected(payload);
 }
@@ -1999,7 +1999,7 @@ async function triggerStopQueryFromMain() {
   if (!stopTarget.canStop) {
     return false;
   }
-  const stopped = await stopQueryThroughSdkAgent({
+  const stopped = await stopQueryThroughAgentSdkRuntime({
     conversation_ref: stopTarget.conversationRef,
     turn_ref: stopTarget.turnRef,
   });
@@ -2157,7 +2157,7 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
     attachAgentDefinitionContext(payload),
   ),
-  sendQueryThroughSdkAgent,
+  sendQueryThroughAgentSdkRuntime,
   getState: () => ({
     currentUserId,
     isFirstQuery,
@@ -2190,7 +2190,7 @@ module.exports = {
   appendMainProcessTraceEvent,
   appendAppDiagnostic,
   sendAutomatedQuery,
-  stopQueryThroughSdkAgent,
+  stopQueryThroughAgentSdkRuntime,
   shutdownIpcForTests,
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,

@@ -186,7 +186,7 @@ function buildAgentSdkCommandHandlers({
       payload,
       'agent-sdk-command',
     ),
-    [SDK_RUNTIME_COMMANDS.MODELS_LIST]: async () => deps.requestModelListThroughSdkAgent(),
+    [SDK_RUNTIME_COMMANDS.MODELS_LIST]: async () => deps.requestModelListThroughAgentSdkRuntime(),
     [SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED]: async (payload = {}) => {
       if (!deps.isBackendRuntimeConnected()) {
         await deps.ensureBackendConnection('wakeword-detected');
@@ -196,7 +196,7 @@ function buildAgentSdkCommandHandlers({
       if (pendingSettingsSyncPromise) {
         await pendingSettingsSyncPromise;
       }
-      return deps.sendWakewordDetectedThroughSdkAgent(payload);
+      return deps.sendWakewordDetectedThroughAgentSdkRuntime(payload);
     },
     [SDK_RUNTIME_COMMANDS.MEMORIES_LIST]: async (payload = {}) => {
       const agent = await deps.ensureAgent({ reason: 'sdk-command:memories.list' });

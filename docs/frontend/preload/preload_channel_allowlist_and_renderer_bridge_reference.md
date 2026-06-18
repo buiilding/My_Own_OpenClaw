@@ -106,7 +106,7 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 Memory list/delete/clear and chat clear are not direct preload invoke channels.
 Renderer memory UI uses SDK-shaped `window.agentSdk.invoke("memories.*", payload)`
 and `window.agentSdk.invoke("conversations.clearAll", payload)` commands, and
-Electron main maps those commands to public SDK agent APIs.
+Electron main maps those commands to public Agent SDK APIs.
 
 For invalid channels:
 

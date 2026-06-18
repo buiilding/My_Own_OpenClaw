@@ -95,9 +95,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   the existing `WINDIE_PYTHON_PATH` env var. Electron main query send-failure
   broadcasts now build SDK `turn_error` conversation events directly in the IPC
   helper instead of importing backend event normalization for a synthetic local
-  failure.
+  failure. Electron main query/settings/model IPC helper names and user-visible
+  send-failure copy now use Agent SDK runtime wording instead of SDK-agent
+  wording for generic runtime command routing.
 
 ## Inspection Log
+
+### 2026-06-18 Agent SDK Runtime IPC Helper Naming Slice
+
+- Worktree was clean after `414152f23`, with `main` ahead of `origin/main` by
+  820 commits.
+- Finding: Electron main helper dependencies such as
+  `sendQueryThroughSdkAgent` and their failure copy still used SDK-agent
+  wording for generic Agent SDK runtime command routing.
+- Change: renamed the internal main helper/dependency/test surface to
+  `*ThroughAgentSdkRuntime`, changed query send failure copy to "Agent SDK
+  runtime", and aligned live query/IPC docs with the same language.
+- Validation: focused main IPC/query/VM-worker Jest tests, targeted stale
+  helper and docs scans, docs listing, and diff check.
+- Compatibility: no migration required. IPC channel names, `windie:invoke`
+  command names, SDK API calls, backend websocket payloads, credentials,
+  permissions, storage, and provider policy are unchanged.
 
 ### 2026-06-18 SDK-Shaped Query Send-Failure Broadcast Slice
 

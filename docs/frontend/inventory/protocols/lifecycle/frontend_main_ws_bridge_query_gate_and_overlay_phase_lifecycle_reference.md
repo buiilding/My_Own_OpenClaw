@@ -145,8 +145,8 @@ State flow:
 commands:
 
 1. Validate SDK command envelope from `window.agentSdk.invoke(command, payload)`.
-2. Route `settings.update` and `models.list` commands through the SDK agent
-   settings/model paths.
+2. Route `settings.update` and `models.list` commands through the Agent SDK
+   runtime settings/model paths.
 3. For `conversation.send` and `wakeword.detected`:
    - await settings gate + pending ACK promise when required.
 4. For `conversation.send` specifically:

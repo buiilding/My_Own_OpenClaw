@@ -542,7 +542,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('internal stop bridge ignores removed turnRef alias', async () => {
     const { ws, ipc } = await setupOpenedIpc();
 
-    await expect(ipc.stopQueryThroughSdkAgent({
+    await expect(ipc.stopQueryThroughAgentSdkRuntime({
       conversation_ref: 'conv-stop-alias',
       turnRef: 'turn-removed-alias',
     })).resolves.toBe(true);

@@ -26,7 +26,7 @@ describe('vm_worker_runtime', () => {
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
-      stopQueryThroughSdkAgent: jest.fn(),
+      stopQueryThroughAgentSdkRuntime: jest.fn(),
       registerBackendMessageObserver: () => () => {},
       setIntervalFn: (_handler, ms) => {
         intervals.push(ms);
@@ -58,7 +58,7 @@ describe('vm_worker_runtime', () => {
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
-      stopQueryThroughSdkAgent: jest.fn(),
+      stopQueryThroughAgentSdkRuntime: jest.fn(),
       registerBackendMessageObserver: () => () => {},
     });
     const context = runtime._internals.buildAttachmentContextFromFiles([
@@ -130,7 +130,7 @@ describe('vm_worker_runtime', () => {
         backendHttpUrl: 'http://localhost:8000',
       }),
       sendAutomatedQuery,
-      stopQueryThroughSdkAgent: jest.fn(),
+      stopQueryThroughAgentSdkRuntime: jest.fn(),
       registerBackendMessageObserver: (handler) => {
         observer = handler;
         return () => {
@@ -217,7 +217,7 @@ describe('vm_worker_runtime', () => {
         backendHttpUrl: 'http://localhost:8000',
       }),
       sendAutomatedQuery,
-      stopQueryThroughSdkAgent: jest.fn(),
+      stopQueryThroughAgentSdkRuntime: jest.fn(),
       registerBackendMessageObserver: (handler) => {
         observer = handler;
         return () => {
@@ -264,7 +264,7 @@ describe('vm_worker_runtime', () => {
       queryMessageId: 'turn-stop',
       messageId: 'turn-stop',
     }));
-    const stopQueryThroughSdkAgent = jest.fn();
+    const stopQueryThroughAgentSdkRuntime = jest.fn();
     let heartbeatCount = 0;
     let intervalHandler = null;
     const fetchFn = jest.fn(async (url) => {
@@ -318,7 +318,7 @@ describe('vm_worker_runtime', () => {
         backendHttpUrl: 'http://localhost:8000',
       }),
       sendAutomatedQuery,
-      stopQueryThroughSdkAgent,
+      stopQueryThroughAgentSdkRuntime,
       registerBackendMessageObserver: () => () => {},
       setIntervalFn: (handler) => {
         intervalHandler = handler;
@@ -334,7 +334,7 @@ describe('vm_worker_runtime', () => {
     await intervalHandler();
     await flushPromises();
 
-    expect(stopQueryThroughSdkAgent).toHaveBeenCalledWith({
+    expect(stopQueryThroughAgentSdkRuntime).toHaveBeenCalledWith({
       conversation_ref: 'conv-stop',
     });
     expect(fetchFn).toHaveBeenCalledWith(
@@ -360,7 +360,7 @@ describe('vm_worker_runtime', () => {
         backendHttpUrl: 'http://localhost:8000',
       }),
       sendAutomatedQuery,
-      stopQueryThroughSdkAgent: jest.fn(),
+      stopQueryThroughAgentSdkRuntime: jest.fn(),
       registerBackendMessageObserver: () => () => {},
       log: jest.fn(),
       warn: jest.fn(),

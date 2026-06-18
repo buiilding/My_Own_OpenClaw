@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename internal query/settings/model IPC helpers and failure copy from
+  SDK-agent wording to Agent SDK runtime wording.
 - main: build synthetic query send-failure broadcasts as SDK conversation
   events in the IPC helper instead of importing backend event normalization.
 - main: make dev local-runtime Python fallback guidance generic instead of

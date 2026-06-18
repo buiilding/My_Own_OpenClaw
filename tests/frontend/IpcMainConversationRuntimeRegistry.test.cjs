@@ -215,12 +215,12 @@ describe('ipc.cjs conversation runtime registry', () => {
       ok: true,
       data: {
         ok: false,
-        error: 'Failed to send query through SDK agent',
+        error: 'Failed to send query through Agent SDK runtime',
       },
     });
     expect(secondSend.data).toEqual({
       ok: false,
-      error: 'Failed to send query through SDK agent',
+      error: 'Failed to send query through Agent SDK runtime',
     });
     expect(activeRuntime.send).toHaveBeenCalledTimes(1);
 
