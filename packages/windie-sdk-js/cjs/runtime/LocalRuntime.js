@@ -438,7 +438,7 @@ function buildSpawnEnv(options) {
         ...(options.env ?? {}),
     };
 }
-function resolveDaemonLaunchCommand(options, fs, path, discoveryFile) {
+function resolveDaemonLaunchCommand(options, path, discoveryFile) {
     if (typeof options.command === 'string' && options.command.trim()) {
         return {
             command: options.command,
@@ -504,7 +504,7 @@ function createAgentLocalRuntimeProvider(options = {}) {
             await waitForDaemonStop(initialDiscovery, fetchImpl, options.WebSocketImpl, options.startTimeoutMs ?? 10000, options.pollIntervalMs ?? 100);
         }
         fs.mkdirSync(path.dirname(discoveryFile), { recursive: true });
-        const launchCommand = resolveDaemonLaunchCommand(options, fs, path, discoveryFile);
+        const launchCommand = resolveDaemonLaunchCommand(options, path, discoveryFile);
         const args = [...launchCommand.args];
         if (options.host) {
             args.push('--host', options.host);

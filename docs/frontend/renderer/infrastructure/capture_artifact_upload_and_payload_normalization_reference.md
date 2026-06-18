@@ -16,6 +16,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
+- `packages/windie-sdk-js/src/runtime/VisualResourceMaterializer.ts`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
@@ -93,7 +94,15 @@ Failure policy:
 Renderer send code does not upload screenshot or attachment artifacts before
 dispatching a turn. It submits typed SDK resources; SDK/main owns resource
 resolution, screenshot capture, artifact materialization, and backend-bound
-artifact refs.
+artifact refs. The SDK uses the private `VisualResourceMaterializer` helper for
+user image attachments, query screenshot data, and tool screenshot data before
+backend payload assembly.
+
+Electron main remains the only layer that trusts local screenshot temp paths.
+The SDK resource resolver accepts artifact refs or inline screenshot data from
+the local-runtime bridge; raw `screenshot_path` values are treated as
+unmaterialized local temp paths and are not read, uploaded, deleted, or relayed
+by SDK query resolution.
 
 `setRuntimeEndpointHttpUrl(...)`:
 
@@ -114,7 +123,9 @@ artifact refs.
 - any `png` variant -> `image/png` + `.png`
 - everything else -> `image/jpeg` + `.jpg`
 
-SDK/main screenshot materialization maps raw screenshot format/compression fields into standardized content types and normalizes `screenshot` / `screenshot_ref` / `screenshot_url` onto one attachment contract before backend relay.
+SDK/main screenshot materialization maps raw screenshot fields into
+standardized content types and normalizes `screenshot` / `screenshot_ref` /
+`screenshot_url` onto one attachment contract before backend relay.
 
 ## Removed/Deleted Renderer Capture and Upload Helpers
 
@@ -132,9 +143,11 @@ should land here before historical design docs.
 Current ownership:
 
 - SDK/main owns query screenshot resource resolution, post-action screenshot
-  capture, artifact materialization, and backend-bound screenshot refs.
+  capture, shared visual-resource materialization, and backend-bound screenshot
+  refs.
 - Electron main owns sidecar screenshot invocation, selected-display bounds
-  injection, and local bridge result normalization.
+  injection, local screenshot temp-path validation, upload fallback behavior,
+  cleanup, and local bridge result normalization.
 - Renderer infrastructure owns artifact URL display helpers only
   (`RuntimeEndpointStore` and `ArtifactImageUtils`), while app providers and
   runtime clients reach endpoint state through `DesktopRuntimeEndpointClient`

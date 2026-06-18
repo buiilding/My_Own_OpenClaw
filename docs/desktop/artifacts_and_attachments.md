@@ -15,6 +15,7 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 - Renderer artifact URL builder: `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
 - Query screenshot resource preparation: `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - SDK resource resolution: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
+- SDK visual materialization: `packages/windie-sdk-js/src/runtime/VisualResourceMaterializer.ts`
 - Message screenshot resolution: `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
 - Main screenshot artifact bridge: `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - Backend routes: `backend/src/api/routes/artifacts/*`
@@ -31,6 +32,10 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 
 - Prefer artifact refs for replay-safe screenshot context.
 - Preserve screenshot context across edit/resend and retry flows.
+- Materialize user images, query screenshots, and tool screenshots through the
+  SDK/main visual-resource materializer before backend payload assembly.
+- Keep raw local screenshot temp-path validation and cleanup in Electron main;
+  SDK query resolution does not trust or read `screenshot_path` values directly.
 - Renderer display rows treat `screenshot` as inline image data only; remote
   artifact images must carry explicit `screenshotRef`/`screenshotUrl` metadata
   or `screenshot_refs`.

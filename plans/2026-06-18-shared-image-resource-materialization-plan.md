@@ -204,3 +204,10 @@ For each completed slice, record:
 
 - 2026-06-18: plan created after reviewing WindieOS artifact, attachment,
   capture, SDK/main, Codex image-input, and OpenClaw media-hygiene patterns.
+- 2026-06-18: extracted a private SDK `VisualResourceMaterializer` helper and
+  routed renderer clipboard images, query screenshot artifact/inline payloads,
+  and tool screenshot artifact/inline payloads through it. Removed the SDK
+  direct file-read upload branch for raw `screenshot_path`; Electron main keeps
+  the temp-path trust boundary and cleanup. Payload shape remains artifact-ref
+  based; no migration required. Validation so far: SDK ESM/CJS builds and
+  focused `WindieSdkConversationRuntime` screenshot/tool materialization tests.

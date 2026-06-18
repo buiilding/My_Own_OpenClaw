@@ -24,6 +24,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/images: add a private shared visual-resource materializer for user image
+  attachments, query screenshots, and tool screenshots; SDK query resolution
+  now requires Electron main to materialize raw screenshot temp paths before
+  backend send. No migration required.
 - main/windows: pass app icon, renderer log prefix, tray tooltip, wakeword,
   runtime path, bundled-runtime, and local-runtime copies into generic window
   runtimes as narrow values instead of forwarding the full WindieOS host skin.

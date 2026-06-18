@@ -3,6 +3,11 @@
  */
 
 import { createConversationEvent } from '../conversation/events.js';
+import {
+  applyMaterializedVisualResourceToData,
+  extractVisualResourceScreenshotFields,
+  materializeVisualResource,
+} from '../runtime/VisualResourceMaterializer.js';
 import type {
   ConversationEvent,
   ConversationStore,
@@ -76,7 +81,6 @@ const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
   'scroll',
 ]);
 const DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS = 2;
-const DEFAULT_SCREENSHOT_CONTENT_TYPE = 'image/jpeg';
 
 function failureResult(error: unknown): LocalToolResult {
   const message = errorMessage(error);
@@ -132,65 +136,6 @@ function isJsonRecord(value: unknown): value is JsonRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function stripDataUrlPrefix(input: string): { base64: string; contentType?: string } {
-  const match = input.match(/^data:([^;,]+);base64,(.*)$/is);
-  if (!match) {
-    return { base64: input.trim() };
-  }
-  return {
-    contentType: match[1]?.trim(),
-    base64: match[2]?.trim() ?? '',
-  };
-}
-
-function normalizeScreenshotContentType(value: unknown): string {
-  const normalized = typeof value === 'string'
-    ? value.split(';', 1)[0].trim().toLowerCase()
-    : '';
-  if (normalized === 'image/png') {
-    return normalized;
-  }
-  return DEFAULT_SCREENSHOT_CONTENT_TYPE;
-}
-
-function screenshotFilename(contentType: string): string {
-  return contentType === 'image/png' ? 'tool-screenshot.png' : 'tool-screenshot.jpg';
-}
-
-function base64ToBytes(base64: string): Uint8Array {
-  const atobImpl = (globalThis as unknown as { atob?: (input: string) => string }).atob;
-  if (typeof atobImpl === 'function') {
-    const binary = atobImpl(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
-    }
-    return bytes;
-  }
-  const bufferCtor = (globalThis as unknown as {
-    Buffer?: { from(input: string, encoding: 'base64'): Uint8Array };
-  }).Buffer;
-  if (bufferCtor?.from) {
-    return bufferCtor.from(base64, 'base64');
-  }
-  throw new Error('base64 decoder is unavailable');
-}
-
-function blobFromBase64Screenshot(screenshot: string, contentType: string): Blob {
-  const blobCtor = (globalThis as unknown as {
-    Blob?: typeof Blob;
-  }).Blob;
-  if (!blobCtor) {
-    throw new Error('Blob constructor is unavailable');
-  }
-  const bytes = base64ToBytes(screenshot);
-  const arrayBuffer = bytes.buffer.slice(
-    bytes.byteOffset,
-    bytes.byteOffset + bytes.byteLength,
-  ) as ArrayBuffer;
-  return new blobCtor([arrayBuffer], { type: contentType });
-}
-
 function normalizeToolName(value: unknown): string {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
@@ -238,31 +183,13 @@ function delaySeconds(seconds: number): Promise<void> {
 }
 
 function extractScreenshotDataFromData(data: unknown): JsonRecord | null {
-  if (!isJsonRecord(data)) {
-    return null;
-  }
-  if ('screenshotRef' in data || 'screenshotUrl' in data) {
+  try {
+    return extractVisualResourceScreenshotFields(data, {
+      rejectCamelCaseScreenshotAliases: true,
+    });
+  } catch (_error) {
     throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
   }
-  const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
-    ? data.screenshot
-    : null;
-  const screenshotRef = typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim()
-    ? data.screenshot_ref
-    : null;
-  const screenshotUrl = typeof data.screenshot_url === 'string' && data.screenshot_url.trim()
-    ? data.screenshot_url
-    : null;
-  if (!screenshot && !screenshotRef && !screenshotUrl) {
-    return null;
-  }
-  return {
-    ...(screenshot ? { screenshot } : {}),
-    ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
-    ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
-    ...(typeof data.screenshot_content_type === 'string' ? { screenshot_content_type: data.screenshot_content_type } : {}),
-    ...(isJsonRecord(data.capture_meta) ? { capture_meta: data.capture_meta } : {}),
-  };
 }
 
 function mergePostActionScreenshot(data: JsonRecord, screenshotData: JsonRecord | null, sourceToolName: string): JsonRecord {
@@ -354,65 +281,25 @@ export class ToolExecutionCoordinator {
   }
 
   private async materializeScreenshotArtifact(data: JsonRecord): Promise<JsonRecord> {
-    if ('screenshotRef' in data || 'screenshotUrl' in data) {
+    if ('screenshotRef' in data || 'screenshotUrl' in data || 'screenshotPath' in data) {
       throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
     }
-    const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
-      ? data.screenshot.trim()
-      : null;
-    if (!screenshot) {
+    const visualFields = extractVisualResourceScreenshotFields(data, {
+      rejectCamelCaseScreenshotAliases: true,
+    });
+    if (!visualFields) {
       return data;
     }
 
-    const screenshotRef = stringPayloadField(data, 'screenshot_ref');
-    if (screenshotRef) {
-      const normalized: JsonRecord = {
-        ...data,
-        screenshot_ref: screenshotRef,
-      };
-      if (!normalized.screenshot_url) {
-        const screenshotUrl = stringPayloadField(data, 'screenshot_url');
-        if (screenshotUrl) {
-          normalized.screenshot_url = screenshotUrl;
-        } else if (this.options.artifactUploader?.url) {
-          normalized.screenshot_url = this.options.artifactUploader.url(screenshotRef);
-        }
-      }
-      delete normalized.screenshot;
-      return normalized;
-    }
-
-    if (!this.options.artifactUploader?.upload) {
-      throw artifactUploadError(new Error('screenshot artifact uploader is unavailable'));
-    }
-
     try {
-      const parsed = stripDataUrlPrefix(screenshot);
-      const contentType = normalizeScreenshotContentType(
-        parsed.contentType ?? data.screenshot_content_type,
-      );
-      const uploaded = await this.options.artifactUploader.upload(
-        blobFromBase64Screenshot(parsed.base64, contentType),
-        screenshotFilename(contentType),
-      );
-      const artifactId = typeof uploaded.artifact_id === 'string' && uploaded.artifact_id.trim()
-        ? uploaded.artifact_id.trim()
-        : '';
-      if (!artifactId) {
-        throw new Error('artifact upload did not return artifact_id');
-      }
-      const normalized: JsonRecord = {
-        ...data,
-        screenshot_ref: artifactId,
-        screenshot_url: typeof uploaded.url === 'string' && uploaded.url.trim()
-          ? uploaded.url.trim()
-          : this.options.artifactUploader.url?.(artifactId),
-        screenshot_content_type: typeof uploaded.content_type === 'string' && uploaded.content_type.trim()
-          ? uploaded.content_type.trim()
-          : contentType,
-      };
-      delete normalized.screenshot;
-      return normalized;
+      const materialized = await materializeVisualResource({
+        source: 'tool_screenshot',
+        data,
+      }, {
+        artifactUploader: this.options.artifactUploader,
+        rejectCamelCaseScreenshotAliases: true,
+      });
+      return applyMaterializedVisualResourceToData(data, materialized);
     } catch (error) {
       throw artifactUploadError(error);
     }

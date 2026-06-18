@@ -5,6 +5,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ToolExecutionCoordinator = void 0;
 const events_js_1 = require("../conversation/events.js");
+const VisualResourceMaterializer_js_1 = require("../runtime/VisualResourceMaterializer.js");
 const toolCorrelationIds_js_1 = require("./toolCorrelationIds.js");
 const toolOutputContent_js_1 = require("./toolOutputContent.js");
 const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
@@ -18,7 +19,6 @@ const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
     'scroll',
 ]);
 const DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS = 2;
-const DEFAULT_SCREENSHOT_CONTENT_TYPE = 'image/jpeg';
 function failureResult(error) {
     const message = errorMessage(error);
     return {
@@ -65,53 +65,6 @@ function stringPayloadField(payload, ...keys) {
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
-function stripDataUrlPrefix(input) {
-    const match = input.match(/^data:([^;,]+);base64,(.*)$/is);
-    if (!match) {
-        return { base64: input.trim() };
-    }
-    return {
-        contentType: match[1]?.trim(),
-        base64: match[2]?.trim() ?? '',
-    };
-}
-function normalizeScreenshotContentType(value) {
-    const normalized = typeof value === 'string'
-        ? value.split(';', 1)[0].trim().toLowerCase()
-        : '';
-    if (normalized === 'image/png') {
-        return normalized;
-    }
-    return DEFAULT_SCREENSHOT_CONTENT_TYPE;
-}
-function screenshotFilename(contentType) {
-    return contentType === 'image/png' ? 'tool-screenshot.png' : 'tool-screenshot.jpg';
-}
-function base64ToBytes(base64) {
-    const atobImpl = globalThis.atob;
-    if (typeof atobImpl === 'function') {
-        const binary = atobImpl(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let index = 0; index < binary.length; index += 1) {
-            bytes[index] = binary.charCodeAt(index);
-        }
-        return bytes;
-    }
-    const bufferCtor = globalThis.Buffer;
-    if (bufferCtor?.from) {
-        return bufferCtor.from(base64, 'base64');
-    }
-    throw new Error('base64 decoder is unavailable');
-}
-function blobFromBase64Screenshot(screenshot, contentType) {
-    const blobCtor = globalThis.Blob;
-    if (!blobCtor) {
-        throw new Error('Blob constructor is unavailable');
-    }
-    const bytes = base64ToBytes(screenshot);
-    const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-    return new blobCtor([arrayBuffer], { type: contentType });
-}
 function normalizeToolName(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
@@ -151,31 +104,14 @@ function delaySeconds(seconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 function extractScreenshotDataFromData(data) {
-    if (!isJsonRecord(data)) {
-        return null;
+    try {
+        return (0, VisualResourceMaterializer_js_1.extractVisualResourceScreenshotFields)(data, {
+            rejectCamelCaseScreenshotAliases: true,
+        });
     }
-    if ('screenshotRef' in data || 'screenshotUrl' in data) {
+    catch (_error) {
         throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
     }
-    const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
-        ? data.screenshot
-        : null;
-    const screenshotRef = typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim()
-        ? data.screenshot_ref
-        : null;
-    const screenshotUrl = typeof data.screenshot_url === 'string' && data.screenshot_url.trim()
-        ? data.screenshot_url
-        : null;
-    if (!screenshot && !screenshotRef && !screenshotUrl) {
-        return null;
-    }
-    return {
-        ...(screenshot ? { screenshot } : {}),
-        ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
-        ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
-        ...(typeof data.screenshot_content_type === 'string' ? { screenshot_content_type: data.screenshot_content_type } : {}),
-        ...(isJsonRecord(data.capture_meta) ? { capture_meta: data.capture_meta } : {}),
-    };
 }
 function mergePostActionScreenshot(data, screenshotData, sourceToolName) {
     if (!screenshotData) {
@@ -260,58 +196,24 @@ class ToolExecutionCoordinator {
         }
     }
     async materializeScreenshotArtifact(data) {
-        if ('screenshotRef' in data || 'screenshotUrl' in data) {
+        if ('screenshotRef' in data || 'screenshotUrl' in data || 'screenshotPath' in data) {
             throw new Error('Local tool results must use screenshot_ref and screenshot_url; camelCase screenshot fields are not supported.');
         }
-        const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
-            ? data.screenshot.trim()
-            : null;
-        if (!screenshot) {
+        const visualFields = (0, VisualResourceMaterializer_js_1.extractVisualResourceScreenshotFields)(data, {
+            rejectCamelCaseScreenshotAliases: true,
+        });
+        if (!visualFields) {
             return data;
         }
-        const screenshotRef = stringPayloadField(data, 'screenshot_ref');
-        if (screenshotRef) {
-            const normalized = {
-                ...data,
-                screenshot_ref: screenshotRef,
-            };
-            if (!normalized.screenshot_url) {
-                const screenshotUrl = stringPayloadField(data, 'screenshot_url');
-                if (screenshotUrl) {
-                    normalized.screenshot_url = screenshotUrl;
-                }
-                else if (this.options.artifactUploader?.url) {
-                    normalized.screenshot_url = this.options.artifactUploader.url(screenshotRef);
-                }
-            }
-            delete normalized.screenshot;
-            return normalized;
-        }
-        if (!this.options.artifactUploader?.upload) {
-            throw artifactUploadError(new Error('screenshot artifact uploader is unavailable'));
-        }
         try {
-            const parsed = stripDataUrlPrefix(screenshot);
-            const contentType = normalizeScreenshotContentType(parsed.contentType ?? data.screenshot_content_type);
-            const uploaded = await this.options.artifactUploader.upload(blobFromBase64Screenshot(parsed.base64, contentType), screenshotFilename(contentType));
-            const artifactId = typeof uploaded.artifact_id === 'string' && uploaded.artifact_id.trim()
-                ? uploaded.artifact_id.trim()
-                : '';
-            if (!artifactId) {
-                throw new Error('artifact upload did not return artifact_id');
-            }
-            const normalized = {
-                ...data,
-                screenshot_ref: artifactId,
-                screenshot_url: typeof uploaded.url === 'string' && uploaded.url.trim()
-                    ? uploaded.url.trim()
-                    : this.options.artifactUploader.url?.(artifactId),
-                screenshot_content_type: typeof uploaded.content_type === 'string' && uploaded.content_type.trim()
-                    ? uploaded.content_type.trim()
-                    : contentType,
-            };
-            delete normalized.screenshot;
-            return normalized;
+            const materialized = await (0, VisualResourceMaterializer_js_1.materializeVisualResource)({
+                source: 'tool_screenshot',
+                data,
+            }, {
+                artifactUploader: this.options.artifactUploader,
+                rejectCamelCaseScreenshotAliases: true,
+            });
+            return (0, VisualResourceMaterializer_js_1.applyMaterializedVisualResourceToData)(data, materialized);
         }
         catch (error) {
             throw artifactUploadError(error);

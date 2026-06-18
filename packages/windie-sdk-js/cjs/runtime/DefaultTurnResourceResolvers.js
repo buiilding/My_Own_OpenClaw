@@ -2,42 +2,9 @@
 /**
  * Provides the default turn resource resolvers module for the TypeScript SDK runtime.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDefaultTurnResourceResolvers = createDefaultTurnResourceResolvers;
-const DEFAULT_SCREENSHOT_CONTENT_TYPE = 'image/jpeg';
+const VisualResourceMaterializer_js_1 = require("./VisualResourceMaterializer.js");
 const SCREENSHOT_CAPTURE_PATH = 'screenshot.capture';
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -66,65 +33,6 @@ function stringFromRecord(record, ...keys) {
         }
     }
     return null;
-}
-function normalizeContentType(value, fallback = DEFAULT_SCREENSHOT_CONTENT_TYPE) {
-    const normalized = typeof value === 'string'
-        ? value.split(';', 1)[0]?.trim().toLowerCase()
-        : '';
-    return normalized || fallback;
-}
-function screenshotFilename(contentType, filename) {
-    const normalizedFilename = optionalString(filename);
-    if (normalizedFilename) {
-        return normalizedFilename;
-    }
-    return contentType === 'image/png' ? 'user-message.png' : 'user-message.jpg';
-}
-function stripDataUrlPrefix(input, contentType) {
-    const match = input.match(/^data:([^;,]+);base64,(.*)$/is);
-    if (!match) {
-        return {
-            base64: input.trim(),
-            contentType: normalizeContentType(contentType),
-        };
-    }
-    return {
-        contentType: normalizeContentType(match[1] ?? contentType),
-        base64: match[2]?.trim() ?? '',
-    };
-}
-function base64ToBytes(base64) {
-    const atobImpl = globalThis.atob;
-    if (typeof atobImpl === 'function') {
-        const binary = atobImpl(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let index = 0; index < binary.length; index += 1) {
-            bytes[index] = binary.charCodeAt(index);
-        }
-        return bytes;
-    }
-    const bufferCtor = globalThis.Buffer;
-    if (bufferCtor?.from) {
-        return bufferCtor.from(base64, 'base64');
-    }
-    throw new Error('base64 decoder is unavailable');
-}
-function blobFromBase64(input, contentType) {
-    const blobCtor = globalThis.Blob;
-    if (!blobCtor) {
-        throw new Error('Blob constructor is unavailable');
-    }
-    const bytes = base64ToBytes(input);
-    const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-    return new blobCtor([arrayBuffer], { type: contentType });
-}
-function blobFromBytes(input, contentType) {
-    const blobCtor = globalThis.Blob;
-    if (!blobCtor) {
-        throw new Error('Blob constructor is unavailable');
-    }
-    const arrayBuffer = input.buffer.slice(input.byteOffset, input.byteOffset + input.byteLength);
-    return new blobCtor([arrayBuffer], { type: contentType });
 }
 function errorResult(kind, error, fatal = false) {
     return {
@@ -232,75 +140,18 @@ function localRuntimeCaptureTraceData(data) {
         hasCaptureMeta: isJsonRecord(data.capture_meta),
     };
 }
-async function uploadScreenshotBase64(sdkClient, screenshot, contentTypeInput, filename) {
-    if (!sdkClient?.artifacts?.upload) {
-        throw new Error('artifact uploader is unavailable');
-    }
-    const parsed = stripDataUrlPrefix(screenshot, typeof contentTypeInput === 'string' ? contentTypeInput : null);
-    if (!parsed.base64) {
-        throw new Error('empty screenshot bytes');
-    }
-    const uploaded = await sdkClient.artifacts.upload(blobFromBase64(parsed.base64, parsed.contentType), screenshotFilename(parsed.contentType, filename));
-    const artifactId = optionalString(uploaded.artifact_id);
-    if (!artifactId) {
-        throw new Error('artifact upload did not return artifact_id');
-    }
-    return {
-        artifactId,
-        url: optionalString(uploaded.url) ?? sdkClient.artifacts.url?.(artifactId) ?? null,
-        contentType: optionalString(uploaded.content_type) ?? parsed.contentType,
-    };
-}
-function filenameFromPath(filePath) {
-    const parts = filePath.split(/[\\/]+/);
-    return optionalString(parts[parts.length - 1]);
-}
-async function uploadScreenshotFile(sdkClient, screenshotPath, contentTypeInput) {
-    if (!sdkClient?.artifacts?.upload) {
-        throw new Error('artifact uploader is unavailable');
-    }
-    const normalizedPath = optionalString(screenshotPath);
-    if (!normalizedPath) {
-        throw new Error('empty screenshot path');
-    }
-    const fsModule = 'node:fs/promises';
-    const fs = await Promise.resolve(`${fsModule}`).then(s => __importStar(require(s)));
-    const contentType = normalizeContentType(contentTypeInput);
-    const bytes = await fs.readFile(normalizedPath);
-    const uploaded = await sdkClient.artifacts.upload(blobFromBytes(bytes, contentType), screenshotFilename(contentType, filenameFromPath(normalizedPath)));
-    try {
-        await fs.unlink(normalizedPath);
-    }
-    catch {
-        // Best effort cleanup for local-runtime temporary screenshot files.
-    }
-    const artifactId = optionalString(uploaded.artifact_id);
-    if (!artifactId) {
-        throw new Error('artifact upload did not return artifact_id');
-    }
-    return {
-        artifactId,
-        url: optionalString(uploaded.url) ?? sdkClient.artifacts.url?.(artifactId) ?? null,
-        contentType: optionalString(uploaded.content_type) ?? contentType,
-    };
-}
-function screenshotResolutionFromData(data) {
-    const screenshotRef = stringFromRecord(data, 'screenshot_ref', 'screenshotRef');
-    const screenshotUrl = stringFromRecord(data, 'screenshot_url', 'screenshotUrl');
-    const captureMeta = isJsonRecord(data.capture_meta) ? data.capture_meta : null;
-    if (!screenshotRef && !screenshotUrl) {
+function screenshotResolutionFromMaterialized(kind, materialized) {
+    if (!materialized) {
         return null;
     }
     return {
-        kind: 'query_screenshot_request',
-        screenshotRef,
-        screenshotUrl,
-        screenshotRefs: screenshotRef ? [screenshotRef] : null,
-        captureMeta,
-        metadata: {
-            ...(screenshotRef ? { screenshotRef } : {}),
-            ...(screenshotUrl ? { screenshotUrl } : {}),
-        },
+        kind,
+        screenshotRef: materialized.screenshot_ref ?? null,
+        screenshotUrl: materialized.screenshot_url ?? null,
+        screenshotRefs: materialized.screenshot_refs ?? null,
+        captureMeta: materialized.capture_meta ?? null,
+        attachmentFilenames: materialized.attachment_filenames ?? null,
+        metadata: materialized.display_metadata ?? null,
     };
 }
 function screenshotExplanation(resource) {
@@ -339,18 +190,15 @@ function createDefaultTurnResourceResolvers(options) {
             if (resource.kind !== 'clipboard_image') {
                 return null;
             }
-            const uploaded = await uploadScreenshotBase64(options.sdkClient, resource.base64, resource.contentType, resource.filename);
-            return {
-                kind: resource.kind,
-                screenshotRef: uploaded.artifactId,
-                screenshotUrl: uploaded.url ?? null,
-                screenshotRefs: [uploaded.artifactId],
-                attachmentFilenames: resource.filename ? [resource.filename] : null,
-                metadata: {
-                    screenshotRef: uploaded.artifactId,
-                    ...(uploaded.url ? { screenshotUrl: uploaded.url } : {}),
-                },
-            };
+            const materialized = await (0, VisualResourceMaterializer_js_1.materializeVisualResource)({
+                source: 'user_attachment',
+                base64: resource.base64,
+                contentType: resource.contentType,
+                filename: resource.filename,
+            }, {
+                artifactUploader: options.sdkClient?.artifacts,
+            });
+            return screenshotResolutionFromMaterialized(resource.kind, materialized);
         },
         async query_screenshot_request(resource, context) {
             if (resource.kind !== 'query_screenshot_request') {
@@ -463,22 +311,145 @@ function createDefaultTurnResourceResolvers(options) {
                 runtime: 'local-runtime',
                 data: localRuntimeCaptureTraceData(data),
             });
-            const existing = screenshotResolutionFromData(data);
-            if (existing) {
-                await emitArtifactUploadTrace(context, {
-                    stage: 'upload',
-                    status: 'skipped',
+            if ('screenshotRef' in data || 'screenshotUrl' in data || 'screenshotPath' in data) {
+                await emitScreenshotTrace(context, {
+                    stage: 'resolver',
+                    status: resource.required === true ? 'failed' : 'skipped',
+                    durationMs: durationSince(resolverStartedAtMs),
                     data: {
-                        reason: 'existing_ref',
-                        hasScreenshotRef: Boolean(existing.screenshotRef),
-                        screenshotRefCount: Array.isArray(existing.screenshotRefs) ? existing.screenshotRefs.length : 0,
+                        reason: 'camel_case_screenshot_alias_rejected',
+                        optionalFailure: resource.required !== true,
+                    },
+                    error: {
+                        code: 'screenshot_alias_rejected',
+                        message: 'Screenshot resources must use snake_case screenshot fields.',
                     },
                 });
+                return errorResult(resource.kind, 'Screenshot resources must use snake_case screenshot fields.', resource.required === true);
+            }
+            if (stringFromRecord(data, 'screenshot_path')) {
+                await emitScreenshotTrace(context, {
+                    stage: 'resolver',
+                    status: resource.required === true ? 'failed' : 'skipped',
+                    durationMs: durationSince(resolverStartedAtMs),
+                    data: {
+                        reason: 'trusted_temp_path_requires_main_materialization',
+                        optionalFailure: resource.required !== true,
+                    },
+                    error: {
+                        code: 'screenshot_path_not_materialized',
+                        message: 'Screenshot temp paths must be materialized by Electron main before SDK resource resolution.',
+                    },
+                });
+                return errorResult(resource.kind, 'Screenshot temp paths must be materialized by Electron main before SDK resource resolution.', resource.required === true);
+            }
+            const hasExistingRef = Boolean(stringFromRecord(data, 'screenshot_ref')
+                || stringFromRecord(data, 'screenshot_url'));
+            const hasInlineScreenshot = Boolean(stringFromRecord(data, 'screenshot'));
+            if (!hasExistingRef && !hasInlineScreenshot) {
+                await emitScreenshotTrace(context, {
+                    stage: 'resolver',
+                    status: 'skipped',
+                    durationMs: durationSince(resolverStartedAtMs),
+                    data: {
+                        reason: 'empty_screenshot_payload',
+                        optionalFailure: resource.required !== true,
+                    },
+                });
+                return null;
+            }
+            const uploadStartedAtMs = nowMs();
+            if (!hasExistingRef) {
                 await emitScreenshotTrace(context, {
                     stage: 'artifact_upload',
-                    status: 'skipped',
+                    status: 'started',
                     data: {
-                        uploadMode: 'existing_ref',
+                        uploadMode: 'inline',
+                        contentType: typeof data.screenshot_content_type === 'string'
+                            ? data.screenshot_content_type
+                            : null,
+                    },
+                });
+                await emitArtifactUploadTrace(context, {
+                    stage: 'upload',
+                    status: 'started',
+                    data: {
+                        uploadMode: 'inline',
+                        contentType: typeof data.screenshot_content_type === 'string'
+                            ? data.screenshot_content_type
+                            : null,
+                    },
+                });
+            }
+            let materialized = null;
+            try {
+                materialized = await (0, VisualResourceMaterializer_js_1.materializeVisualResource)({
+                    source: 'query_screenshot',
+                    data,
+                }, {
+                    artifactUploader: options.sdkClient?.artifacts,
+                    rejectCamelCaseScreenshotAliases: true,
+                });
+            }
+            catch (error) {
+                if (!hasExistingRef) {
+                    await emitArtifactUploadTrace(context, {
+                        stage: 'upload',
+                        status: 'failed',
+                        error: {
+                            code: 'artifact_upload_failed',
+                            message: 'Screenshot artifact upload failed.',
+                        },
+                    });
+                    await emitScreenshotTrace(context, {
+                        stage: 'artifact_upload',
+                        status: 'failed',
+                        error: {
+                            code: 'artifact_upload_failed',
+                            message: 'Screenshot artifact upload failed.',
+                        },
+                    });
+                    return fail('Screenshot artifact upload failed.');
+                }
+                return fail(error);
+            }
+            const existing = screenshotResolutionFromMaterialized(resource.kind, materialized);
+            if (existing && materialized) {
+                if (materialized.materialization_mode === 'existing_ref') {
+                    await emitArtifactUploadTrace(context, {
+                        stage: 'upload',
+                        status: 'skipped',
+                        data: {
+                            reason: 'existing_ref',
+                            hasScreenshotRef: Boolean(existing.screenshotRef),
+                            screenshotRefCount: Array.isArray(existing.screenshotRefs) ? existing.screenshotRefs.length : 0,
+                        },
+                    });
+                }
+                else {
+                    await emitArtifactUploadTrace(context, {
+                        stage: 'upload',
+                        status: 'succeeded',
+                        durationMs: durationSince(uploadStartedAtMs),
+                        data: {
+                            uploadMode: 'inline',
+                            artifactId: materialized.screenshot_ref ?? null,
+                            contentType: materialized.screenshot_content_type ?? null,
+                            hasUrl: Boolean(materialized.screenshot_url),
+                        },
+                    });
+                }
+                await emitScreenshotTrace(context, {
+                    stage: 'artifact_upload',
+                    status: materialized.materialization_mode === 'existing_ref' ? 'skipped' : 'succeeded',
+                    ...(materialized.materialization_mode === 'uploaded_inline' ? { durationMs: durationSince(uploadStartedAtMs) } : {}),
+                    data: {
+                        uploadMode: materialized.materialization_mode === 'existing_ref' ? 'existing_ref' : 'inline',
+                        ...(materialized.materialization_mode === 'uploaded_inline' ? {
+                            artifactId: materialized.screenshot_ref ?? null,
+                            contentType: materialized.screenshot_content_type ?? null,
+                            hasUrl: Boolean(materialized.screenshot_url),
+                        } : {}),
                         hasScreenshotRef: Boolean(existing.screenshotRef),
                         screenshotRefCount: Array.isArray(existing.screenshotRefs) ? existing.screenshotRefs.length : 0,
                     },
@@ -488,183 +459,14 @@ function createDefaultTurnResourceResolvers(options) {
                     status: 'succeeded',
                     durationMs: durationSince(resolverStartedAtMs),
                     data: {
-                        uploadMode: 'existing_ref',
+                        uploadMode: materialized.materialization_mode === 'existing_ref' ? 'existing_ref' : 'inline',
                         hasScreenshotRef: Boolean(existing.screenshotRef),
                         hasCaptureMeta: isJsonRecord(existing.captureMeta),
                     },
                 });
                 return existing;
             }
-            try {
-                const screenshotPath = stringFromRecord(data, 'screenshot_path', 'screenshotPath');
-                if (screenshotPath) {
-                    const uploadStartedAtMs = nowMs();
-                    await emitScreenshotTrace(context, {
-                        stage: 'artifact_upload',
-                        status: 'started',
-                        data: {
-                            uploadMode: 'file',
-                            contentType: typeof data.screenshot_content_type === 'string'
-                                ? data.screenshot_content_type
-                                : null,
-                        },
-                    });
-                    await emitArtifactUploadTrace(context, {
-                        stage: 'upload',
-                        status: 'started',
-                        data: {
-                            uploadMode: 'file',
-                            contentType: typeof data.screenshot_content_type === 'string'
-                                ? data.screenshot_content_type
-                                : null,
-                        },
-                    });
-                    const uploaded = await uploadScreenshotFile(options.sdkClient, screenshotPath, data.screenshot_content_type);
-                    await emitArtifactUploadTrace(context, {
-                        stage: 'upload',
-                        status: 'succeeded',
-                        durationMs: durationSince(uploadStartedAtMs),
-                        data: {
-                            uploadMode: 'file',
-                            artifactId: uploaded.artifactId,
-                            contentType: uploaded.contentType,
-                            hasUrl: Boolean(uploaded.url),
-                        },
-                    });
-                    await emitScreenshotTrace(context, {
-                        stage: 'artifact_upload',
-                        status: 'succeeded',
-                        durationMs: durationSince(uploadStartedAtMs),
-                        data: {
-                            uploadMode: 'file',
-                            artifactId: uploaded.artifactId,
-                            contentType: uploaded.contentType,
-                            hasUrl: Boolean(uploaded.url),
-                        },
-                    });
-                    const resolution = {
-                        kind: resource.kind,
-                        screenshotRef: uploaded.artifactId,
-                        screenshotUrl: uploaded.url ?? null,
-                        screenshotRefs: [uploaded.artifactId],
-                        captureMeta: isJsonRecord(data.capture_meta) ? data.capture_meta : null,
-                        metadata: {
-                            screenshotRef: uploaded.artifactId,
-                            ...(uploaded.url ? { screenshotUrl: uploaded.url } : {}),
-                        },
-                    };
-                    await emitScreenshotTrace(context, {
-                        stage: 'resolver',
-                        status: 'succeeded',
-                        durationMs: durationSince(resolverStartedAtMs),
-                        data: {
-                            uploadMode: 'file',
-                            hasScreenshotRef: true,
-                            screenshotRefCount: 1,
-                            hasCaptureMeta: isJsonRecord(data.capture_meta),
-                        },
-                    });
-                    return resolution;
-                }
-                const screenshot = stringFromRecord(data, 'screenshot');
-                if (!screenshot) {
-                    await emitScreenshotTrace(context, {
-                        stage: 'resolver',
-                        status: 'skipped',
-                        durationMs: durationSince(resolverStartedAtMs),
-                        data: {
-                            reason: 'empty_screenshot_payload',
-                            optionalFailure: resource.required !== true,
-                        },
-                    });
-                    return null;
-                }
-                const uploadStartedAtMs = nowMs();
-                await emitScreenshotTrace(context, {
-                    stage: 'artifact_upload',
-                    status: 'started',
-                    data: {
-                        uploadMode: 'inline',
-                        contentType: typeof data.screenshot_content_type === 'string'
-                            ? data.screenshot_content_type
-                            : null,
-                    },
-                });
-                await emitArtifactUploadTrace(context, {
-                    stage: 'upload',
-                    status: 'started',
-                    data: {
-                        uploadMode: 'inline',
-                        contentType: typeof data.screenshot_content_type === 'string'
-                            ? data.screenshot_content_type
-                            : null,
-                    },
-                });
-                const uploaded = await uploadScreenshotBase64(options.sdkClient, screenshot, data.screenshot_content_type);
-                await emitArtifactUploadTrace(context, {
-                    stage: 'upload',
-                    status: 'succeeded',
-                    durationMs: durationSince(uploadStartedAtMs),
-                    data: {
-                        uploadMode: 'inline',
-                        artifactId: uploaded.artifactId,
-                        contentType: uploaded.contentType,
-                        hasUrl: Boolean(uploaded.url),
-                    },
-                });
-                await emitScreenshotTrace(context, {
-                    stage: 'artifact_upload',
-                    status: 'succeeded',
-                    durationMs: durationSince(uploadStartedAtMs),
-                    data: {
-                        uploadMode: 'inline',
-                        artifactId: uploaded.artifactId,
-                        contentType: uploaded.contentType,
-                        hasUrl: Boolean(uploaded.url),
-                    },
-                });
-                await emitScreenshotTrace(context, {
-                    stage: 'resolver',
-                    status: 'succeeded',
-                    durationMs: durationSince(resolverStartedAtMs),
-                    data: {
-                        uploadMode: 'inline',
-                        hasScreenshotRef: true,
-                        screenshotRefCount: 1,
-                        hasCaptureMeta: isJsonRecord(data.capture_meta),
-                    },
-                });
-                return {
-                    kind: resource.kind,
-                    screenshotRef: uploaded.artifactId,
-                    screenshotUrl: uploaded.url ?? null,
-                    screenshotRefs: [uploaded.artifactId],
-                    captureMeta: isJsonRecord(data.capture_meta) ? data.capture_meta : null,
-                    metadata: {
-                        screenshotRef: uploaded.artifactId,
-                        ...(uploaded.url ? { screenshotUrl: uploaded.url } : {}),
-                    },
-                };
-            }
-            catch (error) {
-                await emitArtifactUploadTrace(context, {
-                    stage: 'upload',
-                    status: 'failed',
-                    error: {
-                        code: 'artifact_upload_failed',
-                        message: 'Screenshot artifact upload failed.',
-                    },
-                });
-                await emitScreenshotTrace(context, {
-                    stage: 'artifact_upload',
-                    status: 'failed',
-                    error: {
-                        code: 'artifact_upload_failed',
-                        message: 'Screenshot artifact upload failed.',
-                    },
-                });
-                return fail('Screenshot artifact upload failed.');
-            }
+            return null;
         },
         async workspace(resource) {
             if (resource.kind !== 'workspace') {

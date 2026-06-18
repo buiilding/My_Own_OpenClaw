@@ -629,7 +629,6 @@ function buildSpawnEnv(options: AgentAutoLocalRuntimeOptions): LocalRuntimeLaunc
 
 function resolveDaemonLaunchCommand(
   options: AgentAutoLocalRuntimeOptions,
-  fs: NodeFsLike,
   path: NodePathLike,
   discoveryFile: string,
 ): { command: string; args: string[] } {
@@ -718,7 +717,7 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     }
 
     fs.mkdirSync(path.dirname(discoveryFile), { recursive: true });
-    const launchCommand = resolveDaemonLaunchCommand(options, fs, path, discoveryFile);
+    const launchCommand = resolveDaemonLaunchCommand(options, path, discoveryFile);
     const args = [...launchCommand.args];
     if (options.host) {
       args.push('--host', options.host);

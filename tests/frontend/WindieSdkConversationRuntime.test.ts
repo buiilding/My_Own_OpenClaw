@@ -27,7 +27,7 @@ import {
 import {
   normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
 } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
-import { mkdtemp, stat, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -4039,24 +4039,22 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
-  test('default turn resource resolver uploads local-runtime screenshot paths before backend send', async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), 'windie-sdk-query-shot-'));
-    const screenshotPath = join(tempDir, 'query-shot.jpg');
-    await writeFile(screenshotPath, new Uint8Array([1, 2, 3, 4]));
+  test('default turn resource resolver uses main-materialized screenshot refs before backend send', async () => {
     const artifactUploader = createMockArtifactUploader({
       upload: jest.fn(async () => ({
-        artifact_id: 'artifact-query-shot.jpg',
+        artifact_id: 'unused-query-shot.jpg',
         content_type: 'image/jpeg',
         size_bytes: 4,
         sha256: 'sha-query-shot',
-        url: '/api/artifacts/artifact-query-shot.jpg',
+        url: '/api/artifacts/unused-query-shot.jpg',
       })),
     });
     const executeTool = jest.fn(async () => ({
       success: true,
       data: {
         output: 'Screenshot captured successfully.',
-        screenshot_path: screenshotPath,
+        screenshot_ref: 'artifact-query-shot.jpg',
+        screenshot_url: '/api/artifacts/artifact-query-shot.jpg',
         screenshot_content_type: 'image/jpeg',
         capture_meta: {
           source_w: 1920,
@@ -4128,15 +4126,13 @@ describe('Agent SDK conversation runtime core', () => {
         expectation: 'Current screen state',
       }),
     }));
-    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
-    expect(artifactUploader.upload.mock.calls[0][1]).toBe('query-shot.jpg');
     expect(localToolLifecycle.beforeExecute).toHaveBeenCalledWith(expect.objectContaining({
       toolName: 'screenshot',
       turnRef: 'turn-query-shot',
       conversationRef: 'conv-sdk-runtime',
     }));
     expect(releaseScreenshotLease).toHaveBeenCalledTimes(1);
-    await expect(stat(screenshotPath)).rejects.toThrow();
+    expect(artifactUploader.upload).not.toHaveBeenCalled();
     expect(transport.sendQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         text: 'what is on screen?',
@@ -4168,8 +4164,7 @@ describe('Agent SDK conversation runtime core', () => {
       'electron-main:surface_prepare:succeeded',
       'local-runtime:local_runtime_capture:started',
       'local-runtime:local_runtime_capture:succeeded',
-      'sdk:artifact_upload:started',
-      'sdk:artifact_upload:succeeded',
+      'sdk:artifact_upload:skipped',
       'sdk:resolver:succeeded',
       'sdk:query_payload_applied:succeeded',
     ]);
@@ -4189,29 +4184,18 @@ describe('Agent SDK conversation runtime core', () => {
       }),
     );
     expect(timeline.find(entry => entry.stage === 'artifact_upload' && entry.status === 'succeeded')?.data).toEqual(
-      expect.objectContaining({
-        uploadMode: 'file',
-        artifactId: 'artifact-query-shot.jpg',
-        contentType: 'image/jpeg',
-      }),
+      undefined,
     );
     const artifactTimeline = buildTraceTimeline(events, {
       turnRef: 'turn-query-shot',
       path: 'artifact.upload',
     });
     expect(artifactTimeline.map(entry => `${entry.stage}:${entry.status}`)).toEqual([
-      'upload:started',
-      'upload:succeeded',
+      'upload:skipped',
     ]);
     expect(artifactTimeline[0].data).toEqual(expect.objectContaining({
-      uploadMode: 'file',
-      contentType: 'image/jpeg',
-    }));
-    expect(artifactTimeline[1].data).toEqual(expect.objectContaining({
-      uploadMode: 'file',
-      artifactId: 'artifact-query-shot.jpg',
-      contentType: 'image/jpeg',
-      hasUrl: true,
+      reason: 'existing_ref',
+      hasScreenshotRef: true,
     }));
     const resourceTimeline = buildTraceTimeline(events, {
       turnRef: 'turn-query-shot',
@@ -4231,12 +4215,102 @@ describe('Agent SDK conversation runtime core', () => {
       payloadKeyCount: expect.any(Number),
       metadataKeyCount: expect.any(Number),
     }));
-    expect(JSON.stringify(timeline)).not.toContain(screenshotPath);
-    expect(JSON.stringify(artifactTimeline)).not.toContain(screenshotPath);
-    expect(JSON.stringify(resourceTimeline)).not.toContain(screenshotPath);
     expect(JSON.stringify(timeline)).not.toContain('screenshot_path');
     expect(JSON.stringify(artifactTimeline)).not.toContain('screenshot_path');
     expect(buildDisplayConversation(events).messages.some(message => message.messageType === 'trace_event')).toBe(false);
+  });
+
+  test('default turn resource resolver rejects raw screenshot paths before backend send', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'windie-sdk-query-shot-'));
+    const screenshotPath = join(tempDir, 'query-shot.jpg');
+    await writeFile(screenshotPath, new Uint8Array([1, 2, 3, 4]));
+    const artifactUploader = createMockArtifactUploader();
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: {
+        output: 'Screenshot captured successfully.',
+        screenshot_path: screenshotPath,
+        screenshot_content_type: 'image/jpeg',
+      },
+    }));
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-without-path-shot'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      sdkClient: {
+        artifacts: artifactUploader,
+      } as any,
+      localRuntime: {
+        executeTool,
+      },
+      resourceResolvers: createDefaultTurnResourceResolvers({
+        sdkClient: {
+          artifacts: artifactUploader,
+        } as any,
+        localRuntime: {
+          executeTool,
+        },
+      }),
+      enrichQuery: async ({ payload }) => payload ?? {},
+    });
+    const events: ConversationEvent[] = [];
+    runtime.subscribeEvents((event) => {
+      events.push(event);
+    });
+
+    try {
+      await runtime.send({
+        text: 'what is on screen?',
+        turnRef: 'turn-query-shot-path-rejected',
+        resources: [{
+          kind: 'query_screenshot_request',
+          reason: 'query_send_with_capture',
+          required: false,
+        }],
+      });
+
+      expect(artifactUploader.upload).not.toHaveBeenCalled();
+      await expect(stat(screenshotPath)).resolves.toEqual(expect.objectContaining({
+        size: 4,
+      }));
+      expect(transport.sendQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: 'what is on screen?',
+          conversation_ref: 'conv-sdk-runtime',
+        }),
+        { messageId: 'turn-query-shot-path-rejected' },
+      );
+      expect(transport.sendQuery).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          screenshot_ref: expect.any(String),
+        }),
+        expect.anything(),
+      );
+      const timeline = buildTraceTimeline(events, {
+        turnRef: 'turn-query-shot-path-rejected',
+        path: 'screenshot.capture',
+      });
+      expect(timeline.map(entry => `${entry.runtime}:${entry.stage}:${entry.status}`)).toEqual([
+        'sdk:resource_detected:succeeded',
+        'sdk:resolver:started',
+        'local-runtime:local_runtime_capture:started',
+        'local-runtime:local_runtime_capture:succeeded',
+        'sdk:resolver:skipped',
+        'sdk:query_payload_applied:succeeded',
+      ]);
+      expect(timeline.find(entry => entry.stage === 'resolver' && entry.status === 'skipped')?.data).toEqual(
+        expect.objectContaining({
+          reason: 'trusted_temp_path_requires_main_materialization',
+          optionalFailure: true,
+        }),
+      );
+      expect(JSON.stringify(timeline)).not.toContain(screenshotPath);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   });
 
   test('query screenshot resource traces optional capture failure while send continues', async () => {
