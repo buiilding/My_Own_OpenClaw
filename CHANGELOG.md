@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: qualify cross-runtime routing labels for executable actions,
+  memory, and configuration as Python sidecar ownership.
 - docs/sidecar: qualify JSON-RPC workflow test and method-owner labels as
   Python sidecar ownership.
 - docs/architecture: qualify import-boundary rules as desktop client and

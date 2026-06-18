@@ -131,8 +131,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
   labels.
+  Cross-runtime navigation, evidence, process-lifecycle, platform, memory, tool,
+  and settings docs now qualify Python sidecar ownership for executable actions,
+  memory storage, and local-runtime environment readers.
 
 ## Inspection Log
+
+### 2026-06-18 Python Sidecar Routing Labels Slice
+
+- Worktree was clean after `e8ea6f116`, with `main` ahead of `origin/main` by
+  836 commits.
+- Finding: navigation, evidence, process-lifecycle, platform, memory, tool, and
+  settings workflow docs still used generic sidecar execution or ownership
+  phrases where the Python sidecar owns executable actions, memory storage, and
+  local-runtime environment readers.
+- Change: qualified those descriptions as Python sidecar ownership and added
+  exact stale-form guards to the modular boundary test.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  executable tool behavior, SDK local-runtime routing, Electron bridge behavior,
+  Python sidecar memory/config readers, storage, credentials, and provider
+  policy are unchanged.
 
 ### 2026-06-18 JSON-RPC Python Sidecar Test Labels Slice
 

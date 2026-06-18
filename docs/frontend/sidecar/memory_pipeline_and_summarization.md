@@ -40,7 +40,7 @@ The SDK owns backend embedding calls for memory. It calls the backend
 `POST /api/embeddings/` route, then sends vectors into the sidecar through
 `search_memory_by_embedding` and `store_memory_by_embedding`.
 
-The sidecar owns local SQLite/FAISS storage only. It persists
+The Python sidecar owns local SQLite/FAISS storage only. It persists
 `embedding_space.json` to detect embedding-space version or dimension changes
 and clears local vector mappings when the caller-provided embedding space
 changes.

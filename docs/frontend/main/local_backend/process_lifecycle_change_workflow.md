@@ -56,7 +56,7 @@ readiness/status broadcasts.
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
-| Local tool result shape is wrong after sidecar executes | Tool execution contract, not lifecycle | [Sidecar Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
+| Local tool result shape is wrong after Python sidecar executes | Tool execution contract, not lifecycle | [Sidecar Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
 
 ## Lifecycle Contract
 

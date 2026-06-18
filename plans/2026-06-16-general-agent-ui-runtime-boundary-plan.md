@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python Sidecar Routing Labels
+
+- Finding: navigation, evidence, process-lifecycle, platform, memory, tool, and
+  settings workflow docs still used generic sidecar execution or ownership
+  phrases where the Python sidecar owns executable actions, memory storage, and
+  local-runtime environment readers.
+- Change: qualified those descriptions as Python sidecar ownership and added
+  exact stale-form guards to the modular boundary test.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  executable tool behavior, SDK local-runtime routing, Electron bridge behavior,
+  Python sidecar memory/config readers, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 JSON-RPC Python Sidecar Test Labels
 
 - Finding: local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs still used generic

@@ -113,7 +113,7 @@ Do not use this owner for:
 
 ## Python Sidecar Platform Changes
 
-The sidecar owns host OS automation and local tool execution. It should expose normalized tool results back to Electron, not leak OS-specific command details into the renderer.
+The Python sidecar owns host OS automation and local tool execution. It should expose normalized tool results back to Electron, not leak OS-specific command details into the renderer.
 
 Primary files:
 

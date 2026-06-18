@@ -54,7 +54,7 @@ Current boundary examples:
 - SDK local-runtime store code maps those values into sidecar JSON-RPC params such as `user_id`, `conversation_ref`, `message_index`, and `structured_payload`.
 - Query websocket payloads are validated by `backend/src/api/schemas/incoming.py` as snake_case payload fields, including required `conversation_ref`.
 - Tool-result websocket payloads are validated as `request_id`, `success`, `data`, and `error`; bundle results use `bundle_id`, `status`, `step_results`, and optional capture fields.
-- Backend outgoing events may carry tool call payloads without the same names the sidecar executes. The renderer must preserve backend correlation keys instead of manufacturing replacement IDs.
+- Backend outgoing events may carry tool call payloads without the same names the Python sidecar executes. The renderer must preserve backend correlation keys instead of manufacturing replacement IDs.
 
 ## Query Identity Path
 

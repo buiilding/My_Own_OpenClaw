@@ -33,7 +33,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Step | What to inspect | Why |
 | --- | --- | --- |
 | 1. Decide model-facing behavior | `backend/src/tools` and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md) | The backend owns what the model can request. |
-| 2. Decide executable payload | `frontend/src/main/python/tools` and sidecar registry docs | The sidecar owns what can actually run locally. |
+| 2. Decide executable payload | `frontend/src/main/python/tools` and Python sidecar registry docs | The Python sidecar owns what can actually run locally. |
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a sidecar action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | `ToolResultEnvelope`, backend tool-result handler, sidecar tool result models | Backend history needs consistent success/error output. |
 | 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, Python sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |

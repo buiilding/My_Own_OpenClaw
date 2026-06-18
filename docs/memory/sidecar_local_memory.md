@@ -8,7 +8,7 @@ title: "Sidecar Local Memory"
 
 # Sidecar Local Memory
 
-The sidecar owns local episodic and semantic memory persistence and search.
+The Python sidecar owns local episodic and semantic memory persistence and search.
 Renderer and Electron main call it through the SDK local-runtime JSON-RPC path;
 backend code must not import sidecar memory code.
 
