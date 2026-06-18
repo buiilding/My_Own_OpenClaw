@@ -233,7 +233,7 @@ frontend/src/main/python/
 
 5. **Standardized Results**: ToolResult dataclass ensures consistent response format
 
-6. **SDK-Owned Embeddings**: SDK uses backend embedding API and passes vectors to sidecar storage/search
+6. **SDK-Owned Embeddings**: SDK uses backend embedding API and passes vectors to local-runtime storage/search
 
 7. **Separate Memory Types**: Episodic and semantic memories stored in separate databases and FAISS indices
 

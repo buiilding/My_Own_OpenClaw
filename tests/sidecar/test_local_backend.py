@@ -48,8 +48,10 @@ def test_local_backend_runtime_copy_uses_local_runtime_terms():
 
     assert "Python local runtime" in sources
     assert "local runtime daemon" in sources
+    assert "local-runtime storage/search" in sources
     assert retired_runtime_label not in sources
     assert retired_daemon_phrase not in sources
+    assert "sidecar " + "storage/search" not in sources
     assert "Local backend service for WindieOS" not in sources
     assert "Main local backend service" not in sources
     assert "Initializing local backend" not in sources

@@ -9249,3 +9249,16 @@ Each completed slice should report:
   exports, backend/local-runtime parity, Browser Use execution, IPC channels,
   hosted backend URLs, credentials, permissions, and provider policy are
   unchanged.
+
+### 2026-06-18 Python folder-map embedding storage wording boundary
+
+- Finding: the checked-in Python folder map still said SDK-owned embeddings
+  passed vectors to sidecar storage/search, even though the reusable contract is
+  local-runtime memory storage/search behind the concrete daemon process.
+- Change: reworded the folder map to local-runtime storage/search and extended
+  the focused local-runtime source-copy guard.
+- Validation: focused local-backend source guard, stale sidecar storage/search
+  scan, Python compile checks, and diff checks.
+- Compatibility: no migration required. Embedding API calls, vector payloads,
+  memory storage/search behavior, JSON-RPC method names, IPC channels, hosted
+  backend URLs, credentials, permissions, and provider policy are unchanged.

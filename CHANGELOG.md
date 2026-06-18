@@ -45,6 +45,9 @@ All notable changes to WindieOS will be documented in this file.
   ownership. No migration required.
 - sidecar/browser: describe the shared browser contract as owned by backend and
   local runtime rather than backend and sidecar. No migration required.
+- sidecar/docs: describe SDK-provided embeddings as flowing to local-runtime
+  storage/search instead of sidecar storage/search in the Python folder map. No
+  migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.
