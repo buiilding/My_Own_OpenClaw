@@ -24,7 +24,7 @@ Memory is implemented in the **frontend Python sidecar**, not the backend. The s
 │ Frontend Python Sidecar                       │
 │  ├─ LocalMemoryStore (SQLite + FAISS)         │
 │  ├─ MemorySummarizer (semantic rollups)       │
-│  └─ LocalBackend memory RPC handlers          │
+│  └─ LocalRuntimeService memory RPC handlers          │
 └───────────────────────────────────────────────┘
                 │                 ▲
                 │ HTTP            │ JSON-RPC

@@ -31,7 +31,7 @@ Release contract:
 
 **Key files:**
 - Sidecar daemon entrypoint: `frontend/src/main/python/sidecar_daemon.py`
-- LocalBackend implementation: `frontend/src/main/python/local_backend.py`
+- LocalRuntimeService implementation: `frontend/src/main/python/local_backend.py`
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
 - Hosted SDK transport client: `frontend/src/main/python/windie/sdk.py`
@@ -43,7 +43,7 @@ Release contract:
 ```
 Electron Main (Node) ── launch facts/host helpers ──> SDK local runtime
 SDK local runtime ── HTTP /rpc JSON-RPC ──> sidecar_daemon.py
-sidecar_daemon.py ── in-process dispatch ──> LocalBackend
+sidecar_daemon.py ── in-process dispatch ──> LocalRuntimeService
 ```
 
 The bridge:
@@ -66,7 +66,7 @@ The bridge:
 
 ## JSON-RPC Methods
 
-Registered in `LocalBackend._initialize_methods()`:
+Registered in `LocalRuntimeService._initialize_methods()`:
 
 - `ping`: health check; returns the generic `local_sidecar_runtime` service
   label.

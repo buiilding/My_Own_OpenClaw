@@ -73,18 +73,18 @@ frontend/src/main/python/
            ↓
 2. INITIALIZATION
    └─> local_backend.py
-       ├─> LocalBackend.__init__()
+       ├─> LocalRuntimeService.__init__()
        │   ├─> JSONRPCProtocol() - Initialize protocol handler
        │   └─> ToolRegistry() - Register all tools
        │
-       └─> LocalBackend.initialize()
+       └─> LocalRuntimeService.initialize()
            └─> LocalMemoryStore.initialize()
                ├─> Load/create SQLite databases (episodic.db, semantic.db)
                ├─> Load/create FAISS indices (episodic.faiss.index, semantic.faiss.index)
                └─> Load vector ID mappings
            ↓
 3. MAIN LOOP
-   └─> LocalBackend.run()
+   └─> LocalRuntimeService.run()
        ├─> Read JSON-RPC request from stdin (one line per message)
        ├─> JSONRPCProtocol.process_line() - Parse and validate
        ├─> Route to registered method handler
@@ -100,7 +100,7 @@ frontend/src/main/python/
 ```
 1. JSON-RPC REQUEST
    └─> local_backend.py
-       └─> LocalBackend._handle_execute_tool()
+       └─> LocalRuntimeService._handle_execute_tool()
            ↓
 2. TOOL REGISTRY
    └─> tools/registry.py
@@ -182,7 +182,7 @@ frontend/src/main/python/
 ```
 1. REQUEST
    └─> local_backend.py
-       └─> LocalBackend._handle_get_system_state()
+       └─> LocalRuntimeService._handle_get_system_state()
            ↓
 2. PARALLEL COLLECTION
    └─> core/system_state.py

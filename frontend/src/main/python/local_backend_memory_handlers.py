@@ -1,5 +1,5 @@
 """
-Memory-specific handler mixin for LocalBackend JSON-RPC service.
+Memory-specific handler mixin for LocalRuntimeService JSON-RPC service.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ def requires_memory_store(
 
     @wraps(handler)
     async def wrapper(
-        self: "LocalBackendMemoryHandlersMixin", *args, **kwargs
+        self: "LocalRuntimeMemoryHandlersMixin", *args, **kwargs
     ) -> Dict[str, Any]:
         if self.memory_store is None:
             wait_for_initialization = getattr(
@@ -58,7 +58,7 @@ def requires_memory_store(
     return wrapper
 
 
-class LocalBackendMemoryHandlersMixin:
+class LocalRuntimeMemoryHandlersMixin:
     """Memory RPC handlers shared by the Python sidecar runtime service."""
 
     def _conversation_history_db_path(self) -> str:

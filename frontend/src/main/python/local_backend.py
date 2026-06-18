@@ -44,7 +44,7 @@ from core.runtime_shutdown import (
 from core.platform.macos_automation_permission import (
     determine_system_events_automation_permission,
 )
-from local_backend_memory_handlers import LocalBackendMemoryHandlersMixin
+from local_backend_memory_handlers import LocalRuntimeMemoryHandlersMixin
 
 ensure_feature_pack_site_packages_on_path()
 
@@ -106,10 +106,10 @@ logging.basicConfig(
     stream=sys.stderr,  # Log to stderr to avoid interfering with stdout protocol
 )
 logger = logging.getLogger(__name__)
-_active_backend: Optional["LocalBackend"] = None
+_active_runtime_service: Optional["LocalRuntimeService"] = None
 
 
-class LocalBackend(LocalBackendMemoryHandlersMixin):
+class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
     """
     Main Python sidecar runtime service.
 
@@ -771,20 +771,20 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
 def signal_handler(signum, frame):
     """Handle system signals for graceful shutdown."""
-    if handle_shutdown_signal(signum, _active_backend, logger):
+    if handle_shutdown_signal(signum, _active_runtime_service, logger):
         return
     raise KeyboardInterrupt
 
 
 async def main():
     """Main entry point."""
-    global _active_backend
+    global _active_runtime_service
     # Set up signal handlers
     register_shutdown_signal_handlers(signal_handler)
 
     # Create and run the service
-    backend = LocalBackend()
-    _active_backend = backend
+    backend = LocalRuntimeService()
+    _active_runtime_service = backend
 
     try:
         await backend.initialize()
@@ -793,7 +793,7 @@ async def main():
         logger.error(f"Service failed: {e}", exc_info=True)
         sys.exit(1)
     finally:
-        _active_backend = None
+        _active_runtime_service = None
 
 
 if __name__ == "__main__":

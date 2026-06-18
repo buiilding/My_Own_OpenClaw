@@ -17,7 +17,7 @@ Core modules:
 ## Execution Model
 
 1. Electron main sends `execute_tool` JSON-RPC request.
-2. `LocalBackend._handle_execute_tool` delegates to `ToolRegistry.execute_tool`.
+2. `LocalRuntimeService._handle_execute_tool` delegates to `ToolRegistry.execute_tool`.
 3. Registry resolves tool callable by name.
 4. Tool runs sync or async.
 5. Output must be a native `ToolResult`.

@@ -1,5 +1,5 @@
 ---
-summary: "Sidecar local memory guide covering episodic and semantic memory, LocalBackend memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
+summary: "Sidecar local memory guide covering episodic and semantic memory, LocalRuntimeService memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
 read_when:
   - When changing sidecar episodic or semantic memory, local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or sidecar memory storage.
   - When debugging local memory search, dashboard memory sections, conversation titles, or semantic memory generation.
@@ -26,7 +26,7 @@ backend code must not import sidecar memory code.
 
 ## Handler Contract
 
-`LocalBackendMemoryHandlersMixin` provides memory-specific JSON-RPC methods. Handlers must return the canonical failure shape when the memory store is unavailable:
+`LocalRuntimeMemoryHandlersMixin` provides memory-specific JSON-RPC methods. Handlers must return the canonical failure shape when the memory store is unavailable:
 
 ```json
 {"success": false, "error": "Memory store not initialized"}

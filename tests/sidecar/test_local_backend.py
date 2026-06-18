@@ -12,7 +12,7 @@ ensure_frontend_python_path()
 
 import local_backend as local_backend_module  # noqa: E402
 import local_backend_memory_handlers as memory_handlers_module  # noqa: E402
-from local_backend import LocalBackend  # noqa: E402
+from local_backend import LocalRuntimeService  # noqa: E402
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
@@ -311,7 +311,7 @@ def test_collect_runtime_dependency_warnings_linux_missing_xdotool(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_success():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({"ok": True}))
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result == {"success": True, "data": {"ok": True, "output": ""}}
@@ -319,7 +319,7 @@ async def test_handle_execute_tool_success():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_error():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistry(ToolResult.error_result("bad"))
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result == {"success": False, "data": {"output": "bad"}, "error": "bad"}
@@ -327,7 +327,7 @@ async def test_handle_execute_tool_error():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_preserves_empty_data_payload():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({}))
 
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
@@ -337,7 +337,7 @@ async def test_handle_execute_tool_preserves_empty_data_payload():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_preserves_contract_fields_for_backend_boundary():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistry(
         ToolResult.success_result(
             {
@@ -389,7 +389,7 @@ async def test_handle_execute_tool_preserves_contract_fields_for_backend_boundar
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_preserves_direct_tool_fields():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({"ok": True}))
     args = {
         "action": "click",
@@ -405,7 +405,7 @@ async def test_handle_execute_tool_preserves_direct_tool_fields():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_routes_direct_tool_with_real_registry():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     registry = ToolRegistry()
     captured = {}
 
@@ -429,7 +429,7 @@ async def test_handle_execute_tool_routes_direct_tool_with_real_registry():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_prevents_argument_mutation_leak():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     registry = ToolRegistry()
     captured = {}
 
@@ -470,7 +470,7 @@ async def test_handle_execute_tool_prevents_argument_mutation_leak():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_exception():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistryRaises(RuntimeError("boom"))
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result["success"] is False
@@ -479,7 +479,7 @@ async def test_handle_execute_tool_exception():
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_browser_feature_pack_install_failure(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = BrowserToolRegistry(
         has_browser=False,
         result=ToolResult.success_result({"ok": True}),
@@ -504,7 +504,7 @@ async def test_handle_execute_tool_browser_feature_pack_install_failure(monkeypa
 
 @pytest.mark.asyncio
 async def test_handle_execute_tool_browser_feature_pack_install_success(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = BrowserToolRegistry(
         has_browser=False,
         result=ToolResult.success_result({"ok": True}),
@@ -537,7 +537,7 @@ async def test_handle_execute_tool_browser_feature_pack_install_success(monkeypa
 async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(
     monkeypatch,
 ):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = BrowserToolRegistry(
         has_browser=False,
         result=ToolResult.success_result({"ok": True}),
@@ -559,7 +559,7 @@ async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(
 async def test_handle_execute_tool_browser_packaged_runtime_uses_generic_install_copy(
     monkeypatch,
 ):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = BrowserToolRegistry(
         has_browser=False,
         result=ToolResult.success_result({"ok": True}),
@@ -581,7 +581,7 @@ async def test_handle_execute_tool_browser_packaged_runtime_uses_generic_install
 
 @pytest.mark.asyncio
 async def test_handle_ping_reports_local_runtime_service():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     result = await backend._handle_ping()
 
@@ -590,7 +590,7 @@ async def test_handle_ping_reports_local_runtime_service():
 
 @pytest.mark.asyncio
 async def test_handle_get_status_reports_tools():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({}))
     backend.running = True
     backend.memory_store = DummyMemoryStore()
@@ -610,7 +610,7 @@ async def test_handle_get_status_reports_tools():
 
 @pytest.mark.asyncio
 async def test_handle_install_browser_chromium_skips_when_browser_already_available():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend._find_available_browser_binary = lambda: "/usr/bin/chromium"  # type: ignore[assignment]
 
     result = await backend._handle_install_browser_chromium()
@@ -624,7 +624,7 @@ async def test_handle_install_browser_chromium_skips_when_browser_already_availa
 def test_find_available_browser_binary_prefers_system_browser_over_playwright_cache(
     monkeypatch, tmp_path
 ):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     playwright_root = tmp_path / "ms-playwright"
     playwright_browser = playwright_root / "chromium-123" / "chrome-linux" / "chrome"
     playwright_browser.parent.mkdir(parents=True, exist_ok=True)
@@ -664,7 +664,7 @@ def test_find_available_browser_binary_prefers_system_browser_over_playwright_ca
 async def test_handle_install_browser_chromium_installs_when_missing(
     monkeypatch, tmp_path
 ):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     browser_checks = {"count": 0}
 
     def _find_browser():
@@ -703,7 +703,7 @@ async def test_handle_install_browser_chromium_installs_when_missing(
 async def test_handle_install_browser_chromium_reports_install_failure(
     monkeypatch, tmp_path
 ):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     async def _ensure_ready():
         return None
@@ -731,7 +731,7 @@ async def test_handle_install_browser_chromium_reports_install_failure(
 
 @pytest.mark.asyncio
 async def test_handle_get_status_without_store_or_registry():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.tool_registry = None
     backend.memory_store = None
     backend.running = False
@@ -760,7 +760,7 @@ async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
     )
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
 
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     await backend.initialize()
     await backend._wait_for_memory_runtime_initialization()
     await backend.shutdown()
@@ -787,7 +787,7 @@ async def test_initialize_skips_memory_summarizer_when_disabled(monkeypatch):
     )
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
 
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     await backend.initialize()
     await backend._wait_for_memory_runtime_initialization()
     await backend.shutdown()
@@ -816,7 +816,7 @@ async def test_initialize_does_not_block_on_memory_store_initialization(monkeypa
     monkeypatch.setattr(local_backend_module, "LocalMemoryStore", _SlowMemoryStore)
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", None)
 
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     await backend.initialize()
     await asyncio.wait_for(started.wait(), timeout=1)
 
@@ -835,7 +835,7 @@ async def test_initialize_does_not_block_on_memory_store_initialization(monkeypa
 
 @pytest.mark.asyncio
 async def test_handle_get_system_state(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     async def fake_state(fields=None):
         return {"active_window": "App"}
@@ -850,7 +850,7 @@ async def test_handle_get_system_state(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_handle_get_system_state_error(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     async def raise_state(fields=None):
         raise RuntimeError("nope")
@@ -866,7 +866,7 @@ async def test_handle_get_system_state_error(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_handle_get_system_state_system_exit_error(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     async def raise_state(fields=None):
         raise SystemExit("tkinter missing")
@@ -881,7 +881,7 @@ async def test_handle_get_system_state_system_exit_error(monkeypatch):
 
 
 def test_initialize_methods_keeps_memory_handlers_registered():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     expected_methods = {
         "search_memory_by_embedding",
@@ -909,7 +909,7 @@ def test_initialize_methods_keeps_memory_handlers_registered():
 
 @pytest.mark.asyncio
 async def test_handle_conversation_list_returns_sanitized_diagnostics(tmp_path):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     memory_store = DummyMemoryStore()
     canonical_db = tmp_path / "history" / "history.db"
     canonical_db.parent.mkdir(parents=True)
@@ -944,7 +944,7 @@ async def test_handle_conversation_list_returns_sanitized_diagnostics(tmp_path):
 
 @pytest.mark.asyncio
 async def test_handle_search_memory_by_embedding_applies_filters():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStoreCapturing(
         [{"type": "semantic", "text": "fact"}]
     )
@@ -982,7 +982,7 @@ async def test_handle_search_memory_by_embedding_applies_filters():
 
 @pytest.mark.asyncio
 async def test_handle_search_memory_by_embedding_rejects_missing_embedding():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStoreCapturing([])
 
     result = await backend._handle_search_memory_by_embedding(
@@ -997,7 +997,7 @@ async def test_handle_search_memory_by_embedding_rejects_missing_embedding():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_success_notifies_summarizer():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend._summarizer = DummySummarizer()
 
@@ -1021,7 +1021,7 @@ async def test_handle_store_memory_by_embedding_success_notifies_summarizer():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_semantic_does_not_notify():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend._summarizer = DummySummarizer()
 
@@ -1043,7 +1043,7 @@ async def test_handle_store_memory_by_embedding_semantic_does_not_notify():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_notify_failure_still_succeeds():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend._summarizer = DummySummarizerRaises()
 
@@ -1060,7 +1060,7 @@ async def test_handle_store_memory_by_embedding_notify_failure_still_succeeds():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_add_failure():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStoreRaises(RuntimeError("fail"))
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1075,7 +1075,7 @@ async def test_handle_store_memory_by_embedding_add_failure():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_fails_without_store():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = None
     result = await backend._handle_store_memory_by_embedding(
         content="User: hi\nAssistant: hello",
@@ -1087,7 +1087,7 @@ async def test_handle_store_memory_by_embedding_fails_without_store():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_requires_content():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1103,7 +1103,7 @@ async def test_handle_store_memory_by_embedding_requires_content():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_treats_none_content_as_missing():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1118,7 +1118,7 @@ async def test_handle_store_memory_by_embedding_treats_none_content_as_missing()
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_rejects_whitespace_only_content():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1133,7 +1133,7 @@ async def test_handle_store_memory_by_embedding_rejects_whitespace_only_content(
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_rejects_invalid_memory_type():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1149,7 +1149,7 @@ async def test_handle_store_memory_by_embedding_rejects_invalid_memory_type():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_rejects_non_string_content():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1164,7 +1164,7 @@ async def test_handle_store_memory_by_embedding_rejects_non_string_content():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_rejects_non_string_memory_type():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_store_memory_by_embedding(
@@ -1180,7 +1180,7 @@ async def test_handle_store_memory_by_embedding_rejects_non_string_memory_type()
 
 @pytest.mark.asyncio
 async def test_handle_delete_episodic_memory_routes_to_store():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_delete_episodic_memory(
@@ -1200,7 +1200,7 @@ async def test_handle_delete_episodic_memory_routes_to_store():
 
 @pytest.mark.asyncio
 async def test_handle_delete_episodic_memory_requires_memory_id():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_delete_episodic_memory(
@@ -1214,7 +1214,7 @@ async def test_handle_delete_episodic_memory_requires_memory_id():
 
 @pytest.mark.asyncio
 async def test_handle_clear_local_memory_routes_to_store():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend.memory_store.clear_local_memory_return = {
         "episodic_deleted_count": 4,
@@ -1235,7 +1235,7 @@ async def test_handle_clear_local_memory_routes_to_store():
 
 @pytest.mark.asyncio
 async def test_handle_clear_chat_history_routes_to_store():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend.memory_store.clear_chat_history_return = {
         "deleted_count": 8,
@@ -1258,7 +1258,7 @@ async def test_handle_clear_chat_history_routes_to_store():
 
 @pytest.mark.asyncio
 async def test_handle_conversation_append_event_writes_dedicated_chat_storage():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_conversation_append_event(
@@ -1308,7 +1308,7 @@ async def test_handle_conversation_append_event_writes_dedicated_chat_storage():
 
 @pytest.mark.asyncio
 async def test_handle_conversation_replace_uses_atomic_store_replace():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_conversation_replace(
@@ -1388,7 +1388,7 @@ async def test_handle_conversation_replace_uses_atomic_store_replace():
 
 @pytest.mark.asyncio
 async def test_handle_conversation_rewrite_after_event_uses_cutoff_store_rewrite():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_conversation_rewrite_after_event(
@@ -1434,7 +1434,7 @@ async def test_handle_conversation_rewrite_after_event_uses_cutoff_store_rewrite
 
 @pytest.mark.asyncio
 async def test_handle_conversation_get_revision_returns_store_revision():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_conversation_get_revision(
@@ -1455,7 +1455,7 @@ async def test_handle_conversation_get_revision_returns_store_revision():
 
 @pytest.mark.asyncio
 async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend.memory_store.history_db_path = "/tmp/test-title-history.sqlite3"
     emitted = []
@@ -1508,7 +1508,7 @@ async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_handle_get_conversation_title_state_returns_store_state(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     backend.memory_store.history_db_path = "/tmp/test-title-history.sqlite3"
     calls = []
@@ -1552,7 +1552,7 @@ async def test_handle_get_conversation_title_state_returns_store_state(monkeypat
 
 @pytest.mark.asyncio
 async def test_handle_conversation_load_events_reads_dedicated_chat_storage():
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
 
     result = await backend._handle_conversation_load_events(
@@ -1568,7 +1568,7 @@ async def test_handle_conversation_load_events_reads_dedicated_chat_storage():
 
 @pytest.mark.asyncio
 async def test_handle_store_memory_by_embedding_logs_surrogate_field_paths(caplog):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     backend.memory_store = DummyMemoryStore()
     caplog.set_level(logging.WARNING, logger="local_backend_memory_handlers")
 
@@ -1586,14 +1586,14 @@ async def test_handle_store_memory_by_embedding_logs_surrogate_field_paths(caplo
 
 
 def test_signal_handler_requests_shutdown(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
     called = []
 
     def fake_request_shutdown(signum):
         called.append(signum)
 
     monkeypatch.setattr(backend, "request_shutdown", fake_request_shutdown)
-    monkeypatch.setattr(local_backend_module, "_active_backend", backend)
+    monkeypatch.setattr(local_backend_module, "_active_runtime_service", backend)
 
     local_backend_module.signal_handler(signal.SIGTERM, None)
 
@@ -1601,7 +1601,7 @@ def test_signal_handler_requests_shutdown(monkeypatch):
 
 
 def test_request_shutdown_marks_backend_and_closes_stdin(monkeypatch):
-    backend = LocalBackend()
+    backend = LocalRuntimeService()
 
     class DummyStdin:
         def __init__(self):

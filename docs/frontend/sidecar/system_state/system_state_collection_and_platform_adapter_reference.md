@@ -26,7 +26,7 @@ title: "System-State Collection and Removed getSystemState Bridge Export Referen
 1. a renderer/main consumer invokes `get-system-state` through Electron IPC.
 2. Electron main (`ipcMain.handle('get-system-state')`) calls `getSystemStateFromBackend(fields)`.
 3. main bridge sends JSON-RPC `get_system_state` request to sidecar.
-4. sidecar `LocalBackend._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
+4. sidecar `LocalRuntimeService._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
 5. sidecar returns `{ success: true, data: state }`.
 6. main bridge unwraps to `result.data || result` and returns plain state object to renderer.
 

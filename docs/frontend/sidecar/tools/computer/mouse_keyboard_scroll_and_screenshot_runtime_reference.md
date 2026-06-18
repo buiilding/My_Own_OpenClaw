@@ -20,7 +20,7 @@ This page documents sidecar computer tools as implemented in:
 
 ## Runtime Entry Points
 
-1. `LocalBackend._handle_execute_tool` calls `ToolRegistry.execute_tool`.
+1. `LocalRuntimeService._handle_execute_tool` calls `ToolRegistry.execute_tool`.
 2. Registry resolves tool function names:
    - `mouse_control` -> `execute_mouse_control`
    - `keyboard_control` -> `execute_keyboard_control`

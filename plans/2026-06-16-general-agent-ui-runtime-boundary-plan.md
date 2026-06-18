@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 sidecar LocalRuntimeService symbol boundary
+
+- Finding: the Python sidecar JSON-RPC service still exposed `LocalBackend` / `LocalBackendMemoryHandlersMixin` as live internal symbols after the sidecar daemon, SDK, and Electron host had moved to local-runtime terminology.
+- Change: renamed the live service and memory mixin to `LocalRuntimeService` / `LocalRuntimeMemoryHandlersMixin`, updated daemon construction, sidecar tests, and class-name docs, while intentionally leaving the `local_backend.py` module path and JSON-RPC contracts unchanged for packaging and launch compatibility.
+- Validation: py_compile for renamed Python modules, focused sidecar service/bootstrap/daemon pytest coverage, LocalRuntimeLaunchOptions Jest coverage, docs listing, exact stale-symbol scan, and scoped diff check. The broader `test_local_backend.py` file was attempted and still hits an unrelated Windows browser-binary path expectation in `test_find_available_browser_binary_prefers_system_browser_over_playwright_cache`.
+- Compatibility: no migration required. This is an internal Python symbol rename only; daemon routes, JSON-RPC method names, sidecar launch target, tool schemas/results, memory storage, settings, credentials, and persisted data are unchanged.
+
 ### 2026-06-18 SDK package keyword boundary
 
 - Finding: the reusable TypeScript SDK package metadata still advertised `desktop-agents`, even though SDK runtime classes, agent definitions, and local-runtime contracts are now generic Agent runtime surfaces usable outside the Electron desktop host.

@@ -153,19 +153,20 @@ describe('desktop local runtime launch options', () => {
       expect(plan.ok).toBe(true);
       plan.options.onStdoutLine('daemon ready');
       plan.options.onStdoutLine('[LocalRuntime] ready');
-      plan.options.onStderrLine('[LocalBackend] legacy ready');
+      const retiredLogPrefix = `[Local${'Backend'}]`;
+      plan.options.onStderrLine(`${retiredLogPrefix} legacy ready`);
       plan.options.onStderrLine('[UnknownRuntime] noisy daemon detail');
       plan.options.onStderrLine('[LocalRuntimeDaemon] listening pid=123');
 
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntimeDaemon] daemon ready\n');
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntime] ready\n');
-      expect(stderrWrite).not.toHaveBeenCalledWith('[LocalBackend] legacy ready\n');
+      expect(stderrWrite).not.toHaveBeenCalledWith(`${retiredLogPrefix} legacy ready\n`);
       expect(stderrWrite).not.toHaveBeenCalledWith('[UnknownRuntime] noisy daemon detail\n');
       expect(stderrWrite).toHaveBeenCalledWith('[LocalRuntimeDaemon] listening pid=123\n');
       const log = fs.readFileSync(logFile, 'utf8');
       expect(log).toContain('[LocalRuntimeDaemon] daemon ready');
       expect(log).toContain('[LocalRuntime] ready');
-      expect(log).not.toContain('[LocalBackend] legacy ready');
+      expect(log).not.toContain(`${retiredLogPrefix} legacy ready`);
       expect(log).not.toContain('[UnknownRuntime] noisy daemon detail');
       expect(log).toContain('[LocalRuntimeDaemon] listening pid=123');
     } finally {

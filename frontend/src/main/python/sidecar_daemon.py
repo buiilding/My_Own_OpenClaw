@@ -22,7 +22,7 @@ from typing import Any
 
 from aiohttp import web
 
-from local_backend import LocalBackend
+from local_backend import LocalRuntimeService
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
@@ -813,9 +813,9 @@ class McpStdioClient:
 
 class LocalRuntimeDaemon:
     def __init__(
-        self, *, backend: LocalBackend | None = None, token: str | None = None
+        self, *, backend: LocalRuntimeService | None = None, token: str | None = None
     ):
-        self.backend = backend or LocalBackend()
+        self.backend = backend or LocalRuntimeService()
         self.token = token or secrets.token_urlsafe(32)
         self.created_at = time.time()
         self.events: set[web.WebSocketResponse] = set()

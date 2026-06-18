@@ -42,7 +42,7 @@ module_path = pathlib.Path("local_backend.py").resolve()
 spec = importlib.util.spec_from_file_location("sidecar_bootstrap_smoke", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
-backend = module.LocalBackend()
+backend = module.LocalRuntimeService()
 assert "read_file" in backend.tool_registry.tools
 print("ok")
 """

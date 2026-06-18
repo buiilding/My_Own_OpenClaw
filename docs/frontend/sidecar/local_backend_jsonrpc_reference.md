@@ -10,20 +10,20 @@ title: "Local Runtime JSON-RPC Reference"
 
 Electron bridge helpers use the SDK local runtime provider. The SDK sends
 JSON-RPC envelopes to the sidecar daemon `/rpc` endpoint, and the daemon
-dispatches them through `LocalBackend.protocol.handle_request(...)`.
+dispatches them through `LocalRuntimeService.protocol.handle_request(...)`.
 
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
-- LocalBackend implementation: `frontend/src/main/python/local_backend.py`
+- LocalRuntimeService implementation: `frontend/src/main/python/local_backend.py`
 - Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC protocol implementation: `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Transport Model
 
 Electron main computes desktop launch options, but the SDK starts or reuses
-`sidecar_daemon.py`. The daemon owns one `LocalBackend` instance, including local
+`sidecar_daemon.py`. The daemon owns one `LocalRuntimeService` instance, including local
 memory, chat-event storage, embeddings, FAISS indices, and tool execution. SDK
 runtime calls send JSON-RPC envelopes to the daemon `POST /rpc` endpoint.
 
@@ -110,7 +110,7 @@ Removed direct chat/memory IPC mappings:
 Removed direct memory-search bridge:
 
 - `search-memory` is no longer registered by Electron main.
-- `search_memory` is no longer registered by `LocalBackend`.
+- `search_memory` is no longer registered by `LocalRuntimeService`.
 - text-query memory search does not run in the sidecar.
 - prompt memory retrieval must use SDK-provided embeddings and
   `search_memory_by_embedding`.

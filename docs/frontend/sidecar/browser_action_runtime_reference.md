@@ -31,7 +31,7 @@ title: "Browser Action Runtime Reference"
 1. SDK runtime receives a backend `browser` tool-call event.
 2. Electron main forwards JSON-RPC `execute_tool`.
 3. Browser tool has extended timeout (`120000ms`; non-browser tools `60000ms`).
-4. Sidecar `LocalBackend._handle_execute_tool` calls `ToolRegistry.execute_tool("browser", args)`.
+4. Sidecar `LocalRuntimeService._handle_execute_tool` calls `ToolRegistry.execute_tool("browser", args)`.
 5. `browser_tool.execute_browser` validates `BrowserControlArgs`.
 6. `BrowserUseEngineRuntime.execute` maps the canonical action to a Browser Use CLI command or adapter-owned helper.
 

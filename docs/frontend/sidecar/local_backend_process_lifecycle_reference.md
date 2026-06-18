@@ -23,13 +23,13 @@ title: "SDK-Owned Sidecar Lifecycle Reference"
   `AgentClient` as SDK `autoLocalRuntime` options.
 - The SDK starts/reuses `sidecar_daemon.py`, owns `AgentLocalRuntimeHttpClient`
   and unwraps daemon JSON-RPC `/rpc` responses before callers see them.
-- The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the
+- The daemon owns the single `LocalRuntimeService` / `LocalMemoryStore` instance for the
   app session.
 - Electron bridge code keeps host-only behavior: BrowserWindow handling,
   screenshot hiding, display bounds, artifact upload headers, and direct helper
   IPC channels.
 - Electron no longer starts `local_backend.py` as a standalone stdin/stdout
-  fallback. `local_backend.py` remains the internal `LocalBackend` implementation
+  fallback. `local_backend.py` remains the internal `LocalRuntimeService` implementation
   used by `sidecar_daemon.py`.
 
 Entrypoint:
@@ -64,7 +64,7 @@ SDK daemon request send path (`sendRequest`):
 2. call the SDK local runtime provider
 3. call SDK runtime `rpc(...)`
 4. SDK posts to daemon `POST /rpc`, where the daemon dispatches through
-   `LocalBackend.protocol.handle_request(...)`
+   `LocalRuntimeService.protocol.handle_request(...)`
 5. SDK converts JSON-RPC `error` to an exception and returns JSON-RPC `result` to
    IPC callers
 
@@ -125,7 +125,7 @@ If helper calls fail unexpectedly:
 
 1. verify `ensureSdkLocalRuntime()` resolved a runtime before the helper call
 2. verify SDK `AgentLocalRuntimeHttpClient.rpc()` unwraps `/rpc` results
-3. inspect the daemon `LocalBackend.protocol.handle_request(...)` method result
+3. inspect the daemon `LocalRuntimeService.protocol.handle_request(...)` method result
 
 If Linux screenshots include overlays:
 

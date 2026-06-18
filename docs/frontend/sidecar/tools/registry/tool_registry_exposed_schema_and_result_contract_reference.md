@@ -51,7 +51,7 @@ Parity guard:
 
 Runtime flow:
 
-1. `LocalBackend._handle_execute_tool(tool_name, args)` calls `tool_registry.execute_tool(...)`.
+1. `LocalRuntimeService._handle_execute_tool(tool_name, args)` calls `tool_registry.execute_tool(...)`.
 2. registry resolves callable by exact tool name.
 3. args must be a dict; non-dict args fail early with `Tool args must be an object`.
 4. callable dispatch:

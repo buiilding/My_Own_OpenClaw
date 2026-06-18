@@ -77,7 +77,7 @@ Output shaping:
 
 - foreground responses return the sidecar-captured stdout/stderr directly
 - `run_shell_command` returns native `ToolResult`; JSON-RPC conversion happens
-  in `LocalBackend._handle_execute_tool`
+  in `LocalRuntimeService._handle_execute_tool`
 - `run_shell_command` does not accept a caller-provided output token limit
 - background sessions keep aggregate and pending-output caps in the process
   registry; use `process` actions to poll or inspect long-running output
@@ -124,7 +124,7 @@ unknown action names are rejected during argument validation instead of being
 deferred to process-tool execution.
 
 `process_tool.process_shell_command` returns native `ToolResult`; JSON-RPC
-conversion happens in `LocalBackend._handle_execute_tool`.
+conversion happens in `LocalRuntimeService._handle_execute_tool`.
 
 `list`:
 

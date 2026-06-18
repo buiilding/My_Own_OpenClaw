@@ -21,7 +21,7 @@ flowchart LR
   BridgeInit --> LaunchOptions["local_runtime_launch_options"]
   LaunchOptions --> SDKProvider["SDK local runtime provider"]
   SDKProvider --> Daemon["sidecar_daemon.py"]
-  Daemon --> LocalBackend["LocalBackend"]
+  Daemon --> LocalRuntimeService["LocalRuntimeService"]
   SDKProvider --> Supervisor["local_runtime_supervisor"]
   Supervisor --> Status["local-runtime-status broadcast"]
   Status --> RendererStore["localRuntimeStatusStore"]
@@ -45,7 +45,7 @@ readiness/status broadcasts.
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
 | Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-runtime-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-runtime readiness. |
-| Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Owns the app-session `LocalBackend`, `/rpc` endpoint, local tools, memory, and chat-event storage. |
+| Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Owns the app-session `LocalRuntimeService`, `/rpc` endpoint, local tools, memory, and chat-event storage. |
 
 ## Change Decision Tree
 
@@ -138,7 +138,7 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 | Failure | First proof | Next file |
 | --- | --- | --- |
 | SDK provider cannot start daemon | Check launch target, missing command/script errors, launch context, and SDK provider error. | `runtime_paths.cjs`, `local_runtime_launch_options.cjs`, `LocalRuntime.ts` |
-| Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalBackend.protocol.handle_request(...)`. | `LocalRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
+| Daemon starts but helper RPC fails | Check SDK `/rpc` unwrapping and daemon `LocalRuntimeService.protocol.handle_request(...)`. | `LocalRuntime.ts`, `sidecar_daemon.py`, `local_backend.py` |
 | Ready event reaches main but renderer still disabled | Check `get-local-runtime-status` bootstrap invoke and `local-runtime-status` listener cleanup. | `localRuntimeStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
 | Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `local_runtime_launch_options.cjs`, `docs/operations/release_packaging_change_workflow.md` |

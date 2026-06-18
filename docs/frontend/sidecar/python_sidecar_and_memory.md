@@ -12,9 +12,9 @@ title: "Python Sidecar and Memory"
 
 Primary Python entrypoints under `frontend/src/main/python`:
 
-- `sidecar_daemon.py`: canonical sidecar daemon; owns the app-session `LocalBackend`, tool registry, memory store, and daemon HTTP/WebSocket surface
-- `local_backend.py`: internal `LocalBackend` implementation used by the daemon for JSON-RPC method dispatch, tools, memory, and transcript handlers
-- `local_backend_memory_handlers.py`: extracted memory-search/store/transcript/delete RPC handlers used by `LocalBackend`
+- `sidecar_daemon.py`: canonical sidecar daemon; owns the app-session `LocalRuntimeService`, tool registry, memory store, and daemon HTTP/WebSocket surface
+- `local_backend.py`: internal `LocalRuntimeService` implementation used by the daemon for JSON-RPC method dispatch, tools, memory, and transcript handlers
+- `local_backend_memory_handlers.py`: extracted memory-search/store/transcript/delete RPC handlers used by `LocalRuntimeService`
 - `wakeword_service.py`: binary-protocol wakeword inference service
 
 Only one process may own `LocalMemoryStore` for a running app session. The
@@ -24,14 +24,14 @@ FAISS/SQLite mapping assumptions.
 
 ## Local Runtime Protocol
 
-`LocalBackend` uses `core/ipc_protocol.py:JSONRPCProtocol`.
-Memory-focused RPC methods are implemented in `local_backend_memory_handlers.py` and mixed into `LocalBackend`.
+`LocalRuntimeService` uses `core/ipc_protocol.py:JSONRPCProtocol`.
+Memory-focused RPC methods are implemented in `local_backend_memory_handlers.py` and mixed into `LocalRuntimeService`.
 
 Transport path:
 
 - Electron helper calls go through the SDK local runtime provider.
 - The SDK calls `sidecar_daemon.py` `POST /rpc`, which dispatches to
-  `LocalBackend.protocol.handle_request(...)`.
+  `LocalRuntimeService.protocol.handle_request(...)`.
 
 Registered methods include:
 

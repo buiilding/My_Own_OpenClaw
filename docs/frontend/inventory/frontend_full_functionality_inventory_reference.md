@@ -116,7 +116,7 @@ Functionality:
   needed.
 - Executes local tools through SDK `executeTool(...)` while preserving
   Electron-only screenshot, artifact, display, and window-visibility adapters.
-- Keeps Python `LocalBackend` method execution inside the sidecar daemon.
+- Keeps Python `LocalRuntimeService` method execution inside the sidecar daemon.
 
 ### 1.4 Wakeword + Permission Bridges
 

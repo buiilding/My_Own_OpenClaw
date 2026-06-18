@@ -29,7 +29,7 @@ Registry names:
 - `get_system_stats` -> `stats_tool.get_system_stats`
 - `open_app` -> `open_app_tool.open_app`
 
-All calls flow through `LocalBackend._handle_execute_tool` -> `ToolRegistry.execute_tool`.
+All calls flow through `LocalRuntimeService._handle_execute_tool` -> `ToolRegistry.execute_tool`.
 
 ## Wait Tool (`wait`)
 
@@ -51,7 +51,7 @@ Return shape:
   - `status`
   - `output`
 - the tool returns native `ToolResult`; JSON-RPC conversion happens in
-  `LocalBackend._handle_execute_tool`
+  `LocalRuntimeService._handle_execute_tool`
 
 Test-backed semantics:
 
@@ -83,7 +83,7 @@ Semantics:
 - `False` return becomes a user-facing guidance error that recommends using exact title from `get_open_windows`
 - unexpected exceptions are wrapped as `Window switching operation failed: ...`
 - returns native `ToolResult`; JSON-RPC conversion happens in
-  `LocalBackend._handle_execute_tool`
+  `LocalRuntimeService._handle_execute_tool`
 
 ### `get_open_windows` behavior
 
@@ -101,7 +101,7 @@ Semantics:
 - optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
 - `output` is bullet list (`- <name>`) or `No open windows found.`
 - returns native `ToolResult`; JSON-RPC conversion happens in
-  `LocalBackend._handle_execute_tool`
+  `LocalRuntimeService._handle_execute_tool`
 
 ## Platform Window Manager Semantics
 
@@ -206,7 +206,7 @@ Output shape:
 
 - returns `stats` object and pretty-printed JSON `output`
 - the tool returns native `ToolResult`; JSON-RPC conversion happens in
-  `LocalBackend._handle_execute_tool`
+  `LocalRuntimeService._handle_execute_tool`
 
 Error semantics:
 

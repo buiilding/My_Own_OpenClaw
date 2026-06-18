@@ -22,11 +22,11 @@ The daemon:
   auth-state path, packaging mode, and sidecar feature flags
 - is started/reused by the SDK auto-local-runtime provider from desktop launch options
   supplied by Electron main
-- owns the app-session `LocalBackend` instance and its `LocalMemoryStore`
+- owns the app-session `LocalRuntimeService` instance and its `LocalMemoryStore`
 - exposes built-in sidecar tools through the existing `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
 
-The daemon is the single local memory owner. Electron should route legacy local JSON-RPC calls through daemon `POST /rpc` instead of spawning standalone `local_backend.py` beside it. A second `LocalBackend` process can race SQLite writes while embedding backfill is running.
+The daemon is the single local memory owner. Electron should route legacy local JSON-RPC calls through daemon `POST /rpc` instead of spawning standalone `local_backend.py` beside it. A second `LocalRuntimeService` process can race SQLite writes while embedding backfill is running.
 
 Electron desktop launch discovery path:
 
@@ -86,7 +86,7 @@ WS   /events
 
 `/tools` returns the executable local tool manifest. This is sidecar-owned diagnostic/execution shape, not the backend's policy-filtered model-visible schema.
 
-`POST /rpc` accepts the existing local JSON-RPC envelope and dispatches it through `LocalBackend.protocol.handle_request(...)`. It exists so Electron can keep existing memory/status/system-state IPC handlers while using the daemon as the only Python runtime owner.
+`POST /rpc` accepts the existing local JSON-RPC envelope and dispatches it through `LocalRuntimeService.protocol.handle_request(...)`. It exists so Electron can keep existing memory/status/system-state IPC handlers while using the daemon as the only Python runtime owner.
 
 ## Module Tool Registration
 

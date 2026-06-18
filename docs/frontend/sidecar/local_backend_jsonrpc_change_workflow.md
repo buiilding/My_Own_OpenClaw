@@ -84,7 +84,7 @@ channel.
    JSON-RPC method names as renderer invoke channels.
 3. Add or update the SDK local-runtime store/client call that builds the
    sidecar JSON-RPC method and params.
-4. Register the Python method in `LocalBackend._initialize_methods`.
+4. Register the Python method in `LocalRuntimeService._initialize_methods`.
 5. Implement the handler in `local_backend.py`,
    `local_backend_memory_handlers.py`, or a focused sidecar module.
 6. Keep the handler signature explicit so `JSONRPCProtocol` can reject missing
@@ -102,7 +102,7 @@ Use this path when renderer does not need a general IPC channel, but Electron ma
 1. Add a helper function in `frontend/src/main/sidecar/local_runtime_bridge.cjs` or a focused main-process module.
 2. Call `sendRequestOrError(method, params, options)` unless callers should handle thrown errors.
 3. Set a method-specific `timeoutMs` only when the operation is expected to exceed the default.
-4. Register the sidecar method in `LocalBackend._initialize_methods`.
+4. Register the sidecar method in `LocalRuntimeService._initialize_methods`.
 5. Implement and test the sidecar handler.
 6. Export the main helper only if another main module needs to call it.
 7. Update main-process docs if the helper affects startup, packaging, permission, browser, or runtime behavior.
@@ -171,7 +171,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Symptom | Check first |
 | --- | --- |
 | Renderer says invalid invoke channel | SDK command allowlist, preload channel injection, renderer facade call site |
-| SDK local-runtime call runs but sidecar method not found | SDK local-runtime method name, `LocalBackend._initialize_methods`, method name spelling |
+| SDK local-runtime call runs but sidecar method not found | SDK local-runtime method name, `LocalRuntimeService._initialize_methods`, method name spelling |
 | Sidecar returns `INVALID_PARAMS` | SDK local-runtime params, handler signature, params object shape |
 | Request times out | sidecar readiness, long-running handler, timeout policy, stuck tool/browser/memory call |
 | Sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged sidecar launch target |
@@ -185,7 +185,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Changed surface | Validation |
 | --- | --- |
 | JSON-RPC protocol validation | `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py` |
-| LocalBackend method registry or handler | `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py` plus focused sidecar tests |
+| LocalRuntimeService method registry or handler | `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py` plus focused sidecar tests |
 | Memory RPC method or SDK local-runtime caller | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` plus focused SDK local-runtime store tests |
 | Electron bridge handler | `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
 | Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused sidecar tool tests |
