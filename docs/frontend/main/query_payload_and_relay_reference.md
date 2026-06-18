@@ -103,7 +103,7 @@ When the `conversation.send` command is invoked, main performs extra steps befor
 
 ### 3) SDK-owned user row/event projection
 
-Main no longer broadcasts a synthetic `local-user-message` over a raw backend
+Main no longer broadcasts a synthetic `local-user-message` over a backend-wire
 relay. The query path starts the turn replay buffer with the query message id,
 then the SDK emits the user row/conversation event that renderer surfaces use
 for display and transcript side effects.

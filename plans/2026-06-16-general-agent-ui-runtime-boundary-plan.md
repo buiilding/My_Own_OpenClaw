@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 frontend streaming backend-wire docs boundary
+
+- Finding: active concept, frontend runtime, architecture, inventory, IPC, and
+  query-relay docs still described renderer live-turn boundaries as avoiding
+  "raw backend" packets/events even though the current boundary is SDK/main
+  normalization of backend-wire events before renderer projection.
+- Change: reworded those docs to backend-wire event terminology and expanded
+  the renderer source-event boundary guard to cover them.
+- Validation: focused modular boundary test, targeted active-doc stale wording
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  SDK/main event normalization, renderer chat projection, IPC channels,
+  websocket payloads, debug raw-event listener API, credentials, permissions,
+  provider policy, and storage are unchanged.
+
 ### 2026-06-18 SDK backend-wire documentation boundary
 
 - Finding: SDK conversation/runtime docs still used "raw backend" wording for

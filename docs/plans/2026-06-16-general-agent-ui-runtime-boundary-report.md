@@ -77,9 +77,31 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   tool rows by SDK-shaped tool identity when correlation ids are absent. SDK
   public docs now describe normal conversation/runtime paths with
   backend-wire/source-event wording while keeping `subscribeRawBackendEvents`
-  as the explicit debug listener API.
+  as the explicit debug listener API. Active concept, frontend runtime,
+  architecture, inventory, IPC, and query-relay docs now use backend-wire event
+  wording for SDK/main-normalized renderer paths.
 
 ## Inspection Log
+
+### 2026-06-18 Frontend Streaming Backend-Wire Docs Boundary Slice
+
+- Worktree was clean after `799dec51c` before this slice, with `main` ahead of
+  `origin/main` by 812 commits.
+- Recent commits showed renderer and SDK normal-path docs already moving to
+  backend-wire wording, while active concept, frontend runtime, architecture,
+  inventory, IPC, and query-relay docs still used "raw backend" labels for
+  stream packets/events.
+- Finding: those docs described the right behavior but with stale language; the
+  active renderer path is SDK/main normalization of backend-wire events before
+  renderer rows, current-turn projection, and side effects.
+- Change: reworded the docs to backend-wire event terminology and expanded the
+  renderer source-event boundary guard to cover the active docs.
+- Validation: focused modular boundary test, targeted active-doc stale wording
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  SDK/main event normalization, renderer chat projection, IPC channels,
+  websocket payloads, debug raw-event listener API, credentials, permissions,
+  provider policy, and storage are unchanged.
 
 ### 2026-06-18 SDK Backend-Wire Documentation Boundary Slice
 

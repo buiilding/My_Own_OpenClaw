@@ -152,7 +152,7 @@ SDK current-turn assistant text:
 
 - clear sending latch
 - record `streaming-response` tracking from `currentTurn.assistantText` growth
-- dashboard and response overlay render the assistant text from the SDK projection rather than raw backend chunks
+- dashboard and response overlay render the assistant text from the SDK projection rather than backend-wire chunks
 
 Compaction events:
 
@@ -175,7 +175,7 @@ SDK current-turn tool events:
 SDK current-turn terminal phase:
 
 - clear transient sending/thinking state from `currentTurn.phase='complete'|'error'`
-- record terminal complete/error phase tracking from the SDK projection rather than raw backend terminal events
+- record terminal complete/error phase tracking from the SDK projection rather than backend-wire terminal events
 - dashboard and response overlay render terminal error text from `currentTurn.lastError`
 
 Tool transcript events:

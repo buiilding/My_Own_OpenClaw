@@ -8,7 +8,7 @@ title: "Streaming and Events"
 
 # Streaming and Events
 
-WindieOS streaming is the live contract between the hosted backend, SDK runtime, and renderer surfaces. Backend events are normalized by the SDK runtime; Electron main is a thin Agent SDK host that forwards SDK rows, status, normalized conversation events, and current-turn projections on `windie:*` channels. Renderer listeners render those SDK outputs instead of interpreting raw backend websocket packets.
+WindieOS streaming is the live contract between the hosted backend, SDK runtime, and renderer surfaces. Backend events are normalized by the SDK runtime; Electron main is a thin Agent SDK host that forwards SDK rows, status, normalized conversation events, and current-turn projections on `windie:*` channels. Renderer listeners render those SDK outputs instead of interpreting backend-wire websocket packets.
 
 ## Main Event Families
 

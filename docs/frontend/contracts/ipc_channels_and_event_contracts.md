@@ -87,7 +87,7 @@ Inbound event streams:
 `useChatStream` consumes SDK-normalized conversation events from
 `windie:conversation-event`. Live display rows and current-turn state come from
 `windie:rows` and `windie:current-turn`; renderer chat code should not subscribe
-to raw backend websocket packets.
+to backend-wire websocket packets.
 
 Key normalized event families include:
 
@@ -139,7 +139,7 @@ The payload is the SDK current-turn object. It contains:
 `currentTurn` is SDK-owned runtime meaning, not a renderer-only message shape.
 It includes the active turn phase, assistant text, reasoning text, tool events,
 and last error. Dashboard and response overlay surfaces should consume this
-projection for live-turn display instead of separately interpreting raw backend
+projection for live-turn display instead of separately interpreting backend-wire
 stream/tool events.
 
 ## Settings Sync Contract
