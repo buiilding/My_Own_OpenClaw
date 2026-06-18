@@ -8,7 +8,7 @@ title: "Backend History and Semantic Routes"
 
 # Backend History and Semantic Routes
 
-The backend owns active model-facing history and hosted semantic/embedding routes. It does not own renderer transcript storage or sidecar local memory files.
+The backend owns active model-facing history and hosted semantic/embedding routes. It does not own renderer transcript storage or local-runtime memory files.
 
 ## Code Ownership
 

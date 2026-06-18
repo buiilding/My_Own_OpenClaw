@@ -72,7 +72,7 @@ Use the narrowest flag that matches the failing boundary. Do not enable broad lo
 | Source app works but packaged app tool fails | Bundled runtime or packaged env | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md) |
 | Only Linux screenshot path flickers | Platform screenshot/overlay policy | [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) |
 | Model missing from picker | Backend model catalog/list-models | [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) |
-| Memory search missing old chat | Python sidecar local memory/search | [Memory Change Workflow](../memory/memory_change_workflow.md) |
+| Memory search missing old chat | Local-runtime memory/search backed by Python sidecar modules | [Memory Change Workflow](../memory/memory_change_workflow.md) |
 
 ## Report Shape
 

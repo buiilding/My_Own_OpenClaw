@@ -246,7 +246,7 @@ Settings now exposes two destructive local-data actions:
 - `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so chat events remain intact.
 - `Nuke chats`: deletes chat-event history plus saved conversation titles so non-chat memory stays intact.
 
-These actions are user-scoped (`user_id`) and run through the local-runtime sidecar memory admin module/store boundary, not the backend FastAPI service. In hosted mode, that `user_id` is now a server-issued identity derived from the install token bootstrap flow rather than a client-chosen value.
+These actions are user-scoped (`user_id`) and run through the local-runtime memory admin module/store boundary, currently backed by Python sidecar modules, not the backend FastAPI service. In hosted mode, that `user_id` is now a server-issued identity derived from the install token bootstrap flow rather than a client-chosen value.
 
 ## Prompt Injection Retrieval
 
@@ -254,7 +254,7 @@ Prompt-time memory injection is not a raw database dump.
 
 - The dashboard Semantic tab reads direct rows from `semantic.db`.
 - Query-time prompt enrichment is SDK-owned: the SDK requests a backend
-  embedding for the user query, asks the sidecar memory index to search by that
+  embedding for the user query, asks the local-runtime memory index to search by that
   embedding, and injects only query-relevant results.
 - The prompt path now uses a split retrieval budget:
   - episodic limit `4`

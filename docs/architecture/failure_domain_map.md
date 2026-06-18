@@ -23,7 +23,7 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 | local tool execution | tool called but OS action fails | SDK runtime tool router, Electron bridge, sidecar tool registry/tool |
 | platform/permission | one OS fails, permission stuck, screenshots include UI | Electron permission/platform policy, sidecar platform adapter |
 | packaging/runtime | source works but installed app fails | Electron Builder config, bundled Python runtime, reinstall helpers |
-| memory/transcript | replay drift, stale memory, wrong conversation | renderer transcript, sidecar memory, backend history |
+| memory/transcript | replay drift, stale memory, wrong conversation | renderer transcript, local-runtime memory, backend history |
 | VM run control | run never picked up or timeline missing events | backend runs API/service and Electron VM worker runtime |
 
 ## Debug Order

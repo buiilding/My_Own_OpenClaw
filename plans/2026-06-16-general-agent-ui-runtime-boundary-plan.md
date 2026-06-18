@@ -9370,3 +9370,18 @@ Each completed slice should report:
   JSON-RPC methods, storage/search/list/title behavior, IPC channels,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-18 architecture docs local-runtime memory retrieval boundary
+
+- Finding: architecture, backend history, provider change, evidence collection,
+  and test-selection docs still described memory retrieval/search/storage as
+  sidecar-memory ownership in routing labels.
+- Change: reworded those routes to local-runtime memory ownership while keeping
+  concrete sidecar pytest commands and Python module implementation details
+  where they identify the current backing modules; added exact stale guards.
+- Validation: focused modular-boundary guard, docs listing, architecture stale
+  scan, and diff checks.
+- Compatibility: no migration required. Backend semantic route behavior,
+  embedding calls, memory index/search behavior, sidecar test commands,
+  JSON-RPC methods, IPC channels, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged.
