@@ -108,9 +108,13 @@ const {
 const {
   configureExtensionManifestRuntime,
 } = require('./extensions/extension_manifest.cjs');
+const {
+  configureMcpRuntime,
+} = require('./extensions/mcp_runtime.cjs');
 
 configureLayerLogSink(mainHostSkin.logging);
 configureExtensionManifestRuntime(mainHostSkin.extensions);
+configureMcpRuntime(mainHostSkin.mcp);
 installConsoleLayerLog({
   layer: 'main',
   logPrefix: mainHostSkin.identity.logPrefix,

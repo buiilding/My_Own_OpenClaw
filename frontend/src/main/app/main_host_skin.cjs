@@ -71,6 +71,12 @@ const extensions = Object.freeze({
   }),
 });
 
+const mcp = Object.freeze({
+  env: Object.freeze({
+    enabledServers: 'WINDIE_ENABLED_MCPS',
+  }),
+});
+
 const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
 });
@@ -161,6 +167,7 @@ const mainHostSkin = Object.freeze({
   runtimePaths,
   gpu,
   extensions,
+  mcp,
   logging,
   hostedBackend,
   vmWorker,

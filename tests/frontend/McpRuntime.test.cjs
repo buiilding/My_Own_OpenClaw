@@ -5,12 +5,20 @@ const { EventEmitter } = require('events');
 const {
   buildClientToolManifestWithMcp,
   clearMcpRuntimeCache,
+  configureMcpRuntime,
   createMcpToolName,
+  resolveMcpEnvConfig,
 } = require('../../frontend/src/main/extensions/mcp_runtime.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('MCP runtime', () => {
   afterEach(() => {
+    configureMcpRuntime();
     clearMcpRuntimeCache();
+    delete process.env.AGENT_ENABLED_MCPS;
+    delete process.env.WINDIE_ENABLED_MCPS;
   });
 
   function createClient() {
@@ -177,6 +185,58 @@ describe('MCP runtime', () => {
         }),
       ],
     }));
+  });
+
+  test('loads enabled MCP ids from generic env fallback', () => {
+    const client = createClient();
+    process.env.AGENT_ENABLED_MCPS = 'mcp:memory';
+
+    return expect(buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        requires_user_enable: true,
+        extension_id: 'mcp:memory',
+      }],
+      createClient: () => client,
+    })).resolves.toEqual(expect.objectContaining({
+      tools: [
+        expect.objectContaining({
+          mcp_server_id: 'memory',
+        }),
+      ],
+    }));
+  });
+
+  test('loads enabled MCP ids from configured host env fallback', () => {
+    const client = createClient();
+    process.env.WINDIE_ENABLED_MCPS = 'mcp:memory';
+    configureMcpRuntime(mainHostSkin.mcp);
+
+    return expect(buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        requires_user_enable: true,
+        extension_id: 'mcp:memory',
+      }],
+      createClient: () => client,
+    })).resolves.toEqual(expect.objectContaining({
+      tools: [
+        expect.objectContaining({
+          mcp_server_id: 'memory',
+        }),
+      ],
+    }));
+  });
+
+  test('MCP enablement env names are configurable by host skin', () => {
+    expect(resolveMcpEnvConfig()).toEqual({
+      enabledServers: 'AGENT_ENABLED_MCPS',
+    });
+    expect(mainHostSkin.mcp.env.enabledServers).toBe('WINDIE_ENABLED_MCPS');
   });
 
   test('removes disabled MCP tools from the projected manifest', async () => {

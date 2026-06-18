@@ -15,12 +15,44 @@ const DEFAULT_MCP_CLIENT_INFO = Object.freeze({
   name: 'Desktop Runtime',
   version: '0.0.0',
 });
+const DEFAULT_MCP_ENV = Object.freeze({
+  enabledServers: 'AGENT_ENABLED_MCPS',
+});
 
 const clientCache = new Map();
 const MAX_DIAGNOSTIC_TEXT_LENGTH = 240;
+let mcpRuntimeConfig = Object.freeze({
+  env: DEFAULT_MCP_ENV,
+});
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
+}
+
+function normalizeEnvKey(value, fallback) {
+  const normalized = normalizeString(value);
+  return normalized || fallback;
+}
+
+function resolveMcpEnvConfig(mcpEnv = {}) {
+  return {
+    enabledServers: normalizeEnvKey(
+      mcpEnv.enabledServers,
+      DEFAULT_MCP_ENV.enabledServers,
+    ),
+  };
+}
+
+function configureMcpRuntime(config = {}) {
+  mcpRuntimeConfig = Object.freeze({
+    env: resolveMcpEnvConfig(config.env),
+  });
+  clearMcpRuntimeCache();
+  return mcpRuntimeConfig;
+}
+
+function resolveConfiguredMcpEnv(mcpEnv = undefined) {
+  return resolveMcpEnvConfig(mcpEnv || mcpRuntimeConfig.env);
 }
 
 function normalizeMcpEnablementIds(values) {
@@ -179,7 +211,9 @@ function readEnabledMcpServersOption(options) {
   if (Object.prototype.hasOwnProperty.call(options, 'enabledMcpServerIds')) {
     return options.enabledMcpServerIds;
   }
-  return process.env.WINDIE_ENABLED_MCPS;
+  const env = options.env || process.env;
+  const envConfig = resolveConfiguredMcpEnv(options.mcpEnv);
+  return env[envConfig.enabledServers];
 }
 
 function isMcpServerEnabled(server, enabledMcpIds = normalizeMcpEnablementIds()) {
@@ -673,5 +707,7 @@ function clearMcpRuntimeCache() {
 module.exports = {
   buildClientToolManifestWithMcp,
   clearMcpRuntimeCache,
+  configureMcpRuntime,
   createMcpToolName,
+  resolveMcpEnvConfig,
 };

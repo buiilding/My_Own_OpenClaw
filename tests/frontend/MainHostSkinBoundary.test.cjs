@@ -75,6 +75,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("forceSoftwareRendering: 'WINDIE_FORCE_SOFTWARE_RENDERING'");
     expect(skinSource).toContain('extensions');
     expect(skinSource).toContain("contributionsDir: 'WINDIE_AGENT_CONTRIBUTIONS_DIR'");
+    expect(skinSource).toContain('mcp');
+    expect(skinSource).toContain("enabledServers: 'WINDIE_ENABLED_MCPS'");
     expect(skinSource).toContain('logging');
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain('sdkAgentName');
@@ -244,6 +246,7 @@ describe('main host skin/config boundary', () => {
 
     expect(source).toContain("name: 'Desktop Runtime'");
     expect(source).not.toContain("name: 'WindieOS'");
+    expect(source).not.toContain('WINDIE_ENABLED_MCPS');
   });
 
   test('layer log sink uses generic defaults instead of product prefix', () => {
@@ -322,6 +325,18 @@ describe('main host skin/config boundary', () => {
     expect(extensionSource).toContain('configureExtensionManifestRuntime');
     expect(extensionSource).not.toContain('WINDIE_AGENT_CONTRIBUTIONS_DIR');
     expect(indexSource).toContain('configureExtensionManifestRuntime(mainHostSkin.extensions)');
+  });
+
+  test('MCP enablement env name lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const mcpSource = fs.readFileSync(mcpRuntimePath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
+
+    expect(skinSource).toContain("enabledServers: 'WINDIE_ENABLED_MCPS'");
+    expect(mcpSource).toContain("enabledServers: 'AGENT_ENABLED_MCPS'");
+    expect(mcpSource).toContain('configureMcpRuntime');
+    expect(mcpSource).not.toContain('WINDIE_ENABLED_MCPS');
+    expect(indexSource).toContain('configureMcpRuntime(mainHostSkin.mcp)');
   });
 
   test('local runtime helpers consume host copy with generic defaults', () => {

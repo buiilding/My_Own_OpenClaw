@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main MCP Enablement Env Skin Boundary
+
+- Worktree was clean after `ceb7c765c`, with `main` ahead of `origin/main` by
+  877 commits.
+- Main-process product/env coupling scans were inspected after the extension
+  contribution env-key slice.
+- Finding: `mcp_runtime.cjs` still hardcoded `WINDIE_ENABLED_MCPS` while
+  otherwise acting as the generic MCP discovery and client-tool manifest bridge.
+- Change: added configurable MCP env keys with a generic `AGENT_ENABLED_MCPS`
+  fallback, moved the WindieOS enabled-server allowlist env name into
+  `mainHostSkin.mcp.env`, and configured the MCP runtime from the main startup
+  path.
+- Validation: focused MCP runtime Jest coverage, main host skin boundary Jest
+  coverage, targeted source scan, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_ENABLED_MCPS`; explicit `enabledMcpServers`/`enabledMcpServerIds`
+  options, dashboard allowlist persistence, MCP discovery, and manifest
+  projection behavior are unchanged.
+
 ### 2026-06-18 Main Extension Env Skin Boundary
 
 - Worktree was clean after `bf1ebefad`, with `main` ahead of `origin/main` by

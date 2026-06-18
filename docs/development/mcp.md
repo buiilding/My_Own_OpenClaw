@@ -121,6 +121,8 @@ That exposes `local_memory__search`.
    enabling or starting them.
 3. Electron main filters `requires_user_enable` servers against the local
    `agent_enabled_mcp_servers` allowlist.
+   WindieOS also supplies the startup-only `WINDIE_ENABLED_MCPS` allowlist env
+   key through the main host skin for development and automation runs.
 4. When a user enables a gated MCP from the dashboard, Electron main persists
    the allowlist change and immediately runs a discovery pass. The manual
    refresh action remains the retry path after installing binaries or granting

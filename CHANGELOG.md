@@ -18,6 +18,8 @@ All notable changes to WindieOS will be documented in this file.
 - main/extensions: inject the WindieOS extension contribution root env name from
   the main host skin instead of hardcoding it inside the generic extension
   manifest loader.
+- main/extensions: inject the WindieOS enabled-MCP allowlist env name from the
+  main host skin instead of hardcoding it inside the generic MCP runtime.
 - main/runtime: inject WindieOS hosted backend default endpoint override env
   names from the main host skin instead of hardcoding them inside the generic
   backend endpoint resolver.
