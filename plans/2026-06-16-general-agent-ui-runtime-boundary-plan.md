@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK screenshot trace local-runtime boundary
+
+- Finding: SDK query screenshot resource traces still emitted the capture
+  stage as `sidecar_capture`, used the `sidecar` trace runtime, and exposed a
+  `sidecar_screenshot_failed` error code even though the reusable SDK contract
+  owns local-runtime screenshot resource resolution.
+- Change: added `local-runtime` as an accepted trace runtime, changed new
+  screenshot capture trace rows to `local_runtime_capture`, updated the failure
+  code to `local_runtime_screenshot_failed`, rebuilt CJS output, and updated
+  runtime trace docs and focused timeline coverage.
+- Validation: SDK CJS build, focused screenshot subset of
+  WindieSdkConversationRuntime Jest coverage, docs listing, stale trace-name
+  scan, and diff checks.
+- Compatibility: no storage migration required. Older persisted trace rows may
+  keep `sidecar_capture`/`sidecar_screenshot_failed` as historical diagnostic
+  names; new rows use the SDK local-runtime trace boundary.
+
 ### 2026-06-17 SDK public example local-runtime prose
 
 - Finding: runnable SDK example docs and repo-agent plugin metadata still

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- packages/sdk-js: emit query screenshot capture trace rows as `local-runtime` / `local_runtime_capture` and accept `local-runtime` trace runtime values; older persisted `sidecar_capture` rows remain historical diagnostics and need no migration.
 - examples/sdk: describe public local tool and repo-agent examples as SDK local-runtime daemon/plugin/tool flows instead of sidecar-facing prose; no migration is required because this changes example docs, metadata copy, and guard coverage only.
 - packages/sdk-js: describe public local tool examples as local-runtime execution and registration instead of sidecar-facing prose; no migration is required because this is package README copy and guard coverage only.
 - frontend/renderer: keep tool acceptance runtime summaries on skin-defined execution labels and fall back unknown transport targets to `runtime`; no migration is required because this only changes renderer display copy for unsupported execution-target values.

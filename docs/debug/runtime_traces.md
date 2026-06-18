@@ -1,5 +1,5 @@
 ---
-summary: "Runtime trace guide for stream events, chat pill phases, renderer trace platform labeling after deprecated navigator.platform removal, tool screenshots, overlay windows, sidecar JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and appUserDataRoot."
+summary: "Runtime trace guide for stream events, chat pill phases, renderer trace platform labeling after deprecated navigator.platform removal, tool screenshots, overlay windows, local-runtime JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and appUserDataRoot."
 read_when:
   - When debugging event ordering across backend, Electron main, renderer, or sidecar.
   - When changing stream handling, overlay phases, screenshot capture, tool execution, or websocket routing.
@@ -41,10 +41,11 @@ Current durable traced paths:
   local runtime returns sanitized search metadata such as searched memory
   types, limits, result counts, embedding-space version, and duration.
 - `screenshot.capture`: SDK query screenshot resource resolution records
-  request, resolver, Electron main surface-preparation, sidecar capture,
-  artifact upload, and backend query payload application spans. The sidecar
-  returns sanitized capture metadata such as capture engine, dimensions, crop
-  bounds, monitor id, byte count, content type, and duration.
+  request, resolver, Electron main surface-preparation, local-runtime capture,
+  artifact upload, and backend query payload application spans. The
+  sidecar-backed local runtime returns sanitized capture metadata such as
+  capture engine, dimensions, crop bounds, monitor id, byte count, content type,
+  and duration.
 - `query.dispatch`: SDK conversation runtime records backend send start/end or
   skip spans with transport availability, backend acceptance, request ids, and
   duration.

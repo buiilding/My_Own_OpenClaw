@@ -179,7 +179,15 @@ function traceNumberField(record: JsonRecord, ...keys: string[]): number | null 
 }
 
 const TRACE_STATUSES = new Set<TraceStatus>(['started', 'succeeded', 'failed', 'skipped']);
-const TRACE_RUNTIMES = new Set<TraceRuntime>(['sdk', 'electron-main', 'renderer', 'sidecar', 'backend', 'provider']);
+const TRACE_RUNTIMES = new Set<TraceRuntime>([
+  'sdk',
+  'electron-main',
+  'renderer',
+  'local-runtime',
+  'sidecar',
+  'backend',
+  'provider',
+]);
 
 function traceStatusOf(value: unknown): TraceStatus | null {
   return typeof value === 'string' && TRACE_STATUSES.has(value as TraceStatus)

@@ -222,7 +222,7 @@ function traceDataFromCaptureMeta(captureMeta) {
         ...(typeof virtualBounds?.height === 'number' ? { virtualHeight: virtualBounds.height } : {}),
     };
 }
-function sidecarCaptureTraceData(data) {
+function localRuntimeCaptureTraceData(data) {
     const pathTrace = isJsonRecord(data.path_trace) ? data.path_trace : null;
     return {
         ...(pathTrace ?? {}),
@@ -272,7 +272,7 @@ async function uploadScreenshotFile(sdkClient, screenshotPath, contentTypeInput)
         await fs.unlink(normalizedPath);
     }
     catch {
-        // Best effort cleanup for sidecar-owned temporary screenshot files.
+        // Best effort cleanup for local-runtime temporary screenshot files.
     }
     const artifactId = optionalString(uploaded.artifact_id);
     if (!artifactId) {
@@ -429,9 +429,9 @@ function createDefaultTurnResourceResolvers(options) {
                     },
                     onExecuteStart: async () => {
                         await emitScreenshotTrace(context, {
-                            stage: 'sidecar_capture',
+                            stage: 'local_runtime_capture',
                             status: 'started',
-                            runtime: 'sidecar',
+                            runtime: 'local-runtime',
                         });
                     },
                 });
@@ -439,9 +439,9 @@ function createDefaultTurnResourceResolvers(options) {
             }
             catch (error) {
                 await emitScreenshotTrace(context, {
-                    stage: 'sidecar_capture',
+                    stage: 'local_runtime_capture',
                     status: 'failed',
-                    runtime: 'sidecar',
+                    runtime: 'local-runtime',
                     error,
                 });
                 return fail(error);
@@ -449,19 +449,19 @@ function createDefaultTurnResourceResolvers(options) {
             if (result.success === false) {
                 const message = optionalString(result.error) ?? 'Screenshot capture failed.';
                 await emitScreenshotTrace(context, {
-                    stage: 'sidecar_capture',
+                    stage: 'local_runtime_capture',
                     status: 'failed',
-                    runtime: 'sidecar',
-                    error: { code: 'sidecar_screenshot_failed', message },
+                    runtime: 'local-runtime',
+                    error: { code: 'local_runtime_screenshot_failed', message },
                 });
                 return fail(message);
             }
             const data = resolveScreenshotData(result);
             await emitScreenshotTrace(context, {
-                stage: 'sidecar_capture',
+                stage: 'local_runtime_capture',
                 status: 'succeeded',
-                runtime: 'sidecar',
-                data: sidecarCaptureTraceData(data),
+                runtime: 'local-runtime',
+                data: localRuntimeCaptureTraceData(data),
             });
             const existing = screenshotResolutionFromData(data);
             if (existing) {

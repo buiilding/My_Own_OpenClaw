@@ -150,7 +150,15 @@ function traceNumberField(record, ...keys) {
     return null;
 }
 const TRACE_STATUSES = new Set(['started', 'succeeded', 'failed', 'skipped']);
-const TRACE_RUNTIMES = new Set(['sdk', 'electron-main', 'renderer', 'sidecar', 'backend', 'provider']);
+const TRACE_RUNTIMES = new Set([
+    'sdk',
+    'electron-main',
+    'renderer',
+    'local-runtime',
+    'sidecar',
+    'backend',
+    'provider',
+]);
 function traceStatusOf(value) {
     return typeof value === 'string' && TRACE_STATUSES.has(value)
         ? value

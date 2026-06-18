@@ -3901,7 +3901,7 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
-  test('default turn resource resolver uploads sidecar screenshot paths before backend send', async () => {
+  test('default turn resource resolver uploads local-runtime screenshot paths before backend send', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'windie-sdk-query-shot-'));
     const screenshotPath = join(tempDir, 'query-shot.jpg');
     await writeFile(screenshotPath, new Uint8Array([1, 2, 3, 4]));
@@ -4028,8 +4028,8 @@ describe('Agent SDK conversation runtime core', () => {
       'sdk:resolver:started',
       'electron-main:surface_prepare:started',
       'electron-main:surface_prepare:succeeded',
-      'sidecar:sidecar_capture:started',
-      'sidecar:sidecar_capture:succeeded',
+      'local-runtime:local_runtime_capture:started',
+      'local-runtime:local_runtime_capture:succeeded',
       'sdk:artifact_upload:started',
       'sdk:artifact_upload:succeeded',
       'sdk:resolver:succeeded',
@@ -4042,7 +4042,7 @@ describe('Agent SDK conversation runtime core', () => {
         visibleCaptureWindowCount: 2,
       }),
     );
-    expect(timeline.find(entry => entry.stage === 'sidecar_capture' && entry.status === 'succeeded')?.data).toEqual(
+    expect(timeline.find(entry => entry.stage === 'local_runtime_capture' && entry.status === 'succeeded')?.data).toEqual(
       expect.objectContaining({
         captureEngine: expect.any(String),
         sourceW: 1920,
@@ -4158,8 +4158,8 @@ describe('Agent SDK conversation runtime core', () => {
     expect(timeline.map(entry => `${entry.runtime}:${entry.stage}:${entry.status}`)).toEqual([
       'sdk:resource_detected:succeeded',
       'sdk:resolver:started',
-      'sidecar:sidecar_capture:started',
-      'sidecar:sidecar_capture:failed',
+      'local-runtime:local_runtime_capture:started',
+      'local-runtime:local_runtime_capture:failed',
       'sdk:resolver:skipped',
       'sdk:query_payload_applied:succeeded',
     ]);
