@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename the Electron agent-definition input collector from
+  desktop-agent to electron-agent terminology, keeping SDK agent-definition
+  handoff behavior unchanged; no migration is required.
+
 - docs/backend: remove stale global-container fallback wording from backend
   architecture and bootstrap docs so API dependency resolution is described as
   app-lifespan scoped through `app.state.container`; no migration is required

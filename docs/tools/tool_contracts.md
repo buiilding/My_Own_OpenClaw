@@ -124,7 +124,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 | Built-in local manifest source | `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/windie_shared/browser_contract*` |
 | Generated Electron manifest artifact | `frontend/src/main/generated/builtin_tool_manifest.json`, `scripts/generate-builtin-tool-manifest` |
 | Client manifest validation | `backend/src/tools/client_manifest.py` |
-| Client manifest agent definition | `frontend/src/main/agent/desktop_agent_definition_inputs.cjs`, `frontend/src/main/extensions/tool_manifest.cjs`, `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` |
+| Client manifest agent definition | `frontend/src/main/agent/electron_agent_definition_inputs.cjs`, `frontend/src/main/extensions/tool_manifest.cjs`, `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` |
 | Backend tool catalog | `backend/src/tools/tool_catalog.py` |
 | Backend schemas and remote tools | `backend/src/tools/remote_tools/*`, `backend/src/tools/*schema*` |
 | Tool policy and capability filters | `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_health.py` |

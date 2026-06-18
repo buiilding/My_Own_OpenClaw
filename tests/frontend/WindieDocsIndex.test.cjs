@@ -899,7 +899,7 @@ describe('windie docs index', () => {
   });
 
   test('routes Electron agent-definition input collector queries to main IPC docs', () => {
-    expect(findDocs('frontend/src/main/agent/desktop_agent_definition_inputs.cjs')[0].path).toBe(
+    expect(findDocs('frontend/src/main/agent/electron_agent_definition_inputs.cjs')[0].path).toBe(
       path.join('docs', 'frontend', 'main', 'electron_main_and_ipc.md'),
     );
   });

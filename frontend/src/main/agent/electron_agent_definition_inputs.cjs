@@ -11,8 +11,8 @@ function rejectRemovedInputKeys(options, keys, label) {
   }
 }
 
-function buildDesktopAgentDefinitionInputs(options = {}) {
-  rejectRemovedInputKeys(options, ['agents_md'], 'desktop agent definition inputs');
+function buildElectronAgentDefinitionInputs(options = {}) {
+  rejectRemovedInputKeys(options, ['agents_md'], 'electron agent definition inputs');
 
   const extensionPromptLayers = options.includeExtensionPromptLayers === false
     ? []
@@ -41,5 +41,5 @@ function buildDesktopAgentDefinitionInputs(options = {}) {
 }
 
 module.exports = {
-  buildDesktopAgentDefinitionInputs,
+  buildElectronAgentDefinitionInputs,
 };

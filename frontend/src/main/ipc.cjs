@@ -153,8 +153,8 @@ const {
   isAgentLoopStopShortcutPhase,
 } = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
 const {
-  buildDesktopAgentDefinitionInputs,
-} = require('./agent/desktop_agent_definition_inputs.cjs');
+  buildElectronAgentDefinitionInputs,
+} = require('./agent/electron_agent_definition_inputs.cjs');
 const {
   createDesktopLocalRuntimeLaunchPlan,
 } = require('./sidecar/local_runtime_launch_options.cjs');
@@ -2140,7 +2140,7 @@ function attachAgentDefinitionContext(payload) {
   const agentsMd = workspacePath
     ? resolveWorkspaceRepoInstructionPromptLayers(workspacePath)
     : [];
-  const generatedAgentDefinition = buildAgentDefinition(buildDesktopAgentDefinitionInputs({
+  const generatedAgentDefinition = buildAgentDefinition(buildElectronAgentDefinitionInputs({
     includeToolManifest: false,
     customInstructions,
     promptLayers: loadExtensionSkillPromptLayers(),

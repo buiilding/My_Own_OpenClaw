@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Electron agent-definition input collector naming
+
+- Finding: Electron main still named the SDK agent-definition input collector
+  `desktop_agent_definition_inputs.cjs` and exported
+  `buildDesktopAgentDefinitionInputs`, leaving desktop-agent terminology on
+  the generic Electron host-to-SDK handoff.
+- Change: renamed the module, export, caller, tests, and docs to
+  electron-agent terminology without keeping a compatibility export.
+- Validation: focused collector Jest test, main SDK runtime boundary Jest
+  test, docs-index route test, docs listing, stale old-name scan, and
+  `git diff --check`.
+- Compatibility: no migration required. This is an internal Electron-main
+  module name change only; SDK `buildAgentDefinition` inputs, websocket
+  payloads, prompt layers, AGENTS.md forwarding, tool manifests, settings,
+  and persisted data are unchanged.
+
 ### 2026-06-18 backend app container docs cleanup
 
 - Finding: backend architecture/bootstrap docs still described global container

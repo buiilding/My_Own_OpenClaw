@@ -1,9 +1,9 @@
 ---
-summary: "First-class agent definition contract and SDK `buildAgentDefinition` builder for clients that initialize WindieOS agents without the Electron frontend, including capability metadata stamping, Electron `desktop_agent_definition_inputs.cjs` handoff, the current replacement for the old planned post-handshake `frontend-tool-schemas` flow, and the removed top-level `client_tool_manifest` handshake fallback."
+summary: "First-class agent definition contract and SDK `buildAgentDefinition` builder for clients that initialize WindieOS agents without the Electron frontend, including capability metadata stamping, Electron `electron_agent_definition_inputs.cjs` handoff, the current replacement for the old planned post-handshake `frontend-tool-schemas` flow, and the removed top-level `client_tool_manifest` handshake fallback."
 read_when:
   - When building a custom WindieOS UI, TUI, CLI, or hosted client.
   - When changing websocket handshake, prompt layers, client tool manifests, skills, AGENTS.md forwarding, or plugin metadata.
-  - When changing `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, the SDK `buildAgentDefinition` export, capability metadata stamping, or Electron main's `desktop_agent_definition_inputs.cjs` handoff into the SDK builder.
+  - When changing `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, the SDK `buildAgentDefinition` export, capability metadata stamping, or Electron main's `electron_agent_definition_inputs.cjs` handoff into the SDK builder.
   - When searching for planned post-handshake frontend tool schemas, removed top-level `client_tool_manifest` handshake fallback behavior, agent capability handshake behavior, the removed `agent_capability_handshake.cjs` builder, or the removed `AgentCapabilityHandshake.test.cjs`.
 ---
 
