@@ -12,7 +12,7 @@ WindieOS has three first-class repo-level contribution roots:
 
 | Developer asks to add | Put it here | Canonical instructions |
 | --- | --- | --- |
-| A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#sidecar-plugin-tool-registration) |
+| A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#local-runtime-plugin-tool-registration) |
 | Instructions only | `skills/<id>/SKILL.md` | [Skills](../development/extensions.md#skills) |
 | An MCP server | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | A built-in WindieOS tool | Core backend/frontend/sidecar tool files | [Tool Development](../development/tool_development.md) |
@@ -27,7 +27,7 @@ tools.
 
 | Surface | Extend here | Start docs |
 | --- | --- | --- |
-| Sidecar plugins | `plugins/<id>/plugin.json` | [Extension Convention](../development/extensions.md) |
+| Local-runtime plugins | `plugins/<id>/plugin.json` | [Extension Convention](../development/extensions.md) |
 | Prompt skills | `skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
 | MCP integrations | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
@@ -52,7 +52,7 @@ tools.
 
 ## Common Paths
 
-### Add A Sidecar Plugin Tool
+### Add A Local Runtime Plugin Tool
 
 Read:
 
@@ -65,7 +65,7 @@ Likely code:
 - `plugins/<id>/schemas/*.schema.json`
 - `plugins/<id>/python/*.py`
 
-Validate extension manifest tests and sidecar plugin loading tests.
+Validate extension manifest tests and local-runtime plugin loading tests.
 
 ### Add An MCP Integration
 

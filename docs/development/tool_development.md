@@ -20,8 +20,9 @@ runtime contract, and the frontend sidecar executor:
 This guide documents the current tool API and registration flow.
 
 For third-party or developer-owned local tools, start with
-[Extension Convention](extensions.md#add-a-sidecar-tool). Only use the backend
-SDK path below for backend-owned remote tools or built-in WindieOS tools.
+[Extension Convention](extensions.md#local-runtime-plugin-tool-registration).
+Only use the backend SDK path below for backend-owned remote tools or built-in
+WindieOS tools.
 
 ## Runtime Ownership
 
@@ -54,13 +55,13 @@ Current runtime note:
 - the SDK/Electron frontend sends `agent_definition.tools.client_manifest`
   during websocket handshake so client-local tool schemas can be extended
   without editing backend schema code.
-- sidecar plugin tools put model-facing JSON Schema files under
+- local-runtime plugin tools put model-facing JSON Schema files under
   `plugins/<id>/schemas/` and reference them as `schema` from
   `plugins/<id>/plugin.json`
-- sidecar plugin tools put executable Python under
+- local-runtime plugin tools put executable Python under
   `plugins/<id>/python/` and reference it as
   `entrypoint: "python/file.py:function"` from `plugin.json`
-- sidecar plugin and module entrypoints must return native
+- local-runtime plugin and module entrypoints must return native
   `tools.result.ToolResult` values
 - ordinary extensions do not edit the built-in sidecar registry or executable
   manifest modules
@@ -267,7 +268,7 @@ If you add backend-only tools, document the wiring point in the same PR.
    `backend/src/tools/remote_tools/<domain>.py` module.
 2. For built-in sidecar tools, confirm the tool is listed in
    `frontend/src/main/python/tools/manifest.py`.
-3. For sidecar plugin tools, confirm `plugin.json` has `schema` and
+3. For local-runtime plugin tools, confirm `plugin.json` has `schema` and
    `entrypoint`.
 4. Confirm handler is registered in sidecar `ToolRegistry`.
 5. Run remote contract or extension manifest tests for the changed path.

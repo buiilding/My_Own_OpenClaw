@@ -1,10 +1,10 @@
 ---
-summary: "Canonical WindieOS extension contribution package layout for plugin tool registration, repo-level sidecar plugins, prompt skills, MCP server specs, ignored legacy extensions container behavior, and sidecar-tool extension boundaries."
+summary: "Canonical WindieOS extension contribution package layout for plugin tool registration, repo-level local-runtime plugins, prompt skills, MCP server specs, ignored legacy extensions container behavior, and sidecar implementation boundaries."
 read_when:
   - When adding reusable client-side plugins, skills, or MCP integrations.
-  - When registering plugin tools through `plugins/<id>/plugin.json`, schemas, and sidecar Python entrypoints.
-  - When changing extension-owned tool schemas, sidecar execution, prompt layers, or MCP discovery.
-  - When searching for extension package, plugin, MCP, skills, or sidecar tools contribution layout; this doc owns extension contribution roots, not built-in sidecar tool behavior.
+  - When registering plugin tools through `plugins/<id>/plugin.json`, schemas, and Python local-runtime entrypoints.
+  - When changing extension-owned tool schemas, local-runtime execution, prompt layers, or MCP discovery.
+  - When searching for extension package, plugin, MCP, skills, or local-runtime tool contribution layout; this doc owns extension contribution roots, not built-in sidecar tool behavior.
   - When stale docs, local folders, or prompts mention `extensions/<id>/extension.json`, `plugin/index.cjs`, or an `extensions/` container; the active loader ignores that legacy shape.
 ---
 
@@ -33,12 +33,13 @@ Some local checkouts may still contain an empty legacy `extensions/` directory;
 it is not the contribution root and is not tracked as the current authoring
 surface. Default discovery uses the WindieOS repo root, or
 `WINDIE_AGENT_CONTRIBUTIONS_DIR` when set; it does not infer contribution roots
-from the process working directory. Plugin tools are sidecar tools: Electron
-main reads `plugin.json` for the model-facing client manifest, and the Python
-sidecar loads the same `plugin.json` to execute the declared Python
-entrypoints. Use this page for extension package, plugin, MCP, skills, and
-sidecar-tool contribution layout. Use the frontend sidecar tools docs for built-in
-computer/system/filesystem/shell/browser tool runtime behavior.
+from the process working directory. Plugin tools are local-runtime tools:
+Electron main reads `plugin.json` for the model-facing client manifest, and the
+Python sidecar implementation loads the same `plugin.json` to execute the
+declared Python entrypoints. Use this page for extension package, plugin, MCP,
+skills, and local-runtime tool contribution layout. Use the frontend sidecar
+tools docs for built-in computer/system/filesystem/shell/browser implementation
+behavior.
 
 ## Choose The Surface
 
@@ -79,7 +80,7 @@ Use `--dir <path>` to target another WindieOS repo/contribution root. The comman
 overwrite existing contribution folders unless `--force` is passed and the
 target folders are empty.
 
-## Sidecar Plugin Tool Registration
+## Local Runtime Plugin Tool Registration
 
 `plugin.json` is required for a plugin:
 
@@ -202,7 +203,8 @@ is required for desktop-control integrations such as CUA Driver.
    registry with enabled specs, and appends visible tools to
    `client_tool_manifest`.
 4. The backend validates and policy-projects the client manifest.
-5. Local plugin tool calls route to the sidecar tool registry.
+5. Local plugin tool calls route through SDK local-runtime execution to the
+   sidecar tool registry.
 6. MCP tool calls route through the MCP runtime.
 
 ## Validation

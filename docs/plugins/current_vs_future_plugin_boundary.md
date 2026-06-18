@@ -9,22 +9,22 @@ title: "Current vs Future Plugin Boundary"
 # Current vs Future Plugin Boundary
 
 WindieOS currently supports code-level extension points plus divided local
-extension contribution roots for sidecar plugins, prompt skills, and MCP server
-specs. It does not currently support a packaged plugin marketplace, signed
-plugin bundles, dependency installation, remote plugin registries, or hot-loading
-without app restart.
+extension contribution roots for local-runtime plugins, prompt skills, and MCP
+server specs. It does not currently support a packaged plugin marketplace,
+signed plugin bundles, dependency installation, remote plugin registries, or
+hot-loading without app restart.
 
 ## Current
 
 Implemented today:
 
-- sidecar plugins under `plugins/*/plugin.json`
+- local-runtime plugins under `plugins/*/plugin.json`
 - plugin tools declared with `name`, `schema`, and Python `entrypoint`
 - plugin settings-panel metadata, config schemas, and permissions
 - MCP servers under `mcps/*/mcp.json`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
 - skills under `skills/**/SKILL.md` forwarded through `agent_definition.prompt_layers`
 - backend tool registry and SDK tool base
-- sidecar executable tools
+- Python sidecar executable tools
 - LLM provider factory and model catalog
 - OCR/vision/embedding capability routers
 - hosted SDK routes and clients
@@ -44,7 +44,7 @@ A real plugin system would need at least:
 - sandbox/isolation model
 - permissions prompt and audit trail
 - model-visible tool registration policy
-- sidecar execution registration policy
+- local-runtime execution registration policy
 - provider credential scoping
 - compatibility/version constraints
 - tests for malicious, malformed, duplicate, and disabled plugins
@@ -56,9 +56,9 @@ Do not imply this exists in current docs.
 | Request | Current answer |
 | --- | --- |
 | "Add a provider plugin" | implement an LLM/inference provider in current provider paths |
-| "Add a desktop action plugin" | implement backend schema + sidecar tool execution |
+| "Add a desktop action plugin" | implement backend schema + local-runtime tool execution |
 | "Add a browser plugin" | extend browser schema/runtime, not a third-party browser extension store |
-| "Add a local plugin contribution" | use `plugins/<id>/plugin.json` with sidecar Python |
+| "Add a local plugin contribution" | use `plugins/<id>/plugin.json` with a Python entrypoint executed by the local runtime |
 | "Connect an MCP server" | add `mcps/<id>/mcp.json` |
 | "Let users install marketplace plugins" | planning/design first |
 | "Load local-runtime tools from a plugin manifest" | use `plugins/<id>/plugin.json` |

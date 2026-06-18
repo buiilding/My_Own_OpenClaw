@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: make generated extension/plugin scaffold copy and contribution
+  docs describe local-runtime plugins and Python entrypoints instead of sidecar
+  plugins; no migration is required because contribution paths and manifests are
+  unchanged.
 - docs/channels: route public local tool and plugin flows through the Agent SDK
   and SDK local-runtime boundary instead of Windie Agent or local sidecar
   wording; no migration is required because this is docs/test terminology
@@ -2312,6 +2316,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: make generated extension/plugin scaffold copy and contribution
+  docs describe local-runtime plugins and Python entrypoints instead of sidecar
+  plugins; no migration is required because contribution paths and manifests are
+  unchanged.
 - docs/channels: route public local tool and plugin flows through the Agent SDK
   and SDK local-runtime boundary instead of Windie Agent or local sidecar
   wording; no migration is required because this is docs/test terminology
@@ -4111,6 +4119,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: make generated extension/plugin scaffold copy and contribution
+  docs describe local-runtime plugins and Python entrypoints instead of sidecar
+  plugins; no migration is required because contribution paths and manifests are
+  unchanged.
 - docs/channels: route public local tool and plugin flows through the Agent SDK
   and SDK local-runtime boundary instead of Windie Agent or local sidecar
   wording; no migration is required because this is docs/test terminology
@@ -4565,6 +4577,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: make generated extension/plugin scaffold copy and contribution
+  docs describe local-runtime plugins and Python entrypoints instead of sidecar
+  plugins; no migration is required because contribution paths and manifests are
+  unchanged.
 - docs/channels: route public local tool and plugin flows through the Agent SDK
   and SDK local-runtime boundary instead of Windie Agent or local sidecar
   wording; no migration is required because this is docs/test terminology
@@ -5049,6 +5065,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: make generated extension/plugin scaffold copy and contribution
+  docs describe local-runtime plugins and Python entrypoints instead of sidecar
+  plugins; no migration is required because contribution paths and manifests are
+  unchanged.
 - docs/channels: route public local tool and plugin flows through the Agent SDK
   and SDK local-runtime boundary instead of Windie Agent or local sidecar
   wording; no migration is required because this is docs/test terminology
@@ -7489,6 +7509,10 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- extensions: make generated extension/plugin scaffold copy and contribution
+  docs describe local-runtime plugins and Python entrypoints instead of sidecar
+  plugins; no migration is required because contribution paths and manifests are
+  unchanged.
 - docs/channels: route public local tool and plugin flows through the Agent SDK
   and SDK local-runtime boundary instead of Windie Agent or local sidecar
   wording; no migration is required because this is docs/test terminology

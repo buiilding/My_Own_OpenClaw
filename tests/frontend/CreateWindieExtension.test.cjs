@@ -31,6 +31,17 @@ describe('create-windie-extension scaffold', () => {
     expect(fs.existsSync(path.join(result.pluginDir, 'schemas', 'inspect_repo.schema.json'))).toBe(true);
     expect(fs.existsSync(path.join(result.pluginDir, 'python', 'inspect_repo.py'))).toBe(true);
     expect(fs.existsSync(path.join(result.skillDir, 'SKILL.md'))).toBe(true);
+    const pluginManifestText = fs.readFileSync(path.join(result.pluginDir, 'plugin.json'), 'utf8');
+    const pluginReadmeText = fs.readFileSync(path.join(result.pluginDir, 'README.md'), 'utf8');
+    const skillReadmeText = fs.readFileSync(path.join(result.skillDir, 'README.md'), 'utf8');
+
+    expect(pluginManifestText).toContain('Starter WindieOS local-runtime plugin');
+    expect(pluginReadmeText).toContain('local-runtime plugin generated');
+    expect(pluginReadmeText).toContain('Python entrypoint executed by the local runtime');
+    expect(skillReadmeText).toContain('local-runtime plugin');
+    expect(`${pluginManifestText}\n${pluginReadmeText}\n${skillReadmeText}`).not.toMatch(
+      /Windie sidecar plugin|sidecar plugin|local sidecar entrypoint/,
+    );
 
     const loaded = loadAgentExtensionRegistry({ contributionsDir: contributionRoot });
 

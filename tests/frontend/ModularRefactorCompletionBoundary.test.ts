@@ -258,8 +258,10 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/architecture/backend_architecture.md'),
       read('docs/channels/README.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
+      read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
       read('docs/gateway/gateway_troubleshooting.md'),
+      read('docs/plugins/README.md'),
       read('docs/plugins/current_vs_future_plugin_boundary.md'),
       read('docs/README.md'),
       read('docs/reference/code_change_surface_index.md'),
@@ -273,13 +275,18 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
+    expect(docText).toContain('local-runtime plugins under `plugins/*/plugin.json`');
     expect(docText).toContain('execute through the SDK local runtime');
     expect(docText).toContain('SDK local-runtime tools');
     expect(docText).toContain('Agent SDK/local-runtime manifest');
+    expect(docText).toContain('Local Runtime Plugin Tool Registration');
     expect(docText).not.toContain('client-local sidecar tool');
+    expect(docText).not.toContain('sidecar plugins under `plugins/*/plugin.json`');
     expect(docText).not.toContain('local sidecar tools');
     expect(docText).not.toContain('local sidecar execution');
     expect(docText).not.toContain('Windie Agent owns client-local');
+    expect(docText).not.toContain('Sidecar Plugin Tool Registration');
+    expect(docText).not.toContain('sidecar plugin');
   });
 
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 extension scaffold local-runtime plugin wording
+
+- Finding: the extension authoring docs and `bin/windie extension create`
+  scaffold still described repo-level plugin contributions as sidecar plugins
+  or local sidecar entrypoints, even though public contribution authors should
+  see them as SDK local-runtime plugins with Python implementation entrypoints.
+- Change: updated extension/plugin docs, scaffolded `plugin.json`/README copy,
+  docs index search wording, and focused scaffold/boundary tests to use
+  local-runtime plugin terminology while preserving `plugins/<id>/plugin.json`,
+  `schemas/`, and `python/` paths.
+- Validation: `CreateWindieExtension.test.cjs`, focused
+  `ModularRefactorCompletionBoundary.test.ts`, focused `WindieDocsIndex` route
+  coverage, docs listing, stale sidecar-plugin phrase scan, and diff checks.
+- Compatibility: no migration required. Contribution directory layout,
+  plugin manifests, Python entrypoints, extension loading, MCP/skill roots, and
+  sidecar execution internals are unchanged.
 ### 2026-06-18 channel and tool routing local-runtime docs
 
 - Finding: channel, gateway, plugin, backend architecture, and tool-development
