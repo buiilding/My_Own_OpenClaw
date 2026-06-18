@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main renderer console logging marker runtime key
+
+- Finding: Electron main renderer-console mirroring still used the private
+  `__desktopAgentRendererConsoleLoggingAttached` flag to prevent duplicate
+  `console-message` listeners on a `webContents` instance.
+- Change: renamed the private marker to
+  `__desktopRuntimeRendererConsoleLoggingAttached`, asserted the new marker in
+  overlay runtime coverage, and extended main host boundary coverage to reject
+  the retired desktop-agent marker.
+- Validation: focused MainWindowOverlayRuntime and MainHostSkinBoundary Jest
+  tests, recent history review, and stale renderer-console marker scan.
+- Compatibility: no migration required. The marker is process-local private
+  state; renderer console listener attachment, log routing, log files, IPC, and
+  persisted diagnostics are unchanged.
+
 ### 2026-06-18 SDK managed backend socket factory alias removal
 
 - Finding: `ManagedBackendSocketFactory` only renamed `() => WebSocketLike`, and

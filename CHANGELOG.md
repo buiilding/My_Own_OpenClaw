@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the private renderer-console logging attachment marker
+  from `__desktopAgentRendererConsoleLoggingAttached` to
+  `__desktopRuntimeRendererConsoleLoggingAttached`; no migration is required
+  because renderer console log routing and log files are unchanged.
 - sdk/js: remove the unused exported `ManagedBackendSocketFactory` type alias
   and keep `ManagedBackendSessionOptions.createSocket` typed directly as a
   function returning `WebSocketLike`; no runtime, storage, or wire-payload

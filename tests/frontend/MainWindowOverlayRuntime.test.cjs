@@ -73,6 +73,7 @@ describe('main_window_overlay_runtime', () => {
       writeVerboseLogLine,
       writeVerboseSessionBanner,
     })).toBe(false);
+    expect(webContents.__desktopRuntimeRendererConsoleLoggingAttached).toBe(true);
 
     expect(writeSessionBanner).toHaveBeenCalledWith('renderer', {
       sessionLabel: 'chat-pill renderer console log session',

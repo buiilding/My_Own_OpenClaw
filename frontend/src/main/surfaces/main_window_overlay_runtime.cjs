@@ -12,7 +12,7 @@ const {
   appendRendererVerboseLogSessionBanner,
 } = require('../logging/layer_log_sink.cjs');
 
-const RENDERER_CONSOLE_LOGGING_ATTACHED_KEY = '__desktopAgentRendererConsoleLoggingAttached';
+const RENDERER_CONSOLE_LOGGING_ATTACHED_KEY = '__desktopRuntimeRendererConsoleLoggingAttached';
 
 function normalizeConsoleMessagePayload(args) {
   if (
