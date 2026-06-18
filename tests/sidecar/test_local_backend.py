@@ -38,18 +38,23 @@ def test_local_backend_runtime_copy_uses_local_runtime_terms():
         for module_path in [
             local_backend_module.__file__,
             memory_handlers_module.__file__,
+            Path(local_backend_module.__file__).parent / "core" / "ipc_protocol.py",
             Path(local_backend_module.__file__).parent / "folder_structure.md",
         ]
     )
 
     retired_runtime_label = "Python " + "sidecar runtime"
+    retired_daemon_phrase = "sidecar " + "daemon"
 
     assert "Python local runtime" in sources
+    assert "local runtime daemon" in sources
     assert retired_runtime_label not in sources
+    assert retired_daemon_phrase not in sources
     assert "Local backend service for WindieOS" not in sources
     assert "Main local backend service" not in sources
     assert "Initializing local backend" not in sources
     assert "Shutting down local backend" not in sources
+    assert "Get detailed backend status" not in sources
 
 
 class DummyRegistry:

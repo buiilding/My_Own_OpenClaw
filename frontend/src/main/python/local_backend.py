@@ -3,7 +3,7 @@
 Python local runtime service.
 
 Handles tool execution, system state collection, memory operations,
-and wake-word detection for the sidecar daemon.
+and wake-word detection for the local runtime daemon.
 """
 
 import asyncio
@@ -504,7 +504,7 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
         return {"status": "ok", "service": "local_runtime"}
 
     async def _handle_get_status(self, **kwargs) -> Dict[str, Any]:
-        """Get detailed backend status for diagnostics."""
+        """Get detailed local-runtime status for diagnostics."""
         try:
             browser_binary_path = self._find_available_browser_binary()
             status = {

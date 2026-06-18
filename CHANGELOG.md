@@ -37,6 +37,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/app: route onboarding and dashboard settings config access through
   `DesktopRendererConfigRuntimeClient`, so renderer feature modules no longer
   import app-provider config context directly. No migration required.
+- sidecar/local-runtime: align reusable Python local-runtime service and
+  JSON-RPC protocol docstrings with local-runtime daemon/status wording instead
+  of sidecar/backend ownership. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

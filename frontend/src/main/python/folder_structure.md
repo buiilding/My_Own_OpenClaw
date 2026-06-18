@@ -255,8 +255,8 @@ frontend/src/main/python/
 
 ## Service Communication Patterns
 
-### JSON-RPC 2.0 (Python Sidecar Runtime)
-- **Protocol**: JSON-RPC 2.0 envelopes over sidecar daemon HTTP `/rpc`
+### JSON-RPC 2.0 (Python Local Runtime)
+- **Protocol**: JSON-RPC 2.0 envelopes over local runtime daemon HTTP `/rpc`
 - **Methods**: execute_tool, get_system_state, search_memory_by_embedding, store_memory_by_embedding, ping, get_status
 - **Error Handling**: Standard JSON-RPC error codes
 

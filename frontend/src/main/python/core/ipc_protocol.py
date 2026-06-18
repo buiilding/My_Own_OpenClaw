@@ -1,7 +1,7 @@
 """
 JSON-RPC protocol handler for the Python local runtime.
 
-Handles JSON-RPC 2.0 request validation and dispatch for the sidecar daemon.
+Handles JSON-RPC 2.0 request validation and dispatch for the local runtime daemon.
 """
 
 import json

@@ -9203,3 +9203,19 @@ Each completed slice should report:
   browser automation permission flow, IPC channels, local-runtime launch,
   hosted backend URLs, credentials, permissions, and provider policy are
   unchanged.
+
+### 2026-06-18 Python local-runtime service daemon/status wording boundary
+
+- Finding: reusable Python local-runtime service and JSON-RPC protocol
+  docstrings still described request handling as sidecar-daemon-owned and the
+  status method as backend status, blurring the concrete daemon process with
+  the reusable local-runtime service/protocol contract.
+- Change: reworded `local_backend.py` and `core/ipc_protocol.py` to describe
+  the local runtime daemon and local-runtime status, and extended the focused
+  local-backend source-copy guard.
+- Validation: focused sidecar local-backend coverage, Python compile checks,
+  docs listing, and diff checks.
+- Compatibility: no migration required. JSON-RPC method names, status payload
+  shape, daemon process name, discovery files, env aliases, tool execution,
+  memory storage, IPC channels, hosted backend URLs, credentials, permissions,
+  and provider policy are unchanged.
