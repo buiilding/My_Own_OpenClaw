@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/runtime: align session runtime comments and synthetic tool-failure
+  docs with SDK/client and SDK/local-runtime ownership instead of stale
+  frontend/renderer runtime labels; no migration is required because this only
+  changes comments, docs, and wording guards.
 - backend/tools: align remaining backend and architecture tool-result ingress
   references with SDK/local-runtime result ownership and rename the query
   accepted log sender to client; no migration is required because websocket

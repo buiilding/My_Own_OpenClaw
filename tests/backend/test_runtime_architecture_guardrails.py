@@ -8,7 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _read(rel_path: str) -> str:
-    return (REPO_ROOT / rel_path).read_text()
+    return (REPO_ROOT / rel_path).read_text(encoding="utf-8")
 
 
 def _assigns_dunder_all(path: Path) -> bool:
@@ -86,3 +86,24 @@ def test_api_topology_map_does_not_document_removed_package_exports():
     assert "Schema package exports" not in source_map
     assert "Package router export" not in source_map
     assert "Exports:" not in source_map
+
+
+def test_backend_runtime_docs_use_sdk_client_boundary_wording():
+    session_source = _read("backend/src/agent/session/session.py")
+    synthetic_reference = _read(
+        "docs/backend/tools/processing/synthetic_result_factory_and_coordinate_resolution_failure_tool_output_reference.md"
+    )
+    frontend_architecture = _read("docs/architecture/frontend_architecture.md")
+
+    assert "client runtime system_state payload" in session_source
+    assert "SDK/client transport" in session_source
+    assert "SDK/local-runtime event ordering guarantees" in synthetic_reference
+    assert "SDK/local-runtime protocol-ordering issues" in synthetic_reference
+    assert "SDK/main local-runtime dispatch" in synthetic_reference
+    assert "rebuilding provider history in renderer code" in frontend_architecture
+    assert "system_state payload captured by the frontend" not in session_source
+    assert "Active conversation identity from frontend" not in session_source
+    assert "frontend event ordering guarantees" not in synthetic_reference
+    assert "frontend protocol-ordering issues" not in synthetic_reference
+    assert "tool never executed on frontend" not in synthetic_reference
+    assert "renderer-owned runtime" not in frontend_architecture

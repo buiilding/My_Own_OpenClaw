@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for backend-generated synthetic tool results: coordinate-resolution failure payload shape, pending-result storage semantics, and frontend event ordering guarantees."
+summary: "Deep reference for backend-generated synthetic tool results: coordinate-resolution failure payload shape, pending-result storage semantics, and SDK/local-runtime event ordering guarantees."
 read_when:
   - When changing synthetic tool-result construction or the send-path handling for preparation failures.
-  - When debugging frontend protocol-ordering issues (`ToolCallEvent` before `ToolOutputEvent`) or immediate wait completion for failed tool preparation.
+  - When debugging SDK/local-runtime protocol-ordering issues (`ToolCallEvent` before `ToolOutputEvent`) or immediate wait completion for failed tool preparation.
 title: "Synthetic Result Factory and Coordinate-Resolution Failure Tool-Output Reference"
 ---
 
@@ -50,7 +50,7 @@ Failure metadata fields:
 
 Protocol guarantee:
 
-- `ToolCallEvent` is always emitted before `ToolOutputEvent`, even though tool never executed on frontend
+- `ToolCallEvent` is always emitted before `ToolOutputEvent`, even though the tool never entered SDK/main local-runtime dispatch
 
 ## Why Pending Result Storage Happens Before Events
 
@@ -95,7 +95,7 @@ Result:
 
 ## Drift Hotspots
 
-1. changing event order can break SDK/main and renderer tool-state assumptions.
+1. changing event order can break SDK projection and renderer display assumptions.
 2. skipping `register_pending_tool_result` can reintroduce wait-path timeouts for backend-generated failures.
 3. changing synthetic `data` keys can break error diagnostics relying on `tool_name` and `error`.
 4. dispatching partial bundle events on preparation failure can desynchronize bundle wait handling.

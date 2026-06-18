@@ -421,7 +421,7 @@ Primary modules:
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - Electron main keeps one SDK conversation runtime per active conversation;
   renderer resume/open flows send intent and display rows rather than
-  rehydrating backend inference state through a renderer-owned runtime.
+  rebuilding provider history in renderer code.
 - `renderer/infrastructure/transcript/desktopConversationStore.ts`:
   - Adapts desktop display projections, edit/resend rewrites, and compaction snapshots into canonical SDK conversation events.
   - Delegates local-runtime-backed conversation reads/writes to the SDK `LocalRuntimeConversationStore`.

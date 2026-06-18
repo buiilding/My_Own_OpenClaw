@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend session/synthetic runtime wording
+
+- Finding: backend session comments and synthetic tool-failure docs still
+  described runtime system state, conversation identity, and synthetic failure
+  ordering as frontend/renderer-owned, even though the current boundary is
+  SDK/client transport plus SDK/main local-runtime dispatch.
+- Change: reworded session source comments, synthetic failure docs, and the
+  frontend architecture resume note around SDK/client and SDK/local-runtime
+  ownership, while keeping the real `skip_frontend_execution` wire metadata
+  name intact.
+- Validation: focused backend runtime architecture guardrail pytest, backend
+  session py_compile, docs listing, stale phrase scan, and diff check.
+- Compatibility: no migration required. This changes docs/comments/tests only;
+  websocket schemas, metadata keys, storage, credentials, permissions, and
+  local-runtime execution behavior are unchanged.
+
 ### 2026-06-18 backend tool-result/query client wording
 
 - Finding: backend hub docs, architecture protocol references, the API source

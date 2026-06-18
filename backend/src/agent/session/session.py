@@ -241,7 +241,7 @@ class AgentSession:
         self.runtime.set_system_state(system_state)
 
     def get_current_system_state(self) -> Optional[Dict[str, Any]]:
-        """Return the last system_state payload captured by the frontend, if any."""
+        """Return the last client runtime system_state payload, if any."""
         return self.runtime.get_system_state()
 
     def register_pending_tool_result(
@@ -559,7 +559,7 @@ class AgentSession:
             image_refs: Optional artifact refs for prompt-time image projection
             capture_meta: Optional capture metadata for image_data[0]
             message_content: Backend-rendered model-visible user message content.
-            conversation_ref: Active conversation identity from frontend.
+            conversation_ref: Active conversation identity from SDK/client transport.
         """
         async with self._lock:
             if conversation_ref:
