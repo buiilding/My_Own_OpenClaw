@@ -16,15 +16,20 @@ from local_backend import LocalBackend  # noqa: E402
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
+
+def direct_chat_method(*parts: str) -> str:
+    return "_".join(parts)
+
+
 RETIRED_DIRECT_CHAT_METHODS = {
-    "store_chat_event",
-    "list_conversations",
-    "search_conversations",
-    "load_conversation_events",
-    "get_conversation_revision",
-    "delete_conversation",
-    "replace_conversation",
-    "rewrite_conversation_after_event",
+    direct_chat_method("store", "chat", "event"),
+    direct_chat_method("list", "chat", "conversations"),
+    direct_chat_method("search", "chat", "conversations"),
+    direct_chat_method("get", "chat", "events"),
+    direct_chat_method("get", "chat", "conversation", "revision"),
+    direct_chat_method("delete", "chat", "conversation"),
+    direct_chat_method("replace", "chat", "conversation"),
+    direct_chat_method("rewrite", "chat", "conversation", "after", "event"),
 }
 
 

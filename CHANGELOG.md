@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sidecar/memory: rename chat-event store helper APIs to generic
+  conversation store names after the sidecar RPC surface converged on
+  `conversation.*`; no migration is required because storage tables, rows,
+  JSON-RPC methods, and SDK calls are unchanged.
 - sidecar: rename private chat-history handler methods to match the
   registered `conversation.*` local-runtime RPC contract; no migration is
   required because JSON-RPC method names, storage, and SDK callers are unchanged.

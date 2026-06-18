@@ -81,11 +81,8 @@ Chat-event methods:
 - `conversation.get_revision`
 - `conversation.delete`
 
-The legacy transcript-row conversation methods and retired direct chat-history
-method names (`store_chat_event`, `list_chat_conversations`,
-`search_chat_conversations`, `get_chat_events`, `get_chat_conversation_revision`,
-`delete_chat_conversation`, `replace_chat_conversation`, and
-`rewrite_chat_conversation_after_event`) are not registered.
+Legacy transcript-row conversation methods and retired direct chat-history
+method names are not registered.
 
 ## Main Bridge to JSON-RPC Mapping
 

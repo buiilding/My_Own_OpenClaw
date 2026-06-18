@@ -726,7 +726,7 @@ def _row_to_dict(row: Any) -> Dict[str, Any]:
     return result
 
 
-async def get_chat_events(
+async def load_conversation_events(
     *,
     db_path: str,
     user_id: str,
@@ -759,7 +759,7 @@ async def get_chat_events(
     return [_row_to_dict(row) for row in rows]
 
 
-async def list_chat_conversations(
+async def list_conversations(
     *,
     db_path: str,
     user_id: str,
@@ -906,7 +906,7 @@ async def list_chat_conversations(
     return results
 
 
-async def get_chat_conversation_revision(
+async def get_conversation_revision(
     *,
     db_path: str,
     user_id: str,
@@ -956,7 +956,7 @@ async def get_chat_conversation_revision(
     }
 
 
-async def search_chat_conversations(
+async def search_conversations(
     *,
     db_path: str,
     user_id: str,
@@ -985,7 +985,7 @@ async def search_chat_conversations(
         hit_rows = await cursor.fetchall()
     if not hit_rows:
         return []
-    summaries = await list_chat_conversations(
+    summaries = await list_conversations(
         db_path=db_path,
         user_id=user_id,
         limit=None,
@@ -999,7 +999,7 @@ async def search_chat_conversations(
     return results[: max(1, int(limit or 40))]
 
 
-async def delete_chat_conversation(
+async def delete_conversation(
     *,
     db_path: str,
     user_id: str,
@@ -1044,7 +1044,7 @@ async def delete_chat_conversation(
     return int(deleted)
 
 
-async def replace_chat_conversation(
+async def replace_conversation(
     *,
     db_path: str,
     user_id: str,
@@ -1184,7 +1184,7 @@ async def replace_chat_conversation(
     return {"deleted_count": int(deleted), "inserted_count": inserted}
 
 
-async def rewrite_chat_conversation_after_event(
+async def rewrite_conversation_after_event(
     *,
     db_path: str,
     user_id: str,

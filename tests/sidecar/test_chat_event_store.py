@@ -10,12 +10,12 @@ ensure_frontend_python_path()
 
 from memory.chat_event_store import (  # noqa: E402
     append_chat_event,
-    get_chat_conversation_revision,
-    get_chat_events,
+    get_conversation_revision,
+    load_conversation_events,
     init_chat_event_schema,
-    list_chat_conversations,
-    replace_chat_conversation,
-    rewrite_chat_conversation_after_event,
+    list_conversations,
+    replace_conversation,
+    rewrite_conversation_after_event,
 )
 from memory.sqlite_store import init_episodic_schema  # noqa: E402
 
@@ -219,7 +219,7 @@ async def test_chat_event_store_round_trips_image_attachments(tmp_path: Path):
         },
     )
 
-    rows = await get_chat_events(
+    rows = await load_conversation_events(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
@@ -305,7 +305,7 @@ async def test_chat_event_store_persists_backend_producer_order(tmp_path: Path):
         producer_sequence=4,
     )
 
-    rows = await get_chat_events(
+    rows = await load_conversation_events(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
@@ -323,7 +323,7 @@ async def test_chat_event_store_persists_backend_producer_order(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_list_chat_conversations_prefers_stored_conversation_title(
+async def test_list_conversations_prefers_stored_conversation_title(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
@@ -378,7 +378,7 @@ async def test_list_chat_conversations_prefers_stored_conversation_title(
         )
         await conn.commit()
 
-    conversations = await list_chat_conversations(
+    conversations = await list_conversations(
         db_path=db_path,
         user_id="user-1",
         limit=10,
@@ -388,7 +388,7 @@ async def test_list_chat_conversations_prefers_stored_conversation_title(
 
 
 @pytest.mark.asyncio
-async def test_list_chat_conversations_hides_internal_lifecycle_only_rows(
+async def test_list_conversations_hides_internal_lifecycle_only_rows(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
@@ -423,7 +423,7 @@ async def test_list_chat_conversations_hides_internal_lifecycle_only_rows(
         },
     )
 
-    conversations = await list_chat_conversations(
+    conversations = await list_conversations(
         db_path=db_path,
         user_id="user-1",
         limit=10,
@@ -433,7 +433,7 @@ async def test_list_chat_conversations_hides_internal_lifecycle_only_rows(
 
 
 @pytest.mark.asyncio
-async def test_list_chat_conversations_uses_user_facing_metadata(
+async def test_list_conversations_uses_user_facing_metadata(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
@@ -506,7 +506,7 @@ async def test_list_chat_conversations_uses_user_facing_metadata(
             },
         )
 
-    conversations = await list_chat_conversations(
+    conversations = await list_conversations(
         db_path=db_path,
         user_id="user-1",
         limit=10,
@@ -523,7 +523,7 @@ async def test_list_chat_conversations_uses_user_facing_metadata(
 
 
 @pytest.mark.asyncio
-async def test_list_chat_conversations_returns_one_row_per_conversation(
+async def test_list_conversations_returns_one_row_per_conversation(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
@@ -568,7 +568,7 @@ async def test_list_chat_conversations_returns_one_row_per_conversation(
             },
         )
 
-    conversations = await list_chat_conversations(
+    conversations = await list_conversations(
         db_path=db_path,
         user_id="user-1",
         limit=10,
@@ -580,7 +580,7 @@ async def test_list_chat_conversations_returns_one_row_per_conversation(
 
 
 @pytest.mark.asyncio
-async def test_replace_chat_conversation_rolls_back_when_replacement_insert_fails(
+async def test_replace_conversation_rolls_back_when_replacement_insert_fails(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
@@ -614,7 +614,7 @@ async def test_replace_chat_conversation_rolls_back_when_replacement_insert_fail
     )
 
     with pytest.raises(TypeError):
-        await replace_chat_conversation(
+        await replace_conversation(
             db_path=db_path,
             user_id="user-1",
             conversation_id="conv-1",
@@ -641,7 +641,7 @@ async def test_replace_chat_conversation_rolls_back_when_replacement_insert_fail
             ],
         )
 
-    rows = await get_chat_events(
+    rows = await load_conversation_events(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
@@ -653,14 +653,14 @@ async def test_replace_chat_conversation_rolls_back_when_replacement_insert_fail
 
 
 @pytest.mark.asyncio
-async def test_replace_chat_conversation_persists_rewrite_revision_metadata(
+async def test_replace_conversation_persists_rewrite_revision_metadata(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
     await init_episodic_schema(db_path)
     await init_chat_event_schema(db_path)
 
-    await replace_chat_conversation(
+    await replace_conversation(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
@@ -689,12 +689,12 @@ async def test_replace_chat_conversation_persists_rewrite_revision_metadata(
         ],
     )
 
-    revision = await get_chat_conversation_revision(
+    revision = await get_conversation_revision(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
     )
-    conversations = await list_chat_conversations(
+    conversations = await list_conversations(
         db_path=db_path,
         user_id="user-1",
         limit=10,
@@ -710,14 +710,14 @@ async def test_replace_chat_conversation_persists_rewrite_revision_metadata(
 
 
 @pytest.mark.asyncio
-async def test_replace_chat_conversation_preserves_empty_rewrite_revision(
+async def test_replace_conversation_preserves_empty_rewrite_revision(
     tmp_path: Path,
 ):
     db_path = str(tmp_path / "memory.db")
     await init_episodic_schema(db_path)
     await init_chat_event_schema(db_path)
 
-    await replace_chat_conversation(
+    await replace_conversation(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-empty",
@@ -726,12 +726,12 @@ async def test_replace_chat_conversation_preserves_empty_rewrite_revision(
         events=[],
     )
 
-    revision = await get_chat_conversation_revision(
+    revision = await get_conversation_revision(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-empty",
     )
-    conversations = await list_chat_conversations(
+    conversations = await list_conversations(
         db_path=db_path,
         user_id="user-1",
         limit=10,
@@ -747,7 +747,7 @@ async def test_replace_chat_conversation_preserves_empty_rewrite_revision(
 
 
 @pytest.mark.asyncio
-async def test_rewrite_chat_conversation_after_event_deletes_tail_only(tmp_path: Path):
+async def test_rewrite_conversation_after_event_deletes_tail_only(tmp_path: Path):
     db_path = str(tmp_path / "memory.db")
     await init_episodic_schema(db_path)
     await init_chat_event_schema(db_path)
@@ -784,7 +784,7 @@ async def test_rewrite_chat_conversation_after_event_deletes_tail_only(tmp_path:
             },
         )
 
-    result = await rewrite_chat_conversation_after_event(
+    result = await rewrite_conversation_after_event(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
@@ -811,13 +811,13 @@ async def test_rewrite_chat_conversation_after_event_deletes_tail_only(tmp_path:
         },
     )
 
-    rows = await get_chat_events(
+    rows = await load_conversation_events(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",
         limit=10,
     )
-    revision = await get_chat_conversation_revision(
+    revision = await get_conversation_revision(
         db_path=db_path,
         user_id="user-1",
         conversation_id="conv-1",

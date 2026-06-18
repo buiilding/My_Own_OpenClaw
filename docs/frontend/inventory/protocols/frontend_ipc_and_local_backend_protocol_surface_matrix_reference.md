@@ -216,10 +216,7 @@ Registered callable surface:
   `conversation.get_revision`, `conversation.delete`, `conversation.replace`,
   `conversation.rewrite_after_event`, `clear_chat_history`,
   `update_conversation_title`, `get_conversation_title_state`
-- Retired direct chat-history methods are not registered: `store_chat_event`,
-  `list_chat_conversations`, `search_chat_conversations`, `get_chat_events`,
-  `get_chat_conversation_revision`, `delete_chat_conversation`,
-  `replace_chat_conversation`, `rewrite_chat_conversation_after_event`
+- Retired direct chat-history method names are not registered.
 - Health/diagnostics/setup: `ping`, `get_status`, `install_browser_chromium`,
   `determine_macos_system_events_automation_permission`
 

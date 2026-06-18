@@ -37,15 +37,15 @@ from memory.admin import clear_local_memory as clear_local_memory_admin
 from memory.chat_event_store import (
     append_chat_event,
     clear_chat_events,
-    delete_chat_conversation,
-    get_chat_conversation_revision,
-    get_chat_events,
+    delete_conversation,
+    get_conversation_revision,
+    load_conversation_events,
     get_next_chat_event_index,
     init_chat_event_schema,
-    list_chat_conversations,
-    replace_chat_conversation,
-    rewrite_chat_conversation_after_event,
-    search_chat_conversations,
+    list_conversations,
+    replace_conversation,
+    rewrite_conversation_after_event,
+    search_conversations,
 )
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
@@ -1376,16 +1376,16 @@ class LocalMemoryStore:
         )
         return stored
 
-    async def list_chat_conversations(
+    async def list_conversations(
         self, user_id: str, limit: Optional[int] = None
     ) -> List[Dict[str, Any]]:
-        return await list_chat_conversations(
+        return await list_conversations(
             db_path=self.history_db_path,
             user_id=user_id,
             limit=limit,
         )
 
-    async def replace_chat_conversation(
+    async def replace_conversation(
         self,
         *,
         user_id: str,
@@ -1394,7 +1394,7 @@ class LocalMemoryStore:
         revision_id: Optional[str] = None,
         revision_updated_at: Optional[str] = None,
     ) -> Dict[str, int]:
-        result = await replace_chat_conversation(
+        result = await replace_conversation(
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
@@ -1404,7 +1404,7 @@ class LocalMemoryStore:
         )
         return result
 
-    async def rewrite_chat_conversation_after_event(
+    async def rewrite_conversation_after_event(
         self,
         *,
         user_id: str,
@@ -1414,7 +1414,7 @@ class LocalMemoryStore:
         revision_id: Optional[str] = None,
         revision_updated_at: Optional[str] = None,
     ) -> Dict[str, int]:
-        result = await rewrite_chat_conversation_after_event(
+        result = await rewrite_conversation_after_event(
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
@@ -1425,21 +1425,21 @@ class LocalMemoryStore:
         )
         return result
 
-    async def get_chat_conversation_revision(
+    async def get_conversation_revision(
         self,
         user_id: str,
         conversation_id: Optional[str],
     ) -> Optional[Dict[str, Any]]:
-        return await get_chat_conversation_revision(
+        return await get_conversation_revision(
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
         )
 
-    async def search_chat_conversations(
+    async def search_conversations(
         self, user_id: str, query: str, limit: int = 40
     ) -> List[Dict[str, Any]]:
-        return await search_chat_conversations(
+        return await search_conversations(
             db_path=self.history_db_path,
             user_id=user_id,
             query=query,
@@ -1632,10 +1632,10 @@ class LocalMemoryStore:
     async def clear_chat_events(self, user_id: str) -> int:
         return await clear_chat_events(db_path=self.history_db_path, user_id=user_id)
 
-    async def delete_chat_conversation(
+    async def delete_conversation(
         self, user_id: str, conversation_id: Optional[str]
     ) -> int:
-        return await delete_chat_conversation(
+        return await delete_conversation(
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
@@ -1693,14 +1693,14 @@ class LocalMemoryStore:
             conversation_id=conversation_id,
         )
 
-    async def get_chat_events(
+    async def load_conversation_events(
         self,
         user_id: str,
         conversation_id: Optional[str],
         limit: int = 1000,
         after_message_index: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        return await get_chat_events(
+        return await load_conversation_events(
             db_path=self.history_db_path,
             user_id=user_id,
             conversation_id=conversation_id,

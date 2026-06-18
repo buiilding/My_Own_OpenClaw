@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 sidecar conversation store helper-name alignment
+
+- Finding: after the sidecar JSON-RPC and private handler names converged on `conversation.*`, lower memory-store helpers still exported direct chat-history names such as `list_chat_conversations`, `get_chat_events`, and `replace_chat_conversation`.
+- Change: renamed those storage helpers to generic conversation-store names (`list_conversations`, `load_conversation_events`, `replace_conversation`, etc.), updated local store wrappers and focused sidecar tests, and shortened docs so retired direct method names no longer stay as literal active-doc lists.
+- Validation: focused sidecar conversation/store pytest, Python compile check for touched memory/local-backend modules, stale helper-name scan, and `git diff --check`.
+- Compatibility: no migration required. Storage tables, row shapes, JSON-RPC method names, SDK calls, IPC, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 sidecar conversation handler private-name alignment
 
 - Finding: after the sidecar chat-history registry converged on `conversation.*` JSON-RPC methods, private handler names and focused tests still used direct chat-history wording such as `_handle_store_chat_event` and `_handle_get_chat_events`.
