@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs/tests: lock in the single-backend sidecar SDK behavior with
+  communication-flow docs and Python SDK no-retry tests; no migration is
+  required because this documents and tests the endpoint fallback removal.
 - sidecar/sdk: remove sidecar-local backend endpoint fallback aliases and
   multi-endpoint retry loops so Python clients use one resolved endpoint from
   `WINDIE_BACKEND_HTTP_URL` or the hosted default; no migration is required for

@@ -33,7 +33,7 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 │  │  - IPC Bridge (ipc.cjs)                            │  │
 │  │  - WebSocket Client                                 │  │
 │  └───────────────────────────────────────────────────┘  │
-│        ↕ WebSocket / HTTP (hosted-first, local fallback when explicitly provisioned) │
+│        ↕ WebSocket / HTTP (resolved by Electron main endpoint policy) │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │  Python Backend (FastAPI)                          │  │
 │  │  - WebSocket Routes                                 │  │
@@ -166,9 +166,8 @@ This control plane is separate from the `/ws` streaming channel and exists to co
 4. Packaged fallback: same hosted-first, local-second candidate order as source runs unless explicit `BACKEND_*` or host/port overrides collapse the list
 
 The resolved HTTP URL is also passed to the Python sidecar as `WINDIE_BACKEND_HTTP_URL`.
-For source runs that use the hosted-first default, Electron also passes
-`WINDIE_BACKEND_FALLBACK_HTTP_URL=http://127.0.0.1:8765` so sidecar HTTP clients can
-fall back locally when the hosted backend is unreachable.
+The sidecar consumes that injected URL directly; it does not parse Electron endpoint
+aliases or retry alternate backend URLs.
 
 ### SDK Routing Model
 

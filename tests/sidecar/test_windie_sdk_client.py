@@ -10,6 +10,7 @@ import pytest
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
+    SequentialSession,
     assert_client_initialize_reuses_session_and_close_resets,
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
@@ -179,6 +180,19 @@ class DummyWsSession:
         return None
 
 
+class FailingWsSession:
+    def __init__(self, error):
+        self.error = error
+        self.ws_connect_calls = []
+
+    async def ws_connect(self, url, timeout=None, headers=None):
+        self.ws_connect_calls.append((url, timeout, headers))
+        raise self.error
+
+    async def close(self):
+        return None
+
+
 class FakeLocalRuntime:
     def __init__(self):
         self.status_calls = 0
@@ -283,6 +297,29 @@ async def test_get_query_plan_posts_payload_and_returns_json():
     assert timeout.total == 60
     assert headers == {}
     assert data is None
+
+
+@pytest.mark.asyncio
+async def test_sdk_http_requests_do_not_retry_alternate_backend_urls():
+    session = SequentialSession(
+        post_results=[DummyResponse(503, text_data="unavailable")],
+    )
+    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client._session = session
+
+    with pytest.raises(Exception, match="SDK API returned 503: unavailable"):
+        await client.get_query_plan(
+            {
+                "user_query_raw": "open file",
+                "conversation_ref": "conv-sdk",
+                "messages": [],
+            }
+        )
+
+    assert [call[0] for call in session.post_calls] == [
+        "https://api.windieos.com/api/sdk/query-plan",
+    ]
+    assert client.backend_url == "https://api.windieos.com"
 
 
 @pytest.mark.asyncio
@@ -436,6 +473,28 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_upload_artifact_does_not_retry_alternate_backend_urls(monkeypatch):
+    monkeypatch.setattr(windie_sdk_module.aiohttp, "FormData", FakeFormData)
+    session = SequentialSession(
+        post_results=[DummyResponse(502, text_data="bad gateway")],
+    )
+    client = AgentSdkClient(backend_url="https://api.windieos.com")
+    client._session = session
+
+    with pytest.raises(Exception, match="Artifacts API returned 502: bad gateway"):
+        await client.upload_artifact(
+            filename="shot.png",
+            content=b"abc",
+            content_type="image/png",
+        )
+
+    assert [call[0] for call in session.post_calls] == [
+        "https://api.windieos.com/api/artifacts/",
+    ]
+    assert client.backend_url == "https://api.windieos.com"
+
+
+@pytest.mark.asyncio
 async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
     monkeypatch.setattr(windie_sdk_module.platform, "system", lambda: "Darwin")
     websocket = FakeWebSocket()
@@ -498,6 +557,22 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
         ),
         "screenshot_ref": "artifact-123.png",
     }
+
+
+@pytest.mark.asyncio
+async def test_wake_up_does_not_retry_alternate_backend_urls():
+    session = FailingWsSession(aiohttp.ClientError("remote down"))
+    client = AgentSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+    )
+    client._session = session
+
+    with pytest.raises(Exception, match="Failed to connect to agent websocket"):
+        await client.wake_up(agent_id="python-agent")
+
+    assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60, {})]
+    assert client.backend_url == "https://api.windieos.com"
 
 
 @pytest.mark.asyncio

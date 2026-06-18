@@ -119,6 +119,21 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 sidecar SDK endpoint no-retry coverage
+
+- Finding: after removing sidecar endpoint fallbacks, the architecture
+  communication flow still described sidecar local fallback behavior and the
+  Python SDK tests did not explicitly prove HTTP, artifact, and websocket calls
+  avoid alternate backend retries.
+- Change: updated the communication-flow endpoint text and added Python SDK
+  tests for single-endpoint HTTP requests, artifact uploads, and wake-up
+  websocket connection attempts.
+- Validation: focused Python SDK sidecar pytest, docs check, stale fallback
+  wording scan, and diff check.
+- Compatibility: no migration required. This documents and tests the endpoint
+  fallback removal; persisted data, IPC, storage, tool schemas, and event
+  payloads are unchanged.
+
 ### 2026-06-18 sidecar backend endpoint fallback removal
 
 - Finding: sidecar backend config still parsed Electron-owned `BACKEND_HTTP_URL`
