@@ -11,10 +11,10 @@ from tools.extension_loader import (
     resolve_default_contribution_root,
 )
 from tools.manifest import (
-    EXPOSED_TO_BACKEND_TOOL_NAMES,
-    build_sidecar_capability_schema,
-    build_sidecar_executable_schema,
-    build_sidecar_tool_manifest,
+    LOCAL_RUNTIME_BUILTIN_TOOL_NAMES,
+    build_local_runtime_capability_schema,
+    build_local_runtime_executable_schema,
+    build_local_runtime_tool_manifest,
 )
 from tools.registry import ToolRegistry
 
@@ -24,16 +24,16 @@ GENERATED_MANIFEST_PATH = (
 )
 
 
-def test_build_sidecar_capability_schema_exports_registered_tool_schema():
-    schema = build_sidecar_capability_schema("read_file")
+def test_build_local_runtime_capability_schema_exports_registered_tool_schema():
+    schema = build_local_runtime_capability_schema("read_file")
 
     assert schema["type"] == "object"
     assert "file_path" in schema["properties"]
     assert "explanation" in schema["required"]
 
 
-def test_build_sidecar_capability_schema_exports_rich_browser_contract():
-    schema = build_sidecar_capability_schema("browser")
+def test_build_local_runtime_capability_schema_exports_rich_browser_contract():
+    schema = build_local_runtime_capability_schema("browser")
 
     assert schema["required"] == ["action", "explanation"]
     assert schema["additionalProperties"] is False
@@ -44,9 +44,9 @@ def test_build_sidecar_capability_schema_exports_rich_browser_contract():
     assert "text" in schema["properties"]
 
 
-def test_build_sidecar_capability_schema_exports_backend_grounding_metadata_for_desktop_tools():
-    mouse_schema = build_sidecar_capability_schema("mouse_control")
-    scroll_schema = build_sidecar_capability_schema("scroll_control")
+def test_build_local_runtime_capability_schema_exports_grounding_metadata_for_desktop_tools():
+    mouse_schema = build_local_runtime_capability_schema("mouse_control")
+    scroll_schema = build_local_runtime_capability_schema("scroll_control")
 
     assert mouse_schema["required"] == ["action", "explanation"]
     assert mouse_schema["properties"]["find_coordinates_by"]["enum"] == [
@@ -60,9 +60,9 @@ def test_build_sidecar_capability_schema_exports_backend_grounding_metadata_for_
 
 
 def test_grounded_tool_manifest_separates_backend_validation_and_executable_schema():
-    manifest = build_sidecar_tool_manifest({"mouse_control", "scroll_control"})
+    manifest = build_local_runtime_tool_manifest({"mouse_control", "scroll_control"})
     mouse_tool = next(tool for tool in manifest["tools"] if tool["name"] == "mouse_control")
-    executable_mouse_schema = build_sidecar_executable_schema("mouse_control")
+    executable_mouse_schema = build_local_runtime_executable_schema("mouse_control")
 
     assert mouse_tool["schema_role"] == "backend_validation"
     assert mouse_tool["schema"]["properties"]["find_coordinates_by"]["enum"] == [
@@ -92,8 +92,8 @@ def test_registry_tool_manifest_contains_builtin_schemas():
     assert all("executable_schema" in tool for tool in manifest["tools"])
 
 
-def test_build_sidecar_tool_manifest_uses_generic_workspace_description():
-    manifest = build_sidecar_tool_manifest({"run_shell_command"})
+def test_build_local_runtime_tool_manifest_uses_generic_workspace_description():
+    manifest = build_local_runtime_tool_manifest({"run_shell_command"})
     [shell_tool] = manifest["tools"]
 
     assert "selected workspace folder" in shell_tool["description"]
@@ -106,8 +106,8 @@ def test_build_sidecar_tool_manifest_uses_generic_workspace_description():
         assert "WindieOS uses" not in directory_description
 
 
-def test_build_sidecar_tool_manifest_omits_unknown_schema_names():
-    manifest = build_sidecar_tool_manifest({"read_file", "missing_tool"})
+def test_build_local_runtime_tool_manifest_omits_unknown_schema_names():
+    manifest = build_local_runtime_tool_manifest({"read_file", "missing_tool"})
 
     assert [tool["name"] for tool in manifest["tools"]] == ["read_file"]
     assert manifest["tools"][0]["argument_resolution"] == "passthrough"
@@ -115,7 +115,7 @@ def test_build_sidecar_tool_manifest_omits_unknown_schema_names():
 
 def test_generated_builtin_manifest_matches_sidecar_source():
     generated = json.loads(GENERATED_MANIFEST_PATH.read_text(encoding="utf-8"))
-    expected = build_sidecar_tool_manifest(EXPOSED_TO_BACKEND_TOOL_NAMES)
+    expected = build_local_runtime_tool_manifest(LOCAL_RUNTIME_BUILTIN_TOOL_NAMES)
 
     assert generated == expected
 

@@ -136,7 +136,7 @@ path:
 
 Tool exposure boundary is defined in `tools/registry.py`:
 
-- `frontend/src/main/python/tools/manifest.py:EXPOSED_TO_BACKEND_TOOL_NAMES` defines the executable local-runtime tool exposure contract used for SDK/backend parity
+- `frontend/src/main/python/tools/manifest.py:LOCAL_RUNTIME_BUILTIN_TOOL_NAMES` defines the executable local-runtime tool exposure contract used for SDK/backend parity
 - the current live local-runtime registry exposes concrete tool names only
 - repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` wrapper artifacts, but those names are not registered in the live local runtime
 - registry reload path exists for post-install browser tool availability (`reload_tools`)

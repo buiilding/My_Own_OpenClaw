@@ -8456,3 +8456,19 @@ Each completed slice should report:
   package layout, schemas, entrypoint resolution, runtime registration, IPC,
   credentials, permissions, storage, and provider policy are unchanged; only an
   in-process Python `sys.modules` implementation detail changed.
+
+### 2026-06-18 Python local-runtime manifest helper naming boundary
+
+- Finding: the Python executable manifest module still exported helper names
+  shaped around sidecar/backend coupling even though the manifest is the
+  reusable local-runtime built-in tool contract consumed by SDK/backend parity.
+- Change: renamed the built-in manifest tool-name set and schema/manifest
+  builder helpers to `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES` and
+  `build_local_runtime_*`, and updated registry warnings, docs, and sidecar
+  tests to describe the local-runtime boundary.
+- Validation: focused sidecar manifest, schema-parity, browser schema, and
+  registry pytest coverage, docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. Manifest JSON content, built-in tool
+  names, schema roles, executable schemas, plugin/MCP registration, IPC,
+  permissions, credentials, storage, provider policy, and backend tool
+  projection are unchanged; only Python helper names and references changed.

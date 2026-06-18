@@ -76,14 +76,14 @@ Policy is applied to:
 
 Tool names expected by backend schemas and sidecar runtime must remain synchronized.
 
-Sidecar explicitly tracks backend client-executable tool names in:
+The local runtime explicitly tracks backend client-executable built-in tool names in:
 
-- `frontend/src/main/python/tools/manifest.py:EXPOSED_TO_BACKEND_TOOL_NAMES`
+- `frontend/src/main/python/tools/manifest.py:LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`
 
 Mismatch symptoms:
 
 - backend emits tool call that sidecar cannot execute
-- sidecar warns: expected backend tools unavailable
+- sidecar warns: built-in local-runtime tools are unavailable
 - query loop waits/fails until timeout/error path
 
 ## Change Workflow

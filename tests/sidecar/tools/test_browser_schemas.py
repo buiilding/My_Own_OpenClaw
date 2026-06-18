@@ -28,7 +28,7 @@ from windie_shared.browser_contract import (
 )
 from windie_shared.browser_contract_schema import _clean_schema
 
-from tools.manifest import build_sidecar_tool_manifest
+from tools.manifest import build_local_runtime_tool_manifest
 
 EXPLANATION = "Advance the active user task."
 NATIVE_BROWSER_USE_AGENT_ACTIONS = {
@@ -115,7 +115,7 @@ def test_sidecar_browser_control_args_use_shared_grouped_schema() -> None:
 
 
 def test_browser_tool_descriptions_stay_product_neutral() -> None:
-    manifest = build_sidecar_tool_manifest({"browser"})
+    manifest = build_local_runtime_tool_manifest({"browser"})
     [browser_tool] = manifest["tools"]
 
     assert browser_tool["description"] == (

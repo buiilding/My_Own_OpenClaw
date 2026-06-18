@@ -334,7 +334,7 @@ Tools are automatically registered:
 1. **Backend remote stubs**: Declared once in `backend/src/tools/tool_catalog.py`, implemented in concrete `backend/src/tools/remote_tools/*` modules, and instantiated by `backend/src/tools/registry.py`.
 2. **Built-in Python sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
 3. **Plugin Python sidecar executors**: Declared with `entrypoint` in `plugins/<id>/plugin.json` and loaded by `frontend/src/main/python/tools/extension_loader.py`.
-4. **LLM-callable built-in sidecar subset**: Explicitly declared in `frontend/src/main/python/tools/manifest.py` as `EXPOSED_TO_BACKEND_TOOL_NAMES`.
+4. **LLM-callable built-in local-runtime subset**: Explicitly declared in `frontend/src/main/python/tools/manifest.py` as `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`.
 5. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()` or marked non-client-executable in `backend/src/tools/tool_catalog.py`.
    - `web_search` is the current backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.
    - `grounded_mouse_action` and `grounded_scroll_action` are model-visible
@@ -529,7 +529,7 @@ top-level `explanation` field when required by that tool's schema.
 - **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/browser/browser_control.md` and `docs/browser/browser_control_run.md` for full action contracts and runbook usage.
 - The model-facing `browser` schema is emitted from one canonical backend action catalog. It stays grouped under `arguments.action`, exposes one root object with merged canonical action fields, and relies on runtime discriminated-union validation to enforce action-specific requirements without top-level schema combinators.
 
-**Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/manifest.py` `EXPOSED_TO_BACKEND_TOOL_NAMES` are available for LLM tool calling.
+**Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The local runtime may register additional helpers, but only tools listed in `frontend/src/main/python/tools/manifest.py` `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES` are available for LLM tool calling.
 
 ## Security
 

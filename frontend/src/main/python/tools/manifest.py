@@ -1,4 +1,4 @@
-"""Sidecar-owned schema export for local built-in tools."""
+"""Local-runtime schema export for built-in executable tools."""
 
 from __future__ import annotations
 
@@ -223,7 +223,7 @@ BUILTIN_TOOL_ORDER = (
     "browser",
 )
 
-EXPOSED_TO_BACKEND_TOOL_NAMES = frozenset(BUILTIN_TOOL_ORDER)
+LOCAL_RUNTIME_BUILTIN_TOOL_NAMES = frozenset(BUILTIN_TOOL_ORDER)
 
 
 def _clean_schema(schema: Any) -> Any:
@@ -257,7 +257,7 @@ def _clean_schema(schema: Any) -> Any:
     return cleaned
 
 
-def _apply_backend_grounding_capability_metadata(
+def _apply_grounding_capability_metadata(
     tool_name: str, schema: dict[str, Any]
 ) -> dict[str, Any]:
     updated = copy.deepcopy(schema)
@@ -275,7 +275,7 @@ def _apply_backend_grounding_capability_metadata(
     return updated
 
 
-def build_sidecar_executable_schema(tool_name: str) -> dict[str, Any] | None:
+def build_local_runtime_executable_schema(tool_name: str) -> dict[str, Any] | None:
     if tool_name == "browser":
         return build_browser_tool_parameters_schema()
     model = TOOL_SCHEMA_MODELS.get(tool_name)
@@ -286,15 +286,15 @@ def build_sidecar_executable_schema(tool_name: str) -> dict[str, Any] | None:
     return schema
 
 
-def build_sidecar_capability_schema(tool_name: str) -> dict[str, Any] | None:
+def build_local_runtime_capability_schema(tool_name: str) -> dict[str, Any] | None:
     """Return the backend-validation schema advertised in the client manifest."""
-    schema = build_sidecar_executable_schema(tool_name)
+    schema = build_local_runtime_executable_schema(tool_name)
     if schema is None:
         return None
-    return _apply_backend_grounding_capability_metadata(tool_name, schema)
+    return _apply_grounding_capability_metadata(tool_name, schema)
 
 
-def build_sidecar_tool_manifest(
+def build_local_runtime_tool_manifest(
     tool_names: set[str] | list[str],
 ) -> dict[str, Any]:
     tools = []
@@ -308,8 +308,8 @@ def build_sidecar_tool_manifest(
         *sorted(requested_names - set(BUILTIN_TOOL_ORDER)),
     ]
     for tool_name in ordered_tool_names:
-        executable_schema = build_sidecar_executable_schema(tool_name)
-        schema = build_sidecar_capability_schema(tool_name)
+        executable_schema = build_local_runtime_executable_schema(tool_name)
+        schema = build_local_runtime_capability_schema(tool_name)
         if executable_schema is None or schema is None:
             continue
         tools.append(

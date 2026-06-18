@@ -124,7 +124,7 @@ Use this order:
    `agent_definition.tools` and the accepted client manifest.
 6. Check disabled capabilities and provider-unavailable capabilities.
 7. Check provider projection if the provider adds native declarations.
-8. If local execution is expected, confirm sidecar `EXPOSED_TO_BACKEND_TOOL_NAMES` and registry registration.
+8. If local execution is expected, confirm sidecar `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES` and registry registration.
 
 ## Debugging Unexpectedly Visible Tools
 

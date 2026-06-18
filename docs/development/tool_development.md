@@ -46,8 +46,8 @@ WindieOS tools.
 - Extension manifest loader:
   `frontend/src/main/extensions/extension_manifest.cjs`
 - Tool implementations: `frontend/src/main/python/tools/`
-- Exposed direct-tool set for backend parity:
-  `frontend/src/main/python/tools/manifest.py` (`EXPOSED_TO_BACKEND_TOOL_NAMES`)
+- Built-in local-runtime direct-tool set for backend parity:
+  `frontend/src/main/python/tools/manifest.py` (`LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`)
 
 Current runtime note:
 

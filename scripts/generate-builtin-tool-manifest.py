@@ -25,9 +25,12 @@ OUTPUT_PATH = (
 def main() -> int:
     sys.path.insert(0, str(FRONTEND_PYTHON))
 
-    from tools.manifest import EXPOSED_TO_BACKEND_TOOL_NAMES, build_sidecar_tool_manifest
+    from tools.manifest import (
+        LOCAL_RUNTIME_BUILTIN_TOOL_NAMES,
+        build_local_runtime_tool_manifest,
+    )
 
-    manifest = build_sidecar_tool_manifest(EXPOSED_TO_BACKEND_TOOL_NAMES)
+    manifest = build_local_runtime_tool_manifest(LOCAL_RUNTIME_BUILTIN_TOOL_NAMES)
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
