@@ -8,7 +8,7 @@ import {
   type BackendEventType,
 } from '../events/backendEvents.js';
 import type {
-  BackendTransport,
+  AgentRuntimeTransport,
   JsonRecord,
 } from '../conversation/types.js';
 import { filterBackendPayload } from './backendPayloadContract.js';
@@ -414,7 +414,7 @@ export function createAgentBackendTransport(
   session: AgentSessionRuntime,
   conversationRef: string,
   agentDefinition?: JsonRecord,
-): BackendTransport {
+): AgentRuntimeTransport {
   return {
     connect: async () => session.waitForOpen(),
     handshake: async () => undefined,

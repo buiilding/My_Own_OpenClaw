@@ -680,7 +680,7 @@ export interface ConversationStore {
   loadCompactedReplay?(conversationRef: string): Promise<CompactedReplaySnapshot | null>;
 }
 
-export type BackendTransport = {
+export type AgentRuntimeTransport = {
   connect(): Promise<void>;
   handshake(agentDefinition: AgentDefinition): Promise<void>;
   sendQuery(payload: QueryPayload, options?: SendQueryOptions): Promise<string>;
@@ -696,7 +696,7 @@ export type BackendTransport = {
   close(): Promise<void>;
 };
 
-export type AgentRuntimeTransport = BackendTransport;
+export type BackendTransport = AgentRuntimeTransport;
 
 export type LocalToolCall = {
   toolName: string;

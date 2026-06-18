@@ -19,7 +19,7 @@ import {
   ToolExecutionCoordinator,
   toolOutputStreamKey,
   toolOutputStreamKeys,
-  type BackendTransport,
+  type AgentRuntimeTransport,
   type ConversationEvent,
   type AgentRuntimeEvent,
   type AgentStreamEvent,
@@ -78,9 +78,9 @@ async function waitForExpect(assertion: () => void | Promise<void>, attempts = 2
   throw lastError;
 }
 
-function createMockBackendTransport(
-  overrides: Partial<BackendTransport> = {},
-): BackendTransport {
+function createMockAgentRuntimeTransport(
+  overrides: Partial<AgentRuntimeTransport> = {},
+): AgentRuntimeTransport {
   return {
     connect: jest.fn(async () => undefined),
     handshake: jest.fn(async () => undefined),
@@ -119,17 +119,17 @@ function createMockArtifactUploader(
   };
 }
 
-function createControllableBackendTransport(
-  overrides: Partial<BackendTransport> = {},
-): BackendTransport & { emit(event: BackendEvent): void } {
+function createControllableAgentRuntimeTransport(
+  overrides: Partial<AgentRuntimeTransport> = {},
+): AgentRuntimeTransport & { emit(event: BackendEvent): void } {
   const listeners = new Set<(event: unknown) => void>();
-  const transport = createMockBackendTransport({
+  const transport = createMockAgentRuntimeTransport({
     ...overrides,
     subscribe: jest.fn((listener: (event: unknown) => void) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
     }),
-  }) as BackendTransport & { emit(event: BackendEvent): void };
+  }) as AgentRuntimeTransport & { emit(event: BackendEvent): void };
   transport.emit = (event: BackendEvent) => {
     listeners.forEach(listener => listener(stampBackendEvent(event)));
   };
@@ -2678,7 +2678,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime persists backend-origin trace-event rows from transport', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -2743,7 +2743,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime records overlay phase projection traces for backend turn events', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -2900,7 +2900,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('manual compaction operation events are accepted outside the active turn and persist replay', async () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -2998,7 +2998,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('stale turn-stream backend events still fail the active turn gate', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -3874,7 +3874,7 @@ describe('Agent SDK conversation runtime core', () => {
     const enrichmentGate = new Promise<void>(resolve => {
       releaseEnrichment = resolve;
     });
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-after-enrichment'),
     });
     const runtime = new SdkConversationRuntime({
@@ -3947,7 +3947,7 @@ describe('Agent SDK conversation runtime core', () => {
     const resolverGate = new Promise<void>(resolve => {
       releaseResolver = resolve;
     });
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-after-resources'),
     });
     const runtime = new SdkConversationRuntime({
@@ -4080,7 +4080,7 @@ describe('Agent SDK conversation runtime core', () => {
     const localToolLifecycle = {
       beforeExecute: jest.fn(async () => releaseScreenshotLease),
     };
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-after-screenshot-resource'),
     });
     const runtime = new SdkConversationRuntime({
@@ -4233,7 +4233,7 @@ describe('Agent SDK conversation runtime core', () => {
         screenshot_content_type: 'image/jpeg',
       },
     }));
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-without-path-shot'),
     });
     const runtime = new SdkConversationRuntime({
@@ -4318,7 +4318,7 @@ describe('Agent SDK conversation runtime core', () => {
       success: false,
       error: 'Screen capture permission denied',
     }));
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-without-shot'),
     });
     const runtime = new SdkConversationRuntime({
@@ -4389,7 +4389,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime records base user row before required resource failure', async () => {
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-unused'),
     });
     const runtime = new SdkConversationRuntime({
@@ -4445,7 +4445,7 @@ describe('Agent SDK conversation runtime core', () => {
   test('conversation runtime stores events and sends rehydrate from projection', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-1';
@@ -4499,7 +4499,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime records query dispatch trace around backend send', async () => {
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-dispatch-accepted'),
     });
     const store = new InMemoryConversationStore();
@@ -4544,7 +4544,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime records agent definition and workspace feature traces', async () => {
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-feature-paths'),
     });
     const store = new InMemoryConversationStore();
@@ -4674,7 +4674,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime records MCP contribution from client manifest tools', async () => {
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async () => 'query-mcp-manifest'),
     });
     const store = new InMemoryConversationStore();
@@ -4742,7 +4742,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('conversation runtime merges SDK MCP manifest with query agent context before trace and dispatch', async () => {
     const sendQuery = jest.fn(async () => 'query-mcp-merged');
-    const transport = createMockBackendTransport({ sendQuery });
+    const transport = createMockAgentRuntimeTransport({ sendQuery });
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -4856,7 +4856,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         subscribe: jest.fn(listener => {
           backendListener = listener;
           return () => {
@@ -4912,7 +4912,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store: new InMemoryConversationStore(),
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         rehydrateConversation,
       }),
     });
@@ -4933,7 +4933,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport(),
+      transport: createMockAgentRuntimeTransport(),
       enrichQuery: async input => {
         await input.emitDiagnostic?.({
           stage: 'embedding_request_failed',
@@ -4972,7 +4972,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport(),
+      transport: createMockAgentRuntimeTransport(),
       enrichQuery: async input => {
         await input.emitTrace?.({
           path: 'memory.retrieval',
@@ -5050,7 +5050,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('conversation runtime emits memory store invalidation after completed-turn memory success', async () => {
     const notifiedTypes: string[] = [];
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -5130,7 +5130,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime stores completed-turn memory from the pending turn ledger', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const embeddingsCreate = jest.fn(async () => ({
       embedding: [0.1],
@@ -5182,7 +5182,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime generates a title after the first completed assistant reply', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const generateConversationTitle = jest.fn(async () => ({
       success: true,
@@ -5313,7 +5313,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime skips generated title when durable title already exists', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const generateConversationTitle = jest.fn(async () => ({
       success: true,
@@ -5370,7 +5370,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime title generation ignores removed provider payload alias', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const generateConversationTitle = jest.fn(async () => ({
       success: true,
       title: 'Alias Ignored',
@@ -5431,7 +5431,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('conversation runtime title generation failure does not block completed turn storage', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const generateConversationTitle = jest.fn(async () => {
       throw new Error('title backend unavailable');
@@ -5488,7 +5488,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime does not emit memory invalidation when completed turn state is missing', async () => {
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const embeddingsCreate = jest.fn(async () => ({
       embedding: [0.1],
@@ -5535,7 +5535,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('conversation runtime does not emit memory invalidation when completed-turn storage fails', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -5585,7 +5585,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('conversation runtime processes backend events serially', async () => {
     const notifiedTypes: string[] = [];
-    const transport = createControllableBackendTransport();
+    const transport = createControllableAgentRuntimeTransport();
     let releaseAssistantAppend!: () => void;
     const assistantAppendBlocker = new Promise<void>(resolve => {
       releaseAssistantAppend = resolve;
@@ -5664,7 +5664,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store: new InMemoryConversationStore(),
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         compactHistory,
       }),
     });
@@ -5678,7 +5678,7 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('conversation runtime records SDK control transport traces', async () => {
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       rehydrateConversation: jest.fn(async () => undefined),
       compactHistory: jest.fn(async () => 'compact-control'),
       updateSettings: jest.fn(async () => 'settings-control'),
@@ -5763,7 +5763,7 @@ describe('Agent SDK conversation runtime core', () => {
     const stopPending = new Promise<void>((resolve) => {
       resolveStop = resolve;
     });
-    const transport = createControllableBackendTransport({
+    const transport = createControllableAgentRuntimeTransport({
       stop: jest.fn(() => stopPending),
     });
     const runtime = new SdkConversationRuntime({
@@ -5819,7 +5819,7 @@ describe('Agent SDK conversation runtime core', () => {
   test('conversation runtime updates model selection before sending a turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const settingsUpdates: Record<string, unknown>[] = [];
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-model';
@@ -5900,7 +5900,7 @@ describe('Agent SDK conversation runtime core', () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];
     const sentToolResults: Record<string, unknown>[] = [];
-    const transport = createControllableBackendTransport({
+    const transport = createControllableAgentRuntimeTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return `query-${sentQueries.length}`;
@@ -6176,7 +6176,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store: new InMemoryConversationStore(),
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendQuery,
       }),
     });
@@ -6197,8 +6197,8 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
-        sendQuery: sendQuery as unknown as BackendTransport['sendQuery'],
+      transport: createMockAgentRuntimeTransport({
+        sendQuery: sendQuery as unknown as AgentRuntimeTransport['sendQuery'],
       }),
     });
 
@@ -6252,7 +6252,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store: new InMemoryConversationStore(),
-      transport: createMockBackendTransport(),
+      transport: createMockAgentRuntimeTransport(),
     });
     runtime.subscribe(snapshotListener);
     runtime.subscribeEvents(eventListener);
@@ -6269,7 +6269,7 @@ describe('Agent SDK conversation runtime core', () => {
   test('conversation runtime stream yields normalized events until backend completion', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     let backendListener: ((event: unknown) => void) | null = null;
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-stream';
@@ -6347,7 +6347,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('conversation runtimes only accept backend events for their conversation and active turn', async () => {
     const backendListeners = new Set<(event: unknown) => void>();
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       subscribe: jest.fn(listener => {
         backendListeners.add(listener);
         return () => {
@@ -6399,7 +6399,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         subscribe: jest.fn(listener => {
           backendListener = listener;
           return () => {
@@ -6433,7 +6433,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         subscribe: jest.fn(listener => {
           backendListener = listener;
           return () => {
@@ -6482,7 +6482,7 @@ describe('Agent SDK conversation runtime core', () => {
           },
         })),
       },
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendToolResult: jest.fn(async payload => {
           sentToolResults.push(payload);
         }),
@@ -6568,7 +6568,7 @@ describe('Agent SDK conversation runtime core', () => {
           },
         })),
       },
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendToolResult: jest.fn(async payload => {
           sentToolResults.push(payload);
         }),
@@ -6656,7 +6656,7 @@ describe('Agent SDK conversation runtime core', () => {
           },
         })),
       },
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendToolResult: jest.fn(async payload => {
           sentToolResults.push(payload);
         }),
@@ -6712,7 +6712,7 @@ describe('Agent SDK conversation runtime core', () => {
           },
         })),
       },
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendToolResult: jest.fn(async () => {
           throw new Error('websocket closed');
         }),
@@ -6791,7 +6791,7 @@ describe('Agent SDK conversation runtime core', () => {
       localRuntime: {
         executeTool,
       },
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendToolResult,
         subscribe: jest.fn(listener => {
           backendListener = listener;
@@ -6845,7 +6845,7 @@ describe('Agent SDK conversation runtime core', () => {
       localRuntime: {
         executeTool,
       },
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendToolBundleResult,
         subscribe: jest.fn(listener => {
           backendListener = listener;
@@ -6886,7 +6886,7 @@ describe('Agent SDK conversation runtime core', () => {
 
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
-    const transport = createMockBackendTransport({
+    const transport = createMockAgentRuntimeTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-edited';
@@ -6978,7 +6978,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendQuery: jest.fn(async payload => {
           sentQueries.push(payload);
           return 'query-retry';
@@ -7024,7 +7024,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendQuery,
         rehydrateConversation: jest.fn(async payload => {
           sentRehydrates.push(payload);
@@ -7092,7 +7092,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport(),
+      transport: createMockAgentRuntimeTransport(),
     });
 
     await runtime.load();
@@ -7137,7 +7137,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         sendQuery,
       }),
     });
@@ -7178,7 +7178,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport(),
+      transport: createMockAgentRuntimeTransport(),
     });
 
     await runtime.load();
@@ -7227,7 +7227,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport(),
+      transport: createMockAgentRuntimeTransport(),
     });
 
     await runtime.load();
@@ -7266,7 +7266,7 @@ describe('Agent SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: createMockBackendTransport({
+      transport: createMockAgentRuntimeTransport({
         rehydrateConversation: jest.fn(async payload => {
           sentRehydrates.push(payload);
         }),

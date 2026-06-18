@@ -83,6 +83,9 @@ generic agent-session contracts such as `AgentSessionRuntime`,
 `ManagedAgentSession` are the canonical hosted-session modules. New app-builder code should
 prefer the generic names because the hosted websocket transport is an Agent SDK
 runtime concern rather than WindieOS renderer skin state.
+Hosts that inject a transport into `createConversationRuntime(...)` should type
+that adapter as `AgentRuntimeTransport`; `BackendTransport` is retained only as
+a compatibility alias for older TypeScript callers.
 
 `AgentClient.wakeUp(...)` can run on the SDK managed backend session. A host may
 pass backend endpoints and lifecycle hooks to the client when it needs endpoint

@@ -142,6 +142,28 @@ describe('@windie/sdk package boundary', () => {
     expect(await transport.sendQuery({ text: 'hello', conversation_ref: 'conv-1' })).toBe('message-1');
   });
 
+  test('uses AgentRuntimeTransport as the conversation runtime boundary type', () => {
+    const conversationTypesSource = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/conversation/types.ts'),
+      'utf8',
+    );
+    const conversationRuntimeSource = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/ConversationRuntime.ts'),
+      'utf8',
+    );
+    const continuitySource = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts'),
+      'utf8',
+    );
+
+    expect(conversationTypesSource).toContain('export type AgentRuntimeTransport = {');
+    expect(conversationTypesSource).toContain('export type BackendTransport = AgentRuntimeTransport;');
+    expect(conversationRuntimeSource).toContain('transport?: AgentRuntimeTransport;');
+    expect(conversationRuntimeSource).not.toContain('transport?: BackendTransport;');
+    expect(continuitySource).toContain("Pick<AgentRuntimeTransport, 'rehydrateConversation'>");
+    expect(continuitySource).not.toContain("Pick<BackendTransport, 'rehydrateConversation'>");
+  });
+
   test('exports generic backend socket factory helpers', () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, '../../packages/windie-sdk-js/src/transport/ManagedBackendSession.ts'),

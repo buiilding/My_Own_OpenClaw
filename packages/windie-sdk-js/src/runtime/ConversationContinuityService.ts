@@ -3,7 +3,7 @@
  */
 
 import type {
-  BackendTransport,
+  AgentRuntimeTransport,
   CompactedReplaySnapshot,
   ConversationMetadata,
   ConversationStore,
@@ -28,7 +28,7 @@ export type ConversationContinuityStoreFactory = (input: {
 
 export type ConversationContinuityTransportFactory = (input: {
   workspacePath?: string | null;
-}) => Pick<BackendTransport, 'rehydrateConversation'>;
+}) => Pick<AgentRuntimeTransport, 'rehydrateConversation'>;
 
 export type ConversationMetadataInvalidationEvent = {
   type: 'conversation-metadata-invalidated';

@@ -305,6 +305,14 @@ For each completed slice, record:
   settings-sync runtime tests, docs listing, diff checks, and exact source scan.
   No migration required; no payload, storage, IPC, settings, tool schema,
   credential, permission, or provider-policy behavior changed.
+- 2026-06-18: completed a focused SDK runtime-boundary type slice by making
+  `AgentRuntimeTransport` the canonical conversation-runtime injection type in
+  SDK internals and behavior tests while retaining `BackendTransport` as a
+  TypeScript compatibility alias. This keeps reusable host adapters aligned
+  with the Agent SDK runtime contract without changing websocket behavior,
+  payloads, storage, or public runtime commands. Validation: focused SDK
+  package-boundary and conversation-runtime Jest coverage plus docs listing
+  and source scans. No runtime or storage migration required.
 - 2026-06-18: completed a browser-tool public wording slice by routing
   `docs/tools/browser.md` and the tools hub through local-runtime execution and
   Python sidecar adapter/executor terminology instead of unqualified

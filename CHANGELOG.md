@@ -36,6 +36,10 @@ All notable changes to WindieOS will be documented in this file.
   runtime readiness in Electron main helper code and debug docs, instead of
   implying the host owns backend connection semantics directly. No migration
   required.
+- sdk/runtime: make `AgentRuntimeTransport` the canonical conversation-runtime
+  injection type across SDK internals and behavior tests while keeping
+  `BackendTransport` as a compatibility alias for existing TypeScript callers.
+  No runtime or storage migration required.
 - docs/debug: add a one-message runtime trace playbook that routes renderer
   action, main query handoff, SDK dispatch, backend stream, local-runtime tool
   execution, SDK projection, and renderer display through existing sanitized

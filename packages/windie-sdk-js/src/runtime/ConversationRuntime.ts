@@ -5,7 +5,7 @@
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
 import { isBackendEvent } from '../events/backendEvents.js';
 import type {
-  BackendTransport,
+  AgentRuntimeTransport,
   CompactHistoryPayload,
   ConversationEvent,
   ConversationRuntimeState,
@@ -139,7 +139,7 @@ export type ConversationRuntimeOptions = {
   conversationRef: string;
   revisionId?: string;
   store: ConversationStore;
-  transport?: BackendTransport;
+  transport?: AgentRuntimeTransport;
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool' | 'rpc'>> | null;
   localToolLifecycle?: LocalToolExecutionLifecycle | null;
   sdkClient?: AgentHostedBackendClient;

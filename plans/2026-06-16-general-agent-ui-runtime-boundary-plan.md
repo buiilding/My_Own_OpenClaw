@@ -9508,6 +9508,23 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 SDK AgentRuntimeTransport Boundary
+
+- Finding: `AgentRuntimeTransport` was already the documented reusable SDK
+  conversation-runtime boundary, but SDK internals still typed
+  `ConversationRuntimeOptions.transport`, continuity rehydrate factories, and
+  conversation-runtime behavior tests directly as `BackendTransport`.
+- Change: made `AgentRuntimeTransport` own the transport shape, retained
+  `BackendTransport` as a compatibility alias, updated SDK runtime internals
+  and behavior-test mocks to use the canonical boundary type, and documented
+  the alias status for advanced host adapters.
+- Validation: focused SDK package-boundary and conversation-runtime Jest
+  coverage, docs listing, exact source scans, and diff checks.
+- Compatibility: no runtime or storage migration required. Hosted websocket
+  behavior, SDK commands, payload fields, public `createAgentBackendTransport`
+  helper behavior, and existing TypeScript callers that import
+  `BackendTransport` are unchanged.
+
 ### 2026-06-18 browser tool local-runtime wording
 
 - Finding: public browser-tool docs still described the reusable execution
