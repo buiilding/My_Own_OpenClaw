@@ -780,6 +780,43 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_CLOSE');
   });
 
+  test('minimal chat pill routes chatbox window IPC through app runtime client', async () => {
+    const pillSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
+    const bindingsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const source of [pillSource, bindingsSource]) {
+      expect(source).not.toContain('IpcBridge');
+      expect(source).not.toContain('INVOKE_CHANNELS');
+      expect(source).not.toContain('SEND_CHANNELS');
+      expect(source).not.toContain('ON_CHANNELS');
+    }
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight');
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.activateChatboxTextEntry');
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxHitTestActive');
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.showMainWindow');
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.hideChatbox');
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.moveChatboxTo');
+    expect(bindingsSource).toContain('DesktopWindowRuntimeClient.onChatboxFocus');
+    expect(bindingsSource).toContain('DesktopWindowRuntimeClient.onWakewordSttTrigger');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT');
+    expect(clientSource).toContain('INVOKE_CHANNELS.ACTIVATE_CHATBOX_TEXT_ENTRY');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE');
+    expect(clientSource).toContain('INVOKE_CHANNELS.HIDE_CHATBOX');
+    expect(clientSource).toContain('SEND_CHANNELS.MOVE_CHATBOX_TO');
+    expect(clientSource).toContain('ON_CHANNELS.CHATBOX_FOCUS');
+    expect(clientSource).toContain('ON_CHANNELS.WAKEWORD_STT_TRIGGER');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

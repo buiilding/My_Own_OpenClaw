@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route minimal chatbox overlay focus, drag, hit-test,
+  visual-anchor, text-entry, hide, and dashboard handoff IPC through the
+  renderer app window runtime client.
 - renderer/runtime: route wakeword audio, enable/disable, detected, and status
   IPC through the renderer app voice runtime client.
 - renderer/runtime: route dashboard conversation event refresh and title-poll

@@ -23,7 +23,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/infrastructure/ipc/channels.ts`
+- `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 
 ## App Composition Boundary
 
@@ -50,10 +50,11 @@ This keeps overlay window lightweight:
 
 `useMinimalChatPillBindings` encapsulates chat pill runtime effect bindings:
 
-- explicit focus lifecycle (`chatbox-focus` + mount focus)
-- wakeword STT trigger channel handling (`wakeword-stt-trigger`)
+- explicit focus lifecycle through `DesktopWindowRuntimeClient` + mount focus
+- wakeword STT trigger handling through `DesktopWindowRuntimeClient`
 - global drag window listeners (`mousemove`/`mouseup`/`blur`)
-- visual-anchor IPC sync from measured shell height plus compact-height cleanup on unmount
+- visual-anchor sync through `DesktopWindowRuntimeClient` from measured shell
+  height plus compact-height cleanup on unmount
 
 Resulting behavior in `useChatMessageSender`:
 
@@ -64,7 +65,7 @@ Resulting behavior in `useChatMessageSender`:
 Minimal pill control inventory in current production `MinimalChatPill`:
 
 - the chat pill shell now owns a bumped top contour that houses the close control as part of one silhouette
-- settings button opens the dashboard/chat surface via `show-main-window`
+- settings button opens the dashboard/chat surface via `DesktopWindowRuntimeClient`
 - attachment button opens the native file picker for image/file attachments
 - screenshot button toggles overlay auto screenshot (`include_query_screenshot`)
 - sound button toggles text-to-speech replies (`speech_mode_enabled`)
@@ -99,7 +100,7 @@ Right-side action button parity with dashboard composer:
 
 Dashboard handoff affordance:
 
-- chatbox settings icon invokes `show-main-window` with `{ maximize: true }`.
+- chatbox settings icon invokes `DesktopWindowRuntimeClient.showMainWindow(...)` with `{ maximize: true }`.
 - this requests expanded dashboard view before focus handoff.
 
 `electron:dev` compaction harness:
@@ -144,7 +145,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 
 - chat overlay window dimensions are still owned by main runtime (`createChatWindow`), but the native frame is now preallocated instead of resizing on each multiline anchor update.
 - `ChatBox.jsx` no longer emits renderer-driven freeform resize IPC for preview/startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
-- renderer now measures `.chatbox-shell` with `ResizeObserver` and reports the resulting visual-anchor height through `set-chatbox-visual-anchor-height`, so multiline composer growth can enlarge the lower pill body while main re-anchors response/context overlays without resizing the native chat window itself.
+- renderer now measures `.chatbox-shell` with `ResizeObserver` and reports the resulting visual-anchor height through `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight(...)`, so multiline composer growth can enlarge the lower pill body while main re-anchors response/context overlays without resizing the native chat window itself.
 - `.chatbox-shell` reserves explicit top bump headroom, and the chat pill consumes that space for its integrated close-button bump so the mutated shell contour stays inside the native overlay window even when multiline composer growth pushes the lower pill body taller.
 - idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the pill and close bump.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
@@ -180,7 +181,7 @@ Movement path:
 2. on mousemove, ignore small movement (`<5px` manhattan distance)
 3. once the threshold is crossed, mark the gesture as a real drag
 4. compute absolute target window coordinates
-5. send `move-chatbox-to` with `{ x, y }`
+5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
 6. stop on mouseup/window blur
 
 ## Visual Loop Activity Signal
@@ -219,7 +220,7 @@ Loop watchdog behavior:
 `ChatBoxOverlayMouseIgnore` now includes explicit anti-regression coverage for:
 
 - startup compact-class stability (no delayed `with-preview` flip when no images exist)
-- multiline shell growth updating `set-chatbox-visual-anchor-height` without reviving deprecated `set-chatbox-size`
+- multiline shell growth updating `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight(...)` without reviving deprecated `set-chatbox-size`
 - camera-toggle enabled/disabled styling and config writes without creating preview items
 - drag-from-input and drag-from-button behavior after the private `5px` movement threshold
 - normal button clicks still firing when no drag threshold crossing occurs
@@ -236,7 +237,7 @@ If drag movement is jittery or ignored:
 
 1. inspect computed pointer offset and `5px` movement threshold behavior
 2. confirm click-capture suppression only happens after `didDrag === true`
-3. verify `move-chatbox-to` IPC reaches main process
+3. verify `DesktopWindowRuntimeClient.moveChatboxTo(...)` reaches main process
 
 If chatbox flickers on startup or image insert:
 

@@ -16,6 +16,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
+- `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
@@ -72,8 +73,8 @@ compaction behind its loop lock.
 ### Focus and Wakeword Trigger
 
 - input focus on mount through `useChatboxFocusBindings`
-- explicit refocus only on `chatbox-focus` IPC event
-- `wakeword-stt-trigger` IPC starts STT session only when `wakeword_stt_enabled === true`
+- explicit refocus only on the chatbox-focus event via `DesktopWindowRuntimeClient`
+- wakeword STT trigger via `DesktopWindowRuntimeClient` starts STT session only when `wakeword_stt_enabled === true`
 - loop lock blocks refocus and blurs input while active
 - unfocused textarea pointer-down requests native text-entry activation, but
   must not consume a press-and-hold drag gesture
@@ -89,7 +90,7 @@ compaction behind its loop lock.
   pointer-down used for focus handoff can still become a drag
 - drag move is ignored until distance is at least 2 pixels
 - absolute move dispatch:
-  - `IpcBridge.send("move-chatbox-to", { x, y })`
+  - `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
 
 ### Screenshot Preview Lane and Visual Anchor
 

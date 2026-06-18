@@ -90,8 +90,10 @@ instead of importing desktop IPC channel constants directly.
 `desktopWindowRuntimeClient.ts` owns renderer adapter calls for desktop window
 commands used by generic runtime flows, such as restoring the chatbox after
 overlay-origin sends, applying startup surface visibility, handling wakeword
-chatbox restore, and main-window controls. Callers keep UI policy and call this
-runtime client instead of importing window IPC channel constants directly.
+chatbox restore, main-window controls, and minimal chatbox overlay focus, drag,
+hit-test, visual-anchor, text-entry, and hide/show commands. Callers keep UI
+policy and call this runtime client instead of importing window IPC channel
+constants directly.
 
 `desktopArtifactRuntimeClient.ts` owns renderer adapter calls for desktop
 artifact image commands used by generic message presentation, including

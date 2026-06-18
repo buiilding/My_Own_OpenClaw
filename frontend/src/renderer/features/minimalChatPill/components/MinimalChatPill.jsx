@@ -7,7 +7,7 @@ import { useChatStore } from '../../chat/stores/chatStore';
 import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
-import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
 import {
   useChatboxDragWindowBindings,
   useChatboxFocusBindings,
@@ -184,7 +184,7 @@ function MinimalChatPill() {
       });
       reservedChatboxFrameHeightRef.current = null;
       setReservedChatboxFrameHeight(null);
-      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight({
         height: nextAnchorHeight,
       }).catch((error) => {
         console.warn('[MinimalChatPill] Failed to collapse chat window frame:', error);
@@ -206,7 +206,7 @@ function MinimalChatPill() {
   }, []);
 
   const activateTextEntry = useCallback(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.ACTIVATE_CHATBOX_TEXT_ENTRY, {
+    DesktopWindowRuntimeClient.activateChatboxTextEntry({
       reason: 'text-entry',
     }).catch((error) => {
       console.warn('[MinimalChatPill] Failed to activate text entry:', error);
@@ -352,7 +352,7 @@ function MinimalChatPill() {
       return;
     }
 
-    IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+    DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight({
       height: currentAnchorHeight,
       frameHeight: expandedFrameHeight,
     }).catch((error) => {
@@ -456,7 +456,7 @@ function MinimalChatPill() {
       return;
     }
     chatboxHitTestActiveRef.current = nextActive;
-    IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE, {
+    DesktopWindowRuntimeClient.setChatboxHitTestActive({
       active: nextActive,
     }).catch(() => {});
     logRendererLiveSurfaceTrace('chat_pill.hit_test.set', {
@@ -534,7 +534,7 @@ function MinimalChatPill() {
 
   const handleOpenConfig = useCallback(async () => {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+      await DesktopWindowRuntimeClient.showMainWindow({
         maximize: true,
         open: 'chat',
         reason: 'chat-pill-settings',
@@ -546,7 +546,7 @@ function MinimalChatPill() {
 
   const handleHideChatbox = useCallback(async () => {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX, { reason: 'user' });
+      await DesktopWindowRuntimeClient.hideChatbox({ reason: 'user' });
     } catch (error) {
       console.warn('[MinimalChatPill] Failed to hide chat window:', error);
     }
@@ -586,7 +586,7 @@ function MinimalChatPill() {
       return;
     }
 
-    IpcBridge.send(SEND_CHANNELS.MOVE_CHATBOX_TO, nextTarget);
+    DesktopWindowRuntimeClient.moveChatboxTo(nextTarget);
     event.preventDefault();
   }, []);
 

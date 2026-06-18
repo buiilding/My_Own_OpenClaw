@@ -162,8 +162,30 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through the renderer app runtime conversation event client.
   Renderer wakeword audio, enable/disable, detected, and status IPC now route
   through the renderer app voice runtime client.
+  Renderer minimal chatbox overlay focus, drag, hit-test, visual-anchor,
+  text-entry, hide, and dashboard handoff IPC now route through the renderer app
+  window runtime client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Minimal Chatbox Window Runtime Client Slice
+
+- Worktree was clean after `43c21067d`, with `main` ahead of `origin/main` by
+  848 commits.
+- Finding: `MinimalChatPill` and `useMinimalChatPillBindings` still imported
+  chatbox window IPC channels directly for focus, wakeword STT trigger,
+  visual-anchor reporting, text-entry activation, hit-test, dashboard handoff,
+  hide, and drag move behavior.
+- Change: widened `DesktopWindowRuntimeClient` to own those chatbox window
+  commands/subscriptions, then routed the minimal pill component and binding
+  hook through it while leaving layout, focus, drag, hit-test, and STT policy in
+  the overlay feature.
+- Validation: focused chatbox overlay mouse-ignore test, renderer chat boundary
+  test, targeted minimal pill direct chatbox IPC scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. Chatbox channel strings, payload shapes,
+  overlay drag/focus/hit-test behavior, visual-anchor sizing policy, storage,
+  credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Wakeword Bridge Voice Runtime Client Slice
 

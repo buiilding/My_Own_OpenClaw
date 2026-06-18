@@ -3,14 +3,14 @@
  */
 
 import { useEffect } from 'react';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
 import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../../chat/utils/state/chatBoxState';
 
 const CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS = 120;
 
 export function useChatboxFocusBindings(focusInput) {
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
+    const removeListener = DesktopWindowRuntimeClient.onChatboxFocus(() => {
       focusInput();
     });
     return () => {
@@ -26,7 +26,7 @@ export function useChatboxWakewordSttTriggerBinding({
   setWakewordSttSessionActive,
 }) {
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_STT_TRIGGER, () => {
+    const removeListener = DesktopWindowRuntimeClient.onWakewordSttTrigger(() => {
       if (!wakewordSttEnabled) {
         setWakewordSttSessionActive(false);
         return;
@@ -100,7 +100,7 @@ export function useChatboxVisualAnchorBindings({
       if (normalizedFrameHeight !== null) {
         payload.frameHeight = normalizedFrameHeight;
       }
-      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, payload).catch((error) => {
+      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight(payload).catch((error) => {
         if (!cancelled) {
           console.warn('[MinimalChatPill] Failed to sync visual anchor height:', error);
         }
@@ -178,7 +178,7 @@ export function useChatboxVisualAnchorBindings({
 
   useEffect(() => {
     return () => {
-      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight({
         height: CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
       }).catch(() => {});
     };
