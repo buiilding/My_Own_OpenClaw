@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: qualify agent-visible pipeline sidecar labels as Python
+  sidecar or local-runtime ownership.
 - docs/tools: qualify tool troubleshooting registry/runtime owners as Python
   sidecar ownership.
 - docs/voice: label voice capture docs as renderer-owned and wakeword bridge

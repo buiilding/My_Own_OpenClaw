@@ -121,8 +121,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   wakeword bridge ownership explicitly instead of broad frontend labels.
   Tool troubleshooting and schema-policy routing docs now qualify Python sidecar
   registry/runtime ownership in local execution failure rows.
+  The agent-visible data pipeline now qualifies Python sidecar and executable
+  local-runtime ownership in local tool execution/result rows.
 
 ## Inspection Log
+
+### 2026-06-18 Agent-Visible Pipeline Python Sidecar Labels Slice
+
+- Worktree was clean after `d797bbf52`, with `main` ahead of `origin/main` by
+  832 commits.
+- Finding: the agent-visible data pipeline still used broad frontend/sidecar
+  and plain Sidecar labels for local tool execution/result boundaries.
+- Change: qualified those labels as desktop client/Python sidecar,
+  Python sidecar `ToolResult`, Python sidecar execution, or executable
+  local-runtime args, and extended the modular boundary guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  pipeline behavior, tool schemas, SDK local-runtime transport, Electron bridge
+  behavior, Python sidecar execution, storage, credentials, and provider policy
+  are unchanged.
 
 ### 2026-06-18 Tool Troubleshooting Python Sidecar Owner Labels Slice
 

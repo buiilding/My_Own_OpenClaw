@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Agent-Visible Pipeline Python Sidecar Labels
+
+- Finding: the agent-visible data pipeline still used broad frontend/sidecar
+  and plain Sidecar labels for local tool execution/result boundaries.
+- Change: qualified those labels as desktop client/Python sidecar,
+  Python sidecar `ToolResult`, Python sidecar execution, or executable
+  local-runtime args, and extended the modular boundary guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  pipeline behavior, tool schemas, SDK local-runtime transport, Electron bridge
+  behavior, Python sidecar execution, storage, credentials, and provider policy
+  are unchanged.
+
 ### 2026-06-18 Tool Troubleshooting Python Sidecar Owner Labels
 
 - Finding: tool troubleshooting and schema-policy routing docs still used

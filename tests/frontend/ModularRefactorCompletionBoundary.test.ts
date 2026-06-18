@@ -570,6 +570,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');
+    expect(localRuntimePayloadDocText).toContain('Python sidecar `ToolResult`');
+    expect(localRuntimePayloadDocText).not.toContain('Frontend/sidecar must not import');
+    expect(localRuntimePayloadDocText).not.toContain('Sidecar `ToolResult`');
+    expect(localRuntimePayloadDocText).not.toContain('the sidecar execute another');
     expect(docText).not.toContain('Windie Agent owns client-local');
     expect(docText).not.toContain('Sidecar Plugin Tool Registration');
     expect(docText).not.toContain('sidecar plugin');
