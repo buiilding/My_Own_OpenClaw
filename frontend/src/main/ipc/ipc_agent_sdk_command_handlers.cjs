@@ -73,6 +73,12 @@ function optionalTransportConversationRef(payload = {}) {
   return normalizeOptionalString(payload.conversation_ref);
 }
 
+function rejectRemovedTransportTurnRef(payload = {}) {
+  if (Object.prototype.hasOwnProperty.call(payload, 'turnRef')) {
+    throw new Error('Agent runtime transport command requires turn_ref; turnRef is not supported.');
+  }
+}
+
 function rejectRemovedEditRetryAliases(payload = {}) {
   const removed = ['turn_ref', 'message_id'].filter(key => (
     Object.prototype.hasOwnProperty.call(payload, key)
@@ -156,7 +162,11 @@ function buildAgentSdkCommandHandlers({
 }) {
   return {
     [SDK_RUNTIME_COMMANDS.CONVERSATION_SEND]: async (payload = {}) => handleRendererChatQuery(event, payload),
-    [SDK_RUNTIME_COMMANDS.CONVERSATION_STOP]: async (payload = {}) => handleRendererStopQuery(payload),
+    [SDK_RUNTIME_COMMANDS.CONVERSATION_STOP]: async (payload = {}) => {
+      optionalTransportConversationRef(payload);
+      rejectRemovedTransportTurnRef(payload);
+      return handleRendererStopQuery(payload);
+    },
     [SDK_RUNTIME_COMMANDS.CONVERSATION_REHYDRATE]: async (payload = {}) => {
       const agent = await deps.ensureAgent({
         reason: 'sdk-command:conversation.rehydrate',

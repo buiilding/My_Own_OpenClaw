@@ -982,7 +982,7 @@ function createDirectWakeUpAgentAdapter({
       const stopConversationRef = resolveRuntimeConversationRef(input) || defaultConversationRef;
       const stopTurnRef = input && typeof input === 'object' && typeof input.turn_ref === 'string'
         ? input.turn_ref
-        : (input && typeof input === 'object' && typeof input.turnRef === 'string' ? input.turnRef : null);
+        : null;
       const handle = getConversationRuntimeHandle(stopConversationRef);
       handle.sendInFlight = false;
       handle.terminal = true;

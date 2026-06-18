@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 conversation stop transport alias rejection
+
+- Finding: the main SDK command handler already rejected removed camelCase `conversationRef` for transport commands, but `conversation.stop` still accepted camelCase `turnRef` through the direct wake-up adapter path.
+- Change: added an explicit `turnRef` rejection at the main SDK command boundary and stopped the direct adapter from falling back to the removed camelCase turn alias.
+- Validation: focused `IpcMainBridge.lifecycle` coverage for rejected camelCase aliases and the supported `conversation.stop` snake_case path, plus scoped diff check.
+- Compatibility: canonical `conversation_ref` and `turn_ref` stop payloads keep working; removed camelCase transport aliases now fail fast before websocket send. Runtime behavior, storage, tool schemas, settings, credentials, permissions, and persisted data are otherwise unchanged.
+
 ### 2026-06-18 public tool local-runtime docs
 
 - Finding: public tool docs still described add/debug routes as `sidecar-executed`, `sidecar execution`, or `sidecar results`, even after the SDK local runtime became the reusable public boundary.

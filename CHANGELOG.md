@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: reject removed camelCase `conversation.stop` transport aliases at the SDK command boundary and stop accepting `turnRef` in the direct wake-up stop adapter; no migration is required for supported clients because canonical `conversation_ref` and `turn_ref` payloads continue to work unchanged.
 - docs/tools: move public tool troubleshooting, catalog, policy, browser, computer, filesystem/shell, and SDK conversation-runtime wording from sidecar-execution/result labels to local-runtime/local-execution labels; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - docs/architecture: replace remaining general sidecar-execution boundary wording with local-execution wording in tool-system, failure-domain, data-flow, sidecar lifecycle, renderer workflow, and focused frontend test labels; no migration is required because this changes docs/test wording only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - backend/frontend/sdk: remove the retired OpenAI Codex OAuth provider config

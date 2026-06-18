@@ -517,6 +517,28 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
+  test('rejects removed camelCase conversation.stop aliases at main boundary', async () => {
+    const { handlers, ws } = await setupOpenedIpc();
+    const sentBefore = ws.sent.length;
+
+    await expect(invokeAgentSdkCommandHandler(handlers, 'conversation.stop', {
+      conversationRef: 'conv-camel-stop',
+      turn_ref: 'turn-stop',
+    })).resolves.toEqual({
+      ok: false,
+      error: 'Agent runtime transport command requires conversation_ref; conversationRef is not supported.',
+    });
+    await expect(invokeAgentSdkCommandHandler(handlers, 'conversation.stop', {
+      conversation_ref: 'conv-stop',
+      turnRef: 'turn-camel-stop',
+    })).resolves.toEqual({
+      ok: false,
+      error: 'Agent runtime transport command requires turn_ref; turnRef is not supported.',
+    });
+
+    expect(ws.sent).toHaveLength(sentBefore);
+  });
+
   test('rejects typed query invokes with missing payload object without throwing', async () => {
     const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
