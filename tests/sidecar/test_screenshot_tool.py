@@ -18,6 +18,7 @@ def test_path_trace_helpers_use_local_runtime_names():
 
     assert "build_sidecar_memory_search_trace" not in source
     assert "build_sidecar_screenshot_capture_trace" not in source
+    assert '"runtime": "sidecar"' not in source
     assert "build_local_runtime_memory_search_trace" in source
     assert "build_local_runtime_screenshot_capture_trace" in source
 

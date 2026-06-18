@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python Memory Trace Runtime Label Boundary
+
+- Finding: new Python local-runtime memory diagnostics and search trace payloads
+  still stamped `runtime: "sidecar"` even though the sidecar is the concrete
+  daemon process and the emitted trace contract is local-runtime-owned.
+- Change: changed new memory diagnostic/search trace emissions to
+  `runtime: "local-runtime"` and added a source guard against restoring the old
+  `path_trace.py` runtime marker.
+- Validation: focused sidecar memory/search and path-trace pytest coverage,
+  Python compile checks, docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. Historical stored trace rows may still
+  carry `runtime: "sidecar"` for inspection; JSON-RPC methods, memory storage,
+  trace event shapes, SDK projection, IPC, credentials, permissions, hosted
+  backend URL handling, and provider policy are unchanged.
+
 ### 2026-06-18 Main IPC Backend/Debug Config Boundary
 
 - Finding: after host-copy and local-runtime launch config moved to narrow

@@ -1028,6 +1028,10 @@ async def test_handle_conversation_list_returns_sanitized_diagnostics(tmp_path):
         "history_db_checked",
         "store_list",
     ]
+    assert [event["runtime"] for event in events] == [
+        "local-runtime",
+        "local-runtime",
+    ]
     assert events[0]["data"] == {
         "canonicalHistoryDbExists": True,
     }
@@ -1059,7 +1063,7 @@ async def test_handle_search_memory_by_embedding_applies_filters():
     trace = result["data"]["trace"]
     assert trace.pop("durationMs") >= 0
     assert trace == {
-        "runtime": "sidecar",
+        "runtime": "local-runtime",
         "method": "search_memory_by_embedding",
         "searchedMemoryTypes": ["semantic"],
         "embeddingDimension": 3,

@@ -83,7 +83,7 @@ class LocalRuntimeMemoryHandlersMixin:
         event: Dict[str, Any] = {
             "stage": stage,
             "status": status,
-            "runtime": "sidecar",
+            "runtime": "local-runtime",
             "data": data or {},
         }
         if started_at is not None:

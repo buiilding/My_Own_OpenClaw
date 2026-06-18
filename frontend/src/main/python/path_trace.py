@@ -39,7 +39,7 @@ def build_local_runtime_memory_search_trace(
     started_at: float,
 ) -> Dict[str, Any]:
     return {
-        "runtime": "sidecar",
+        "runtime": "local-runtime",
         "method": method,
         "searchedMemoryTypes": [memory_type] if memory_type else ["episodic", "semantic"],
         "embeddingDimension": embedding_dimension,
