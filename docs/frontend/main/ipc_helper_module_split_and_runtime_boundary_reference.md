@@ -158,11 +158,14 @@ Owns renderer-window lifecycle and generic fan-out:
 
 Owns query-scope send-failure event fan-out:
 
-- `broadcastQuerySendFailure`: emits an identifiable `error` event when SDK/backend send fails and resets phase to idle
+- `broadcastQuerySendFailure`: builds an SDK `turn_error` conversation event
+  from query failure context when SDK/backend send fails, fans it out to
+  renderer windows, and resets phase to idle
 
 ### `ipc_query_events.cjs` (shape builder dependency)
 
-Owns query-context and send-failure envelope constructors consumed by `ipc_query_broadcast.cjs`:
+Owns query-context and send-failure context constructors consumed by
+`ipc_query_broadcast.cjs`:
 
 - `resolveConversationRef`
 - `buildQuerySendFailure`

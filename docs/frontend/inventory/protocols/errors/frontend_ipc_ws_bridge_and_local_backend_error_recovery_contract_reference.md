@@ -178,7 +178,7 @@ When changing error semantics, keep aligned:
 |---|---|---|
 | invalid IPC channel invoke/send/listen | `frontend/src/preload.js` + renderer bridge wrapper | invalid `invoke` rejects; invalid `send/on/once` do not cross boundary |
 | websocket disconnect/error converge path | `frontend/src/main/ipc.cjs` | socket errors converge into close path; state reset + reconnect timer restoration |
-| query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | failed send emits synthetic backend-style `error` event with preserved turn/session context |
+| query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs` | failed send emits an SDK `turn_error` conversation event with preserved turn/session context |
 | settings ACK timeout fallback | `frontend/src/main/ipc.cjs` | unresolved ACKs auto-resolve false after `2500ms`; pending maps cleared on reconnect |
 | local-runtime request/process failure handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
 | wakeword subprocess failure/status handling | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | startup/exit/stderr failures normalize to `wakeword-status` `{ready:false,error?}` without crashing bridge loops; helper runtime provides deterministic error/status normalization |

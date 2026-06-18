@@ -189,6 +189,16 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('backend reconnects');
   });
 
+  test('query send-failure broadcast builds sdk events without backend normalizer import', () => {
+    const source = fs.readFileSync(ipcQueryBroadcastPath, 'utf8');
+
+    expect(source).toContain('createConversationEvent');
+    expect(source).toContain("type: 'turn_error'");
+    expect(source).toContain("source: 'electron-main'");
+    expect(source).not.toContain('backendEventNormalizer');
+    expect(source).not.toContain('normalizeBackendEventToConversationEvent');
+  });
+
   test('MCP runtime uses generic defaults instead of product identity', () => {
     const source = fs.readFileSync(mcpRuntimePath, 'utf8');
 

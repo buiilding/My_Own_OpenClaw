@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK-Shaped Query Send-Failure Broadcast
+
+- Finding: `ipc_query_broadcast.cjs` still built a backend-shaped local error
+  and imported the SDK backend-event normalizer for synthetic query-send
+  failure.
+- Change: build a `turn_error` conversation event directly with
+  `createConversationEvent`, `source: "electron-main"`, and
+  `payload.sourceEventType: "query-send-failed"` while keeping
+  `buildQuerySendFailure(...)` as the query-context constructor.
+- Validation: focused query/main-host Jest tests, targeted backend-normalizer
+  import scan, docs listing, and diff check.
+- Compatibility: no migration required. The renderer-visible
+  `windie:conversation-event` channel, query send-failure text, turn/session
+  context, replay clearing, overlay idle reset, storage, credentials,
+  permissions, and provider policy are unchanged.
+
 ### 2026-06-18 generic local-runtime Python guidance
 
 - Finding: Electron main's dev/source local-runtime launch fallback still told

@@ -128,7 +128,8 @@ The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with 
 ### 5) SDK agent send + failure fallback
 
 - sends the backend websocket message through the Agent SDK runtime with stable message id
-- on send failure, emits a normalized SDK conversation error event via `buildQuerySendFailure(...)`
+- on send failure, builds and emits an SDK `turn_error` conversation event
+  from `buildQuerySendFailure(...)` context without backend-wire normalization
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 
 ## SDK Context Enrichment Internals
@@ -239,7 +240,8 @@ If renderer shows user message but backend never streams:
 
 1. confirm the SDK `user_message` projection arrived after the optimistic row
 2. verify SDK runtime send returned message id
-3. inspect synthetic `buildQuerySendFailure` error event path for failed send
+3. inspect the `buildQuerySendFailure` context and SDK `turn_error`
+   broadcast path for failed send
 
 For module ownership details of query send-failure broadcasters and
 renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary

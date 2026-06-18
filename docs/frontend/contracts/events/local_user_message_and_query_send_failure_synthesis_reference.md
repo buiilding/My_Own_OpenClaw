@@ -49,15 +49,23 @@ This keeps synthetic event context shape deterministic for renderer filters.
 
 ## Query Send-Failure Event Contract
 
-`buildQuerySendFailure(...)` emits:
+`buildQuerySendFailure(...)` returns the deterministic failure context consumed
+by `broadcastQuerySendFailure(...)`:
 
 - `type: "error"`
 - `id`: original `queryMessageId`
 - `event_id`: stable local failure id derived from the query id
-- `sequence`: local positive sequence so SDK normalization accepts the event
 - same query context fields (`turn_ref`, `session_id`, `user_id`, `conversation_ref`)
 - payload:
   - `message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the connection is restored."`
+
+`broadcastQuerySendFailure(...)` converts that context into an SDK
+conversation event with:
+
+- `type: "turn_error"`
+- `source: "electron-main"`
+- `payload.sourceEventType: "query-send-failed"`
+- payload `message` and `content` set to the failure message
 
 `broadcastQuerySendFailure(...)` also sets overlay phase to:
 
@@ -85,13 +93,15 @@ local-user-message event.
 - adds user chat row with optional screenshot refs (`screenshot_refs[]` first, fallback `screenshot_ref`)
 - resets stream-tracking for new turn (`awaiting-first-chunk`, `resetForTurn`)
 
-Synthetic send-failure `error` events are handled through normal error path unless filtered by `shouldIgnoreStreamError(...)`.
+Synthetic send-failure `turn_error` events are handled through the normal
+renderer error path unless filtered by `shouldIgnoreStreamError(...)`.
 
 ## Drift Hotspots
 
 1. Electron query prep reintroduces a synthetic local user-message path and duplicates SDK `user_message`.
 2. query send-failure text changed and downstream status/error heuristics rely on exact string fragments
-3. failure event identity fields are omitted, causing SDK normalization to emit a runtime identity error instead of a turn error
+3. failure event identity fields are omitted, causing renderer conversation
+   filtering to drop the SDK `turn_error`
 4. fallback user-id policy modified, causing unexpected null/non-null context behavior
 5. conversation-ref resolution changed, breaking active-conversation filtering
 
@@ -107,7 +117,8 @@ If query send failure is silent:
 
 1. verify the SDK runtime query send rejected or returned no message id
 2. verify `broadcastQuerySendFailure(...)` executed
-3. verify error event includes `event_id` and `sequence`
+3. verify the SDK `turn_error` includes stable `eventId`, `turnRef`, and
+   `conversationRef`
 4. verify renderer receives the normalized `windie:conversation-event` `turn_error`
 
 ## Related Pages

@@ -92,9 +92,31 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   values as renderer-local presentation state. Electron main dev/source
   local-runtime launch fallback copy now describes a generic local-runtime
   Python executable instead of a frontend conda environment while preserving
-  the existing `WINDIE_PYTHON_PATH` env var.
+  the existing `WINDIE_PYTHON_PATH` env var. Electron main query send-failure
+  broadcasts now build SDK `turn_error` conversation events directly in the IPC
+  helper instead of importing backend event normalization for a synthetic local
+  failure.
 
 ## Inspection Log
+
+### 2026-06-18 SDK-Shaped Query Send-Failure Broadcast Slice
+
+- Worktree had only the in-progress query broadcast helper and boundary test
+  changes after `463f71e13`, with `main` ahead of `origin/main` by 819
+  commits.
+- Finding: the query send-failure broadcaster still created a backend-shaped
+  local error and called the SDK backend-event normalizer from Electron main
+  for a synthetic send failure.
+- Change: `ipc_query_broadcast.cjs` now creates the SDK `turn_error`
+  conversation event directly with `createConversationEvent`, marks
+  `source: "electron-main"`, preserves query context from
+  `buildQuerySendFailure(...)`, and keeps the source event marker in
+  `payload.sourceEventType`.
+- Validation: focused query/main-host Jest tests, targeted backend-normalizer
+  import scan, docs listing, and diff check.
+- Compatibility: no migration required. Renderer IPC channel names, failure
+  copy, turn/conversation context, replay clearing, overlay idle reset,
+  storage, credentials, permissions, and provider policy are unchanged.
 
 ### 2026-06-18 Generic Local-Runtime Python Guidance Slice
 

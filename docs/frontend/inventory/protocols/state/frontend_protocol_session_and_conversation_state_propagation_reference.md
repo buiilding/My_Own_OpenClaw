@@ -131,13 +131,14 @@ Used by:
 
 - SDK `ConversationRuntime.send(...)` when emitting `turn_started` and
   `user_message` projections for the active turn
-- `buildQuerySendFailure(...)` (synthetic backend-unavailable error)
+- `buildQuerySendFailure(...)` context used for Electron-main SDK
+  `turn_error` send-failure broadcasts
 
 Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
 
 - conversation-ref fallback reused by SDK send projection and outbound query
 - reconnect clears stale fallback before next query
-- query-send failure emits context-preserving error envelope
+- query-send failure emits a context-preserving SDK `turn_error` event
 
 ## Dashboard Conversation Selection State Transitions
 
