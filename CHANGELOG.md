@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename the current-turn side-effect helper for skipped tool events
+  to `isExecutionSkippedToolEvent` so active renderer code follows SDK
+  `executionSkipped` vocabulary instead of frontend execution wording.
 - renderer docs/tests: describe the config filter as renderer-owned local
   settings persistence instead of frontend-owned runtime settings while keeping
   existing `filterFrontendConfig` and IPC wire names unchanged.

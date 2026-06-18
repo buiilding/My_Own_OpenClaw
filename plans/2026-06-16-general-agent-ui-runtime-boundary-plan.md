@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer current-turn skipped tool helper boundary
+
+- Finding: `currentTurnProjectionSideEffects.ts` consumed SDK
+  `executionSkipped`, but its local helper was still named
+  `isSkipFrontendExecutionToolEvent`.
+- Change: renamed the helper to `isExecutionSkippedToolEvent` so active
+  renderer side-effect code follows SDK projection vocabulary while preserving
+  the behavior that skipped tool calls keep typing/thinking state visible.
+- Validation: focused current-turn side-effect Jest coverage, stale active
+  helper-name scan, docs listing, and diff check.
+- Compatibility: no migration required. SDK projection fields, renderer UI
+  behavior, transcript storage, IPC, permissions, credentials, and backend wire
+  metadata are unchanged.
+
 ### 2026-06-18 renderer config filter ownership wording boundary
 
 - Finding: the renderer config filter helper still described its local

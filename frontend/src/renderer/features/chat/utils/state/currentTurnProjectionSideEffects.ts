@@ -86,7 +86,7 @@ function resolveSdkPresentationHasVisibleContent(currentTurn: SdkCurrentTurnProj
   return presentation?.overlayVisible === true;
 }
 
-function isSkipFrontendExecutionToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
+function isExecutionSkippedToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
   return toolEvent.executionSkipped === true;
 }
 
@@ -179,7 +179,7 @@ export function applyCurrentTurnProjectionSideEffects({
     }
     nextToolEventIds.add(toolEvent.id);
     if (toolEvent.kind === 'tool_call') {
-      if (!isSkipFrontendExecutionToolEvent(toolEvent)) {
+      if (!isExecutionSkippedToolEvent(toolEvent)) {
         deps.setIsSending(false, conversationRef);
         deps.setThinkingStatus(null, conversationRef);
         deps.setThinkingSourceEventType(null, conversationRef);
