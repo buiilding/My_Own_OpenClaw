@@ -10,11 +10,11 @@ title: "Browser Runtime Contract And Browser Use Engine Reference"
 
 ## Purpose
 
-The sidecar `browser` tool now uses a sidecar-owned adapter over the maintained
-Browser Use CLI package. Backend/tool contracts own model-facing policy; the
-sidecar adapter owns runtime validation, local tool transport, browser-local
-file helpers, and result normalization. Browser Use owns browser session
-mechanics.
+The local-runtime `browser` tool uses a Python sidecar adapter over the
+maintained Browser Use CLI package. Backend/tool contracts own model-facing
+policy; the local-runtime adapter owns runtime validation, local tool transport,
+browser-local file helpers, and result normalization. Browser Use owns browser
+session mechanics.
 
 The runtime boundary is:
 

@@ -8,10 +8,11 @@ title: "Browser Automation Stack"
 
 # Browser Automation Stack
 
-WindieOS currently routes the canonical `browser` tool through a sidecar-owned
-Browser Use engine adapter. The old first-party `WindieBrowserRuntime` and
-vendored `browser_use.browser` session runtime were removed from source; do not
-add new browser behavior to those retired paths.
+WindieOS currently routes the canonical `browser` tool through local-runtime
+browser execution backed by a Python sidecar Browser Use engine adapter. The old
+first-party `WindieBrowserRuntime` and vendored `browser_use.browser` session
+runtime were removed from source; do not add new browser behavior to those
+retired paths.
 
 ## End-to-End Call Path
 

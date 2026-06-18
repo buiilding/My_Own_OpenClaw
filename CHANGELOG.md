@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align the frontend capability catalog and browser sidecar
+  docs with local-runtime JSON-RPC, remote-client, and browser adapter
+  ownership while preserving Python sidecar implementation details. No
+  migration required.
 - docs/development: align the MCP runtime guide with SDK local-runtime
   registration, discovery, and execution wording while keeping Python sidecar
   implementation details explicit. No migration required.

@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a frontend browser/local-runtime wording slice by
+  updating the sidecar implementation catalog and adjacent browser sidecar docs
+  so JSON-RPC hosting, remote semantic clients, and browser adapters are
+  described through local-runtime ownership while Python sidecar remains the
+  concrete implementation surface. The modular stale-mention guard now rejects
+  the retired local-sidecar JSON-RPC host, sidecar remote-client, and
+  sidecar-owned browser adapter phrases. Validation: focused modular docs
+  boundary test, docs listing, exact stale inventory/browser phrase scan, and
+  diff checks. No migration required; no code path, payload, storage, IPC,
+  settings, tool schema, credential, permission, hosted URL, provider-policy,
+  browser session, or Browser Use behavior changed.
 - 2026-06-18: completed an MCP local-runtime owner-label slice by updating the
   runtime trace playbook and MCP runtime guide so `mcp.discovery`,
   `mcp.registration`, and `mcp.execution` use local-runtime MCP ownership labels

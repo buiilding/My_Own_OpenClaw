@@ -606,8 +606,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(browserToolOverviewText).not.toContain('sidecar runtime execution');
     expect(browserToolOverviewText).not.toContain('sidecar runtime, CDP launch');
     expect(browserToolOverviewText).not.toContain('Update sidecar runtime argument handling');
+    expect(browserToolOverviewText).not.toContain('sidecar-owned Browser Use engine adapter');
     expect(docText).not.toContain('sidecar runtime argument handling');
     expect(docText).not.toContain('sidecar runtime args/result');
+    expect(docText).not.toContain('sidecar-owned adapter over the maintained Browser Use CLI');
+    expect(docText).not.toContain('sidecar-owned schema/result adapters');
     expect(browserRouteDocText).not.toContain('sidecar runtime, CDP launch');
     expect(browserRouteDocText).not.toContain('sidecar runtime action tests');
     expect(toolRoutingDocText).not.toContain('sidecar execution');
@@ -1302,6 +1305,9 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar owns local execution + memory/runtime dependency bootstrap',
         'sidecar owns execution',
         'sidecar-owned hosted helper services',
+        'Local sidecar JSON-RPC host',
+        'Sidecar core remote clients',
+        'sidecar-owned schema/result adapters',
         'sidecar-owned MCP discovery',
         'sidecar-owned SDK/local-runtime MCP registration',
         'sidecar-owned MCP `tools/call` execution',
