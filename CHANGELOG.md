@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename the config filter helper from `filterFrontendConfig` to
+  `filterRendererConfig` and remove the stale frontend-named export; no
+  migration is required because renderer config fields, storage keys, IPC
+  channels, and backend settings payloads are unchanged.
 - renderer: rename AppConfig persistence provider helpers from frontend
   provider/config terminology to renderer provider/config terminology.
 - renderer: rename the private runtime-sync local-only settings set from
@@ -16,8 +20,7 @@ All notable changes to WindieOS will be documented in this file.
   while preserving the `load-frontend-config` / `save-frontend-config` wire
   channels.
 - renderer: rename the private config filter allowlist to
-  `RENDERER_CONFIG_FIELDS` while preserving the exported `filterFrontendConfig`
-  compatibility helper.
+  `RENDERER_CONFIG_FIELDS` while preserving config filtering behavior.
 - backend: rename the `update-settings` allowlist validator from frontend
   config to client settings patch terminology while preserving accepted fields
   and payload shape.
@@ -34,13 +37,13 @@ All notable changes to WindieOS will be documented in this file.
   names and IPC channels.
 - renderer docs: rename stale frontend-owned settings wording to
   renderer-managed config/settings ownership while preserving real
-  `frontend-config` and `filterFrontendConfig` compatibility names.
+  `frontend-config` compatibility names.
 - renderer: rename the current-turn side-effect helper for skipped tool events
   to `isExecutionSkippedToolEvent` so active renderer code follows SDK
   `executionSkipped` vocabulary instead of frontend execution wording.
 - renderer docs/tests: describe the config filter as renderer-owned local
   settings persistence instead of frontend-owned runtime settings while keeping
-  existing `filterFrontendConfig` and IPC wire names unchanged.
+  IPC wire names unchanged.
 - renderer: rename the tool-call card display marker from
   `frontend_execution_skipped` to `execution_skipped` so model-facing recovery
   previews no longer leak the old frontend execution vocabulary.

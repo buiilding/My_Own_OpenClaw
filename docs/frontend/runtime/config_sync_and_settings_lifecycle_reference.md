@@ -23,7 +23,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 
 ## Config Ownership Boundary
 
-Renderer-managed settings are filtered through `filterFrontendConfig(...)`:
+Renderer-managed settings are filtered through `filterRendererConfig(...)`:
 
 - `model_mode`
 - `model_provider`

@@ -399,7 +399,7 @@ frontend/src/renderer/
                ↓
 2. CONFIG UPDATE
    └─> app/providers/AppConfigContext.jsx
-       ├─> filterFrontendConfig() - Filter to renderer-managed fields
+       ├─> filterRendererConfig() - Filter to renderer-managed fields
        ├─> Update state immediately
        └─> saveConfigToStorage() - Persist to localStorage
            ↓

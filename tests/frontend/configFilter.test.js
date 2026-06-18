@@ -3,12 +3,12 @@
  */
 
 import {
-  filterFrontendConfig,
+  filterRendererConfig,
 } from '../../frontend/src/renderer/utils/configFilter.js';
 
 describe('configFilter', () => {
-  test('filterFrontendConfig keeps only allowed fields', () => {
-    const filtered = filterFrontendConfig({
+  test('filterRendererConfig keeps only allowed fields', () => {
+    const filtered = filterRendererConfig({
       model_mode: 'online',
       model_provider: 'openai',
       selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
@@ -55,14 +55,14 @@ describe('configFilter', () => {
     });
   });
 
-  test('filterFrontendConfig returns empty object on invalid input', () => {
-    expect(filterFrontendConfig(null)).toEqual({});
-    expect(filterFrontendConfig('nope')).toEqual({});
-    expect(filterFrontendConfig([])).toEqual({});
+  test('filterRendererConfig returns empty object on invalid input', () => {
+    expect(filterRendererConfig(null)).toEqual({});
+    expect(filterRendererConfig('nope')).toEqual({});
+    expect(filterRendererConfig([])).toEqual({});
   });
 
-  test('filterFrontendConfig keeps interaction_mode', () => {
-    const filtered = filterFrontendConfig({
+  test('filterRendererConfig keeps interaction_mode', () => {
+    const filtered = filterRendererConfig({
       interaction_mode: 'voice',
       extra: 'ignore',
     });
@@ -71,8 +71,8 @@ describe('configFilter', () => {
     });
   });
 
-  test('filterFrontendConfig drops backend-owned speech provider selection', () => {
-    const filtered = filterFrontendConfig({
+  test('filterRendererConfig drops backend-owned speech provider selection', () => {
+    const filtered = filterRendererConfig({
       speech_provider: 'elevenlabs',
       speech_mode_enabled: true,
     });

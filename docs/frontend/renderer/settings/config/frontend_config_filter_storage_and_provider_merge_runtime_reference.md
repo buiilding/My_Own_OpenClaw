@@ -50,7 +50,7 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 - `speech_provider`
 - `stt_provider`
 
-`filterFrontendConfig(config)` behavior:
+`filterRendererConfig(config)` behavior:
 
 - non-object input -> `{}`
 - includes only keys in the renderer-owned allowlist

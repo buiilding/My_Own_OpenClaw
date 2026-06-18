@@ -49,7 +49,7 @@ For tab/control ownership, start with [Settings Surface Change Workflow](../rend
 
 1. Decide whether the setting is renderer-only, backend session config, Electron process config, sidecar env, or release/packaging config.
 2. Update the owner first.
-3. Update `filterFrontendConfig(...)` only if the field is renderer-owned or intentionally sent in `update-settings`.
+3. Update `filterRendererConfig(...)` only if the field is renderer-owned or intentionally sent in `update-settings`.
 4. Update storage defaults and migration/cleanup if persisted shape changes.
 5. Update Electron disk persistence and ACK behavior if the sync protocol changes.
 6. Update backend settings validation and session rewire if backend behavior changes.

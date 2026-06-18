@@ -21,7 +21,7 @@ import { setRuntimeEndpointHttpUrl } from '../../frontend/src/renderer/infrastru
 
 jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
 jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
-  filterFrontendConfig: (config: Record<string, any>) => config,
+  filterRendererConfig: (config: Record<string, any>) => config,
 }));
 jest.mock('../../frontend/src/renderer/utils/configStorage', () => ({
   loadConfigFromStorage: jest.fn(),

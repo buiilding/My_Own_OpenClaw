@@ -33,7 +33,7 @@ const RENDERER_CONFIG_FIELDS = [
  * @param {Object} config - Full runtime settings/config object
  * @returns {Object} - Filtered configuration with only renderer-managed fields
  */
-export function filterFrontendConfig(config) {
+export function filterRendererConfig(config) {
   if (!config || typeof config !== 'object') {
     return {};
   }

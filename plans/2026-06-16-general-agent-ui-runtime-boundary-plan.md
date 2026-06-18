@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer config filter exported helper boundary
+
+- Finding: `configFilter.js` had moved to renderer-managed config wording, but
+  its exported helper was still named `filterFrontendConfig(...)`; all verified
+  callers were renderer-internal provider code, docs, or focused tests.
+- Change: renamed the helper to `filterRendererConfig(...)`, updated renderer
+  provider callers, mocks, docs, and focused tests, and removed the stale
+  frontend-named export instead of keeping a compatibility alias.
+- Validation: focused renderer config filter/persistence/storage IPC/skin
+  boundary Jest tests, docs listing, stale live helper-name scan, and diff
+  check.
+- Compatibility: no migration required. Renderer config fields, localStorage
+  and disk payloads, persisted `frontend-config` filename, IPC channel names,
+  backend `update-settings` payloads, credentials, permissions, and SDK
+  projections are unchanged.
+
 ### 2026-06-18 renderer app config persistence helper boundary
 
 - Finding: `appConfigPersistence.js` still exported renderer-internal provider

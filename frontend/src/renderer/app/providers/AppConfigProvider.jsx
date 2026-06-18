@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
-import { filterFrontendConfig } from '../../utils/configFilter';
+import { filterRendererConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
@@ -89,7 +89,7 @@ export function AppConfigProvider({ children }) {
 
   const buildMergedRendererConfig = useCallback((incomingConfig) => {
     return sanitizeRendererProviderConfig(
-      mergeRendererProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
+      mergeRendererProviderConfig(configRef.current, filterRendererConfig(incomingConfig)),
     );
   }, [configRef]);
 
