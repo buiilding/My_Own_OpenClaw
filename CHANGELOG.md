@@ -20,6 +20,9 @@ All notable changes to WindieOS will be documented in this file.
   manifest loader.
 - main/extensions: inject the WindieOS enabled-MCP allowlist env name from the
   main host skin instead of hardcoding it inside the generic MCP runtime.
+- main/logging: inject WindieOS layer log and renderer verbose log env names
+  from the main host skin instead of hardcoding them inside the generic layer
+  log sink.
 - main/runtime: inject WindieOS hosted backend default endpoint override env
   names from the main host skin instead of hardcoding them inside the generic
   backend endpoint resolver.

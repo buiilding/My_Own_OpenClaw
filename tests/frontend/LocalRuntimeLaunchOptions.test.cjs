@@ -181,7 +181,7 @@ describe('desktop local runtime launch options', () => {
     try {
       process.env = {
         ...originalEnv,
-        WINDIE_SIDECAR_LOG_FILE: logFile,
+        AGENT_SIDECAR_LOG_FILE: logFile,
       };
       const plan = createDesktopLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
@@ -222,7 +222,7 @@ describe('desktop local runtime launch options', () => {
     try {
       process.env = {
         ...originalEnv,
-        WINDIE_MAIN_LOG_FILE: logFile,
+        AGENT_MAIN_LOG_FILE: logFile,
       };
       const plan = createDesktopLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },

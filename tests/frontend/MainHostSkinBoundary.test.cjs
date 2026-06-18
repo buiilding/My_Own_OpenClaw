@@ -79,6 +79,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("enabledServers: 'WINDIE_ENABLED_MCPS'");
     expect(skinSource).toContain('logging');
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
+    expect(skinSource).toContain("layerLogFilePrefix: 'WINDIE'");
+    expect(skinSource).toContain("rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE'");
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -249,13 +251,20 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('WINDIE_ENABLED_MCPS');
   });
 
-  test('layer log sink uses generic defaults instead of product prefix', () => {
+  test('layer log sink uses generic defaults instead of product prefix and env keys', () => {
     const source = fs.readFileSync(layerLogSinkPath, 'utf8');
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
 
     expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Runtime]'");
     expect(source).toContain("DEFAULT_LOG_DIR_SEGMENTS = Object.freeze(['.desktop-runtime', 'logs'])");
+    expect(source).toContain("layerLogFilePrefix: 'AGENT'");
+    expect(source).toContain("rendererVerboseLogFile: 'AGENT_RENDERER_VERBOSE_LOG_FILE'");
     expect(source).toContain('configureLayerLogSink');
+    expect(skinSource).toContain("layerLogFilePrefix: 'WINDIE'");
+    expect(skinSource).toContain("rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE'");
     expect(source).not.toContain(".windie");
+    expect(source).not.toContain('WINDIE_RENDERER_VERBOSE_LOG_FILE');
+    expect(source).not.toContain('WINDIE_');
     expect(source).not.toContain('Unknown Windie log layer');
     expect(source).not.toContain('[WindieOS]');
   });

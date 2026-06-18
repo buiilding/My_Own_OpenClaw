@@ -14,7 +14,12 @@ const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopRuntimeConsoleStreamError
 const CONSOLE_LAYER_LOG_INSTALLED = '__desktopRuntimeLayerLogInstalled';
 const CONSOLE_LAYER_LOG_ORIGINALS = '__desktopRuntimeLayerLogOriginals';
 const DEFAULT_LOG_PREFIX = '[Desktop Runtime]';
+const DEFAULT_LOG_ENV = Object.freeze({
+  layerLogFilePrefix: 'AGENT',
+  rendererVerboseLogFile: 'AGENT_RENDERER_VERBOSE_LOG_FILE',
+});
 let configuredLogDir = path.join(REPO_ROOT, ...DEFAULT_LOG_DIR_SEGMENTS);
+let configuredLogEnv = DEFAULT_LOG_ENV;
 
 function normalizeLayer(layer) {
   const normalized = String(layer || '').trim().toLowerCase();
@@ -24,8 +29,44 @@ function normalizeLayer(layer) {
   return normalized;
 }
 
-function envKeyForLayer(layer) {
-  return `WINDIE_${normalizeLayer(layer).toUpperCase()}_LOG_FILE`;
+function normalizeEnvKey(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function normalizeEnvPrefix(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim().replace(/[^a-zA-Z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+  return normalized.length > 0 ? normalized.toUpperCase() : fallback;
+}
+
+function resolveLogEnvConfig(config = {}) {
+  const envConfig = config?.env && typeof config.env === 'object'
+    ? config.env
+    : {};
+  return Object.freeze({
+    layerLogFilePrefix: normalizeEnvPrefix(
+      envConfig.layerLogFilePrefix,
+      DEFAULT_LOG_ENV.layerLogFilePrefix,
+    ),
+    rendererVerboseLogFile: normalizeEnvKey(
+      envConfig.rendererVerboseLogFile,
+      DEFAULT_LOG_ENV.rendererVerboseLogFile,
+    ),
+  });
+}
+
+function resolveLayerLogEnvKey(layer) {
+  return `${configuredLogEnv.layerLogFilePrefix}_${normalizeLayer(layer).toUpperCase()}_LOG_FILE`;
+}
+
+function resolveRendererVerboseLogEnvKey() {
+  return configuredLogEnv.rendererVerboseLogFile;
 }
 
 function resolveLogDirConfig(config = {}) {
@@ -45,6 +86,7 @@ function resolveLogDirConfig(config = {}) {
 
 function configureLayerLogSink(config = {}) {
   configuredLogDir = resolveLogDirConfig(config);
+  configuredLogEnv = resolveLogEnvConfig(config);
   return configuredLogDir;
 }
 
@@ -54,7 +96,7 @@ function getLayerLogDirectory() {
 
 function resolveLayerLogFile(layer, env = process.env, options = {}) {
   const normalizedLayer = normalizeLayer(layer);
-  const configured = env[envKeyForLayer(normalizedLayer)];
+  const configured = env[resolveLayerLogEnvKey(normalizedLayer)];
   if (configured === '0' || configured === 'false') {
     return null;
   }
@@ -67,7 +109,7 @@ function resolveLayerLogFile(layer, env = process.env, options = {}) {
 }
 
 function resolveRendererVerboseLogFile(env = process.env, options = {}) {
-  const configured = env.WINDIE_RENDERER_VERBOSE_LOG_FILE;
+  const configured = env[resolveRendererVerboseLogEnvKey()];
   if (configured === '0' || configured === 'false') {
     return null;
   }
@@ -324,5 +366,8 @@ module.exports = {
   getLayerLogDirectory,
   installConsoleLayerLog,
   resolveLayerLogFile,
+  resolveLayerLogEnvKey,
+  resolveLogEnvConfig,
+  resolveRendererVerboseLogEnvKey,
   resolveRendererVerboseLogFile,
 };

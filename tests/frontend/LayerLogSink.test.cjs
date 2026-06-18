@@ -12,9 +12,15 @@ const {
   configureLayerLogSink,
   getLayerLogDirectory,
   installConsoleLayerLog,
+  resolveLayerLogEnvKey,
   resolveLayerLogFile,
+  resolveLogEnvConfig,
+  resolveRendererVerboseLogEnvKey,
   resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 const retiredDesktopAgentMarker = (suffix) => `__desktop${'Agent'}${suffix}`;
 
@@ -46,11 +52,17 @@ describe('layer_log_sink', () => {
     expect(resolveRendererVerboseLogFile({})).toBe(
       path.join(repoRoot, '.desktop-runtime', 'logs', 'renderer.verbose.log'),
     );
-    expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
+    expect(resolveLayerLogFile('renderer', { AGENT_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
       .toBe('/tmp/renderer.log');
-    expect(resolveLayerLogFile('vite', { WINDIE_VITE_LOG_FILE: 'logs/vite.log' }))
+    expect(resolveLayerLogFile('vite', { AGENT_VITE_LOG_FILE: 'logs/vite.log' }))
       .toBe(path.join(repoRoot, 'logs', 'vite.log'));
-    expect(resolveLayerLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '0' })).toBeNull();
+    expect(resolveLayerLogFile('sidecar', { AGENT_SIDECAR_LOG_FILE: '0' })).toBeNull();
+    expect(resolveLayerLogEnvKey('main')).toBe('AGENT_MAIN_LOG_FILE');
+    expect(resolveRendererVerboseLogEnvKey()).toBe('AGENT_RENDERER_VERBOSE_LOG_FILE');
+    expect(resolveLogEnvConfig()).toEqual({
+      layerLogFilePrefix: 'AGENT',
+      rendererVerboseLogFile: 'AGENT_RENDERER_VERBOSE_LOG_FILE',
+    });
   });
 
   test('accepts host-provided log directory config', () => {
@@ -67,12 +79,34 @@ describe('layer_log_sink', () => {
     );
   });
 
+  test('accepts host-provided log env config', () => {
+    configureLayerLogSink(mainHostSkin.logging);
+
+    expect(resolveLayerLogEnvKey('main')).toBe('WINDIE_MAIN_LOG_FILE');
+    expect(resolveRendererVerboseLogEnvKey()).toBe('WINDIE_RENDERER_VERBOSE_LOG_FILE');
+    expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
+      .toBe('/tmp/renderer.log');
+    expect(resolveRendererVerboseLogFile({ WINDIE_RENDERER_VERBOSE_LOG_FILE: '0' }))
+      .toBeNull();
+  });
+
+  test('generic log sink source does not hardcode WindieOS log env names', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/logging/layer_log_sink.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('AGENT_RENDERER_VERBOSE_LOG_FILE');
+    expect(source).not.toContain('WINDIE_RENDERER_VERBOSE_LOG_FILE');
+    expect(source).not.toContain('WINDIE_');
+  });
+
   test('appends layer-owned lines', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-layer-log-'));
     const logFile = path.join(tempDir, 'main.log');
 
     appendLayerLogLine('main', 'plain main message', {
-      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      env: { AGENT_MAIN_LOG_FILE: logFile },
     });
 
     expect(fs.readFileSync(logFile, 'utf8')).toContain('[Main] plain main message\n');
@@ -83,7 +117,7 @@ describe('layer_log_sink', () => {
     const logFile = path.join(tempDir, 'vite.log');
 
     expect(appendLayerLogSessionBanner('vite', {
-      env: { WINDIE_VITE_LOG_FILE: logFile },
+      env: { AGENT_VITE_LOG_FILE: logFile },
       now: () => new Date('2026-06-14T00:00:00.000Z'),
       sessionLabel: 'frontend child process log session',
       logPrefix: '[WindieOS]',
@@ -99,7 +133,7 @@ describe('layer_log_sink', () => {
     const logFile = path.join(tempDir, 'main.log');
 
     expect(appendLayerLogSessionBanner('main', {
-      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      env: { AGENT_MAIN_LOG_FILE: logFile },
       now: () => new Date('2026-06-14T00:00:00.000Z'),
     })).toBe(true);
 
@@ -111,7 +145,7 @@ describe('layer_log_sink', () => {
   test('appends renderer verbose log lines and banners', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-renderer-verbose-log-'));
     const logFile = path.join(tempDir, 'renderer.verbose.log');
-    const env = { WINDIE_RENDERER_VERBOSE_LOG_FILE: logFile };
+    const env = { AGENT_RENDERER_VERBOSE_LOG_FILE: logFile };
 
     expect(appendRendererVerboseLogSessionBanner({
       env,
@@ -133,8 +167,8 @@ describe('layer_log_sink', () => {
 
     expect(appendRendererVerboseLogLine('hidden', {
       env: {
-        WINDIE_RENDERER_VERBOSE_LOG_FILE: '0',
-        WINDIE_RENDERER_LOG_FILE: logFile,
+        AGENT_RENDERER_VERBOSE_LOG_FILE: '0',
+        AGENT_RENDERER_LOG_FILE: logFile,
       },
     })).toBe(false);
     expect(fs.existsSync(logFile)).toBe(false);
@@ -148,7 +182,7 @@ describe('layer_log_sink', () => {
 
     expect(installConsoleLayerLog({
       consoleObject,
-      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      env: { AGENT_MAIN_LOG_FILE: logFile },
       methods: ['log'],
     })).toBe(true);
 
@@ -171,7 +205,7 @@ describe('layer_log_sink', () => {
 
     installConsoleLayerLog({
       consoleObject,
-      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      env: { AGENT_MAIN_LOG_FILE: logFile },
       methods: ['log'],
     });
 
@@ -190,7 +224,7 @@ describe('layer_log_sink', () => {
 
     installConsoleLayerLog({
       consoleObject,
-      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      env: { AGENT_MAIN_LOG_FILE: logFile },
       methods: ['log'],
     });
 
@@ -215,7 +249,7 @@ describe('layer_log_sink', () => {
 
     expect(installConsoleLayerLog({
       consoleObject: { log: jest.fn() },
-      env: { WINDIE_MAIN_LOG_FILE: '0' },
+      env: { AGENT_MAIN_LOG_FILE: '0' },
       methods: ['log'],
       processObject: { stdout, stderr },
     })).toBe(true);
@@ -236,7 +270,7 @@ describe('layer_log_sink', () => {
 
     installConsoleLayerLog({
       consoleObject: { log: jest.fn() },
-      env: { WINDIE_MAIN_LOG_FILE: '0' },
+      env: { AGENT_MAIN_LOG_FILE: '0' },
       methods: ['log'],
       processObject: { stdout, stderr: null },
     });

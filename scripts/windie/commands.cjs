@@ -12,6 +12,7 @@ const { printCheckList, printJson, printSection } = require('./output.cjs');
 const { FRONTEND_DIR, REPO_ROOT, repoPath } = require('./paths.cjs');
 const { collectStatus, getEndpointSnapshot } = require('./status.cjs');
 const { capture, runConcurrent, runForeground, runSync } = require('./run.cjs');
+const { mainHostSkin } = require('../../frontend/src/main/app/main_host_skin.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
   diagnosticsDatabasePath,
@@ -21,10 +22,15 @@ const {
   windieUserDataRoot,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 const {
+  configureLayerLogSink,
   ensureLogFile,
+  resolveLayerLogEnvKey,
   resolveLayerLogFile,
+  resolveRendererVerboseLogEnvKey,
   resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
+
+configureLayerLogSink(mainHostSkin.logging);
 
 const HELP = `WindieOS command line
 
@@ -484,8 +490,8 @@ function ensureWindieLayerLogFile(target, logFile, { verbose = false } = {}) {
   const windieCommand = process.platform === 'win32' ? 'bin\\windie.cmd' : 'bin/windie.sh';
   if (!logFile) {
     const envKey = normalizedTarget === 'renderer' && verbose
-      ? 'WINDIE_RENDERER_VERBOSE_LOG_FILE'
-      : `WINDIE_${normalizedTarget.toUpperCase()}_LOG_FILE`;
+      ? resolveRendererVerboseLogEnvKey()
+      : resolveLayerLogEnvKey(normalizedTarget);
     throw new Error(`${displayTarget} log capture is disabled by ${envKey}.`);
   }
   ensureLogFile(logFile, {

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Layer Log Env Skin Boundary
+
+- Finding: `layer_log_sink.cjs` had a configurable WindieOS log directory but
+  still hardcoded `WINDIE_<LAYER>_LOG_FILE` and
+  `WINDIE_RENDERER_VERBOSE_LOG_FILE` inside the generic log sink.
+- Change: added configurable log env keys with generic `AGENT_*` fallbacks,
+  moved the WindieOS layer prefix and renderer verbose env name into
+  `mainHostSkin.logging.env`, and configured the sink from Electron main,
+  launcher, and CLI command entrypoints.
+- Validation: focused layer log sink, local runtime launch option, Electron
+  launcher, Windie CLI, and main host skin boundary Jest coverage, targeted
+  source scan, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_<LAYER>_LOG_FILE` and `WINDIE_RENDERER_VERBOSE_LOG_FILE`; default
+  `.windie/logs` locations, log filenames, console mirroring, and CLI log
+  commands are unchanged.
+
 ### 2026-06-18 Main MCP Enablement Env Skin Boundary
 
 - Finding: `mcp_runtime.cjs` still hardcoded `WINDIE_ENABLED_MCPS` while

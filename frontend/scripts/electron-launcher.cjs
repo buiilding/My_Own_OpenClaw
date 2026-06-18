@@ -10,6 +10,7 @@ const { mainHostSkin } = require('../src/main/app/main_host_skin.cjs');
 const {
   configureLayerLogSink,
   createLayerLogStream,
+  resolveLayerLogEnvKey,
   resolveLayerLogFile,
 } = require('../src/main/logging/layer_log_sink.cjs');
 
@@ -98,7 +99,7 @@ function createFrontendLogStream(logFile = resolveFrontendLogFile(), env = proce
   }
   const logEnv = logFile === resolveLayerLogFile('frontend', env)
     ? env
-    : { ...env, WINDIE_FRONTEND_LOG_FILE: logFile };
+    : { ...env, [resolveLayerLogEnvKey('frontend')]: logFile };
   return createLayerLogStream('frontend', {
     env: logEnv,
     sessionLabel: 'frontend aggregate log session',

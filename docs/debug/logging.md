@@ -73,10 +73,11 @@ WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log bin/windie start desktop
 npm --prefix frontend run test:ghost-cursor
 ```
 
-The default `.windie/logs/*` directory is repo-local WindieOS scratch space
+The default `.windie/logs/*` directory and WindieOS log override env names are
 provided by the host skin. Set the `WINDIE_<LAYER>_LOG_FILE` or
-`WINDIE_RENDERER_VERBOSE_LOG_FILE` overrides when a run must keep writing to a
-legacy or externally managed path.
+`WINDIE_RENDERER_VERBOSE_LOG_FILE` overrides when a WindieOS run must keep
+writing to a legacy or externally managed path. The reusable sink's generic
+fallback env prefix is `AGENT_`.
 
 Important main-process flags:
 

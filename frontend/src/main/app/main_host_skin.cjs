@@ -79,6 +79,10 @@ const mcp = Object.freeze({
 
 const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
+  env: Object.freeze({
+    layerLogFilePrefix: 'WINDIE',
+    rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE',
+  }),
 });
 
 const browserAutomation = Object.freeze({
