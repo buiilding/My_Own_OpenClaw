@@ -3,7 +3,7 @@
  */
 
 import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
-import { buildRuntimeArtifactUrl } from '../../../../infrastructure/services/RuntimeEndpointStore';
+import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
 import {
   inferArtifactRefFromUrl,
   resolveScreenshotAttachmentState,
@@ -18,7 +18,7 @@ function resolveAttachmentSrc(attachment) {
     return attachment.screenshotUrl;
   }
   if (attachment.screenshotRef) {
-    return buildRuntimeArtifactUrl(attachment.screenshotRef);
+    return DesktopArtifactRuntimeClient.buildArtifactUrl(attachment.screenshotRef);
   }
   if (attachment.screenshot) {
     const contentType = normalizeArtifactImageContentType(attachment.screenshotContentType);

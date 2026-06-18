@@ -348,6 +348,22 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
   });
 
+  test('chat screenshot presentation builds artifact URLs through app runtime client', async () => {
+    const screenshotSource = await fs.readFile(
+      path.join(chatRoot, 'utils/message/messageScreenshots.js'),
+      'utf8',
+    );
+    const artifactClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.buildArtifactUrl');
+    expect(screenshotSource).not.toContain('RuntimeEndpointStore');
+    expect(screenshotSource).not.toContain('buildRuntimeArtifactUrl');
+    expect(artifactClientSource).toContain('buildRuntimeArtifactUrl');
+  });
+
   test('dashboard conversation hook subscribes through app runtime conversation event client', async () => {
     const dashboardHookSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),

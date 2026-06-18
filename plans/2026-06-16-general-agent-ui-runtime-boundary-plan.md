@@ -7909,3 +7909,19 @@ Each completed slice should report:
 - Compatibility: no migration required. The shared status store, IPC bootstrap,
   event subscription ordering, browser-session readiness behavior, and recent
   conversation reload semantics are unchanged.
+
+### 2026-06-18 renderer artifact URL runtime client boundary
+
+- Finding: chat screenshot presentation still imported
+  `RuntimeEndpointStore.buildRuntimeArtifactUrl(...)` directly to derive
+  artifact image URLs for inline screenshot rows, bypassing the renderer app
+  artifact runtime client used by the rest of artifact presentation.
+- Change: added `DesktopArtifactRuntimeClient.buildArtifactUrl(...)` as the
+  feature-facing facade over the runtime endpoint store and routed chat
+  screenshot URL presentation through it.
+- Validation: focused message screenshot and renderer chat boundary Jest
+  coverage, direct chat feature endpoint-store scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Runtime endpoint normalization,
+  artifact URL shape, artifact image fetch IPC, context-menu IPC, persisted
+  screenshot refs, and replay behavior are unchanged.

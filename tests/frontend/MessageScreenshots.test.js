@@ -8,8 +8,19 @@ import {
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
+import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => ({
+  DesktopArtifactRuntimeClient: {
+    buildArtifactUrl: jest.fn((artifactId) => `http://runtime.test/api/artifacts/${artifactId}`),
+  },
+}));
 
 describe('messageScreenshots', () => {
+  beforeEach(() => {
+    DesktopArtifactRuntimeClient.buildArtifactUrl.mockClear();
+  });
+
   test('detects screenshot fields from url/ref/inline payload', () => {
     expect(hasMessageScreenshot({ screenshotUrl: 'https://cdn.example/a.png' })).toBe(true);
     expect(hasMessageScreenshot({ screenshotRef: 'artifact-123' })).toBe(true);
@@ -69,6 +80,16 @@ describe('messageScreenshots', () => {
         screenshotContentType: 'text/plain',
       }),
     ).toBe('data:image/jpeg;base64,raw');
+  });
+
+  test('resolves inline artifact screenshots through the artifact runtime client', () => {
+    expect(
+      resolveStaticScreenshotAttachmentSrc({
+        screenshot: 'inline-data',
+        screenshotRef: 'artifact-123',
+      }),
+    ).toBe('http://runtime.test/api/artifacts/artifact-123');
+    expect(DesktopArtifactRuntimeClient.buildArtifactUrl).toHaveBeenCalledWith('artifact-123');
   });
 
   test('leaves artifact-backed screenshots for async resolution', () => {

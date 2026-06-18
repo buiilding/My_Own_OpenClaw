@@ -1,8 +1,8 @@
 ---
-summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `RuntimeEndpointStore` artifact URL handling through `setRuntimeEndpointHttpUrl` and `buildRuntimeArtifactUrl`, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, removed/deleted renderer `ArtifactUploader`/`ToolExecutionPayloads`/formatter helpers, `RuntimeEndpointStore` artifact URL handling behind the desktop artifact runtime client, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
-  - When changing renderer artifact URL base sync, `RuntimeEndpointStore`, `setRuntimeEndpointHttpUrl`, `buildRuntimeArtifactUrl`, or backend endpoint propagation into artifact display URLs.
+  - When changing renderer artifact URL base sync, `RuntimeEndpointStore`, `setRuntimeEndpointHttpUrl`, `buildRuntimeArtifactUrl`, `DesktopArtifactRuntimeClient.buildArtifactUrl`, or backend endpoint propagation into artifact display URLs.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`, `capture_meta`) before backend relay.
   - When searching for removed or deleted renderer capture/upload/formatter helpers such as `ArtifactUploader`, `ToolScreenshotDebugTrace`, `ScreenshotAttachmentPipeline`, `CapturePayloadUtils`, `MessageFormatter`, `ToolExecutionPayloads.ts`, or `ToolExecutionBackendPayload.ts`.
 title: "Capture, Artifact URL, and Payload Normalization Reference"
@@ -99,6 +99,9 @@ artifact refs.
 - accepts only valid `http/https` URLs
 - strips query/hash and normalizes trailing slashes
 - used by `buildRuntimeArtifactUrl(artifactId)` for canonical `/api/artifacts/<id>` links
+- consumed by chat presentation through
+  `DesktopArtifactRuntimeClient.buildArtifactUrl(...)` so feature code does not
+  import endpoint state directly
 
 ## Content-Type Normalization
 
@@ -129,14 +132,17 @@ Current ownership:
 - Electron main owns sidecar screenshot invocation, selected-display bounds
   injection, and local bridge result normalization.
 - Renderer infrastructure owns artifact URL display helpers only
-  (`RuntimeEndpointStore` and `ArtifactImageUtils`).
+  (`RuntimeEndpointStore` and `ArtifactImageUtils`), while renderer feature
+  code reaches artifact URL construction through
+  `DesktopArtifactRuntimeClient.buildArtifactUrl(...)`.
 - Renderer chat presentation consumes projected SDK/backend events; it does not
   construct model-facing result payloads or upload screenshot artifacts before
   dispatch.
-- Renderer app runtime owns authenticated artifact image fetch and native image
-  context-menu IPC calls through `desktopArtifactRuntimeClient.ts`; message
-  presentation and screenshot resolution call that adapter instead of importing
-  artifact IPC channel constants directly.
+- Renderer app runtime owns authenticated artifact image fetch, native image
+  context-menu IPC calls, and feature-facing artifact URL construction through
+  `desktopArtifactRuntimeClient.ts`; message presentation and screenshot
+  resolution call that adapter instead of importing artifact IPC channel
+  constants or endpoint state directly.
 
 ## Removed ToolExecutionPayloads Route
 
