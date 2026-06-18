@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer tool acceptance runtime label boundary
+
+- Finding: renderer tool acceptance summaries used skin labels for known execution
+  targets, but unknown transport enum values could still leak directly into
+  user-facing settings copy.
+- Change: made the formatter fail closed to the generic `runtime` label when
+  the execution target is not skin-defined, and added settings coverage for the
+  sidecar-to-local-runtime label plus unknown-target fallback.
+- Validation: focused AgentSettingsTab and renderer skin boundary Jest coverage,
+  docs listing, stale raw-target scan, and diff checks.
+- Compatibility: no migration required. This only affects renderer display copy
+  for unsupported execution-target values; tool manifests, SDK payloads, backend
+  validation, local-runtime execution, and stored settings are unchanged.
+
 ### 2026-06-17 renderer surface local-runtime docs boundary
 
 - Finding: desktop surface docs and the renderer folder map still described

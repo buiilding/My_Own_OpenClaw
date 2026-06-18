@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: keep tool acceptance runtime summaries on skin-defined execution labels and fall back unknown transport targets to `runtime`; no migration is required because this only changes renderer display copy for unsupported execution-target values.
 - docs/renderer: align desktop surface and renderer folder maps with SDK local-runtime ownership for local tool execution; no migration is required because this is documentation-only boundary cleanup.
 
 - backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.

@@ -175,6 +175,6 @@ export function formatToolAcceptanceRuntimeSummary(acceptedTool) {
   const config = windieDesktopSkin.settings.agent.toolAcceptance;
   const argumentResolution = acceptedTool?.argument_resolution || config.argumentResolutionFallback;
   const executionTarget = acceptedTool?.execution_target || '';
-  const executionTargetLabel = config.executionTargetLabels[executionTarget] || executionTarget || 'runtime';
+  const executionTargetLabel = config.executionTargetLabels[executionTarget] || 'runtime';
   return `${argumentResolution} / ${executionTargetLabel}`;
 }

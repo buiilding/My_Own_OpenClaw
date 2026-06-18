@@ -86,9 +86,43 @@ describe('AgentSettingsTab', () => {
     expect(screen.queryByText('Active prompt layers')).not.toBeInTheDocument();
     expect(screen.queryByText('custom-instructions')).not.toBeInTheDocument();
     expect(screen.getByText('Accepted schema')).toBeInTheDocument();
+    expect(screen.getByText('passthrough / local runtime')).toBeInTheDocument();
     expect(screen.getByText(/file_path/)).toBeInTheDocument();
     expect(await screen.findByText('Notes')).toBeInTheDocument();
     expect(screen.getByText(/save_note/)).toBeInTheDocument();
     expect(screen.getAllByText(/search/).length).toBeGreaterThan(0);
+  });
+
+  test('formats unknown execution targets as generic runtime labels', async () => {
+    render(
+      <AgentSettingsTab
+        config={{
+          agent_custom_instructions: '',
+          agent_disabled_local_tools: [],
+          agent_disabled_remote_tools: [],
+        }}
+        onConfigChange={jest.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('Notes')).toBeInTheDocument();
+
+    act(() => {
+      capabilityEventHandler({
+        type: 'client-tool-manifest',
+        payload: {
+          accepted: [{
+            name: 'read_file',
+            execution_target: 'experimental_host',
+            argument_resolution: 'prepared',
+            schema: { type: 'object' },
+          }],
+          rejected: [],
+        },
+      });
+    });
+
+    expect(screen.getByText('prepared / runtime')).toBeInTheDocument();
+    expect(screen.queryByText(/experimental_host/)).not.toBeInTheDocument();
   });
 });
