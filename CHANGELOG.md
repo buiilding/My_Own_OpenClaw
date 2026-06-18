@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk: rename an internal local-runtime conversation diagnostics collection
+  from `sidecarEvents` to `localRuntimeEvents`, with boundary coverage
+  guarding the generic name; no migration is required because diagnostics
+  payloads and runtime labels are unchanged.
+
 - tests/frontend: remove the retired `SidecarDaemon` log-prefix fixture from
   local-runtime launch filtering coverage, keeping the generic noisy-prefix
   assertion; no migration is required because runtime log filtering behavior is

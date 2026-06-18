@@ -399,8 +399,8 @@ export class LocalRuntimeConversationStore implements ConversationStore {
       });
       const data = normalizeRecord(result.data) ?? {};
       const diagnostics = normalizeRecord(data.diagnostics);
-      const sidecarEvents = Array.isArray(diagnostics?.events) ? diagnostics.events : [];
-      for (const event of sidecarEvents) {
+      const localRuntimeEvents = Array.isArray(diagnostics?.events) ? diagnostics.events : [];
+      for (const event of localRuntimeEvents) {
         const draft = normalizeRecord(event);
         if (!draft) {
           continue;

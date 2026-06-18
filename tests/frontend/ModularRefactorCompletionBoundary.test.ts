@@ -263,6 +263,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar-backed');
   });
 
+  test('local runtime conversation store keeps diagnostic collection naming generic', async () => {
+    const source = await read('packages/windie-sdk-js/src/stores/LocalRuntimeConversationStore.ts');
+
+    expect(source).toContain('const localRuntimeEvents');
+    expect(source).not.toContain('sidecarEvents');
+  });
+
   test('tool and security docs describe local tools through local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/architecture/backend_architecture.md'),

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK local-runtime diagnostics variable
+
+- Finding: `LocalRuntimeConversationStore` was already the SDK local-runtime
+  store, but the diagnostics replay loop still named its collected events
+  `sidecarEvents`.
+- Change: renamed that internal collection to `localRuntimeEvents` and added
+  modular boundary coverage so the stale variable does not return.
+- Validation: focused WindieAgentConversationStoreApi and
+  ModularRefactorCompletionBoundary Jest tests, docs listing, and stale
+  variable scan.
+- Compatibility: no migration required. This is an internal SDK variable
+  rename only; diagnostics payloads, runtime labels, conversation metadata,
+  storage, IPC, and backend APIs are unchanged.
+
+
 ### 2026-06-18 local-runtime launch retired-prefix fixture
 
 - Finding: LocalRuntimeLaunchOptions coverage still used a retired
