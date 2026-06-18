@@ -1112,8 +1112,8 @@ compatibility for other clients.
 
 ### Rehydrate Conversation Message
 
-Rebuild backend in-memory conversation history from a frontend transcript snapshot.
-Used when switching or resuming conversations from episodic memory.
+Rebuild backend in-memory conversation history from SDK conversation snapshot entries.
+Used when switching or resuming conversations from the SDK/local conversation store.
 
 **Type**: `rehydrate-conversation`
 
@@ -1125,14 +1125,14 @@ Used when switching or resuming conversations from episodic memory.
     {
       "role": "user",
       "content": "Earlier prompt",
-      "message_type": "user",
+      "message_type": "user_query",
       "timestamp": "2026-02-02T20:00:00Z",
       "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg"
     },
     {
       "role": "assistant",
       "content": "Earlier reply",
-      "message_type": "llm-text",
+      "message_type": "assistant_response",
       "timestamp": "2026-02-02T20:00:01Z"
     }
   ],
@@ -1145,7 +1145,7 @@ Used when switching or resuming conversations from episodic memory.
 **Message entry fields**:
 - `role`: `user | assistant | tool`
 - `content`: message text/content
-- `message_type`: optional frontend message type
+- `message_type`: optional canonical stored message type (`user_query`, `assistant_response`, `tool_output`, or `context_compaction`)
 - `tool_name`: optional tool name (tool entries)
 - `correlation_id`: optional call correlation id
 - `timestamp`: optional timestamp

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: align rehydrate API reference with SDK conversation snapshot
+  ownership and canonical stored `message_type` examples; no migration is
+  required because this corrects documentation only.
 - backend/runtime: align session runtime comments and synthetic tool-failure
   docs with SDK/client and SDK/local-runtime ownership instead of stale
   frontend/renderer runtime labels; no migration is required because this only

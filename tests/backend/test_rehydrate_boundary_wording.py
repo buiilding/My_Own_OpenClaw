@@ -14,6 +14,7 @@ REHYDRATE_BOUNDARY_FILES = [
     "docs/backend/agent/session_runtime_and_config_rewire_reference.md",
     "docs/backend/inventory/backend_full_functionality_inventory_reference.md",
     "docs/backend/api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md",
+    "docs/reference/api_reference.md",
 ]
 
 
@@ -27,8 +28,13 @@ def test_rehydrate_boundary_wording_routes_snapshots_through_sdk_runtime():
     assert "SDK conversation snapshot" in combined_source
     assert "SDK-projected snapshot entries" in combined_source
     assert "SDK rehydrate snapshot" in combined_source
+    assert '"message_type": "user_query"' in combined_source
+    assert '"message_type": "assistant_response"' in combined_source
     assert "frontend transcript snapshot" not in combined_source
     assert "frontend-provided transcript snapshot" not in combined_source
     assert "frontend snapshot" not in combined_source
     assert "frontend transcript entry" not in combined_source
+    assert "optional frontend message type" not in combined_source
+    assert '"message_type": "user"' not in combined_source
+    assert '"message_type": "llm-text"' not in combined_source
     assert "Memory storage is now handled by the frontend" not in combined_source

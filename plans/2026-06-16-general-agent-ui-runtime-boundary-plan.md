@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 reference rehydrate API snapshot contract
+
+- Finding: the public API reference still described rehydrate as a frontend
+  transcript snapshot and showed retired `message_type` aliases even after the
+  SDK projection became the owner of canonical rehydrate payload shape.
+- Change: reworded the reference around SDK conversation snapshot entries,
+  updated examples to `user_query` and `assistant_response`, clarified the
+  canonical stored message-type set, and extended the backend rehydrate wording
+  guard to include the public reference page.
+- Validation: focused backend rehydrate wording guard, docs listing, stale
+  phrase/alias scan, and diff check.
+- Compatibility: no migration required. This corrects docs/tests only;
+  websocket schemas, stored rows, screenshot refs, credentials, permissions,
+  and rehydrate behavior are unchanged.
+
 ### 2026-06-18 backend session/synthetic runtime wording
 
 - Finding: backend session comments and synthetic tool-failure docs still
