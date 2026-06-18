@@ -732,6 +732,7 @@ function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
       httpUrl: backendEndpointState.getHttpUrl(),
     },
     copy: mainHostSkin.bundledRuntime,
+    localRuntimeEnv: mainHostSkin.localRuntime.env,
     runtimePathEnv: mainHostSkin.runtimePaths.env,
     ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
   });

@@ -160,6 +160,9 @@ const bundledRuntime = Object.freeze({
 });
 
 const localRuntime = Object.freeze({
+  env: Object.freeze({
+    verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR',
+  }),
   browserWarmupExplanation: `Open the ${productName} browser for onboarding and profile setup.`,
 });
 

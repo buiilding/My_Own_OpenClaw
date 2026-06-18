@@ -144,12 +144,16 @@ function buildLocalRuntimeLaunchContextFromEnv(env = {}) {
 
 function writeLocalRuntimeDaemonLogLine(line, {
   filter = true,
+  localRuntimeEnv = {},
   stream = process.stderr,
   writeLayerLogLine = appendLayerLogLine,
 } = {}) {
   const text = String(line || '').trim();
   const hasLocalRuntimePrefix = LOCAL_RUNTIME_LOG_PREFIXES.some((prefix) => text.startsWith(prefix));
-  if (!text || (filter && !hasLocalRuntimePrefix && !shouldForwardStderrLine(text))) {
+  if (
+    !text
+    || (filter && !hasLocalRuntimePrefix && !shouldForwardStderrLine(text, process.env, localRuntimeEnv))
+  ) {
     return false;
   }
   const formatted = text.startsWith('[') ? text : `[LocalRuntimeDaemon] ${text}`;
@@ -162,6 +166,7 @@ function createDesktopLocalRuntimeLaunchPlan({
   backendEndpoints,
   discoveryFile = DEFAULT_DAEMON_DISCOVERY_PATH,
   isPackaged = false,
+  localRuntimeEnv,
   permissionStatePath,
   authStatePath,
   runtimePathEnv,
@@ -216,7 +221,7 @@ function createDesktopLocalRuntimeLaunchPlan({
         );
       },
       onStdoutLine: (line) => writeLocalRuntimeDaemonLogLine(line, { filter: false }),
-      onStderrLine: (line) => writeLocalRuntimeDaemonLogLine(line),
+      onStderrLine: (line) => writeLocalRuntimeDaemonLogLine(line, { localRuntimeEnv }),
     },
     launchTarget,
   };

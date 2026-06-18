@@ -26,6 +26,7 @@ const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const extensionManifestPath = path.join(mainRoot, 'extensions/extension_manifest.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime_launch_options.cjs');
+const localRuntimeUtilsPath = path.join(mainRoot, 'sidecar/local_runtime_utils.cjs');
 const localRuntimeBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs');
 const localRuntimeBridgeModulePaths = [
   localRuntimeBridgePath,
@@ -113,6 +114,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('bundledRuntime');
     expect(skinSource).toContain('missingPythonRuntime');
     expect(skinSource).toContain('localRuntime');
+    expect(skinSource).toContain("verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR'");
     expect(skinSource).toContain('browserWarmupExplanation');
   });
 
@@ -356,6 +358,21 @@ describe('main host skin/config boundary', () => {
     expect(localRuntimeSource).toContain('Agent SDK local runtime resolver is unavailable.');
     expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
     expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
+  });
+
+  test('local runtime verbose stderr env name lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const utilsSource = fs.readFileSync(localRuntimeUtilsPath, 'utf8');
+    const launchSource = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
+    const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+
+    expect(skinSource).toContain("verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR'");
+    expect(utilsSource).toContain("verboseStderr: 'AGENT_VERBOSE_LOCAL_RUNTIME_STDERR'");
+    expect(utilsSource).toContain('resolveLocalRuntimeEnvConfig');
+    expect(launchSource).toContain('localRuntimeEnv');
+    expect(ipcSource).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(utilsSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
+    expect(launchSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
   });
 
   test('host skin local readiness copy uses local-runtime wording', () => {

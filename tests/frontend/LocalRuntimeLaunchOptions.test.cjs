@@ -23,15 +23,29 @@ describe('desktop local runtime launch options', () => {
     expect(typeof localRuntimeUtilsModule.withLocalRuntimeNodeOptions).toBe('function');
   });
 
-  test('uses local-runtime verbose stderr env flag without sidecar alias', () => {
+  test('uses generic local-runtime verbose stderr env flag without sidecar alias', () => {
     const debugLine = '2026-06-17 10:00:00 - DEBUG - noisy daemon detail';
 
     expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
-      WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+      AGENT_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
     })).toBe(true);
     expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
       WINDIE_VERBOSE_SIDECAR_STDERR: '1',
     })).toBe(false);
+  });
+
+  test('uses configured host verbose stderr env flag from local-runtime skin', () => {
+    const debugLine = '2026-06-17 10:00:00 - DEBUG - noisy daemon detail';
+
+    expect(localRuntimeUtilsModule.resolveLocalRuntimeEnvConfig()).toMatchObject({
+      verboseStderr: 'AGENT_VERBOSE_LOCAL_RUNTIME_STDERR',
+    });
+    expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
+      WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+    })).toBe(false);
+    expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
+      WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+    }, mainHostSkin.localRuntime.env)).toBe(true);
   });
 
   test('does not keep hard-coded Node deprecation stderr suppressors', () => {
@@ -210,6 +224,32 @@ describe('desktop local runtime launch options', () => {
       stderrWrite.mockRestore();
       process.env = originalEnv;
       fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test('local runtime daemon stderr filtering uses configured host env flag', () => {
+    const originalEnv = process.env;
+    const stderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    try {
+      process.env = {
+        ...originalEnv,
+        WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+      };
+      const plan = createDesktopLocalRuntimeLaunchPlan({
+        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+        localRuntimeEnv: mainHostSkin.localRuntime.env,
+      });
+
+      expect(plan.ok).toBe(true);
+      plan.options.onStderrLine('2026-06-17 10:00:00 - DEBUG - noisy daemon detail');
+
+      expect(stderrWrite).toHaveBeenCalledWith(
+        '[LocalRuntimeDaemon] 2026-06-17 10:00:00 - DEBUG - noisy daemon detail\n',
+      );
+    } finally {
+      stderrWrite.mockRestore();
+      process.env = originalEnv;
     }
   });
 

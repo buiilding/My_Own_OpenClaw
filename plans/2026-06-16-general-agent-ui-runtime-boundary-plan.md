@@ -7794,3 +7794,17 @@ Each completed slice should report:
   historical `sidecar` source/producer metadata and continue through the
   local-runtime store compatibility path; new SDK/backend trace and event rows
   use the generic local-runtime boundary.
+
+### 2026-06-18 main local-runtime stderr env skin boundary
+
+- Finding: `frontend/src/main/sidecar/local_runtime_utils.cjs` still owned the
+  WindieOS-specific `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR` env name even though
+  the utility is part of the reusable Electron local-runtime host path.
+- Change: added a generic `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` helper default,
+  moved the WindieOS env key into `main_host_skin.localRuntime.env`, and passed
+  that env config through desktop local-runtime launch options from IPC.
+- Validation: focused local-runtime launch and host-skin boundary Jest coverage,
+  source scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. WindieOS users keep
+  `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR`; generic hosts can use the
+  `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` fallback unless they inject another key.

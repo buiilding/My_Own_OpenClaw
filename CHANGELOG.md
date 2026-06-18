@@ -23,6 +23,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/logging: inject WindieOS layer log and renderer verbose log env names
   from the main host skin instead of hardcoding them inside the generic layer
   log sink.
+- main/runtime: inject the WindieOS verbose local-runtime stderr env name from
+  the main host skin instead of hardcoding it inside generic local-runtime
+  stderr filtering.
 - main/runtime: inject WindieOS hosted backend default endpoint override env
   names from the main host skin instead of hardcoding them inside the generic
   backend endpoint resolver.
