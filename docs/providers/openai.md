@@ -48,7 +48,7 @@ and do not carry OpenAI-specific image detail metadata.
 
 Credential priority is:
 
-1. Frontend-managed API key override in `provider_api_keys.openai`.
+1. Renderer-managed API key override in `provider_api_keys.openai`.
 2. Environment variable from `OpenAIConfig.api_key_env`, default `OPENAI_API_KEY`.
 
 Do not add a second OpenAI key-loading path in provider code. Keep credentials centralized in `load_api_key_for_provider`.

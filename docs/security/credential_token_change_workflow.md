@@ -23,7 +23,7 @@ Core rule: install auth identifies a desktop install to the hosted backend, runs
 | Sidecar remote-client auth headers | Python sidecar remote client base | `frontend/src/main/python/windie/_auth.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
 | Runs API key | Runs route dependency and VM worker runtime | `backend/src/api/routes/runs/support.py`, `backend/src/api/routes/runs/router.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py`, `tests/frontend/VmWorkerRuntime.test.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Provider env keys | Backend config and provider constructors | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/llm/providers/**` | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, provider tests | [Provider Credentials](../providers/credentials.md) |
-| Frontend-managed provider key overrides | Renderer settings and backend frontend-config patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
+| Renderer-managed provider key overrides | Renderer settings and backend client-settings patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
 | Secret logging, redaction, and fixtures | Producing runtime and test fixture owner | logging call sites in backend, Electron, renderer, sidecar, and tests | focused tests for the changed boundary plus fixture scans | [Observability Change Workflow](../debug/observability_change_workflow.md) |
 
 ## Credential Classes
@@ -64,7 +64,7 @@ If no expected key is configured, `verify_runs_api_key()` allows the route depen
 
 ### Provider credentials
 
-Provider credentials are backend config inputs and provider-specific auth material. The baseline environment-variable surface lives in `AppConfig` and config models. Frontend-managed overrides are intentionally narrow and pass through the settings/config path, not arbitrary backend config patching.
+Provider credentials are backend config inputs and provider-specific auth material. The baseline environment-variable surface lives in `AppConfig` and config models. Renderer-managed overrides are intentionally narrow and pass through the settings/config path, not arbitrary backend config patching.
 
 Do not add provider keys directly to route payloads, websocket handshakes, tool payloads, or logs. Resolve them through config loading and provider constructors so unavailable-provider behavior, health, and model catalog gates stay consistent.
 
@@ -112,12 +112,12 @@ Do not "fix" wrong-user websocket bugs by trusting renderer state harder. The ba
 
 ### Provider credential resolution
 
-1. `AppConfig` defines environment-backed provider key fields and frontend-managed provider override containers.
-2. Config loading normalizes current provider aliases and resolves explicit frontend overrides when enabled.
+1. `AppConfig` defines environment-backed provider key fields and renderer-managed provider override containers.
+2. Config loading normalizes current provider aliases and resolves explicit renderer overrides when enabled.
 3. Provider constructors receive resolved credential/config values.
 4. Provider health/model availability reflects missing or invalid credentials.
 
-When a model is unavailable, check config resolution before editing provider code. A missing key, disabled override, unsupported provider alias, or sanitized frontend patch can look like a provider bug.
+When a model is unavailable, check config resolution before editing provider code. A missing key, disabled override, unsupported provider alias, or sanitized client settings patch can look like a provider bug.
 
 ### Sidecar remote-client header propagation
 
@@ -233,7 +233,7 @@ Validate:
   selection and credential lookup.
 - model list and provider health reflect the new credential gate.
 
-### Change frontend-managed provider keys
+### Change renderer-managed provider keys
 
 Read:
 

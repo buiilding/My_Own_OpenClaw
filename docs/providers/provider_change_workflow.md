@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for adding or changing WindieOS LLM providers across provider classes, factory registration, config loading, model catalog metadata, frontend settings, and tests."
+summary: "Workflow for adding or changing WindieOS LLM providers across provider classes, factory registration, config loading, model catalog metadata, renderer settings, and tests."
 read_when:
   - When adding a new LLM provider or changing provider runtime behavior.
   - When provider credentials, streaming, native tool calls, reasoning, web search, or error mapping changes.
-  - When deciding whether provider work belongs in backend LLM code, config, frontend settings, or model catalog metadata.
+  - When deciding whether provider work belongs in backend LLM code, config, renderer settings, or model catalog metadata.
 title: "Provider Change Workflow"
 ---
 
@@ -19,17 +19,17 @@ WindieOS provider work is backend-owned first. The renderer can display provider
 | Provider base/runtime | `backend/src/llm/providers/base.py`, `online.py`, provider-specific modules | Common request/stream contract, API key handling, tool-call streaming, response parsing. |
 | Provider utilities | `message_normalization.py`, `stream_event_pipeline.py`, `streaming_tool_call_aggregation.py`, `provider_native_reasoning.py`, `usage_diagnostics.py`, `error_mapping.py` | Shared normalization and cross-provider behavior. |
 | Model catalog | `backend/src/llm/models/models_config.py`, `model_service.py` | Display metadata, runtime ids, capabilities, thinking/reasoning variants, model-list output. |
-| Config and credentials | `backend/src/core/config/app_config.py`, `models.py`, `loader.py` | Env var names, default URLs, credential loading, frontend-managed config fields. |
-| Frontend settings | `frontend/src/renderer/features/settings`, app config providers | Displaying and persisting model/provider choices and credential overrides. |
+| Config and credentials | `backend/src/core/config/app_config.py`, `models.py`, `loader.py` | Env var names, default URLs, credential loading, renderer-managed client settings fields. |
+| Renderer settings | `frontend/src/renderer/features/settings`, app config providers | Displaying and persisting model/provider choices and credential overrides. |
 
 ## Add a New Cloud Provider
 
 1. Decide provider id, env var names, base URL defaults, and whether the provider is generic OpenAI-compatible or needs custom request/stream behavior.
 2. Add the provider runtime class under `backend/src/llm/providers/`.
 3. Register provider construction in `backend/src/llm/providers/factory.py`.
-4. Add credential/config fields in `backend/src/core/config/models.py`, `app_config.py`, and `loader.py` when the provider needs new env vars or frontend-managed settings.
+4. Add credential/config fields in `backend/src/core/config/models.py`, `app_config.py`, and `loader.py` when the provider needs new env vars or renderer-managed settings.
 5. Add model catalog entries in `backend/src/llm/models/models_config.py`.
-6. Add provider docs, credentials docs, model docs, and frontend settings docs if the user can select or configure the provider.
+6. Add provider docs, credentials docs, model docs, and renderer settings docs if the user can select or configure the provider.
 7. Add backend tests for factory registration, config loading, request kwargs, streaming/tool-call behavior, error mapping, and model-list output.
 8. Add frontend tests only when the settings/model picker surface changes.
 
@@ -68,14 +68,14 @@ Do not hard-code provider capability only in the renderer. The frontend should r
 | Model catalog change | `./scripts/python-in-env backend pytest tests/backend/test_models_config.py tests/backend/test_model_service.py` |
 | Config/credential change | `./scripts/python-in-env backend pytest tests/backend/test_config_loader.py tests/backend/test_config_models.py` |
 | OpenAI-like provider change | Provider-specific tests plus `test_llm_request_kwargs.py` and stream/tool-call tests if streaming changed. |
-| Frontend settings/model UI change | `cd frontend && npm run test -- AppConfigProvider.models ModelSelectionUtils ModelsSection SettingsSection` |
+| Renderer settings/model UI change | `cd frontend && npm run test -- AppConfigProvider.models ModelSelectionUtils ModelsSection SettingsSection` |
 | Docs-only provider update | `bin/windie docs list`, `git diff --check`, and focused Markdown link checks. |
 
 ## Common Mistakes
 
 - Adding a provider class without registering it in the factory.
 - Adding catalog entries without a provider id that can route at runtime.
-- Adding frontend settings fields without backend config validation.
+- Adding renderer settings fields without backend config validation.
 - Treating local-provider connection failure as a startup failure instead of runtime unavailability.
 - Duplicating stream aggregation logic instead of using shared helpers.
 - Exposing native web-search or reasoning controls without catalog capability flags.

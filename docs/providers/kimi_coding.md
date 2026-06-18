@@ -45,7 +45,7 @@ Config models use `kimi_coding`; runtime provider keys use `kimi-coding`.
 
 Credential loading checks:
 
-1. Frontend-managed API key override in `provider_api_keys.kimi_coding`.
+1. Renderer-managed API key override in `provider_api_keys.kimi_coding`.
 2. Environment variable from `KimiCodingConfig.api_key_env`, default `KIMI_API_KEY`.
 
 ## Change Path

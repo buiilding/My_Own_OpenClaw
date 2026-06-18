@@ -38,7 +38,7 @@ bin/windie test frontend -- IpcQueryRuntime.test.cjs IpcSettingsSync.test.cjs
 
 ## Model Or Provider Missing
 
-Likely boundary: backend provider registration, model catalog, credentials, or frontend settings reconciliation.
+Likely boundary: backend provider registration, model catalog, credentials, or renderer settings reconciliation.
 
 Inspect:
 

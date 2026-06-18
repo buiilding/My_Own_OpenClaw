@@ -41,7 +41,7 @@ Backend-owned payloads:
 Frontend-owned payloads:
 
 - renderer-to-main IPC channel payloads
-- local frontend config and settings subset
+- renderer-local config and settings subset
 - overlay/window control payloads
 - renderer chat state and transcript queue payloads
 - sidecar JSON-RPC request envelopes created by Electron main

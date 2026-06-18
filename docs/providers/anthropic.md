@@ -35,7 +35,7 @@ The request hook calls `apply_provider_native_thinking_request_params` with `pro
 
 Credential priority is:
 
-1. Frontend-managed API key override in `provider_api_keys.anthropic`.
+1. Renderer-managed API key override in `provider_api_keys.anthropic`.
 2. Environment variable from `AnthropicConfig.api_key_env`, default `ANTHROPIC_API_KEY`.
 
 Provider code should not read env vars directly.

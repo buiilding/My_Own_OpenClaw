@@ -12,7 +12,7 @@ WindieOS separates model catalog metadata from provider runtime availability. A 
 
 ## Current Selection Path
 
-1. Frontend settings choose model/provider options and send config to the backend.
+1. Renderer settings choose model/provider options and send client settings to the backend.
 2. Backend session config stores `model_provider`, model id, reasoning/search options, and provider credentials/base URLs.
 3. `LiteLLMClient` resolves provider name from session config.
 4. Provider factory registers only providers that can initialize.
@@ -60,7 +60,7 @@ Do not imply that a failed LLM request automatically retries on another provider
 | provider streams malformed tool calls | provider-specific stream parser and normalized tool-call adapter |
 | web search hidden | provider native capability plus Brave fallback config |
 | local model listed but request fails | Ollama/LM Studio server availability and base URL config |
-| settings appear saved but query uses old model | backend session config rewire and frontend settings ACK path |
+| settings appear saved but query uses old model | backend session config rewire and renderer settings ACK path |
 
 ## Deep Docs
 

@@ -1,5 +1,5 @@
 ---
-summary: "Provider credential guide covering environment variables, frontend-managed overrides, OAuth entries, and hosted install authentication."
+summary: "Provider credential guide covering environment variables, renderer-managed overrides, OAuth entries, and hosted install authentication."
 read_when:
   - When changing API key loading, frontend provider settings, OAuth credential behavior, or hosted install auth.
   - When debugging provider availability caused by missing credentials.
@@ -8,7 +8,7 @@ title: "Provider Credentials"
 
 # Provider Credentials
 
-WindieOS supports environment-variable credentials, frontend-managed provider overrides, and hosted install authentication. Never commit real credentials in docs, tests, or config.
+WindieOS supports environment-variable credentials, renderer-managed provider overrides, and hosted install authentication. Never commit real credentials in docs, tests, or config.
 
 For code-owner routing and validation commands across install tokens, runs keys, provider keys, sidecar auth headers, and logging, start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
 
@@ -27,9 +27,9 @@ Default provider env vars are defined in `backend/src/core/config/models.py`:
 
 Embedding vendor mode also defaults to `OPENAI_API_KEY`.
 
-## Frontend-Managed Provider Overrides
+## Renderer-Managed Provider Overrides
 
-`ProviderApiKeys` in `backend/src/core/config/models.py` defines frontend-managed key overrides. Provider aliases normalize `gemini` to `google`. Kimi key overrides use the canonical config field `kimi_coding`; other Kimi spellings are unavailable for credential lookup.
+`ProviderApiKeys` in `backend/src/core/config/models.py` defines renderer-managed key overrides accepted through the client settings patch contract. Provider aliases normalize `gemini` to `google`. Kimi key overrides use the canonical config field `kimi_coding`; other Kimi spellings are unavailable for credential lookup.
 
 Use these overrides only through the config/settings path. Do not bypass the backend config service.
 
@@ -48,6 +48,6 @@ Hosted installs use install-token authentication when enabled. Relevant code liv
 
 - Check config resolution before editing provider code.
 - Check whether the provider factory actually registered the provider.
-- Check frontend overrides only after confirming environment variables are absent or intentionally overridden.
+- Check renderer overrides only after confirming environment variables are absent or intentionally overridden.
 - Check hosted auth headers when a remote REST route works locally but fails through the packaged app.
 - Check [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) when a symptom could belong to install auth, runs auth, provider credentials, sidecar header propagation, or secret logging.

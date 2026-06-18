@@ -172,9 +172,9 @@ contracts.
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
 - [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
-- [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, frontend settings, and tests
+- [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, renderer settings, and tests
 - [**Model Catalog Change Workflow**](providers/model_catalog_change_workflow.md) - Add/change model entries, capability flags, routing metadata, picker behavior, and validation
-- [**Provider Credentials**](providers/credentials.md) - Environment variables, frontend overrides, OAuth entries, and install auth
+- [**Provider Credentials**](providers/credentials.md) - Environment variables, renderer overrides, OAuth entries, and install auth
 - [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, health, and capability gating
 - [**OpenAI Provider**](providers/openai.md) - Responses routing, native reasoning/search, Codex OAuth, and tool compatibility
 - [**Gemini Provider**](providers/gemini.md) - Native thinking/search, streamed tool-call aggregation, and source extraction
@@ -227,7 +227,7 @@ contracts.
 - [**API Route Change Workflow**](backend/api/api_route_change_workflow.md) - Owner routing for backend HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports
 - [**Backend Service Change Workflow**](backend/services/backend_service_change_workflow.md) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services
 - [**Prompt Context Change Workflow**](backend/llm/prompts/prompt_context_change_workflow.md) - Owner routing for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts
-- [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Owner routing for `AppConfig`, runtime normalization, frontend settings patches, DI rebinding, provider refresh, and session config propagation
+- [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Owner routing for `AppConfig`, runtime normalization, client settings patches, DI rebinding, provider refresh, and session config propagation
 - [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
 - [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
 - [**Backend Inventory Protocols Hub**](backend/inventory/protocols/README.md) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocol ownership and drift detection
@@ -247,7 +247,7 @@ contracts.
 - [**Backend Container DI Lifecycle**](backend/bootstrap/container_di_and_init_lifecycle_reference.md) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
 - [**Backend Shared Entrypoint Logger + Uvicorn Runner**](backend/bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md) - Shared startup logging bootstrap and uvicorn launch kwargs contract for production and simulation
 - [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Change workflow for backend config fields, env-var resolution, DI provider rebinding, model service refresh, and stale session debugging
-- [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and frontend patch boundaries
+- [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and client settings patch boundaries
 - [**Backend API/Core Topology Source Map Runtime**](backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md) - Source-owned API/core folder maps and layer/data-flow parity expectations
 - [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md) - Contract map for backend package-level re-export and marker surfaces
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
@@ -283,7 +283,7 @@ contracts.
 - [**Frontend Transcript Session + Rehydrate Runtime**](frontend/renderer/transcript_session_and_rehydrate_reference.md) - Session identity persistence, queued transcript storage contract, main/sidecar transcript RPC mapping, and episodic-memory resume-to-chat rehydrate flow
 - [**Frontend Renderer Transcript Docs Hub**](frontend/renderer/transcript/README.md) - SDK-backed transcript display projection, session identity, and test-backed session-state invariants
 - [**Frontend Dashboard Memory Management + Resume Runtime**](frontend/renderer/dashboard_memory_management_and_resume_reference.md) - Dashboard section routing, episodic/semantic memory list-delete flows, context-menu hotkeys, and resumable conversation handoff back into chat
-- [**Frontend Runtime Paths and Endpoints**](frontend/main/runtime_paths_and_endpoints.md) - Backend ws/http endpoint derivation, packaged Python path lookup, and frontend config persistence path
+- [**Frontend Runtime Paths and Endpoints**](frontend/main/runtime_paths_and_endpoints.md) - Backend ws/http endpoint derivation, packaged Python path lookup, and desktop UI config persistence path
 - [**Frontend Query Send + Stream Relay Workflow**](frontend/main/query_send_and_stream_relay_change_workflow.md) - Change workflow for renderer compose, SDK runtime transport, query payload enrichment, optimistic local events, overlay phase, transcript sync, and stream ingress
 - [**Frontend Workspace Context Workflow**](frontend/runtime/workspace_context_change_workflow.md) - Change workflow for active workspace selection, conversation workspace binding, workspace_path forwarding, AGENTS.md repo instructions, and backend prompt context
 - [**Frontend Query Payload Relay**](frontend/main/query_payload_and_relay_reference.md) - Main-process query enrichment pipeline, initial settings ACK gate, local-user-message synthesis, and backend relay failure semantics

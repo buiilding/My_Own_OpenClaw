@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer/client-settings provider credential wording boundary
+
+- Finding: provider credential, backend config, security, channel, concept,
+  and renderer settings docs still called API-key overrides, settings patch
+  routing, and local config persistence broad frontend concerns in contexts
+  where the owner is renderer settings plus backend client-settings validation.
+- Change: reworded those docs to renderer-managed provider overrides, renderer
+  settings, client settings patches, and desktop UI config persistence while
+  preserving compatibility names such as `frontend-config.json` and
+  `load-frontend-config`; expanded the modular boundary test to guard stale
+  credential/settings ownership phrases across the touched docs.
+- Validation: focused modular boundary Jest coverage, targeted stale
+  credential/settings wording scan over docs, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  provider API-key fields, backend config validation, renderer config storage,
+  IPC channels, persisted filenames, credentials, permissions, provider policy,
+  websocket events, SDK projections, and storage are unchanged.
+
 ### 2026-06-18 backend stream/runtime consumer wording boundary
 
 - Finding: backend lifecycle, prompt-transparency, compaction, observability,
@@ -542,7 +560,7 @@ Each completed slice should report:
 ### 2026-06-18 renderer model settings docs boundary
 
 - Finding: renderer model settings docs still described selected model/provider
-  fields as frontend-managed config, and the protocol state reference still
+  fields with stale config ownership wording, and the protocol state reference still
   named the retired `syncCurrentConfigToBackend` helper.
 - Change: reworded the model settings workflow to renderer-managed config
   persistence/filtering and updated the protocol state reference to

@@ -54,7 +54,7 @@ Changing a flag can change prompt/tool visibility, frontend controls, and reques
 | Catalog id rename | Add a migration or explicit compatibility decision; persisted selected model ids may break. |
 | Removal | Update defaults, docs, frontend selection fallback, and tests for unknown/deleted selected model ids. |
 
-Do not remove a model id without checking persisted frontend config and backend defaults.
+Do not remove a model id without checking persisted renderer config and backend defaults.
 
 ## Debugging
 

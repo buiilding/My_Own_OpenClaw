@@ -1,7 +1,7 @@
 ---
-summary: "Credential and token handling matrix for WindieOS install auth, runs keys, provider API keys, OAuth state, frontend config, and local-runtime remote clients."
+summary: "Credential and token handling matrix for WindieOS install auth, runs keys, provider API keys, OAuth state, renderer config, and local-runtime remote clients."
 read_when:
-  - When changing install tokens, runs API keys, provider credentials, OAuth state, frontend settings, or remote sidecar clients.
+  - When changing install tokens, runs keys, provider credentials, OAuth state, renderer settings, or remote sidecar clients.
   - When debugging 401s, missing provider keys, token persistence, SDK auth, or credential leakage risk.
 title: "Credentials and Tokens Matrix"
 ---
@@ -28,7 +28,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 - Do not document live keys in examples; use placeholders.
 - Do not reuse install tokens as provider credentials.
 - Do not let renderer-provided `user_id` win over authenticated backend identity.
-- Do not make frontend settings a broad backend config patch surface.
+- Do not make renderer settings a broad backend config patch surface.
 - Do not log full credentials. If logging is required, log only presence, provider id, or redacted suffix.
 
 ## Code Routing

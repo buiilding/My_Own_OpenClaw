@@ -2,7 +2,7 @@
 summary: "Implementation plan for agent-managed self-configuration so users can change WindieOS behavior with natural language instead of manually toggling settings."
 read_when:
   - Planning natural-language preference changes (for example TTS on/off, query screenshot attach on/off).
-  - Extending frontend-managed config updates while keeping backend schema safety.
+  - Extending renderer-managed config updates while keeping backend schema safety.
   - Designing safe self-edit limits for user-facing settings.
 ---
 
@@ -21,10 +21,10 @@ Examples:
 ## Baseline (Current Behavior)
 
 - Config changes are currently UI-driven via dashboard toggles and model selectors.
-- Frontend persists config to:
+- Renderer persists config to:
   - `localStorage` (`windieos-config`)
   - Electron disk config (`frontend-config.json` via `save-frontend-config`)
-- Frontend syncs config to backend through `update-settings`.
+- Renderer syncs config to backend through `update-settings`.
 - Backend only accepts an allowlisted settings schema (`UpdateSettingsPayload`).
 
 Relevant files:
@@ -37,7 +37,7 @@ Relevant files:
 ## Scope
 
 In scope:
-- Natural-language settings edits for frontend-managed fields:
+- Natural-language settings edits for renderer-managed fields:
   - `speech_mode_enabled`
   - `include_query_screenshot`
   - (optional) `interaction_mode`

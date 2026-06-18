@@ -34,7 +34,7 @@ Provider-specific behavior should stay small unless Mistral needs custom request
 
 Credential priority is:
 
-1. Frontend-managed API key override in `provider_api_keys.mistral`.
+1. Renderer-managed API key override in `provider_api_keys.mistral`.
 2. Environment variable from `MistralConfig.api_key_env`, default `MISTRAL_API_KEY`.
 
 ## Change Path

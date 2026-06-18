@@ -95,13 +95,13 @@ Likely code:
 - `backend/src/core/config/models.py`
 - `backend/src/core/config/loader.py`
 - provider files under `backend/src/llm/providers`
-- renderer provider settings only for explicit frontend-managed overrides/OAuth entries
+- renderer provider settings only for explicit renderer-managed overrides/OAuth entries
 
 Validate:
 
 - no real key appears in docs/tests/fixtures.
 - missing credentials produce safe unavailable/provider-health behavior.
-- frontend-managed keys do not become broad backend config patches.
+- renderer-managed keys do not become broad backend config patches.
 - hosted install auth remains separate from provider credentials.
 
 ## Permissions and Local Machine Authority

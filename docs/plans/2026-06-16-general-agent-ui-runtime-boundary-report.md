@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `b5e57401d` (`refactor(sdk): rename continuity source event metadata`)
+- Latest inspected plan checkpoint: `1005bdaf9` (`docs(backend): align stream consumer ownership wording`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -46,9 +46,38 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Backend lifecycle, stream telemetry, compaction, prompt-transparency,
   credential/debug, and tool-result docs now describe SDK projections, renderer
   consumers, and SDK/main local-runtime dispatch instead of frontend-owned
-  runtime semantics.
+  runtime semantics. Provider credential and settings docs now describe
+  renderer-managed client settings and backend validation ownership instead of
+  stale broad frontend terminology.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer/Client-Settings Provider Credential Wording Slice
+
+- Worktree was clean after `1005bdaf9` before this slice, with `main` ahead of
+  `origin/main` by 801 commits.
+- Recent commits showed renderer/main config naming already moved toward
+  desktop UI config and renderer settings ownership, while credential and
+  provider docs still used stale broad frontend wording for provider
+  API-key overrides and client settings patch routing.
+- Finding: provider credential, backend config, security, channel, concept, and
+  renderer settings docs still called API-key overrides, settings patch
+  routing, and local config persistence broad frontend concerns in places where
+  the active owner is renderer settings plus backend client-settings
+  validation. Compatibility names such as `frontend-config.json`
+  and `load-frontend-config` remain real wire/storage names.
+- Change: reworded those docs to renderer-managed provider overrides, renderer
+  settings, client settings patches, and desktop UI config persistence while
+  preserving real `frontend/src/...` paths and compatibility filenames/channels.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to include the
+  touched provider/security/config/channel/concept/settings docs and guard the
+  stale credential/settings ownership phrases.
+- Validation: focused modular boundary Jest coverage; targeted stale
+  credential/settings wording scan over docs; docs listing; `git diff --check`.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  provider API-key fields, backend config validation, renderer config storage,
+  IPC channels, persisted filenames, credentials, permissions, provider policy,
+  websocket events, SDK projections, and storage are unchanged.
 
 ### 2026-06-18 Backend Stream/Runtime Consumer Wording Slice
 

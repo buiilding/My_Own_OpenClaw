@@ -39,7 +39,7 @@ The provider request hook checks `resolve_provider_thinking_preference(model_id,
 
 Credential priority is:
 
-1. Frontend-managed API key override in `provider_api_keys.openrouter`.
+1. Renderer-managed API key override in `provider_api_keys.openrouter`.
 2. Environment variable from `OpenRouterConfig.api_key_env`, default `OPENROUTER_API_KEY`.
 
 Base URL comes from `OpenRouterConfig.base_url` and is normalized in the provider factory.

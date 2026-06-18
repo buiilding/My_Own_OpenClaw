@@ -65,7 +65,7 @@ Validation:
 
 ## Credential Rules
 
-- Use environment variables or explicit frontend-managed credential surfaces.
+- Use environment variables or explicit renderer-managed credential surfaces.
 - Do not hardcode keys in provider classes, fixtures, docs, or generated examples.
 - Keep install-auth tokens separate from provider credentials.
 - Document required env vars in [Provider Credentials](../providers/credentials.md) and [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) when applicable.

@@ -142,7 +142,7 @@ Start docs:
 
 Validation:
 
-- frontend model picker tests.
+- renderer model picker tests.
 - backend model catalog tests.
 - provider factory/config tests when provider selection changes.
 - hosted model-list route/handler tests if event payloads change.

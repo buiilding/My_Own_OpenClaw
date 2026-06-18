@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/security/providers: align provider credential and settings guidance with
+  renderer-managed client settings and backend validation ownership instead of
+  stale broad frontend terminology.
 - docs/backend: align query lifecycle, stream telemetry, compaction,
   prompt-transparency, and tool-result references with SDK/renderer/local-runtime
   ownership instead of stale frontend-owned consumer wording.

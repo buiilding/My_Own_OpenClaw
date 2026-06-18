@@ -27,7 +27,7 @@ WindieOS safety is split across prompt-visible capabilities, backend validation,
 - Prefer explicit denial or hidden capability over letting the model repeatedly call unavailable tools.
 - Do not expose a broad preload IPC channel to make a renderer feature easier.
 - Do not make the frontend import backend schemas for parity. Use contract tests.
-- Keep credentials in environment variables or frontend-managed encrypted/explicit config surfaces, never in docs or tests.
+- Keep credentials in environment variables or renderer-managed encrypted/explicit config surfaces, never in docs or tests.
 - Treat hosted backend identity and install-token auth as security-critical behavior.
 
 ## Deep Docs

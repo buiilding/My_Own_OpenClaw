@@ -105,7 +105,7 @@ storage. The dashboard thread uses it to either:
 - light and dark translucent sidebar toggles
 - light and dark contrast slider values
 
-These values are persisted through frontend config as `appearance_theme` and are local-only.
+These values are persisted through renderer config as `appearance_theme` and are local-only.
 They are not sent to the hosted backend because they do not affect model behavior,
 tools, prompt construction, or provider policy.
 

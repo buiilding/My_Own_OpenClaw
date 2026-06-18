@@ -160,7 +160,7 @@ From `load_api_key_for_provider(...)`:
 
 - In `model_mode="local"`, backend sets `api_key=None`.
 - For online mode, provider config drives env var lookup.
-- Frontend-managed provider API-key overrides are resolved before environment variables when enabled and non-empty.
+- Renderer-managed provider API-key overrides are resolved before environment variables when enabled and non-empty.
 - Kimi Coding reads the configured `KIMI_API_KEY` env var only.
 
 ## Client Settings Update Scope (`update-settings`)

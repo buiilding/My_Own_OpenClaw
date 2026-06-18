@@ -91,7 +91,7 @@ Let users change common behavior (speech replies, screenshot attach, voice mode)
 
 ### Plan
 - Add a safe config-intent resolver on user text before normal query send.
-- Restrict edits to existing frontend-managed allowlisted fields.
+- Restrict edits to existing renderer-managed allowlisted fields.
 - Reuse the current persistence/sync path (`updateConfig` -> localStorage + disk + `update-settings`).
 - Return explicit confirmation messages for each applied preference change.
 - Add rollback command support for recent changes.

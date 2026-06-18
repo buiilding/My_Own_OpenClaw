@@ -93,14 +93,14 @@ Use this path when the renderer sends a user-facing settings change.
 2. Add or update the checked-in default in `backend/src/core/config/app_config.py` only when the default belongs in source.
 3. If the value comes from env, add env-var lookup in `loader.py` or the domain-specific loader. Do not read env vars from random service code.
 4. If the value needs normalization, add it to `runtime.py` so startup and session updates share behavior.
-5. If a client-visible setting controls it, add the allowlist and validation rule in `backend/src/core/validation/*`, then update frontend settings docs/tests separately.
+5. If a client-visible setting controls it, add the allowlist and validation rule in `backend/src/core/validation/*`, then update renderer settings docs/tests separately.
 6. If a service, provider, model list, or router stores the config at construction time, update `ContainerConfigUpdater` so runtime updates rebuild that dependency.
 7. If active sessions need to change immediately, update `SessionConfigRuntime` and focused session tests.
 8. Update config docs:
    - [Config Fields and Runtime Policy](config_fields_and_runtime_policy.md)
    - [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md)
    - [Configuration Reference](../../reference/configuration_reference.md)
-   - any provider, service, security, operations, or frontend settings page that exposes the field
+   - any provider, service, security, operations, or renderer settings page that exposes the field
 
 ## Add or Change a Provider Config
 
@@ -156,7 +156,7 @@ Container wiring changes are higher risk because they alter startup, API handler
 - Confirm `ContainerConfigUpdater` reset and recreated `ModelService`.
 - Confirm provider aliases match across `LLMProviders`, API-key override resolution, model catalog metadata, and provider factory selection.
 - Confirm the API runtime binder refreshed overrides after config mutation.
-- Confirm frontend model picker is not showing cached renderer state from before backend ACK.
+- Confirm the renderer model picker is not showing cached renderer state from before backend ACK.
 
 ### New Sessions Use Old Dependencies
 
@@ -199,7 +199,7 @@ Container wiring changes are higher risk because they alter startup, API handler
 - Runtime updates rebuild every dependency that caches the changed config.
 - Active-session behavior is explicit: either unchanged by design or rewired through session runtime.
 - New-session behavior is explicit and covered by session factory invalidation tests when needed.
-- Provider aliases are consistent across config, credentials, factory selection, model catalog, docs, and frontend settings.
+- Provider aliases are consistent across config, credentials, factory selection, model catalog, docs, and renderer settings.
 - Optional heavy services have disabled or unavailable paths that do not break backend startup.
 - No credentials, access tokens, or machine-specific paths were added to docs/tests/fixtures.
 - Docs and tests mention whether the behavior applies to startup config, global runtime config, session-scoped config, or renderer-owned settings.
