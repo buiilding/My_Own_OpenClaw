@@ -18,7 +18,7 @@ import type {
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
-import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
+import { useLatestRef } from '../../../../app/runtime/desktopRendererHooksRuntimeClient';
 
 type SetThinkingStatus = (
   status: string | null,

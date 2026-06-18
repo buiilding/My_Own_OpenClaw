@@ -12,7 +12,7 @@ import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities'
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
-import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
 import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompactionHandlers';

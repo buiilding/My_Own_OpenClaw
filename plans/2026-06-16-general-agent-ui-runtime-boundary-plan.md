@@ -8118,3 +8118,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Tool-call/tool-output display shape,
   current-turn presentation, tool-schema transparency, and incoming text
   normalization are unchanged.
+
+### 2026-06-18 renderer hook runtime facade boundary
+
+- Finding: chat stream and voice feature hooks still imported the shared
+  `useLatestRef` helper directly from renderer infrastructure.
+- Change: added `desktopRendererHooksRuntimeClient.ts` as the renderer app
+  runtime facade for shared React hook helpers and routed chat/voice consumers
+  through it.
+- Validation: focused latest-ref, chat compaction, voice, wakeword, and
+  renderer boundary Jest coverage, direct feature import scans, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. The stable ref object behavior and
+  render-time `.current` update semantics are unchanged.

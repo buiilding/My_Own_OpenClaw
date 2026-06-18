@@ -550,6 +550,27 @@ describe('renderer chat runtime boundary', () => {
     expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
   });
 
+  test('renderer feature hooks read latest-ref helper through app runtime facade', async () => {
+    const featureRoot = path.join(rendererRoot, 'features');
+    const files = await listSourceFiles(featureRoot);
+    const offenders: string[] = [];
+    const hookClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererHooksRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const relativePath = path.relative(featureRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/hooks/useLatestRef')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    expect(hookClientSource).toContain('infrastructure/hooks/useLatestRef');
+  });
+
   test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];

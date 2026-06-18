@@ -11,7 +11,7 @@ import {
 } from '../utils/audioCaptureCleanup';
 import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
-import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
 

@@ -22,7 +22,7 @@ import {
   isMissingAudioDeviceError,
 } from '../utils/wakewordCaptureGuard';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
-import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useWakewordBridgeEvents } from './useWakewordBridgeEvents';
 
 const WAKEWORD_COOLDOWN_MS = 2000;
