@@ -201,7 +201,7 @@ describe('main host skin/config boundary', () => {
   test('layer log sink uses generic defaults instead of product prefix', () => {
     const source = fs.readFileSync(layerLogSinkPath, 'utf8');
 
-    expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Agent]'");
+    expect(source).toContain("DEFAULT_LOG_PREFIX = '[Desktop Runtime]'");
     expect(source).not.toContain('Unknown Windie log layer');
     expect(source).not.toContain('[WindieOS]');
   });

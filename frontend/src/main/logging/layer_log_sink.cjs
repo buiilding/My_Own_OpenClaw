@@ -13,7 +13,7 @@ const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
 const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopRuntimeConsoleStreamErrorGuardInstalled';
 const CONSOLE_LAYER_LOG_INSTALLED = '__desktopRuntimeLayerLogInstalled';
 const CONSOLE_LAYER_LOG_ORIGINALS = '__desktopRuntimeLayerLogOriginals';
-const DEFAULT_LOG_PREFIX = '[Desktop Agent]';
+const DEFAULT_LOG_PREFIX = '[Desktop Runtime]';
 
 function normalizeLayer(layer) {
   const normalized = String(layer || '').trim().toLowerCase();

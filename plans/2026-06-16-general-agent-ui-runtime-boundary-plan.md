@@ -119,6 +119,21 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 layer log fallback prefix runtime rename
+
+- Finding: the shared Electron layer log sink still used `[Desktop Agent]`
+  as its fallback session/error prefix even though this module is a generic
+  desktop-runtime diagnostic utility and product-specific prefixes are passed
+  explicitly by host callers.
+- Change: renamed the fallback prefix to `[Desktop Runtime]`, updated host
+  boundary coverage, and added direct log-sink coverage for the default
+  session banner prefix.
+- Validation: focused layer log sink and main host boundary Jest coverage,
+  stale prefix scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Log file paths, environment override
+  names, caller-supplied app prefixes, console mirroring, storage, and
+  runtime behavior are unchanged.
+
 ### 2026-06-18 interaction debug retired-literal scan cleanup
 
 - Finding: frontend interaction logger tests kept raw retired

@@ -68,6 +68,20 @@ describe('layer_log_sink', () => {
     );
   });
 
+  test('uses desktop-runtime default layer session prefix', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-layer-default-prefix-'));
+    const logFile = path.join(tempDir, 'main.log');
+
+    expect(appendLayerLogSessionBanner('main', {
+      env: { WINDIE_MAIN_LOG_FILE: logFile },
+      now: () => new Date('2026-06-14T00:00:00.000Z'),
+    })).toBe(true);
+
+    expect(fs.readFileSync(logFile, 'utf8')).toContain(
+      '[Desktop Runtime] main log session 2026-06-14T00:00:00.000Z',
+    );
+  });
+
   test('appends renderer verbose log lines and banners', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-renderer-verbose-log-'));
     const logFile = path.join(tempDir, 'renderer.verbose.log');

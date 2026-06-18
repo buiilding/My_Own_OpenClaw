@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the layer log sink fallback prefix from Desktop
+  Agent to Desktop Runtime; no migration is required because log file paths,
+  environment overrides, caller-supplied app prefixes, console mirroring,
+  and runtime behavior are unchanged.
 - tests/frontend: construct retired desktop-agent interaction debug flag
   names inside negative assertions; no migration is required because this is
   test-only scan hygiene and the active desktop-runtime debug flags are
