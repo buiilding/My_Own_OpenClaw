@@ -9,6 +9,7 @@ import {
   getIpcListener,
   INVOKE_CHANNELS,
   IpcBridge,
+  mockBindTranscriptUser,
   mockDesktopSettingsUpdateSettings,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
@@ -242,13 +243,14 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(result.current.wakewordActive).toBe(false);
   });
 
-  test('updates transcript session when client user id resolves', async () => {
+  test('binds transcript user when client user id resolves', async () => {
     setClientUserIdResponse({ userId: 'client-user-1' });
 
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'client-user-1');
+    expect(mockBindTranscriptUser).toHaveBeenCalledWith('client-user-1');
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
   });
 
   test('syncs current config when get-client-user-id reports already connected', async () => {
@@ -274,7 +276,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(mockSetRuntimeEndpointHttpUrl).not.toHaveBeenCalled();
   });
 
-  test('updates transcript session from IPC status events with userId', () => {
+  test('binds transcript user from IPC status events with userId', () => {
     renderAppConfigContext();
 
     const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
@@ -284,7 +286,8 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       ipcStatusHandler?.({ userId: 'ipc-user-1' });
     });
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'ipc-user-1');
+    expect(mockBindTranscriptUser).toHaveBeenCalledWith('ipc-user-1');
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
   });
 
   test('syncs runtime endpoint snapshot from IPC status payload', () => {
@@ -366,6 +369,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       ipcStatusHandler?.({ userId: '' });
     });
 
+    expect(mockBindTranscriptUser).not.toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
   });
 

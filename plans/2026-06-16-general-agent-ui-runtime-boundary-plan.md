@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Transcript User Binding Runtime Client
+
+- Finding: `AppConfigProvider` still imported chat session runtime internals to
+  apply transcript user binding from connection snapshots, even though provider
+  transport already flowed through renderer app runtime clients.
+- Change: moved transcript user binding behind
+  `DesktopTranscriptSessionRuntimeClient.bindTranscriptUser(...)` so the
+  provider handles snapshot state and delegates session rules to the transcript
+  runtime facade.
+- Validation: focused app-config provider and renderer app-runtime boundary
+  tests plus frontend typecheck, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Connection snapshot payloads,
+  transcript session storage, main-session sync, runtime endpoints, settings
+  sync, credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 Main Local-Runtime Bridge Copy Narrowing
 
 - Finding: after the bridge stopped reading the full host skin directly, the

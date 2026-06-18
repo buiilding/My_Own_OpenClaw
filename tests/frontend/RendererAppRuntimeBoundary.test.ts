@@ -199,6 +199,22 @@ describe('renderer app runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('app config provider binds transcript users through transcript runtime client', async () => {
+    const providerSource = await fs.readFile(
+      path.join(appRoot, 'providers/AppConfigProvider.jsx'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopTranscriptSessionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(providerSource).toContain('DesktopTranscriptSessionRuntimeClient.bindTranscriptUser');
+    expect(providerSource).not.toContain('features/chat/session/conversationSessionRuntime');
+    expect(providerSource).not.toContain('applyTranscriptSessionUserBinding');
+    expect(clientSource).toContain('applyTranscriptSessionUserBinding');
+  });
+
   test('app runtime modules do not import chat feature internals', async () => {
     const files = await listSourceFiles(path.join(appRoot, 'runtime'));
     const offenders: string[] = [];

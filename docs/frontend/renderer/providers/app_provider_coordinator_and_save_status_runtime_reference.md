@@ -15,6 +15,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
@@ -87,7 +88,7 @@ Initialization/sync inputs:
 1. localStorage (`loadConfigFromStorage`) as initial state seed
 2. renderer view (`window.location.search`) for initial wakeword suppression seed
 3. settings-event listener through `DesktopAppConfigRuntimeClient.onSettingsEvent(...)` for `models-listed`
-4. `DesktopClientSessionRuntimeClient.onIpcStatus(...)` for transcript user and runtime HTTP URL snapshot
+4. `DesktopClientSessionRuntimeClient.onIpcStatus(...)` for session/user and runtime HTTP URL snapshot
 5. `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()` for startup snapshot
 6. disk config load through `DesktopAppConfigRuntimeClient.loadRendererConfig()`
 7. browser `storage` event cross-window sync
@@ -132,6 +133,7 @@ Desktop host transport is routed through app runtime clients:
 
 - `DesktopAppConfigRuntimeClient` owns renderer config disk persistence and settings-event fan-out.
 - `DesktopClientSessionRuntimeClient` owns main-session snapshots and connection status fan-out.
+- `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.
 - `DesktopVoiceRuntimeClient` owns wakeword-toggle fan-out.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
 

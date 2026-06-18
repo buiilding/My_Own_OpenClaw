@@ -29,6 +29,7 @@ jest.mock('../../frontend/src/renderer/utils/configStorage', () => ({
 }));
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
+    bindTranscriptUser: jest.fn(),
     updateTranscriptSession: jest.fn(),
   },
 }));
@@ -55,6 +56,7 @@ let clientUserIdResponse: any = null;
 export const mockUseSettingsManagement = useSettingsManagement as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
+export const mockBindTranscriptUser = DesktopTranscriptSessionRuntimeClient.bindTranscriptUser as jest.Mock;
 export const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 export const mockSetRuntimeEndpointHttpUrl = DesktopRuntimeEndpointClient.setHttpUrl as jest.Mock;
 export const mockSyncRuntimeEndpointFromSnapshot = DesktopRuntimeEndpointClient.syncFromConnectionSnapshot as jest.Mock;

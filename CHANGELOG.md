@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: route connection-snapshot transcript user binding through
+  `DesktopTranscriptSessionRuntimeClient` so `AppConfigProvider` no longer
+  imports chat session runtime internals. No migration required.
 - renderer/app: route app provider `useLatestRef` usage through
   `DesktopRendererHooksRuntimeClient` so providers use the same app-runtime
   facade as chat and voice hooks. No migration required.

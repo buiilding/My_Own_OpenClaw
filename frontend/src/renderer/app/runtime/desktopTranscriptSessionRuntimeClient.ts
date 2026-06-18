@@ -3,6 +3,16 @@
  */
 
 import { desktopTranscriptSessionRuntime } from './desktopTranscriptSessionRuntime';
+import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
+
+function updateTranscriptSession(
+  conversationRef?: string | null,
+  userId?: string | null,
+): void {
+  desktopTranscriptSessionRuntime.applyTranscriptSessionUpdate(conversationRef, userId, {
+    syncToMainProcess: true,
+  });
+}
 
 export const DesktopTranscriptSessionRuntimeClient = {
   getActiveConversationRef(): string | null {
@@ -19,12 +29,12 @@ export const DesktopTranscriptSessionRuntimeClient = {
     });
   },
 
-  updateTranscriptSession(
-    conversationRef?: string | null,
-    userId?: string | null,
-  ): void {
-    desktopTranscriptSessionRuntime.applyTranscriptSessionUpdate(conversationRef, userId, {
-      syncToMainProcess: true,
+  updateTranscriptSession,
+
+  bindTranscriptUser(userId: unknown): boolean {
+    return applyTranscriptSessionUserBinding({
+      userId,
+      updateTranscriptSession,
     });
   },
 };

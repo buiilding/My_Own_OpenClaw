@@ -7,7 +7,6 @@ import { useSettingsManagement } from '../../features/settings/hooks/useSettings
 import { filterRendererConfig } from '../../utils/configFilter';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
-import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
@@ -183,10 +182,10 @@ export function AppConfigProvider({ children }) {
       });
     }
 
-    applyTranscriptSessionUserBinding({
-      userId: extractTranscriptUserId(data),
-      updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
-    });
+    const transcriptUserId = extractTranscriptUserId(data);
+    if (transcriptUserId !== null) {
+      DesktopTranscriptSessionRuntimeClient.bindTranscriptUser(transcriptUserId);
+    }
     DesktopRuntimeEndpointClient.syncFromConnectionSnapshot(data);
     if (runtimeConnectedRef.current) {
       syncCurrentConfigToRuntime();
