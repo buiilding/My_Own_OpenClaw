@@ -46,7 +46,7 @@ Startup surface routing in `AppContent`:
 
 - VM mode (`vm_mode=1` query param) renders `DashboardShell` directly (`vmModeEnabled=true`)
 - non-VM mode renders frontend onboarding slideshow until `permissionStore.needsOnboarding` is false
-- onboarding completion persists `desktop-agent-permission-onboarding` (`manifest_version`, `completed`, `completed_at`) then routes to dashboard shell
+- onboarding completion persists `windieos-permission-onboarding` (`manifest_version`, `completed`, `completed_at`) then routes to dashboard shell
 
 ## Feature Domains
 

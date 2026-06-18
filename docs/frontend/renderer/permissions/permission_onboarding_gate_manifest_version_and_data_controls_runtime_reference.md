@@ -74,7 +74,11 @@ Response normalization:
 
 `permissionStorage.js` localStorage key:
 
-- `desktop-agent-permission-onboarding`
+- `windieos-permission-onboarding`
+
+Retired `desktop-agent-permission-onboarding` snapshots are ignored rather than
+migrated. Users with only the old key may see onboarding again for the current
+manifest.
 
 Persisted fields:
 

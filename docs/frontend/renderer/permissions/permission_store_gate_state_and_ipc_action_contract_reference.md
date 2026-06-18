@@ -151,7 +151,11 @@ On guard failure:
 
 `permissionStorage.js` uses localStorage key:
 
-- `desktop-agent-permission-onboarding`
+- `windieos-permission-onboarding`
+
+Retired `desktop-agent-permission-onboarding` state is not read or migrated.
+That intentionally resets onboarding completion for installs that only have the
+old namespace.
 
 `loadPermissionOnboardingState()` fail-closes malformed/missing values to:
 

@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 renderer permission onboarding storage key boundary
+
+- Finding: permission onboarding persistence still used the retired `desktop-agent-permission-onboarding` namespace after storage-key ownership moved into the WindieOS renderer skin config.
+- Change: switched the skin-owned permission onboarding key to `windieos-permission-onboarding`, updated permission storage tests to prove the retired key is ignored, and aligned renderer onboarding docs.
+- Validation: focused PermissionStorage and RendererSkinConfigBoundary Jest coverage, docs listing, exact retired-key scan outside retired-key docs/tests, and diff checks.
+- Compatibility: no migration is performed. Installs that only have the retired `desktop-agent-permission-onboarding` key may see onboarding again for the current manifest; stored payload shape for the new key is unchanged.
+
 ### 2026-06-18 renderer storage skin config boundary
 
 - Finding: generic renderer storage helpers and provider listeners still owned WindieOS/desktop-agent localStorage key literals, leaving persisted product/runtime configuration outside the skin/config boundary.
