@@ -321,10 +321,10 @@ Validate:
 | Every `/api/*` route returns `401` except register | Electron/SDK bearer header, persisted install state, backend auth database | client header propagation or auth middleware |
 | `/api/*` returns install-auth `503` | `app.state.install_auth_service`, backend startup/container wiring | backend app assembly/main |
 | `/ws` closes with `1008` before query | handshake JSON/schema, bearer header, install-auth service | websocket connection lifecycle |
-| Backend logs claimed/authenticated user mismatch | stale client user id; backend should still use authenticated identity | frontend local state if UX is wrong, backend only if binding is wrong |
+| Backend logs claimed/authenticated user mismatch | stale client user id; backend should still use authenticated identity | renderer local state if UX is wrong, backend only if binding is wrong |
 | `/api/runs/*` returns `401` while other APIs work | `x-windie-runs-key`, expected env key, VM worker env | runs support or VM worker runtime |
-| Provider missing despite visible model | env key, frontend override enabled state, alias normalization, OAuth access token | backend config loader/provider factory |
-| UI saves provider key but backend ignores it | config filter, frontend persistence merge, backend patch guard | renderer config persistence or backend validation |
+| Provider missing despite visible model | env key, renderer override enabled state, alias normalization, OAuth access token | backend config loader/provider factory |
+| UI saves provider key but backend ignores it | config filter, renderer persistence merge, backend patch guard | renderer config persistence or backend validation |
 | Remote embedding/semantic request returns auth error | sidecar auth-state path, sidecar bearer header, install token validity | sidecar remote client base or Electron sidecar env |
 | Token appears in logs or snapshots | producing log call, fixture, snapshot, debug flag | owner runtime plus test fixture |
 
@@ -338,7 +338,7 @@ Validate:
 | Runs key | `./scripts/python-in-env backend pytest tests/backend/test_run_control_routes.py tests/backend/test_run_control_route_helpers.py` and `cd frontend && npm run test -- VmWorkerRuntime` when worker headers change |
 | Provider config/key resolution | `./scripts/python-in-env backend pytest tests/backend/test_config_models.py tests/backend/test_config_loader.py` plus provider-specific tests |
 | Frontend provider settings | `cd frontend && npm run test -- ModelsSection AppConfigPersistence configStorage configFilter` |
-| Provider OAuth config | backend config-loader tests plus focused renderer config tests if frontend persistence changes |
+| Provider OAuth config | backend config-loader tests plus focused renderer config tests if renderer persistence changes |
 | Sidecar remote auth | focused sidecar remote-client pytest module plus backend auth-route test for the called endpoint |
 | Docs-only credential changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 

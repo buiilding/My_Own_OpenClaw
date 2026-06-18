@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: align query lifecycle, stream telemetry, compaction,
+  prompt-transparency, and tool-result references with SDK/renderer/local-runtime
+  ownership instead of stale frontend-owned consumer wording.
 - sdk: rename conversation metadata invalidation diagnostics from `rawEvent` to
   `sourceEvent` so continuity events expose source-local-runtime metadata
   without raw backend terminology.

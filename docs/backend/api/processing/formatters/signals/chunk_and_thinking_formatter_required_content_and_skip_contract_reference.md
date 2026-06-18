@@ -2,7 +2,7 @@
 summary: "Deep reference for chunk/thinking formatter signal contracts: required `content` extraction, skip-on-missing behavior, and payload key mapping to streaming-response and llm-thought events."
 read_when:
   - When changing `ChunkEventFormatter` or `ThinkingEventFormatter` payload behavior.
-  - When debugging dropped streaming chunks/thought text in frontend stream consumers.
+  - When debugging dropped streaming chunks/thought text in renderer stream consumers.
 title: "Chunk and Thinking Formatter Required-Content and Skip Contract Reference"
 ---
 

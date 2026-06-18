@@ -34,7 +34,7 @@ Responsibilities:
 - Conversation context builder
 - LLM stream processor
 - Tool preparation/sending/waiting/processing coordinators
-- Event presenter for frontend stream events
+- Event presenter for client stream events
 
 Main control loop:
 

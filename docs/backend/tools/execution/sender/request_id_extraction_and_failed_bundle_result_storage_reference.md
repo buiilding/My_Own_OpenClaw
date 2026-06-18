@@ -39,7 +39,7 @@ When a tool call fails before SDK/main local-runtime dispatch:
 - `skip_local_execution: true`
 - `request_id`
 
-Ordering (`ToolCallEvent` before `ToolOutputEvent`) preserves frontend request/response state machine assumptions.
+Ordering (`ToolCallEvent` before `ToolOutputEvent`) preserves SDK/main local-runtime request/response state machine assumptions.
 
 ## Bundle Preparation Failure Path
 

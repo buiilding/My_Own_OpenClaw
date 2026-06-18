@@ -209,7 +209,7 @@ Validated by:
 
 ## Drift Hotspots
 
-1. Changing event order (`ToolCallEvent` vs `ToolOutputEvent`) can break frontend request/response state tracking.
+1. Changing event order (`ToolCallEvent` vs `ToolOutputEvent`) can break SDK/local-runtime request/response state tracking.
 2. Removing tool-result processing from `finally` reintroduces leaked request ids and stale resolved-call state.
 3. Altering bundle detection/wait ordering can create race conditions where next iteration starts before bundle completion.
 4. Changing parsed-tool-call metadata handling can orphan request IDs needed for result correlation.

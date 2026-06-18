@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for agent prompt-context and presentation internals: iteration-aware prompt caching, first-turn prompt metadata emission, tool-schema validation, and frontend transparency event ordering."
+summary: "Deep reference for agent prompt-context and presentation internals: iteration-aware prompt caching, first-turn prompt metadata emission, tool-schema validation, and client transparency event ordering."
 read_when:
   - When changing `ConversationContext.get_prompt` caching behavior or prompt metadata lifetime.
   - When changing `EventPresenter` prompt-transparency event payloads (`system-prompt`, `user-message-full`, `tool-schemas`).
@@ -29,7 +29,7 @@ title: "Conversation Context and Event Presenter Prompt-Metadata Reference"
 
 `EventPresenter`:
 
-- emits frontend-facing transparency and completion/error events
+- emits client-facing transparency and completion/error stream events
 - validates tool-schema transparency payload shape
 - no business-flow decisions
 
@@ -110,7 +110,7 @@ If prompt metadata is missing, loop continues normally without transparency prel
 ## Drift Hotspots
 
 1. changing first-iteration-only metadata emission can duplicate system/user/tool-schema transparency across turns.
-2. weakening tool-schema validation can allow malformed transparency payloads that diverge from frontend schema contracts.
+2. weakening tool-schema validation can allow malformed transparency payloads that diverge from outbound event schema contracts.
 3. returning uncached tool schemas/metadata after iteration 1 can desynchronize tool availability assumptions mid-loop.
 4. mixing token-count emission into presenter can duplicate token events and break formatter expectations.
 

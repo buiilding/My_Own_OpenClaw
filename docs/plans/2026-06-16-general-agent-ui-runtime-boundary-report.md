@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `ff47fbfac` (`refactor(sdk): genericize stream error fallback`)
+- Latest inspected plan checkpoint: `b5e57401d` (`refactor(sdk): rename continuity source event metadata`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -43,8 +43,38 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   endpoint boundary through `backend_url` or `WINDIE_BACKEND_HTTP_URL`.
   Backend tool-result receiver and API handler wording now describes
   SDK/local-runtime result ingress instead of stale frontend result ownership.
+  Backend lifecycle, stream telemetry, compaction, prompt-transparency,
+  credential/debug, and tool-result docs now describe SDK projections, renderer
+  consumers, and SDK/main local-runtime dispatch instead of frontend-owned
+  runtime semantics.
 
 ## Inspection Log
+
+### 2026-06-18 Backend Stream/Runtime Consumer Wording Slice
+
+- Worktree was clean after `b5e57401d` before this slice; `git pull --ff-only`
+  reported `Already up to date`.
+- Recent commits showed continued SDK/raw-event and docs ownership cleanup, so
+  the next progress slice targeted remaining backend docs that still routed
+  stream, token, compaction, prompt-transparency, and tool-result consumer
+  semantics through stale frontend wording.
+- Finding: backend query lifecycle, interaction loop, prompt metadata,
+  compaction, observability, sender, formatter, provider, debug, memory, and
+  credential docs still used stale frontend-owned wording for stream consumers,
+  prompt transparency, request/result ordering, local-runtime result formatting,
+  and token tracking.
+- Change: reworded those references to backend producer contracts, SDK
+  projections, renderer consumers, and SDK/main local-runtime dispatch while
+  preserving real `frontend/src/...` source roots and compatibility file names.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to include the
+  touched backend/security/debug/memory docs and guard the stale frontend-owned
+  consumer phrases.
+- Validation: focused modular boundary Jest coverage; `bin\windie.cmd docs
+  list`; targeted stale consumer-wording scan over docs; `git diff --check`.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  websocket events, SDK projections, renderer persistence, local-runtime
+  dispatch, credentials, permissions, provider policy, and storage are
+  unchanged.
 
 ### 2026-06-16 Renderer Skin/Config Slice
 

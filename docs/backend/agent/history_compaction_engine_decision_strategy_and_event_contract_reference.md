@@ -196,7 +196,7 @@ Manual flow (`CompactHistoryHandler`):
 - emits started only when decision should run
 - always ends with completed payload (applied stats or `skipped_reason`)
 
-`replacement_history_entries` contains replay-safe history rows derived from the backend `StoredMessage` replacement history. Frontend persistence uses this payload to overwrite the hidden replay-state stream without mutating the user-visible raw transcript.
+`replacement_history_entries` contains replay-safe history rows derived from the backend `StoredMessage` replacement history. SDK/renderer persistence uses this payload to overwrite the hidden replay-state stream without mutating the user-visible transcript.
 
 ## Session Locking and Safety
 
@@ -210,7 +210,7 @@ This prevents concurrent history rewrites in one session.
 1. Changing split-index logic without updating keep-recent-user semantics can remove active context unexpectedly.
 2. Changing target-budget enforcement without updating retained-tail tests can leave compaction results above the intended budget.
 3. Changing trigger fallback or `AUTO_TRIGGER_RATIO` without config/docs/test updates can silently alter compaction frequency.
-4. Emitting compaction events in different order breaks frontend thinking-status transitions.
+4. Emitting compaction events in different order breaks client thinking-status transitions.
 5. Introducing non-inline strategy selection without updating decision/result payload contracts can desync `strategy` values shown to clients.
 
 ## Related Docs

@@ -277,4 +277,4 @@ It also snapshots provider diagnostics/payload for downstream stream processor a
 1. Relaxing tool/message normalization allows malformed payloads that only fail at provider API boundary.
 2. Skipping include-usage stream options breaks token-cache diagnostics silently.
 3. Changing tool-call argument parsing semantics can break Anthropic `tool_use` ingestion.
-4. Stream helper/event contract changes can desynchronize frontend stream state machine assumptions.
+4. Stream helper/event contract changes can desynchronize SDK/renderer stream state machine assumptions.

@@ -2,7 +2,7 @@
 summary: "Deep backend observability reference for websocket protocol correlation fields, handshake/parse/error logging severity rules, query timing logs, and token-count telemetry schema guarantees."
 read_when:
   - When changing backend websocket route logging, error sanitization send paths, or query timing instrumentation.
-  - When changing token-count or context-field emission contracts consumed by frontend stream/tracking views.
+  - When changing token-count or context-field emission contracts consumed by SDK projections or renderer tracking views.
 title: "Backend Protocol Correlation, Logging, and Telemetry Signal Reference"
 ---
 
@@ -136,7 +136,7 @@ When changing observability behavior, keep aligned:
 - logging severity boundaries for expected vs unexpected protocol failures
 - correlation field attachment rules (truthy-only context semantics)
 - query timing log markers (`[Timing]`) and placement
-- token-count payload keys vs frontend token display/tracking consumers
+- token-count payload keys vs SDK token telemetry projections and renderer display/tracking consumers
 
 ## Observability Control-Path Index
 
@@ -146,7 +146,7 @@ When changing observability behavior, keep aligned:
 | query lifecycle timing markers | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `[Timing]` logs bracket query start/completion and late stream warnings with correlation context |
 | context field envelope attachment | `backend/src/api/transport/envelope.py` | truthy-only `user_id`/`session_id`/`conversation_ref`/`turn_ref` attachment to outbound envelopes |
 | sanitized client error emission + internal exception logging | `backend/src/api/infrastructure/errors.py` | client sees safe error payload while internal logs retain exception diagnostics |
-| token-count telemetry schema conformance | formatter/output schema layer | token telemetry/caching fields stay schema-compatible for frontend tracking consumers |
+| token-count telemetry schema conformance | formatter/output schema layer | token telemetry/caching fields stay schema-compatible for SDK/renderer tracking consumers |
 
 ## Related Pages
 

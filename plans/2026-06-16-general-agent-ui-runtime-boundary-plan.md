@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend stream/runtime consumer wording boundary
+
+- Finding: backend lifecycle, prompt-transparency, compaction, observability,
+  tool-result, credential, and debug docs still described stream consumers,
+  request/response ordering, token display, transcript persistence, and local
+  result formatting as frontend-owned concerns.
+- Change: reworded those docs to backend producer contracts, SDK projections,
+  renderer consumers, and SDK/main local-runtime dispatch terminology; expanded
+  the modular boundary test to guard the stale frontend-owned phrases across
+  the current docs set.
+- Validation: focused modular boundary Jest coverage, docs listing, targeted
+  stale wording scan over docs, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  websocket events, SDK projections, renderer persistence, local-runtime
+  dispatch, credentials, permissions, provider policy, and storage are
+  unchanged.
+
 ### 2026-06-18 SDK continuity metadata source event boundary
 
 - Finding: SDK `ConversationMetadataInvalidationEvent` exposed the originating

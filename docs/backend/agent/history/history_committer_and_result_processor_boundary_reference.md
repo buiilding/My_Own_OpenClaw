@@ -93,7 +93,7 @@ Bundle special case:
 
 ## History Payload Expectations
 
-`ResultTransformer` assumes frontend-preformatted `output` and extracts screenshot from:
+`ResultTransformer` assumes SDK/local-runtime-preformatted `output` and extracts screenshot from:
 
 1. `tool_result.artifacts['screenshot']`
 2. `tool_result.data['screenshot']` (dict payload path)

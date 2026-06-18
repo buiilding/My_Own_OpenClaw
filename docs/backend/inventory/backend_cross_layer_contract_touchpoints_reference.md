@@ -65,7 +65,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 1. Update backend schema/formatter/tool code.
 2. Update paired frontend/sidecar contracts and validators.
 3. Update docs in both backend and frontend inventory/runtime hubs.
-4. Run contract-focused tests (`tests/backend/*contract*`, frontend stream/tool tests, sidecar schema tests).
+4. Run contract-focused tests (`tests/backend/*contract*`, SDK/renderer stream and tool tests, sidecar schema tests).
 
 ## Related Docs
 

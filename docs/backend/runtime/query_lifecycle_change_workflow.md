@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for backend query lifecycle changes from websocket query ingress through session selection, stream pipeline, completion, cancellation, TTS, and frontend event consumers."
+summary: "Workflow for backend query lifecycle changes from websocket query ingress through session selection, stream pipeline, completion, cancellation, TTS, and SDK/renderer event consumers."
 read_when:
   - When changing backend query handling, stream completion, cancellation, active-query limits, TTS session behavior, or terminal event policy.
   - When debugging missing completion events, duplicate chunks, stop-query failures, wrong conversation routing, or empty final responses.
-  - When deciding whether a query bug belongs in the API handler, query execution service, agent loop, formatter pipeline, or frontend stream consumer.
+  - When deciding whether a query bug belongs in the API handler, query execution service, agent loop, formatter pipeline, or SDK/renderer stream consumer.
 title: "Query Lifecycle Change Workflow"
 ---
 
@@ -19,7 +19,7 @@ The query path is:
 4. `AgentSession.process_query(...)`
 5. `InteractionLoop.run_loop()`
 6. `StreamPipeline` formatter/transport/TTS send path
-7. frontend stream consumer and transcript persistence
+7. SDK stream projection, renderer consumer, and transcript persistence
 
 Fix the producer first. For example, if the backend emits a malformed terminal event and the renderer hangs, fix backend event production or formatting before adding renderer-only defensive behavior.
 
@@ -35,7 +35,7 @@ Fix the producer first. For example, if the backend emits a malformed terminal e
 | final response is empty after tool use | interaction loop fallback and query completion backfill | `backend/src/agent/execution/interaction_loop.py`, `backend/src/api/services/query_execution_support/query_execution_completion.py` | [Interaction Loop and Tool-Turn Orchestration Reference](../agent/interaction_loop_and_tool_turn_orchestration_reference.md) | `tests/backend/test_interaction_loop.py`, `tests/backend/test_query_execution_stream_state.py` |
 | provider stream event shape changes | LLM stream processor and formatter contract | `backend/src/agent/llm/llm_stream_processor.py`, `backend/src/api/processing/formatters`, `backend/src/api/contracts` | [LLM Stream Processor Token Count and Cache Diagnostics Reference](../agent/llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md), [Formatter Validation and Contract-Test Matrix Reference](../api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md) | `tests/backend/test_llm_stream_processor.py`, `tests/backend/test_llm_provider_stream_event_pipeline.py` |
 | TTS audio misses final chunks or outlives a query | TTS session and stream pipeline pending-task barrier | `backend/src/api/services/tts_session.py`, `backend/src/api/processing/tts`, `backend/src/api/processing/pipeline.py` | [TTS Manager Audio Stream and Cleanup Reference](../api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) | `tests/backend/test_tts_session.py`, `tests/backend/test_stream_pipeline.py` |
-| frontend sees duplicate, stale, or wrong-turn stream rows | backend context envelope and frontend stream consumer | `backend/src/api/processing/formatter.py`, `backend/src/api/transport`, `frontend/src/renderer/features/chat` | [WebSocket Event Reference](../../reference/websocket_event_reference.md), [Frontend Stream State Machine](../../frontend/runtime/stream_event_state_machine.md) | backend formatter tests plus focused frontend stream tests |
+| renderer sees duplicate, stale, or wrong-turn stream rows | backend context envelope and SDK/renderer stream consumption | `backend/src/api/processing/formatter.py`, `backend/src/api/transport`, `frontend/src/renderer/features/chat` | [WebSocket Event Reference](../../reference/websocket_event_reference.md), [Frontend Stream State Machine](../../frontend/runtime/stream_event_state_machine.md) | backend formatter tests plus focused SDK/renderer stream tests |
 
 ## Ownership Rules
 
@@ -55,7 +55,7 @@ Fix the producer first. For example, if the backend emits a malformed terminal e
 4. Keep query identity fields intact: `user_id`, `session_id`, `conversation_ref`, `turn_ref`.
 5. Preserve terminal event behavior unless the change intentionally updates the contract.
 6. Add or update producer tests first, then consumer tests if the outgoing contract changes.
-7. Update [WebSocket Event Reference](../../reference/websocket_event_reference.md) or frontend stream docs when event shape or ordering changes.
+7. Update [WebSocket Event Reference](../../reference/websocket_event_reference.md) or renderer stream docs when event shape or ordering changes.
 8. Run the narrowest backend tests plus frontend tests when renderer event consumption is affected.
 
 ## Invariants
@@ -160,7 +160,7 @@ Validation:
 - `tests/backend/test_query_event_extraction.py`
 - `tests/backend/test_llm_provider_stream_event_pipeline.py`
 - formatter contract tests under `tests/backend`
-- frontend stream consumer tests when event order or shape changes.
+- SDK/renderer stream consumer tests when event order or shape changes.
 
 ## Frontend Consumer Check
 
