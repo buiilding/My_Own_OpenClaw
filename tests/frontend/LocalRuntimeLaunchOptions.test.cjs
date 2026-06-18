@@ -125,7 +125,7 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toBeUndefined();
   });
 
-  test('desktop launch owns a fresh sidecar instead of reusing discovered daemons', () => {
+  test('desktop launch owns a fresh local runtime instead of reusing discovered daemons', () => {
     const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });

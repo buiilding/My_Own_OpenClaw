@@ -7,10 +7,10 @@ const {
   resolveNextSdkRuntimeRequest,
 } = require('./__mocks__/localRuntimeBridgeHarness.cjs');
 
-describe('local_runtime_bridge SDK sidecar lifecycle', () => {
+describe('local_runtime_bridge SDK local-runtime lifecycle', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  test('missing SDK local runtime resolver reports failure without spawning a standalone sidecar', async () => {
+  test('missing SDK local runtime resolver reports failure without spawning a standalone local runtime', async () => {
     const { bridge, mainWindow, spawn } = initBridge({
       ensureLocalRuntime: null,
       getKnownLocalRuntime: null,

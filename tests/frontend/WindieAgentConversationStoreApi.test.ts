@@ -232,7 +232,7 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
     ]);
   });
 
-  test('normalizes sidecar metadata event counts before exposing conversation rows', async () => {
+  test('normalizes local-runtime metadata event counts before exposing conversation rows', async () => {
     const rpc = jest.fn(async ({ method }) => {
       if (method === 'conversation.list') {
         return {
@@ -305,7 +305,7 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
     ]);
   });
 
-  test('passes diagnostics context to sidecar list and emits sidecar events', async () => {
+  test('passes diagnostics context to local-runtime list and emits local-runtime events', async () => {
     const diagnostics: unknown[] = [];
     const rpc = jest.fn(async () => ({
       success: true,

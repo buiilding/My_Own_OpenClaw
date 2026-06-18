@@ -38,9 +38,10 @@ TS Agent SDK runtime
 Query routing boundary:
 
 - Hosted query turns use the backend websocket opened by the SDK runtime.
-- Local desktop authority is delegated to the SDK local runtime and sidecar
-  daemon for executable tools, local memory, screenshots, shell/filesystem,
-  browser, computer-use, and sidecar status calls.
+- Local desktop authority is delegated to the SDK local runtime, implemented by
+  the Python sidecar daemon in the desktop app, for executable tools, local
+  memory, screenshots, shell/filesystem, browser, computer-use, and
+  local-runtime status calls.
 - `AgentClient.wakeUp(...)` is the path that combines both: it connects the
   hosted backend conversation session, starts or reuses the local runtime when
   needed, contributes the client tool manifest, and returns local tool results
@@ -232,7 +233,8 @@ ipcMain.handle('windie:invoke', (_event, { command, payload }) => {
 ```
 
 Renderer-facing user commands that are SDK concepts should use SDK command
-names with the renderer command payload contract instead of sidecar RPC names.
+names with the renderer command payload contract instead of local-runtime RPC
+method names.
 Backend transport commands such as `conversation.send`, `conversation.stop`,
 `conversation.rehydrate`, and `conversation.compact` use canonical snake_case
 fields at this IPC boundary. SDK library commands such as
@@ -447,7 +449,7 @@ tools, plugins, or MCPs. In that case `wakeUp` does not require or start a
 local runtime.
 
 Standalone local tool callers should use the root client instead of creating an
-agent solely to reach the sidecar:
+agent solely to reach the local runtime:
 
 ```ts
 const client = new AgentClient({ autoLocalRuntime });
@@ -514,8 +516,8 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
 
 `stores/LocalRuntimeConversationStore` is the canonical module path.
 
-- canonical SDK events are stored in the sidecar `conversation_events` table as the
-  storage truth for desktop display and backend rehydrate
+- canonical SDK events are stored in the local-runtime `conversation_events`
+  table as the storage truth for desktop display and backend rehydrate
 - transcript/replay fallback is removed; conversations that participate in the
   SDK runtime must load from canonical `conversation_events` rows
 - compacted replay snapshots are persisted as `compaction_applied` conversation
@@ -548,7 +550,7 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   projection used before the resend turn. Replacement is one local-runtime
   `conversation.replace` call so local durable state is not deleted before
   the rewritten projection is stored. The call carries the rewrite
-  `newRevisionId` as conversation revision metadata, so sidecar metadata and
+  `newRevisionId` as conversation revision metadata, so local-runtime metadata and
   `getRevision()` report the replacement revision even if the preserved rows
   still carry older event revisions or the rewrite removes every row.
 - desktop visible transcript state routes through SDK conversation events and

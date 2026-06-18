@@ -210,7 +210,7 @@ function createMockSdkRuntime() {
 function initBridge(options = {}) {
   const { mainWindow, chatWindow, responseWindow } = initializeBridgeHarness((spawnMock) => {
     spawnMock.mockImplementation(() => {
-      throw new Error('Electron local runtime bridge must not spawn a standalone sidecar process.');
+      throw new Error('Electron local runtime bridge must not spawn a standalone local runtime process.');
     });
   }, options);
   uuid = require('uuid');
