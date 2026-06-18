@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sidecar: keep shared tool schema parity coverage on sidecar-owned
+  executable schemas, shared browser contracts, and client manifest metadata
+  instead of importing backend schema Python into the sidecar test suite.
 - tests/sidecar: keep the tool-registry exposed-name parity check on the
   generated sidecar manifest instead of importing backend tool catalog Python
   into the sidecar test suite.

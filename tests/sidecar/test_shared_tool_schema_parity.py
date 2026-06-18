@@ -1,4 +1,4 @@
-"""Covers shared tool schema parity behavior in the sidecar test suite."""
+"""Covers shared/local tool schema behavior in the sidecar test suite."""
 
 from __future__ import annotations
 
@@ -13,27 +13,14 @@ from tools.schemas import (  # noqa: E402
     ScreenshotToolArgs as SidecarScreenshotToolArgs,
     ScrollControlArgs as SidecarScrollControlArgs,
 )
-from windie_shared.browser_contract import BrowserControlArgs as SidecarBrowserControlArgs  # noqa: E402
-
-from backend.src.tools.computer.schemas import (
-    MouseControlArgs as BackendMouseControlArgs,
-    ScreenshotToolArgs as BackendScreenshotToolArgs,
-    ScrollControlArgs as BackendScrollControlArgs,
+from tools.manifest import (  # noqa: E402
+    build_sidecar_capability_schema,
+    build_sidecar_executable_schema,
 )
-from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
-
-BackendBrowserControlArgs = load_shared_browser_contract().BrowserControlArgs
-
-
-# Exact parity is only valid for models backed by a shared/generated contract.
-# Client-local executable schemas may intentionally differ from backend
-# model-facing defaults; manifest tests cover those local tool surfaces.
-SHARED_CONTRACT_MODELS = {
-    "browser": (
-        BackendBrowserControlArgs,
-        SidecarBrowserControlArgs,
-    ),
-}
+from windie_shared.browser_contract import (  # noqa: E402
+    BrowserControlArgs as SidecarBrowserControlArgs,
+    build_browser_tool_parameters_schema,
+)
 
 
 def _normalize_schema_fragment(node: Any) -> Any:
@@ -132,49 +119,86 @@ def _normalized_model_schema(model: type[Any]) -> dict[str, Any]:
     return _normalize_schema_fragment(_resolve_local_refs(raw_schema))
 
 
-def test_shared_contract_models_match_backend_contract():
-    for tool_name, (backend_model, sidecar_model) in SHARED_CONTRACT_MODELS.items():
-        assert _normalized_model_schema(sidecar_model) == _normalized_model_schema(backend_model), (
-            f"Shared backend/sidecar schema drift detected for {tool_name}.\n"
-            f"Backend: {_normalized_model_schema(backend_model)}\n"
-            f"Sidecar: {_normalized_model_schema(sidecar_model)}"
-        )
+def test_sidecar_schema_parity_test_does_not_import_backend_package():
+    source = __import__("pathlib").Path(__file__).read_text(encoding="utf-8")
+    backend_package = "backend" + ".src"
+
+    assert backend_package not in source
 
 
-def test_screenshot_schema_keeps_wait_parity_with_sidecar_display_bounds_extension():
-    backend_schema = _normalized_model_schema(BackendScreenshotToolArgs)
+def test_browser_schema_uses_shared_contract_module():
+    sidecar_schema = build_sidecar_executable_schema("browser")
+    shared_schema = build_browser_tool_parameters_schema()
+
+    assert sidecar_schema == shared_schema
+    assert SidecarBrowserControlArgs.__module__.startswith("windie_shared.")
+
+
+def test_screenshot_executable_schema_keeps_display_bounds_extension():
     sidecar_schema = _normalized_model_schema(SidecarScreenshotToolArgs)
+    executable_schema = build_sidecar_executable_schema("screenshot")
+    display_bounds_schema = sidecar_schema["properties"]["display_bounds"]["anyOf"][0]
+    virtual_bounds_schema = display_bounds_schema["properties"][
+        "desktop_virtual_bounds"
+    ]["anyOf"][0]
 
-    assert sidecar_schema["properties"]["wait"] == backend_schema["properties"]["wait"]
-    assert sidecar_schema["properties"]["explanation"] == backend_schema["properties"]["explanation"]
     assert sidecar_schema["additionalProperties"] is False
-    assert set(sidecar_schema["properties"].keys()) == {"display_bounds", "explanation", "wait"}
-    assert set(backend_schema["properties"].keys()) == {"explanation", "wait"}
+    assert set(sidecar_schema["properties"].keys()) == {
+        "display_bounds",
+        "explanation",
+        "wait",
+    }
+    assert set(executable_schema["properties"].keys()) == {
+        "display_bounds",
+        "explanation",
+        "wait",
+    }
+    assert executable_schema["additionalProperties"] is False
+    assert display_bounds_schema["additionalProperties"] is False
+    assert virtual_bounds_schema["additionalProperties"] is False
 
 
-def test_mouse_and_scroll_schemas_keep_expected_grounding_abstraction_gap():
-    backend_mouse_properties = set(
-        _normalized_model_schema(BackendMouseControlArgs)["properties"].keys()
-    )
+def test_mouse_and_scroll_manifest_separates_grounding_metadata_from_executable_schema():
     sidecar_mouse_properties = set(
         _normalized_model_schema(SidecarMouseControlArgs)["properties"].keys()
     )
-    assert "find_coordinates_by" in backend_mouse_properties
-    assert "ocr_text" in backend_mouse_properties
-    assert "source_description" in backend_mouse_properties
-    assert "button" in backend_mouse_properties
+    capability_mouse_properties = build_sidecar_capability_schema("mouse_control")[
+        "properties"
+    ]
+    executable_mouse_properties = build_sidecar_executable_schema("mouse_control")[
+        "properties"
+    ]
+
+    assert capability_mouse_properties["find_coordinates_by"]["enum"] == [
+        "manual",
+        "ocr",
+        "prediction",
+    ]
+    assert "ocr_text" in capability_mouse_properties
+    assert "source_description" in capability_mouse_properties
+    assert "button" in capability_mouse_properties
     assert {"x", "y"} <= sidecar_mouse_properties
     assert "button" in sidecar_mouse_properties
+    assert "find_coordinates_by" not in executable_mouse_properties
     assert "find_coordinates_by" not in sidecar_mouse_properties
 
-    backend_scroll_properties = set(
-        _normalized_model_schema(BackendScrollControlArgs)["properties"].keys()
-    )
     sidecar_scroll_properties = set(
         _normalized_model_schema(SidecarScrollControlArgs)["properties"].keys()
     )
-    assert "find_coordinates_by" in backend_scroll_properties
-    assert "ocr_text" in backend_scroll_properties
-    assert "source_description" in backend_scroll_properties
+    capability_scroll_properties = build_sidecar_capability_schema("scroll_control")[
+        "properties"
+    ]
+    executable_scroll_properties = build_sidecar_executable_schema("scroll_control")[
+        "properties"
+    ]
+
+    assert capability_scroll_properties["find_coordinates_by"]["enum"] == [
+        "manual",
+        "ocr",
+        "prediction",
+    ]
+    assert "ocr_text" in capability_scroll_properties
+    assert "source_description" in capability_scroll_properties
     assert {"x", "y"} <= sidecar_scroll_properties
+    assert "find_coordinates_by" not in executable_scroll_properties
     assert "find_coordinates_by" not in sidecar_scroll_properties

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Sidecar Shared Tool Schema Boundary
+
+- Finding: the remaining sidecar shared-tool-schema parity test imported
+  backend computer schema models and the backend browser shared-contract loader
+  even though backend tests already cover provider-facing computer schemas and
+  browser loader behavior, while sidecar owns local executable schemas and
+  generated client manifest metadata.
+- Change: rewired the sidecar parity test to assert the shared browser module,
+  sidecar executable screenshot schema, and grounded-tool capability vs
+  executable schema split through sidecar-owned manifest helpers; added a guard
+  so the test file does not reintroduce backend package imports.
+- Validation: focused sidecar shared-tool-schema pytest, targeted sidecar
+  backend import scan, docs listing, and diff check.
+- Compatibility: no migration required. Backend model-facing schemas, browser
+  loader behavior, sidecar executable schemas, generated manifest content, and
+  runtime execution are unchanged.
+
 ### 2026-06-18 Sidecar Browser Schema Shared Contract Boundary
 
 - Finding: the sidecar browser schema test imported the backend
