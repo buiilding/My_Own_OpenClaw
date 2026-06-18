@@ -158,7 +158,7 @@ Behavioral contract:
 When changing any channel/event:
 
 1. Update `frontend/src/shared/ipcChannels.json`.
-2. Update renderer expected channel registry validation and use sites.
+2. Update renderer expected channel key validation and use sites.
 3. Update main-process sender/handler implementation.
 4. Update backend event types and stream handlers if applicable.
 5. Update docs + tests.

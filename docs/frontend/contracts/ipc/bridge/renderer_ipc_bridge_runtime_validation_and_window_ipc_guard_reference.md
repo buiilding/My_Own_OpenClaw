@@ -122,7 +122,7 @@ If cleanup ignored:
 ## Drift Hotspots
 
 1. adding new channel constant without preload allowlist update causes production invoke rejections.
-2. editing `ipcChannels.json` without updating the renderer expected registry now fails at module load.
+2. editing `ipcChannels.json` without keeping the renderer expected key lists aligned now fails at module load.
 3. changing validation environment check can unintentionally enable/disable dev checks.
 4. altering `getRawIpc` error semantics can break test diagnostics and runtime onboarding hints.
 5. forgetting to return cleanup function from preload `on` path breaks renderer unsubscription contract.
@@ -132,7 +132,7 @@ If cleanup ignored:
 When changing bridge/runtime validation:
 
 1. keep compile-time channel unions aligned with `channels.ts`
-2. keep the expected registry in `channels.ts` and `ipcChannels.json` synchronized
+2. keep the expected key lists in `channels.ts` and `ipcChannels.json` synchronized
 3. keep dev/prod validation behavior explicit and documented
 4. preserve preload as authoritative allowlist boundary
 5. verify missing-`window.ipc` error remains actionable

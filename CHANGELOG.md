@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: make `channels.ts` validate shared IPC channel keys
+  without duplicating legacy `windie:*` wire values; no migration is required
+  because `ipcChannels.json` remains the single wire-value source.
 - docs/reference: align rehydrate API reference with SDK conversation snapshot
   ownership and canonical stored `message_type` examples; no migration is
   required because this corrects documentation only.

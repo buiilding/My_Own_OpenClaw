@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer IPC channel wire-value ownership
+
+- Finding: renderer `channels.ts` imported the shared IPC registry but also
+  duplicated every expected wire value, including legacy `windie:*` SDK channel
+  strings, inside the generic renderer IPC module.
+- Change: changed renderer validation to require expected channel family keys
+  and non-empty string values while leaving concrete wire values in
+  `frontend/src/shared/ipcChannels.json`, then updated docs/tests to keep the
+  shared registry as the only wire-value authority.
+- Validation: focused renderer app runtime boundary Jest coverage, preload IPC
+  channel coverage, main host skin channel coverage, docs listing, source scan
+  for product-prefixed wire values in `channels.ts`, and diff check.
+- Compatibility: no migration required. IPC channel names, preload allowlists,
+  main handlers, websocket payloads, storage, credentials, permissions, and
+  local-runtime execution behavior are unchanged.
+
 ### 2026-06-18 reference rehydrate API snapshot contract
 
 - Finding: the public API reference still described rehydrate as a frontend

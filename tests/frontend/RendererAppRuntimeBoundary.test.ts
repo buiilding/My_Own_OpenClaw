@@ -226,4 +226,22 @@ describe('renderer app runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('renderer IPC channel module validates shape without duplicating product wire values', async () => {
+    const source = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/ipc/channels.ts'),
+      'utf8',
+    );
+    const sharedRegistry = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/shared/ipcChannels.json'),
+      'utf8',
+    );
+
+    expect(source).toContain('EXPECTED_SHARED_CHANNEL_KEYS');
+    expect(source).toContain('must be a non-empty string');
+    expect(source).not.toContain('EXPECTED_SHARED_CHANNEL_REGISTRY =');
+    expect(source).not.toContain('windie:');
+    expect(sharedRegistry).toContain('windie:invoke');
+    expect(sharedRegistry).toContain('windie:current-turn');
+  });
 });

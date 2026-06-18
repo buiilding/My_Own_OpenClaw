@@ -5,86 +5,94 @@
 
 import sharedIpcChannels from '../../../shared/ipcChannels.json';
 
-const EXPECTED_SHARED_CHANNEL_REGISTRY = {
-  SEND_CHANNELS: {
-    RENDERER_LOG: 'renderer-log',
-    LIVE_SURFACE_TRACE: 'live-surface-trace',
-    DESKTOP_RUNTIME_PENDING_TURN: 'windie:pending-turn',
-    TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
-    MOVE_CHATBOX_TO: 'move-chatbox-to',
-    WAKEWORD_AUDIO_CHUNK: 'wakeword-audio-chunk',
-    WAKEWORD_ENABLE: 'wakeword-enable',
-    WAKEWORD_DISABLE: 'wakeword-disable',
-  },
-  INVOKE_CHANNELS: {
-    DESKTOP_RUNTIME_INVOKE: 'windie:invoke',
-    CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment',
-    READ_ATTACHMENT_FILE: 'read-attachment-file',
-    RUN_BROWSER_ACTION: 'run-browser-action',
-    UPLOAD_ARTIFACT: 'upload-artifact',
-    FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
-    GET_SYSTEM_STATE: 'get-system-state',
-    GET_CLIENT_USER_ID: 'get-client-user-id',
-    COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard',
-    SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',
-    SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
-    SET_CHATBOX_HIT_TEST_ACTIVE: 'set-chatbox-hit-test-active',
-    SET_RESPONSEBOX_HIT_TEST_ACTIVE: 'set-responsebox-hit-test-active',
-    SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
-    SHOW_MAIN_WINDOW: 'show-main-window',
-    GET_MAIN_WINDOW_VISIBILITY: 'get-main-window-visibility',
-    SHOW_CHATBOX: 'show-chatbox',
-    ACTIVATE_CHATBOX_TEXT_ENTRY: 'activate-chatbox-text-entry',
-    HIDE_CHATBOX: 'hide-chatbox',
-    HANDOFF_SURFACE_FOR_COMPUTER_USE: 'handoff-surface-for-computer-use',
-    PREPARE_SURFACE_FOR_SCREENSHOT: 'prepare-surface-for-screenshot',
-    RESTORE_SURFACE_AFTER_SCREENSHOT: 'restore-surface-after-screenshot',
-    GET_DISPLAYS: 'get-displays',
-    LOAD_FRONTEND_CONFIG: 'load-frontend-config',
-    SAVE_FRONTEND_CONFIG: 'save-frontend-config',
-    LIST_AGENT_EXTENSIONS: 'list-agent-extensions',
-    LIST_MCP_SERVERS: 'list-mcp-servers',
-    SET_MCP_SERVER_ENABLED: 'set-mcp-server-enabled',
-    REFRESH_MCP_SERVERS: 'refresh-mcp-servers',
-    LIST_PERMISSIONS: 'list-permissions',
-    CHECK_PERMISSIONS: 'check-permissions',
-    CHECK_PERMISSION: 'check-permission',
-    RUN_PERMISSION_PROBE: 'run-permission-probe',
-    REQUEST_PERMISSION: 'request-permission',
-    SET_ACTIVE_WORKSPACE: 'set-active-workspace',
-    WINDOW_MINIMIZE: 'window-minimize',
-    WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
-    WINDOW_CLOSE: 'window-close',
-    GET_LOCAL_RUNTIME_STATUS: 'get-local-runtime-status',
-  },
-  ON_CHANNELS: {
-    DESKTOP_RUNTIME_ROWS: 'windie:rows',
-    DESKTOP_RUNTIME_STATUS: 'windie:status',
-    DESKTOP_RUNTIME_CONVERSATION_EVENT: 'windie:conversation-event',
-    DESKTOP_RUNTIME_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
-    DESKTOP_RUNTIME_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
-    DESKTOP_RUNTIME_CURRENT_TURN: 'windie:current-turn',
-    DESKTOP_RUNTIME_PENDING_TURN: 'windie:pending-turn',
-    TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
-    IPC_STATUS: 'ipc-status',
-    LOCAL_RUNTIME_STATUS: 'local-runtime-status',
-    LOG: 'log',
-    WAKEWORD_DETECTED: 'wakeword-detected',
-    WAKEWORD_STATUS: 'wakeword-status',
-    WAKEWORD_TOGGLE: 'wakeword-toggle',
-    WAKEWORD_STT_TRIGGER: 'wakeword-stt-trigger',
-    CHATBOX_FOCUS: 'chatbox-focus',
-    WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated',
-    MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
-    RESPONSE_OVERLAY_PHASE: 'response-overlay-phase',
-    BACKEND_SETTINGS_EVENT: 'backend-settings-event',
-    AGENT_CAPABILITY_EVENT: 'agent-capability-event',
-    AUDIO_CHUNK: 'audio-chunk',
-    RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility',
-  },
+const EXPECTED_SHARED_CHANNEL_KEYS = {
+  SEND_CHANNELS: [
+    'RENDERER_LOG',
+    'LIVE_SURFACE_TRACE',
+    'DESKTOP_RUNTIME_PENDING_TURN',
+    'TRANSCRIPT_SESSION_SYNC',
+    'MOVE_CHATBOX_TO',
+    'WAKEWORD_AUDIO_CHUNK',
+    'WAKEWORD_ENABLE',
+    'WAKEWORD_DISABLE',
+  ],
+  INVOKE_CHANNELS: [
+    'DESKTOP_RUNTIME_INVOKE',
+    'CAPTURE_SCREENSHOT_ATTACHMENT',
+    'READ_ATTACHMENT_FILE',
+    'RUN_BROWSER_ACTION',
+    'UPLOAD_ARTIFACT',
+    'FETCH_ARTIFACT_IMAGE',
+    'GET_SYSTEM_STATE',
+    'GET_CLIENT_USER_ID',
+    'COPY_IMAGE_TO_CLIPBOARD',
+    'SHOW_IMAGE_CONTEXT_MENU',
+    'SET_CHATBOX_VISUAL_ANCHOR_HEIGHT',
+    'SET_CHATBOX_HIT_TEST_ACTIVE',
+    'SET_RESPONSEBOX_HIT_TEST_ACTIVE',
+    'SET_RESPONSEBOX_SIZE',
+    'SHOW_MAIN_WINDOW',
+    'GET_MAIN_WINDOW_VISIBILITY',
+    'SHOW_CHATBOX',
+    'ACTIVATE_CHATBOX_TEXT_ENTRY',
+    'HIDE_CHATBOX',
+    'HANDOFF_SURFACE_FOR_COMPUTER_USE',
+    'PREPARE_SURFACE_FOR_SCREENSHOT',
+    'RESTORE_SURFACE_AFTER_SCREENSHOT',
+    'GET_DISPLAYS',
+    'LOAD_FRONTEND_CONFIG',
+    'SAVE_FRONTEND_CONFIG',
+    'LIST_AGENT_EXTENSIONS',
+    'LIST_MCP_SERVERS',
+    'SET_MCP_SERVER_ENABLED',
+    'REFRESH_MCP_SERVERS',
+    'LIST_PERMISSIONS',
+    'CHECK_PERMISSIONS',
+    'CHECK_PERMISSION',
+    'RUN_PERMISSION_PROBE',
+    'REQUEST_PERMISSION',
+    'SET_ACTIVE_WORKSPACE',
+    'WINDOW_MINIMIZE',
+    'WINDOW_TOGGLE_MAXIMIZE',
+    'WINDOW_CLOSE',
+    'GET_LOCAL_RUNTIME_STATUS',
+  ],
+  ON_CHANNELS: [
+    'DESKTOP_RUNTIME_ROWS',
+    'DESKTOP_RUNTIME_STATUS',
+    'DESKTOP_RUNTIME_CONVERSATION_EVENT',
+    'DESKTOP_RUNTIME_MEMORY_STORE_CHANGED',
+    'DESKTOP_RUNTIME_CONVERSATION_METADATA_INVALIDATED',
+    'DESKTOP_RUNTIME_CURRENT_TURN',
+    'DESKTOP_RUNTIME_PENDING_TURN',
+    'TRANSCRIPT_SESSION_SYNC',
+    'IPC_STATUS',
+    'LOCAL_RUNTIME_STATUS',
+    'LOG',
+    'WAKEWORD_DETECTED',
+    'WAKEWORD_STATUS',
+    'WAKEWORD_TOGGLE',
+    'WAKEWORD_STT_TRIGGER',
+    'CHATBOX_FOCUS',
+    'WORKSPACE_ACCESS_UPDATED',
+    'MAIN_WINDOW_OPEN_TARGET',
+    'RESPONSE_OVERLAY_PHASE',
+    'BACKEND_SETTINGS_EVENT',
+    'AGENT_CAPABILITY_EVENT',
+    'AUDIO_CHUNK',
+    'RESPONSE_OVERLAY_VISIBILITY',
+  ],
 } as const;
 
-type SharedChannelRegistry = typeof EXPECTED_SHARED_CHANNEL_REGISTRY;
+type ChannelFamilyFromKeys<TKeys extends readonly string[]> = {
+  readonly [K in TKeys[number]]: string;
+};
+
+type SharedChannelRegistry = {
+  readonly SEND_CHANNELS: ChannelFamilyFromKeys<typeof EXPECTED_SHARED_CHANNEL_KEYS.SEND_CHANNELS>;
+  readonly INVOKE_CHANNELS: ChannelFamilyFromKeys<typeof EXPECTED_SHARED_CHANNEL_KEYS.INVOKE_CHANNELS>;
+  readonly ON_CHANNELS: ChannelFamilyFromKeys<typeof EXPECTED_SHARED_CHANNEL_KEYS.ON_CHANNELS>;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -94,21 +102,21 @@ function describeInvalidValue(value: unknown): string {
   return typeof value === 'string' ? `"${value}"` : String(value);
 }
 
-function validateChannelFamily<TExpected extends Record<string, string>>(
+function validateChannelFamily<TKeys extends readonly string[]>(
   registry: Record<string, unknown>,
   familyName: keyof SharedChannelRegistry,
-  expected: TExpected,
+  expectedKeys: TKeys,
 ): void {
   const actualFamily = registry[familyName];
   if (!isRecord(actualFamily)) {
     throw new Error(`Invalid IPC channel registry: ${String(familyName)} must be an object`);
   }
 
-  for (const [key, expectedValue] of Object.entries(expected)) {
+  for (const key of expectedKeys) {
     const actualValue = actualFamily[key];
-    if (actualValue !== expectedValue) {
+    if (typeof actualValue !== 'string' || actualValue.length === 0) {
       throw new Error(
-        `Invalid IPC channel registry: ${String(familyName)}.${key} expected "${expectedValue}" but received ${describeInvalidValue(actualValue)}`,
+        `Invalid IPC channel registry: ${String(familyName)}.${key} must be a non-empty string but received ${describeInvalidValue(actualValue)}`,
       );
     }
   }
@@ -119,9 +127,9 @@ function validateSharedChannelRegistry(value: unknown): SharedChannelRegistry {
     throw new Error('Invalid IPC channel registry: root must be an object');
   }
 
-  validateChannelFamily(value, 'SEND_CHANNELS', EXPECTED_SHARED_CHANNEL_REGISTRY.SEND_CHANNELS);
-  validateChannelFamily(value, 'INVOKE_CHANNELS', EXPECTED_SHARED_CHANNEL_REGISTRY.INVOKE_CHANNELS);
-  validateChannelFamily(value, 'ON_CHANNELS', EXPECTED_SHARED_CHANNEL_REGISTRY.ON_CHANNELS);
+  validateChannelFamily(value, 'SEND_CHANNELS', EXPECTED_SHARED_CHANNEL_KEYS.SEND_CHANNELS);
+  validateChannelFamily(value, 'INVOKE_CHANNELS', EXPECTED_SHARED_CHANNEL_KEYS.INVOKE_CHANNELS);
+  validateChannelFamily(value, 'ON_CHANNELS', EXPECTED_SHARED_CHANNEL_KEYS.ON_CHANNELS);
 
   return value as SharedChannelRegistry;
 }

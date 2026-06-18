@@ -243,7 +243,7 @@ Incoming websocket messages are owned by the SDK agent runtime. Electron main fo
 Keep these in sync whenever adding a channel:
 
 1. `frontend/src/shared/ipcChannels.json`
-2. `channels.ts` expected shared-registry validation
+2. `channels.ts` expected shared-registry key validation
 3. `ipc.cjs` / `index.cjs` / `local_runtime_bridge.cjs` / `wakeword_bridge.cjs` handler registration + `wakeword_bridge_runtime.cjs` helper ownership
 4. renderer call sites (`IpcBridge.send|invoke|on`)
 

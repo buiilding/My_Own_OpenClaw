@@ -147,7 +147,7 @@ When changing contract fields:
 1. update `backendEvents.ts` union + payload typing if runtime event shape changed
 2. update `backendEventNormalizer.ts` if the event should reach SDK conversation
    runtime or renderer chat stream consumers
-3. update `ipcChannels.json` and `channels.ts` expected-registry validation
+3. update `ipcChannels.json` and `channels.ts` expected-key validation
    together
 4. update `ipc.cjs` normalization/dispatch rules for new message types
 5. update contracts docs and consumer matrix docs

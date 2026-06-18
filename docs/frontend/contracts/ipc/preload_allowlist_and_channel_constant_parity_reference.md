@@ -22,7 +22,7 @@ Channel validation has two runtime layers plus one shared source:
 
 1. shared channel registry (`ipcChannels.json`) defines the names
 2. preload allowlists (`preload.js`) are the hard boundary
-3. renderer `channels.ts` validates the shared registry against the expected channel families before exporting constants
+3. renderer `channels.ts` validates the shared registry against the expected channel family keys before exporting constants
 4. renderer `IpcBridge` set checks are dev-only safety checks
 
 Electron main injects the serialized shared registry through `webPreferences.additionalArguments`, and preload parses it from `process.argv` because Electron's sandboxed preload runtime can fail both relative sibling-module resolution and Node builtin imports.
@@ -30,7 +30,7 @@ Electron main injects the serialized shared registry through `webPreferences.add
 In production, preload is authoritative because `IpcBridge` validation is gated by `NODE_ENV === "development"`.
 The renderer registry validation still runs at module load in every mode so a missing or renamed shared JSON entry fails before callers can observe `undefined` channel constants.
 
-The registry expectation and validation helpers in
+The registry key expectation and validation helpers in
 `frontend/src/renderer/infrastructure/ipc/channels.ts` are private module-load
 invariants. They are intentionally not renderer API exports:
 `validateIpcHandlerRegistration`, `validateSharedChannelRegistry`,
@@ -38,6 +38,11 @@ invariants. They are intentionally not renderer API exports:
 route here as stale helper/export searches, while renderer callers should import
 only `SEND_CHANNELS`, `INVOKE_CHANNELS`, `ON_CHANNELS`, and their channel-name
 types.
+
+The shared JSON registry is the only source for concrete IPC wire values,
+including the legacy `windie:*` SDK channel strings. Renderer `channels.ts`
+keeps required key lists and validates that each key resolves to a non-empty
+string, but it does not duplicate product-prefixed wire values.
 
 ## Channel Families
 
@@ -173,7 +178,7 @@ If callers skip cleanup, listeners accumulate and duplicate event handling.
 
 1. new channel added to `ipcChannels.json` without a matching main handler
 2. docs drift from the shared registry after channel additions/removals
-3. updating `ipcChannels.json` without updating the expected registry in `channels.ts`
+3. adding a required channel family key without updating the expected key lists in `channels.ts`
 4. relying on `IpcBridge` validation in production (it is not active there)
 
 ## Debug Checklist
