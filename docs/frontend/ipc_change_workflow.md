@@ -118,7 +118,7 @@ Do not keep compatibility shims unless there is a verified packaged-app, transcr
 
 Before editing:
 
-1. Run `bin/windie docs list`.
+1. Run `<windie> docs list`.
 2. Read the nearest owner docs from the fast owner map.
 3. Inspect current callers with `rg "CHANNEL_NAME|IpcBridge\\.(invoke|send|on)|ipcMain\\.(handle|on)" frontend/src tests`.
 4. Decide whether the producer is renderer, Electron main, sidecar, or backend websocket.
@@ -136,7 +136,7 @@ Before committing:
 
 1. Run registry/preload tests when channel names change.
 2. Run the owning main/renderer/sidecar tests from the matrix below.
-3. Run `bin/windie docs list` and a focused Markdown link check for touched docs.
+3. Run `<windie> docs list` and a focused Markdown link check for touched docs.
 4. Update `CHANGELOG.md`.
 
 ## Common Failure Signals
@@ -179,7 +179,7 @@ Before committing:
 | Wakeword/voice IPC | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/voice/WakewordDetectionHook.test.ts` |
 | Clipboard/image context IPC | `tests/frontend/IpcClipboardImageHandler.test.cjs`, `tests/frontend/IpcImageContextMenuHandler.test.cjs`, `tests/frontend/MessageContent.test.jsx` |
 
-Docs-only IPC updates should still run `bin/windie docs list`, `git diff --check`, and a focused link check on changed docs. Code changes should additionally run the narrowest owner tests above and any renderer tests for changed consumers.
+Docs-only IPC updates should still run `<windie> docs list`, `git diff --check`, and a focused link check on changed docs. Code changes should additionally run the narrowest owner tests above and any renderer tests for changed consumers.
 
 ## Related Docs
 

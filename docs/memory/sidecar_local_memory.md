@@ -68,6 +68,6 @@ not block transcript persistence or conversation listing.
 
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_memory_summarizer.py -q
-bin/windie test sidecar tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py -q
-bin/windie test sidecar tests/sidecar/test_remote_semantic_client.py -q
+<windie> test sidecar tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py -q
+<windie> test sidecar tests/sidecar/test_remote_semantic_client.py -q
 ```

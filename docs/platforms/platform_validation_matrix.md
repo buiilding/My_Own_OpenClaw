@@ -17,16 +17,16 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 
 | Scope | Command |
 | --- | --- |
-| docs index | `bin/windie docs list` |
+| docs index | `<windie> docs list` |
 | docs whitespace and patch hygiene | `git diff --check` |
 | frontend focused tests | `cd frontend && npm run test -- <pattern>` |
-| frontend CI suite | `bin/windie test frontend` |
+| frontend CI suite | `<windie> test frontend` |
 | sidecar focused tests | `./scripts/python-in-env sidecar pytest <path>` |
-| sidecar suite | `bin/windie test sidecar` |
-| sidecar runtime build | `bin/windie build sidecar-runtime` |
-| macOS package | `cd frontend && bin/windie package mac` |
-| Windows package | `cd frontend && bin/windie package win` |
-| Linux package | `cd frontend && bin/windie package linux` |
+| sidecar suite | `<windie> test sidecar` |
+| sidecar runtime build | `<windie> build sidecar-runtime` |
+| macOS package | `<windie> package mac` |
+| Windows package | `<windie> package win` |
+| Linux package | `<windie> package linux` |
 
 ## Automated Test Matrix
 
@@ -94,9 +94,9 @@ Run broader validation when:
 
 Suggested broader checks:
 
-- `bin/windie test frontend`
-- `bin/windie test sidecar`
-- `bin/windie test backend` when backend tool schemas, OCR/vision, or hosted route payloads changed
+- `<windie> test frontend`
+- `<windie> test sidecar`
+- `<windie> test backend` when backend tool schemas, OCR/vision, or hosted route payloads changed
 - target OS package build and smoke helper when installed-app behavior changed
 
 ## Related Docs

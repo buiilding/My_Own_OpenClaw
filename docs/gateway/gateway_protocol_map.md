@@ -115,4 +115,4 @@ When changing gateway protocols:
 3. update SDK clients if the route is public to TypeScript/Python SDK users.
 4. update websocket contract docs when incoming/outgoing message types change.
 5. add route/schema/handler tests.
-6. run `bin/windie docs list`.
+6. run `<windie> docs list`.

@@ -263,9 +263,9 @@ Validate:
 | Python sidecar runtime action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
 | CDP launch/session lifecycle | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_use_engine.py` |
 | Snapshot/index behavior | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py` |
-| Renderer browser session UI | `bin/windie test frontend -- ChatBrowserSessionControl.test.jsx` |
+| Renderer browser session UI | `<windie> test frontend -- ChatBrowserSessionControl.test.jsx` |
 | Browser permission/readiness UI | focused frontend permission/settings tests plus sidecar import/readiness smoke where dependencies changed |
-| Docs-only browser changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
+| Docs-only browser changes | `<windie> docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 
 ## Review Checklist
 

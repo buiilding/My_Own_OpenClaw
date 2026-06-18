@@ -215,8 +215,8 @@ Run:
 Then run full suites relevant to your change:
 
 ```bash
-bin/windie test backend
-bin/windie test sidecar
+<windie> test backend
+<windie> test sidecar
 ```
 
 ## Sidecar Result Contract

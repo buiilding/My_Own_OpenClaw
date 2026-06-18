@@ -11,7 +11,7 @@ title: "Remote Backend Auto Deploy"
 WindieOS can deploy the hosted backend automatically when `main` receives a
 push. The repo-owned workflow is `.github/workflows/deploy-remote-backend.yml`.
 It logs into the backend host over SSH, streams
-`bin/windie backend deploy --host <host>` to the host, updates the remote checkout,
+`<windie> backend deploy --host <host>` to the host, updates the remote checkout,
 restarts `windieos-backend.service`, then verifies systemd and HTTP health.
 
 This is intentionally outside the FastAPI backend. The backend should not expose
@@ -78,7 +78,7 @@ Optional repository variables:
 
 ## Remote Update Behavior
 
-`bin/windie backend deploy --host <host>` refuses to deploy when the remote checkout
+`<windie> backend deploy --host <host>` refuses to deploy when the remote checkout
 has tracked or staged changes. Untracked files are left alone.
 
 `rebase` is the default because the hosted checkout has historically carried
@@ -94,12 +94,12 @@ Before enabling the workflow, test the remote script through SSH:
 
 ```bash
 ssh windie-prod 'bash -s -- --repo-root /opt/windieos-live --scope system' \
-  < bin/windie backend deploy --host <host>
+  < <windie> backend deploy --host <host>
 ```
 
 Then inspect:
 
 ```bash
-WINDIE_BACKEND_SSH_HOST=windie-prod bin/windie logs backend --service both --tail 200
+WINDIE_BACKEND_SSH_HOST=windie-prod <windie> logs backend --service both --tail 200
 curl -fsSL https://api.windieos.com/api/embeddings/health
 ```

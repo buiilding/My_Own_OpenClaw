@@ -299,7 +299,7 @@ Use the smallest set that covers the changed behavior.
 | Pending controls or stop-all | `./scripts/python-in-env backend pytest tests/backend/test_vm_run_control_pending_controls.py tests/backend/test_vm_run_control_bulk_stop.py` |
 | Electron heartbeat, dispatch, relay, or stop-control behavior | `cd frontend && npm run test -- VmWorkerRuntime` |
 | VM mode env semantics | `cd frontend && npm run test -- RuntimeMode` |
-| Docs-only VM run changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check for touched docs |
+| Docs-only VM run changes | `<windie> docs list`, `git diff --check`, and a focused Markdown link check for touched docs |
 
 If route payloads, statuses, event names, or env vars change, update all of these in the same commit:
 

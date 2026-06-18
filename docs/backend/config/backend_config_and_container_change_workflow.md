@@ -191,7 +191,7 @@ Container wiring changes are higher risk because they alter startup, API handler
 | container update/rebinding | `./scripts/python-in-env backend pytest tests/backend/test_container_config_updater.py tests/backend/test_api_container_source.py` |
 | provider/model config | provider-specific backend tests plus `tests/backend/test_models_config.py` and `tests/backend/test_provider_factory_helpers.py` |
 | OCR/vision/embedding config | focused provider/router tests and relevant service tests |
-| docs-only config workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
+| docs-only config workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist
 

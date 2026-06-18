@@ -237,5 +237,5 @@ Frontend:
 
 Docs:
 
-- `bin/windie docs list`
+- `<windie> docs list`
 - update [VM Run Control Change Workflow](vm_run_control_change_workflow.md), [Runs API Runbook](runs_api_runbook.md), and [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) when env vars, statuses, event names, or route payloads change.

@@ -147,7 +147,7 @@ Current durable traced paths:
 Renderer diagnostics should read the same rows through
 `DesktopConversationContinuityService.loadTraceTimeline(...)`, which loads
 persisted conversation events and applies the SDK trace projection. Use
-`bin/windie trace <conversation-ref> <turn-ref>` to inspect persisted trace
+`<windie> trace <conversation-ref> <turn-ref>` to inspect persisted trace
 events without renderer health. Add `--path <path>` to filter a runtime path and
 `--json` to export the raw sanitized timeline.
 
@@ -266,13 +266,13 @@ payloads in app diagnostics.
 Inspect the latest rows with:
 
 ```bash
-bin/windie diagnostics list --path conversation.metadata.list --limit 50
+<windie> diagnostics list --path conversation.metadata.list --limit 50
 ```
 
 The Electron main app diagnostics store exposes inspection helpers such as
 `queryDiagnosticEvents`, `inspectDiagnosticTrace`,
 `listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, and
-`appUserDataRoot` for the `bin/windie diagnostics ...` command surface.
+`appUserDataRoot` for the `<windie> diagnostics ...` command surface.
 Runtime feature code should emit diagnostics through exported path constants
 plus `appendDiagnosticEvent(...)`; it should not query diagnostic storage to
 drive behavior. Focused tests may read temporary SQLite diagnostics databases
@@ -281,43 +281,43 @@ directly when they need to prove the stored row shape.
 For browser header readiness:
 
 ```bash
-bin/windie diagnostics list --path browser.session_control --limit 50
+<windie> diagnostics list --path browser.session_control --limit 50
 ```
 
 For MCP discovery:
 
 ```bash
-bin/windie diagnostics list --path mcp.discovery --limit 50
+<windie> diagnostics list --path mcp.discovery --limit 50
 ```
 
 List the full registered app diagnostics surface and each path purpose with:
 
 ```bash
-bin/windie diagnostics paths
+<windie> diagnostics paths
 ```
 
 For MCP enablement/persistence:
 
 ```bash
-bin/windie diagnostics list --path mcp.enablement --limit 50
+<windie> diagnostics list --path mcp.enablement --limit 50
 ```
 
 For MCP registration into the local runtime:
 
 ```bash
-bin/windie diagnostics list --path mcp.registration --limit 50
+<windie> diagnostics list --path mcp.registration --limit 50
 ```
 
 For MCP tool execution:
 
 ```bash
-bin/windie diagnostics list --path mcp.execution --limit 50
+<windie> diagnostics list --path mcp.execution --limit 50
 ```
 
 Inspect a single trace timeline with:
 
 ```bash
-bin/windie diagnostics inspect <trace-id>
+<windie> diagnostics inspect <trace-id>
 ```
 
 ## Stream Event Trace
@@ -335,7 +335,7 @@ Enable:
 
 ```bash
 cd frontend
-WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
+WINDIE_DEBUG_STREAM_EVENTS=1 <windie> start desktop
 ```
 
 Expected markers:
@@ -362,7 +362,7 @@ Enable:
 
 ```bash
 cd frontend
-WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
+WINDIE_DEBUG_CHAT_PILL=1 <windie> start desktop
 ```
 
 Expected stdout markers when chat-pill or live-surface debug flags are enabled:
@@ -376,7 +376,7 @@ diagnostics under `surface.visibility` instead of being emitted to stdout by
 default:
 
 ```bash
-bin/windie diagnostics list --path surface.visibility --limit 50
+<windie> diagnostics list --path surface.visibility --limit 50
 ```
 
 Rows include the show/hide reason, phase, mode, whether persisted `user_hidden`
@@ -394,7 +394,7 @@ user-agent data is not available. Stale deprecation-audit searches for
 `ipc.bridge` is the compact Electron main bridge timeline. It stores milestones
 for renderer query send, backend connection state, the first backend event
 received for a turn, tool call/output, backend completion, and settings updates.
-Inspect it with `bin/windie diagnostics list --path ipc.bridge --limit 50`.
+Inspect it with `<windie> diagnostics list --path ipc.bridge --limit 50`.
 Set `WINDIE_DEBUG_IPC_STDOUT=1` only when the `[ElectronTrace]` stdout mirror is
 needed. The rows summarize ids, counts, text lengths, selected setting names,
 provider ids, and model ids without raw user text, assistant text, provider
@@ -481,7 +481,7 @@ Enable:
 
 ```bash
 cd frontend
-WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 ```
 
 Expected marker:
@@ -503,7 +503,7 @@ Enable sidecar debug:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
 ```
 
 If a local-runtime result is missing, check for all of these before editing:

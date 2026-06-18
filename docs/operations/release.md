@@ -30,15 +30,15 @@ This guide describes a safe, repeatable release process for WindieOS.
 
 From the repo root:
 
-- Backend tests: `bin/windie test backend`
-- Sidecar tests: `bin/windie test sidecar`
-- Frontend tests: `bin/windie test frontend`
+- Backend tests: `<windie> test backend`
+- Sidecar tests: `<windie> test sidecar`
+- Frontend tests: `<windie> test frontend`
 - Frontend lint: `cd frontend && npm run lint`
-- Frontend build: `bin/windie build frontend`
+- Frontend build: `<windie> build frontend`
 
 If you changed backend runtime behavior, also run the backend with:
 
-- `bin/windie start backend`
+- `<windie> start backend`
 
 ## Release Steps
 
@@ -72,7 +72,7 @@ Manual dispatch inputs:
 
 Local macOS packaged-user test helper:
 
-- `bin/windie reinstall mac`
+- `<windie> reinstall mac`
 - This helper is for local reinstall/testing only, not release publishing.
 - It removes old installed WindieOS copies, clears app support/cache/WebKit/saved-state data, resets all known TCC grants for previously installed WindieOS app/helper bundle IDs before reinstall, strips Apple notarization and Developer ID signing credentials from the local build environment, rebuilds the unpacked `release/mac-arm64/WindieOS.app` bundle, reuses the existing packaged `python-runtime` when `requirements.runtime.txt` and the runtime build script are unchanged, reinstalls into `/Applications`, applies one consistent ad-hoc signature to the installed app bundle, and launches the installed app through LaunchServices while tailing packaged-app logs into the terminal and `~/windieos-packaged-run.log`.
 - Skipping notarization and local Developer ID signing here is intentional so local reinstall loops stay fast; signed/notarized DMG validation remains part of the real release path, not this helper.

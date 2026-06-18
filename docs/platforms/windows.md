@@ -12,7 +12,7 @@ Windows behavior is mostly implemented through Electron main window policy, side
 ## Key Areas
 
 - Windows package target: `frontend/package.json` `package:win`
-- Reinstall helper: `bin/windie reinstall win`
+- Reinstall helper: `<windie> reinstall win`
 - Sidecar adapter: `frontend/src/main/python/core/platform/windows.py`
 - Window/platform policy: `frontend/src/main/surfaces/window_platform_policy.cjs`
 - CI smoke helper: `scripts/ci/smoke-windows-packages.ps1`

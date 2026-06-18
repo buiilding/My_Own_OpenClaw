@@ -79,4 +79,4 @@ Run these focused checks after changing this path:
 
 - `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs ../tests/frontend/LocalRuntimeBridge.rpc.test.cjs --runInBand`
 - `cd frontend && npm run test -- ../tests/frontend/LocalRuntimeStatusBroadcaster.test.cjs ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs --runInBand`
-- `bin/windie docs list`
+- `<windie> docs list`

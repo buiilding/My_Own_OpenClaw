@@ -200,7 +200,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | sidecar executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific sidecar tests |
 | SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |
 | bundle/result/history | backend result/bundle/history tests plus SDK/main bundle execution tests |
-| docs-only tool workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
+| docs-only tool workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist
 

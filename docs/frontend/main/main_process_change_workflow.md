@@ -101,7 +101,7 @@ When changing endpoints or packaged paths:
 | Local runtime bridge | `cd frontend && npm run test -- LocalRuntimeBridge LocalRuntimeSupervisor` plus focused sidecar JSON-RPC tests when Python payloads change |
 | Wakeword bridge | `cd frontend && npm run test -- WakewordBridge WakewordSupervisor` plus sidecar wakeword tests when the Python service changes |
 | Runtime paths/packaged launch | `cd frontend && npm run test -- RuntimePaths` plus target OS package smoke |
-| Docs-only main workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only main workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 

@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/docs: document the platform wrapper contract across shared command
+  examples and guard user-facing docs against stale extensionless wrapper
+  commands. No migration required.
 - main/diagnostics: inject WindieOS app diagnostics database and user-data env
   names from the main host skin instead of hardcoding them inside the generic
   diagnostics store.

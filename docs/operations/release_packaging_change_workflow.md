@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS release, packaging, bundled sidecar runtime, smoke-check, and local reinstall behavior without confusing source-mode success with installed-app success."
 read_when:
   - When changing Electron Builder package targets, release workflow steps, signing/notarization behavior, bundled Python runtime generation, packaged backend defaults, local reinstall helpers, or packaged smoke checks.
-  - When a packaged app behaves differently from `bin/windie start desktop`, cannot launch the sidecar, connects to the wrong backend, misses wakeword/browser runtime assets, or fails only after installation.
+  - When a packaged app behaves differently from `<windie> start desktop`, cannot launch the sidecar, connects to the wrong backend, misses wakeword/browser runtime assets, or fails only after installation.
 title: "Release and Packaging Change Workflow"
 ---
 
@@ -23,11 +23,11 @@ The release path has two different jobs:
 | Bundled Python runtime is missing, host-bound, too large, unsigned, or missing dependencies | Sidecar runtime build | `scripts/build-sidecar-runtime`, `frontend/src/main/python/requirements.runtime.txt`, `frontend/src/main/app/runtime_paths.cjs` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
 | Installed app cannot start sidecar, wakeword, memory service, or local tools | Electron main launch path plus sidecar runtime | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/python/core/bootstrap_paths.py` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Desktop and Sidecar Node](../nodes/desktop_and_sidecar_node.md) |
 | Packaged app connects to local or stale backend instead of hosted/staging backend | Endpoint resolution and sidecar backend config | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/windie/_backend_config.py` | [Runtime Configuration Matrix](runtime_configuration_matrix.md), [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) |
-| Local reinstall keeps old state, permissions, logs, or app binaries | OS reinstall helper | `bin/windie reinstall mac`, `bin/windie reinstall linux`, `bin/windie reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) |
+| Local reinstall keeps old state, permissions, logs, or app binaries | OS reinstall helper | `<windie> reinstall mac`, `<windie> reinstall linux`, `<windie> reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) |
 | CI release build or artifact upload changes | Desktop release workflow | `.github/workflows/desktop-release.yml`, platform smoke scripts under `scripts/ci/` | [Release Guide](release.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) |
 | macOS build fails only when signed, notarized, downloaded, mounted, or launched from DMG | macOS signing/notarization and smoke path | `.github/workflows/desktop-release.yml`, `scripts/ci/smoke-macos-packages.sh`, `frontend/electron-builder.yml` | [Release Guide](release.md), [macOS Platform Notes](../platforms/macos.md) |
-| Windows installer fails, helper extraction fails, or silent install does not launch | Windows package target and reinstall/smoke scripts | `bin/windie reinstall win`, `scripts/ci/smoke-windows-packages.ps1`, `frontend/electron-builder.yml` | [Windows Platform Notes](../platforms/windows.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md) |
-| Linux DEB/RPM/AppImage differs, lacks system dependencies, or launches without tool support | Linux package metadata and smoke path | `bin/windie reinstall linux`, `scripts/ci/smoke-linux-packages.sh`, `frontend/electron-builder.yml` | [Linux Platform Notes](../platforms/linux.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) |
+| Windows installer fails, helper extraction fails, or silent install does not launch | Windows package target and reinstall/smoke scripts | `<windie> reinstall win`, `scripts/ci/smoke-windows-packages.ps1`, `frontend/electron-builder.yml` | [Windows Platform Notes](../platforms/windows.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md) |
+| Linux DEB/RPM/AppImage differs, lacks system dependencies, or launches without tool support | Linux package metadata and smoke path | `<windie> reinstall linux`, `scripts/ci/smoke-linux-packages.sh`, `frontend/electron-builder.yml` | [Linux Platform Notes](../platforms/linux.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) |
 
 ## Boundary Rules
 
@@ -54,7 +54,7 @@ The release path has two different jobs:
 
 When touching `scripts/build-sidecar-runtime`, `requirements.runtime.txt`, or runtime path resolution:
 
-- Confirm `bin/windie build sidecar-runtime` still creates `frontend/python-runtime`.
+- Confirm `<windie> build sidecar-runtime` still creates `frontend/python-runtime`.
 - Confirm runtime dependencies come from `frontend/src/main/python/requirements.runtime.txt`, not the dev requirements set.
 - Confirm packaged launch code resolves bytecode sidecar entrypoints and bundled Python before any source-mode fallback.
 - Confirm POSIX packaged launches do not inherit host `PYTHONPATH` or rely on host `PYTHONHOME`.
@@ -68,9 +68,9 @@ Use reinstall helpers when the question is "what will a user get after installin
 
 | OS | Helper | Must prove |
 | --- | --- | --- |
-| macOS | `bin/windie reinstall mac` | Old app copies and local state are reset as intended; ad-hoc installed app launches; packaged logs are collected; release signing is not accidentally invoked. |
-| Windows | `bin/windie reinstall win` | Installer can run silently; install roots are replaced; optional data reset is honored; app launches from the installed location. |
-| Linux | `bin/windie reinstall linux` | Package installs through the OS package manager; expected system dependencies are present; bundled Python and key stdlib modules import. |
+| macOS | `<windie> reinstall mac` | Old app copies and local state are reset as intended; ad-hoc installed app launches; packaged logs are collected; release signing is not accidentally invoked. |
+| Windows | `<windie> reinstall win` | Installer can run silently; install roots are replaced; optional data reset is honored; app launches from the installed location. |
+| Linux | `<windie> reinstall linux` | Package installs through the OS package manager; expected system dependencies are present; bundled Python and key stdlib modules import. |
 
 Do not treat a reinstall helper as enough for release publication. Reinstall helpers validate installed local behavior; release workflows validate artifact production and signing/publication constraints.
 
@@ -104,10 +104,10 @@ Start with the installed-app signal, not the dev app:
 
 | Change type | Focused validation |
 | --- | --- |
-| Package script/config docs only | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
-| `frontend/package.json` package script change | `cd frontend && npm run release:check`, `bin/windie build frontend`, target package command on target OS |
+| Package script/config docs only | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
+| `frontend/package.json` package script change | `cd frontend && npm run release:check`, `<windie> build frontend`, target package command on target OS |
 | Runtime path resolver change | `cd frontend && npm run test -- RuntimePaths`, installed app smoke on target OS |
-| Sidecar runtime requirement/build change | `bin/windie build sidecar-runtime`, `bin/windie test sidecar`, target package command |
+| Sidecar runtime requirement/build change | `<windie> build sidecar-runtime`, `<windie> test sidecar`, target package command |
 | Backend endpoint packaged-default change | frontend endpoint tests, sidecar backend-config tests, installed app websocket smoke |
 | Reinstall helper change | run the matching helper on that OS; verify reset scope and launch logs |
 | Release workflow change | workflow syntax review, dry-run/manual dispatch reasoning, matching smoke helper, release doc update |

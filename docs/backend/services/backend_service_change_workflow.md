@@ -108,7 +108,7 @@ When changing VM run-control support:
 | TTS/audio | `./scripts/python-in-env backend pytest tests/backend/test_tts_manager.py tests/backend/test_tts_session.py tests/backend/test_elevenlabs_tts_service.py` |
 | Token counting | `./scripts/python-in-env backend pytest tests/backend/test_token_service_fallback.py` plus formatter tests when events change |
 | VM run control | `./scripts/python-in-env backend pytest tests/backend/test_vm_run_control_*.py tests/backend/test_run_control_routes.py` |
-| Docs-only service workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only service workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 

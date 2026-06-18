@@ -129,7 +129,7 @@ Before adding a mapper, layer, or fallback:
 | Tool schema visibility | backend schema/policy tests plus `tests/backend/test_outgoing_schema_contract.py` when transparency changes |
 | Prompt metadata events | interaction-loop/event presenter/formatter tests and frontend transparency tests if consumer shape changes |
 | Generated prompt/schema artifact | regenerate from live prompt path, then run prompt/schema tests and `git diff --check` |
-| Docs-only prompt workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only prompt workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 

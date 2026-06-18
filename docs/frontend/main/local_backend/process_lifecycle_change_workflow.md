@@ -157,7 +157,7 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 | Daemon protocol behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_sidecar_daemon.py tests/sidecar/test_local_backend.py` |
 | Packaged path/runtime changes | focused runtime path tests plus package/reinstall smoke from [Release and Packaging Change Workflow](../../../operations/release_packaging_change_workflow.md) |
 
-Docs-only changes should run `bin/windie docs list`, `git diff --check`, and a focused Markdown link check. Code changes should run the narrowest row above plus any adjacent IPC, sidecar, or packaging tests for the touched path.
+Docs-only changes should run `<windie> docs list`, `git diff --check`, and a focused Markdown link check. Code changes should run the narrowest row above plus any adjacent IPC, sidecar, or packaging tests for the touched path.
 
 ## Related Docs
 

@@ -185,12 +185,12 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 **Terminal 1: Backend**
 ```bash
-bin/windie start backend
+<windie> start backend
 ```
 
 **Terminal 2: Desktop Dev Loop**
 ```bash
-bin/windie start dev
+<windie> start dev
 ```
 
 ### Production Mode
@@ -203,22 +203,22 @@ npm run build
 
 **Run Backend**:
 ```bash
-bin/windie start backend
+<windie> start backend
 ```
 
 **Launch Electron**:
 ```bash
-bin/windie start dev
+<windie> start dev
 ```
 
 ### Package Installers (Frontend App)
 
-From `frontend/`:
+From the repository root:
 
 ```bash
-bin/windie package win
-bin/windie package mac
-bin/windie package linux
+<windie> package win
+<windie> package mac
+<windie> package linux
 ```
 
 Build artifacts are written to `frontend/release/`.
@@ -226,8 +226,8 @@ Build artifacts are written to `frontend/release/`.
 For local packaged-app reinstall testing helpers, use the repo scripts from the
 workspace root:
 
-- macOS: `bin/windie reinstall mac`
-- Windows (PowerShell): `powershell -ExecutionPolicy Bypass -File bin/windie reinstall win`
+- macOS: `<windie> reinstall mac`
+- Windows (PowerShell): `bin\windie.cmd reinstall win`
 
 The macOS helper is intentionally local-only: it clears all known TCC/privacy
 grants for existing WindieOS app/helper bundle ids before reinstalling, strips
@@ -340,7 +340,7 @@ see `docs/operations/sidecar_runtime_packaging.md`.
 **Import Errors**:
 ```bash
 # Run from the repository root so the `backend` package is importable
-bin/windie start backend
+<windie> start backend
 ```
 
 **Missing Dependencies**:

@@ -191,7 +191,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused Python sidecar tool tests |
 | Preload/renderer IPC channel addition | `cd frontend && npm run test -- PreloadIpcChannels IpcBridge` |
 | Python sidecar process lifecycle/readiness | local-runtime bridge lifecycle tests and `tests/sidecar/test_sidecar_daemon.py` when shutdown changes |
-| Docs-only JSON-RPC changes | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only JSON-RPC changes | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Documentation Checklist
 

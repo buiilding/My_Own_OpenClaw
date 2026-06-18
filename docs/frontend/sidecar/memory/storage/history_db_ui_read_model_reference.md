@@ -57,7 +57,7 @@ conversation semantics and projection rules. The SQLite view is the durable
 inspection and prototyping contract for tools such as:
 
 ```bash
-bin/windie conversation messages <conversation-ref> --json
+<windie> conversation messages <conversation-ref> --json
 ```
 
 If a UI prototype reads SQLite directly, it should read

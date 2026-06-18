@@ -73,10 +73,10 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 
 | Change type | Minimum validation |
 | --- | --- |
-| Backend schema or policy only | Focused backend schema/policy tests and `bin/windie docs list`. |
+| Backend schema or policy only | Focused backend schema/policy tests and `<windie> docs list`. |
 | Sidecar implementation only | Focused sidecar tests for the tool plus shared schema parity if exposed. |
 | SDK/main dispatch/envelope | Focused SDK/main tool-coordinator tests and backend result handler tests if envelope changes. |
-| Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, Python sidecar tool tests, and `bin/windie docs list`. |
+| Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, Python sidecar tool tests, and `<windie> docs list`. |
 | Browser tool change | Browser backend tests, sidecar browser tests, and browser runtime docs update. |
 
 ## Related Docs

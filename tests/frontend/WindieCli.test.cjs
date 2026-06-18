@@ -7,6 +7,13 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require('node:sqlite'));
+} catch (_) {
+  DatabaseSync = null;
+}
+
 const repoRoot = path.resolve(__dirname, '../..');
 const cliPath = path.join(repoRoot, 'scripts/windie-cli.cjs');
 const {
@@ -28,6 +35,33 @@ function runCli(args, env = {}) {
     env: { ...process.env, ...env },
     encoding: 'utf8',
   });
+}
+
+const staleWindiePathPattern = /bin[\\/]+windie(?!\.(?:sh|cmd))/;
+
+function collectFiles(root, predicate) {
+  const entries = fs.readdirSync(root, { withFileTypes: true });
+  return entries.flatMap((entry) => {
+    const fullPath = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      return collectFiles(fullPath, predicate);
+    }
+    return predicate(fullPath) ? [fullPath] : [];
+  });
+}
+
+function createSqliteDatabase(dbPath, sql) {
+  if (DatabaseSync) {
+    const db = new DatabaseSync(dbPath);
+    try {
+      db.exec(sql);
+    } finally {
+      db.close();
+    }
+    return;
+  }
+  const sqlite = spawnSync('sqlite3', [dbPath, sql], { encoding: 'utf8' });
+  expect(sqlite.status).toBe(0);
 }
 
 describe('windie CLI', () => {
@@ -73,19 +107,41 @@ describe('windie CLI', () => {
     const result = runCli(['--help']);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain('windie status --all --json');
-    expect(result.stdout).toContain('windie conversation messages <conversation-ref> [--limit <n>] [--json]');
-    expect(result.stdout).toContain('windie start frontend');
-    expect(result.stdout).toContain('windie start dev');
-    expect(result.stdout).toContain('windie start customer');
-    expect(result.stdout).toContain('windie start all');
-    expect(result.stdout).toContain('windie logs frontend');
-    expect(result.stdout).toContain('windie logs vite');
-    expect(result.stdout).toContain('windie logs main');
-    expect(result.stdout).toContain('windie logs renderer [--verbose]');
-    expect(result.stdout).toContain('windie logs sidecar');
-    expect(result.stdout).not.toContain('windie logs desktop');
-    expect(result.stdout).toContain('windie commits search <query> [--limit <n>] [--json]');
+    expect(result.stdout).toContain('<windie> <command> [options]');
+    expect(result.stdout).toContain('bin\\windie.cmd on Windows PowerShell/CMD');
+    expect(result.stdout).toContain('bin/windie.sh on macOS/Linux');
+    expect(result.stdout).toContain('<windie> status --all --json');
+    expect(result.stdout).toContain('<windie> conversation messages <conversation-ref> [--limit <n>] [--json]');
+    expect(result.stdout).toContain('<windie> start frontend');
+    expect(result.stdout).toContain('<windie> start dev');
+    expect(result.stdout).toContain('<windie> start customer');
+    expect(result.stdout).toContain('<windie> start all');
+    expect(result.stdout).toContain('<windie> logs frontend');
+    expect(result.stdout).toContain('<windie> logs vite');
+    expect(result.stdout).toContain('<windie> logs main');
+    expect(result.stdout).toContain('<windie> logs renderer [--verbose]');
+    expect(result.stdout).toContain('<windie> logs sidecar');
+    expect(result.stdout).not.toContain('<windie> logs desktop');
+    expect(result.stdout).toContain('<windie> commits search <query> [--limit <n>] [--json]');
+  });
+
+  test('keeps user-facing docs and CLI strings off the removed extensionless shim', () => {
+    const docs = collectFiles(path.join(repoRoot, 'docs'), (file) => file.endsWith('.md'));
+    const userFacingFiles = [
+      path.join(repoRoot, 'README.md'),
+      path.join(repoRoot, 'AGENTS.md'),
+      path.join(repoRoot, 'agents.md'),
+      path.join(repoRoot, 'backend/src/llm/prompts/system_prompt.txt'),
+      path.join(repoRoot, 'scripts/create-windie-extension.cjs'),
+      path.join(repoRoot, 'scripts/windie/commands.cjs'),
+      ...docs,
+    ].filter((file) => fs.existsSync(file));
+
+    const offenders = userFacingFiles
+      .filter((file) => staleWindiePathPattern.test(fs.readFileSync(file, 'utf8')))
+      .map((file) => path.relative(repoRoot, file));
+
+    expect(offenders).toEqual([]);
   });
 
   test('returns machine-readable status', () => {
@@ -280,9 +336,9 @@ describe('windie CLI', () => {
       tailArgs: ['-n', '20', path.join(logsDir, 'renderer.verbose.log')],
     });
     expect(() => normalizeWindieLogTarget('desktop'))
-      .toThrow('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
+      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|sidecar');
     expect(() => resolveWindieLogFile('desktop', {}))
-      .toThrow('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
+      .toThrow('Usage: <windie> logs backend|frontend|vite|main|renderer|sidecar');
   });
 
   test('prints current frontend logs without following', () => {
@@ -387,11 +443,11 @@ describe('windie CLI', () => {
       ('evt-trace', 'user-1', 'conv-1', 'trace_event', NULL, '[sdk event: trace_event]', '2026-06-11T12:00:01+00:00', 2, 'rev-1', 'turn-1', '{}', '[]', '{}'),
       ('evt-assistant', 'user-1', 'conv-1', 'assistant_message', 'assistant', 'hi', '2026-06-11T12:00:02+00:00', 3, 'rev-1', 'turn-1', '{}', '[]', '{}');
     `;
-    const sqlite = spawnSync('sqlite3', [dbPath, sql], { encoding: 'utf8' });
-    expect(sqlite.status).toBe(0);
+    createSqliteDatabase(dbPath, sql);
 
     const result = runCli(['conversation', 'messages', 'conv-1', '--json'], {
       HOME: homeDir,
+      WINDIE_USER_DATA_DIR: path.join(homeDir, 'Library', 'Application Support', 'windieos'),
     });
 
     expect(result.status).toBe(0);
@@ -428,11 +484,11 @@ describe('windie CLI', () => {
       ('evt-tool', 'user-1', 'conv-1', 'tool_output', 'tool', 'ignored', '2026-06-11T12:00:01+00:00', 2, 'rev-1', 'turn-1', '{}', '{}'),
       ('evt-error', 'user-1', 'conv-1', 'turn_error', NULL, 'failed', '2026-06-11T12:00:02+00:00', 3, 'rev-1', 'turn-1', '{}', '{}');
     `;
-    const sqlite = spawnSync('sqlite3', [dbPath, sql], { encoding: 'utf8' });
-    expect(sqlite.status).toBe(0);
+    createSqliteDatabase(dbPath, sql);
 
     const result = runCli(['conversation', 'messages', 'conv-1', '--json'], {
       HOME: homeDir,
+      WINDIE_USER_DATA_DIR: path.join(homeDir, 'Library', 'Application Support', 'windieos'),
     });
 
     expect(result.status).toBe(0);

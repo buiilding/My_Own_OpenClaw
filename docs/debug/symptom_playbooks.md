@@ -32,8 +32,8 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test backend tests/backend/test_websocket_route.py tests/backend/test_websocket_task_manager.py -q
-bin/windie test frontend -- IpcQueryRuntime.test.cjs IpcSettingsSync.test.cjs
+<windie> test backend tests/backend/test_websocket_route.py tests/backend/test_websocket_task_manager.py -q
+<windie> test frontend -- IpcQueryRuntime.test.cjs IpcSettingsSync.test.cjs
 ```
 
 ## Model Or Provider Missing
@@ -57,8 +57,8 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test backend tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q
-bin/windie test frontend -- ModelSelectionUtils.test.js ModelsSection.test.jsx
+<windie> test backend tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q
+<windie> test frontend -- ModelSelectionUtils.test.js ModelsSection.test.jsx
 ```
 
 ## Tool Call Appears But Does Not Execute
@@ -84,9 +84,9 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
-bin/windie test frontend -- WindieSdkConversationRuntime WindieSdkClient RendererToolResultBoundary ToolOutputContent
-bin/windie test sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
+<windie> test backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
+<windie> test frontend -- WindieSdkConversationRuntime WindieSdkClient RendererToolResultBoundary ToolOutputContent
+<windie> test sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
 
 ## Screenshot Or Coordinate Grounding Wrong
@@ -113,9 +113,9 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test backend tests/backend/test_coordinate_scaling.py tests/backend/test_ocr_coordinate_resolver.py tests/backend/test_vision_coordinates.py -q
-bin/windie test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts
-bin/windie test sidecar tests/sidecar/test_screenshot_tool.py -q
+<windie> test backend tests/backend/test_coordinate_scaling.py tests/backend/test_ocr_coordinate_resolver.py tests/backend/test_vision_coordinates.py -q
+<windie> test frontend -- LocalRuntimeWindowVisibility.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts
+<windie> test sidecar tests/sidecar/test_screenshot_tool.py -q
 ```
 
 ## Minimal Chat Pill Flickers Or Sticks
@@ -143,7 +143,7 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js ChatBoxResponse.state.test.jsx LiveTurnSurfaceState.test.js ChatBoxPillLayout.test.js
+<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js ChatBoxResponse.state.test.jsx LiveTurnSurfaceState.test.js ChatBoxPillLayout.test.js
 ```
 
 ## Permissions Gate Does Not Match OS State
@@ -170,7 +170,7 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx useOnboardingPermissionActions.test.jsx
+<windie> test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx useOnboardingPermissionActions.test.jsx
 ```
 
 ## Voice Or Wakeword Does Not Trigger
@@ -195,9 +195,9 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts
-bin/windie test backend tests/backend/test_transcription_gateway.py tests/backend/test_openai_realtime_transcription.py -q
-bin/windie test sidecar tests/sidecar/test_wakeword_service.py -q
+<windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts
+<windie> test backend tests/backend/test_transcription_gateway.py tests/backend/test_openai_realtime_transcription.py -q
+<windie> test sidecar tests/sidecar/test_wakeword_service.py -q
 ```
 
 ## Browser Automation Fails
@@ -221,7 +221,7 @@ Docs:
 Validate:
 
 ```bash
-bin/windie test backend tests/backend/test_browser_remote_tool.py -q
-bin/windie test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py -q
-bin/windie test frontend -- ChatBrowserSessionControl.test.jsx PermissionService.test.cjs
+<windie> test backend tests/backend/test_browser_remote_tool.py -q
+<windie> test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py -q
+<windie> test frontend -- ChatBrowserSessionControl.test.jsx PermissionService.test.cjs
 ```

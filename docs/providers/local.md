@@ -54,14 +54,14 @@ If local models are missing:
 Focused backend tests:
 
 ```bash
-bin/windie test backend tests/backend/test_local_llm_providers.py tests/backend/test_model_service.py -q
-bin/windie test backend tests/backend/test_config_loader.py tests/backend/test_provider_factory_helpers.py -q
+<windie> test backend tests/backend/test_local_llm_providers.py tests/backend/test_model_service.py -q
+<windie> test backend tests/backend/test_config_loader.py tests/backend/test_provider_factory_helpers.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ChatInterfaceWiring.test.jsx ModelSelectionUtils.test.js ModelsSection.test.jsx
+<windie> test frontend -- ChatInterfaceWiring.test.jsx ModelSelectionUtils.test.js ModelsSection.test.jsx
 ```
 

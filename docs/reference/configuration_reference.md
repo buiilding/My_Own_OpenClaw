@@ -48,7 +48,7 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 4. Propagate only the normalized downstream value.
 5. Add tests at owner and protocol boundaries.
 6. Update [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Configuration](../operations/configuration.md), and any feature docs.
-7. Run `bin/windie docs list`.
+7. Run `<windie> docs list`.
 
 Use [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md) when the owner is backend `AppConfig`, a session-scoped settings update, or a container/provider rebinding path.
 

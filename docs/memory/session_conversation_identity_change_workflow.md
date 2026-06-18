@@ -165,10 +165,10 @@ The core rule is: preserve the durable conversation key separately from live bac
 | transcript sync through Electron main | `cd frontend && npm run test -- IpcTranscriptSessionSync TranscriptSessionSyncPayload` |
 | query identity/stream filtering | frontend chat-stream/conversation-gate tests plus backend query input/session tests |
 | backend session registry/manager | `./scripts/python-in-env backend pytest tests/backend/test_session_manager.py tests/backend/test_session_registry.py tests/backend/test_session_cleanup.py` |
-| replay/rehydrate payload | `bin/windie test frontend -- WindieSdkConversationRuntime ConversationReplayActions ConversationReplayToolMessages` |
+| replay/rehydrate payload | `<windie> test frontend -- WindieSdkConversationRuntime ConversationReplayActions ConversationReplayToolMessages` |
 | backend rehydrate services | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py` |
 | sidecar conversation storage/list/search/title | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_*.py` |
-| docs-only identity workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
+| docs-only identity workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Review Checklist
 

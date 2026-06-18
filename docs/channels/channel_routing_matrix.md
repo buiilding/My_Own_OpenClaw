@@ -109,4 +109,4 @@ Before finishing a channel change:
 2. update the owner docs and this matrix if the routing changes.
 3. add tests at the producer and consumer boundary.
 4. verify no unrelated channel started depending on private payload shape.
-5. run `bin/windie docs list`.
+5. run `<windie> docs list`.

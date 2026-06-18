@@ -36,9 +36,9 @@ feat(frontend-dashboard): delete semantic memory entries
 
 ## Tests
 
-- Broad test gate: `bin/windie test all`
-- Tests only: `bin/windie test all`
-- Docs sanity: `bin/windie docs list`
+- Broad test gate: `<windie> test all`
+- Tests only: `<windie> test all`
+- Docs sanity: `<windie> docs list`
 - Frontend typecheck: `cd frontend && npm run typecheck`
 - Frontend lint: `cd frontend && npm run lint`
 - Frontend audits: `cd frontend && npm run lint:audit && npm run audit:jscpd && npm run audit:knip`

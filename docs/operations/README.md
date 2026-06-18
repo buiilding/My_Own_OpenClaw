@@ -23,7 +23,7 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 | VM run control | Runs API auth/caps plus Electron worker mode runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing, push-to-host backend refresh | `scripts/cloudflared`, `scripts/deploy`, `.github/workflows/deploy-remote-backend.yml`, `backend/src/main.py`, `frontend/src/main/app/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md), [Remote Backend Auto Deploy](remote_backend_auto_deploy.md) |
 | Packaging | Electron Builder, bundled Python runtime, release workflow | `frontend/package.json`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime`, `.github/workflows/desktop-release.yml` | [Release and Packaging Change Workflow](release_packaging_change_workflow.md), [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Release Guide](release.md) |
-| Local packaged reinstall | OS-specific uninstall, local state reset, runtime rebuild, launch smoke | `bin/windie reinstall mac`, `bin/windie reinstall linux`, `bin/windie reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
+| Local packaged reinstall | OS-specific uninstall, local state reset, runtime rebuild, launch smoke | `<windie> reinstall mac`, `<windie> reinstall linux`, `<windie> reinstall win` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
 | Security | IPC isolation, API auth, tool execution policy, hosted-session risks | `frontend/src/preload.js`, `backend/src/api/auth`, `backend/src/core/security`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security](security.md), [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
 | Performance | Backend/provider caching, renderer subscriptions, sidecar startup and JSON-RPC hot paths | `backend/src/agent`, `backend/src/llm`, `frontend/src/renderer`, `frontend/src/main/python` | [Performance](performance.md), [Operational Troubleshooting](operational_troubleshooting.md) |
 
@@ -51,7 +51,7 @@ Validation:
 
 - endpoint resolver tests
 - packaged sidecar env propagation tests when the sidecar sees backend URL changes
-- `bin/windie docs list`
+- `<windie> docs list`
 
 ### Change Hosted Auth or Install Registration
 
@@ -90,9 +90,9 @@ Likely code:
 - `frontend/package.json`
 - `frontend/electron-builder.bundled-python.yml`
 - `scripts/build-sidecar-runtime`
-- `bin/windie reinstall mac`
-- `bin/windie reinstall linux`
-- `bin/windie reinstall win`
+- `<windie> reinstall mac`
+- `<windie> reinstall linux`
+- `<windie> reinstall win`
 - `.github/workflows/desktop-release.yml`
 
 Validation:

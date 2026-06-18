@@ -14,7 +14,7 @@ Use this checklist before editing code when a runtime appears dead, stuck, or di
 
 Healthy signs:
 
-- `bin/windie start backend` starts without lifespan/init errors.
+- `<windie> start backend` starts without lifespan/init errors.
 - concrete health route responds, such as `/api/embeddings/health`.
 - websocket `/ws` accepts a valid authenticated handshake when hosted auth is enabled.
 
@@ -29,7 +29,7 @@ First checks:
 
 Healthy signs:
 
-- `bin/windie start desktop` launches app windows.
+- `<windie> start desktop` launches app windows.
 - IPC status reaches renderer.
 - backend endpoint snapshot shows expected HTTP/WS URLs.
 - local runtime bridge reaches ready state.

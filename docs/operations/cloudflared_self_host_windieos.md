@@ -107,13 +107,13 @@ journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 Developer live logs from your local checkout:
 
 ```bash
-WINDIE_BACKEND_SSH_HOST=windie-prod bin/windie logs backend
-bin/windie logs backend --service tunnel
-bin/windie logs backend --service both --tail 500
-bin/windie logs backend --scope user --service both
+WINDIE_BACKEND_SSH_HOST=windie-prod <windie> logs backend
+<windie> logs backend --service tunnel
+<windie> logs backend --service both --tail 500
+<windie> logs backend --scope user --service both
 ```
 
-`bin/windie logs backend` is intentionally SSH-only and allowlists the backend
+`<windie> logs backend` is intentionally SSH-only and allowlists the backend
 and Cloudflare Tunnel services. It defaults to system services for the hosted
 DigitalOcean droplet and supports `--scope user` for the user-service runbook
 setup. Do not expose live backend logs through a

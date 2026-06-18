@@ -69,7 +69,7 @@ Do not hard-code provider capability only in the renderer. The frontend should r
 | Config/credential change | `./scripts/python-in-env backend pytest tests/backend/test_config_loader.py tests/backend/test_config_models.py` |
 | OpenAI-like provider change | Provider-specific tests plus `test_llm_request_kwargs.py` and stream/tool-call tests if streaming changed. |
 | Renderer settings/model UI change | `cd frontend && npm run test -- AppConfigProvider.models ModelSelectionUtils ModelsSection SettingsSection` |
-| Docs-only provider update | `bin/windie docs list`, `git diff --check`, and focused Markdown link checks. |
+| Docs-only provider update | `<windie> docs list`, `git diff --check`, and focused Markdown link checks. |
 
 ## Common Mistakes
 

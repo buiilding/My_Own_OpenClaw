@@ -267,9 +267,9 @@ Read:
 
 | Changed area | Minimum validation |
 | --- | --- |
-| Endpoint resolver | frontend endpoint tests, sidecar env propagation tests, `bin/windie docs list` |
+| Endpoint resolver | frontend endpoint tests, sidecar env propagation tests, `<windie> docs list` |
 | Install auth | backend auth middleware tests, websocket handshake tests, frontend/SDK token propagation tests |
 | Cloudflare runbook/scripts | shellcheck/manual dry run where possible, origin and hosted health checks |
 | Packaging config | package on target OS, smoke helper, installed-app launch |
 | Reinstall helper | run only on target OS; verify old state reset, package build, install, launch |
-| Runtime docs only | `bin/windie docs list`, markdown link check, `git diff --check` |
+| Runtime docs only | `<windie> docs list`, markdown link check, `git diff --check` |

@@ -64,12 +64,12 @@ This creates:
 
 ## Step 2: Build Bundled-Python Installer
 
-From `frontend/`:
+From the repository root:
 
 ```bash
-bin/windie package win
-bin/windie package mac
-bin/windie package linux
+<windie> package win
+<windie> package mac
+<windie> package linux
 ```
 
 Use only the command for the OS you are currently building on.

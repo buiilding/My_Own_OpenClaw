@@ -58,14 +58,14 @@ When adding an OpenRouter model:
 Focused backend tests:
 
 ```bash
-bin/windie test backend tests/backend/test_openrouter_provider.py tests/backend/test_models_config.py -q
-bin/windie test backend tests/backend/test_model_service.py tests/backend/test_provider_factory_helpers.py -q
+<windie> test backend tests/backend/test_openrouter_provider.py tests/backend/test_models_config.py -q
+<windie> test backend tests/backend/test_model_service.py tests/backend/test_provider_factory_helpers.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ModelCardData.test.js ChatInterfaceWiring.test.jsx
+<windie> test frontend -- ModelCardData.test.js ChatInterfaceWiring.test.jsx
 ```
 

@@ -12,21 +12,21 @@ For symptom-driven and subsystem-specific command selection, read [Test Selectio
 
 ```bash
 cd /path/to/WindieOS
-bin/windie test all
+<windie> test all
 ```
 
 ### Backend-Only Tests
 
 ```bash
 cd /path/to/WindieOS
-bin/windie test backend
+<windie> test backend
 ```
 
 ### Sidecar-Only Tests
 
 ```bash
 cd /path/to/WindieOS
-bin/windie test sidecar
+<windie> test sidecar
 ```
 
 ## Frontend Tests
@@ -60,7 +60,7 @@ npm run audit:knip
 - Sidecar protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
 - Local runtime bridge restart/readiness handling is covered by `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`.
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
-- For CI parity: `bin/windie test frontend`.
+- For CI parity: `<windie> test frontend`.
 - Frontend tests use Jest + React Testing Library.
 - SDK/main tool routing behavior is covered by `tests/frontend/WindieSdkClient.test.ts`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, and SDK tool-output tests.
 - Transcript/session persistence behavior is covered through SDK projection and transcript-session tests such as `tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.

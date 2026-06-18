@@ -16,14 +16,14 @@ For implementation routing, start with [Release and Packaging Change Workflow](.
 
 | Platform | Package command | Targets | Local reinstall helper | Smoke helper |
 | --- | --- | --- | --- | --- |
-| macOS | `bin/windie package mac` | DMG, ZIP | `bin/windie reinstall mac` | `scripts/ci/smoke-macos-packages.sh` |
-| Windows | `bin/windie package win` | NSIS installer | `bin/windie reinstall win` | `scripts/ci/smoke-windows-packages.ps1` |
-| Linux | `bin/windie package linux` | AppImage, DEB, RPM | `bin/windie reinstall linux` | `scripts/ci/smoke-linux-packages.sh` |
+| macOS | `<windie> package mac` | DMG, ZIP | `<windie> reinstall mac` | `scripts/ci/smoke-macos-packages.sh` |
+| Windows | `<windie> package win` | NSIS installer | `<windie> reinstall win` | `scripts/ci/smoke-windows-packages.ps1` |
+| Linux | `<windie> package linux` | AppImage, DEB, RPM | `<windie> reinstall linux` | `scripts/ci/smoke-linux-packages.sh` |
 
 All package commands run the frontend release check before producing
 distributable artifacts. That check runs frontend typecheck, lint, and tests;
-only then do package commands run `bin/windie build sidecar-runtime`,
-`bin/windie build frontend`, and Electron Builder.
+only then do package commands run `<windie> build sidecar-runtime`,
+`<windie> build frontend`, and Electron Builder.
 
 ## Bundled Runtime Rules
 
@@ -47,7 +47,7 @@ only then do package commands run `bin/windie build sidecar-runtime`,
 
 For platform packaging changes:
 
-1. Run `bin/windie build sidecar-runtime`.
+1. Run `<windie> build sidecar-runtime`.
 2. Run the platform package command on the target OS.
 3. Inspect package contents for `resources/python-runtime`.
 4. Launch the installed app, not only Electron dev.

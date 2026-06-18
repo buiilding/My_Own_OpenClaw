@@ -13,41 +13,41 @@ Use focused tests while iterating, then run the broad suite for the touched runt
 ## Baseline Commands
 
 ```bash
-bin/windie test backend
-bin/windie test sidecar
-bin/windie test frontend
+<windie> test backend
+<windie> test sidecar
+<windie> test frontend
 cd frontend && npm run lint
 ```
 
-`bin/windie test backend` and `bin/windie test sidecar` use
+`<windie> test backend` and `<windie> test sidecar` use
 the platform `scripts/python-in-env` wrapper, so do not manually activate conda environments. Use
-`bin/windie test pick <area>` to find common focused validation commands.
+`<windie> test pick <area>` to find common focused validation commands.
 
 ## By Runtime
 
 | Change area | Focused validation |
 | --- | --- |
-| Backend websocket/API | `bin/windie test backend -- tests/backend/test_websocket_route.py tests/backend/test_api_handlers.py -q` |
-| Backend agent loop | `bin/windie test backend -- tests/backend/test_interaction_loop.py tests/backend/test_query_execution_pipeline_events.py -q` |
-| Backend providers/models | `bin/windie test backend -- tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q` |
-| Backend tool schemas | `bin/windie test backend -- tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q` |
-| Backend OCR/vision | `bin/windie test backend -- tests/backend/test_ocr_service.py tests/backend/test_vision_service.py tests/backend/test_coordinate_scaling.py -q` |
-| Backend SDK routes | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` |
-| Electron main IPC | `bin/windie test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
-| Electron main SDK query controls and VM worker | `bin/windie test frontend -- IpcAutomatedQueryDispatcher.test.cjs IpcMainConversationRuntimeRegistry.test.cjs IpcMainSdkRuntimeBoundary.test.cjs MainProcessBootstrapRuntime.test.cjs VmWorkerRuntime.test.cjs` |
-| Frontend CLI and layer logs | `bin/windie test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |
-| Overlay windows/phases | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs WindowVisibilityRuntime.test.cjs` |
-| Minimal chat pill hit-testing and dragging | `bin/windie test frontend -- ChatBoxOverlayMouseIgnore.test.jsx ChatBoxPillLayout.test.js ChatPillSessionFlow.test.ts` |
-| Renderer chat stream | `bin/windie test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
-| SDK conversation runtime and stop flow | `bin/windie test frontend -- WindieSdkConversationRuntime.test.ts DesktopRuntimeTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js StopQueryState.test.js` |
-| Renderer dashboard/settings | `bin/windie test frontend -- DashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
-| Permissions/onboarding | `bin/windie test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx DesktopOnboardingSlideshow.test.jsx` |
-| Artifacts/screenshots | `bin/windie test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts LocalRuntimeExecuteToolRuntime.test.cjs` |
-| Voice/wakeword | `bin/windie test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
-| Sidecar protocol/tools | `bin/windie test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
-| Sidecar filesystem/shell | `bin/windie test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
-| Sidecar browser | `bin/windie test sidecar -- tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py tests/sidecar/tools/test_browser_schemas.py -q` |
-| Sidecar memory | `bin/windie test sidecar -- tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py -q` |
+| Backend websocket/API | `<windie> test backend -- tests/backend/test_websocket_route.py tests/backend/test_api_handlers.py -q` |
+| Backend agent loop | `<windie> test backend -- tests/backend/test_interaction_loop.py tests/backend/test_query_execution_pipeline_events.py -q` |
+| Backend providers/models | `<windie> test backend -- tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q` |
+| Backend tool schemas | `<windie> test backend -- tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q` |
+| Backend OCR/vision | `<windie> test backend -- tests/backend/test_ocr_service.py tests/backend/test_vision_service.py tests/backend/test_coordinate_scaling.py -q` |
+| Backend SDK routes | `<windie> test backend -- tests/backend/test_sdk_routes.py -q` |
+| Electron main IPC | `<windie> test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
+| Electron main SDK query controls and VM worker | `<windie> test frontend -- IpcAutomatedQueryDispatcher.test.cjs IpcMainConversationRuntimeRegistry.test.cjs IpcMainSdkRuntimeBoundary.test.cjs MainProcessBootstrapRuntime.test.cjs VmWorkerRuntime.test.cjs` |
+| Frontend CLI and layer logs | `<windie> test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |
+| Overlay windows/phases | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs WindowVisibilityRuntime.test.cjs` |
+| Minimal chat pill hit-testing and dragging | `<windie> test frontend -- ChatBoxOverlayMouseIgnore.test.jsx ChatBoxPillLayout.test.js ChatPillSessionFlow.test.ts` |
+| Renderer chat stream | `<windie> test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
+| SDK conversation runtime and stop flow | `<windie> test frontend -- WindieSdkConversationRuntime.test.ts DesktopRuntimeTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js StopQueryState.test.js` |
+| Renderer dashboard/settings | `<windie> test frontend -- DashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
+| Permissions/onboarding | `<windie> test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx DesktopOnboardingSlideshow.test.jsx` |
+| Artifacts/screenshots | `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts ChatMessageSender.test.tsx WindieSdkConversationRuntime.test.ts LocalRuntimeExecuteToolRuntime.test.cjs` |
+| Voice/wakeword | `<windie> test frontend -- WakewordBridge.test.cjs WakewordSupervisor.test.cjs VoiceModeHook.test.ts TranscriptionHook.test.ts` |
+| Sidecar protocol/tools | `<windie> test sidecar -- tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
+| Sidecar filesystem/shell | `<windie> test sidecar -- tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
+| Sidecar browser | `<windie> test sidecar -- tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine_runtime.py tests/sidecar/tools/test_browser_schemas.py -q` |
+| Sidecar memory | `<windie> test sidecar -- tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search_helpers.py -q` |
 
 ## Contract Changes
 
@@ -55,13 +55,13 @@ Run tests on both sides of the boundary when a payload crosses processes.
 
 | Contract | Run |
 | --- | --- |
-| Backend model-facing tool schema and frontend executable tools | `bin/windie test backend -- tests/backend/test_remote_tool_contract.py -q` plus `bin/windie test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
-| Tool result envelope | `bin/windie test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `bin/windie test frontend -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
-| Response overlay phase names | `bin/windie test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
-| Transcript/replay/display rows | `bin/windie test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
-| Artifact refs and URLs | `bin/windie test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `bin/windie test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
-| SDK HTTP/trace helpers | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` plus `bin/windie test frontend -- WindieSdkClient.test.ts` |
-| Frontend CLI command routing and formatter contracts | `bin/windie test frontend -- WindieCli.test.cjs` plus `bin/windie test backend -- tests/backend/test_formatter_specs_contract.py -q` |
+| Backend model-facing tool schema and frontend executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
+| Tool result envelope | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
+| Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
+| Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
+| Artifact refs and URLs | `<windie> test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
+| SDK HTTP/trace helpers | `<windie> test backend -- tests/backend/test_sdk_routes.py -q` plus `<windie> test frontend -- WindieSdkClient.test.ts` |
+| Frontend CLI command routing and formatter contracts | `<windie> test frontend -- WindieCli.test.cjs` plus `<windie> test backend -- tests/backend/test_formatter_specs_contract.py -q` |
 
 ## When To Run Full Suites
 
@@ -80,7 +80,7 @@ Run all three broad suites when the change crosses backend, Electron main/render
 For docs-only edits:
 
 ```bash
-bin/windie docs list
+<windie> docs list
 git diff --check
 ```
 

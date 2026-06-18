@@ -39,28 +39,28 @@ Frontend:
 
 ```bash
 (cd frontend && npm install)
-bin/windie build frontend
-bin/windie start dev
+<windie> build frontend
+<windie> start dev
 ```
 
 Sidecar:
 
 ```bash
-bin/windie test sidecar
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start dev
+<windie> test sidecar
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start dev
 ```
 
 Packaging:
 
 ```bash
-bin/windie build sidecar-runtime
-bin/windie package mac
+<windie> build sidecar-runtime
+<windie> package mac
 ```
 
 Docs:
 
 ```bash
-bin/windie docs list
+<windie> docs list
 ```
 
 ## When Source Works But Packaged Fails

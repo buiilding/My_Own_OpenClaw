@@ -120,7 +120,7 @@ flowchart LR
 | Workspace controls | `cd frontend && npm run test -- ChatWorkspaceState` plus workspace IPC/permission tests if main-process behavior changes |
 | Browser controls | `cd frontend && npm run test -- ChatBrowserSessionControl PermissionService PermissionIpcRuntime` plus browser workflow tests if runtime changes |
 | Memory reset controls | `cd frontend && npm run test -- SettingsSection` plus focused sidecar memory delete/reset tests if sidecar admin behavior changes |
-| Docs-only settings surface | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
+| Docs-only settings surface | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 If a test stem is not available in the current checkout, search by the component or helper name before adding new coverage.
 

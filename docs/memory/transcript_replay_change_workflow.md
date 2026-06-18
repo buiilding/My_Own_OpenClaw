@@ -104,14 +104,14 @@ flowchart LR
 
 | Change type | Focused validation |
 | --- | --- |
-| Stored-row conversion to visible chat messages | `bin/windie test frontend -- SdkDisplayChatMessageProjection DesktopConversationContinuityService DesktopConversationStore` |
-| Transcript session identity or sync payloads | `bin/windie test frontend -- TranscriptSessionState TranscriptSessionSyncPayload IpcTranscriptSessionSync` |
-| Dashboard resume actions | `bin/windie test frontend -- ConversationReplayActions DashboardConversationLoad DesktopConversationStore UseDashboardConversations` |
-| Rehydrate payload construction | `bin/windie test frontend -- WindieSdkConversationRuntime ConversationContinuityService ConversationReplayToolMessages` |
+| Stored-row conversion to visible chat messages | `<windie> test frontend -- SdkDisplayChatMessageProjection DesktopConversationContinuityService DesktopConversationStore` |
+| Transcript session identity or sync payloads | `<windie> test frontend -- TranscriptSessionState TranscriptSessionSyncPayload IpcTranscriptSessionSync` |
+| Dashboard resume actions | `<windie> test frontend -- ConversationReplayActions DashboardConversationLoad DesktopConversationStore UseDashboardConversations` |
+| Rehydrate payload construction | `<windie> test frontend -- WindieSdkConversationRuntime ConversationContinuityService ConversationReplayToolMessages` |
 | Backend rehydrate normalization/linkage/transparency | `./scripts/python-in-env backend pytest tests/backend/test_rehydrate_execution_service.py tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py tests/backend/test_rehydrate_transparency_resolution.py` |
 | Sidecar transcript storage/list/window/delete | `./scripts/python-in-env sidecar pytest tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py tests/sidecar/test_local_store_delete_cleanup.py` |
 | Sidecar conversation search | `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search_helpers.py tests/sidecar/test_chat_event_store.py tests/sidecar/test_conversation_window_runtime.py` |
-| Docs-only transcript workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
+| Docs-only transcript workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Debug Playbooks
 

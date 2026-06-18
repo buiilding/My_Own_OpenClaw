@@ -24,7 +24,7 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 
 1. Check `docs/docs.json` for canonical docs navigation.
 2. Use [Docs Directory](docs_directory.md) for the compact route map.
-3. Run the docs index first: `bin/windie docs list` from the repo root.
+3. Run the docs index first: `<windie> docs list` from the repo root.
 4. Pick the closest change path below before searching broadly.
 5. Read the domain hub, the capability-to-file matrix, and the focused reference for the behavior you are changing.
 6. Edit the owner subsystem first. Do not patch a consumer layer to hide malformed producer behavior.
@@ -90,7 +90,7 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [Install Troubleshooting](../install/install_troubleshooting.md) for install failures across dependencies, sidecar runtime, endpoint routing, permissions, and signing.
 - [Operations Hub](../operations/README.md) for runtime config, hosted auth, packaging, release, deployment, and operational troubleshooting.
 - [Commands and Scripts](../cli/README.md) for the first-class Windie CLI surface.
-- [Command Matrix](../cli/command_matrix.md) for the full `bin/windie` command groups.
+- [Command Matrix](../cli/command_matrix.md) for the full `<windie>` command groups.
 - [Validation Commands](../cli/validation_commands.md) for choosing focused checks by changed boundary.
 - [Packaging and Release Commands](../cli/packaging_and_release_commands.md) for sidecar runtime builds, Electron package commands, smoke helpers, and reinstall loops.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior.
@@ -144,7 +144,7 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 | Workspace context | Active workspace permission, conversation workspace binding, workspace path query forwarding, AGENTS.md repo instructions, and backend prompt context | `frontend/src/renderer/infrastructure/workspace`, `frontend/src/main/app/repo_instruction_runtime.cjs`, `backend/src/llm/prompts/repo_instructions.py` | [Workspace Context Change Workflow](../frontend/runtime/workspace_context_change_workflow.md), [Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md), [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Local Runtime Sidecar Docs Hub](../frontend/sidecar/README.md), [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md), [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md), [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md), [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md), [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
-| Platform behavior | OS-specific permissions, screenshots, overlays, content protection, display affinity, window/input adapters, packaged runtime smoke checks | `frontend/src/main/platform`, `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools/computer`, `bin/windie reinstall <platform>`, `scripts/ci/smoke-*` | [Platforms Hub](../platforms/README.md), [Platform Change Workflow](../platforms/platform_change_workflow.md), [Platform Validation Matrix](../platforms/platform_validation_matrix.md) |
+| Platform behavior | OS-specific permissions, screenshots, overlays, content protection, display affinity, window/input adapters, packaged runtime smoke checks | `frontend/src/main/platform`, `frontend/src/main/permissions/permission_service*.cjs`, `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools/computer`, `<windie> reinstall <platform>`, `scripts/ci/smoke-*` | [Platforms Hub](../platforms/README.md), [Platform Change Workflow](../platforms/platform_change_workflow.md), [Platform Validation Matrix](../platforms/platform_validation_matrix.md) |
 | Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Change Path Playbooks

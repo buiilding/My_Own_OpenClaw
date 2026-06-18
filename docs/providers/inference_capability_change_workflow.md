@@ -265,7 +265,7 @@ provider health and tool policy together.
 | SDK OCR/vision exposure | `./scripts/python-in-env backend pytest tests/backend/test_sdk_routes.py` and `cd frontend && npm run test -- WindieSdkClient` |
 | SDK memory embedding behavior | `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/WindieSdkContextEnrichment.test.ts ../tests/frontend/WindieSdkClient.test.ts --runInBand -t memory` and sidecar local-store tests |
 | STT/TTS audio behavior | `./scripts/python-in-env backend pytest tests/backend/test_transcription_gateway.py tests/backend/test_openai_realtime_transcription.py tests/backend/test_tts_manager.py tests/backend/test_tts_session.py` |
-| Docs-only inference workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only inference workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Docs to Sync
 

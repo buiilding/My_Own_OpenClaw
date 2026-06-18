@@ -183,7 +183,7 @@ Style rules:
 
 Docs-only change:
 
-- `bin/windie docs list`
+- `<windie> docs list`
 - `git diff --check`
 - focused Markdown link check for touched docs
 
@@ -194,7 +194,7 @@ Landing content/component change:
 
 Landing build/entrypoint/style change:
 
-- `bin/windie build frontend`
+- `<windie> build frontend`
 - visual/browser check for desktop and mobile viewports when layout changes
 
 Product-claim change:

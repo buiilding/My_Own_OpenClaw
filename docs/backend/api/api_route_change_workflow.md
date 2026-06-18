@@ -103,7 +103,7 @@ When changing auth or error behavior:
 | Message handler dispatch | `./scripts/python-in-env backend pytest tests/backend/test_api_handlers.py tests/backend/test_message_handler_registry.py tests/backend/test_typed_message_handler.py` |
 | Formatter/outgoing event | `./scripts/python-in-env backend pytest tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_formatter_specs_contract.py` |
 | Auth changes | `./scripts/python-in-env backend pytest tests/backend/test_install_auth.py` plus affected route/websocket tests |
-| Docs-only API workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only API workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 

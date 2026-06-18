@@ -16,7 +16,7 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Sidecar adapter: `frontend/src/main/python/core/platform/linux.py`
 - Content protection dispatch: `frontend/src/main/platform/content_protection/index.cjs` (Linux no-op)
 - Package target: `frontend/package.json` `package:linux`
-- Reinstall helper: `bin/windie reinstall linux`
+- Reinstall helper: `<windie> reinstall linux`
 
 ## Rules
 

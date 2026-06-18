@@ -89,7 +89,7 @@ Focused tests:
 Useful focused command:
 
 ```bash
-bin/windie test backend tests/backend/test_web_search_capabilities.py tests/backend/test_web_search_tool.py -q
+<windie> test backend tests/backend/test_web_search_capabilities.py tests/backend/test_web_search_tool.py -q
 ```
 
 ## Related Docs

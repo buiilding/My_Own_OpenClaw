@@ -111,7 +111,7 @@ When changing platform adapters or system state:
 | Memory runtime/storage | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` |
 | Backend config/remote semantic client | `./scripts/python-in-env sidecar pytest tests/sidecar/test_backend_config.py tests/sidecar/test_remote_semantic_client.py` |
 | Wakeword service | `./scripts/python-in-env sidecar pytest tests/sidecar/test_wakeword_service.py` plus frontend wakeword bridge tests if framing changes |
-| Docs-only sidecar workflow updates | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only sidecar workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Review Checklist
 

@@ -30,45 +30,45 @@ Use this hub when you are about to edit code. It routes a change to the right su
 
 | Boundary | Owns | Start docs | Typical validation |
 | --- | --- | --- | --- |
-| Backend | FastAPI routes, websocket messages, agent loop, LLM providers, model-facing tools, inference routes, artifacts, memory APIs | [Backend Hub](../backend/README.md), [Agent Development Workflow](agent_development_workflow.md) | `bin/windie test backend` or focused `./scripts/python-in-env backend python -m pytest tests/backend/...` |
-| Electron main | windows, overlays, IPC handlers, SDK-runtime adapter, local-runtime host/status context, permissions, packaged runtime env | [Frontend Main Hub](../frontend/main/README.md), [Frontend Runtime Hub](../frontend/runtime/README.md) | focused frontend Jest tests under `tests/frontend`, `bin/windie test frontend` |
+| Backend | FastAPI routes, websocket messages, agent loop, LLM providers, model-facing tools, inference routes, artifacts, memory APIs | [Backend Hub](../backend/README.md), [Agent Development Workflow](agent_development_workflow.md) | `<windie> test backend` or focused `./scripts/python-in-env backend python -m pytest tests/backend/...` |
+| Electron main | windows, overlays, IPC handlers, SDK-runtime adapter, local-runtime host/status context, permissions, packaged runtime env | [Frontend Main Hub](../frontend/main/README.md), [Frontend Runtime Hub](../frontend/runtime/README.md) | focused frontend Jest tests under `tests/frontend`, `<windie> test frontend` |
 | Renderer | React UI, chat/dashboard/settings/memory/model surfaces, transcript queue, projected tool state, audio playback | [Frontend Renderer Hub](../frontend/renderer/README.md) | focused frontend Jest tests, `cd frontend && npm run lint` for touched UI code |
-| Sidecar | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Sidecar Hub](../frontend/sidecar/README.md) | `bin/windie test sidecar` or focused `./scripts/python-in-env sidecar python -m pytest tests/sidecar/...` |
-| Docs | agent routing maps, domain hubs, implementation references, runbooks | [Documentation Hub](../getting-started/docs_hub.md) | `bin/windie docs list` and link checks for touched docs |
-| Packaging/operations | Electron Builder, bundled Python runtime, local reinstall helpers, release workflow, hosted backend ops | [Operations Hub](../operations/README.md) | target OS package/smoke helper plus `bin/windie docs list` |
+| Sidecar | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Sidecar Hub](../frontend/sidecar/README.md) | `<windie> test sidecar` or focused `./scripts/python-in-env sidecar python -m pytest tests/sidecar/...` |
+| Docs | agent routing maps, domain hubs, implementation references, runbooks | [Documentation Hub](../getting-started/docs_hub.md) | `<windie> docs list` and link checks for touched docs |
+| Packaging/operations | Electron Builder, bundled Python runtime, local reinstall helpers, release workflow, hosted backend ops | [Operations Hub](../operations/README.md) | target OS package/smoke helper plus `<windie> docs list` |
 
 ## Current Script Surface
 
 Repo-root scripts:
 
-- `bin/windie docs list` or `bin/windie docs list`
+- `<windie> docs list` or `<windie> docs list`
 - Windows PowerShell: `scripts\python-in-env.cmd <backend|sidecar|frontend> <cmd...>`
 - Unix-like shells: `./scripts/python-in-env.sh <backend|sidecar|frontend> <cmd...>`
-- `bin/windie test all`
-- `bin/windie test backend`
-- `bin/windie test sidecar`
-- `bin/windie start backend`
-- `bin/windie start frontend`
-- `bin/windie start desktop`
+- `<windie> test all`
+- `<windie> test backend`
+- `<windie> test sidecar`
+- `<windie> start backend`
+- `<windie> start frontend`
+- `<windie> start desktop`
 - `./scripts/build-sidecar-runtime.sh`
 - `./scripts/committer "<subject>" --body "<body>" -- <files...>`
 
 Frontend scripts:
 
 - `cd frontend && npm run test`
-- `bin/windie test frontend`
+- `<windie> test frontend`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
 - `cd frontend && npm run lint:audit`
 - `cd frontend && npm run audit:jscpd`
 - `cd frontend && npm run audit:knip`
-- `cd frontend && bin/windie package mac|package:win|package:linux`
+- `<windie> package mac|package:win|package:linux`
 
 There is no current repo-root `scripts/check` or `scripts/check-loc.py` in this checkout. Use [Validation Matrix](validation_matrix.md) to compose the right gate.
 
 ## Development Rules of Thumb
 
-1. Run `bin/windie docs list` before editing and read the relevant `read_when` docs.
+1. Run `<windie> docs list` before editing and read the relevant `read_when` docs.
 2. Identify the owner boundary before changing consumers.
 3. Keep backend model-facing schemas and sidecar runtime argument handling aligned.
 4. Add tests at the boundary that failed or changed.

@@ -28,18 +28,18 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 
 ## Main Commands
 
-- Backend dev server: `bin/windie start backend`
-- Desktop dev loop: `bin/windie start dev`
-- Customer-mode desktop loop: `bin/windie start customer`
-- Focused Vite dev server: `bin/windie start frontend`
-- Focused Electron dev app: `bin/windie start desktop`
-- Frontend package build: `bin/windie package mac`, `bin/windie package win`, or `bin/windie package linux`
-- Sidecar runtime build: `bin/windie build sidecar-runtime`
-- Command health summary: `bin/windie status --all`
-- Diagnostic pass: `bin/windie doctor --deep`
+- Backend dev server: `<windie> start backend`
+- Desktop dev loop: `<windie> start dev`
+- Customer-mode desktop loop: `<windie> start customer`
+- Focused Vite dev server: `<windie> start frontend`
+- Focused Electron dev app: `<windie> start desktop`
+- Frontend package build: `<windie> package mac`, `<windie> package win`, or `<windie> package linux`
+- Sidecar runtime build: `<windie> build sidecar-runtime`
+- Command health summary: `<windie> status --all`
+- Diagnostic pass: `<windie> doctor --deep`
 
 The lower-level scripts and frontend npm tasks still exist as implementation
-adapters, but user-facing docs should prefer the `bin/windie ...` command
+adapters, but user-facing docs should prefer the `<windie> ...` command
 surface.
 
 ## Related Docs

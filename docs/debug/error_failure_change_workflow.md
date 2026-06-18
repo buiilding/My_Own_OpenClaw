@@ -230,11 +230,11 @@ Validate:
 | Backend exception hierarchy | `./scripts/python-in-env backend pytest tests/backend/test_exceptions.py tests/backend/test_api_errors.py` |
 | Parser/tool-call recovery | parser validation and interaction-loop recovery tests |
 | Tool result ingestion | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_router.py tests/backend/test_incoming_tool_result_schemas.py` |
-| Electron websocket/settings/local-runtime failures | `bin/windie test frontend -- IpcMainBridge LocalRuntimeBridge` |
-| Preload/IPC validation | `bin/windie test frontend -- IpcBridgeValidation` |
+| Electron websocket/settings/local-runtime failures | `<windie> test frontend -- IpcMainBridge LocalRuntimeBridge` |
+| Preload/IPC validation | `<windie> test frontend -- IpcBridgeValidation` |
 | Sidecar ToolResult/registry | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_result.py tests/sidecar/test_tool_registry.py` |
-| Renderer tool failure UI/persistence | `bin/windie test frontend -- ToolRunnerFailureContracts ToolExecutionResultDispatch ToolResultEnvelope` |
-| Docs-only error changes | `bin/windie docs list`, `git diff --check`, and focused Markdown link check over touched docs |
+| Renderer tool failure UI/persistence | `<windie> test frontend -- ToolRunnerFailureContracts ToolExecutionResultDispatch ToolResultEnvelope` |
+| Docs-only error changes | `<windie> docs list`, `git diff --check`, and focused Markdown link check over touched docs |
 
 ## Review Checklist
 

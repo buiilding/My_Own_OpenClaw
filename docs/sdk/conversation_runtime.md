@@ -375,7 +375,7 @@ Use the read model for CLI inspection and future UI experiments that need a
 deterministic local transcript export:
 
 ```bash
-bin/windie conversation messages <conversation-ref> --json
+<windie> conversation messages <conversation-ref> --json
 ```
 
 Do not rebuild provider history, compaction replay state, tool semantics, or

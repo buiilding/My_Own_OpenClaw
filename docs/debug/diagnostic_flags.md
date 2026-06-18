@@ -22,7 +22,7 @@ Enable the narrowest flag that proves which boundary broke. Do not leave verbose
 Example:
 
 ```sh
-LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose <windie> start backend
 ```
 
 ## Electron Main and Renderer
@@ -33,7 +33,7 @@ non-Windie skins.
 
 | Flag | Effect |
 | --- | --- |
-| `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `bin/windie start desktop`. |
+| `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `<windie> start desktop`. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation and main IPC stream logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables chat pill and response overlay trace logs. |
 | `WINDIE_DEBUG_LIVE_SURFACE=1` | Enables verbose ephemeral `[LiveSurfaceTrace]` surface timeline logs. |
@@ -42,7 +42,7 @@ non-Windie skins.
 | `WINDIE_DEBUG_WAKEWORD_STDOUT=1` | Mirrors `wakeword.lifecycle` diagnostics to stdout as `[Wakeword]` lines. |
 | `WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT=1` | Mirrors local-runtime lifecycle diagnostics on the `local_runtime.lifecycle` path to stdout. |
 | `WINDIE_DEBUG_SURFACE_STDOUT=1` | Mirrors `surface.visibility` and `renderer.interaction` diagnostics to stdout as compact surface/interaction lines. |
-| `AGENT_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer `bin/windie trace ... --path backend.compaction` for durable turn-scoped evidence. |
+| `AGENT_DEBUG_COMPACTION_STDOUT=1` | Mirrors SDK compaction normalization/storage/rejection debug details to stdout. Prefer `<windie> trace ... --path backend.compaction` for durable turn-scoped evidence. |
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enables OS tool ghost overlay debugging; used by `npm --prefix frontend run test:ghost-cursor`. |
 
@@ -50,11 +50,11 @@ Examples:
 
 ```sh
 cd frontend
-WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
-WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
-WINDIE_DEBUG_LIVE_SURFACE=1 bin/windie start desktop
-WINDIE_DEBUG_IPC_STDOUT=1 bin/windie start desktop
-WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
+WINDIE_DEBUG_STREAM_EVENTS=1 <windie> start desktop
+WINDIE_DEBUG_CHAT_PILL=1 <windie> start desktop
+WINDIE_DEBUG_LIVE_SURFACE=1 <windie> start desktop
+WINDIE_DEBUG_IPC_STDOUT=1 <windie> start desktop
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 ```
 
 ## Sidecar

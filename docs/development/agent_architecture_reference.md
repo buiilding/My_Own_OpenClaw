@@ -189,7 +189,7 @@ Key entry points:
 For deeper source maps, start with `docs/getting-started/docs_hub.md`,
 `docs/reference/code_change_surface_index.md`,
 `docs/architecture/runtime_boundary_matrix.md`, and the subsystem docs listed by
-`bin/windie docs list`.
+`<windie> docs list`.
 
 ## SDK Architecture
 

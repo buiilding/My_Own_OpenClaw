@@ -46,7 +46,7 @@ Likely code:
 - route models/services for the affected package
 - SDK client wrappers if public to developers
 
-Validate route/model tests, API reference examples, SDK clients when applicable, and `bin/windie docs list`.
+Validate route/model tests, API reference examples, SDK clients when applicable, and `<windie> docs list`.
 
 ### Change Hosted Auth
 

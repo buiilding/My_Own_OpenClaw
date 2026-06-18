@@ -56,14 +56,14 @@ When adding an Anthropic model:
 Focused backend tests:
 
 ```bash
-bin/windie test backend tests/backend/test_anthropic_provider.py tests/backend/test_models_config.py -q
-bin/windie test backend tests/backend/test_provider_native_reasoning.py tests/backend/test_llm_thinking_extraction.py -q
+<windie> test backend tests/backend/test_anthropic_provider.py tests/backend/test_models_config.py -q
+<windie> test backend tests/backend/test_provider_native_reasoning.py tests/backend/test_llm_thinking_extraction.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts ModelCardData.test.js
+<windie> test frontend -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts ModelCardData.test.js
 ```
 

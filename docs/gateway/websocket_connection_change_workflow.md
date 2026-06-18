@@ -166,7 +166,7 @@ Implementation path:
 | Handler dispatch/error envelope | `./scripts/python-in-env backend pytest tests/backend/test_websocket_message_handler.py tests/backend/test_incoming_routing.py` |
 | Safe websocket/transport sends | `./scripts/python-in-env backend pytest tests/backend/test_safe_websocket.py` plus transport sender tests |
 | Electron handshake/reconnect changes | focused frontend main websocket tests |
-| Docs-only websocket changes | `bin/windie docs list`, `git diff --check`, focused Markdown link checks |
+| Docs-only websocket changes | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 
 ## Docs to Keep Synchronized
 

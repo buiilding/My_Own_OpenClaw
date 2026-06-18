@@ -9,7 +9,7 @@ title: "Packaged Desktop Builds"
 # Packaged Desktop Builds
 
 Packaged WindieOS builds are Electron apps with a bundled Python sidecar
-runtime. Use `bin/windie ...` packaging commands from the repository root; they
+runtime. Use `<windie> ...` packaging commands from the repository root; they
 wrap the frontend package tasks and bundled sidecar runtime builder before
 Electron Builder.
 
@@ -22,19 +22,19 @@ For implementation work, start with [Release and Packaging Change Workflow](../o
 From the repository root:
 
 ```bash
-bin/windie package mac
-bin/windie package win
-bin/windie package linux
+<windie> package mac
+<windie> package win
+<windie> package linux
 ```
 
 Windows PowerShell can use `npm.cmd` when `npm.ps1` is blocked by execution
 policy:
 
 ```powershell
-bin/windie package win
+<windie> package win
 ```
 
-Windows package builds still need Bash because `bin/windie build sidecar-runtime`
+Windows package builds still need Bash because `<windie> build sidecar-runtime`
 calls `../scripts/build-sidecar-runtime`. Use Git Bash or ensure Bash is on
 `PATH` before running the package command.
 
@@ -49,16 +49,16 @@ Package targets:
 The bundled sidecar runtime is built with:
 
 ```bash
-bin/windie build sidecar-runtime
+<windie> build sidecar-runtime
 ```
 
 That command calls `../scripts/build-sidecar-runtime`. Runtime dependencies are listed under `frontend/src/main/python/requirements*.txt`.
 
 ## Local Reinstall Helpers
 
-- macOS: `bin/windie reinstall mac`
-- Windows: `bin/windie reinstall win`
-- Linux: `bin/windie reinstall linux`
+- macOS: `<windie> reinstall mac`
+- Windows: `<windie> reinstall win`
+- Linux: `<windie> reinstall linux`
 
 For local macOS reinstall loops, skip notarization and use the local helper path rather than release signing.
 

@@ -115,9 +115,9 @@ Clipboard image IPC trust boundary:
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
 | Artifact route/store behavior | `./scripts/python-in-env backend pytest tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py` |
-| Replay/message image rendering | `bin/windie test frontend -- MessageScreenshots WindieSdkConversationRuntime` |
+| Replay/message image rendering | `<windie> test frontend -- MessageScreenshots WindieSdkConversationRuntime` |
 | Clipboard copy IPC | `cd frontend && npm run test -- IpcClipboardImageHandler` |
-| Docs-only attachment workflow | `bin/windie docs list`, `git diff --check`, focused Markdown link check |
+| Docs-only attachment workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 ## Debug Playbooks
 

@@ -73,7 +73,7 @@ Current WindieOS major sections:
 
 Added/expanded in WindieOS:
 
-- `docs/docs.json`: canonical machine-readable local docs navigation map, validated by `bin/windie docs list`.
+- `docs/docs.json`: canonical machine-readable local docs navigation map, validated by `<windie> docs list`.
 - `getting-started/docs_directory.md`: compact route map for the most-used local docs, separate from the exhaustive generated index.
 - `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
 - `architecture/`: architecture hub plus runtime-boundary, data-flow/state ownership, storage/persistence change routing, ownership-decision, and failure-domain maps.

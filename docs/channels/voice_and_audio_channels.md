@@ -132,4 +132,4 @@ TTS changes:
 - renderer audio playback cleanup tests
 - stream event tests if `audio-chunk` payloads change
 
-Also run `bin/windie docs list` after docs updates.
+Also run `<windie> docs list` after docs updates.

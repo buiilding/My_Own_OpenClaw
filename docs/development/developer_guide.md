@@ -123,23 +123,23 @@ frontend/src/
 
 1. **Start Backend**:
    ```bash
-   bin/windie start backend
+   <windie> start backend
    ```
 
 2. **Start Frontend Dev Server**:
    ```bash
-   bin/windie start frontend
+   <windie> start frontend
    ```
 
 3. **Launch Electron**:
    ```bash
-   bin/windie start desktop
+   <windie> start desktop
    ```
 
 ### Local Automation
 
-- `bin/windie docs list`: Lists docs and front-matter metadata.
-- `bin/windie test all`: Runs backend, sidecar, and frontend tests.
+- `<windie> docs list`: Lists docs and front-matter metadata.
+- `<windie> test all`: Runs backend, sidecar, and frontend tests.
 - `scripts/committer "<subject>" --body "<body>" -- <files...>`: Scoped commits using the shared `committer` helper. The body is required and must use the enforced `What changed`, `Owning layer`, `Previous behavior`, `New path`, `Validation`, and `Migration/security` sections.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
 - `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
@@ -240,7 +240,7 @@ const sendMessage = async (text, screenshotRef = null) => {
 
 **Run Tests**:
 ```bash
-bin/windie test backend
+<windie> test backend
 ```
 
 **Test Structure**:
@@ -256,7 +256,7 @@ tests/backend/
 
 **Run Tests**:
 ```bash
-bin/windie test sidecar
+<windie> test sidecar
 ```
 
 **Test Structure**:
@@ -274,7 +274,7 @@ tests/sidecar/
 **Run Tests**:
 ```bash
 cd frontend
-bin/windie test frontend
+<windie> test frontend
 ```
 
 **Test Structure**:
@@ -326,7 +326,7 @@ logger.error("Error message")
 **Debug Mode**:
 ```bash
 export DESKTOP_ASSISTANT_LOG_LEVEL=DEBUG
-bin/windie start backend
+<windie> start backend
 ```
 
 ### Frontend Debugging

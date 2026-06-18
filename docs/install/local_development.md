@@ -8,7 +8,7 @@ title: "Local Development"
 
 # Local Development
 
-Use `bin/windie ...` from the repository root instead of manually activating
+Use `<windie> ...` from the repository root instead of manually activating
 conda environments or invoking lower-level launch scripts directly.
 `scripts\python-in-env.cmd` on Windows PowerShell and
 `./scripts/python-in-env.sh` on Unix-like shells remain the low-level Python
@@ -42,15 +42,15 @@ npm.cmd install
 ## Run
 
 ```bash
-bin/windie start backend
-bin/windie start dev
+<windie> start backend
+<windie> start dev
 ```
 
 Windows PowerShell equivalents:
 
 ```powershell
-bin/windie start backend
-bin/windie start dev
+<windie> start backend
+<windie> start dev
 ```
 
 To force Electron dev to use the local backend:
@@ -58,7 +58,7 @@ To force Electron dev to use the local backend:
 ```bash
 BACKEND_HTTP_URL=http://127.0.0.1:8765 \
 BACKEND_WS_URL=ws://127.0.0.1:8765/ws \
-bin/windie start dev
+<windie> start dev
 ```
 
 Windows PowerShell:
@@ -66,37 +66,37 @@ Windows PowerShell:
 ```powershell
 $env:BACKEND_HTTP_URL = "http://127.0.0.1:8765"
 $env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
-bin/windie start dev
+<windie> start dev
 ```
 
 Convenience scripts also exist:
 
-- `bin/windie start backend`
-- `bin/windie start frontend`
-- `bin/windie start desktop`
-- `bin/windie start dev`
+- `<windie> start backend`
+- `<windie> start frontend`
+- `<windie> start desktop`
+- `<windie> start dev`
 
 ## Test
 
 ```bash
-bin/windie test backend
-bin/windie test sidecar
-bin/windie test frontend
+<windie> test backend
+<windie> test sidecar
+<windie> test frontend
 cd frontend && npm run lint
 ```
 
 Windows PowerShell:
 
 ```powershell
-bin/windie test backend
-bin/windie test sidecar
-bin/windie test frontend
+<windie> test backend
+<windie> test sidecar
+<windie> test frontend
 cd frontend; npm.cmd run lint
 ```
 
 ## Docs
 
-Run `bin/windie docs list` from the repo root before implementation work.
+Run `<windie> docs list` from the repo root before implementation work.
 
 ## Related Docs
 

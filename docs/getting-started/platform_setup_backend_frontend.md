@@ -160,35 +160,35 @@ Dev/source run:
 
 Set `WINDIE_PYTHON_PATH` explicitly during development to avoid accidental interpreter drift.
 The sidecar source runtime keeps its startup imports client-local, so
-`bin/windie start dev` from `frontend_jarvis` does not require the backend package
+`<windie> start dev` from `frontend_jarvis` does not require the backend package
 to be installed into the frontend environment.
 
 ## 4) Frontend Node setup + run
 
 ```bash
 npm install
-bin/windie start dev
+<windie> start dev
 ```
 
 To force Electron dev to use the sidecar Python 3.11 environment:
 
 ```bash
-WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python bin/windie start dev
+WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python <windie> start dev
 ```
 
 For Windows PowerShell:
 
 ```powershell
 $env:WINDIE_PYTHON_PATH = "C:\path\to\WindieOS\.venv-sidecar311\Scripts\python.exe"
-bin/windie start dev
+<windie> start dev
 ```
 
 Windows notes:
 
-- Run the docs index helper as `bin/windie docs list`.
+- Run the docs index helper as `<windie> docs list`.
 - Use `npm.cmd` instead of `npm` when PowerShell resolves `npm` to `npm.ps1`
   and script execution policy blocks it.
-- If `npm run electron` or `bin/windie start desktop` fails with `spawn ...\node_modules\electron\dist\electron ENOENT`, reinstall `frontend/node_modules` from Windows so Electron downloads `electron.exe` for this OS instead of reusing a Linux payload.
+- If `npm run electron` or `<windie> start desktop` fails with `spawn ...\node_modules\electron\dist\electron ENOENT`, reinstall `frontend/node_modules` from Windows so Electron downloads `electron.exe` for this OS instead of reusing a Linux payload.
 
 Optional backend endpoint overrides (Electron main -> backend):
 
@@ -201,7 +201,7 @@ PowerShell example:
 ```powershell
 $env:BACKEND_HTTP_URL = "http://127.0.0.1:8765"
 $env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
-bin/windie start dev
+<windie> start dev
 ```
 
 Notes:
@@ -213,7 +213,7 @@ For headless Linux containers/CI without a display server:
 
 ```bash
 cd frontend
-WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-run -a bin/windie start dev
+WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-run -a <windie> start dev
 ```
 
 ## 5) Connect frontend to backend (manual check)
@@ -221,10 +221,10 @@ WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-r
 1. Start backend:
 
 ```bash
-bin/windie start backend
+<windie> start backend
 ```
 
-2. Start the desktop dev loop (`bin/windie start dev`) with `WINDIE_PYTHON_PATH` set to the sidecar Python 3.11 interpreter.
+2. Start the desktop dev loop (`<windie> start dev`) with `WINDIE_PYTHON_PATH` set to the sidecar Python 3.11 interpreter.
 4. Confirm frontend reaches backend websocket/API (default backend URL in this repo is typically `http://localhost:8765`).
 
 ## 6) Platform notes
@@ -244,8 +244,8 @@ bin/windie start backend
 - If `npm run electron` reports `Electron failed to install correctly`, run `cd frontend && npm rebuild electron`.
 
 Mode reminder:
-- `bin/windie start dev` -> Vite renderer plus Electron developer mode (recommended for development).
-- `bin/windie start desktop` -> Electron developer mode only.
+- `<windie> start dev` -> Vite renderer plus Electron developer mode (recommended for development).
+- `<windie> start desktop` -> Electron developer mode only.
 - `npm run electron` -> customer mode.
 
 ### macOS

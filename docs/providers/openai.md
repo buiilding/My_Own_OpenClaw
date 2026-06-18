@@ -94,14 +94,14 @@ If search results disappear:
 Focused backend tests:
 
 ```bash
-bin/windie test backend tests/backend/test_openai_provider.py tests/backend/test_openai_embedding_provider.py -q
-bin/windie test backend tests/backend/test_web_search_capabilities.py tests/backend/test_prompt_constructor_utils.py -q
-bin/windie test backend tests/backend/test_llm_provider_base.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
+<windie> test backend tests/backend/test_openai_provider.py tests/backend/test_openai_embedding_provider.py -q
+<windie> test backend tests/backend/test_web_search_capabilities.py tests/backend/test_prompt_constructor_utils.py -q
+<windie> test backend tests/backend/test_llm_provider_base.py tests/backend/test_llm_provider_stream_event_pipeline.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
+<windie> test frontend -- ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
 ```

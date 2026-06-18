@@ -3,7 +3,7 @@ summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL pro
 read_when:
   - When desktop logs, layer logs, or runtime logs are missing, too noisy, or needed to isolate a bug.
   - When changing logging setup, launch scripts, renderer interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
-  - When resolving layer log sink helper references such as `ensureLogFile`, `resolveRendererVerboseLogFile`, renderer verbose logs, or `bin/windie logs renderer --verbose`.
+  - When resolving layer log sink helper references such as `ensureLogFile`, `resolveRendererVerboseLogFile`, renderer verbose logs, or `<windie> logs renderer --verbose`.
 title: "Logging"
 ---
 
@@ -29,8 +29,8 @@ Backend logger names matter because the important profile demotes several noisy 
 Useful backend commands:
 
 ```bash
-LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
-LOG_LEVEL=DEBUG bin/windie test backend tests/backend/test_websocket_route.py -q
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose <windie> start backend
+LOG_LEVEL=DEBUG <windie> test backend tests/backend/test_websocket_route.py -q
 ```
 
 ## Electron Main Logs
@@ -52,7 +52,7 @@ to renderer, main, sidecar, or SDK owners.
 resolution, file initialization, append APIs, renderer verbose log writes, and
 console mirroring. The default generic scratch path is configurable by the host;
 the WindieOS host skin sets source runs to `.windie/logs`, and the Electron
-entrypoint, launcher, and `bin/windie logs ...` configure the sink from that
+entrypoint, launcher, and `<windie> logs ...` configure the sink from that
 skin before resolving defaults. CLI log inspection uses
 `resolveLayerLogFile(...)`, `resolveRendererVerboseLogFile(...)`, and
 `ensureLogFile(...)` so it can create or tail the correct file. Runtime feature
@@ -62,14 +62,14 @@ of resolving log files directly.
 Useful commands:
 
 ```bash
-bin/windie start desktop
-bin/windie start dev
-bin/windie logs frontend
-bin/windie logs frontend --tail 500 --no-follow
-WINDIE_DEBUG_STREAM_EVENTS=1 bin/windie start desktop
-WINDIE_DEBUG_CHAT_PILL=1 bin/windie start desktop
-WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
-WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log bin/windie start desktop
+<windie> start desktop
+<windie> start dev
+<windie> logs frontend
+<windie> logs frontend --tail 500 --no-follow
+WINDIE_DEBUG_STREAM_EVENTS=1 <windie> start desktop
+WINDIE_DEBUG_CHAT_PILL=1 <windie> start desktop
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
+WINDIE_FRONTEND_LOG_FILE=/tmp/windie-frontend.log <windie> start desktop
 npm --prefix frontend run test:ghost-cursor
 ```
 
@@ -87,7 +87,7 @@ override is provided.
 
 | Flag | Effect |
 | --- | --- |
-| `WINDIE_DEV_UI=1` | Set by `bin/windie start desktop`; enables developer UI/transparency paths. |
+| `WINDIE_DEV_UI=1` | Set by `<windie> start desktop`; enables developer UI/transparency paths. |
 | `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation into renderer URLs and main IPC trace logs. |
 | `WINDIE_DEBUG_CHAT_PILL=1` | Enables main chat pill trace logs in `frontend/src/main/debug/chat_pill_trace_runtime.cjs`. |
 | `WINDIE_DEBUG_LIVE_SURFACE=1` | Enables verbose ephemeral `[LiveSurfaceTrace]` surface state logs. |
@@ -105,11 +105,11 @@ stdout. Use app diagnostics to inspect the persistent path registry and latest
 rows:
 
 ```bash
-bin/windie diagnostics paths
-bin/windie diagnostics list --path desktop.startup --limit 50
-bin/windie diagnostics list --path ipc.bridge --limit 50
-bin/windie diagnostics list --path local_runtime.lifecycle --limit 50
-bin/windie diagnostics list --path wakeword.lifecycle --limit 50
+<windie> diagnostics paths
+<windie> diagnostics list --path desktop.startup --limit 50
+<windie> diagnostics list --path ipc.bridge --limit 50
+<windie> diagnostics list --path local_runtime.lifecycle --limit 50
+<windie> diagnostics list --path wakeword.lifecycle --limit 50
 ```
 
 `ipc.bridge` is the persistent mirror for compact `[ElectronTrace]` milestones:
@@ -122,7 +122,7 @@ Chat pill visibility and response-overlay window decisions are stored as app
 diagnostics instead of being printed to stdout by default. Inspect them with:
 
 ```bash
-bin/windie diagnostics list --path surface.visibility --limit 50
+<windie> diagnostics list --path surface.visibility --limit 50
 ```
 
 Rows include action, reason, mode, phase, user-hidden state, focus, result
@@ -141,7 +141,7 @@ as app diagnostics instead of being printed to stdout by default. Inspect them
 with:
 
 ```bash
-bin/windie diagnostics list --path renderer.interaction --limit 50
+<windie> diagnostics list --path renderer.interaction --limit 50
 ```
 
 Rows include action, event, view, target tag/type/role, and safe counts. They do
@@ -194,15 +194,15 @@ Useful command:
 
 ```bash
 cd frontend
-WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
 ```
 
 ## Packaged App Logs
 
 Packaged reinstall scripts expose log controls:
 
-- macOS: `bin/windie reinstall mac`
-- Windows: `bin/windie reinstall win`
-- Linux: `bin/windie reinstall linux`
+- macOS: `<windie> reinstall mac`
+- Windows: `<windie> reinstall win`
+- Linux: `<windie> reinstall linux`
 
 On macOS, `WINDIE_LOG_FILE` defaults to `~/windieos-packaged-run.log` in the reinstall helper. Keep packaged debugging separate from source-run debugging because app paths, Python paths, and permission state differ.

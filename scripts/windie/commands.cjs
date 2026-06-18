@@ -15,11 +15,11 @@ const { capture, runConcurrent, runForeground, runSync } = require('./run.cjs');
 const { mainHostSkin } = require('../../frontend/src/main/app/main_host_skin.cjs');
 const {
   APP_DIAGNOSTICS_PATH,
+  appUserDataRoot,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
   listDiagnosticPathDefinitions,
   queryDiagnosticEvents,
-  windieUserDataRoot,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
 const {
   configureLayerLogSink,
@@ -32,88 +32,98 @@ const {
 
 configureLayerLogSink(mainHostSkin.logging);
 
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require('node:sqlite'));
+} catch (_) {
+  DatabaseSync = null;
+}
+
 const HELP = `WindieOS command line
 
 Usage:
-  windie <command> [options]
+  <windie> <command> [options]
+
+Run with bin\\windie.cmd on Windows PowerShell/CMD or bin/windie.sh on macOS/Linux.
+Documentation uses <windie> for that active platform shim.
 
 Status and diagnostics:
-  windie status
-  windie status --all
-  windie status --all --json
-  windie doctor
-  windie doctor --fix
-  windie doctor --deep
-  windie doctor --json
-  windie diagnostics paths [--json]
-  windie diagnostics list [--path <path>] [--limit <n>] [--json]
-  windie diagnostics inspect <trace-id> [--json]
-  windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]
-  windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]
-  windie conversation list [--limit <n>] [--json]
-  windie conversation inspect <conversation-ref> [--json]
-  windie conversation messages <conversation-ref> [--limit <n>] [--json]
-  windie conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
-  windie conversation turns <conversation-ref> [--json]
-  windie conversation traces <conversation-ref> [--turn <turn-ref>] [--path <path>] [--limit <n>] [--json]
+  <windie> status
+  <windie> status --all
+  <windie> status --all --json
+  <windie> doctor
+  <windie> doctor --fix
+  <windie> doctor --deep
+  <windie> doctor --json
+  <windie> diagnostics paths [--json]
+  <windie> diagnostics list [--path <path>] [--limit <n>] [--json]
+  <windie> diagnostics inspect <trace-id> [--json]
+  <windie> trace <conversation-ref> <turn-ref> [--path <path>] [--json]
+  <windie> capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]
+  <windie> conversation list [--limit <n>] [--json]
+  <windie> conversation inspect <conversation-ref> [--json]
+  <windie> conversation messages <conversation-ref> [--limit <n>] [--json]
+  <windie> conversation events <conversation-ref> [--turn <turn-ref>] [--type <event-type>] [--limit <n>] [--json]
+  <windie> conversation turns <conversation-ref> [--json]
+  <windie> conversation traces <conversation-ref> [--turn <turn-ref>] [--path <path>] [--limit <n>] [--json]
 
 Lifecycle and logs:
-  windie start backend
-  windie start frontend
-  windie start desktop
-  windie start dev
-  windie start customer
-  windie start all
-  windie stop
-  windie restart desktop
-  windie logs backend [--remote --host <host>] [--service backend|tunnel|both]
-  windie logs frontend [--tail <lines>] [--follow] [--no-follow]
-  windie logs vite [--tail <lines>] [--follow] [--no-follow]
-  windie logs main [--tail <lines>] [--follow] [--no-follow]
-  windie logs renderer [--verbose] [--tail <lines>] [--follow] [--no-follow]
-  windie logs sidecar [--tail <lines>] [--follow] [--no-follow]
+  <windie> start backend
+  <windie> start frontend
+  <windie> start desktop
+  <windie> start dev
+  <windie> start customer
+  <windie> start all
+  <windie> stop
+  <windie> restart desktop
+  <windie> logs backend [--remote --host <host>] [--service backend|tunnel|both]
+  <windie> logs frontend [--tail <lines>] [--follow] [--no-follow]
+  <windie> logs vite [--tail <lines>] [--follow] [--no-follow]
+  <windie> logs main [--tail <lines>] [--follow] [--no-follow]
+  <windie> logs renderer [--verbose] [--tail <lines>] [--follow] [--no-follow]
+  <windie> logs sidecar [--tail <lines>] [--follow] [--no-follow]
 
 Tests and docs:
-  windie test backend [args...]
-  windie test sidecar [args...]
-  windie test frontend [args...]
-  windie test all
-  windie test pick <area>
-  windie docs list
-  windie docs check
-  windie docs search <query>
-  windie docs <query>
-  windie commits search <query> [--limit <n>] [--json]
+  <windie> test backend [args...]
+  <windie> test sidecar [args...]
+  <windie> test frontend [args...]
+  <windie> test all
+  <windie> test pick <area>
+  <windie> docs list
+  <windie> docs check
+  <windie> docs search <query>
+  <windie> docs <query>
+  <windie> commits search <query> [--limit <n>] [--json]
 
 Build and package:
-  windie build frontend
-  windie build sidecar-runtime
-  windie package mac
-  windie package win
-  windie package linux
-  windie reinstall mac
-  windie reinstall win
-  windie reinstall linux
+  <windie> build frontend
+  <windie> build sidecar-runtime
+  <windie> package mac
+  <windie> package win
+  <windie> package linux
+  <windie> reinstall mac
+  <windie> reinstall win
+  <windie> reinstall linux
 
 Backend, endpoint, and self-host:
-  windie backend health [--url <url>]
-  windie backend deploy --host <host> [options]
-  windie backend deploy --local [options]
-  windie backend service status|start|stop|restart [--scope system|user] [--host <host>]
-  windie endpoint show
-  windie endpoint local
-  windie endpoint hosted
-  windie endpoint probe
-  windie self-host bootstrap [options]
-  windie self-host tunnel setup [options]
-  windie self-host service install-backend [options]
-  windie self-host service install-cloudflared [options]
-  windie self-host status
+  <windie> backend health [--url <url>]
+  <windie> backend deploy --host <host> [options]
+  <windie> backend deploy --local [options]
+  <windie> backend service status|start|stop|restart [--scope system|user] [--host <host>]
+  <windie> endpoint show
+  <windie> endpoint local
+  <windie> endpoint hosted
+  <windie> endpoint probe
+  <windie> self-host bootstrap [options]
+  <windie> self-host tunnel setup [options]
+  <windie> self-host service install-backend [options]
+  <windie> self-host service install-cloudflared [options]
+  <windie> self-host status
 
 Developer helpers:
-  windie extension create <id> [options]
-  windie tools manifest generate
-  windie mock backend
+  <windie> extension create <id> [options]
+  <windie> tools manifest generate
+  <windie> mock backend
 `;
 
 function hasFlag(args, flag) {
@@ -145,7 +155,7 @@ function nodeScriptArgs(relativePath, args = []) {
 }
 
 function historyDatabasePath() {
-  return path.join(windieUserDataRoot(), 'history', 'history.db');
+  return path.join(appUserDataRoot(), 'history', 'history.db');
 }
 
 function historyTableNames() {
@@ -191,6 +201,14 @@ function queryHistoryDatabase(sql) {
   const dbPath = historyDatabasePath();
   if (!fs.existsSync(dbPath)) {
     throw new Error(`history database not found: ${dbPath}`);
+  }
+  if (DatabaseSync) {
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    try {
+      return db.prepare(sql).all();
+    } finally {
+      db.close();
+    }
   }
   const result = capture('sqlite3', ['-json', dbPath, sql], { cwd: REPO_ROOT });
   if (!result.ok) {
@@ -466,7 +484,7 @@ function normalizeWindieLogTarget(target) {
   if (['frontend', 'vite', 'main', 'renderer', 'sidecar'].includes(normalized)) {
     return normalized;
   }
-  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
+  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|sidecar');
 }
 
 function resolveWindieLogFile(target, env = process.env, { verbose = false } = {}) {
@@ -543,7 +561,7 @@ function runTrace(args) {
   const positional = positionalArgs(args, ['--path']);
   const [conversationRef, turnRef] = positional;
   if (!conversationRef || !turnRef) {
-    throw new Error('Usage: windie trace <conversation-ref> <turn-ref> [--path <path>] [--json]');
+    throw new Error('Usage: <windie> trace <conversation-ref> <turn-ref> [--path <path>] [--json]');
   }
 
   const payload = {
@@ -561,7 +579,7 @@ function runTrace(args) {
 function runCapability(args) {
   const subcommand = args[0];
   if (subcommand !== 'trace') {
-    throw new Error('Usage: windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]');
+    throw new Error('Usage: <windie> capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]');
   }
   const rest = args.slice(1);
   const json = hasFlag(rest, '--json');
@@ -569,7 +587,7 @@ function runCapability(args) {
   const turnRef = optionValue(rest, '--turn', '');
   const [conversationRef] = positionalArgs(rest, ['--turn', '--limit']);
   if (!conversationRef) {
-    throw new Error('Usage: windie capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]');
+    throw new Error('Usage: <windie> capability trace <conversation-ref> [--turn <turn-ref>] [--limit <n>] [--json]');
   }
 
   const events = loadCapabilityTrace({ conversationRef, turnRef, limit });
@@ -956,7 +974,7 @@ function runDiagnostics(args) {
   if (subcommand === 'inspect') {
     const [traceId] = positionalArgs(rest);
     if (!traceId) {
-      throw new Error('Usage: windie diagnostics inspect <trace-id> [--json]');
+      throw new Error('Usage: <windie> diagnostics inspect <trace-id> [--json]');
     }
     const events = inspectDiagnosticTrace(traceId);
     if (json) {
@@ -972,7 +990,7 @@ function runDiagnostics(args) {
     printDiagnosticEvents(events, `No diagnostics found for trace ${traceId}.`);
     return;
   }
-  throw new Error('Usage: windie diagnostics paths [--json] | list [--path <path>] [--limit <n>] [--json] | inspect <trace-id> [--json]');
+  throw new Error('Usage: <windie> diagnostics paths [--json] | list [--path <path>] [--limit <n>] [--json] | inspect <trace-id> [--json]');
 }
 
 function runConversation(args) {
@@ -991,7 +1009,7 @@ function runConversation(args) {
 
   const [conversationRef] = positionalArgs(rest, ['--turn', '--type', '--path', '--limit']);
   if (!conversationRef) {
-    throw new Error('Usage: windie conversation list|inspect|messages|events|turns|traces <conversation-ref>');
+    throw new Error('Usage: <windie> conversation list|inspect|messages|events|turns|traces <conversation-ref>');
   }
 
   if (subcommand === 'inspect') {
@@ -1047,7 +1065,7 @@ function runConversation(args) {
     return;
   }
 
-  throw new Error('Usage: windie conversation list|inspect|messages|events|turns|traces <conversation-ref>');
+  throw new Error('Usage: <windie> conversation list|inspect|messages|events|turns|traces <conversation-ref>');
 }
 
 function portOpen(host, port, timeoutMs = 750) {
@@ -1157,12 +1175,12 @@ function runStart(target) {
       { label: 'desktop', command: script('scripts/run-frontend-electron.sh'), cwd: REPO_ROOT },
     ]).then((code) => process.exit(code));
   }
-  throw new Error('Usage: windie start backend|frontend|desktop|dev|customer|all');
+  throw new Error('Usage: <windie> start backend|frontend|desktop|dev|customer|all');
 }
 
 function runRestart(target) {
   if (target !== 'desktop') {
-    throw new Error('Usage: windie restart desktop');
+    throw new Error('Usage: <windie> restart desktop');
   }
   return runStart('desktop');
 }
@@ -1203,7 +1221,7 @@ function runLogs(args) {
     ensureWindieLayerLogFile(target, logFile, { verbose });
     return runForeground('tail', tailArgs, { cwd: REPO_ROOT });
   }
-  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
+  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|sidecar');
 }
 
 function runTest(args) {
@@ -1226,7 +1244,7 @@ function runTest(args) {
   if (target === 'pick') {
     const area = rest.join(' ').trim();
     if (!area) {
-      throw new Error('Usage: windie test pick <area>');
+      throw new Error('Usage: <windie> test pick <area>');
     }
     const docs = fs.readFileSync(repoPath('docs/debug/test_selection.md'), 'utf8');
     const lines = docs
@@ -1243,7 +1261,7 @@ function runTest(args) {
     }
     return;
   }
-  throw new Error('Usage: windie test backend|sidecar|frontend|all|pick <area>');
+  throw new Error('Usage: <windie> test backend|sidecar|frontend|all|pick <area>');
 }
 
 function printDocsSearch(topic, usage) {
@@ -1274,12 +1292,12 @@ function runDocs(args) {
     return runForeground('git', ['diff', '--check'], { cwd: REPO_ROOT });
   }
   if (action === 'search') {
-    return printDocsSearch(args.slice(1).join(' '), 'Usage: windie docs search <query>');
+    return printDocsSearch(args.slice(1).join(' '), 'Usage: <windie> docs search <query>');
   }
   if (action) {
-    return printDocsSearch(args.join(' '), 'Usage: windie docs <query>');
+    return printDocsSearch(args.join(' '), 'Usage: <windie> docs <query>');
   }
-  throw new Error('Usage: windie docs list|check|search <query>|<query>');
+  throw new Error('Usage: <windie> docs list|check|search <query>|<query>');
 }
 
 function commitSearchArgs(args) {
@@ -1327,11 +1345,11 @@ function printCommitSearchText(result) {
 function runCommits(args) {
   const action = args[0];
   if (action !== 'search') {
-    throw new Error('Usage: windie commits search <query> [--limit <n>] [--json]');
+    throw new Error('Usage: <windie> commits search <query> [--limit <n>] [--json]');
   }
   const { query, limit, json } = commitSearchArgs(args.slice(1));
   if (!query) {
-    throw new Error('Usage: windie commits search <query> [--limit <n>] [--json]');
+    throw new Error('Usage: <windie> commits search <query> [--limit <n>] [--json]');
   }
   const result = findCommits(query, { limit });
   if (json) {
@@ -1351,7 +1369,7 @@ function runBuild(args) {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: windie build frontend|sidecar-runtime');
+  throw new Error('Usage: <windie> build frontend|sidecar-runtime');
 }
 
 function runPackage(args) {
@@ -1365,7 +1383,7 @@ function runPackage(args) {
   if (target === 'linux') {
     return runForeground('npm', ['--prefix', FRONTEND_DIR, 'run', 'package:linux'], { cwd: REPO_ROOT });
   }
-  throw new Error('Usage: windie package mac|win|linux');
+  throw new Error('Usage: <windie> package mac|win|linux');
 }
 
 function runReinstall(args) {
@@ -1386,7 +1404,7 @@ function runReinstall(args) {
       { cwd: REPO_ROOT },
     );
   }
-  throw new Error('Usage: windie reinstall mac|win|linux');
+  throw new Error('Usage: <windie> reinstall mac|win|linux');
 }
 
 async function fetchHealth(url) {
@@ -1463,7 +1481,7 @@ async function runBackend(args) {
   if (action === 'service') {
     const verb = args[1];
     if (!['status', 'start', 'stop', 'restart'].includes(verb)) {
-      throw new Error('Usage: windie backend service status|start|stop|restart');
+      throw new Error('Usage: <windie> backend service status|start|stop|restart');
     }
     const scope = optionValue(args, '--scope', 'system');
     const service = optionValue(args, '--service', 'windieos-backend.service');
@@ -1475,7 +1493,7 @@ async function runBackend(args) {
     }
     return runForeground(systemctl[0], commandArgs, { cwd: REPO_ROOT });
   }
-  throw new Error('Usage: windie backend health|deploy|service');
+  throw new Error('Usage: <windie> backend health|deploy|service');
 }
 
 async function runEndpoint(args) {
@@ -1500,7 +1518,7 @@ async function runEndpoint(args) {
   if (action === 'probe') {
     return runBackend(['health', '--url', endpoint.httpUrl, ...(hasFlag(args, '--json') ? ['--json'] : [])]);
   }
-  throw new Error('Usage: windie endpoint show|local|hosted|probe');
+  throw new Error('Usage: <windie> endpoint show|local|hosted|probe');
 }
 
 function runSelfHost(args) {
@@ -1543,7 +1561,7 @@ function runSelfHost(args) {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: windie self-host bootstrap|tunnel setup|service install-backend|service install-cloudflared|status');
+  throw new Error('Usage: <windie> self-host bootstrap|tunnel setup|service install-backend|service install-cloudflared|status');
 }
 
 function runExtension(args) {
@@ -1552,7 +1570,7 @@ function runExtension(args) {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: windie extension create <id>');
+  throw new Error('Usage: <windie> extension create <id>');
 }
 
 function runTools(args) {
@@ -1561,7 +1579,7 @@ function runTools(args) {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: windie tools manifest generate');
+  throw new Error('Usage: <windie> tools manifest generate');
 }
 
 function runMock(args) {
@@ -1570,7 +1588,7 @@ function runMock(args) {
       cwd: REPO_ROOT,
     });
   }
-  throw new Error('Usage: windie mock backend');
+  throw new Error('Usage: <windie> mock backend');
 }
 
 async function dispatch(argv) {

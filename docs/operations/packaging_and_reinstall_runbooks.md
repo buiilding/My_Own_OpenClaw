@@ -13,15 +13,15 @@ WindieOS packaged builds are Electron apps with a bundled Python sidecar runtime
 
 ## Packaging Command Map
 
-Run from `frontend/`:
+Run from the repository root:
 
 | Command | Builds | Notes |
 | --- | --- | --- |
-| `bin/windie package <platform>` | Electron Builder targets for the chosen OS | Runs sidecar-runtime and frontend builds first |
-| `bin/windie package mac` | macOS DMG and ZIP | Must run on macOS |
-| `bin/windie package win` | Windows NSIS installer | Must run on Windows |
-| `bin/windie package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
-| `bin/windie build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
+| `<windie> package <platform>` | Electron Builder targets for the chosen OS | Runs sidecar-runtime and frontend builds first |
+| `<windie> package mac` | macOS DMG and ZIP | Must run on macOS |
+| `<windie> package win` | Windows NSIS installer | Must run on Windows |
+| `<windie> package linux` | Linux AppImage, DEB, RPM | Must run on Linux |
+| `<windie> build sidecar-runtime` | `frontend/python-runtime` and archive | Calls `../scripts/build-sidecar-runtime.sh` |
 
 ## Runtime Build Ownership
 
@@ -55,7 +55,7 @@ Runtime expectations:
 Command:
 
 ```bash
-bin/windie reinstall mac
+<windie> reinstall mac
 ```
 
 What it does:
@@ -91,7 +91,7 @@ Useful overrides:
 Command:
 
 ```powershell
-bin/windie reinstall win
+<windie> reinstall win
 ```
 
 Options:
@@ -109,7 +109,7 @@ What it does:
 - Removes leftover install roots.
 - Resets local app state unless `-SkipDataReset` is set.
 - Cleans `dist`, `release`, `python-runtime`, and `python-runtime.tar.gz`.
-- Runs `bin/windie package win`.
+- Runs `<windie> package win`.
 - Installs the newest `*Setup*.exe` silently.
 - Launches the installed app unless `-SkipLaunch` is set.
 
@@ -125,7 +125,7 @@ Useful overrides:
 Command:
 
 ```bash
-bin/windie reinstall linux
+<windie> reinstall linux
 ```
 
 What it does:
@@ -138,7 +138,7 @@ What it does:
 - Runs `sudo apt autoremove -y`.
 - Cleans `release`, `dist`, `python-runtime`, and `python-runtime.tar.gz`.
 - Runs `conda run -n frontend_jarvis npm ci`.
-- Runs `bin/windie package linux`.
+- Runs `<windie> package linux`.
 - Installs the newest `release/windieos_*_amd64.deb`.
 - Verifies bundled runtime Python and `_tkinter`.
 

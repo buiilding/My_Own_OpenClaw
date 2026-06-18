@@ -216,7 +216,7 @@ Compact response lifecycle milestones are stored in app diagnostics under
 - `settings update.*`: settings send/ack milestones, including
   provider/model ids and changed setting keys.
 
-Inspect them with `bin/windie diagnostics list --path ipc.bridge --limit 50`.
+Inspect them with `<windie> diagnostics list --path ipc.bridge --limit 50`.
 Set `WINDIE_DEBUG_IPC_STDOUT=1` only when you also want the compact
 `[ElectronTrace]` stdout mirror. The diagnostics include conversation/turn ids,
 request ids, counts, and content lengths only. Set

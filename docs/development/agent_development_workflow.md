@@ -16,13 +16,13 @@ Run:
 
 ```bash
 git status --short --branch
-bin/windie docs list
+<windie> docs list
 ```
 
-If `bin/windie docs list` is unavailable:
+If `<windie> docs list` is unavailable:
 
 ```bash
-bin/windie docs list
+<windie> docs list
 ```
 
 Use `git status` to see existing changes. Do not revert unrelated user or agent changes. Work around unrelated dirty files unless they block your task.
@@ -93,8 +93,8 @@ Choose the narrowest meaningful command first, then widen if the change has broa
 
 - backend: `./scripts/python-in-env backend python -m pytest <backend-test-or-path>`
 - sidecar: `./scripts/python-in-env sidecar python -m pytest <sidecar-test-or-path>`
-- frontend: `bin/windie test frontend -- path/to/test`
-- docs: `bin/windie docs list`
+- frontend: `<windie> test frontend -- path/to/test`
+- docs: `<windie> docs list`
 
 See [Validation Matrix](validation_matrix.md) for broader gates.
 

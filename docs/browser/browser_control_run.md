@@ -31,13 +31,13 @@ cd WindieOS
 **Terminal 1 - Backend:**
 ```bash
 cd WindieOS
-bin/windie start backend
+<windie> start backend
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
 cd WindieOS
-bin/windie start desktop
+<windie> start desktop
 ```
 
 **Then in the chat:**
@@ -69,13 +69,13 @@ That's it. WindieOS connect now targets the named Browser Use daemon session:
 ```bash
 cd WindieOS
 export OPENAI_API_KEY="your-key"  # Optional, for real LLM
-bin/windie start backend
+<windie> start backend
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
 cd WindieOS
-bin/windie start desktop
+<windie> start desktop
 ```
 
 **Then in the chat:**
@@ -105,7 +105,7 @@ export WINDIEOS_LLM_CLIENT="mock_browser"
 **2. Run backend:**
 ```bash
 cd WindieOS
-bin/windie start backend
+<windie> start backend
 ```
 
 The mock client will automatically:
@@ -122,7 +122,7 @@ For the original mouse/keyboard simulation:
 
 ```bash
 export WINDIEOS_LLM_CLIENT="mock"
-bin/windie start backend
+<windie> start backend
 ```
 
 This opens Chrome and uses OCR/vision to navigate Amazon.

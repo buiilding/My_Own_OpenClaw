@@ -15,10 +15,10 @@ Choose the install path from the runtime you need to validate. Source-mode check
 | Goal | Use | Commands | Validates | Does not validate |
 | --- | --- | --- | --- | --- |
 | edit backend agent/provider/API behavior | source development | `./scripts/python-in-env backend python -m backend.src.main` | backend import, startup, routes, provider config | Electron packaging, bundled sidecar runtime |
-| edit renderer/main/sidecar behavior quickly | Electron dev app | `bin/windie start dev` | Vite renderer, Electron main, sidecar process, SDK runtime transport | installed app state, signing, packaged resource paths |
-| verify pure renderer UI build | frontend dev/build | `bin/windie start frontend`; `bin/windie build frontend` | renderer compile/runtime in browser-like dev mode | Electron main, sidecar, packaged app |
-| verify bundled sidecar Python | sidecar runtime build | `bin/windie build sidecar-runtime` | dependency install, bytecode packaging, runtime archive | installer behavior, OS install paths |
-| verify installed desktop app locally | local reinstall helper | `bin/windie reinstall <platform>` | installed app launch, local state reset, bundled runtime, sidecar startup | release signing/notarization, production publishing |
+| edit renderer/main/sidecar behavior quickly | Electron dev app | `<windie> start dev` | Vite renderer, Electron main, sidecar process, SDK runtime transport | installed app state, signing, packaged resource paths |
+| verify pure renderer UI build | frontend dev/build | `<windie> start frontend`; `<windie> build frontend` | renderer compile/runtime in browser-like dev mode | Electron main, sidecar, packaged app |
+| verify bundled sidecar Python | sidecar runtime build | `<windie> build sidecar-runtime` | dependency install, bytecode packaging, runtime archive | installer behavior, OS install paths |
+| verify installed desktop app locally | local reinstall helper | `<windie> reinstall <platform>` | installed app launch, local state reset, bundled runtime, sidecar startup | release signing/notarization, production publishing |
 | verify release artifacts | release workflow and smoke helpers | `.github/workflows/desktop-release.yml`; `scripts/ci/smoke-*` | target-OS package creation, smoke install, release artifact behavior | manual Gatekeeper validation on downloaded macOS apps |
 | route app to a non-default backend | endpoint override | `BACKEND_HTTP_URL`, `BACKEND_WS_URL` | desktop/sidecar traffic reaches intended backend | backend service health by itself |
 
@@ -32,18 +32,18 @@ Choose the install path from the runtime you need to validate. Source-mode check
 | sidecar launch path | Electron main | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs` |
 | wakeword launch path | Electron main plus sidecar Python | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/python/wakeword_service.py` |
 | endpoint selection | Electron main | `frontend/src/main/app/backend_endpoints.cjs` |
-| packaged app state reset | reinstall helpers | `bin/windie reinstall mac`, `bin/windie reinstall win`, `bin/windie reinstall linux` |
+| packaged app state reset | reinstall helpers | `<windie> reinstall mac`, `<windie> reinstall win`, `<windie> reinstall linux` |
 | release signing/notarization | CI release workflow | `.github/workflows/desktop-release.yml` |
 
 ## Required Validation By Change Type
 
 | Change type | Minimum validation |
 | --- | --- |
-| backend-only API/provider/agent change | `bin/windie test backend` plus route/provider-specific checks |
-| sidecar tool or local memory change | `bin/windie test sidecar`; Electron dev smoke if bridge payloads changed |
+| backend-only API/provider/agent change | `<windie> test backend` plus route/provider-specific checks |
+| sidecar tool or local memory change | `<windie> test sidecar`; Electron dev smoke if bridge payloads changed |
 | renderer-only UI change | `cd frontend && npm run test`; add `npm run lint` for shared code |
 | Electron main IPC or endpoint change | focused frontend tests plus Electron dev smoke |
-| bundled sidecar dependency change | `bin/windie build sidecar-runtime`; package on target OS when feasible |
+| bundled sidecar dependency change | `<windie> build sidecar-runtime`; package on target OS when feasible |
 | local reinstall helper change | run the matching OS helper, then inspect packaged run logs |
 | release workflow/signing change | target release workflow or dry-run equivalent; do not publish without approval |
 

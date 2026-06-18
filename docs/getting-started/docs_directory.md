@@ -8,7 +8,7 @@ title: "Docs Directory"
 
 # Docs Directory
 
-This is the compact local docs directory. For the complete canonical navigation map, use `docs/docs.json`. For agent-facing implementation routing, use [Documentation Hub](docs_hub.md). For searchable front matter and `read_when` hints, run `bin/windie docs list` from the repo root.
+This is the compact local docs directory. For the complete canonical navigation map, use `docs/docs.json`. For agent-facing implementation routing, use [Documentation Hub](docs_hub.md). For searchable front matter and `read_when` hints, run `<windie> docs list` from the repo root.
 
 ## Start Here
 
@@ -90,5 +90,5 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Reference Hub](../reference/README.md) - stable API, websocket event, configuration, and identifier maps.
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md) - route-level hosted API map.
 - [WebSocket Event Reference](../reference/websocket_event_reference.md) - backend event families and renderer consumers.
-- [Commands and Scripts](../cli/README.md) - first-class `bin/windie` command groups, diagnostics, docs search, tests, build, package, and deploy helpers.
+- [Commands and Scripts](../cli/README.md) - first-class `<windie>` command groups, diagnostics, docs search, tests, build, package, and deploy helpers.
 - [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) - docs organization benchmark.

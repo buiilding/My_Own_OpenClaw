@@ -74,19 +74,19 @@ export OPENAI_API_KEY="your-api-key"
 # Note: The backend can start without a key, but requests to that provider will fail.
 
 # Run the backend from the project root (auto-uses `jarvis` env if present)
-bin/windie start backend
+<windie> start backend
 ```
 
 **Terminal 2: Start the Desktop Dev Loop**
 
 ```bash
-bin/windie start dev
+<windie> start dev
 ```
 
 Windows PowerShell:
 
 ```powershell
-bin/windie start dev
+<windie> start dev
 ```
 
 ## Hosted Mode (Planned)

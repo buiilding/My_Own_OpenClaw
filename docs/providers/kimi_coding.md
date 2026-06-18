@@ -63,13 +63,13 @@ When changing Kimi behavior:
 Focused backend tests:
 
 ```bash
-bin/windie test backend tests/backend/test_kimi_coding_provider.py tests/backend/test_models_config.py -q
-bin/windie test backend tests/backend/test_provider_factory_helpers.py tests/backend/test_config_loader.py -q
+<windie> test backend tests/backend/test_kimi_coding_provider.py tests/backend/test_models_config.py -q
+<windie> test backend tests/backend/test_provider_factory_helpers.py tests/backend/test_config_loader.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ModelCardData.test.js ApiClient.test.ts AppConfigProvider.models.test.tsx
+<windie> test frontend -- ModelCardData.test.js ApiClient.test.ts AppConfigProvider.models.test.tsx
 ```

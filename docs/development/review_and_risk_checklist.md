@@ -54,7 +54,7 @@ For each changed boundary:
 
 - run the narrowest focused test first
 - widen when behavior is shared or cross-runtime
-- run `bin/windie docs list` when docs changed
+- run `<windie> docs list` when docs changed
 - run `git diff --check`
 - record skipped commands and why
 

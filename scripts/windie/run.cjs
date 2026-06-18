@@ -42,6 +42,7 @@ function runSync(command, args = [], options = {}) {
     env: options.env || process.env,
     stdio: options.stdio || 'inherit',
     encoding: options.encoding || 'utf8',
+    maxBuffer: options.maxBuffer || 50 * 1024 * 1024,
   });
   if (result.error) {
     if (options.allowError) {

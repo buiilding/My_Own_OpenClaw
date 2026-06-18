@@ -160,5 +160,5 @@ Before finishing:
 1. identify the enforcing boundary in [Security Boundary Matrix](security_boundary_matrix.md).
 2. update owner tests and at least one consumer/producer boundary test when payloads cross runtimes.
 3. update feature docs plus this security hub when the trust model changes.
-4. run `bin/windie docs list`.
+4. run `<windie> docs list`.
 5. confirm `git diff --check` is clean for touched files.

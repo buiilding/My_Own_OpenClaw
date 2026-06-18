@@ -117,7 +117,7 @@ Question the design when you see any of these:
 | Tool execution path | backend tool-turn tests, SDK coordinator/runtime tests, main IPC tool-router tests, Python sidecar tool tests |
 | Tool result/history shape | backend result ingress/transform/history tests plus transcript replay tests |
 | Transcript/replay shape | renderer transcript queue tests, local-runtime transcript storage tests, backend rehydrate tests |
-| Docs-only pipeline change | `bin/windie docs list`, `git diff --check`, and focused Markdown link checks |
+| Docs-only pipeline change | `<windie> docs list`, `git diff --check`, and focused Markdown link checks |
 
 ## Related Docs
 

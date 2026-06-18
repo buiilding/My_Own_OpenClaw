@@ -105,7 +105,7 @@ Current prompt template defines:
 - capability guidance for screen observation, GUI control, dedicated chrome browser profile, file edits, shell processes, local memory, hosted services, plugins, skills, MCP servers, and custom local tools
 - safety and authority rules that avoid unlimited-power claims and require confirmation for high-impact actions
 - work-mode sections for everyday, computer-use, browser, file/shell, coding, and WindieOS repository tasks
-- WindieOS repository orientation that points model behavior toward local docs first: `docs/docs.json`, `docs/getting-started/docs_directory.md`, and `bin/windie docs list`
+- WindieOS repository orientation that points model behavior toward local docs first: `docs/docs.json`, `docs/getting-started/docs_directory.md`, and `<windie> docs list`
 - concise communication guidance that makes coding one task mode rather than the default identity
 
 Because this file is runtime-loaded, prompt changes apply without Python code edits.

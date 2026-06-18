@@ -340,7 +340,7 @@ Validate:
 | Frontend provider settings | `cd frontend && npm run test -- ModelsSection AppConfigPersistence configStorage configFilter` |
 | Provider OAuth config | backend config-loader tests plus focused renderer config tests if renderer persistence changes |
 | Sidecar remote auth | focused sidecar remote-client pytest module plus backend auth-route test for the called endpoint |
-| Docs-only credential changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
+| Docs-only credential changes | `<windie> docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 
 ## Review Checklist
 

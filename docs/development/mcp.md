@@ -205,17 +205,17 @@ diagnostics:
 Inspect recent discovery failures with:
 
 ```bash
-bin/windie diagnostics list --path mcp.discovery --limit 10 --json
+<windie> diagnostics list --path mcp.discovery --limit 10 --json
 ```
 
 Inspect persistence or registration gaps with:
 
 ```bash
-bin/windie diagnostics list --path mcp.enablement --limit 10 --json
-bin/windie diagnostics list --path mcp.registration --limit 10 --json
+<windie> diagnostics list --path mcp.enablement --limit 10 --json
+<windie> diagnostics list --path mcp.registration --limit 10 --json
 ```
 
-Use the returned `traceId` with `bin/windie diagnostics inspect <trace-id>
+Use the returned `traceId` with `<windie> diagnostics inspect <trace-id>
 --json` to see spawn, initialize, `tools/list`, timeout, elapsed-time, and
 stderr-tail events, or the enablement/registration lifecycle rows for the same
 MCP path.

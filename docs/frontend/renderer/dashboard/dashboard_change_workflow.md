@@ -205,7 +205,7 @@ Panel invariants:
 
 Docs-only change:
 
-- `bin/windie docs list`
+- `<windie> docs list`
 - `git diff --check`
 - focused Markdown link check for touched docs
 

@@ -8,8 +8,8 @@ read_when:
 
 ## Getting Started
 
-1. Start the backend: `bin/windie start backend`
-2. Start the desktop dev loop: `bin/windie start dev`
+1. Start the backend: `<windie> start backend`
+2. Start the desktop dev loop: `<windie> start dev`
 
 ## First-Run Onboarding
 

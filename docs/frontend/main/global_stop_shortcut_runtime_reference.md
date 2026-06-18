@@ -114,7 +114,7 @@ Focused tests:
 Useful focused command:
 
 ```bash
-bin/windie test frontend -- AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js SettingsSection.test.jsx AppConfigProvider.storageAndIpc.test.tsx IpcMainBridge.lifecycle.test.cjs IpcStartupState.test.cjs IpcDesktopUiConfigHandlers.test.cjs
+<windie> test frontend -- AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js SettingsSection.test.jsx AppConfigProvider.storageAndIpc.test.tsx IpcMainBridge.lifecycle.test.cjs IpcStartupState.test.cjs IpcDesktopUiConfigHandlers.test.cjs
 ```
 
 ## Related Docs

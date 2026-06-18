@@ -87,5 +87,5 @@ Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and sc
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_use_engine_runtime.py tests/sidecar/tools/test_browser_schemas.py -q
-bin/windie test frontend -- PermissionService.test.cjs ChatBrowserSessionControl.test.jsx
+<windie> test frontend -- PermissionService.test.cjs ChatBrowserSessionControl.test.jsx
 ```

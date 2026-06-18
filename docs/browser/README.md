@@ -37,8 +37,8 @@ Do not edit the renderer to compensate for sidecar/browser payload bugs. Start w
 ## Focused Validation
 
 ```bash
-bin/windie test backend tests/backend/test_browser_remote_tool.py -q
-bin/windie test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_feature_pack_installer.py -q
+<windie> test backend tests/backend/test_browser_remote_tool.py -q
+<windie> test sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_feature_pack_installer.py -q
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
-bin/windie test frontend -- ChatBrowserSessionControl.test.jsx
+<windie> test frontend -- ChatBrowserSessionControl.test.jsx
 ```

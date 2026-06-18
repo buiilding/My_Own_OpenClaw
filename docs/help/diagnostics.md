@@ -26,11 +26,11 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 ## Useful Commands
 
 ```bash
-bin/windie docs list
+<windie> docs list
 git status --short --branch
-bin/windie test backend
-bin/windie test sidecar
-bin/windie test frontend
+<windie> test backend
+<windie> test sidecar
+<windie> test frontend
 cd frontend && npm run lint
 ```
 
@@ -40,11 +40,11 @@ Use app diagnostics for persistent desktop/runtime evidence that is not tied to
 one conversation turn:
 
 ```bash
-bin/windie diagnostics paths
-bin/windie diagnostics list --path desktop.startup --limit 50
-bin/windie diagnostics list --path ipc.bridge --limit 50
-bin/windie diagnostics list --path surface.visibility --limit 50
-bin/windie diagnostics list --path wakeword.lifecycle --limit 50
+<windie> diagnostics paths
+<windie> diagnostics list --path desktop.startup --limit 50
+<windie> diagnostics list --path ipc.bridge --limit 50
+<windie> diagnostics list --path surface.visibility --limit 50
+<windie> diagnostics list --path wakeword.lifecycle --limit 50
 ```
 
 For a report that is not yet tied to a subsystem, start with [Triage Routes](triage_routes.md), then use [Doctor Checklist](doctor_checklist.md) and [Evidence Packet](evidence_packet.md) to collect only the evidence the owner runtime needs.

@@ -97,7 +97,7 @@ OS debug mode for ghost animation:
 Global app policy:
 
 - startup acquires `app.requestSingleInstanceLock()`; duplicate launches exit and trigger `second-instance` on the primary process to focus the existing main window.
-- startup records `desktop.startup` diagnostics (ready + 2s delayed) with PID, RSS/heap, and Electron process-type counts for repeated-launch diagnostics. Inspect with `bin/windie diagnostics list --path desktop.startup --limit 50`; set `WINDIE_DEBUG_STARTUP_STDOUT=1` only when the `[Main][StartupMetrics]` stdout mirror is needed.
+- startup records `desktop.startup` diagnostics (ready + 2s delayed) with PID, RSS/heap, and Electron process-type counts for repeated-launch diagnostics. Inspect with `<windie> diagnostics list --path desktop.startup --limit 50`; set `WINDIE_DEBUG_STARTUP_STDOUT=1` only when the `[Main][StartupMetrics]` stdout mirror is needed.
 - `window-all-closed` is prevented only while tray mode is active (`!app.isQuitting && !vmMode`).
 - `before-quit` sets `app.isQuitting=true`, stops the SDK local runtime bridge, and stops VM worker runtime when active.
 
@@ -171,7 +171,7 @@ Overlay focus behavior is now the same on every desktop OS:
   close-to-pill handoff clear the user-hidden intent and may show the pill
 - stores `surface.visibility` diagnostics with `action="show-applied"`,
   `action="show-failed"`, or `action="show-suppressed"` so
-  `bin/windie diagnostics list --path surface.visibility` shows why the pill
+  `<windie> diagnostics list --path surface.visibility` shows why the pill
   appeared or stayed hidden
 - suppresses repeated `reason="startup"` chat-pill show requests after the
   startup surface has already handed off once; onboarding completion uses

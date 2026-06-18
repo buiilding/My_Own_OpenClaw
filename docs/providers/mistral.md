@@ -51,14 +51,14 @@ When adding or changing Mistral models:
 Focused backend tests:
 
 ```bash
-bin/windie test backend tests/backend/test_models_config.py tests/backend/test_model_service.py -q
-bin/windie test backend tests/backend/test_provider_factory_helpers.py tests/backend/test_llm_provider_base.py -q
+<windie> test backend tests/backend/test_models_config.py tests/backend/test_model_service.py -q
+<windie> test backend tests/backend/test_provider_factory_helpers.py tests/backend/test_llm_provider_base.py -q
 ```
 
 Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- ModelCardData.test.js ChatInterfaceWiring.test.jsx
+<windie> test frontend -- ModelCardData.test.js ChatInterfaceWiring.test.jsx
 ```
 

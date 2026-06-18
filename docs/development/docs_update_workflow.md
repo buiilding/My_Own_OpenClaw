@@ -2,7 +2,7 @@
 summary: "Docs update workflow for WindieOS agents, covering docs listing, read_when routing, hub updates, changelog entries, link checks, whitespace checks, and when docs-only changes need tests."
 read_when:
   - When adding, moving, renaming, or expanding WindieOS documentation.
-  - When tuning docs search grounding, docs-search ranking, `bin/windie docs search`, or `read_when` routing quality.
+  - When tuning docs search grounding, docs-search ranking, `<windie> docs search`, or `read_when` routing quality.
   - When behavior changes require docs updates across hubs, references, runbooks, and changelog entries.
 title: "Docs Update Workflow"
 ---
@@ -15,13 +15,13 @@ Use this workflow for docs-only work and for implementation changes that require
 
 ```bash
 git status --short --branch
-bin/windie docs list
+<windie> docs list
 ```
 
 For targeted orientation, use docs search before broad file scans:
 
 ```bash
-bin/windie docs search "<feature or symptom>"
+<windie> docs search "<feature or symptom>"
 ```
 
 ## Choose The Doc Type
@@ -53,7 +53,7 @@ title: "Page Title"
 
 Use `read_when` hints to route agents before code edits.
 
-`bin/windie docs search <query>` ranks exact phrase and all-query-term matches
+`<windie> docs search <query>` ranks exact phrase and all-query-term matches
 ahead of broad partial matches. Keep titles, summaries, `read_when` hints, and
 section headings specific enough that queries like `model catalog` or
 `mcp tool result` land on the owning workflow or contract before generic
@@ -78,7 +78,7 @@ Do not add every deep implementation page to every hub. Add pages that materiall
 Run:
 
 ```bash
-bin/windie docs list
+<windie> docs list
 git diff --check
 ```
 

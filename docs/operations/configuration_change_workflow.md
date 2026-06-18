@@ -25,7 +25,7 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 | provider key, OAuth, or secret behavior changed | env var loader and credential boundary | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py`, provider runtime files, renderer provider settings only for user-entered overrides | [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md), [Provider Credentials](../providers/credentials.md) | backend config/provider tests plus frontend provider settings tests |
 | Python sidecar local tool runtime variable changed | SDK local-runtime launch env and Python sidecar runtime reader | `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/python/core`, `frontend/src/main/python/tools` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md) | `tests/sidecar/test_backend_config.py`, focused Python sidecar tool tests |
 | VM worker or runs API variable changed | backend runs API and Electron VM worker runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs`, `frontend/src/main/app/runtime_mode.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) | backend runs tests, frontend VM worker tests |
-| release, signing, package, or bundled runtime variable changed | release/packaging scripts | `.github/workflows`, `frontend/package.json`, `frontend/electron-builder.*`, `scripts/build-sidecar-runtime`, `bin/windie reinstall <platform>` | [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md), [Release Guide](release.md) | package build, smoke helper, target OS manual installed-app check |
+| release, signing, package, or bundled runtime variable changed | release/packaging scripts | `.github/workflows`, `frontend/package.json`, `frontend/electron-builder.*`, `scripts/build-sidecar-runtime`, `<windie> reinstall <platform>` | [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md), [Release Guide](release.md) | package build, smoke helper, target OS manual installed-app check |
 
 ## Ownership Rules
 
@@ -169,7 +169,7 @@ Primary files:
 Validation:
 
 - focused sidecar pytest.
-- `bin/windie build sidecar-runtime` if runtime dependencies or packaged launch env changed.
+- `<windie> build sidecar-runtime` if runtime dependencies or packaged launch env changed.
 - target OS package smoke when packaged env behavior changed.
 
 ## Review Checklist
