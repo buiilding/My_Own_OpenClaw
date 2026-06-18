@@ -800,6 +800,8 @@ that need connection waiters, reconnect scheduling, endpoint fallback, idle
 disconnect, typed backend sends, and raw event parsing. Electron main consumes
 that SDK package transport and only supplies host-specific socket construction,
 headers, handshake data, local tool execution, and renderer fan-out.
+`ManagedBackendSessionOptions.createSocket` uses a direct `() => WebSocketLike`
+function type; there is no separate `ManagedBackendSocketFactory` alias.
 An opened socket is not considered a connected managed session until handshake
 construction and `send()` both succeed. If handshake construction or the
 handshake send fails, the managed session closes and clears that socket,
