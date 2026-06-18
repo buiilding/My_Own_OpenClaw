@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: require hosts to provide a local-runtime launch command, daemon
+  script, or daemon-script environment override instead of guessing WindieOS
+  repository sidecar paths from the SDK.
 - docs/runtime: qualify cross-runtime routing labels for executable actions,
   memory, and configuration as Python sidecar ownership.
 - docs/sidecar: qualify JSON-RPC workflow test and method-owner labels as

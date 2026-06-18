@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK Local Runtime Launch Boundary
+
+- Finding: the SDK local-runtime provider still guessed WindieOS repository
+  daemon paths (`frontend/src/main/python/sidecar_daemon.py` and
+  `src/main/python/sidecar_daemon.py`) when hosts omitted an explicit launch
+  command or daemon script.
+- Change: removed SDK repo-path guessing so auto-start now requires a host
+  command, explicit daemon script, or `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`;
+  Electron already supplies its concrete launch command through the desktop
+  local-runtime launch plan.
+- Validation: focused SDK client Jest tests, source-boundary assertions, docs
+  listing, and diff check.
+- Compatibility: hosts that relied on implicit WindieOS cwd probing must pass
+  `autoLocalRuntime.command`, `autoLocalRuntime.daemonScript`, or
+  `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`. No storage, API, IPC, credential,
+  provider-policy, or Python sidecar protocol migration is required.
+
 ### 2026-06-18 Python Sidecar Routing Labels
 
 - Finding: navigation, evidence, process-lifecycle, platform, memory, tool, and

@@ -596,28 +596,17 @@ async function shutdownDiscoveredDaemon(
   return true;
 }
 
-function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, fs: NodeFsLike, path: NodePathLike): string {
+function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, path: NodePathLike): string {
   const processLike = (globalThis as unknown as {
-    process?: { cwd?: () => string; env?: Record<string, string | undefined> };
+    process?: { env?: Record<string, string | undefined> };
   }).process;
   const explicit = options.daemonScript
     ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
   if (explicit) {
     return path.resolve(explicit);
   }
-  const cwd = typeof processLike?.cwd === 'function'
-    ? processLike.cwd()
-    : '.';
-  const candidates = [
-    path.resolve(cwd, 'frontend/src/main/python/sidecar_daemon.py'),
-    path.resolve(cwd, 'src/main/python/sidecar_daemon.py'),
-  ];
-  const found = candidates.find(candidate => fs.existsSync(candidate));
-  if (found) {
-    return found;
-  }
   throw new Error(
-    'Agent SDK client could not locate the local runtime daemon script. Set WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT or pass autoLocalRuntime.daemonScript.',
+    'Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT.',
   );
 }
 
@@ -655,7 +644,7 @@ function resolveDaemonLaunchCommand(
     };
   }
   const processEnv = resolveProcessEnv();
-  const daemonScript = resolveDaemonScript(options, fs, path);
+  const daemonScript = resolveDaemonScript(options, path);
   const pythonCommand = options.pythonCommand
     ?? processEnv.WINDIE_PYTHON
     ?? 'python3';

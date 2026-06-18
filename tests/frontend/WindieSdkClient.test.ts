@@ -2950,6 +2950,35 @@ describe('Agent SDK client behavior', () => {
     })).rejects.toThrow(`Timed out waiting for local runtime discovery at ${discoveryFile}`);
   });
 
+  test('createAgentLocalRuntimeProvider requires host-supplied launch command or daemon script', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-no-launch-'));
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
+    const originalDaemonScriptEnv = process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
+    delete process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
+
+    try {
+      const provider = createAgentLocalRuntimeProvider({
+        discoveryFile,
+        fetchImpl: mockFetch,
+        startTimeoutMs: 5,
+        pollIntervalMs: 1,
+      });
+
+      await expect(provider({
+        wakeUp: { tools: [] },
+        needsLocalRuntime: true,
+      })).rejects.toThrow(
+        'Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT.',
+      );
+    } finally {
+      if (typeof originalDaemonScriptEnv === 'string') {
+        process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT = originalDaemonScriptEnv;
+      } else {
+        delete process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
+      }
+    }
+  });
+
   test('createAgentLocalRuntimeProvider source keeps generic default discovery path', async () => {
     const runtimeSource = await fsPromises.readFile(
       path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/LocalRuntime.ts'),
@@ -2965,6 +2994,9 @@ describe('Agent SDK client behavior', () => {
       expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'local-runtime-daemon.json')");
       expect(source).not.toContain('WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE');
       expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
+      expect(source).not.toContain('frontend/src/main/python/sidecar_daemon.py');
+      expect(source).not.toContain('src/main/python/sidecar_daemon.py');
+      expect(source).toContain('autoLocalRuntime.command');
     }
     expect(runtimeSource).not.toContain('SidecarDaemonClientOptions');
     expect(runtimeSource).not.toContain('SidecarDaemonDiscovery');
