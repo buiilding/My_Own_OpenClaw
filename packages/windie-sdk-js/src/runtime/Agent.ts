@@ -147,8 +147,6 @@ export type LoadConversationOptions = {
   store?: ConversationStore;
 };
 
-export type RawBackendEventListener = (event: BackendEvent) => void;
-
 export type AgentMemoryType = 'episodic' | 'semantic';
 
 export type AgentMemoryQuery = {
@@ -900,7 +898,7 @@ export class Agent {
     }
   }
 
-  subscribeRawBackendEvents(listener: RawBackendEventListener): () => void {
+  subscribeRawBackendEvents(listener: (event: BackendEvent) => void): () => void {
     return this.session.on('event', listener);
   }
 

@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove the unused exported `RawBackendEventListener` type alias;
+  `subscribeRawBackendEvents` now uses the direct `(event: BackendEvent) => void`
+  listener shape, with no websocket, storage, or runtime behavior change.
 - frontend/renderer: rename the private SDK command invoke bridge helper from
   `DesktopAgentCommandBridge`/`getDesktopAgentCommandBridge` to
   `AgentSdkCommandBridge`/`getAgentSdkCommandBridge`; no migration is required

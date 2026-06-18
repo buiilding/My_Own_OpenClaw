@@ -199,6 +199,10 @@ describe('@windie/sdk package boundary', () => {
   });
 
   test('exports generic agent stream event types', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/Agent.ts'),
+      'utf8',
+    );
     const event: AgentStreamEvent = {
       type: 'state',
       state: 'thinking',
@@ -206,6 +210,8 @@ describe('@windie/sdk package boundary', () => {
       turnRef: 'turn-1',
     };
 
+    expect(source).toContain('subscribeRawBackendEvents(listener: (event: BackendEvent) => void)');
+    expect(source).not.toContain('RawBackendEventListener');
     expect(event.state).toBe('thinking');
   });
 

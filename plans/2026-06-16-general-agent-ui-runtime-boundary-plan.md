@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK raw backend listener alias removal
+
+- Finding: `RawBackendEventListener` only renamed the raw backend event callback
+  shape used by `Agent.subscribeRawBackendEvents`, and exact scans found no
+  callers outside the defining module.
+- Change: removed the duplicate exported alias, typed the subscriber directly as
+  `(event: BackendEvent) => void`, documented the direct listener shape, and
+  added package-boundary coverage so the alias stays removed.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK TypeScript
+  `--noEmit` compile, SDK runtime docs route lookup, and stale alias scan.
+- Compatibility: no repo migration required because there were no internal
+  callers. External SDK callers should type raw backend listeners directly as
+  `(event: BackendEvent) => void`.
+
 ### 2026-06-18 renderer SDK command bridge helper naming
 
 - Finding: `agentSdkCommandInvokeClient.ts` still named its private preload
