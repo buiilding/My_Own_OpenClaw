@@ -45,7 +45,7 @@ Provider responsibilities:
 Startup surface routing in `AppContent`:
 
 - VM mode (`vm_mode=1` query param) renders `DashboardShell` directly (`vmModeEnabled=true`)
-- non-VM mode renders frontend onboarding slideshow until `permissionStore.needsOnboarding` is false
+- non-VM mode renders desktop onboarding slideshow until `permissionStore.needsOnboarding` is false
 - onboarding completion persists `windieos-permission-onboarding` (`manifest_version`, `completed`, `completed_at`) then routes to dashboard shell
 
 ## Feature Domains
@@ -98,7 +98,7 @@ Primary runtime:
 Current behavior:
 
 - app startup routes by VM mode + permission-onboarding completion for the current manifest
-- frontend onboarding step 1 renders a permission checklist and triggers `requestPermission` per row plus focused rechecks
+- desktop onboarding step 1 renders a permission checklist and triggers `requestPermission` per row plus focused rechecks
 - Browser settings uses focused permission probe/request actions for Browser automation status
 - `permissionStore` derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and powers onboarding plus focused settings permission surfaces
 
@@ -150,7 +150,7 @@ Backend remains source of truth for non-frontend runtime fields.
 
 - [Frontend Renderer Docs Hub](README.md)
 - [Desktop Runtime Transport Command Contract Reference](desktop_runtime_transport_command_contract_reference.md)
-- [App Startup VM-Mode and Frontend Onboarding Runtime Reference](app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
+- [App Startup VM-Mode and Permission Onboarding Runtime Reference](app_startup_vm_mode_and_permission_onboarding_runtime_reference.md)
 - [Renderer Permissions Docs Hub](permissions/README.md)
 - [Frontend Renderer Provider Docs Hub](providers/README.md)
 - [Frontend Renderer Chat Docs Hub](chat/README.md)

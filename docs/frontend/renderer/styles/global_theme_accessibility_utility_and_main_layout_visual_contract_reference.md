@@ -17,7 +17,7 @@ This page documents:
 - `frontend/src/renderer/styles/DashboardShell.css`
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
 - `frontend/src/renderer/styles/CloneSettings.css`
-- `frontend/src/renderer/styles/FrontendOnboarding.css`
+- `frontend/src/renderer/styles/DesktopOnboarding.css`
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 
@@ -96,7 +96,7 @@ Responsive behavior:
 ## Import/Load Contract (`App.jsx`)
 
 `App.jsx` imports `theme.css`, `ChatInterface.css`, `DashboardShell.css`,
-`CloneMemoryModels.css`, `FrontendOnboarding.css`, and `accessibility.css` at root.
+`CloneMemoryModels.css`, `DesktopOnboarding.css`, and `accessibility.css` at root.
 
 `CloneMemoryModels.css` owns clone-style modal panel visuals for:
 
@@ -108,7 +108,7 @@ Responsive behavior:
 `App.jsx` import. It owns settings tab and control visuals while the dashboard
 shell still owns modal framing and backdrop behavior.
 
-`FrontendOnboarding.css` is a root import because onboarding can replace the
+`DesktopOnboarding.css` is a root import because onboarding can replace the
 dashboard/chat surface before normal dashboard sections mount.
 
 Implication:

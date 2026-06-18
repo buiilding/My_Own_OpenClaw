@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename the permission onboarding component, stylesheet, selectors,
+  and focused coverage from frontend onboarding to desktop onboarding so the
+  generic renderer surface no longer carries frontend-named UI internals.
 - sdk: rename the tool coordinator's display-only synthetic event claim reason
   to `backend-skipped-local-execution` so SDK local execution vocabulary no
   longer exposes frontend-named backend metadata.

@@ -1,8 +1,8 @@
 /*
- * Styles the frontend onboarding surface for the renderer UI.
+ * Styles the desktop onboarding surface for the renderer UI.
  */
 
-.frontend-onboarding-shell {
+.desktop-onboarding-shell {
   --onboarding-shell-width: min(1120px, calc(100% - 88px));
   --onboarding-stage-width: min(1120px, 100%);
   --onboarding-copy-width: min(760px, 100%);
@@ -21,7 +21,7 @@
   color: #f3f3f3;
 }
 
-.frontend-onboarding-card {
+.desktop-onboarding-card {
   width: 100%;
   min-height: 100dvh;
   display: grid;
@@ -33,7 +33,7 @@
   overflow: hidden;
 }
 
-.frontend-onboarding-window-chrome {
+.desktop-onboarding-window-chrome {
   position: fixed;
   top: 18px;
   right: 18px;
@@ -42,7 +42,7 @@
   z-index: 5;
 }
 
-.frontend-onboarding-window-controls {
+.desktop-onboarding-window-controls {
   flex-shrink: 0;
   position: relative;
   z-index: 4;
@@ -50,27 +50,27 @@
   -webkit-app-region: no-drag;
 }
 
-.frontend-onboarding-card-permissions {
+.desktop-onboarding-card-permissions {
   width: 100%;
 }
 
-.frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
+.desktop-onboarding-card-permissions .desktop-onboarding-card-scroll-region {
   padding-top: 32px;
   gap: 18px;
 }
 
-.frontend-onboarding-card-permissions .frontend-onboarding-title {
+.desktop-onboarding-card-permissions .desktop-onboarding-title {
   font-size: clamp(34px, 4vw, 60px);
   line-height: 1;
 }
 
-.frontend-onboarding-card-permissions .frontend-onboarding-body {
+.desktop-onboarding-card-permissions .desktop-onboarding-body {
   font-size: clamp(14px, 1.5vw, 22px);
   line-height: 1.28;
   max-width: 44ch;
 }
 
-.frontend-onboarding-card-scroll-region {
+.desktop-onboarding-card-scroll-region {
   min-height: 0;
   width: var(--onboarding-shell-width);
   margin: 0 auto;
@@ -82,7 +82,7 @@
   overflow: auto;
 }
 
-.frontend-onboarding-stage {
+.desktop-onboarding-stage {
   width: var(--onboarding-stage-width);
   min-height: 100%;
   display: grid;
@@ -92,7 +92,7 @@
   padding: 10px 0 18px;
 }
 
-.frontend-onboarding-stage-copy {
+.desktop-onboarding-stage-copy {
   width: var(--onboarding-copy-width);
   display: grid;
   justify-items: center;
@@ -100,7 +100,7 @@
   text-align: center;
 }
 
-.frontend-onboarding-progress {
+.desktop-onboarding-progress {
   margin: 0;
   font-size: 13px;
   line-height: 1.3;
@@ -110,7 +110,7 @@
   text-shadow: none;
 }
 
-.frontend-onboarding-title {
+.desktop-onboarding-title {
   margin: 0;
   font-size: clamp(52px, 7vw, 96px);
   line-height: 0.98;
@@ -120,7 +120,7 @@
   color: #ffffff;
 }
 
-.frontend-onboarding-body {
+.desktop-onboarding-body {
   margin: 0;
   font-size: clamp(20px, 2.4vw, 34px);
   line-height: 1.42;
@@ -129,7 +129,7 @@
   max-width: 28ch;
 }
 
-.frontend-onboarding-stop-flow {
+.desktop-onboarding-stop-flow {
   display: grid;
   gap: 28px;
   align-items: start;
@@ -137,7 +137,7 @@
   padding-top: 20px;
 }
 
-.frontend-onboarding-stop-flow-keybind {
+.desktop-onboarding-stop-flow-keybind {
   display: grid;
   justify-items: start;
   gap: 16px;
@@ -155,14 +155,14 @@
     0 0 30px -18px var(--agent-accent-glow);
 }
 
-.frontend-onboarding-stop-flow-keybind-label {
+.desktop-onboarding-stop-flow-keybind-label {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #8c8c8c;
 }
 
-.frontend-onboarding-stop-flow-keycap-row {
+.desktop-onboarding-stop-flow-keycap-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -170,7 +170,7 @@
   width: 100%;
 }
 
-.frontend-onboarding-stop-flow-keycap {
+.desktop-onboarding-stop-flow-keycap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -195,14 +195,14 @@
   text-align: center;
 }
 
-.frontend-onboarding-stop-flow-keycap-separator {
+.desktop-onboarding-stop-flow-keycap-separator {
   font-size: clamp(24px, 3.6vw, 34px);
   line-height: 1;
   font-weight: 500;
   color: #8f8f8f;
 }
 
-.frontend-onboarding-actions {
+.desktop-onboarding-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -216,11 +216,11 @@
   flex-shrink: 0;
 }
 
-.frontend-onboarding-action-spacer {
+.desktop-onboarding-action-spacer {
   width: 84px;
 }
 
-.frontend-onboarding-button {
+.desktop-onboarding-button {
   border: 1px solid #4d4d4d;
   border-radius: 999px;
   padding: 12px 24px;
@@ -231,29 +231,29 @@
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
-.frontend-onboarding-button.secondary {
+.desktop-onboarding-button.secondary {
   color: #e2e2e2;
   background: var(--agent-gray);
 }
 
-.frontend-onboarding-button.secondary:hover {
+.desktop-onboarding-button.secondary:hover {
   background: var(--agent-gray-light);
   border-color: rgba(0, 122, 255, 0.34);
 }
 
-.frontend-onboarding-button.primary {
+.desktop-onboarding-button.primary {
   color: #ffffff;
   background: var(--agent-accent);
   border-color: var(--agent-accent);
   box-shadow: 0 0 20px -8px var(--agent-accent-glow);
 }
 
-.frontend-onboarding-button.primary:hover {
+.desktop-onboarding-button.primary:hover {
   background: var(--agent-accent-hover);
   border-color: var(--agent-accent-hover);
 }
 
-.frontend-onboarding-permissions-section {
+.desktop-onboarding-permissions-section {
   display: grid;
   gap: 18px;
   min-height: 0;
@@ -261,7 +261,7 @@
   justify-items: center;
 }
 
-.frontend-onboarding-permission-stage-meta {
+.desktop-onboarding-permission-stage-meta {
   display: grid;
   gap: 6px;
   width: var(--onboarding-feedback-width);
@@ -269,7 +269,7 @@
   text-align: center;
 }
 
-.frontend-onboarding-permission-stage-count {
+.desktop-onboarding-permission-stage-count {
   margin: 0;
   font-size: 13px;
   line-height: 1.2;
@@ -279,14 +279,14 @@
   text-shadow: none;
 }
 
-.frontend-onboarding-permission-stage-summary {
+.desktop-onboarding-permission-stage-summary {
   margin: 0;
   font-size: 15px;
   line-height: 1.35;
   color: #aeaeae;
 }
 
-.frontend-onboarding-permissions-list {
+.desktop-onboarding-permissions-list {
   border: none;
   border-radius: 0;
   background: transparent;
@@ -295,13 +295,13 @@
   gap: 14px;
 }
 
-.frontend-onboarding-permissions-list.single {
+.desktop-onboarding-permissions-list.single {
   grid-template-columns: 1fr;
   width: var(--onboarding-card-width);
   justify-items: center;
 }
 
-.frontend-onboarding-permission-row {
+.desktop-onboarding-permission-row {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 14px;
@@ -318,7 +318,7 @@
     linear-gradient(180deg, rgba(17, 17, 17, 0.94), rgba(8, 8, 8, 0.97));
 }
 
-.frontend-onboarding-permission-row.single {
+.desktop-onboarding-permission-row.single {
   width: var(--onboarding-card-width);
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -326,17 +326,17 @@
   padding: 24px 26px;
 }
 
-.frontend-onboarding-card-permissions .frontend-onboarding-permission-row {
+.desktop-onboarding-card-permissions .desktop-onboarding-permission-row {
   min-width: 0;
   align-items: start;
 }
 
-.frontend-onboarding-permission-copy {
+.desktop-onboarding-permission-copy {
   display: grid;
   gap: 8px;
 }
 
-.frontend-onboarding-permission-copy h2 {
+.desktop-onboarding-permission-copy h2 {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
@@ -344,11 +344,11 @@
   color: #ffffff;
 }
 
-.frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy h2 {
+.desktop-onboarding-permission-row.single .desktop-onboarding-permission-copy h2 {
   font-size: 30px;
 }
 
-.frontend-onboarding-permission-kind {
+.desktop-onboarding-permission-kind {
   margin: 0;
   font-size: 11px;
   line-height: 1.2;
@@ -357,11 +357,11 @@
   color: #9b9b9b;
 }
 
-.frontend-onboarding-permission-row.single .frontend-onboarding-permission-kind {
+.desktop-onboarding-permission-row.single .desktop-onboarding-permission-kind {
   font-size: 12px;
 }
 
-.frontend-onboarding-permission-copy p {
+.desktop-onboarding-permission-copy p {
   margin: 0;
   color: #d0d0d0;
   font-size: 13px;
@@ -372,62 +372,62 @@
   white-space: normal;
 }
 
-.frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy p {
+.desktop-onboarding-permission-row.single .desktop-onboarding-permission-copy p {
   font-size: 18px;
   line-height: 1.5;
 }
 
-.frontend-onboarding-permission-copy p.frontend-onboarding-permission-kind {
+.desktop-onboarding-permission-copy p.desktop-onboarding-permission-kind {
   display: block;
   overflow: visible;
   text-overflow: clip;
 }
 
-.frontend-onboarding-permission-reason {
+.desktop-onboarding-permission-reason {
   margin: 0;
   font-size: 12px;
   line-height: 1.35;
   color: #b7b7b7;
 }
 
-.frontend-onboarding-permission-row.single .frontend-onboarding-permission-reason {
+.desktop-onboarding-permission-row.single .desktop-onboarding-permission-reason {
   font-size: 16px;
   line-height: 1.4;
 }
 
-.frontend-onboarding-permission-reason.status-needs-action,
-.frontend-onboarding-permission-reason.status-error {
+.desktop-onboarding-permission-reason.status-needs-action,
+.desktop-onboarding-permission-reason.status-error {
   color: #d4d4d4;
 }
 
-.frontend-onboarding-permission-reason.status-granted {
+.desktop-onboarding-permission-reason.status-granted {
   color: var(--agent-accent-pale);
   text-shadow: 0 0 18px rgba(0, 122, 255, 0.18);
 }
 
-.frontend-onboarding-card-permissions .frontend-onboarding-permission-reason.status-granted,
-.frontend-onboarding-card-permissions .frontend-onboarding-permission-granted {
+.desktop-onboarding-card-permissions .desktop-onboarding-permission-reason.status-granted,
+.desktop-onboarding-card-permissions .desktop-onboarding-permission-granted {
   color: var(--agent-accent-pale);
 }
 
-.frontend-onboarding-card-permissions .frontend-onboarding-permission-granted-icon {
+.desktop-onboarding-card-permissions .desktop-onboarding-permission-granted-icon {
   background: var(--agent-accent);
   border-color: rgba(166, 216, 255, 0.72);
   color: #ffffff;
 }
 
-.frontend-onboarding-permission-row > .frontend-onboarding-button {
+.desktop-onboarding-permission-row > .desktop-onboarding-button {
   min-width: 112px;
   padding: 11px 18px;
   align-self: start;
 }
 
-.frontend-onboarding-permission-row.single > .frontend-onboarding-button {
+.desktop-onboarding-permission-row.single > .desktop-onboarding-button {
   min-width: 132px;
   padding: 13px 22px;
 }
 
-.frontend-onboarding-permission-granted {
+.desktop-onboarding-permission-granted {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
@@ -439,12 +439,12 @@
   align-self: start;
 }
 
-.frontend-onboarding-permission-row.single .frontend-onboarding-permission-granted {
+.desktop-onboarding-permission-row.single .desktop-onboarding-permission-granted {
   font-size: 17px;
   min-width: 132px;
 }
 
-.frontend-onboarding-permission-granted-icon {
+.desktop-onboarding-permission-granted-icon {
   width: 20px;
   height: 20px;
   border-radius: 999px;
@@ -458,20 +458,20 @@
   line-height: 1;
 }
 
-.frontend-onboarding-permission-row.single .frontend-onboarding-permission-granted-icon {
+.desktop-onboarding-permission-row.single .desktop-onboarding-permission-granted-icon {
   width: 24px;
   height: 24px;
   font-size: 14px;
 }
 
-.frontend-onboarding-permission-empty {
+.desktop-onboarding-permission-empty {
   margin: 0;
   color: #b8b8b8;
   font-size: 14px;
   padding: 16px 10px;
 }
 
-.frontend-onboarding-permission-error {
+.desktop-onboarding-permission-error {
   margin: 0;
   color: #d7d7d7;
   font-size: 16px;
@@ -480,101 +480,101 @@
 }
 
 @media (max-width: 860px) {
-  .frontend-onboarding-shell {
+  .desktop-onboarding-shell {
     --onboarding-shell-width: calc(100% - 36px);
     --onboarding-card-width: 100%;
     overflow: auto;
   }
 
-  .frontend-onboarding-card {
+  .desktop-onboarding-card {
     min-height: 100dvh;
   }
 
-  .frontend-onboarding-card-scroll-region {
+  .desktop-onboarding-card-scroll-region {
     padding: 70px 0 24px;
     align-content: start;
   }
 
-  .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
+  .desktop-onboarding-card-permissions .desktop-onboarding-card-scroll-region {
     padding-top: 70px;
     gap: 14px;
   }
 
-  .frontend-onboarding-permission-stage-summary {
+  .desktop-onboarding-permission-stage-summary {
     font-size: 14px;
   }
 
-  .frontend-onboarding-card-permissions .frontend-onboarding-title {
+  .desktop-onboarding-card-permissions .desktop-onboarding-title {
     font-size: clamp(32px, 8vw, 44px);
   }
 
-  .frontend-onboarding-card-permissions .frontend-onboarding-body {
+  .desktop-onboarding-card-permissions .desktop-onboarding-body {
     font-size: clamp(15px, 3.8vw, 18px);
     line-height: 1.34;
   }
 
-  .frontend-onboarding-window-chrome {
+  .desktop-onboarding-window-chrome {
     top: 10px;
     right: 10px;
   }
 
-  .frontend-onboarding-title {
+  .desktop-onboarding-title {
     font-size: clamp(34px, 9vw, 50px);
   }
 
-  .frontend-onboarding-body {
+  .desktop-onboarding-body {
     font-size: clamp(16px, 4.1vw, 20px);
     max-width: 30ch;
   }
 
-  .frontend-onboarding-actions {
+  .desktop-onboarding-actions {
     padding: 16px 0 18px;
   }
 
-  .frontend-onboarding-stop-flow-keybind {
+  .desktop-onboarding-stop-flow-keybind {
     width: 100%;
     padding: 18px 18px 20px;
   }
 
-  .frontend-onboarding-stop-flow-keycap-row {
+  .desktop-onboarding-stop-flow-keycap-row {
     gap: 10px;
   }
 
-  .frontend-onboarding-stop-flow-keycap {
+  .desktop-onboarding-stop-flow-keycap {
     min-height: 68px;
     padding: 12px 16px;
     font-size: clamp(20px, 7.6vw, 30px);
   }
 
-  .frontend-onboarding-stop-flow-keycap-separator {
+  .desktop-onboarding-stop-flow-keycap-separator {
     font-size: clamp(20px, 6vw, 28px);
   }
 
-  .frontend-onboarding-permission-row {
+  .desktop-onboarding-permission-row {
     grid-template-columns: 1fr;
     align-items: stretch;
     padding: 20px 18px;
   }
 
-  .frontend-onboarding-permission-row.single {
+  .desktop-onboarding-permission-row.single {
     width: 100%;
     gap: 16px;
     padding: 20px 18px;
   }
 
-  .frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy h2 {
+  .desktop-onboarding-permission-row.single .desktop-onboarding-permission-copy h2 {
     font-size: 24px;
   }
 
-  .frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy p {
+  .desktop-onboarding-permission-row.single .desktop-onboarding-permission-copy p {
     font-size: 16px;
   }
 
-  .frontend-onboarding-permission-row.single .frontend-onboarding-permission-reason {
+  .desktop-onboarding-permission-row.single .desktop-onboarding-permission-reason {
     font-size: 15px;
   }
 
-  .frontend-onboarding-permission-row > .frontend-onboarding-button {
+  .desktop-onboarding-permission-row > .desktop-onboarding-button {
     width: fit-content;
   }
 }

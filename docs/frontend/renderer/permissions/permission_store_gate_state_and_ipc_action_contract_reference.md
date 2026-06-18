@@ -12,7 +12,7 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
-- `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 - `frontend/src/main/permissions/permission_service.cjs`
 - `frontend/src/main/index.cjs`
@@ -166,7 +166,7 @@ old namespace.
 ## UI Coupling Boundary
 
 - Renderer `App.jsx` startup is onboarding-completion-gated in non-VM mode through `permissionStore.needsOnboarding`.
-- `FrontendOnboardingSlideshow` uses the manifest presentation metadata plus `requestPermission()` / `completeOnboarding()` to drive startup gating.
+- `DesktopOnboardingSlideshow` uses the manifest presentation metadata plus `requestPermission()` / `completeOnboarding()` to drive startup gating.
 - `BrowserSettingsTab` uses focused probe/request paths for Browser automation status and setup.
 - Store gate-state fields remain authoritative for any surfaces that still depend on onboarding state.
 

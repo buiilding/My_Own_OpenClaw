@@ -101,7 +101,7 @@ describe('renderer skin/config boundary', () => {
 
   test('onboarding and chat consumers read product copy from the skin', () => {
     const consumers = [
-      'features/onboarding/components/FrontendOnboardingSlideshow.jsx',
+      'features/onboarding/components/DesktopOnboardingSlideshow.jsx',
       'features/chat/hooks/useChatMessageSender.ts',
       'features/chat/hooks/useConversationReplayActions.js',
       'features/chat/components/ChatInterface.jsx',

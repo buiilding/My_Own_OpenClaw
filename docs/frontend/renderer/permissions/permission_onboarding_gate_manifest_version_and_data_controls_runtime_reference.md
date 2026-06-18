@@ -12,7 +12,7 @@ title: "Permission Onboarding Gate and Manifest Version Runtime Reference"
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
-- `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
@@ -20,7 +20,7 @@ title: "Permission Onboarding Gate and Manifest Version Runtime Reference"
 - `frontend/src/renderer/features/permissions/utils/permissionGrantEffects.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
-- `tests/frontend/FrontendOnboardingSlideshow.test.jsx`
+- `tests/frontend/DesktopOnboardingSlideshow.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
 - `tests/frontend/permissionGrantEffects.test.js`
 
@@ -100,7 +100,7 @@ When satisfied:
 
 ### Onboarding Slideshow
 
-`FrontendOnboardingSlideshow` renders:
+`DesktopOnboardingSlideshow` renders:
 
 - one permission card per slide with a `Grant` action where applicable
 - a final stop-agent shortcut slide after the permission sequence

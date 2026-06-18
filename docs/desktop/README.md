@@ -28,7 +28,7 @@ WindieOS is not only a chat UI. It is a set of desktop surfaces coordinated by E
 | Dashboard | `frontend/src/renderer/app/App.jsx` | `DashboardShell`, `DashboardSidebar`, chat/settings/memory sections |
 | Chat pill | `frontend/src/renderer/app/MinimalChatPillApp.jsx` | `MinimalChatPill`, `MessageInput`, attachment previews |
 | Response overlay | `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx` | `MinimalResponseOverlay`, response overlay hooks |
-| Onboarding | `frontend/src/renderer/features/onboarding/*` | `FrontendOnboardingSlideshow`, permission slides |
+| Onboarding | `frontend/src/renderer/features/onboarding/*` | `DesktopOnboardingSlideshow`, permission slides |
 | Voice/wakeword | `frontend/src/renderer/app/WakewordController.jsx`, `features/voice/*` | wakeword and voice-mode hooks |
 
 ## Main Process Owners

@@ -12,7 +12,7 @@ title: "Permission Store Action Liveness and Active Consumer Map Reference"
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 
 ## Why This Page Exists
@@ -27,13 +27,13 @@ Without an explicit liveness map, it is easy to misclassify store actions as dea
 ### Actively called from mounted UI
 
 - `bootstrapPermissions()`
-  - called by `FrontendOnboardingSlideshow` when `bootstrapped` is false
+  - called by `DesktopOnboardingSlideshow` when `bootstrapped` is false
 - `runPermissionProbe(permissionId)`
   - called by Browser settings and onboarding wait loops for focused status refresh
 - `requestPermission(permissionId)`
-  - called by `FrontendOnboardingSlideshow` Grant actions and Browser settings Open Browser action
+  - called by `DesktopOnboardingSlideshow` Grant actions and Browser settings Open Browser action
 - `completeOnboarding()`
-  - called by `FrontendOnboardingSlideshow` before `Start WindieOS`
+  - called by `DesktopOnboardingSlideshow` before `Start WindieOS`
 
 ### Exported but currently dormant in mounted renderer UI
 
@@ -71,4 +71,4 @@ It no longer uses the deleted `windieos-frontend-onboarding` localStorage flag.
 ## Related Docs
 
 - [Permission Store Gate-State and IPC Action Contract Reference](permission_store_gate_state_and_ipc_action_contract_reference.md)
-- [App Startup VM-Mode and Frontend Onboarding Runtime Reference](../app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
+- [App Startup VM-Mode and Permission Onboarding Runtime Reference](../app_startup_vm_mode_and_permission_onboarding_runtime_reference.md)

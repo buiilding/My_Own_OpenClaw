@@ -1,5 +1,5 @@
 /**
- * Provides the frontend onboarding slideshow module for the renderer UI.
+ * Provides the desktop onboarding slideshow module for the renderer UI.
  */
 
 import { useEffect, useState } from 'react';
@@ -16,7 +16,7 @@ import StopShortcutOnboardingSlide from './StopShortcutOnboardingSlide';
 
 const onboardingSkin = desktopRuntimeSkin.onboarding;
 
-function FrontendOnboardingSlideshow({
+function DesktopOnboardingSlideshow({
   onComplete,
   stopAgentShortcutLabel,
   allowWindowMaximize = true,
@@ -39,7 +39,7 @@ function FrontendOnboardingSlideshow({
     handleWindowMinimize,
     handleWindowToggleMaximize,
     handleWindowClose,
-  } = useMainWindowControls({ warningPrefix: 'FrontendOnboardingSlideshow' });
+  } = useMainWindowControls({ warningPrefix: 'DesktopOnboardingSlideshow' });
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const onboardingPermissions = Array.isArray(permissions)
     ? permissions.filter((permission) => permission?.show_in_onboarding !== false)
@@ -76,10 +76,10 @@ function FrontendOnboardingSlideshow({
   }
 
   return (
-    <div className="frontend-onboarding-shell">
-      <div className="frontend-onboarding-window-chrome">
+    <div className="desktop-onboarding-shell">
+      <div className="desktop-onboarding-window-chrome">
         <MainWindowControls
-          className="frontend-onboarding-window-controls"
+          className="desktop-onboarding-window-controls"
           onMinimize={handleWindowMinimize}
           onToggleMaximize={handleWindowToggleMaximize}
           onClose={handleWindowClose}
@@ -88,21 +88,21 @@ function FrontendOnboardingSlideshow({
       </div>
       <section
         className={[
-          'frontend-onboarding-card',
-          isPermissionSlide ? 'frontend-onboarding-card-permissions' : '',
+          'desktop-onboarding-card',
+          isPermissionSlide ? 'desktop-onboarding-card-permissions' : '',
         ].join(' ').trim()}
         aria-label={onboardingSkin.dialogLabel}
         role="dialog"
         aria-modal="true"
       >
-        <div className="frontend-onboarding-card-scroll-region">
-          <div className="frontend-onboarding-stage">
-            <div className="frontend-onboarding-stage-copy">
-              <p className="frontend-onboarding-progress">
+        <div className="desktop-onboarding-card-scroll-region">
+          <div className="desktop-onboarding-stage">
+            <div className="desktop-onboarding-stage-copy">
+              <p className="desktop-onboarding-progress">
                 Step {activeSlideIndex + 1} of {totalSlides}
               </p>
-              <h1 className="frontend-onboarding-title">{activeSlideTitle}</h1>
-              <p className="frontend-onboarding-body">{activeSlideBody}</p>
+              <h1 className="desktop-onboarding-title">{activeSlideTitle}</h1>
+              <p className="desktop-onboarding-body">{activeSlideBody}</p>
             </div>
             {isPermissionSlide ? (
               <PermissionOnboardingSlide
@@ -120,41 +120,41 @@ function FrontendOnboardingSlideshow({
               <StopShortcutOnboardingSlide stopShortcutLabel={resolvedStopShortcutLabel} />
             ) : null}
             {isPermissionSlide && permissionSlides.length === 0 ? (
-              <p className="frontend-onboarding-permission-error">
+              <p className="desktop-onboarding-permission-error">
                 {onboardingSkin.missingPermissionsMessage}
               </p>
             ) : null}
             {error ? (
-              <p className="frontend-onboarding-permission-error">{error}</p>
+              <p className="desktop-onboarding-permission-error">{error}</p>
             ) : null}
             {isLastSlide && !canStartProduct ? (
-              <p className="frontend-onboarding-permission-error">
+              <p className="desktop-onboarding-permission-error">
                 {onboardingSkin.loadingPermissionsMessage}
               </p>
             ) : null}
             {isLastSlide && missingRequiredPermissions.length > 0 ? (
-              <p className="frontend-onboarding-permission-error">
+              <p className="desktop-onboarding-permission-error">
                 {onboardingSkin.missingRequiredPermissionsMessage}
               </p>
             ) : null}
           </div>
         </div>
-        <div className="frontend-onboarding-actions">
+        <div className="desktop-onboarding-actions">
           {activeSlideIndex > 0 ? (
             <button
               type="button"
-              className="frontend-onboarding-button secondary"
+              className="desktop-onboarding-button secondary"
               onClick={() => setActiveSlideIndex((current) => Math.max(current - 1, 0))}
             >
               Back
             </button>
           ) : (
-            <span aria-hidden="true" className="frontend-onboarding-action-spacer" />
+            <span aria-hidden="true" className="desktop-onboarding-action-spacer" />
           )}
           {isLastSlide ? (
             <button
               type="button"
-              className="frontend-onboarding-button primary"
+              className="desktop-onboarding-button primary"
               onClick={handleComplete}
               disabled={!canStartProduct}
             >
@@ -163,7 +163,7 @@ function FrontendOnboardingSlideshow({
           ) : (
             <button
               type="button"
-              className="frontend-onboarding-button primary"
+              className="desktop-onboarding-button primary"
               onClick={() => setActiveSlideIndex((current) => Math.min(current + 1, totalSlides - 1))}
             >
               Next
@@ -175,10 +175,10 @@ function FrontendOnboardingSlideshow({
   );
 }
 
-FrontendOnboardingSlideshow.propTypes = {
+DesktopOnboardingSlideshow.propTypes = {
   allowWindowMaximize: PropTypes.bool,
   onComplete: PropTypes.func,
   stopAgentShortcutLabel: PropTypes.string,
 };
 
-export default FrontendOnboardingSlideshow;
+export default DesktopOnboardingSlideshow;

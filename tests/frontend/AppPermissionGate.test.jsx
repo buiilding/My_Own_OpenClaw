@@ -26,8 +26,8 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/DashboardSh
   </div>
 ));
 
-jest.mock('../../frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow', () => () => (
-  <div data-testid="frontend-onboarding-stub">frontend onboarding</div>
+jest.mock('../../frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow', () => () => (
+  <div data-testid="desktop-onboarding-stub">desktop onboarding</div>
 ));
 
 jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionStore', () => ({
@@ -78,7 +78,7 @@ describe('App permission gate', () => {
 
     render(<App />);
 
-    expect(screen.getByTestId('frontend-onboarding-stub')).toBeInTheDocument();
+    expect(screen.getByTestId('desktop-onboarding-stub')).toBeInTheDocument();
     expect(screen.queryByTestId('dashboard-shell-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).not.toHaveBeenCalled();
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
@@ -96,7 +96,7 @@ describe('App permission gate', () => {
     render(<App />);
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
-    expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('desktop-onboarding-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
       focus: true,
@@ -141,7 +141,7 @@ describe('App permission gate', () => {
     render(<App />);
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
-    expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('desktop-onboarding-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
       focus: true,

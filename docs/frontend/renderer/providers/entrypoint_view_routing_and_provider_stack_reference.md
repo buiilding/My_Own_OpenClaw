@@ -60,7 +60,7 @@ All surfaces mount `AppProvider`, which means:
 
 `AppContent` behavior:
 
-- routes to dashboard shell or frontend onboarding slideshow based on VM mode, permission bootstrap state, manifest-aware onboarding completion, and `needsOnboarding`
+- routes to dashboard shell or desktop onboarding slideshow based on VM mode, permission bootstrap state, manifest-aware onboarding completion, and `needsOnboarding`
 - mounts `WakewordController` only for dashboard surfaces
 - within shell, opens memory/models/settings as modal panels over chat
 

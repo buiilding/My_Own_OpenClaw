@@ -193,7 +193,7 @@ Functionality:
 - Maintains wakeword preference/suppression state.
 - Coordinates save-state callback from config updates into status context.
 - Boots chat stream + tool runner hooks at app scope.
-- Routes startup by VM-mode + frontend onboarding slideshow state only (no permission gate in `App.jsx`).
+- Routes startup by VM-mode + desktop onboarding slideshow state only (no permission gate in `App.jsx`).
 - Leaves permission runtime to onboarding, focused settings surfaces, and permission store state.
 
 ### 3.2 Chat Feature Runtime

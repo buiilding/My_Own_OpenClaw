@@ -242,7 +242,7 @@ Current ownership boundary:
 ### Permission Runtime Flow (Settings + Store Gate State)
 
 1. Renderer `App.jsx` startup routes by VM mode + permission-onboarding completion state for the current manifest, but missing permissions no longer hard-block Start.
-2. Frontend onboarding step 1 now mounts a permission checklist powered by `permissionStore` (manifest/status bootstrap + per-permission request actions).
+2. Desktop onboarding step 1 now mounts a permission checklist powered by `permissionStore` (manifest/status bootstrap + per-permission request actions).
 3. `permissionStore` remains the canonical place for manifest fetch + permission gate derivation (`needsOnboarding`, required permission sets, manifest-version completion).
 4. Onboarding and focused settings surfaces call store helpers for permission runtime updates:
    - onboarding uses `REQUEST_PERMISSION` (per row) and focused re-probes
@@ -369,7 +369,7 @@ Primary modules:
 ### Provider and App Composition
 
 - `renderer/app/App.jsx`: Root provider stack and dashboard shell mounting.
-  - Startup route gate is VM mode + frontend onboarding slideshow completion.
+  - Startup route gate is VM mode + desktop onboarding slideshow completion.
   - No boot-time renderer permission gate in current `App.jsx`.
 - `renderer/app/skin/windieDesktopSkin.js`:
   - WindieOS-specific renderer copy, tool catalog presentation, and display-safe

@@ -19,8 +19,8 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/DashboardSh
   </div>
 ));
 
-jest.mock('../../frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow', () => () => (
-  <div data-testid="frontend-onboarding-stub">frontend onboarding</div>
+jest.mock('../../frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow', () => () => (
+  <div data-testid="desktop-onboarding-stub">desktop onboarding</div>
 ));
 
 jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionStore', () => ({
@@ -73,7 +73,7 @@ describe('App VM mode', () => {
     render(<App />);
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:true');
-    expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('desktop-onboarding-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,

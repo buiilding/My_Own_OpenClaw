@@ -23,8 +23,8 @@ function PermissionOnboardingSlide({
 }) {
   if (!activePermission) {
     return (
-      <div className="frontend-onboarding-permissions-section">
-        <p className="frontend-onboarding-permission-empty">
+      <div className="desktop-onboarding-permissions-section">
+        <p className="desktop-onboarding-permission-empty">
           {bootstrapped ? 'No permission items were returned by the manifest.' : 'Loading permissions...'}
         </p>
       </div>
@@ -39,38 +39,38 @@ function PermissionOnboardingSlide({
   const grantedLabel = getPermissionGrantedLabel(activePermission);
 
   return (
-    <div className="frontend-onboarding-permissions-section">
-      <div className="frontend-onboarding-permission-stage-meta">
-        <p className="frontend-onboarding-permission-stage-count">
+    <div className="desktop-onboarding-permissions-section">
+      <div className="desktop-onboarding-permission-stage-meta">
+        <p className="desktop-onboarding-permission-stage-count">
           Permission {currentPermissionIndex} of {permissionCount}
         </p>
-        <p className="frontend-onboarding-permission-stage-summary">
+        <p className="desktop-onboarding-permission-stage-summary">
           Grant what you want now. You can revisit the rest later in Settings.
         </p>
       </div>
-      <div className="frontend-onboarding-permissions-list single">
-        <article className="frontend-onboarding-permission-row single">
-          <div className="frontend-onboarding-permission-copy">
+      <div className="desktop-onboarding-permissions-list single">
+        <article className="desktop-onboarding-permission-row single">
+          <div className="desktop-onboarding-permission-copy">
             <h2>{activePermission.label}</h2>
-            <p className="frontend-onboarding-permission-kind">
+            <p className="desktop-onboarding-permission-kind">
               {getPermissionKindLabel(activePermission)}
             </p>
             <p>{activePermission.description}</p>
             {statusReason ? (
-              <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
+              <p className={`desktop-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
                 {statusReason}
               </p>
             ) : null}
           </div>
           {isGranted ? (
-            <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
-              <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
+            <div className="desktop-onboarding-permission-granted" aria-label={grantedLabel}>
+              <span className="desktop-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
               <span>{grantedLabel}</span>
             </div>
           ) : (
             <button
               type="button"
-              className="frontend-onboarding-button primary"
+              className="desktop-onboarding-button primary"
               onClick={() => {
                 void onGrantPermission(activePermission.permission_id);
               }}

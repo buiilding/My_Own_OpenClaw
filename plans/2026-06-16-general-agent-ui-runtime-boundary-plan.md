@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer desktop onboarding surface boundary
+
+- Finding: the active renderer permission-onboarding surface still used
+  `FrontendOnboardingSlideshow`, `FrontendOnboarding.css`, and
+  `frontend-onboarding-*` selectors even though the surface is a generic
+  desktop UI shell over permission-store and skin contracts.
+- Change: renamed the component, stylesheet, CSS selectors, focused tests, and
+  startup/onboarding docs to `DesktopOnboardingSlideshow` and
+  `desktop-onboarding-*`, while preserving the real `onboarding` window target
+  and permission-store contract names.
+- Validation: focused desktop onboarding, app permission gate, VM-mode startup,
+  renderer skin/config, and docs-index Jest coverage; stale active
+  frontend-onboarding scan, docs listing, and diff check.
+- Compatibility: no migration required. The onboarding route/window target,
+  permission manifest/store state, localStorage key, IPC channels, credentials,
+  storage payloads, and provider-policy behavior are unchanged.
+
 ### 2026-06-18 SDK skipped local tool execution boundary
 
 - Finding: `ToolExecutionCoordinator` still named the backend

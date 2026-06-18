@@ -39,7 +39,7 @@ gate state, and main-process surface visibility.
 | `view=` route loads wrong renderer app | `frontend/src/renderer/app/main.jsx`, Electron window loader/runtime files | `tests/frontend/MainWindowOverlayRuntime.test.cjs`, renderer provider/view routing tests |
 | VM mode shows onboarding or overlays | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs`, `frontend/src/renderer/infrastructure/runtime/vmMode.js`, `App.jsx` | `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/AppVmMode.test.jsx`, `tests/frontend/startupSurface.test.js` |
 | Onboarding completion does not persist or resets unexpectedly | `frontend/src/renderer/features/permissions/utils/permissionStorage.js`, `permissionStore.js` | `tests/frontend/PermissionStorage.test.js`, `tests/frontend/permissionStore.test.js` |
-| Permission slides/progression are wrong | `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`, `PermissionOnboardingSlide.jsx`, `StopShortcutOnboardingSlide.jsx`, `utils/onboardingSlides.js` | `tests/frontend/FrontendOnboardingSlideshow.test.jsx`, `tests/frontend/onboardingSlides.test.js` |
+| Permission slides/progression are wrong | `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`, `PermissionOnboardingSlide.jsx`, `StopShortcutOnboardingSlide.jsx`, `utils/onboardingSlides.js` | `tests/frontend/DesktopOnboardingSlideshow.test.jsx`, `tests/frontend/onboardingSlides.test.js` |
 | Restart onboarding from Settings opens wrong surface | `SettingsSection.jsx`, `settings/OnboardingSettingsTab.jsx`, main-window open-target IPC | `tests/frontend/SettingsSection.test.jsx`, surface/open-target tests |
 | Wakeword starts during onboarding or starts twice | `frontend/src/renderer/app/App.jsx`, `WakewordController.jsx`, overlay app wrappers | `tests/frontend/AppPermissionGate.test.jsx`, voice/wakeword renderer tests |
 
@@ -144,7 +144,7 @@ Permission rules:
 
 Read:
 
-- `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
@@ -212,7 +212,7 @@ Renderer startup/onboarding change:
 
 Onboarding wizard or permission storage change:
 
-- `cd frontend && npm run test -- FrontendOnboardingSlideshow`
+- `cd frontend && npm run test -- DesktopOnboardingSlideshow`
 - `cd frontend && npm run test -- onboardingSlides`
 - `cd frontend && npm run test -- permissionStore`
 - `cd frontend && npm run test -- PermissionStorage`
@@ -233,7 +233,7 @@ Settings restart path change:
 
 Update these docs when startup/onboarding changes:
 
-- [App Startup VM-Mode and Permission Onboarding Runtime Reference](app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
+- [App Startup VM-Mode and Permission Onboarding Runtime Reference](app_startup_vm_mode_and_permission_onboarding_runtime_reference.md)
 - [Entrypoint View Routing and Provider Stack Reference](providers/entrypoint_view_routing_and_provider_stack_reference.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Onboarding and Permissions](../../desktop/onboarding_permissions.md)

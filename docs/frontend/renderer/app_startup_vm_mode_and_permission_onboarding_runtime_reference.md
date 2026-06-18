@@ -6,7 +6,7 @@ read_when:
 title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 ---
 
-# App Startup VM-Mode and Frontend Onboarding Runtime Reference
+# App Startup VM-Mode and Permission Onboarding Runtime Reference
 
 ## Canonical Modules
 
@@ -14,7 +14,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 - `frontend/src/renderer/app/startupSurface.js`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
-- `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
@@ -22,7 +22,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 - `frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js`
 - `tests/frontend/AppVmMode.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
-- `tests/frontend/FrontendOnboardingSlideshow.test.jsx`
+- `tests/frontend/DesktopOnboardingSlideshow.test.jsx`
 - `tests/frontend/onboardingSlides.test.js`
 
 ## Provider and Root Composition
@@ -52,11 +52,11 @@ Routing behavior:
   - mount `WakewordController`
   - render `DashboardShell` immediately
   - pass `vmModeEnabled={true}`
-  - bypass frontend onboarding slideshow
+  - bypass desktop onboarding slideshow
   - request `show-main-window({ focus: true })` from the renderer startup-surface controller
 - VM mode disabled + onboarding incomplete:
   - do not mount `WakewordController`
-  - render `FrontendOnboardingSlideshow`
+  - render `DesktopOnboardingSlideshow`
   - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
   - request `show-main-window({ focus: true, open: 'onboarding' })` from the renderer startup-surface controller
   - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
@@ -96,7 +96,7 @@ Startup completion is now sourced from `permissionStore` local persistence:
 
 ## Onboarding Slideshow Runtime Contract
 
-`FrontendOnboardingSlideshow` is now a dynamic wizard:
+`DesktopOnboardingSlideshow` is now a dynamic wizard:
 
 - one permission slide per manifest permission on the current platform
 - one final stop-agent shortcut slide (platform label)
@@ -104,7 +104,7 @@ Startup completion is now sourced from `permissionStore` local persistence:
 Implementation split:
 
 - `AppContent` owns startup-surface IPC handoff (`show-main-window` for onboarding/VM, `show-chatbox` for normal desktop startup)
-- `FrontendOnboardingSlideshow` owns shell routing and footer controls only
+- `DesktopOnboardingSlideshow` owns shell routing and footer controls only
 - `buildOnboardingSlideState(...)` is the pure slide-index/slide-kind model
 - `PermissionOnboardingSlide` renders the active permission card only
 - `StopShortcutOnboardingSlide` renders the keybind-only final slide
@@ -174,7 +174,7 @@ The same permission store also powers focused settings checks such as Browser au
 - pre-bootstrap routing uses persisted onboarding completion
 - post-bootstrap routing uses the manifest-aware permission gate
 
-`tests/frontend/FrontendOnboardingSlideshow.test.jsx`:
+`tests/frontend/DesktopOnboardingSlideshow.test.jsx`:
 
 - deterministic permission-by-permission progression based on manifest length
 - back/next behavior

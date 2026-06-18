@@ -11,7 +11,7 @@ title: "Frontend Renderer Provider Docs Hub"
 ## Deep Pages
 
 - [Entrypoint View Routing and Provider Stack Reference](entrypoint_view_routing_and_provider_stack_reference.md)
-- [App Startup VM-Mode and Frontend Onboarding Runtime Reference](../app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
+- [App Startup VM-Mode and Permission Onboarding Runtime Reference](../app_startup_vm_mode_and_permission_onboarding_runtime_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Provider Contexts Docs Hub](contexts/README.md)
 - [App Config and Status Context Hook Guard Reference](contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)

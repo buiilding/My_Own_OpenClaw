@@ -1,10 +1,10 @@
 /**
- * Covers frontend onboarding slideshow. behavior in the frontend test suite.
+ * Covers desktop onboarding slideshow. behavior in the frontend test suite.
  */
 
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import FrontendOnboardingSlideshow from '../../frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow';
+import DesktopOnboardingSlideshow from '../../frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow';
 
 const mockBootstrapPermissions = jest.fn();
 const mockRequestPermission = jest.fn();
@@ -102,7 +102,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-describe('FrontendOnboardingSlideshow', () => {
+describe('DesktopOnboardingSlideshow', () => {
   beforeEach(() => {
     mockBootstrapPermissions.mockReset();
     mockRunPermissionProbe.mockReset().mockResolvedValue({
@@ -131,7 +131,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
   test('renders slide progression and completes onboarding', async () => {
     const onComplete = jest.fn();
-    render(<FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
+    render(<DesktopOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
 
     expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Set up system access' })).toBeInTheDocument();
@@ -218,7 +218,7 @@ describe('FrontendOnboardingSlideshow', () => {
       granted: false,
     });
 
-    render(<FrontendOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
+    render(<DesktopOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Grant' }));
@@ -231,12 +231,12 @@ describe('FrontendOnboardingSlideshow', () => {
   test('keeps actions outside the scroll region on the permissions slide', () => {
     const onComplete = jest.fn();
     const { container } = render(
-      <FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />,
+      <DesktopOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />,
     );
 
     const dialog = screen.getByRole('dialog', { name: 'WindieOS onboarding' });
-    const scrollRegion = container.querySelector('.frontend-onboarding-card-scroll-region');
-    const actions = container.querySelector('.frontend-onboarding-actions');
+    const scrollRegion = container.querySelector('.desktop-onboarding-card-scroll-region');
+    const actions = container.querySelector('.desktop-onboarding-actions');
     const nextButton = screen.getByRole('button', { name: 'Next' });
 
     expect(scrollRegion).not.toBeNull();
@@ -251,7 +251,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
   test('can hide the maximize control for onboarding-specific main-window behavior', () => {
     render(
-      <FrontendOnboardingSlideshow
+      <DesktopOnboardingSlideshow
         allowWindowMaximize={false}
         onComplete={jest.fn()}
         stopAgentShortcutLabel="Ctrl + Shift + Esc"
@@ -265,7 +265,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
   test('renders long macOS stop shortcuts as separate keycaps', () => {
     render(
-      <FrontendOnboardingSlideshow
+      <DesktopOnboardingSlideshow
         onComplete={jest.fn()}
         stopAgentShortcutLabel="Command + Shift + Esc"
       />,
@@ -287,7 +287,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
     try {
       render(
-        <FrontendOnboardingSlideshow
+        <DesktopOnboardingSlideshow
           onComplete={jest.fn()}
           stopAgentShortcutLabel="Command + Shift + Esc"
         />,
@@ -364,7 +364,7 @@ describe('FrontendOnboardingSlideshow', () => {
     };
 
     try {
-      render(<FrontendOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
+      render(<DesktopOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
 
       expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
       expect(screen.getByText('Permission 1 of 2')).toBeInTheDocument();

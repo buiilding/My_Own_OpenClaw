@@ -15,21 +15,21 @@ function StopShortcutOnboardingSlide({ stopShortcutLabel }) {
   }, [stopShortcutLabel]);
 
   return (
-    <div className="frontend-onboarding-stop-flow">
+    <div className="desktop-onboarding-stop-flow">
       <div
-        className="frontend-onboarding-stop-flow-keybind"
+        className="desktop-onboarding-stop-flow-keybind"
         aria-label={`Stop shortcut ${stopShortcutLabel}`}
       >
-        <span className="frontend-onboarding-stop-flow-keybind-label">
+        <span className="desktop-onboarding-stop-flow-keybind-label">
           Keybind
         </span>
-        <div className="frontend-onboarding-stop-flow-keycap-row" aria-hidden="true">
+        <div className="desktop-onboarding-stop-flow-keycap-row" aria-hidden="true">
           {stopShortcutSegments.map((segment, index) => (
             <Fragment key={`${segment}-${index}`}>
               {index > 0 ? (
-                <span className="frontend-onboarding-stop-flow-keycap-separator">+</span>
+                <span className="desktop-onboarding-stop-flow-keycap-separator">+</span>
               ) : null}
-              <kbd className="frontend-onboarding-stop-flow-keycap">{segment}</kbd>
+              <kbd className="desktop-onboarding-stop-flow-keycap">{segment}</kbd>
             </Fragment>
           ))}
         </div>

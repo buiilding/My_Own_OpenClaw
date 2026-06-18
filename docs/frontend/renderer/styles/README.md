@@ -31,7 +31,7 @@ title: "Frontend Renderer Styles Docs Hub"
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
 - `frontend/src/renderer/styles/CloneSettings.css`
 - `frontend/src/renderer/styles/ErrorBoundary.css`
-- `frontend/src/renderer/styles/FrontendOnboarding.css`
+- `frontend/src/renderer/styles/DesktopOnboarding.css`
 - `frontend/src/renderer/styles/ThinkingDisplay.css`
 - `frontend/src/renderer/styles/VoiceStatus.css`
 - `frontend/src/renderer/app/App.jsx`

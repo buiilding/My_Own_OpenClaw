@@ -5,7 +5,7 @@
 import { useEffect, useRef } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import DashboardShell from '../features/dashboard/components/DashboardShell';
-import FrontendOnboardingSlideshow from '../features/onboarding/components/FrontendOnboardingSlideshow';
+import DesktopOnboardingSlideshow from '../features/onboarding/components/DesktopOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
@@ -20,7 +20,7 @@ import './skin/desktopRuntimeSkin.css';
 import '../styles/ChatInterface.css';
 import '../styles/DashboardShell.css';
 import '../styles/CloneMemoryModels.css';
-import '../styles/FrontendOnboarding.css';
+import '../styles/DesktopOnboarding.css';
 import '../styles/accessibility.css';
 
 const CHAT_PILL_USER_HIDDEN_REASON = 'chat-pill-user-hidden';
@@ -125,7 +125,7 @@ function AppContent() {
 
   if (startupSurface === 'onboarding') {
     return (
-      <FrontendOnboardingSlideshow
+      <DesktopOnboardingSlideshow
         allowWindowMaximize={false}
         stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}
       />

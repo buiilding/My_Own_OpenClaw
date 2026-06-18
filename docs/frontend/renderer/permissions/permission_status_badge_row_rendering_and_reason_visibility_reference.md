@@ -47,7 +47,7 @@ This mapping is the canonical renderer label/style contract for permission state
 Future permission surfaces should reuse `PermissionStatusBadge` rather than
 recreating status keyword-to-label mappings.
 
-`FrontendOnboardingSlideshow` reuses the same presentation metadata but renders
+`DesktopOnboardingSlideshow` reuses the same presentation metadata but renders
 action buttons from `permission.grant_action_label` instead of hard-coding
 `Grant` vs `Enable`.
 
