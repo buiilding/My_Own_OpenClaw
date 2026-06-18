@@ -113,7 +113,7 @@ flowchart LR
 | --- | --- |
 | Settings tab routing, initial tab, close behavior | `cd frontend && npm run test -- SettingsSection` |
 | General tab config/authority controls | `cd frontend && npm run test -- GeneralSettingsTab SettingsSection` |
-| Config allowlist/storage/provider merge | `cd frontend && npm run test -- configFilter configStorage AppConfigProvider.storageAndIpc AppConfigPersistence SettingsManagementHook` |
+| Config allowlist/storage/provider merge | `cd frontend && npm run test -- configFilter configStorage AppConfigProvider.storageAndIpc AppConfigPersistence DesktopSettingsEventRuntimeClient` |
 | Settings ACK/main sync | `cd frontend && npm run test -- IpcSettingsSync AppConfigEvents` plus backend settings tests when payload shape changes |
 | Backend settings validation/session rewire | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py` |
 | Permission/onboarding controls | `cd frontend && npm run test -- AppPermissionGate PermissionStorage PermissionIpcRuntime PermissionService useOnboardingPermissionActions DesktopOnboardingSlideshow` |

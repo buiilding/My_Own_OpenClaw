@@ -185,7 +185,7 @@ Primary files:
 
 - `frontend/src/renderer/features/dashboard/components/*`
 - `frontend/src/renderer/features/dashboard/hooks/*`
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/features/permissions/components/*`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/voice/hooks/*`

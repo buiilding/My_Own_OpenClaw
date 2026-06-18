@@ -14,7 +14,7 @@ import {
   mockDesktopSettingsRequestStartupModels,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
-  mockUseSettingsManagement,
+  mockUseDesktopSettingsEventHandlers,
   ON_CHANNELS,
   registerAppConfigProviderSuiteLifecycle,
   renderAppConfigContext,
@@ -28,7 +28,7 @@ describe('AppConfigProvider model + config wiring', () => {
     const settingsHandlers = {
       handleModelsListed: jest.fn(),
     };
-    mockUseSettingsManagement.mockReturnValue(settingsHandlers);
+    mockUseDesktopSettingsEventHandlers.mockReturnValue(settingsHandlers);
     renderAppConfigContext();
 
     const settingsEventListener = getIpcListener(ON_CHANNELS.BACKEND_SETTINGS_EVENT);

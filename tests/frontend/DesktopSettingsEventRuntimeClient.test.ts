@@ -1,16 +1,16 @@
 /**
- * Covers settings management hook. behavior in the frontend test suite.
+ * Covers desktop settings event runtime client behavior in the frontend test suite.
  */
 
 import { act, renderHook } from '@testing-library/react';
 
-import { useSettingsManagement } from '../../frontend/src/renderer/features/settings/hooks/useSettingsManagement';
+import { useDesktopSettingsEventHandlers } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 
-describe('useSettingsManagement', () => {
+describe('useDesktopSettingsEventHandlers', () => {
   test('handleModelsListed forwards payload to setAvailableModels', () => {
     const setAvailableModels = jest.fn();
 
-    const { result } = renderHook(() => useSettingsManagement(setAvailableModels));
+    const { result } = renderHook(() => useDesktopSettingsEventHandlers(setAvailableModels));
 
     act(() => {
       result.current.handleModelsListed({
@@ -29,7 +29,7 @@ describe('useSettingsManagement', () => {
 
   test('handleModelsListed ignores missing or invalid model payloads', () => {
     const setAvailableModels = jest.fn();
-    const { result } = renderHook(() => useSettingsManagement(setAvailableModels));
+    const { result } = renderHook(() => useDesktopSettingsEventHandlers(setAvailableModels));
 
     act(() => {
       result.current.handleModelsListed({});
@@ -44,7 +44,7 @@ describe('useSettingsManagement', () => {
 
   test('returns memoized handlers when dependencies stay the same', () => {
     const setAvailableModels = jest.fn();
-    const { result, rerender } = renderHook(() => useSettingsManagement(setAvailableModels));
+    const { result, rerender } = renderHook(() => useDesktopSettingsEventHandlers(setAvailableModels));
 
     const firstHandlers = result.current;
     rerender();
@@ -57,7 +57,7 @@ describe('useSettingsManagement', () => {
     const firstSetter = jest.fn();
     const secondSetter = jest.fn();
     const { result, rerender } = renderHook(
-      ({ setter }) => useSettingsManagement(setter),
+      ({ setter }) => useDesktopSettingsEventHandlers(setter),
       { initialProps: { setter: firstSetter } },
     );
 

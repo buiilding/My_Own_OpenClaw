@@ -13,13 +13,13 @@ import {
 } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/AppConfigProvider';
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
-import { useSettingsManagement } from '../../frontend/src/renderer/features/settings/hooks/useSettingsManagement';
+import { useDesktopSettingsEventHandlers } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
 import { DesktopRuntimeEndpointClient } from '../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
-jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
+jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient');
 jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
   filterRendererConfig: (config: Record<string, any>) => config,
 }));
@@ -53,7 +53,7 @@ let removeIpcListener: jest.Mock;
 let loadDesktopUiConfigResponse: any = null;
 let clientUserIdResponse: any = null;
 
-export const mockUseSettingsManagement = useSettingsManagement as jest.Mock;
+export const mockUseDesktopSettingsEventHandlers = useDesktopSettingsEventHandlers as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockBindTranscriptUser = DesktopTranscriptSessionRuntimeClient.bindTranscriptUser as jest.Mock;
@@ -108,7 +108,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
 
     mockLoadConfigFromStorage.mockReturnValue({ speech_mode_enabled: false });
     mockDesktopSettingsRequestStartupModels.mockReturnValue(true);
-    mockUseSettingsManagement.mockReturnValue({
+    mockUseDesktopSettingsEventHandlers.mockReturnValue({
       handleModelsListed: jest.fn(),
     });
 

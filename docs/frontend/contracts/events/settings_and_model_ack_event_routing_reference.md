@@ -13,7 +13,7 @@ title: "Settings and Model ACK Event Routing Reference"
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/main/ipc.cjs`
@@ -47,7 +47,8 @@ Flow:
 6. `AppConfigProvider` listener calls `routeConfigSettingsEvent(...)`
 7. `routeConfigSettingsEvent` dispatches `models-listed` to
    `handleModelsListed(...)`
-8. `useSettingsManagement` updates `availableModels` via payload passthrough
+8. `useDesktopSettingsEventHandlers` updates `availableModels` via payload
+   passthrough
 
 Important:
 

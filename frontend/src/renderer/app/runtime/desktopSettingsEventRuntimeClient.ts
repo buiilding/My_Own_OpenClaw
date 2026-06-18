@@ -1,5 +1,5 @@
 /**
- * Defines use settings management configuration for the renderer UI.
+ * Coordinates desktop settings event handlers for renderer providers.
  */
 
 import { useCallback, useMemo } from 'react';
@@ -25,15 +25,9 @@ function isListedModelsPayload(payload: unknown): payload is ListedModelsPayload
   );
 }
 
-/**
- * Custom hook for managing settings-runtime events.
- * Currently only handles model listing; renderer config changes flow through
- * AppConfigProvider and the desktop settings runtime.
- *
- * @param {Function} setAvailableModels - Function to update available models state
- * @returns {Object} - Object containing settings handlers
- */
-export function useSettingsManagement(setAvailableModels: (models: unknown) => void) {
+export function useDesktopSettingsEventHandlers(
+  setAvailableModels: (models: unknown) => void,
+) {
   const handleModelsListed = useCallback((data: { payload?: unknown }) => {
     if (!isListedModelsPayload(data.payload)) {
       return;
@@ -44,6 +38,6 @@ export function useSettingsManagement(setAvailableModels: (models: unknown) => v
   return useMemo(() => ({
     handleModelsListed,
   }), [
-    handleModelsListed
+    handleModelsListed,
   ]);
 }

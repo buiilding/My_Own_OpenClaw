@@ -43,10 +43,10 @@ title: "Frontend Renderer Settings Docs Hub"
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `tests/frontend/SettingsSection.test.jsx`
 - `tests/frontend/configFilter.test.js`
 - `tests/frontend/configStorage.test.js`
 - `tests/frontend/AppConfigProvider.models.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
-- `tests/frontend/SettingsManagementHook.test.ts`
+- `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`

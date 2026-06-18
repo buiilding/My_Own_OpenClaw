@@ -93,7 +93,7 @@ Feature slices:
 - `frontend/src/renderer/features/dashboard/hooks/*`
 - `frontend/src/renderer/features/dashboard/utils/*`
 - Settings:
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - Voice:
 - `frontend/src/renderer/features/voice/components/*`
 - `frontend/src/renderer/features/voice/hooks/*`

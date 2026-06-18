@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: move model-list settings event handling from the settings
+  feature hook into `DesktopSettingsEventRuntimeClient`, keeping
+  `AppConfigProvider` on app-runtime owned event handlers. No migration
+  required.
 - renderer/app: centralize chat-session helper rule access behind
   `DesktopConversationSessionRuntimeClient`, removing direct chat session
   runtime imports from chat stream ingress and transcript runtime clients. No

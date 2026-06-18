@@ -15,9 +15,9 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/utils/configFilter.js`
 - `frontend/src/renderer/utils/configStorage.js`
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 

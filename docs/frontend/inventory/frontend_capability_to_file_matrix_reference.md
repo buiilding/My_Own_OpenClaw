@@ -80,7 +80,7 @@ This matrix maps frontend capabilities to implementation files.
 | Dashboard shell + navigation | `frontend/src/renderer/features/dashboard/components/{DashboardShell,DashboardSidebar,SearchChatsModal}.jsx` | Section routing, search modal, conversation navigation controls. |
 | Dashboard section runtime | `frontend/src/renderer/features/dashboard/components/sections/*`, `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts` | Memory/models/settings/usage behavior; memory list/delete/clear actions use SDK-shaped commands and SDK-owned invalidation events. |
 | Dashboard conversation data hooks | `frontend/src/renderer/features/dashboard/hooks/{useDashboardConversations,useTranscriptSessionInfo}.js` | Conversation polling/grouping and active transcript session logic. |
-| Settings management hook | `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts` | Renderer config update orchestration and persistence boundaries. |
+| Settings event runtime client | `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts` | Renderer model-list event handling and settings provider event boundaries. |
 | Permission onboarding + controls | `frontend/src/renderer/features/permissions/components/*`, `stores/permissionStore.js`, `utils/permission*.js` | Install-time gate and ongoing permission status controls. |
 | Voice capture + wakeword | `frontend/src/renderer/features/voice/hooks/*`, `utils/*`, `components/VoiceStatus.jsx` | Mic capture, wakeword streaming, voice mode websocket runtime. |
 

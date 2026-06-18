@@ -3,7 +3,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterRendererConfig } from '../../utils/configFilter';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
@@ -22,6 +21,7 @@ import {
 import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntimeClient';
 import { DesktopClientSessionRuntimeClient } from '../runtime/desktopClientSessionRuntimeClient';
 import { DesktopRuntimeEndpointClient } from '../runtime/desktopRuntimeEndpointClient';
+import { useDesktopSettingsEventHandlers } from '../runtime/desktopSettingsEventRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
@@ -70,7 +70,7 @@ export function AppConfigProvider({ children }) {
   const [wakewordSuppressed, setWakewordSuppressed] = useState(resolveInitialWakewordSuppressed);
   const [globalAgentStopShortcutStatus, setGlobalAgentStopShortcutStatus] = useState(null);
 
-  const settingsHandlers = useSettingsManagement(setAvailableModels);
+  const settingsHandlers = useDesktopSettingsEventHandlers(setAvailableModels);
 
   const handlersRef = useLatestRef(settingsHandlers);
   const configRef = useLatestRef(config);

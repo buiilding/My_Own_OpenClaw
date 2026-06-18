@@ -81,7 +81,7 @@ Current role:
 
 Core hook:
 
-- `useSettingsManagement`
+- `useDesktopSettingsEventHandlers`
 
 ## Permissions Module
 

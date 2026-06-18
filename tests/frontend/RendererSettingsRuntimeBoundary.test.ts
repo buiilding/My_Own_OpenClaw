@@ -188,6 +188,22 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('backend IPC');
   });
 
+  test('app config provider routes settings events through app runtime client', async () => {
+    const providerSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/providers/AppConfigProvider.jsx'),
+      'utf8',
+    );
+    const settingsEventClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(providerSource).toContain('useDesktopSettingsEventHandlers');
+    expect(providerSource).not.toContain('features/settings/hooks/useSettingsManagement');
+    expect(providerSource).not.toContain('useSettingsManagement');
+    expect(settingsEventClientSource).toContain('handleModelsListed');
+  });
+
   test('renderer runtime sync names local-only config as renderer-owned state', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/providers/appConfigRuntimeSync.js'),

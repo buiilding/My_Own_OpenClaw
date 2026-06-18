@@ -35,6 +35,7 @@ frontend/src/renderer/
 │   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
+│   │   ├── desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 │   │   ├── desktopStorageRuntimeClient.js # Renderer localStorage JSON helper facade for feature clients
 │   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
@@ -163,10 +164,6 @@ frontend/src/renderer/
 │   │   └── utils/                       # Dashboard helpers
 │   │       ├── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
 │   │       └── modelSelectionUtils.js   # modelSelectionUtils - Selection reconciliation and config payload shaping helpers
-│   │
-│   ├── settings/                         # Settings feature module
-│   │   └── hooks/                       # Settings business logic hooks
-│   │       └── useSettingsManagement.ts # useSettingsManagement - Handles model listing events from the runtime settings channel
 │   │
 │   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI

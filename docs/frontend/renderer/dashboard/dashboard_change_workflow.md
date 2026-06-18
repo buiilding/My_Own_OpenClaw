@@ -49,7 +49,7 @@ the owner map before changing code.
 | Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx` |
 | Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, `DesktopMemoryRuntimeClient`, memory runtime contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory runtime/sidecar tests |
 | Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `modelSelectionUtils.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
-| Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/SettingsManagementHook.test.ts` |
+| Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts` |
 | Usage panel changes from placeholder to real data | `components/sections/UsageSection.jsx`, token/usage event consumers, backend token-count docs | `tests/frontend/UsageSection.test.jsx`, token-count renderer/backend tests when data becomes real |
 | Dashboard layout, shell styles, responsive behavior | `frontend/src/renderer/styles/DashboardShell.css`, `CloneSettings.css`, shell components | focused frontend render/layout tests; visual/manual checks for large UI changes |
 
@@ -167,7 +167,7 @@ Settings section:
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/*`
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](../settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 
 Usage section:
@@ -234,7 +234,7 @@ Models/settings panel change:
 - `cd frontend && npm run test -- ModelsSection`
 - `cd frontend && npm run test -- ModelSelectionUtils`
 - `cd frontend && npm run test -- SettingsSection`
-- `cd frontend && npm run test -- SettingsManagementHook`
+- `cd frontend && npm run test -- DesktopSettingsEventRuntimeClient`
 - backend model/settings tests when model catalog or backend config changes
 
 Usage panel change:

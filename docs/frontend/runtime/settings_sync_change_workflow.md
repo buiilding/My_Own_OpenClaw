@@ -63,8 +63,8 @@ Primary files:
 - `frontend/src/renderer/utils/configStorage.js`
 - `frontend/src/renderer/utils/configFilter.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 
 Validation:
@@ -72,7 +72,7 @@ Validation:
 - `tests/frontend/configStorage.test.js`
 - `tests/frontend/configFilter.test.js`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
-- `tests/frontend/SettingsManagementHook.test.ts`
+- `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`
 - settings-section tests for visible controls.
 
 Rules:

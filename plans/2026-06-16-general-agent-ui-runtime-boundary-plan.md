@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Settings Event Runtime Client
+
+- Finding: `AppConfigProvider` still imported a settings feature hook to handle
+  `models-listed` payloads, even though provider transport and settings
+  commands already flowed through app runtime clients.
+- Change: moved model-list settings event handling into
+  `DesktopSettingsEventRuntimeClient`, deleted the retired
+  `features/settings/hooks/useSettingsManagement.ts` hook, and updated tests
+  and docs to route model-list event behavior through the app-runtime client.
+- Validation: focused app-config provider, desktop settings event runtime, and
+  renderer settings boundary tests plus frontend typecheck, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Settings-event channel names,
+  `models-listed` payload shapes, available-models state, settings persistence,
+  backend model catalog, credentials, permissions, local authority, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Renderer Conversation Session Runtime Facade
 
 - Finding: app-runtime chat stream ingress and transcript session clients both
