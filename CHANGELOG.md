@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: inject WindieOS VM mode environment variable names from the
+  main host skin instead of hardcoding them inside the generic runtime-mode
+  helper.
 - main/runtime: inject WindieOS VM worker environment variable names from the
   main host skin instead of hardcoding them inside the generic VM worker
   runtime.

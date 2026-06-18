@@ -125,8 +125,14 @@ const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1
 const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
 const ENABLE_DEBUG_STREAM_TRACE = process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
 const ENABLE_DEBUG_TOOL_SCREENSHOT = process.env.WINDIE_DEBUG_TOOL_SCREENSHOT === '1';
-const VM_MODE_ENABLED = isVmModeEnabled(process.env);
-const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
+const VM_MODE_ENABLED = isVmModeEnabled(
+  process.env,
+  mainHostSkin.vmWorker.env,
+);
+const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(
+  process.env,
+  mainHostSkin.vmWorker.env,
+);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
 const getUserDataPath = () => app.getPath('userData');
 const getPermissionStatePath = () => resolvePermissionStatePath({

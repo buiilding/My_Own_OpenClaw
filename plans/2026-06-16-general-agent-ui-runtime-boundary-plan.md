@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main VM Mode Env Skin Boundary
+
+- Finding: `runtime_mode.cjs` still hardcoded `WINDIE_VM_MODE` and
+  `WINDIE_VM_WORKER_MODE`, so the generic Electron runtime-mode helper knew
+  WindieOS-specific mode-toggle names while the adjacent VM worker env names
+  had moved into host skin config.
+- Change: added mode-toggle env keys to `mainHostSkin.vmWorker.env`, passed the
+  injected map from `index.cjs` into runtime-mode helpers, and expanded host
+  skin boundary coverage so WindieOS mode env names stay out of
+  `runtime_mode.cjs`.
+- Validation: focused runtime-mode, VM worker, main bootstrap, and main host
+  skin Jest coverage plus a targeted source scan for hosted header/env names.
+- Compatibility: no migration required. WindieOS still reads the same
+  `WINDIE_VM_MODE` and `WINDIE_VM_WORKER_MODE` variables through injected host
+  skin config; VM mode and worker-mode fallback behavior are unchanged.
+
 ### 2026-06-18 Main VM Worker Env Skin Boundary
 
 - Finding: the generic Electron VM worker runtime still read

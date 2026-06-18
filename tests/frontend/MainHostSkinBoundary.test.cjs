@@ -10,6 +10,7 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
+const runtimeModePath = path.join(mainRoot, 'app/runtime_mode.cjs');
 const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_channels.cjs');
@@ -74,6 +75,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('wss://api.windieos.com/ws');
     expect(skinSource).toContain("runsApiKeyHeader: 'x-windie-runs-key'");
     expect(skinSource).toContain('vmWorker');
+    expect(skinSource).toContain("vmMode: 'WINDIE_VM_MODE'");
+    expect(skinSource).toContain("vmWorkerMode: 'WINDIE_VM_WORKER_MODE'");
     expect(skinSource).toContain("workspaceId: 'WINDIE_VM_WORKSPACE_ID'");
     expect(skinSource).toContain("'WINDIE_VM_RUNS_API_KEY'");
     expect(skinSource).toContain("'WINDIE_RUNS_API_KEY'");
@@ -113,12 +116,16 @@ describe('main host skin/config boundary', () => {
 
   test('hosted backend defaults live in host skin config', () => {
     const backendEndpointSource = fs.readFileSync(backendEndpointsPath, 'utf8');
+    const runtimeModeSource = fs.readFileSync(runtimeModePath, 'utf8');
     const vmWorkerRuntimeSource = fs.readFileSync(vmWorkerRuntimePath, 'utf8');
 
     expect(backendEndpointSource).toContain("require('./main_host_skin.cjs')");
     expect(backendEndpointSource).toContain('mainHostSkin.hostedBackend');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
+    expect(runtimeModeSource).toContain('runtimeModeEnv');
+    expect(runtimeModeSource).not.toContain('WINDIE_VM_MODE');
+    expect(runtimeModeSource).not.toContain('WINDIE_VM_WORKER_MODE');
     expect(vmWorkerRuntimeSource).toContain('runsApiKeyHeader');
     expect(vmWorkerRuntimeSource).toContain('vmWorkerEnv');
     expect(vmWorkerRuntimeSource).not.toContain('x-windie-runs-key');

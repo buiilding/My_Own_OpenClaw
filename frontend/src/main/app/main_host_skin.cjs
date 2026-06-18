@@ -23,6 +23,8 @@ const hostedBackend = Object.freeze({
 
 const vmWorker = Object.freeze({
   env: Object.freeze({
+    vmMode: 'WINDIE_VM_MODE',
+    vmWorkerMode: 'WINDIE_VM_WORKER_MODE',
     workspaceId: 'WINDIE_VM_WORKSPACE_ID',
     workerId: 'WINDIE_VM_WORKER_ID',
     vmId: 'WINDIE_VM_ID',
