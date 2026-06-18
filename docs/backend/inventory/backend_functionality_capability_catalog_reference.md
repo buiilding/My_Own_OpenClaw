@@ -155,10 +155,10 @@ Primary files:
 Capabilities:
 
 - Preparation: coordinate resolution + OCR/screenshot context + resolved-call storage.
-- Sending: emits `tool-call` or `tool-bundle` payloads for frontend runtime execution.
+- Sending: emits `tool-call` or `tool-bundle` payloads for SDK/local-runtime execution.
 - Waiting: request/bundle future tracking with correlation IDs and timeout/error synthesis.
 - Processing: transforms results into model-facing tool outputs and commits history rows.
-- Supports synthetic result generation for frontend-stale or backend-preparation failures.
+- Supports synthetic result generation for stale local-runtime turns or backend-preparation failures.
 
 ## 8) LLM Stack (Providers, Models, Parsing, Prompts)
 

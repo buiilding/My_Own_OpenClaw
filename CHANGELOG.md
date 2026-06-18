@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend/tools: align tool lifecycle and backend inventory wording with
+  SDK/main/local-runtime execution and client settings ownership instead of
+  stale frontend-owned result routing and tool execution phrasing.
 - docs/tools: align tool-schema troubleshooting and sidecar-tool workflow
   wording with SDK/main/local-runtime execution ownership instead of stale
   frontend execution phrasing.

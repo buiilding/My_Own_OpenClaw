@@ -72,7 +72,7 @@ Parity tests should prove:
 ## Add-a-Tool Checklist
 
 1. Decide whether the tool is backend-only, local-runtime executed, or provider-native.
-2. Add or update the frontend/sidecar manifest for local model-visible tools.
+2. Add or update the client/local-runtime manifest for local model-visible tools.
 3. Add sidecar executable registration only when local execution is required.
 4. Add SDK/main tool-router handling only when payload/result envelopes, artifacts, screenshots, or UI display behavior change.
 5. Add policy/profile entries if the tool should appear in `chat`, `coding`, `browser`, `computer`, or `full` profiles.

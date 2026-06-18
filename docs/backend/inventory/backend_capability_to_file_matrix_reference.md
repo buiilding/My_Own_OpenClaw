@@ -34,7 +34,7 @@ This matrix maps backend capabilities to implementation files.
 | Query handler orchestration | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | Active-task registration, streaming pipeline orchestration. |
 | Stop-query cancellation | `backend/src/api/handlers/stop_query.py`, `backend/src/agent/session/manager.py` | Cancels in-flight user query task(s). |
 | Tool result ingestion | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/session/session.py` | Normalizes single/bundle payloads before session processing. |
-| Settings update/load + models list | `backend/src/api/handlers/settings.py`, `backend/src/core/config/{manager,service,models}.py`, `backend/src/llm/models/model_service.py` | Frontend-owned patch path and model-provider list API. |
+| Settings update/load + models list | `backend/src/api/handlers/settings.py`, `backend/src/core/config/{manager,service,models}.py`, `backend/src/llm/models/model_service.py` | Client settings patch path and model-provider list API. |
 | Rehydrate transcript state | `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_execution.py` | Conversation history replacement and runtime reassociation. |
 | Wakeword event handling | `backend/src/api/handlers/wakeword.py`, `backend/src/api/services/wakeword_execution.py` | Wakeword-triggered greeting/query flow. |
 | Manual history compaction endpoint | `backend/src/api/handlers/compact_history.py`, `backend/src/agent/compaction/engine.py` | Manual compaction with active-query guard. |
@@ -55,11 +55,11 @@ This matrix maps backend capabilities to implementation files.
 | --- | --- | --- |
 | Tool preparation and coordinate resolution | `backend/src/agent/tools/preparation/preparer.py`, `backend/src/core/utils/coordinate_methods.py` | Normalizes and resolves tool-call arguments before send. |
 | Tool send/event emission | `backend/src/agent/tools/sending/sender.py`, `backend/src/agent/tools/shared/{bundle_detection,bundle_result_formatter}.py` | Emits tool-call/tool-bundle events + synthetic pre-send failures. |
-| Frontend result waiting/routing | `backend/src/agent/tools/waiting/{handler,receiver,router}.py` | Correlates request IDs and routes result futures. |
+| SDK/local-runtime result waiting/routing | `backend/src/agent/tools/waiting/{handler,receiver,router}.py` | Correlates request IDs and routes result futures. |
 | Tool result transformation/history commit | `backend/src/agent/tools/processing/{processor,transformer,coordinator,synthetic_factory}.py`, `backend/src/agent/history/history_committer.py` | Converts raw tool results to model-facing history rows and cleanup path. |
 | Backend tool registry and schema policy | `backend/src/tools/{registry,schema_registry,tool_policy,tool_selection,categorization}.py` | Tool availability and schema surfaces for prompt/validation path. |
 | Single/bundle tool orchestration contracts | `backend/src/tools/{single_tool_execution,bundle_execution,orchestrator}.py`, `backend/src/tools/result_{helpers,types}.py` | Bundled and individual tool execution result contracts. |
-| Remote tool adapter layer | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/*.py` | Frontend-executed tool catalog and concrete domain stubs. |
+| Remote tool adapter layer | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/*.py` | Local-runtime-executed tool catalog and concrete domain stubs. |
 
 ## 5) LLM Stack
 

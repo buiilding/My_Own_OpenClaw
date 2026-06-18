@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend/tool inventory local-runtime wording boundary
+
+- Finding: tool lifecycle docs and backend inventory docs still described
+  result waiting, remote-tool adapters, bundle validation, settings patches, and
+  synthetic stale-turn failures as frontend-owned/executed paths.
+- Change: reworded those docs to SDK/main, local-runtime execution, client
+  settings patch, and SDK/local-runtime result routing terminology while
+  preserving actual source paths.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is docs only; tool schemas,
+  manifests, backend policy, SDK/main dispatch, sidecar execution, renderer
+  display, settings payloads, permissions, credentials, and storage are
+  unchanged.
+
 ### 2026-06-18 tool workflow SDK/main local-runtime wording boundary
 
 - Finding: tool-schema workflow, troubleshooting, sidecar-tool workflow, and

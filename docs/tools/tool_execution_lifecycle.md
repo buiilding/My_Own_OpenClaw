@@ -153,7 +153,7 @@ For tool execution changes:
 
 1. Backend schema/policy tests cover tool visibility and args.
 2. Backend formatter/outgoing schema tests cover `tool-call`, `tool-bundle`, and result events.
-3. SDK/frontend tests cover tool coordinator correlation and result relay.
+3. SDK/main tests cover tool coordinator correlation and result relay.
 4. Sidecar tests cover executable behavior and `ToolResult` normalization.
 5. Bundle tests cover success, failure, timeout, and cleanup paths.
 6. Rehydrate/transcript tests cover any visible or model-facing row shape changes.

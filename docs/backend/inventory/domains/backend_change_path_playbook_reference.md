@@ -38,7 +38,7 @@ Validation:
 
 - Tool schema exposure tests.
 - Tool-call/tool-output formatter tests.
-- Frontend tool runner integration tests.
+- SDK/main tool-dispatch integration tests.
 
 ### 3) Change query stream lifecycle behavior
 
