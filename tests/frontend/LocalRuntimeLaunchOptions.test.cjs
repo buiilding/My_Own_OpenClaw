@@ -210,6 +210,7 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
     expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
+    expect(plan.options.env.AGENT_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
     expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');

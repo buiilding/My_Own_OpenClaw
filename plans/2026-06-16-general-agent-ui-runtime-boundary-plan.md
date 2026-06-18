@@ -8233,3 +8233,23 @@ Each completed slice should report:
   continue to work, generic host launches now work with
   `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD`, and model bootstrap/runtime-download
   behavior is otherwise unchanged.
+
+### 2026-06-18 Python permission state env alias boundary
+
+- Finding: generic Electron local-runtime launch plans can emit
+  `AGENT_PERMISSION_STATE_PATH`, but the Python sidecar path resolver still
+  read only the WindieOS permission-state env name when resolving
+  workspace-relative filesystem and shell paths.
+- Change: made sidecar path resolution read the generic Agent SDK permission
+  state env name first with the WindieOS alias preserved, and mirrored
+  WindieOS host-skin permission-state launch values into the generic env name
+  during Electron daemon launch so reusable Python tool code consumes the
+  configured launch authority.
+- Validation: focused sidecar read-file and replace pytest coverage plus shell
+  workspace-resolution pytest coverage, focused Electron local-runtime launch
+  and host-skin Jest coverage, source scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Existing
+  `WINDIE_PERMISSION_STATE_PATH` launches continue to work, generic hosts can
+  use `AGENT_PERMISSION_STATE_PATH`, and the persisted permission-state file
+  format and workspace authority semantics are unchanged.

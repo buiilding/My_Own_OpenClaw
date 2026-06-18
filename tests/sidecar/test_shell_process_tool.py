@@ -1,6 +1,7 @@
 """Covers shell process tool behavior in the sidecar test suite."""
 
 import asyncio
+import json
 import os
 import shlex
 import sys
@@ -28,6 +29,23 @@ async def process_shell_command(args):
     result = await _process_shell_command(args)
     assert isinstance(result, ToolResult)
     return result.to_dict()
+
+
+def _write_workspace_permission_state(path: Path, workspace: Path) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "permissions": {
+                    "filesystem_workspace_access": {
+                        "granted": True,
+                        "selected_paths": [str(workspace)],
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 async def _wait_for_finish(session_id: str, timeout: float = 2.0):
@@ -149,18 +167,7 @@ async def test_run_shell_command_defaults_to_selected_workspace_directory(monkey
     workspace_dir = tmp_path / "workspace"
     workspace_dir.mkdir()
     permission_state_path = tmp_path / "permission-state.json"
-    permission_state_path.write_text(
-        (
-            '{'
-            '"version":1,'
-            '"permissions":{"filesystem_workspace_access":{'
-            '"granted":true,'
-            '"selected_paths":["%s"]'
-            '}}'
-            '}'
-        ) % str(workspace_dir),
-        encoding="utf-8",
-    )
+    _write_workspace_permission_state(permission_state_path, workspace_dir)
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     cmd = f'{sys.executable} -c "import os; print(os.getcwd())"'
@@ -177,18 +184,7 @@ async def test_run_shell_command_resolves_dot_directory_from_selected_workspace(
     workspace_dir = tmp_path / "workspace"
     workspace_dir.mkdir()
     permission_state_path = tmp_path / "permission-state.json"
-    permission_state_path.write_text(
-        (
-            '{'
-            '"version":1,'
-            '"permissions":{"filesystem_workspace_access":{'
-            '"granted":true,'
-            '"selected_paths":["%s"]'
-            '}}'
-            '}'
-        ) % str(workspace_dir),
-        encoding="utf-8",
-    )
+    _write_workspace_permission_state(permission_state_path, workspace_dir)
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     cmd = f'{sys.executable} -c "import os; print(os.getcwd())"'
@@ -211,18 +207,7 @@ async def test_run_shell_command_resolves_relative_directory_from_selected_works
     child_dir = workspace_dir / "src"
     child_dir.mkdir(parents=True)
     permission_state_path = tmp_path / "permission-state.json"
-    permission_state_path.write_text(
-        (
-            '{'
-            '"version":1,'
-            '"permissions":{"filesystem_workspace_access":{'
-            '"granted":true,'
-            '"selected_paths":["%s"]'
-            '}}'
-            '}'
-        ) % str(workspace_dir),
-        encoding="utf-8",
-    )
+    _write_workspace_permission_state(permission_state_path, workspace_dir)
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     cmd = f'{sys.executable} -c "import os; print(os.getcwd())"'
@@ -244,18 +229,7 @@ async def test_run_shell_command_reports_original_relative_directory_when_missin
     workspace_dir = tmp_path / "workspace"
     workspace_dir.mkdir()
     permission_state_path = tmp_path / "permission-state.json"
-    permission_state_path.write_text(
-        (
-            '{'
-            '"version":1,'
-            '"permissions":{"filesystem_workspace_access":{'
-            '"granted":true,'
-            '"selected_paths":["%s"]'
-            '}}'
-            '}'
-        ) % str(workspace_dir),
-        encoding="utf-8",
-    )
+    _write_workspace_permission_state(permission_state_path, workspace_dir)
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     cmd = f'{sys.executable} -c "import os; print(os.getcwd())"'

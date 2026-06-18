@@ -10,10 +10,20 @@ from pathlib import Path
 from typing import Optional
 
 _WORKSPACE_ACCESS_PERMISSION_ID = "filesystem_workspace_access"
+ENV_AGENT_PERMISSION_STATE_PATH = "AGENT_PERMISSION_STATE_PATH"
+ENV_PERMISSION_STATE_PATH = "WINDIE_PERMISSION_STATE_PATH"
+
+
+def resolve_permission_state_path() -> Optional[Path]:
+    for env_name in (ENV_AGENT_PERMISSION_STATE_PATH, ENV_PERMISSION_STATE_PATH):
+        raw_path = os.environ.get(env_name, "").strip()
+        if raw_path:
+            return Path(raw_path).expanduser()
+    return None
 
 
 def resolve_default_workspace_directory() -> Path:
-    permission_state_path = os.environ.get("WINDIE_PERMISSION_STATE_PATH", "").strip()
+    permission_state_path = resolve_permission_state_path()
     if permission_state_path:
         try:
             with open(permission_state_path, "r", encoding="utf-8") as handle:

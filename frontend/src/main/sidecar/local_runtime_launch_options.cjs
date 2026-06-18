@@ -166,7 +166,12 @@ function buildLocalRuntimeDaemonEnv({
         }
       : {}),
     ...(typeof permissionStatePath === 'string' && permissionStatePath.trim()
-      ? { [envConfig.permissionStatePath]: permissionStatePath.trim() }
+      ? {
+          [envConfig.permissionStatePath]: permissionStatePath.trim(),
+          ...(envConfig.permissionStatePath !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.permissionStatePath
+            ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.permissionStatePath]: permissionStatePath.trim() }
+            : {}),
+        }
       : {}),
     ...(
       isPackaged

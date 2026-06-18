@@ -1,5 +1,6 @@
 """Covers replace tool behavior in the sidecar test suite."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,23 @@ def _single_replace_payload(file_path: str, **operation):
     return {"file_path": file_path, "replacements": [operation]}
 
 
+def _write_workspace_permission_state(path: Path, workspace: Path) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "permissions": {
+                    "filesystem_workspace_access": {
+                        "granted": True,
+                        "selected_paths": [str(workspace)],
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 @pytest.mark.asyncio
 async def test_replace_resolves_relative_path_from_selected_workspace(
     monkeypatch: pytest.MonkeyPatch,
@@ -25,19 +43,7 @@ async def test_replace_resolves_relative_path_from_selected_workspace(
     target = nested_dir / "index.cjs"
     target.write_text("console.log('before');\n", encoding="utf-8")
     permission_state_path = tmp_path / "permission-state.json"
-    permission_state_path.write_text(
-        (
-            "{"
-            '"version":1,'
-            '"permissions":{"filesystem_workspace_access":{'
-            '"granted":true,'
-            '"selected_paths":["%s"]'
-            "}}"
-            "}"
-        )
-        % str(workspace_dir),
-        encoding="utf-8",
-    )
+    _write_workspace_permission_state(permission_state_path, workspace_dir)
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     result = await replace(
@@ -62,19 +68,7 @@ async def test_replace_reports_original_relative_path_when_missing(
     workspace_dir = tmp_path / "workspace"
     workspace_dir.mkdir()
     permission_state_path = tmp_path / "permission-state.json"
-    permission_state_path.write_text(
-        (
-            "{"
-            '"version":1,'
-            '"permissions":{"filesystem_workspace_access":{'
-            '"granted":true,'
-            '"selected_paths":["%s"]'
-            "}}"
-            "}"
-        )
-        % str(workspace_dir),
-        encoding="utf-8",
-    )
+    _write_workspace_permission_state(permission_state_path, workspace_dir)
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     result = await replace(

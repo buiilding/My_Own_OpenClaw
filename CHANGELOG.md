@@ -58,6 +58,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/wakeword: accept the generic
   `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD` env name while preserving the
   WindieOS host-skin alias.
+- sidecar/tools: accept generic `AGENT_PERMISSION_STATE_PATH` permission-state
+  env configuration for workspace-relative filesystem and shell path
+  resolution while preserving the WindieOS host-skin alias.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.
