@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs/frontend: route architecture, main, renderer, and inventory tool-prep docs through SDK/main local execution wording instead of sidecar-execution boundary language; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - docs/tools: route public tool execution docs through SDK local runtime/local execution wording while keeping the Python sidecar as the concrete local executor; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - docs/frontend: describe renderer local tool execution through the SDK local runtime instead of sidecar-daemon routing; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - Hid a retired sidecar-daemon discovery error literal inside renderer conversation-library boundary tests while preserving the negative assertion.

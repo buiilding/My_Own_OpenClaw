@@ -184,7 +184,7 @@ New-chat behavior:
 ### Tool Turn Flow
 
 1. Backend emits `tool-call` or `tool-bundle`.
-2. SDK runtime validates and routes executable calls through its local runtime client to the sidecar daemon/local executor.
+2. SDK runtime validates and routes executable calls through its local runtime client to the configured local executor.
 3. SDK runtime sends `tool-result`/`tool-bundle-result` back to backend.
 4. Renderer receives display-only tool events and renders assistant tool rows
    from SDK projections. Renderer does not persist duplicate live tool rows.

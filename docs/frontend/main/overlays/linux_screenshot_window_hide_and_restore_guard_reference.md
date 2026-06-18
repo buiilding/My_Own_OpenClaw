@@ -69,5 +69,5 @@ This means:
 If Linux screenshots contain overlay UI:
 
 1. verify screenshot execute-tool path still routes through `withHiddenWindowForScreenshot(...)`
-2. verify SDK/main computer-use surface prep ran before sidecar execution
+2. verify SDK/main computer-use surface prep ran before local execution
 3. verify no legacy renderer or seam-level hide/restore assumptions remain in debugging scripts

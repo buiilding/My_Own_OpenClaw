@@ -41,7 +41,7 @@ Main process code is a trust boundary. It receives renderer requests through pre
 
 ## Change Sequence
 
-1. **Classify the boundary.** Decide whether the behavior is renderer UI, preload exposure, main orchestration, sidecar execution, hosted backend, or platform OS policy.
+1. **Classify the boundary.** Decide whether the behavior is renderer UI, preload exposure, main orchestration, SDK/main local execution, hosted backend, or platform OS policy.
 2. **Read the closest workflow.** For IPC changes, read [IPC Change Workflow](../ipc_change_workflow.md). For packaged path changes, read [Release and Packaging Change Workflow](../../operations/release_packaging_change_workflow.md). For platform authority changes, read [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md).
 3. **Inspect the registrar or runtime module.** Main behavior is split across focused `*_runtime.cjs` and `src/main/ipc/*.cjs` modules; avoid adding new catch-all logic in `index.cjs`.
 4. **Update producer and consumer together.** Channel registry, preload bridge, renderer constants, main handler, local-runtime mapper, sidecar method, and docs must move together when the contract crosses boundaries.

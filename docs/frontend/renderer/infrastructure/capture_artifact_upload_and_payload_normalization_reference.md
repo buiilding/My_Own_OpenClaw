@@ -145,7 +145,7 @@ Backend-bound tool result shaping is split across:
 - `packages/windie-sdk-js/src/transport/backendPayloadContract.ts` for
   backend-bound payload field filtering and capture metadata normalization
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` for
-  Electron main sidecar execution and result normalization
+  Electron main local execution and result normalization
 
 Current payload cleanup rules:
 
@@ -209,7 +209,7 @@ before backend relay:
 
 `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` verifies:
 
-- main runtime prepares the desktop surface before computer-use sidecar execution
+- main runtime prepares the desktop surface before computer-use local execution
 
 `tests/frontend/RuntimeEndpointStore.test.ts` and `ArtifactImageUtils.test.ts` verify:
 

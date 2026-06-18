@@ -285,6 +285,29 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar daemon startup/reuse');
   });
 
+  test('frontend architecture docs route tool prep through local execution wording', async () => {
+    const docs = await Promise.all([
+      read('docs/architecture/frontend_architecture.md'),
+      read('docs/architecture/communication_flow.md'),
+      read('docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md'),
+      read('docs/frontend/inventory/frontend_full_functionality_inventory_reference.md'),
+      read('docs/frontend/main/window_and_overlay_lifecycle.md'),
+      read('docs/frontend/main/main_process_change_workflow.md'),
+      read('docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md'),
+      read('docs/frontend/main/local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md'),
+      read('docs/frontend/renderer/renderer_state_change_workflow.md'),
+      read('docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md'),
+      read('docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('SDK/main local execution');
+    expect(docText).toContain('before local execution');
+    expect(docText).not.toContain('sidecar daemon/local executor');
+    expect(docText).not.toContain('sidecar execution');
+    expect(docText).not.toContain('before sidecar execution');
+  });
+
   test('local runtime conversation store keeps diagnostic collection naming generic', async () => {
     const source = await read('packages/windie-sdk-js/src/stores/LocalRuntimeConversationStore.ts');
 

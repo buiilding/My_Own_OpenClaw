@@ -509,7 +509,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 8. SDK runtime sends `tool-result` / `tool-bundle-result` back to backend
    ↓
-9. Local display receives projected tool call/output events; computer-use capture policy stays in the sidecar execution path
+9. Local display receives projected tool call/output events; computer-use capture policy stays in the SDK/main local execution path
    ↓
 10. Backend processes result (centralized storage)
     ↓

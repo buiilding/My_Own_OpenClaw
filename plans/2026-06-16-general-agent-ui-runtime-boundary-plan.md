@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 frontend local-execution architecture docs
+
+- Finding: frontend architecture, main-process, renderer infrastructure, and inventory docs still described screenshot/computer-use prep as happening before `sidecar execution`, which made renderer/main documentation read as if the sidecar execution path was the public boundary.
+- Change: rewrote those docs to route through SDK/main local execution and configured local executor wording, while preserving Python sidecar references where the concrete executor implementation is described.
+- Validation: focused `ModularRefactorCompletionBoundary` Jest coverage, exact stale-phrase scan for the selected frontend architecture docs, and scoped diff check.
+- Compatibility: docs and boundary-test coverage only; runtime behavior, SDK APIs, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 tool docs local-execution boundary
 
 - Finding: public tool-routing docs still used `sidecar execution` as the cross-runtime boundary, which blurred SDK/main local execution orchestration with the Python sidecar executor implementation.

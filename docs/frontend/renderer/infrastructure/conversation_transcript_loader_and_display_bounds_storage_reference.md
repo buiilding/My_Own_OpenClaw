@@ -105,15 +105,15 @@ Validation:
 
 - `display_bounds.x/y/width/height` must be finite numbers
 - width and height must be positive
-- values are rounded before sidecar execution
+- values are rounded before local execution
 - optional `monitor_id` and nested `desktop_virtual_bounds` are preserved only
   when valid
 
 ## Screenshot Injection Semantics
 
-Electron main sidecar execution:
+Electron main local execution:
 
-- prepares the active desktop surface before computer-use sidecar execution
+- prepares the active desktop surface before computer-use local execution
 - resolves screenshot display bounds from the active surface/display affinity
 - injects bounds through `local_runtime_tool_args.cjs`
 - sends normalized args to the Python sidecar
@@ -121,7 +121,7 @@ Electron main sidecar execution:
 SDK/main screenshot paths:
 
 - query screenshots are requested by renderer as `query_screenshot_request` resources
-- SDK/main screenshot capture injects stored display bounds before sidecar execution
+- SDK/main screenshot capture injects stored display bounds before local execution
 - tool auto-capture paths run through the SDK/main result envelope, not a renderer screenshot pipeline
 
 Contract effect:

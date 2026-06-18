@@ -74,7 +74,7 @@ Implication:
 
 - screenshot visibility behavior is intentional and scoped. This wrapper does not
   own dashboard-to-pill handoff; local computer-use surface prep happens in
-  `local_runtime_execute_tool_runtime.cjs` before sidecar execution.
+  `local_runtime_execute_tool_runtime.cjs` before local execution.
 
 ## Drift Hotspots
 

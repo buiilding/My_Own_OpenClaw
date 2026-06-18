@@ -197,7 +197,7 @@ Overlay focus behavior is now the same on every desktop OS:
 Tool-execution chat-pill lifecycle (SDK/main computer-use path):
 
 - shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode; outside active-loop phases the chat pill falls back to main-owned idle hit-testing that keeps transparent regions click-through until the renderer hover state says the pointer is over the visible pill shell
-- SDK/local-runtime tool-surface prep runs through Electron main before sidecar execution; it shows the minimal pill with `focus: false` and `restoreResponseOverlay: true`, which hides a visible dashboard through the main window visibility runtime
+- SDK/local-runtime tool-surface prep runs through Electron main before local execution; it shows the minimal pill with `focus: false` and `restoreResponseOverlay: true`, which hides a visible dashboard through the main window visibility runtime
 - renderer code remains display-only for backend tool events; it does not execute computer-use tools or own the dashboard-to-pill handoff
 - screenshot capture visibility prep now hides whichever WindieOS surface owns the capture:
   - `chatbox` for pill-originated capture
@@ -305,7 +305,7 @@ For renderer-only deep dives:
 
 - calls the sidecar screenshot task directly without a platform visibility runtime
 - it does not perform a second hide/restore cycle around the sidecar screenshot task
-- result: dashboard-visible computer-use turns perform an explicit main-process dashboard-to-pill handoff before any computer-use sidecar execution runs; after handoff, main hides the dashboard and restores the pill/response-overlay surface, while renderer capture orchestration remains scoped to renderer-initiated attachment flows
+- result: dashboard-visible computer-use turns perform an explicit main-process dashboard-to-pill handoff before any computer-use local execution runs; after handoff, main hides the dashboard and restores the pill/response-overlay surface, while renderer capture orchestration remains scoped to renderer-initiated attachment flows
 
 For deeper focus/capture guard internals:
 

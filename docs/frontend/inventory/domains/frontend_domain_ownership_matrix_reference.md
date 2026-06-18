@@ -19,7 +19,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Preload boundary | `frontend/src/preload.js` | renderer IPC bridge wrapper | main business logic edits |
 | Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | sidecar protocol files |
 | Renderer chat/tool UX runtime | `renderer/features/chat/**` | SDK conversation-event normalization, `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | main overlay bounds logic |
-| Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | sidecar execution logic |
+| Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | local execution logic |
 | Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + sidecar method contracts | landing page modules |
 | Sidecar runtime core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_runtime_bridge.cjs`, wakeword bridge | renderer UI components |
 | Sidecar tool runtime | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
