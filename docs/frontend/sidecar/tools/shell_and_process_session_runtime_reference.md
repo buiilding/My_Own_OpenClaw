@@ -100,7 +100,7 @@ Key maps:
 
 Retention + limits:
 
-- `WINDIE_SHELL_JOB_TTL_SECONDS` env controls finished-session TTL (clamped `60..10800`, default `1800`)
+- `AGENT_SHELL_JOB_TTL_SECONDS` env controls finished-session TTL (clamped `60..10800`, default `1800`); WindieOS launches may still use the legacy `WINDIE_SHELL_JOB_TTL_SECONDS` alias
 - aggregate output capped per session (`max_output_chars`, default `200000`)
 - pending poll buffers capped separately (`pending_max_output_chars`, default `30000`)
 - tails kept (`DEFAULT_TAIL_CHARS = 2000`)

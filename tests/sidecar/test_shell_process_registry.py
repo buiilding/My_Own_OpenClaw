@@ -80,6 +80,26 @@ def test_clamp_and_read_env_int(monkeypatch):
     assert registry._read_env_int("WINDIE_TEST_INT") == 42
 
 
+def test_resolve_job_ttl_prefers_agent_env(monkeypatch):
+    monkeypatch.setenv(registry.ENV_SHELL_JOB_TTL_SECONDS, "900")
+    monkeypatch.setenv(registry.ENV_AGENT_SHELL_JOB_TTL_SECONDS, "120")
+
+    assert registry.resolve_job_ttl_seconds() == 120
+
+
+def test_resolve_job_ttl_supports_windie_legacy_env(monkeypatch):
+    monkeypatch.delenv(registry.ENV_AGENT_SHELL_JOB_TTL_SECONDS, raising=False)
+    monkeypatch.setenv(registry.ENV_SHELL_JOB_TTL_SECONDS, "900")
+
+    assert registry.resolve_job_ttl_seconds() == 900
+
+
+def test_resolve_job_ttl_clamps_agent_env(monkeypatch):
+    monkeypatch.setenv(registry.ENV_AGENT_SHELL_JOB_TTL_SECONDS, "1")
+
+    assert registry.resolve_job_ttl_seconds() == registry.MIN_JOB_TTL_SECONDS
+
+
 def test_list_running_sessions_only_returns_backgrounded_entries():
     backgrounded = _make_session("bg", backgrounded=True)
     foreground = _make_session("fg", backgrounded=False)

@@ -83,7 +83,7 @@ Do not add backend-owned provider internals such as `speech_provider`, `stt_prov
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR` | Electron main env through WindieOS host skin | Forwards all local-runtime daemon stderr when `1`; default is severity-filtered. Generic host fallback: `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR`. | `frontend/src/main/app/main_host_skin.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` |
 | `WINDIE_INTERACTIVE_WORKERS` | Sidecar env | Interactive executor max workers. Generic host fallback: `AGENT_INTERACTIVE_WORKERS`. | `frontend/src/main/python/core/executors.py` |
 | `WINDIE_BACKGROUND_WORKERS` | Sidecar env | Background executor max workers. Generic host fallback: `AGENT_BACKGROUND_WORKERS`. | `frontend/src/main/python/core/executors.py` |
-| `WINDIE_SHELL_JOB_TTL_SECONDS` | Sidecar env | Finished shell/process session retention TTL | `frontend/src/main/python/tools/system/shell_process_registry.py` |
+| `WINDIE_SHELL_JOB_TTL_SECONDS` | Sidecar env | Finished shell/process session retention TTL. Generic host fallback: `AGENT_SHELL_JOB_TTL_SECONDS`. | `frontend/src/main/python/tools/system/shell_process_registry.py` |
 | `WINDIE_PERMISSION_STATE_PATH` | Sidecar env injected by Electron main through WindieOS host skin | Permission-state path for path resolution helpers. Generic host fallback: `AGENT_PERMISSION_STATE_PATH`. | `frontend/src/main/python/tools/path_resolution.py` |
 | Browser env vars (`WINDIE_BROWSER_CDP_PORT`, `WINDIE_BROWSER_USE_RUNTIME`, `WINDIE_BROWSER_FILES_DIR`) | Sidecar env | Dedicated browser port, runtime handler, and file storage behavior | `frontend/src/main/python/tools/browser/**` |
 

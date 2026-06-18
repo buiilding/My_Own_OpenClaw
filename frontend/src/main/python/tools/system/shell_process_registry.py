@@ -18,6 +18,8 @@ MAX_JOB_TTL_SECONDS = 3 * 60 * 60
 DEFAULT_MAX_OUTPUT_CHARS = 200_000
 DEFAULT_PENDING_MAX_OUTPUT_CHARS = 30_000
 DEFAULT_TAIL_CHARS = 2000
+ENV_AGENT_SHELL_JOB_TTL_SECONDS = "AGENT_SHELL_JOB_TTL_SECONDS"
+ENV_SHELL_JOB_TTL_SECONDS = "WINDIE_SHELL_JOB_TTL_SECONDS"
 
 
 def _clamp(value: Optional[int], min_value: int, max_value: int, default: int) -> int:
@@ -36,12 +38,23 @@ def _read_env_int(name: str) -> Optional[int]:
         return None
 
 
-job_ttl_seconds = _clamp(
-    _read_env_int("WINDIE_SHELL_JOB_TTL_SECONDS"),
-    MIN_JOB_TTL_SECONDS,
-    MAX_JOB_TTL_SECONDS,
-    DEFAULT_JOB_TTL_SECONDS,
-)
+def _read_first_env_int(names: tuple[str, ...]) -> Optional[int]:
+    for name in names:
+        if os.environ.get(name) is not None:
+            return _read_env_int(name)
+    return None
+
+
+def resolve_job_ttl_seconds() -> int:
+    return _clamp(
+        _read_first_env_int((ENV_AGENT_SHELL_JOB_TTL_SECONDS, ENV_SHELL_JOB_TTL_SECONDS)),
+        MIN_JOB_TTL_SECONDS,
+        MAX_JOB_TTL_SECONDS,
+        DEFAULT_JOB_TTL_SECONDS,
+    )
+
+
+job_ttl_seconds = resolve_job_ttl_seconds()
 
 
 @dataclass

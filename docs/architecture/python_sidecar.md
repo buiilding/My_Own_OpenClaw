@@ -112,7 +112,7 @@ The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry
 - Detached app launching (`open_app`)
 - Shell command execution (`run_shell_command`)
 - Background session management (`process`) for polling/logging/writing/killing running shell commands
-  - Finished sessions are pruned after ~30 minutes (configurable via `WINDIE_SHELL_JOB_TTL_SECONDS`)
+  - Finished sessions are pruned after ~30 minutes (configurable via `AGENT_SHELL_JOB_TTL_SECONDS`; WindieOS launches may still use `WINDIE_SHELL_JOB_TTL_SECONDS`)
 
 Computer-control execution notes:
 - `mouse_control` covers click, double-click, right-click, move, and drag only.

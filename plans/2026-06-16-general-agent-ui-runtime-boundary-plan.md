@@ -8268,3 +8268,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing WindieOS executor env
   overrides continue to work, generic hosts can use the `AGENT_*` names, and
   default worker counts/thread-pool lifecycle behavior are unchanged.
+
+### 2026-06-18 Python shell session TTL env alias boundary
+
+- Finding: Python sidecar shell/process finished-session retention still read
+  only `WINDIE_SHELL_JOB_TTL_SECONDS`, even though the process-session registry
+  is reusable local-runtime tool behavior rather than WindieOS product policy.
+- Change: made shell job TTL resolution read generic
+  `AGENT_SHELL_JOB_TTL_SECONDS` first with the WindieOS alias preserved.
+- Validation: focused shell process registry pytest coverage, source scans,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS shell TTL env
+  overrides continue to work, generic hosts can use the Agent env name, and
+  finished-session pruning defaults/clamping are unchanged.
