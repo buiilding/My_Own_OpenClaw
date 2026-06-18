@@ -59,7 +59,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) - tool visibility, schemas, policy, provider projection, and parity.
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) - backend call to SDK/main/sidecar execution to backend history.
 - [Web Search Tool](../tools/web_search.md) - backend-owned logical web search, provider-native modes, Brave fallback, and policy gates.
-- [Plugins and Extensions Hub](../plugins/README.md) - sidecar plugin tools, prompt skills, MCP integrations, provider-like extensions, and current plugin boundaries.
+- [Plugins and Extensions Hub](../plugins/README.md) - local-runtime plugin tools, prompt skills, MCP integrations, provider-like extensions, and current plugin boundaries.
 - [MCP Runtime](../development/mcp.md) - repo-level MCP server config, discovery, enablement, execution, and MCP tool-result preservation.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) - dedicated browser schema, runtime, bridge, UI, and tests.
 - [Browser Hub](../browser/README.md) - dedicated browser runtime, CDP session ownership, action schemas, snapshots, and debug routes.

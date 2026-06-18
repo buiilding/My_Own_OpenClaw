@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/extensions: replace remaining sidecar-plugin routing text with
+  local-runtime plugin wording in docs directory, MCP choice, and sidecar
+  registration references; no migration is required because contribution paths,
+  manifests, Python entrypoints, and execution behavior are unchanged.
 - frontend/sidecar: rename internal plugin loader helpers to local-runtime
   plugin terminology while keeping the public plugin registration route and
   manifest shape unchanged; no migration is required.

@@ -115,11 +115,11 @@ Module entrypoints must return native `tools.result.ToolResult` values.
 
 ## Plugin Registration
 
-`POST /plugins/register` accepts a local sidecar plugin path. The path can
+`POST /plugins/register` accepts a local-runtime plugin path. The path can
 point at one plugin directory with `plugin.json`, a repo-level `plugins` root,
 or a WindieOS repo root containing `plugins/`.
 
-Plugin tools use the sidecar plugin manifest contract:
+Plugin tools use the local-runtime plugin manifest contract:
 
 - `name`
 - `description`

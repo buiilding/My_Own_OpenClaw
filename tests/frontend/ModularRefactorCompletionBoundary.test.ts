@@ -258,9 +258,12 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/architecture/backend_architecture.md'),
       read('docs/channels/README.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
+      read('docs/development/mcp.md'),
       read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
+      read('docs/frontend/sidecar/sidecar_daemon_runtime_reference.md'),
       read('docs/gateway/gateway_troubleshooting.md'),
+      read('docs/getting-started/docs_directory.md'),
       read('docs/plugins/README.md'),
       read('docs/plugins/current_vs_future_plugin_boundary.md'),
       read('docs/README.md'),
@@ -276,6 +279,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
     expect(docText).toContain('local-runtime plugins under `plugins/*/plugin.json`');
+    expect(docText).toContain('local-runtime plugin tools');
     expect(docText).toContain('execute through the SDK local runtime');
     expect(docText).toContain('SDK local-runtime tools');
     expect(docText).toContain('Agent SDK/local-runtime manifest');

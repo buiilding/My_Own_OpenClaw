@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 sidecar-plugin routing wording cleanup
+
+- Finding: docs directory, MCP routing, and sidecar daemon registration docs
+  still described extension choices and plugin registration with sidecar-plugin
+  wording after plugin authoring moved to the SDK local-runtime boundary.
+- Change: rewrote those routing surfaces to say local-runtime plugin while
+  keeping Python sidecar implementation references where the sidecar daemon is
+  the concrete executor, and expanded the modular boundary guard to cover the
+  touched docs.
+- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary.test.ts`,
+  `bin\windie.cmd docs search "local runtime plugin"`, stale sidecar-plugin
+  phrase scan, and `git diff --check`.
+- Compatibility: no migration required. Plugin directories, `plugin.json`
+  schema fields, Python entrypoint paths, manifest loading, permissions, and
+  local tool execution behavior are unchanged.
 ### 2026-06-18 extension scaffold local-runtime plugin wording
 
 - Finding: the extension authoring docs and `bin/windie extension create`

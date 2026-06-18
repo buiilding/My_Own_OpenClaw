@@ -3,7 +3,7 @@ summary: "Developer guide for MCP server config and connecting Model Context Pro
 read_when:
   - When adding MCP server config, MCP servers, MCP-backed tools, or MCP diagnostics to WindieOS.
   - When debugging MCP tool result output, raw MCP result preservation, `data.output`, or `data.mcp_result`.
-  - When deciding whether an external integration should be a sidecar plugin, skill, MCP server, or backend remote tool.
+  - When deciding whether an external integration should be a local-runtime plugin, skill, MCP server, or backend remote tool.
 title: "MCP Runtime"
 ---
 
@@ -256,7 +256,7 @@ Use MCP when the integration already has, or should have, a protocol boundary:
 - language servers
 - services that should be reusable outside WindieOS
 
-Use a sidecar plugin when the integration is WindieOS-local Python execution.
+Use a local-runtime plugin when the integration is WindieOS-local Python execution.
 Use a backend remote tool when execution must happen on the hosted backend.
 
 ## Validation
