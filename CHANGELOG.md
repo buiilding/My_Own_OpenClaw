@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/simulation: remove stale mock browser-client wording that described
+  the shared simulation config as unused; no migration is required because this
+  changes comments only.
 - docs/backend: describe tool-result ingress and runtime waiting as
   SDK/local-runtime result ownership instead of frontend result ownership while
   retaining historical `process_frontend_tool_*` method names as compatibility

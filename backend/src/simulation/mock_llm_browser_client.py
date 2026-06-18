@@ -164,7 +164,7 @@ class MockLLMBrowserClient(BaseSimulationLLMClient):
         Initialize the mock browser LLM client.
 
         Args:
-            cfg: Application configuration (required by interface, but not used)
+            cfg: Application configuration passed to the simulation base client.
         """
         super().__init__(
             cfg,
