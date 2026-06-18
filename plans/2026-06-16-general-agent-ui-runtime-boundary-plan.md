@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Sidecar Tool Registry Manifest Boundary
+
+- Finding: the sidecar tool-registry test imported
+  `backend.src.tools.tool_catalog` to compare exposed tool names, even though
+  the sidecar/local-runtime boundary already has a generated built-in tool
+  manifest artifact and backend-side parity tests cover backend catalog
+  alignment.
+- Change: rewired the sidecar registry test to compare exposed names against
+  `frontend/src/main/generated/builtin_tool_manifest.json` and added a guard so
+  that test file does not reintroduce backend package imports.
+- Validation: focused sidecar tool-registry pytest, targeted sidecar backend
+  import scan, docs listing, and diff check.
+- Compatibility: no migration required. Sidecar registry behavior, generated
+  manifest content, backend tool catalog, tool schemas, and runtime execution
+  are unchanged.
+
 ### 2026-06-18 Renderer Models Metadata Refresh Runtime Client
 
 - Finding: `ModelsSection` already used `DesktopSettingsRuntimeClient` for

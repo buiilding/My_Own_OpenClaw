@@ -1,21 +1,25 @@
 """Covers tool registry behavior in the sidecar test suite."""
 
+import json
 import pytest
 from pathlib import Path
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from backend.src.tools.tool_catalog import get_client_executable_tool_names
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+GENERATED_MANIFEST_PATH = (
+    REPO_ROOT / "frontend" / "src" / "main" / "generated" / "builtin_tool_manifest.json"
+)
+
 
 def test_tool_registry_copy_qualifies_python_sidecar_owner():
-    repo_root = Path(__file__).resolve().parents[2]
     source_paths = [
-        repo_root / "frontend" / "src" / "main" / "python" / "tools" / "registry.py",
-        repo_root
+        REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "registry.py",
+        REPO_ROOT
         / "frontend"
         / "src"
         / "main"
@@ -23,14 +27,14 @@ def test_tool_registry_copy_qualifies_python_sidecar_owner():
         / "tools"
         / "filesystem"
         / "read_file_tool.py",
-        repo_root
+        REPO_ROOT
         / "frontend"
         / "src"
         / "main"
         / "python"
         / "tools"
         / "path_resolution.py",
-        repo_root
+        REPO_ROOT
         / "frontend"
         / "src"
         / "main"
@@ -70,10 +74,16 @@ def test_registered_tools_match_exposed_tool_set():
     )
 
 
-def test_exposed_tool_names_are_derived_from_backend_catalog():
-    assert ToolRegistry.get_exposed_tool_names() == set(
-        get_client_executable_tool_names()
-    )
+def test_exposed_tool_names_match_generated_builtin_manifest():
+    generated = json.loads(GENERATED_MANIFEST_PATH.read_text(encoding="utf-8"))
+    generated_tool_names = {tool["name"] for tool in generated["tools"]}
+
+    assert ToolRegistry.get_exposed_tool_names() == generated_tool_names
+
+
+def test_sidecar_registry_tests_do_not_import_backend_package():
+    source = Path(__file__).read_text(encoding="utf-8")
+    assert "backend" + ".src" not in source
 
 
 @pytest.mark.asyncio

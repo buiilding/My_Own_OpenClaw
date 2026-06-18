@@ -173,6 +173,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Sidecar Tool Registry Manifest Boundary
+
+- Worktree was clean after `840468789`, with `main` ahead of `origin/main` by
+  867 commits.
+- Recent commits and current source scans were inspected before editing; the
+  production frontend/renderer/main/SDK scans were clean for direct IPC and
+  product-copy leaks outside skin/config.
+- Finding: the sidecar tool-registry test imported
+  `backend.src.tools.tool_catalog` to compare exposed tool names, even though
+  the sidecar/local-runtime boundary already has a generated built-in tool
+  manifest artifact and backend-side parity tests cover backend catalog
+  alignment.
+- Change: rewired the sidecar registry test to compare exposed names against
+  `frontend/src/main/generated/builtin_tool_manifest.json` and added a guard so
+  that test file does not reintroduce backend package imports.
+- Validation: focused sidecar tool-registry pytest, targeted sidecar backend
+  import scan, docs listing, and diff check.
+- Compatibility: no migration required. Sidecar registry behavior, generated
+  manifest content, backend tool catalog, tool schemas, and runtime execution
+  are unchanged.
+
 ### 2026-06-18 Renderer Models Metadata Refresh Runtime Client
 
 - Worktree was clean after `1f112251a`, with `main` ahead of `origin/main` by
