@@ -2730,7 +2730,7 @@ describe('Agent SDK client behavior', () => {
 
   test('wakeUp can explicitly reuse a discovered local runtime for local tools', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-daemon-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     await fsPromises.writeFile(
       discoveryFile,
       JSON.stringify({
@@ -2795,7 +2795,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider reuses discovery metadata directly', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     await fsPromises.writeFile(
       discoveryFile,
       JSON.stringify({
@@ -2829,7 +2829,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider reports generic discovery timeout wording', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-timeout-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
       launcherScript,
@@ -2863,8 +2863,10 @@ describe('Agent SDK client behavior', () => {
     );
 
     for (const source of [runtimeSource, runtimeCjsSource]) {
-      expect(source).toContain("path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json')");
-      expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json')");
+      expect(source).toContain("path.join(os.tmpdir(), 'desktop-agent', 'local-runtime-daemon.json')");
+      expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'local-runtime-daemon.json')");
+      expect(source).not.toContain('WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE');
+      expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
     }
     expect(runtimeSource).not.toContain('SidecarDaemonClientOptions');
     expect(runtimeSource).not.toContain('SidecarDaemonDiscovery');
@@ -2882,7 +2884,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider rejects camelCase discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-discovery-alias-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
       discoveryFile,
@@ -2944,7 +2946,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider ignores non-loopback discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-loopback-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
       discoveryFile,
@@ -3001,7 +3003,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider restarts a discovered daemon by default', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-restart-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
     const launcherScript = path.join(tempDir, 'python-in-env');
     await fsPromises.writeFile(daemonScript, 'print("daemon")\n', 'utf8');
@@ -3075,7 +3077,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider starts a desktop command with explicit env, cwd, and launch context', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-command-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     const markerFile = path.join(tempDir, 'marker.json');
     await fsPromises.writeFile(
@@ -3140,7 +3142,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider replaces stale launch-context discovery before reuse', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-stale-launch-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const launcherScript = path.join(tempDir, 'launcher.cjs');
     await fsPromises.writeFile(
       discoveryFile,
@@ -3691,7 +3693,7 @@ describe('Agent SDK client behavior', () => {
 
   test('createAgentLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-launcher-'));
-    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
     const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
     const launcherScript = path.join(tempDir, 'python-in-env');
     await fsPromises.writeFile(daemonScript, 'print("daemon")\n', 'utf8');

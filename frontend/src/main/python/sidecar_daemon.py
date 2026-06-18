@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_DISCOVERY_FILE = (
-    Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
+    Path(tempfile.gettempdir()) / "desktop-agent" / "local-runtime-daemon.json"
 )
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"

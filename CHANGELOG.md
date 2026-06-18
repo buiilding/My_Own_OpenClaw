@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/main/sidecar: rename the transient local-runtime daemon discovery default from `sidecar-daemon.json` to `local-runtime-daemon.json` and use `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` for the Node provider override; no persisted-data migration is required because explicit `discoveryFile` options still work and discovery metadata shape/auth are unchanged.
+
 - backend/core: remove the unused nested string fallback helper from
   `string_normalization.py`; no migration is required because the live
   `normalize_non_empty_string` behavior is unchanged.

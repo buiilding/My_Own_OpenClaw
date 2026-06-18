@@ -691,8 +691,8 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     const processEnv = resolveProcessEnv();
     const discoveryFile = path.resolve(
       options.discoveryFile
-        ?? processEnv.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
-        ?? path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json'),
+        ?? processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
+        ?? path.join(os.tmpdir(), 'desktop-agent', 'local-runtime-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;
     const expectedLaunchContext = normalizeLaunchContext(options.launchContext);

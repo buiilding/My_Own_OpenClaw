@@ -23,7 +23,7 @@ from windie._remote_api_client_base import RemoteApiClientBase
 from windie._unicode_sanitizer import sanitize_surrogates
 
 DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE = (
-    Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
+    Path(tempfile.gettempdir()) / "desktop-agent" / "local-runtime-daemon.json"
 )
 DEFAULT_LOCAL_RUNTIME_START_TIMEOUT_SECONDS = 10.0
 DEFAULT_LOCAL_RUNTIME_POLL_INTERVAL_SECONDS = 0.1

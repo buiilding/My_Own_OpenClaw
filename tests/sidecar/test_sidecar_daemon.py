@@ -43,7 +43,7 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
 
 def test_sidecar_daemon_default_discovery_path_is_generic():
     assert sidecar_daemon.DEFAULT_DISCOVERY_FILE == (
-        Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
+        Path(tempfile.gettempdir()) / "desktop-agent" / "local-runtime-daemon.json"
     )
 
 
@@ -342,7 +342,7 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
     monkeypatch.setenv("WINDIE_BACKEND_AUTH_STATE_PATH", "/tmp/auth.json")
     monkeypatch.setenv("WINDIE_ENABLE_SEMANTIC_SUMMARIZER", "0")
 
-    discovery_path = tmp_path / "sidecar-daemon.json"
+    discovery_path = tmp_path / "local-runtime-daemon.json"
     await write_discovery_file(
         discovery_path,
         host="127.0.0.1",

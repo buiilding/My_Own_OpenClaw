@@ -23,7 +23,7 @@ const {
 const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
   os.tmpdir(),
   'desktop-agent',
-  'sidecar-daemon.json',
+  'local-runtime-daemon.json',
 );
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 10000;
 const DEFAULT_DAEMON_POLL_INTERVAL_MS = 100;

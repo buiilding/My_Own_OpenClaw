@@ -120,7 +120,7 @@ describe('desktop local runtime launch options', () => {
 
     expect(plan.ok).toBe(true);
     expect(plan.options.discoveryFile).toBe(
-      path.join(os.tmpdir(), 'desktop-agent', 'sidecar-daemon.json'),
+      path.join(os.tmpdir(), 'desktop-agent', 'local-runtime-daemon.json'),
     );
   });
 

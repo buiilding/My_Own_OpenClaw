@@ -71,7 +71,7 @@ def test_python_sdk_discovery_requires_canonical_base_url():
 
 def test_python_sdk_default_local_runtime_discovery_path_is_generic():
     assert windie_sdk_module.DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE == (
-        Path(tempfile.gettempdir()) / "desktop-agent" / "sidecar-daemon.json"
+        Path(tempfile.gettempdir()) / "desktop-agent" / "local-runtime-daemon.json"
     )
 
 

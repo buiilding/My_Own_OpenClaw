@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local runtime discovery file boundary
+
+- Finding: the SDK, Electron launch plan, Python SDK, and sidecar daemon still
+  defaulted transient local-runtime discovery to `sidecar-daemon.json`, and the
+  Node provider still read `WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE` despite the
+  public runtime surface being local-runtime named.
+- Change: renamed the default discovery file to `local-runtime-daemon.json`,
+  switched the Node provider override to
+  `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE`, updated checked-in CJS, and
+  aligned frontend, sidecar, SDK, and docs coverage.
+- Validation: focused SDK/local-runtime Jest coverage, focused sidecar daemon
+  and Python SDK pytest coverage, docs listing, stale filename/env scans, and
+  diff checks.
+- Compatibility: no persisted-data migration is required. Explicit
+  `discoveryFile` options still work, daemon discovery metadata shape and auth
+  are unchanged, and the default file is transient startup coordination under
+  the temp `desktop-agent` directory.
+
 ### 2026-06-17 local runtime source identity env boundary
 
 - Finding: Electron main still stamped daemon launch source identity into
