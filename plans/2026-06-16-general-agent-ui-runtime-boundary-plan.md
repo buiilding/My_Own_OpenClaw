@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local runtime verbose stderr env boundary
+
+- Finding: Electron main still used `WINDIE_VERBOSE_SIDECAR_STDERR` as the
+  opt-in verbose stderr forwarding flag for the local-runtime daemon, leaving a
+  sidecar-named diagnostic contract on the generic host/runtime boundary.
+- Change: renamed the flag to `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR`, removed the
+  old flag from the forwarding decision, updated operator/debug docs, and added
+  focused coverage proving the sidecar-named flag no longer enables verbose
+  forwarding.
+- Validation: focused local-runtime launch-option Jest coverage, docs listing,
+  stale env-key scan, and diff checks.
+- Compatibility: no migration required for persisted data, daemon discovery,
+  tool schemas, JSON-RPC payloads, or launch options. Operators should use the
+  new local-runtime env flag for verbose stderr forwarding.
+
 ### 2026-06-17 local runtime discovery file boundary
 
 - Finding: the SDK, Electron launch plan, Python SDK, and sidecar daemon still

@@ -6,7 +6,7 @@ const SUPPRESSED_STDERR_PATTERNS = [
   '[DEP0169] DeprecationWarning: `url.parse()`',
   'Use `node --trace-deprecation ...` to show where the warning was created',
 ];
-const ENV_VERBOSE_SIDECAR_STDERR = 'WINDIE_VERBOSE_SIDECAR_STDERR';
+const ENV_VERBOSE_LOCAL_RUNTIME_STDERR = 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR';
 const PYTHON_LOG_LEVEL_PATTERN = /\s-\s(DEBUG|INFO|WARNING|ERROR|CRITICAL)\s-\s/;
 const FORWARD_LOG_LEVELS = new Set(['WARNING', 'ERROR', 'CRITICAL']);
 
@@ -52,7 +52,7 @@ function shouldForwardStderrLine(line, env = process.env) {
   if (shouldSuppressStderrLine(line)) {
     return false;
   }
-  if (isTruthyEnvFlag(env?.[ENV_VERBOSE_SIDECAR_STDERR])) {
+  if (isTruthyEnvFlag(env?.[ENV_VERBOSE_LOCAL_RUNTIME_STDERR])) {
     return true;
   }
 

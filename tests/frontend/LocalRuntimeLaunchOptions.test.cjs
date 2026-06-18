@@ -23,6 +23,17 @@ describe('desktop local runtime launch options', () => {
     expect(typeof localRuntimeUtilsModule.withLocalRuntimeNodeOptions).toBe('function');
   });
 
+  test('uses local-runtime verbose stderr env flag without sidecar alias', () => {
+    const debugLine = '2026-06-17 10:00:00 - DEBUG - noisy daemon detail';
+
+    expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
+      WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
+    })).toBe(true);
+    expect(localRuntimeUtilsModule.shouldForwardStderrLine(debugLine, {
+      WINDIE_VERBOSE_SIDECAR_STDERR: '1',
+    })).toBe(false);
+  });
+
   test('uses local-runtime daemon helper names in launch source', () => {
     const source = fs.readFileSync(
       path.join(__dirname, '../../frontend/src/main/sidecar/local_runtime_launch_options.cjs'),

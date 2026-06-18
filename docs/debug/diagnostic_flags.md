@@ -58,8 +58,8 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 | Flag | Effect |
 | --- | --- |
 | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python sidecar logs. |
-| `WINDIE_VERBOSE_SIDECAR_STDERR=1` | Forwards verbose sidecar stderr through Electron main. |
-| `WINDIE_VERBOSE_SIDECAR_STDERR=0` | Reduces sidecar stderr noise; used by packaged reinstall helpers. |
+| `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1` | Forwards verbose local-runtime stderr through Electron main. |
+| `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0` | Reduces local-runtime stderr noise; used by packaged reinstall helpers. |
 | `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables semantic summarizer for focused local-runtime debugging. |
 | `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` | Prevents browser feature-pack auto-install while debugging availability. |
 

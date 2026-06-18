@@ -57,7 +57,7 @@ Next action:
 | Screenshot/tool capture | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` |
 | Sidecar tool/runtime | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
 | Packaged app log file | `WINDIE_LOG_FILE=<path>` |
-| Verbose sidecar stderr forwarding | `WINDIE_VERBOSE_SIDECAR_STDERR=1` |
+| Verbose local-runtime stderr forwarding | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1` |
 
 Use the narrowest flag that matches the failing boundary. Do not enable broad logging in docs examples that might expose credentials.
 

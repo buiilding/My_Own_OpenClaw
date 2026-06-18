@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename verbose local-runtime stderr forwarding from `WINDIE_VERBOSE_SIDECAR_STDERR` to `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR`; no migration is required for persisted data, daemon discovery, tool schemas, JSON-RPC payloads, or launch options.
+
 - backend/core: remove unused generic TypedDict aliases from
   `core.types.schemas`; no migration is required because runtime payloads,
   API schemas, and live normalized response/tool schema types are unchanged.

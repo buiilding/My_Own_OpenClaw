@@ -124,7 +124,7 @@ Rules:
 - Log to stderr only.
 - Keep stdout reserved for JSON-RPC frames.
 - Use `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` for debug verbosity.
-- Use `WINDIE_VERBOSE_SIDECAR_STDERR` only for explicit packaged/source debugging.
+- Use `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR` only for explicit packaged/source debugging.
 - Do not dump file contents, shell outputs, browser page text, or memory facts unless explicitly part of a sanitized tool result.
 
 ## Operational Evidence Changes
