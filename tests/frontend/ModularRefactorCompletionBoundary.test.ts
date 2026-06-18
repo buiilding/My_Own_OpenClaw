@@ -335,21 +335,33 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/README.md'),
       read('docs/reference/code_change_surface_index.md'),
       read('docs/tools/README.md'),
+      read('docs/tools/tool_troubleshooting.md'),
       read('docs/tools/tool_schema_policy_change_workflow.md'),
+      read('docs/tools/tool_policy_profiles_and_capabilities.md'),
       read('docs/tools/tool_contracts.md'),
       read('docs/tools/tool_catalog_matrix.md'),
       read('docs/tools/tool_execution_lifecycle.md'),
       read('docs/tools/filesystem_shell.md'),
       read('docs/tools/filesystem_shell_change_workflow.md'),
+      read('docs/tools/browser.md'),
+      read('docs/tools/computer.md'),
+      read('docs/sdk/conversation_runtime.md'),
       read('docs/security/security_boundary_matrix.md'),
     ]);
     const docText = docs.join('\n');
     const toolRoutingDocText = (await Promise.all([
       read('docs/tools/README.md'),
+      read('docs/tools/tool_troubleshooting.md'),
       read('docs/tools/tool_schema_policy_change_workflow.md'),
+      read('docs/tools/tool_policy_profiles_and_capabilities.md'),
       read('docs/tools/tool_contracts.md'),
       read('docs/tools/tool_execution_lifecycle.md'),
+      read('docs/tools/tool_catalog_matrix.md'),
+      read('docs/tools/filesystem_shell.md'),
       read('docs/tools/filesystem_shell_change_workflow.md'),
+      read('docs/tools/browser.md'),
+      read('docs/tools/computer.md'),
+      read('docs/sdk/conversation_runtime.md'),
     ])).join('\n');
 
     expect(docText).toContain('client-local runtime tool');
@@ -369,6 +381,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('local sidecar tools');
     expect(docText).not.toContain('local sidecar execution');
     expect(toolRoutingDocText).not.toContain('sidecar execution');
+    expect(toolRoutingDocText).not.toContain('sidecar-executed');
+    expect(toolRoutingDocText).not.toContain('sidecar results');
     expect(docText).not.toContain('Windie Agent owns client-local');
     expect(docText).not.toContain('Sidecar Plugin Tool Registration');
     expect(docText).not.toContain('sidecar plugin');

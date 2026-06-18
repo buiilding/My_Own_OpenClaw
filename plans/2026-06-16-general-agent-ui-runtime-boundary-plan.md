@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 public tool local-runtime docs
+
+- Finding: public tool docs still described add/debug routes as `sidecar-executed`, `sidecar execution`, or `sidecar results`, even after the SDK local runtime became the reusable public boundary.
+- Change: rewrote troubleshooting, schema workflow, policy, contracts, catalog, browser, computer, filesystem/shell, and SDK conversation-runtime docs to use local-runtime/local-execution/local-result wording, and expanded modular boundary coverage for those public docs.
+- Validation: focused `ModularRefactorCompletionBoundary` Jest coverage, exact stale-phrase scan for the selected public tool docs, and scoped diff check.
+- Compatibility: docs and boundary-test coverage only; runtime behavior, SDK APIs, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 general local-execution architecture wording
 
 - Finding: general architecture docs and focused frontend test labels still used sidecar-execution wording for local tool validation, failure routing, result flow, and stale-route behavior after the SDK/main local execution boundary had become the public route.

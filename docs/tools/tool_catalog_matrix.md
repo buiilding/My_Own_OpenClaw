@@ -2,7 +2,7 @@
 summary: "Model-visible WindieOS tool catalog matrix with backend owners, sidecar executors, use cases, policy gates, and validation routes."
 read_when:
   - When adding, removing, renaming, or debugging a model-visible tool.
-  - When deciding whether a tool belongs in backend schema, SDK/main dispatch, sidecar execution, UI projection, or provider-native capability routing.
+  - When deciding whether a tool belongs in backend schema, SDK/main dispatch, local execution, UI projection, or provider-native capability routing.
 title: "Tool Catalog Matrix"
 ---
 
@@ -66,16 +66,16 @@ Parity tests should prove:
 
 - every accepted local tool expected by the sidecar exists in the sidecar registry
 - accepted client-local schemas remain model-facing when a client manifest supplies them
-- sidecar results normalize into `ToolResult`
+- local results normalize into `ToolResult`
 - browser shared-contract schema stays aligned across backend and sidecar
 
 ## Add-a-Tool Checklist
 
-1. Decide whether the tool is backend-only, frontend/sidecar-executed, or provider-native.
+1. Decide whether the tool is backend-only, local-runtime executed, or provider-native.
 2. Add or update the frontend/sidecar manifest for local model-visible tools.
 3. Add sidecar executable registration only when local execution is required.
 4. Add SDK/main tool-router handling only when payload/result envelopes, artifacts, screenshots, or UI display behavior change.
 5. Add policy/profile entries if the tool should appear in `chat`, `coding`, `browser`, `computer`, or `full` profiles.
 6. Add backend schema/catalog registration only for backend-executed tools or fallback/default local exposure.
-7. Add tests for accepted client schemas, backend policy filtering, sidecar execution, SDK/main result relay, and cross-layer parity.
+7. Add tests for accepted client schemas, backend policy filtering, local execution, SDK/main result relay, and cross-layer parity.
 8. Update [Tools Hub](README.md), this matrix, and feature-specific docs.

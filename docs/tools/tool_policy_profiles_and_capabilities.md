@@ -110,7 +110,7 @@ Validated fields:
 - `find_coordinates_by`
 - `drag_to_find_coordinates_by`
 
-If the model asks for a disabled coordinate method, backend returns a method-policy preparation error instead of letting a hidden capability leak into sidecar execution.
+If the model asks for a disabled coordinate method, backend returns a method-policy preparation error instead of letting a hidden capability leak into local execution.
 
 ## Debugging Hidden Tools
 

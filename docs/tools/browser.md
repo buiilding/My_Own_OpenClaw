@@ -8,7 +8,7 @@ title: "Browser Tool"
 
 # Browser Tool
 
-WindieOS browser automation uses the official Browser Use runtime as the sidecar execution engine. WindieOS keeps agent orchestration, model-facing tool policy, permission gates, and result normalization; Browser Use owns browser sessions, DOM/state extraction, element indexing, browser actions, and daemon/browser lifecycle.
+WindieOS browser automation uses the official Browser Use runtime as the local browser execution engine. WindieOS keeps agent orchestration, model-facing tool policy, permission gates, and result normalization; Browser Use owns browser sessions, DOM/state extraction, element indexing, browser actions, and daemon/browser lifecycle.
 
 For browser changes that can cross schema, sidecar runtime, Electron bridge, renderer controls, CDP launch, snapshots, refs, or files, start with [Browser Change Workflow](../browser/browser_change_workflow.md). For deeper dedicated-browser launch, action-surface, session-UI, and troubleshooting docs, read [Browser Hub](../browser/README.md).
 
@@ -39,7 +39,7 @@ module precedence.
 
 ## Debugging Rules
 
-- Check whether the browser action parsed in backend before debugging sidecar execution.
+- Check whether the browser action parsed in backend before debugging local execution.
 - Check backend-sidecar schema parity when a backend-valid action fails locally.
 - Check the Browser Use daemon state under `WINDIE_BROWSER_USE_HOME` or the default WindieOS Browser Use home when browser status polling reports a disconnected browser.
 - Do not debug browser action reliability in the renderer first; Browser Use is the browser automation engine and WindieOS should only own adapter/result boundaries.

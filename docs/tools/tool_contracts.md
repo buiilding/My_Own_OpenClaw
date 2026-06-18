@@ -104,7 +104,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
   fields may remain in the payload for UI/debugging, but backend history reads
   only `output` and does not infer text from tool-specific fields such as
   `snapshot`, `extracted_content`, or `matches`.
-- MCP-backed sidecar results are an exception to any local summarization habit:
+- MCP-backed local results are an exception to any local summarization habit:
   preserve the MCP server's raw result for every MCP tool, including `content`,
   `structuredContent`, and other returned fields. Put the serialized MCP result
   content in `data.output` so model history can see it, but elide image base64

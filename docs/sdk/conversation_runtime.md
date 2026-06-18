@@ -653,7 +653,7 @@ completed tool wait.
 Projection builders collapse duplicate tool outputs that share the same
 `requestId`, `bundleId`, `correlationId`, or `toolCallId` as a defensive guard
 for stored legacy rows. The live local-runtime flow should not produce backend
-acknowledgement `tool-output` events for sidecar results: the SDK appends the
+acknowledgement `tool-output` events for local results: the SDK appends the
 local raw output row, sends `tool-result` or `tool-bundle-result` to backend,
 and backend ingests that result for model/history continuation without echoing a
 second UI row.

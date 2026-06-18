@@ -83,7 +83,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 8. SDK main runtime submits `tool-result` or `tool-bundle-result` back to the backend.
 9. Backend transforms the result into model-facing history and resumes the loop.
 
-## Add a New Sidecar-Executed Tool
+## Add a New Local Runtime Tool
 
 1. Decide whether the tool should be model-visible, internal-only, or future-only.
 2. Add or update the Agent SDK/local-runtime manifest entry that defines the model-facing local schema.
@@ -160,7 +160,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ### Tool Is Visible but Frontend Cannot Execute It
 
 - Confirm `tests/backend/test_remote_tool_contract.py` covers the tool name parity with sidecar exposure.
-- Confirm `frontend/src/main/python/tools/manifest.py` includes the tool if it is sidecar-executed.
+- Confirm `frontend/src/main/python/tools/manifest.py` includes the tool if it is local-runtime executed.
 - Confirm `frontend/src/main/python/tools/registry.py` actually registers an implementation.
 - Confirm SDK/main tool dispatch recognizes the tool and preserves request ids.
 - Confirm Electron main can reach the sidecar process.
@@ -168,7 +168,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ### Tool Args Are Rejected
 
 - For backend-executed tools, confirm backend `args_model` matches the model-facing schema.
-- For sidecar-executed tools, inspect the frontend/sidecar validation error and the accepted client manifest schema.
+- For local-runtime executed tools, inspect the frontend/local-runtime validation error and the accepted client manifest schema.
 - Confirm method-level policy allows the requested coordinate method.
 - Confirm backend preparation is not stripping grounded-only fields too early.
 
@@ -214,7 +214,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.
 - Request ids, tool-call ids, bundle ids, artifact refs, and screenshot refs survive renderer/Electron/sidecar transport.
 - Tool-result history has deterministic success, error, timeout, partial failure, and cleanup behavior.
-- Docs identify whether the tool is backend-only, sidecar-executed, provider-native, exact-parity, or grounded/translated before execution.
+- Docs identify whether the tool is backend-only, local-runtime executed, provider-native, exact-parity, or grounded/translated before execution.
 
 ## Related Docs
 

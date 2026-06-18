@@ -3,7 +3,7 @@ summary: "Computer-use screenshot and desktop-control tool guide for mouse, keyb
 read_when:
   - When changing computer-use screenshot behavior, desktop control tools, screenshots, OCR/prediction coordinate grounding, or platform capture behavior.
   - When debugging mouse, keyboard, screenshot, scroll, or window actions.
-  - When routing computer use screenshot ownership between backend coordinate preparation and sidecar execution.
+  - When routing computer use screenshot ownership between backend coordinate preparation and local execution.
 title: "Computer Use Screenshot and Control Tools"
 ---
 

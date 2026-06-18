@@ -1,5 +1,5 @@
 ---
-summary: "Tool troubleshooting guide for routing WindieOS tool visibility, schema, dispatch, sidecar execution, result, artifact, and replay failures to the right owner."
+summary: "Tool troubleshooting guide for routing WindieOS tool visibility, schema, dispatch, local execution, result, artifact, and replay failures to the right owner."
 read_when:
   - When a model-visible tool is missing, malformed, not executing, returning the wrong result, or breaking replay.
   - When deciding which backend, renderer, Electron main, or sidecar tests should cover a tool regression.
