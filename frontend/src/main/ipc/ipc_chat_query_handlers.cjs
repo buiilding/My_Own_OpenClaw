@@ -83,17 +83,17 @@ function createChatQueryHandlers({
     deps.log('Received query from renderer');
     deps.log('Complete user message built successfully');
 
-    let backendConnectionReady = true;
+    let agentRuntimeConnectionReady = true;
     if (!isBackendRuntimeConnected()) {
       try {
         await ensureBackendConnection('query');
       } catch (error) {
-        backendConnectionReady = false;
-        deps.log(`Failed to connect backend for query: ${error?.message || error}`);
+        agentRuntimeConnectionReady = false;
+        deps.log(`Failed to connect Agent SDK runtime for query: ${error?.message || error}`);
       }
     }
 
-    if (backendConnectionReady) {
+    if (agentRuntimeConnectionReady) {
       await ensureInitialSettingsSync();
       const pendingSettingsSyncPromise = getPendingSettingsSyncPromise();
       if (pendingSettingsSyncPromise) {
@@ -102,7 +102,7 @@ function createChatQueryHandlers({
     }
 
     let messageId = null;
-    if (backendConnectionReady) {
+    if (agentRuntimeConnectionReady) {
       messageId = await sendQueryThroughAgentSdkRuntime({
         payload,
         messageId: queryMessageId,

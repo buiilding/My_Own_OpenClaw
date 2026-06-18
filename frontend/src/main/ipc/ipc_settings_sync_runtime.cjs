@@ -108,7 +108,7 @@ function createIpcSettingsSyncRuntime({
       try {
         await ensureBackendConnection?.(`update-settings:${source}`);
       } catch (error) {
-        log(`Failed to connect backend for update-settings: ${error?.message || error}`);
+        log(`Failed to connect Agent SDK runtime for update-settings: ${error?.message || error}`);
         return false;
       }
     }

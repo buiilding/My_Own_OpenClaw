@@ -96,6 +96,28 @@ describe('ipc_settings_sync_runtime', () => {
     expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
   });
 
+  test('sendSettingsUpdate reports Agent SDK runtime connection failures', async () => {
+    const log = jest.fn();
+    const updateSettings = jest.fn();
+    const runtime = createIpcSettingsSyncRuntime({
+      getLatestDesktopUiConfig: () => null,
+      setLatestDesktopUiConfig: jest.fn(),
+      isBackendRuntimeConnected: () => false,
+      ensureBackendConnection: jest.fn(async () => {
+        throw new Error('socket unavailable');
+      }),
+      updateSettings,
+      log,
+      timeoutMs: 1000,
+    });
+
+    await expect(runtime.sendSettingsUpdate({ selected_model_id: 'model-2' })).resolves.toBe(false);
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(
+      'Failed to connect Agent SDK runtime for update-settings: socket unavailable',
+    );
+  });
+
   test('sendSettingsUpdate preserves local MCP enablement in latest config', async () => {
     const updateSettings = jest.fn(async () => 'settings-msg-1');
     const setLatestDesktopUiConfig = jest.fn();

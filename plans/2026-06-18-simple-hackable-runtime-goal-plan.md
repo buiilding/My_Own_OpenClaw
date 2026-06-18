@@ -295,6 +295,16 @@ For each completed slice, record:
   focused docs-index routing test, docs listing, diff checks, and exact route
   scans. No migration required; no payload, storage, IPC, settings, tool
   schema, credential, permission, or provider-policy behavior changed.
+- 2026-06-18: completed a focused main-as-SDK-host ownership wording slice by
+  naming query/settings connection-gate state and failure logs as Agent SDK
+  runtime readiness. The helpers still use the existing backend connection gate
+  because the SDK-managed backend runtime remains the underlying transport, but
+  local state, failure logs, and query-relay debug docs now describe the Agent
+  SDK runtime owner instead of making Electron main read as the backend
+  connection authority. Validation: focused main SDK runtime boundary and
+  settings-sync runtime tests, docs listing, diff checks, and exact source scan.
+  No migration required; no payload, storage, IPC, settings, tool schema,
+  credential, permission, or provider-policy behavior changed.
 - 2026-06-18: plan created after reviewing `AGENTS.md`, runtime ownership docs,
   the existing general runtime-boundary plan, and recent commits around
   local-runtime naming, renderer app-runtime facades, SDK runtime helper

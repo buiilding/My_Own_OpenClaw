@@ -239,8 +239,10 @@ If query content misses memory or attachment context:
 If renderer shows user message but backend never streams:
 
 1. confirm the SDK `user_message` projection arrived after the optimistic row
-2. verify SDK runtime send returned message id
-3. inspect the `buildQuerySendFailure` context and SDK `turn_error`
+2. inspect Electron main logs for `Failed to connect Agent SDK runtime for query`
+   or `Failed to connect Agent SDK runtime for update-settings`
+3. verify SDK runtime send returned message id
+4. inspect the `buildQuerySendFailure` context and SDK `turn_error`
    broadcast path for failed send
 
 For module ownership details of query send-failure broadcasters and

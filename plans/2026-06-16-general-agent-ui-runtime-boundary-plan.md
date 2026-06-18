@@ -9492,3 +9492,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Renderer behavior, workspace IPC
   channels, SDK commands, settings, storage, credentials, permissions, hosted
   backend URLs, and provider policy are unchanged.
+
+### 2026-06-18 main query connection gate wording
+
+- Finding: Electron main query/settings helpers still named and logged the
+  pre-send connection gate as a direct backend connection, even though main is
+  the Agent SDK host and sends queries/settings through the SDK runtime.
+- Change: renamed the chat-query readiness flag to
+  `agentRuntimeConnectionReady`, updated query/settings failure logs to say
+  `Agent SDK runtime`, and documented those log strings in the query relay
+  debug checklist.
+- Validation: focused main SDK runtime boundary and settings-sync runtime
+  tests, docs listing, and diff checks.
+- Compatibility: no migration required. Wire commands, websocket payloads,
+  settings payload filtering, IPC channels, storage, credentials, permissions,
+  hosted backend URLs, and provider policy are unchanged.

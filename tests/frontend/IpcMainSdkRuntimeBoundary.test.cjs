@@ -20,6 +20,18 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source.match(directRuntimeSendPattern) || []).toEqual([]);
   });
 
+  test('chat query helper names the connection gate as Agent SDK runtime readiness', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_chat_query_handlers.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('agentRuntimeConnectionReady');
+    expect(source).toContain('Failed to connect Agent SDK runtime for query');
+    expect(source).not.toContain('backendConnectionReady');
+    expect(source).not.toContain('Failed to connect backend for query');
+  });
+
   test('electron main starts the SDK through AgentClient wakeUp directly', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
