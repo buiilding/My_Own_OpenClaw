@@ -2,7 +2,7 @@
 summary: "Tool troubleshooting guide for routing WindieOS tool visibility, schema, dispatch, local execution, result, artifact, and replay failures to the right owner."
 read_when:
   - When a model-visible tool is missing, malformed, not executing, returning the wrong result, or breaking replay.
-  - When deciding which backend, renderer, Electron main, or sidecar tests should cover a tool regression.
+  - When deciding which backend, renderer, Electron main, or Python sidecar tests should cover a tool regression.
 title: "Tool Troubleshooting"
 ---
 
@@ -18,12 +18,12 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool schema missing fields | owning schema source or provider projection | client manifest source, `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/provider_projection.py` |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
 | Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK main-runtime tool router | backend formatter tests, SDK/main runtime tests |
-| SDK/main says unknown tool | sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
-| Sidecar returns `Tool not found` | sidecar registration/import failure | sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
+| SDK/main says unknown tool | Python sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
+| Python sidecar returns `Tool not found` | Python sidecar registration/import failure | Python sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
 | Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |
 | Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |
-| Browser action rejected | sidecar browser validation for local execution, backend validation for backend-owned browser capabilities | [Browser Action Surface](../browser/browser_action_surface.md) |
+| Browser action rejected | Python sidecar browser validation for local execution, backend validation for backend-owned browser capabilities | [Browser Action Surface](../browser/browser_action_surface.md) |
 
 ## Model Visibility Failures
 
@@ -64,8 +64,8 @@ Questions to answer:
 1. Did backend send a `tool-call` or `tool-bundle` event?
 2. Did the Agent SDK runtime receive the matching event type?
 3. Did SDK/main construct the executable local-runtime payload with the expected args?
-4. Did Electron main route JSON-RPC to the sidecar?
-5. Did sidecar registry import the tool module lazily without import error?
+4. Did Electron main route JSON-RPC to the Python sidecar process?
+5. Did the Python sidecar registry import the tool module lazily without import error?
 6. Did the executable tool return a native `ToolResult`?
 
 Read:
@@ -106,8 +106,8 @@ Read:
 For a tool regression fix, add the narrowest tests that cross the failing boundary:
 
 - policy visibility bug: backend `ToolPolicy` test
-- schema drift: backend schema/registry test and sidecar parity test if local execution is involved
-- sidecar runtime bug: sidecar unit test for the executable tool
+- schema drift: backend schema/registry test and Python sidecar parity test if local execution is involved
+- Python sidecar runtime bug: Python sidecar unit test for the executable tool
 - SDK/main dispatch bug: SDK runtime or IPC tool-router test
 - waiting/result bug: backend result receiver/storage/processor test
 - replay bug: renderer transcript or backend rehydrate/history test

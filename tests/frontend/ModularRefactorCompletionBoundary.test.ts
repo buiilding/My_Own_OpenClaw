@@ -589,11 +589,15 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/reference/code_change_surface_index.md'),
       read('docs/tools/README.md'),
       read('docs/tools/tool_catalog_matrix.md'),
+      read('docs/tools/tool_schema_policy_change_workflow.md'),
+      read('docs/tools/tool_troubleshooting.md'),
     ]);
     const docText = docs.join('\n');
 
     expect(docText).toContain('Python sidecar executor');
     expect(docText).toContain('local-runtime sidecar executor');
+    expect(docText).toContain('Python sidecar registry');
+    expect(docText).toContain('Python sidecar registry/schema/runtime');
     expect(docText).not.toContain(' or sidecar executor');
     expect(docText).not.toContain('and sidecar executor');
     expect(docText).not.toContain('vs sidecar executor');
@@ -601,6 +605,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('backend owners, sidecar executors');
     expect(docText).not.toContain('Built-in sidecar executors');
     expect(docText).not.toContain('Plugin sidecar executors');
+    expect(docText).not.toMatch(/(?<!Python )sidecar registry parity or SDK dispatch map/);
+    expect(docText).not.toMatch(/(?<!Python )sidecar registry\/schema\/runtime/);
   });
 
   test('browser contract docs qualify Python sidecar validation ownership', async () => {

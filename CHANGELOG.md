@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: qualify tool troubleshooting registry/runtime owners as Python
+  sidecar ownership.
 - docs/voice: label voice capture docs as renderer-owned and wakeword bridge
   docs as Electron-owned in routing hubs.
 - docs/tools: qualify built-in sidecar tool references as Python sidecar tool
