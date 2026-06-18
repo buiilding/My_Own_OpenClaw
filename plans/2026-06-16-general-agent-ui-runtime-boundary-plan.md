@@ -4958,3 +4958,18 @@ Each completed slice should report:
 - Compatibility: no migration required. This removes an unused backend-internal
   utility only; the live string normalization behavior used by tool-call bridge
   id normalization is unchanged.
+
+### 2026-06-17 backend core unused TypedDict schemas
+
+- Finding: `backend/src/core/types/schemas.py` still defined generic
+  `ToolResultDict`, `ProviderConfigDict`, `MemoryItem`, `EpisodicMemory`,
+  `WebSocketMessage`, and `ToolParameterSchema` TypedDicts, but exact-name
+  scans showed no source, test, or doc callers beyond the stale topology line.
+- Change: removed those unused TypedDicts, kept the live LLM/message/normalized
+  response/tool schema types, refreshed the core source map, and added a guard
+  test so the removed generic aliases stay out of the core schema surface.
+- Validation: focused core type schema py_compile and pytest, exact-name stale
+  scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. These were unused backend-internal type
+  aliases only; runtime payloads, API schemas, provider normalized response
+  shapes, and tool-schema events are unchanged.

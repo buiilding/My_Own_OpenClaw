@@ -33,7 +33,7 @@ backend/src/core/
 │
 ├── types/                             # Type definitions for type safety
 │   ├── enums.py                       # Enum classes: MessageRole, MessageType, StreamingEventType, ContentType, MouseAction, etc.
-│   └── schemas.py                     # TypedDict schemas: LLMMessage, MultimodalContent, ToolResultDict, MemoryItem, etc.
+│   └── schemas.py                     # TypedDict schemas: LLMMessage, MultimodalContent, NormalizedLLMResponse, ToolSchema
 │
 ├── validation/                        # Input validation framework
 │   ├── settings_update_rules.py       # AppConfig settings patch validation rules
