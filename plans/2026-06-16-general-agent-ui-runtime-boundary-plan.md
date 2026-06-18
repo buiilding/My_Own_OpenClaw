@@ -8383,3 +8383,23 @@ Each completed slice should report:
   continue to work, generic test harnesses can use `AGENT_TEST_PLATFORM`, and
   default user-data path resolution plus diagnostics storage behavior are
   unchanged.
+
+### 2026-06-18 Python browser local-state default boundary
+
+- Finding: Browser Use session and browser-local file defaults still used
+  `windieos` and `~/.windieos/browser`, even though these are reusable
+  sidecar-local executor state rather than WindieOS product skin or hosted
+  backend policy.
+- Change: changed the default Browser Use session to `desktop-agent` and the
+  default browser file root to `~/.desktop-agent/browser`, while keeping
+  `AGENT_BROWSER_*` env names primary and WindieOS env aliases available for
+  legacy local state.
+- Validation: focused Browser Use engine and browser file-store pytest
+  coverage, browser docs search, docs listing, source scans, and
+  `git diff --check`.
+- Compatibility: no automatic migration. Existing Browser Use daemon sessions
+  and browser-local files can still be selected explicitly with
+  `WINDIE_BROWSER_USE_SESSION=windieos` and
+  `WINDIE_BROWSER_FILES_DIR=~/.windieos/browser`; dedicated Chrome profile
+  paths, CDP port behavior, tool schemas, and browser action validation are
+  unchanged.

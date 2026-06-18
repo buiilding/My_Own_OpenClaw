@@ -53,8 +53,8 @@ Browser Use runtime is now the default execution path. These flags are optional:
 # Browser Use daemon/session state root
 export AGENT_BROWSER_USE_HOME="$HOME/.config/windieos/browser-use"
 
-# Browser Use session name (default: windieos)
-export AGENT_BROWSER_USE_SESSION=windieos
+# Browser Use session name (default: desktop-agent)
+export AGENT_BROWSER_USE_SESSION=desktop-agent
 
 # Optional diagnostic command override
 export AGENT_BROWSER_USE_CLI=browser-use
@@ -419,8 +419,8 @@ Agent:
 # Windie browser CDP port (default: 9333)
 export AGENT_BROWSER_CDP_PORT=9333
 
-# Browser Use session name (default: windieos)
-export AGENT_BROWSER_USE_SESSION=windieos
+# Browser Use session name (default: desktop-agent)
+export AGENT_BROWSER_USE_SESSION=desktop-agent
 ```
 
 ## Next Steps

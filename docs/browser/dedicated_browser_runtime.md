@@ -31,10 +31,11 @@ WindieOS no longer keeps a direct browser-controller execution path in this stac
 
 Browser Use daemon state lives under `AGENT_BROWSER_USE_HOME` when set, or
 `WINDIE_BROWSER_USE_HOME` in WindieOS launches, otherwise under the WindieOS app
-data directory at `browser-use/`. The default session name is `windieos`; use
-`AGENT_BROWSER_USE_SESSION` (`WINDIE_BROWSER_USE_SESSION` in WindieOS launches)
-only for diagnostics or isolated local sessions. Retired `desktop-agent`
-Browser Use session state is not migrated.
+data directory at `browser-use/`. The default session name is `desktop-agent`.
+Use `AGENT_BROWSER_USE_SESSION` or the WindieOS alias
+`WINDIE_BROWSER_USE_SESSION=windieos` only for diagnostics, isolated local
+sessions, or intentionally reusing a legacy Browser Use daemon session. Legacy
+`windieos` Browser Use session state is not migrated automatically.
 
 ## Connect Flow
 
@@ -79,13 +80,13 @@ The browser feature-pack marker modules are `browser_use`, `playwright`, and `ma
 Default file root:
 
 ```text
-~/.windieos/browser
+~/.desktop-agent/browser
 ```
 
 Set `AGENT_BROWSER_FILES_DIR` (`WINDIE_BROWSER_FILES_DIR` in WindieOS launches)
-only when a diagnostic run needs an isolated browser file root. Retired
-`~/.desktop-agent/browser` files are not migrated to the current browser file
-root.
+only when a diagnostic run needs an isolated browser file root or needs to
+reuse the legacy `~/.windieos/browser` root. Legacy browser files are not
+migrated automatically.
 
 Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and screenshots should resolve paths through this helper when the path is browser-owned. Browser-owned file paths must be relative to the browser file root; absolute paths and `..` escapes are rejected instead of falling through to arbitrary filesystem locations.
 

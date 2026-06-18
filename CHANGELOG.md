@@ -76,6 +76,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: accept generic `AGENT_BROWSER_*` diagnostic env aliases for
   Browser Use daemon settings, CDP port, and browser file storage while
   preserving WindieOS aliases.
+- sidecar/browser: default Browser Use sessions and browser-local files to
+  generic `desktop-agent` locations while preserving WindieOS env aliases for
+  intentionally reusing legacy local state.
 - sidecar/daemon: accept generic `AGENT_USER_DATA_DIR` and
   `AGENT_APP_DIAGNOSTICS_DB` daemon data-path env aliases while preserving
   WindieOS aliases.

@@ -114,9 +114,10 @@ Inspect:
 
 Checks:
 
-- Browser-owned paths resolve under `~/.windieos/browser` unless
+- Browser-owned paths resolve under `~/.desktop-agent/browser` unless
   `AGENT_BROWSER_FILES_DIR` (`WINDIE_BROWSER_FILES_DIR` in WindieOS launches)
-  overrides the root.
+  overrides the root. Use `WINDIE_BROWSER_FILES_DIR=~/.windieos/browser` only
+  when intentionally reusing legacy browser-local files.
 - Parent directories are created through `resolve_browser_path(..., ensure_parent=True)`.
 - Download state is not confused with arbitrary filesystem tools.
 

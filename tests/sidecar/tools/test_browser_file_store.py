@@ -6,12 +6,12 @@ import pytest
 from tools.browser import file_store
 
 
-def test_default_browser_files_root_preserves_windie_profile() -> None:
+def test_default_browser_files_root_is_generic() -> None:
     assert file_store.DEFAULT_BROWSER_FILES_DIR.parts[-2:] == (
-        ".windieos",
+        ".desktop-agent",
         "browser",
     )
-    assert f".desktop-{'agent'}" not in file_store.DEFAULT_BROWSER_FILES_DIR.parts
+    assert ".windieos" not in file_store.DEFAULT_BROWSER_FILES_DIR.parts
 
 
 def test_resolve_browser_path_uses_browser_root(
@@ -27,11 +27,12 @@ def test_resolve_browser_path_uses_browser_root(
 def test_resolve_browser_path_preserves_windie_browser_root_alias(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(tmp_path))
+    legacy_root = tmp_path / ".windieos" / "browser"
+    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(legacy_root))
 
     resolved = file_store.resolve_browser_path("notes/page.txt")
 
-    assert resolved == tmp_path / "notes" / "page.txt"
+    assert resolved == legacy_root / "notes" / "page.txt"
 
 
 def test_resolve_browser_path_prefers_generic_browser_root_alias(

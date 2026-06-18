@@ -53,7 +53,7 @@ Main-process timeout behavior:
 
 - maps validated canonical actions to Browser Use CLI commands or adapter-owned helpers
 - rejects unsupported actions with `ACTION_UNSUPPORTED`
-- ensures a WindieOS-owned Browser Use session is connected when required
+- ensures a dedicated Browser Use session is connected when required
 - requires successful Browser Use CLI responses to carry object-shaped `data`
 - routes deterministic extraction through `content_extraction.py`
 - routes browser-local file actions through `file_store.py`
@@ -116,8 +116,12 @@ Safety constraints include:
 `tools/browser/file_store.py` owns browser-local file paths. Relative browser file paths resolve under the browser file root, defaulting to:
 
 ```text
-~/.windieos/browser
+~/.desktop-agent/browser
 ```
+
+Set `AGENT_BROWSER_FILES_DIR` or the WindieOS alias
+`WINDIE_BROWSER_FILES_DIR=~/.windieos/browser` when a diagnostic run needs to
+reuse files written under the legacy root.
 
 Absolute browser file paths and `..` escapes are invalid. Browser file actions must stay under the browser file root instead of becoming general filesystem operations.
 
