@@ -8055,3 +8055,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Browser action IPC names, snapshot
   fields, readiness gating, polling cadence, tab switching, connect, and
   disconnect behavior are unchanged.
+
+### 2026-06-18 renderer display projection runtime facade boundary
+
+- Finding: chat projection streaming and dashboard conversation resume still
+  imported the SDK display-row projection directly from renderer
+  infrastructure, leaving feature code aware of the transcript projection
+  module.
+- Change: added `desktopConversationDisplayProjection.ts` as the renderer app
+  runtime facade for SDK display-row to chat-message projection and routed chat
+  and dashboard consumers through it while preserving the existing projection
+  implementation and tests.
+- Validation: focused dashboard conversation, SDK display projection, and
+  renderer boundary Jest coverage, direct feature import scans, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. Stored SDK display rows, chat message
+  projection shape, dashboard resume behavior, and transcript storage are
+  unchanged.

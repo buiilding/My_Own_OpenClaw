@@ -455,12 +455,29 @@ describe('renderer chat runtime boundary', () => {
 
     expect(projectionSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS');
     expect(projectionSource).not.toContain('IpcBridge.on');
+    expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
+    expect(projectionSource).toContain('desktopConversationDisplayProjection');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onPendingTurn');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurn');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onDisplayRows');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
+  });
+
+  test('dashboard conversation resume projects display rows through app runtime client', async () => {
+    const dashboardHookSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+    const displayProjectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
+      'utf8',
+    );
+
+    expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
+    expect(dashboardHookSource).toContain('desktopConversationDisplayProjection');
+    expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
   });
 
   test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {

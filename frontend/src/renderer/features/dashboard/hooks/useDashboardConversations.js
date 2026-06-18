@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildChatMessagesFromSdkDisplayRows } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
+import { buildChatMessagesFromSdkDisplayRows } from '../../../app/runtime/desktopConversationDisplayProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';

@@ -27,6 +27,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
 │   │   ├── desktopChatStreamTrackingRuntime.ts # Renderer stream phase/counter transition helpers
 │   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
+│   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade

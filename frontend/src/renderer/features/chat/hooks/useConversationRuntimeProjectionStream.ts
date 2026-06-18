@@ -10,7 +10,7 @@ import type {
 } from '../../../infrastructure/api/agentSdkClient';
 import {
   buildChatMessagesFromSdkDisplayRows,
-} from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
+} from '../../../app/runtime/desktopConversationDisplayProjection';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
