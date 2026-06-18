@@ -36,7 +36,7 @@ API handler responsibilities:
 - normalize `data` and `step_results` into plain dict/list structures
 - resolve active `AgentSession` via `SessionManager`
 - delegate to session methods only
-- build any backend canonical `tool-output` response envelope from resolved session/runtime context, not from the frontend's inbound `session_id`, `conversation_ref`, or `turn_ref`
+- build any backend canonical `tool-output` response envelope from resolved session/runtime context, not from the inbound result's `session_id`, `conversation_ref`, or `turn_ref`
 
 Incoming schema nuance (`api/schemas/incoming.py`):
 
@@ -55,7 +55,7 @@ Canonical echo context:
 - successful single-result processing may return a backend canonical model-output result
 - the canonical echo reuses `user_id` from the authenticated websocket context
 - `session_id`, `conversation_ref`, and `turn_ref` come from the resolved session runtime
-- client-supplied context fields on the inbound `tool-result` are ignored for this canonical echo so a stale frontend envelope cannot route backend-owned output into the wrong conversation or turn
+- client-supplied context fields on the inbound `tool-result` are ignored for this canonical echo so a stale local-runtime envelope cannot route backend-owned output into the wrong conversation or turn
 
 Session does not parse payload in these methods; it forwards to session-level waiting handler.
 
@@ -70,7 +70,7 @@ Initialized via `init_tool_result_handler(session)`:
 
 Division of responsibilities:
 
-- receiver: convert frontend payloads to canonical `ToolResult`
+- receiver: convert SDK-submitted local-runtime payloads to canonical `ToolResult`
 - router: screenshot/system-state extraction + storage/future resolution
 - storage: pending result maps + futures + bundle maps + cleanup
 
@@ -148,7 +148,7 @@ Special safety guard:
 
 Bundle-status reminder:
 
-- frontend can return `status="partial_failure"` with `error=null`
+- local runtime can return `status="partial_failure"` with `error=null`
 - backend bundle success is computed from both:
   - `status == "success"`
   - every step `status == "ok"`
@@ -168,7 +168,7 @@ If tool waits hang:
 
 1. verify request/bundle IDs match between emitted tool-call/tool-bundle and returned result payload
 2. verify router executed and stored result before timeout
-3. inspect whether stale-turn cancellation from frontend produced explicit failure payload
+3. inspect whether stale-turn cancellation from SDK/main produced explicit failure payload
 
 If screenshot missing in backend result:
 
@@ -178,7 +178,7 @@ If screenshot missing in backend result:
 
 If bundle processing mismatches tool count/order:
 
-1. verify frontend step_results ordering matches original parsed tool-call order
+1. verify local-runtime step_results ordering matches original parsed tool-call order
 2. inspect bundle expansion path in `execute_bundle` for fallback error generation
 3. verify bundle status/error fields are present in `tool-bundle-result`
 

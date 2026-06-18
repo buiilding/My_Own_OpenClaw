@@ -92,7 +92,7 @@ Compared against:
 
 - `session.get_current_screenshot_id()`
 
-Mismatch returns immediate failure `ToolResult` and skips frontend wait, preventing execution with stale coordinates.
+Mismatch returns immediate failure `ToolResult` and skips the local-runtime wait, preventing execution with stale coordinates.
 
 ## Cleanup Lifecycle
 

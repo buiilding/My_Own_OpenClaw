@@ -148,4 +148,4 @@ enforcement can distinguish declared capability from an actual grant.
 
 - [Backend Tools Security Docs Hub](README.md)
 - [Tool Security Policy Reference](../tool_security_policy_and_executor_reference.md)
-- [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
+- [Local-Runtime Tool Bridge and Policy](../local_runtime_tool_bridge_and_policy.md)

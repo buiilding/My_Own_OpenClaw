@@ -91,7 +91,7 @@ Wait/orchestrator layers then observe these results without requiring local-runt
 
 1. weakening `request_id` extraction can strand synthetic failures without retrievable pending results.
 2. emitting partial bundle events on preparation failure breaks atomic bundle wait semantics.
-3. diverging `model_facing_tool_call` payload shape from frontend expectations can break transparency rendering.
+3. diverging `model_facing_tool_call` payload shape from renderer expectations can break transparency rendering.
 
 ## Related Pages
 

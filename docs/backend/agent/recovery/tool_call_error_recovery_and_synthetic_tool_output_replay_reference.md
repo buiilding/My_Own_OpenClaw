@@ -2,7 +2,7 @@
 summary: "Deep reference for interaction-loop recovery from malformed model tool-call payloads: recoverable error classification, synthetic tool-call/tool-output emission order, history replay injection, and cleanup semantics."
 read_when:
   - When changing recoverable error marker matching, structured tool-call recovery metadata extraction, or synthetic ToolCallEvent/ToolOutputEvent payload shape.
-  - When debugging loops that unexpectedly abort after stream errors, or frontend tool runner behavior for `skip_frontend_execution` metadata.
+  - When debugging loops that unexpectedly abort after stream errors, or SDK/renderer behavior for `skip_frontend_execution` metadata.
 title: "Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference"
 ---
 
@@ -59,7 +59,7 @@ Branch behavior:
 1. `ToolCallEvent`
 2. `ToolOutputEvent`
 
-This ordering is intentional to preserve frontend state machine assumptions (`tool-call` before `tool-output`).
+This ordering is intentional to preserve SDK/main and renderer state-machine assumptions (`tool-call` before `tool-output`).
 
 Synthetic payload metadata:
 
@@ -177,7 +177,7 @@ This allows frontend to:
 
 ## Drift Risks
 
-1. Changing event order (`ToolOutputEvent` before `ToolCallEvent`) can desynchronize frontend tool runner state.
+1. Changing event order (`ToolOutputEvent` before `ToolCallEvent`) can desynchronize SDK/main and renderer tool state.
 2. Removing `skip_frontend_execution` metadata causes frontend to execute nonexistent synthetic tools.
 3. Weakening recoverable marker matching can convert recoverable parse failures into hard aborts.
 4. Dropping history replay injection removes corrective context for next-turn model retry.

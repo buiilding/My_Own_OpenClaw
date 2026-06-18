@@ -224,5 +224,5 @@ Validated by:
 1. Adding new executor/session dependencies without config-rewire updates causes partial settings updates.
 2. Mutating session state outside `AgentSession._lock` can introduce cross-turn history corruption.
 3. Forgetting to register long-lived background tasks in `SessionRuntimeState` breaks deterministic cleanup.
-4. New conversation-bound routing must preserve request-id and bundle-id lookup, or frontend tool results can land on the wrong session.
+4. New conversation-bound routing must preserve request-id and bundle-id lookup, or SDK-submitted tool results can land on the wrong session.
 5. New session-runtime responsibilities should land in `SessionRegistry`, `SessionConfigService`, or `ActiveQueryTracker` first; `SessionManager` should stay a narrow facade.

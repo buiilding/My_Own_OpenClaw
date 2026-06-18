@@ -742,7 +742,7 @@ class InteractionLoop:
         if parse_error_summary:
             metadata["llm_tool_call_parse_error"] = parse_error_summary
 
-        # Maintain ToolCallEvent -> ToolOutputEvent protocol ordering for frontend state.
+        # Maintain ToolCallEvent -> ToolOutputEvent ordering for SDK/main and renderer state.
         yield ToolCallEvent(
             tool_name=tool_name,
             parameters={},

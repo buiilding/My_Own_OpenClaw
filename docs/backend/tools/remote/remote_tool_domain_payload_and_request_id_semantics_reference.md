@@ -59,7 +59,7 @@ Test-backed behavior:
 - metadata request-id reuse works
 - generated fallback ID works when metadata is absent
 - explicit override beats metadata-sourced request id
-- `RemoteWaitTool` reuses the active session request id for frontend result
+- `RemoteWaitTool` reuses the active session request id for local-runtime result
   correlation, matching sibling concrete remote stubs
 - `_build_remote_result(...)` keeps model defaults in serialized args payload (for example optional defaults like mouse `duration`)
 
@@ -185,7 +185,7 @@ Runtime boundary reminder:
 If request/result correlation is off:
 
 1. inspect whether class uses session metadata request id or explicit override
-2. verify emitted request_id is propagated into frontend tool-call envelope
+2. verify emitted request_id is propagated into the SDK tool-call envelope
 3. confirm returned `tool-result`/`tool-bundle-result` uses same correlation id
 
 If payload fields seem missing:

@@ -201,7 +201,7 @@ Failure modes surfaced by this test:
 
 Operational impact of drift:
 
-- LLM can call a backend-advertised tool that frontend cannot execute
+- LLM can call a backend-advertised tool that the local runtime cannot execute
 - or sidecar supports a tool never surfaced to model schema generation
 
 Intentional exclusion from this parity guard:
@@ -222,7 +222,7 @@ Field-level shared-schema guard:
 
 ## Related Docs
 
-- [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
+- [Local-Runtime Tool Bridge and Policy](../local_runtime_tool_bridge_and_policy.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
 - [Frontend Sidecar Tool Registry Exposed Schema and Result Contract Reference](../../../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)

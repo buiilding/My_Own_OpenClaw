@@ -3,7 +3,7 @@ Tool Preparer.
 
 Orchestrates tool call preparation (resolution) before execution.
 Coordinates screenshot acquisition, coordinate resolution, and tool rewriting.
-Transforms high-level tool intents into concrete, executable frontend instructions.
+Transforms high-level tool intents into concrete local-runtime payloads.
 """
 
 from __future__ import annotations

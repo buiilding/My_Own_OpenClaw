@@ -14,7 +14,7 @@ title: "Backend Tools Policy Docs Hub"
 
 ## Related Pages
 
-- [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
+- [Local-Runtime Tool Bridge and Policy](../local_runtime_tool_bridge_and_policy.md)
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 
 ## Code Scope

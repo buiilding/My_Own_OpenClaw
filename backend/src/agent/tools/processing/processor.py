@@ -96,9 +96,9 @@ class ToolResultProcessor:
         """
         Process tool execution results for history storage.
 
-        Note: Frontend displays tool results immediately after execution.
+        Note: renderer surfaces display tool results from SDK projections.
         This method only processes results for conversation history (LLM context),
-        not for frontend display.
+        not for renderer display.
 
         For bundled tools, uses the combined bundled result instead of individual results
         to create a single history message.

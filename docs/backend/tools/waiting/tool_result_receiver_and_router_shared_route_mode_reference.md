@@ -37,7 +37,7 @@ This keeps individual and bundle behavior unified and avoids divergent routing c
 
 `receive_individual_result(...)`:
 
-- wraps frontend payload through `ToolResult.from_payload`
+- wraps SDK-submitted local-runtime payload through `ToolResult.from_payload`
 - preserves `result_data` shape as provided
 - does not inject metadata for non-bundle results
 

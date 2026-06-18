@@ -251,5 +251,5 @@ From `test_tool_policy.py` and `test_tool_selection.py`:
 
 ## Related Docs
 
-- [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
+- [Local-Runtime Tool Bridge and Policy](../local_runtime_tool_bridge_and_policy.md)
 - [Tool Security Policy Reference](../tool_security_policy_and_executor_reference.md)

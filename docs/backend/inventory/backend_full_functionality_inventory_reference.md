@@ -312,7 +312,7 @@ Functionality:
 2. Query handler registers active task and delegates to `QueryExecutionService`.
 3. Service obtains session and streams agent events through processing pipeline.
 4. Agent executor interaction loop calls LLM and decides tool/no-tool branch.
-5. Tool branch emits frontend tool calls, waits for frontend results, commits tool outputs to history.
+5. Tool branch emits SDK tool calls, waits for local-runtime results, commits tool outputs to history.
 6. Streaming formatter emits chunk/thinking/tool events to websocket.
 7. Completion event emitted (or synthesized fallback completion if missing).
 8. Stop-query handler can cancel active query task at any time.

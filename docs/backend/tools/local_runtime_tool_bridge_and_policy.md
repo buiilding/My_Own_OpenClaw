@@ -3,10 +3,10 @@ summary: "Backend tool surface that is schema-driven and dispatched through SDK/
 read_when:
   - When adding/removing tools across backend and sidecar.
   - When changing tool allowlist or agent capability behavior.
-title: "Frontend Tool Bridge and Policy"
+title: "Local-Runtime Tool Bridge and Policy"
 ---
 
-# Frontend Tool Bridge and Policy
+# Local-Runtime Tool Bridge and Policy
 
 WindieOS backend does not execute most tools directly. It exposes tool schemas and waits for SDK/main local execution results.
 
@@ -24,7 +24,7 @@ Responsibilities:
 - register remote tool stubs
 - produce function declarations for model tool-calling
 - expose capability metadata
-- wait for frontend tool results and return normalized `ToolExecutionBatch`
+- wait for SDK-submitted local-runtime tool results and return normalized `ToolExecutionBatch`
   - single-tool and bundle wait timeouts are adaptive for foreground `run_shell_command` calls:
     - baseline wait remains `120s`
     - when `terminate_after_seconds` (and optional shell `wait`) imply longer runtime, backend wait increases with safety buffer
@@ -47,7 +47,7 @@ Current runtime note:
 
 - this remote bridge is direct-name based; the live backend catalog and live sidecar exposed-tool set both use concrete tool names such as `mouse_control` and `run_shell_command`
 - wrapper envelopes are not registered remote tool names in the current bridge
-- backend-owned `web_search` is outside this frontend bridge because it never dispatches to the sidecar
+- backend-owned `web_search` is outside this local-runtime bridge because it never dispatches to the sidecar
 - backend-owned grounded helper tools such as `grounded_mouse_action` and
   `grounded_scroll_action` may be model-visible, but they are not
   sidecar-executable manifest entries; backend preparation rewrites them to the

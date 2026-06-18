@@ -2,7 +2,7 @@
 summary: "Backend tool-sender docs sub-hub for execution-ref extraction, synthetic failure emission, and bundle-failure storage/resolve semantics."
 read_when:
   - When changing `backend/src/agent/tools/sending/sender.py` or execution-ref metadata contracts.
-  - When debugging missing request IDs, skipped frontend tool dispatch, or bundle preparation failure handling.
+  - When debugging missing request IDs, skipped local-runtime tool dispatch, or bundle preparation failure handling.
 title: "Backend Tool Sender Docs Hub"
 ---
 

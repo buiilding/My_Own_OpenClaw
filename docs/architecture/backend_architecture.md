@@ -269,10 +269,10 @@ Registry for managing tools in WindieOS.
 
 #### ToolResultOrchestrator (`tools/orchestrator.py`)
 
-Orchestrates tool execution requests by waiting for frontend tool results.
+Orchestrates tool execution requests by waiting for SDK-submitted local-runtime tool results.
 
 **Responsibilities**:
-- Wait for frontend tool results (single tools and bundles)
+- Wait for local-runtime tool results (single tools and bundles)
 - Assemble tool result objects for agent processing
 
 **Key Methods**:

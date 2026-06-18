@@ -13,7 +13,7 @@ title: "Backend Tools Docs Hub"
 ## Deep Pages
 
 - [Tool Schema and Policy Change Workflow](../../tools/tool_schema_policy_change_workflow.md)
-- [Frontend Tool Bridge and Policy](frontend_tool_bridge_and_policy.md)
+- [Local-Runtime Tool Bridge and Policy](local_runtime_tool_bridge_and_policy.md)
 - [Tools Registry Docs Hub](registry/README.md)
 - [Browser Tools Docs Hub](browser/README.md)
 - [Browser Schema Docs Hub](browser/schema/README.md)

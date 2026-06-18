@@ -162,7 +162,7 @@ Covers:
 - [Tools Contracts Docs Hub](tools/contracts/README.md)
 - [Tools Templates Docs Hub](tools/templates/README.md)
 - [Tools Security Docs Hub](tools/security/README.md)
-- [Frontend Tool Bridge and Policy](tools/frontend_tool_bridge_and_policy.md)
+- [Local-Runtime Tool Bridge and Policy](tools/local_runtime_tool_bridge_and_policy.md)
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 - [Browser Remote Schema Surface Reference](tools/browser/browser_remote_schema_surface_reference.md)
 - [Browser Control Unified Schema Reference](tools/browser/schema/browser_control_unified_schema_reference.md)

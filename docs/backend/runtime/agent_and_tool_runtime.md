@@ -24,7 +24,7 @@ Responsibilities:
 - Owns session identity (`user_id`, `session_id`)
 - Holds conversation history and runtime state (screenshot, system state, pending tool results)
 - Delegates query processing to `AgentExecutor`
-- Accepts frontend tool results (`tool-result` and `tool-bundle-result`)
+- Accepts SDK-submitted local-runtime tool results (`tool-result` and `tool-bundle-result`)
 - Tracks background tasks for deterministic cleanup
 
 ## Execution Stack

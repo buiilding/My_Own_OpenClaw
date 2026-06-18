@@ -104,14 +104,14 @@ class ConversationHistory:
         in conversation history. Screenshots are automatically converted to multimodal
         format when history is retrieved for LLM consumption.
 
-        Frontend sends raw tool output in `data.output`. Backend projection owns
+        SDK/main submits raw tool output in `data.output`. Backend projection owns
         model-facing formatting/truncation before the result reaches history.
         Structured runtime state and screenshots travel separately in tool-result payloads.
 
         Args:
-            message: Tool output message text (pre-formatted by frontend)
+            message: Tool output message text after backend formatting/truncation
             image_data: Optional base64 image payload(s) for screenshots. Automatically captured
-                       by the frontend after tool execution. Included in history
+                       by local-runtime execution when available. Included in history
                        and sent to LLM as multimodal content.
         """
         tool_call_ids = self._consume_tool_call_ids_for_next_output()

@@ -85,7 +85,7 @@ pending-local-runtime placeholder when a parsed tool call lacks
 Instead, `execute_single_tool(...)` returns an immediate failed `ToolResult`
 with `data.status == "missing_request_id"` before any request future is
 created. This is intentionally a backend correlation failure, not a local
-runtime wait state: without `request_id`, no later frontend or SDK tool-result
+runtime wait state: without `request_id`, no later SDK-submitted tool-result
 payload can resolve the call.
 
 ### Stale-Screen Guard
@@ -94,7 +94,7 @@ When resolved-call metadata has `coordinate_resolution_screenshot_id`:
 
 - compare against current session screenshot id
 - mismatch returns immediate safety failure `ToolResult`
-- no frontend wait is attempted
+- no local-runtime wait is attempted
 
 This prevents executing stale coordinates after UI state changes.
 

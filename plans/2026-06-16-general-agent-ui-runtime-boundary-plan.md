@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend tool bridge result-ingress wording cleanup
+
+- Finding: backend tool preparation, tool-result ingress, architecture, and
+  recovery docs still framed the bridge as frontend tool execution/results even
+  after tool dispatch moved to the SDK/main local-runtime boundary.
+- Change: renamed the backend tool bridge policy page to local-runtime bridge
+  ownership, reworded preparation/result-ingress docs and source comments
+  around SDK-submitted local-runtime payloads, and kept existing public
+  `process_frontend_tool_result` method names untouched for compatibility.
+- Validation: docs listing, focused stale frontend-result/dispatch wording
+  scan, focused backend tool-result/preparation pytest coverage, and diff
+  check. `test_tool_result_router.py` was attempted but the local fallback
+  Python lacks `fastapi` because the `jarvis` conda env is unavailable.
+- Compatibility: no migration required. This changes docs/comments only;
+  websocket event names, tool-result payloads, public method names, storage,
+  credentials, permissions, and local-runtime behavior are unchanged.
+
 ### 2026-06-18 backend tool local-runtime dispatch docs cleanup
 
 - Finding: backend remote-tool stubs and docs still used the retired local

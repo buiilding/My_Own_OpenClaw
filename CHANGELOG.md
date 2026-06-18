@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: rename the backend tool bridge policy page to local-runtime
+  bridge ownership and reword tool preparation/result-ingress docs and source
+  comments around SDK-submitted local-runtime payloads; no migration is
+  required because websocket event names, tool-result payloads, and public
+  method names are unchanged.
 - backend/tools: rename the remote-tool execution target from `frontend` to
   `local_runtime`, rename the ToolSender dispatch reference away from frontend
   dispatch wording, and align backend tool/memory docs with SDK/main

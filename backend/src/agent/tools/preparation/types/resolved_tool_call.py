@@ -21,7 +21,7 @@ class ResolvedToolCall:
     ready for execution. The original ParsedToolCall is preserved for reference.
     
     Transforms high-level, declarative tool intents (e.g., "click on 'Submit'")
-    into concrete, executable frontend instructions (e.g., "click at x=732, y=409").
+    into concrete local-runtime payloads (e.g., "click at x=732, y=409").
     """
     original_call: ParsedToolCall
     tool_name: str
