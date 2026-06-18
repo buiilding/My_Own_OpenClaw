@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 main diagnostics fallback app-data name
+
+- Finding: the diagnostics store still used `desktop-agent` as its generic app-data directory fallback when the host skin is absent, while current main host internals use desktop-runtime wording.
+- Change: renamed that non-skinned fallback to `desktop-runtime` and updated the host-skin boundary test.
+- Validation: focused MainHostSkinBoundary diagnostics Jest coverage, exact stale diagnostics fallback scan, and diff checks.
+- Compatibility: no WindieOS runtime migration required. Normal app diagnostics still resolve through the WindieOS host skin `appDataDirName: windieos`, and `WINDIE_APP_DIAGNOSTICS_DB`/`WINDIE_USER_DATA_DIR` overrides are unchanged.
+
 ### 2026-06-18 main permission-state fallback prefix
 
 - Finding: the Electron main permission-state store still used `desktop-agent` for its no-userData fallback filename after the main host internals standardized on desktop-runtime naming.

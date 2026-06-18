@@ -132,7 +132,7 @@ describe('main host skin/config boundary', () => {
     );
 
     expect(skinSource).toContain("appDataDirName: 'windieos'");
-    expect(diagnosticsSource).toContain("DEFAULT_APP_DATA_DIR_NAME = 'desktop-agent'");
+    expect(diagnosticsSource).toContain("DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime'");
     expect(diagnosticsSource).toContain('mainHostSkin?.dataPaths?.appDataDirName');
     expect(diagnosticsSource).not.toContain('windieos');
   });

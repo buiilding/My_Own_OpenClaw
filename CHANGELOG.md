@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the non-skinned diagnostics app-data fallback from `desktop-agent` to `desktop-runtime`; no WindieOS runtime migration is required because the host skin still supplies the product `windieos` app-data directory and explicit diagnostics path overrides are unchanged.
 - frontend/main: rename the permission-state no-userData fallback file prefix from `desktop-agent` to `desktop-runtime`; no normal runtime migration is required because Electron passes `userDataPath` and explicit `statePath` overrides are unchanged.
 - cli: remove the `windie logs desktop` compatibility alias so log targets are only the explicit `frontend`, `vite`, `main`, `renderer`, and `sidecar` layers; no migration is required because `windie logs main` and `windie logs frontend` remain the direct supported commands.
 - frontend/main: move the default repo-local Electron layer log directory from `.desktop-agent/logs` to `.windie/logs`; no persisted runtime migration is required because this only changes scratch developer log defaults and existing `WINDIE_*_LOG_FILE` overrides still work.
