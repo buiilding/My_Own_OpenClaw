@@ -193,7 +193,8 @@ def test_registry_loads_plugin_entrypoint_and_manifest(
     assert registry.has_tool("save_note")
     assert result.success is True
     assert result.data["output"] == "saved:hello"
-    assert "sidecar_plugin_notes_save_note" in sys.modules
+    assert "local_runtime_plugin_notes_save_note" in sys.modules
+    assert "sidecar_plugin_notes_save_note" not in sys.modules
     legacy_module_name = "windie" "_plugin_notes_save_note"
     assert legacy_module_name not in sys.modules
 

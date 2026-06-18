@@ -8441,3 +8441,18 @@ Each completed slice should report:
   profile path can set `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR`;
   browser tool schemas, CDP port behavior, Browser Use sessions, downloaded
   files, IPC, permissions, credentials, and provider policy are unchanged.
+
+### 2026-06-18 Python plugin entrypoint module-name boundary
+
+- Finding: the Python local-runtime plugin loader generated private import
+  module names with a `sidecar_plugin_` prefix even though plugin tools are
+  registered through the reusable local-runtime contribution boundary.
+- Change: renamed the generated private module prefix to
+  `local_runtime_plugin_` and added coverage that the retired sidecar-prefixed
+  module name is not loaded.
+- Validation: focused sidecar tool-manifest pytest coverage, source scans, docs
+  listing, and `git diff --check`.
+- Compatibility: no migration required. Declared plugin tool names, plugin
+  package layout, schemas, entrypoint resolution, runtime registration, IPC,
+  credentials, permissions, storage, and provider policy are unchanged; only an
+  in-process Python `sys.modules` implementation detail changed.

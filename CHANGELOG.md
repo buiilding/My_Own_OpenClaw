@@ -73,6 +73,9 @@ All notable changes to WindieOS will be documented in this file.
   level configuration while preserving the WindieOS sidecar alias.
 - sidecar/extensions: accept generic `AGENT_CONTRIBUTIONS_DIR` local-runtime
   plugin contribution-root configuration while preserving the WindieOS alias.
+- sidecar/extensions: use generic `local_runtime_plugin_*` private import
+  module names for Python plugin tool entrypoints instead of sidecar-prefixed
+  module names.
 - sidecar/browser: accept generic `AGENT_BROWSER_*` diagnostic env aliases for
   Browser Use daemon settings, CDP port, and browser file storage while
   preserving WindieOS aliases.

@@ -261,4 +261,4 @@ def _read_string(value: Any) -> str:
 def _module_name(plugin_id: str, tool_name: str) -> str:
     safe_plugin_id = re.sub(r"[^a-zA-Z0-9_]", "_", plugin_id)
     safe_tool_name = re.sub(r"[^a-zA-Z0-9_]", "_", tool_name)
-    return f"sidecar_plugin_{safe_plugin_id}_{safe_tool_name}"
+    return f"local_runtime_plugin_{safe_plugin_id}_{safe_tool_name}"
