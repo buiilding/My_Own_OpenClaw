@@ -30,7 +30,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 
@@ -189,7 +189,7 @@ Owns settings-sync state and command orchestration:
 - queued list-models request state and flush after backend open
 - backend settings payload filtering for local-only config keys
 
-### `ipc_frontend_config.cjs`
+### `ipc_desktop_ui_config.cjs`
 
 Owns persisted desktop UI config disk I/O:
 
@@ -197,7 +197,7 @@ Owns persisted desktop UI config disk I/O:
 - `saveDesktopUiConfigToDisk` with tmp-write + rename replacement
 - the persisted filename remains `frontend-config.json` for compatibility
 
-### `ipc_frontend_config_handlers.cjs`
+### `ipc_desktop_ui_config_handlers.cjs`
 
 Owns desktop UI config IPC handler registration while preserving the legacy
 renderer wire channel names:
@@ -280,7 +280,7 @@ generic `to-backend` router or direct chat query IPC handlers.
 10. settings ACK, initial sync, and queued list-models state delegate to
    `ipc_settings_sync_runtime.cjs`.
 11. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-12. desktop UI config load/save handlers delegate to `ipc_frontend_config.cjs`.
+12. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
 13. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit SDK agent/conversation methods.
 14. artifact upload/fetch handler registration delegates to

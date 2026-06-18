@@ -88,7 +88,7 @@ Primary files:
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 

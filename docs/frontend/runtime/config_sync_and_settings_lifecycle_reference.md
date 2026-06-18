@@ -19,7 +19,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/utils/configStorage.js`
 - `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 
 ## Config Ownership Boundary
 
@@ -86,12 +86,12 @@ Tracks transient save state machine:
 - immediate startup config source
 - stores `windieos-config`
 - validates shape and clears corrupted payloads
-- includes default frontend config fallback
+- includes default renderer config fallback
 - drops deprecated or backend-owned keys before the in-memory config is rebuilt
 - ignores the removed `desktop-assistant-config` key; renderer-local settings at
   that key are not migrated
 
-### Main-process disk config (`ipc_frontend_config.cjs`)
+### Main-process disk config (`ipc_desktop_ui_config.cjs`)
 
 File path:
 

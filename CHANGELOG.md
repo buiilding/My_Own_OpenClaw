@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename private desktop UI config IPC helper modules and focused
+  handler coverage from `ipc_frontend_config*` to `ipc_desktop_ui_config*`
+  while preserving the `load-frontend-config` / `save-frontend-config` wire
+  channels.
 - renderer: rename the private config filter allowlist to
   `RENDERER_CONFIG_FIELDS` while preserving the exported `filterFrontendConfig`
   compatibility helper.

@@ -4,7 +4,7 @@
 
 const {
   registerDesktopUiConfigHandlers,
-} = require('../../frontend/src/main/ipc/ipc_frontend_config_handlers.cjs');
+} = require('../../frontend/src/main/ipc/ipc_desktop_ui_config_handlers.cjs');
 
 function createHarness(overrides = {}) {
   const handlers = {};

@@ -15,7 +15,7 @@ title: "Runtime Paths and Endpoints"
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/app/runtime_mode.cjs`
 - `frontend/src/main/app/vm_worker_runtime.cjs`
@@ -134,7 +134,7 @@ Returned launch target object:
 
 ## Desktop UI Config Persistence Path
 
-`ipc_frontend_config.cjs` stores desktop UI config at:
+`ipc_desktop_ui_config.cjs` stores desktop UI config at:
 
 - `path.join(app.getPath('userData'), 'frontend-config.json')`
 

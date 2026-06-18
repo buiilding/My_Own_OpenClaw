@@ -21,7 +21,7 @@ the SDK-shaped query runtime:
 3. `appConfigRuntimeSync.js` and the main settings sync path strip
    `global_agent_stop_shortcut` before sending backend `update-settings`
    payloads. This is local desktop state, not backend model/session config.
-4. `ipc_frontend_config_handlers.cjs` and `ipc_startup_state.cjs` pass the
+4. `ipc_desktop_ui_config_handlers.cjs` and `ipc_startup_state.cjs` pass the
    selected accelerator into `agent_stop_shortcut_runtime.cjs`.
 5. Electron main registers the accelerator only while an agent loop is active.
    When pressed, the runtime calls the current stop handler, which routes
@@ -105,12 +105,12 @@ Focused tests:
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcStartupState.test.cjs`
-- `tests/frontend/IpcFrontendConfigHandlers.test.cjs`
+- `tests/frontend/IpcDesktopUiConfigHandlers.test.cjs`
 
 Useful focused command:
 
 ```bash
-bin/windie test frontend -- AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js SettingsSection.test.jsx AppConfigProvider.storageAndIpc.test.tsx IpcMainBridge.lifecycle.test.cjs IpcStartupState.test.cjs IpcFrontendConfigHandlers.test.cjs
+bin/windie test frontend -- AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js SettingsSection.test.jsx AppConfigProvider.storageAndIpc.test.tsx IpcMainBridge.lifecycle.test.cjs IpcStartupState.test.cjs IpcDesktopUiConfigHandlers.test.cjs
 ```
 
 ## Related Docs

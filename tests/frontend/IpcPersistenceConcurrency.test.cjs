@@ -25,7 +25,7 @@ describe('IPC persistence concurrency', () => {
     ({
       loadDesktopUiConfigFromDisk,
       saveDesktopUiConfigToDisk,
-    } = require('../../frontend/src/main/ipc/ipc_frontend_config.cjs'));
+    } = require('../../frontend/src/main/ipc/ipc_desktop_ui_config.cjs'));
     ({
       getInstallAuthStatePath,
       loadInstallAuthStateFromDisk,

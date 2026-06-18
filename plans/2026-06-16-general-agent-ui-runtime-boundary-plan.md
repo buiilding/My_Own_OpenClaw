@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config IPC module boundary
+
+- Finding: Electron main disk persistence and handler code already used
+  desktop UI config function names, but the private IPC helper filenames and
+  focused handler test still used frontend-config module names.
+- Change: renamed the private main-process modules and focused handler test to
+  `ipc_desktop_ui_config*`, updated imports and docs, and preserved the legacy
+  `load-frontend-config` / `save-frontend-config` IPC channel names plus the
+  persisted `frontend-config.json` filename.
+- Validation: focused main IPC config handler/persistence/lifecycle Jest tests,
+  docs listing, stale module-path scan, and diff check.
+- Compatibility: no migration required. Disk filename, IPC channel names,
+  payload shape, shortcut fallback, MCP enablement preservation, credentials
+  redaction, permissions, backend settings sync, and SDK projections are
+  unchanged.
+
 ### 2026-06-18 renderer config filter private allowlist boundary
 
 - Finding: `configFilter.js` had already been reworded as renderer-managed

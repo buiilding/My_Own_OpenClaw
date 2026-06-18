@@ -21,7 +21,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `packages/windie-sdk-js/src/runtime/AgentClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/app/backend_endpoints.cjs`

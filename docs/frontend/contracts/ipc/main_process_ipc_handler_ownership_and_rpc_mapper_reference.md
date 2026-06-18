@@ -33,7 +33,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/sidecar/local_runtime_tool_args.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/permissions/permission_service.cjs`
 
@@ -87,8 +87,8 @@ Notable behavior:
   `to-backend` compatibility command router or the retired direct chat runtime
   handler family.
 - `save/load-frontend-config` are registered by
-  `ipc_frontend_config_handlers.cjs` and call atomic file helpers in
-  `ipc_frontend_config.cjs`
+  `ipc_desktop_ui_config_handlers.cjs` and call atomic file helpers in
+  `ipc_desktop_ui_config.cjs`
 - `windie:pending-turn` is handled in `ipc.cjs` because it coordinates
   renderer-composed optimistic user turns with main's latest pending-turn cache,
   sibling-window fan-out, late-window replay, and current-turn clear semantics

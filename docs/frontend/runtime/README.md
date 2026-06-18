@@ -29,7 +29,7 @@ title: "Frontend Runtime Docs Hub"
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs`
 - `frontend/src/main/app/runtime_mode.cjs`
 - `frontend/src/main/app/vm_worker_runtime.cjs`

@@ -25,10 +25,10 @@ const {
   loadDesktopUiConfigFromDiskSync,
   redactDesktopUiConfigProviderSecrets,
   saveDesktopUiConfigToDisk,
-} = require('./ipc/ipc_frontend_config.cjs');
+} = require('./ipc/ipc_desktop_ui_config.cjs');
 const {
   registerDesktopUiConfigHandlers,
-} = require('./ipc/ipc_frontend_config_handlers.cjs');
+} = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
   clearInstallAuthStateFromDisk,
   loadInstallAuthStateFromDisk,
