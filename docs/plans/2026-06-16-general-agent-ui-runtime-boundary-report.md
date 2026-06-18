@@ -113,9 +113,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   memory IPC docs now use Agent SDK backend transport/runtime/API wording
   instead of SDK-agent phrasing for command and projection paths. The channel
   routing matrix now names desktop/local owners and desktop client/Python
-  sidecar payload ownership instead of frontend/sidecar labels.
+  sidecar payload ownership instead of frontend/sidecar labels. Local tool
+  registry, path-resolution, wait, and PDF dependency diagnostics now qualify
+  Python sidecar runtime/tool ownership.
 
 ## Inspection Log
+
+### 2026-06-18 Python Sidecar Tool Diagnostic Wording Slice
+
+- Worktree was clean after `a86aaf7ee`, with `main` ahead of `origin/main` by
+  828 commits.
+- Finding: local tool registry, path-resolution, wait, and PDF dependency
+  diagnostics/comments still used unqualified sidecar runtime/tool wording.
+- Change: qualified those diagnostics/comments as Python sidecar runtime or
+  Python sidecar tools and added sidecar source-copy guards.
+- Validation: focused sidecar registry tests, targeted stale phrase scan, docs
+  listing, and diff check. A broader read-file suite was attempted and hit
+  unrelated Windows/current-env path and CRLF expectations.
+- Compatibility: no migration required. This is diagnostic/comment/test
+  guardrail only; tool registration, execution, read-file behavior, JSON-RPC,
+  IPC, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Channel Routing Desktop Local Owner Wording Slice
 

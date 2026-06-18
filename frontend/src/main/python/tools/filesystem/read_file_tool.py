@@ -299,7 +299,7 @@ async def _read_pdf_file(
     except Exception as error:
         logger.error("Failed to import pypdf for read_file PDF extraction: %s", error, exc_info=True)
         return ToolResult.error_result(
-            "PDF reading requires the 'pypdf' dependency in the sidecar runtime."
+            "PDF reading requires the 'pypdf' dependency in the Python sidecar runtime."
         )
 
     loop = asyncio.get_running_loop()

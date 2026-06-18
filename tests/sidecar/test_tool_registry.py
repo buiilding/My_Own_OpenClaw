@@ -11,6 +11,48 @@ from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
 
+def test_tool_registry_copy_qualifies_python_sidecar_owner():
+    repo_root = Path(__file__).resolve().parents[2]
+    source_paths = [
+        repo_root / "frontend" / "src" / "main" / "python" / "tools" / "registry.py",
+        repo_root
+        / "frontend"
+        / "src"
+        / "main"
+        / "python"
+        / "tools"
+        / "filesystem"
+        / "read_file_tool.py",
+        repo_root
+        / "frontend"
+        / "src"
+        / "main"
+        / "python"
+        / "tools"
+        / "path_resolution.py",
+        repo_root
+        / "frontend"
+        / "src"
+        / "main"
+        / "python"
+        / "tools"
+        / "system"
+        / "wait_tool.py",
+    ]
+    sources = "\n".join(path.read_text(encoding="utf-8") for path in source_paths)
+
+    assert "Python sidecar runtime" in sources
+    assert "Python sidecar tool" in sources
+    assert "unavailable in sidecar runtime" not in sources
+    assert "without restarting the sidecar runtime" not in sources
+    assert "built-in sidecar tool" not in sources
+    assert "Return sidecar tools" not in sources
+    assert "built-in sidecar tools" not in sources
+    assert "dependency in the sidecar runtime" not in sources
+    assert "helpers for sidecar tools" not in sources
+    assert "the sidecar tool doesn't" not in sources
+
+
 def test_registered_tools_match_exposed_tool_set():
     registry = ToolRegistry()
     registered = set(registry.tools.keys())

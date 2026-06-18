@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python Sidecar Tool Diagnostic Wording
+
+- Finding: local tool registry, path-resolution, wait, and PDF dependency
+  diagnostics/comments still used unqualified sidecar runtime/tool wording.
+- Change: qualified those diagnostics/comments as Python sidecar runtime or
+  Python sidecar tools and added sidecar source-copy guards.
+- Validation: focused sidecar registry tests, targeted stale phrase scan, docs
+  listing, and diff check. A broader read-file suite was attempted and hit
+  unrelated Windows/current-env path and CRLF expectations.
+- Compatibility: no migration required. This is diagnostic/comment/test
+  guardrail only; tool registration, execution, read-file behavior, JSON-RPC,
+  IPC, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Channel Routing Desktop Local Owner Wording
 
 - Finding: the channel routing matrix still labeled the local owner and payload

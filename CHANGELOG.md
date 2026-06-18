@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar: qualify Python sidecar runtime/tool ownership in local tool registry,
+  path-resolution, wait, and PDF dependency diagnostics.
 - docs/channels: name channel routing owners as desktop/local and desktop
   client/Python sidecar payload owners instead of frontend/sidecar labels.
 - docs/runtime: align remaining channel, tool lifecycle, stream-event, and

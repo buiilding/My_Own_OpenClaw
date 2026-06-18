@@ -1,5 +1,5 @@
 """
-Shared workspace-aware path resolution helpers for sidecar tools.
+Shared workspace-aware path resolution helpers for Python sidecar tools.
 """
 
 from __future__ import annotations
