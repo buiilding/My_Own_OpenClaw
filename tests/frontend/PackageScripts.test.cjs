@@ -16,6 +16,13 @@ describe('frontend package scripts', () => {
     );
   });
 
+  test('deprecation audit uses current eslint rule option shape', () => {
+    const script = packageJson.scripts['lint:audit:deprecation'];
+
+    expect(script).toContain('--rule={"deprecation/deprecation":"warn"}');
+    expect(script).not.toContain("--rule 'deprecation/deprecation:warn'");
+  });
+
   test.each(['package', 'package:win', 'package:mac', 'package:linux'])(
     '%s runs release validation before electron-builder',
     (scriptName) => {

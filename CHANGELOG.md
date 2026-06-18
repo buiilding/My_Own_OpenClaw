@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/tooling: update the deprecation audit script to pass ESLint's current
+  object-shaped `--rule` option and cover the command shape in package-script
+  tests; no migration is required because runtime code and package dependencies
+  are unchanged.
 - sdk: rename an internal local-runtime conversation diagnostics collection
   from `sidecarEvents` to `localRuntimeEvents`, with boundary coverage
   guarding the generic name; no migration is required because diagnostics

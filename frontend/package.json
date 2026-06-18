@@ -24,7 +24,7 @@
     "lint": "eslint . --ext js,jsx,cjs,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:audit": "npm run lint:audit:react && npm run lint:audit:deprecation",
     "lint:audit:react": "eslint . --ext js,jsx,cjs,ts,tsx --plugin react-compiler --rule 'react-compiler/react-compiler:error' --report-unused-disable-directives --max-warnings 0",
-    "lint:audit:deprecation": "eslint \"src/**/*.{ts,tsx}\" --plugin deprecation --rule 'deprecation/deprecation:warn' --report-unused-disable-directives",
+    "lint:audit:deprecation": "eslint \"src/**/*.{ts,tsx}\" --plugin deprecation --rule={\"deprecation/deprecation\":\"warn\"} --report-unused-disable-directives",
     "audit:jscpd": "jscpd --gitignore --reporters console,markdown --output ../.audit/plan1/jscpd-report --ignore \"**/__pycache__/**\" --ignore \"**/*.pyc\" ../backend/src ./src",
     "audit:knip": "knip --directory . --include files,dependencies,unlisted,binaries,exports,types --no-progress",
     "preview": "vite preview",

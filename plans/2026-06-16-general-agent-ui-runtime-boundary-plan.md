@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 frontend deprecation audit command
+
+- Finding: the frontend deprecation audit script still passed ESLint a retired
+  string-form `--rule` value, so the command failed before it could detect
+  deprecated renderer API usage.
+- Change: switched the script to ESLint's current object-shaped rule option and
+  added package-script coverage for the command shape.
+- Validation: `npm.cmd run lint:audit:deprecation` and focused
+  PackageScripts Jest coverage.
+- Compatibility: no migration required. Runtime code, package dependencies,
+  package-lock contents, release checks, and application behavior are unchanged.
+
 ### 2026-06-18 SDK local-runtime diagnostics variable
 
 - Finding: `LocalRuntimeConversationStore` was already the SDK local-runtime
