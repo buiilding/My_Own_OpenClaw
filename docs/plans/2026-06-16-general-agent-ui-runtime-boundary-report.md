@@ -128,8 +128,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Architecture, review, help, backend service, and frontend routing docs now
   qualify backend-import parity rules as desktop client and Python sidecar
   ownership instead of broad frontend/sidecar wording.
+  Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
+  Python sidecar method, handler, daemon, protocol, memory, and tool validation
+  labels.
 
 ## Inspection Log
+
+### 2026-06-18 JSON-RPC Python Sidecar Test Labels Slice
+
+- Worktree was clean after `cbe877944`, with `main` ahead of `origin/main` by
+  835 commits.
+- Finding: local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs still used generic
+  sidecar method/test labels for Python sidecar handler, daemon, protocol,
+  memory, and tool coverage.
+- Change: qualified those owner and validation labels as Python sidecar
+  ownership and expanded the modular stale-copy guard to include channel/node
+  routing docs.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  JSON-RPC behavior, tool-change behavior, SDK local-runtime commands, Electron
+  bridge behavior, Python sidecar execution, storage, credentials, and provider
+  policy are unchanged.
 
 ### 2026-06-18 Import Boundary Desktop/Python Sidecar Labels Slice
 

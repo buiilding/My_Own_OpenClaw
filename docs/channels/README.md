@@ -122,7 +122,7 @@ Likely code:
 - sidecar executable tool under `frontend/src/main/python/tools`
 - IPC bridge only when a new local bridge channel is required
 
-Validate backend schema tests, SDK runtime/router tests, sidecar tool tests, renderer projection tests, and schema parity tests.
+Validate backend schema tests, SDK runtime/router tests, Python sidecar tool tests, renderer projection tests, and schema parity tests.
 
 ## Deep Docs
 

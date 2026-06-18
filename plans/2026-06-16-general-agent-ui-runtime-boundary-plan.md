@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 JSON-RPC Python Sidecar Test Labels
+
+- Finding: local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs still used generic
+  sidecar method/test labels for Python sidecar handler, daemon, protocol,
+  memory, and tool coverage.
+- Change: qualified those owner and validation labels as Python sidecar
+  ownership and expanded the modular stale-copy guard to include channel/node
+  routing docs.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  JSON-RPC behavior, tool-change behavior, SDK local-runtime commands, Electron
+  bridge behavior, Python sidecar execution, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Import Boundary Desktop/Python Sidecar Labels
 
 - Finding: architecture, review, help, backend service, and frontend routing
