@@ -43,7 +43,7 @@ Ask these in order:
 ## Do Not Start By
 
 - editing renderer UI text because the UI is where the symptom is visible
-- importing backend code into frontend/sidecar for parity
+- importing backend code into desktop client/Python sidecar code for parity
 - adding platform branches in React components
 - changing provider/model catalogs before checking credentials and model listing responses
 - changing packaged runtime paths before proving source mode and packaged mode differ

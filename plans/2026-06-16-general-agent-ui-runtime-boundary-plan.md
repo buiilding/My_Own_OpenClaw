@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Import Boundary Desktop/Python Sidecar Labels
+
+- Finding: architecture, review, help, backend service, and frontend routing
+  docs still described backend-import parity rules as broad frontend/sidecar
+  ownership.
+- Change: qualified those rules as desktop client, renderer/Electron main, or
+  Python sidecar ownership and expanded the modular stale-copy guard to scan
+  the affected docs.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  import behavior, schema contracts, SDK runtime dispatch, Electron bridge
+  behavior, Python sidecar execution, storage, credentials, and provider policy
+  are unchanged.
+
 ### 2026-06-18 Tool Lifecycle Python Sidecar Failure Labels
 
 - Finding: tool execution lifecycle and schema policy docs still used

@@ -125,8 +125,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime ownership in local tool execution/result rows.
   Tool execution lifecycle and schema policy docs now qualify Python sidecar
   missing-tool/result and executable-argument parity ownership.
+  Architecture, review, help, backend service, and frontend routing docs now
+  qualify backend-import parity rules as desktop client and Python sidecar
+  ownership instead of broad frontend/sidecar wording.
 
 ## Inspection Log
+
+### 2026-06-18 Import Boundary Desktop/Python Sidecar Labels Slice
+
+- Worktree was clean after `0ccc1c0b8`, with `main` ahead of `origin/main` by
+  834 commits.
+- Finding: architecture, review, help, backend service, and frontend routing
+  docs still described backend-import parity rules as broad frontend/sidecar
+  ownership.
+- Change: qualified those rules as desktop client, renderer/Electron main, or
+  Python sidecar ownership and expanded the modular stale-copy guard to scan
+  the affected docs.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  import behavior, schema contracts, SDK runtime dispatch, Electron bridge
+  behavior, Python sidecar execution, storage, credentials, and provider policy
+  are unchanged.
 
 ### 2026-06-18 Tool Lifecycle Python Sidecar Failure Labels Slice
 

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: qualify import-boundary rules as desktop client and
+  Python sidecar ownership instead of frontend/sidecar wording.
 - docs/tools: qualify tool execution lifecycle sidecar failure rows as Python
   sidecar ownership.
 - docs/architecture: qualify agent-visible pipeline sidecar labels as Python

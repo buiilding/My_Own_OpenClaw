@@ -10,7 +10,7 @@ title: "Backend Service Change Workflow"
 
 Use this workflow when the behavior is a backend service capability rather than route parsing, websocket transport, or agent-loop orchestration. Services own reusable runtime behavior used by routes, tools, SDK helpers, and operational flows: artifact storage, OCR, vision coordinate grounding, embeddings, semantic summarization, TTS audio, token counting, and VM run-control state.
 
-Do not put service policy into API route functions or renderer code. Routes should validate and call services; agent code should orchestrate services through clear interfaces; frontend/sidecar code should consume stable route/tool contracts.
+Do not put service policy into API route functions or renderer code. Routes should validate and call services; agent code should orchestrate services through clear interfaces; desktop client/Python sidecar code should consume stable route/tool contracts.
 
 ## Fast Owner Map
 

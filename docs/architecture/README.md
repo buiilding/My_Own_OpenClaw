@@ -43,7 +43,7 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 ## Architecture Rules
 
 - Identify the producer runtime before editing the visible consumer.
-- Keep frontend/sidecar runtime imports independent from backend Python packages.
+- Keep desktop client and Python sidecar runtime imports independent from backend Python packages.
 - Route schema parity through explicit contracts and tests.
 - Keep local machine authority in the sidecar or Electron main, not hosted REST routes.
 - Keep public hosted API behavior documented in gateway/reference/web docs.
