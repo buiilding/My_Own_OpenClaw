@@ -492,6 +492,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/contracts/events/tool_runtime/README.md',
       'docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md',
       'docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md',
+      'docs/frontend/inventory/frontend_module_file_index_reference.md',
       'docs/frontend/main/ipc_event_replay_and_transcript_session_sync_reference.md',
       'docs/frontend/main/query_send_and_stream_relay_change_workflow.md',
       'docs/frontend/contracts/memory_ipc_and_rpc_mapping_reference.md',
@@ -630,6 +631,10 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar owns local execution + memory/runtime dependency bootstrap',
         'sidecar owns execution',
         'backend bridge logic',
+        'Tool runtime services',
+        'Tool execution stack',
+        'tool execution and capture',
+        'Tool execution bundling, payload normalization, capture orchestration',
         'sidecar direct-tool exposure contract used for backend parity',
         'live sidecar registry exposes concrete tool names only',
       ].filter((needle) => source.includes(needle));

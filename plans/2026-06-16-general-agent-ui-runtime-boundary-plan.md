@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer services inventory wording
+
+- Finding: current renderer inventory docs still described
+  `frontend/src/renderer/infrastructure/services/*` as a renderer tool
+  execution/capture/payload stack even though the live services are endpoint,
+  artifact image, and screenshot attachment display helpers.
+- Change: reworded the renderer runtime, module index, feature matrix, and full
+  functionality inventory around display-helper ownership, then extended the
+  modular boundary guard for the retired current-inventory phrases.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  current-inventory phrase scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; SDK/main
+  local execution, artifact materialization, screenshot capture, payloads,
+  storage, credentials, and permissions are unchanged.
+
 ### 2026-06-18 sidecar architecture backend endpoint contract
 
 - Finding: the architecture-level Python sidecar page still said memory clients

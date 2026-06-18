@@ -288,7 +288,7 @@ Primary files:
 - Desktop runtime transport: `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
 - Transcript writer/session/queues: `frontend/src/renderer/infrastructure/transcript/*`
-- Tool execution stack: `frontend/src/renderer/infrastructure/services/*`
+- Renderer artifact/display helpers: `frontend/src/renderer/infrastructure/services/*`
 - Audio playback: `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 
 Functionality:
@@ -296,7 +296,8 @@ Functionality:
 - Typed API event emitters for backend command types.
 - Typed IPC wrappers with dev-mode channel guards.
 - Transcript session state persistence and queued write retry.
-- Tool execution bundling, payload normalization, capture orchestration.
+- Runtime endpoint state, artifact image URL/data parsing, and screenshot
+  attachment display state.
 - Streaming TTS audio queue/decode/playback lifecycle.
 
 ## 4) Python Sidecar Runtime Inventory

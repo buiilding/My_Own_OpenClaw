@@ -124,5 +124,6 @@ Common dependencies:
 
 - `infrastructure/ipc` for renderer/main transport
 - `app/runtime/desktopRuntimeTransport.ts` for SDK command transport
-- `infrastructure/services/*` for tool execution and capture
+- `infrastructure/services/*` for runtime endpoint, artifact image, and
+  screenshot attachment display helpers
 - `infrastructure/transcript/*` for persisted conversation records

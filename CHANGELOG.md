@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align current renderer inventory docs with artifact/display
+  helper ownership instead of stale renderer tool-execution service wording; no
+  migration is required because this changes docs/tests only.
 - docs/sidecar: align the Python sidecar architecture memory section with the
   required injected backend endpoint contract; no migration is required because
   this changes docs/tests only.

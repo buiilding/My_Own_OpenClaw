@@ -117,7 +117,8 @@ Core modules:
 
 - `app/runtime/desktopRuntimeTransport.ts`: typed SDK command transport
 - `infrastructure/ipc/bridge.ts`: typed IPC wrapper over preload API
-- `infrastructure/services/*`: tool execution/capture/payload services
+- `infrastructure/services/*`: runtime endpoint, artifact image, and screenshot
+  attachment display helpers
 - `app/runtime/desktopConversationContinuityService.ts`, `app/runtime/desktopConversationLibraryClient.js`, and `infrastructure/transcript/*`: SDK-backed transcript display projection, conversation store access, and session storage
 - `infrastructure/audio/PlayerService.ts`: streaming audio playback queue
 

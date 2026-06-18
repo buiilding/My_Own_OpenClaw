@@ -107,7 +107,7 @@ Infrastructure:
 
 - IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
 - Desktop runtime transport: `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
-- Tool runtime services: `frontend/src/renderer/infrastructure/services/*`
+- Renderer artifact/display helpers: `frontend/src/renderer/infrastructure/services/*`
 - Audio player: `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - Transcript runtime: `frontend/src/renderer/infrastructure/transcript/*`
 - Utility: `frontend/src/renderer/infrastructure/markdown.ts`
