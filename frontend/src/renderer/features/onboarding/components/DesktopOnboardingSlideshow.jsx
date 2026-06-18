@@ -4,10 +4,10 @@
 
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
-import { getAgentStopShortcutLabel } from '../../../infrastructure/shortcuts/agentStopShortcut';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 import { useOnboardingPermissionActions } from '../hooks/useOnboardingPermissionActions';
 import { buildOnboardingSlideState } from '../utils/onboardingSlides';
@@ -21,7 +21,9 @@ function DesktopOnboardingSlideshow({
   stopAgentShortcutLabel,
   allowWindowMaximize = true,
 }) {
-  const resolvedStopShortcutLabel = stopAgentShortcutLabel || getAgentStopShortcutLabel();
+  const resolvedStopShortcutLabel = (
+    stopAgentShortcutLabel || DesktopShortcutRuntimeClient.getAgentStopShortcutLabel()
+  );
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const permissions = usePermissionStore((state) => state.permissions);
   const statusesByPermissionId = usePermissionStore((state) => state.statusesByPermissionId);

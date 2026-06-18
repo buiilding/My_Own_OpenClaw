@@ -21,6 +21,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 - `frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
 - `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js`
+- `frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js`
 - `tests/frontend/AppVmMode.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
@@ -59,7 +60,8 @@ Routing behavior:
 - VM mode disabled + onboarding incomplete:
   - do not mount `WakewordController`
   - render `DesktopOnboardingSlideshow`
-  - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
+  - inject stop-agent shortcut label from
+    `DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
   - request `show-main-window({ focus: true, open: 'onboarding' })` through `DesktopWindowRuntimeClient`
   - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
 - VM mode disabled + onboarding complete:
@@ -140,7 +142,7 @@ Navigation behavior:
 Stop shortcut label source:
 
 - prop override when provided
-- fallback to `getGlobalAgentStopShortcutLabel()`
+- fallback to `DesktopShortcutRuntimeClient.getAgentStopShortcutLabel()`
 - label reflects the saved renderer config value when `global_agent_stop_shortcut` is present
 - slide renders the shortcut as separate keycaps split on `+` so longer labels like `Command + Shift + Esc` can stay on one line instead of clipping inside one fixed-width pill
 

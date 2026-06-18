@@ -4,11 +4,8 @@
 
 import PropTypes from 'prop-types';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
+import { DesktopShortcutRuntimeClient } from '../../../../../app/runtime/desktopShortcutRuntimeClient';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
-import {
-  getGlobalAgentStopShortcutLabel,
-  getGlobalAgentStopShortcutOptions,
-} from '../../../../../infrastructure/shortcuts/agentStopShortcut';
 import { CloneToggle, SelectDropdown } from './settingsControls';
 
 const generalSettingsSkin = desktopRuntimeSkin.settings.general;
@@ -23,7 +20,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
   const showToolLogs = config?.show_tool_logs === true;
   const globalStopShortcut = config?.global_agent_stop_shortcut;
-  const globalStopShortcutOptions = getGlobalAgentStopShortcutOptions();
+  const globalStopShortcutOptions = DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutOptions();
   const shortcutRegistrationFailed = globalAgentStopShortcutStatus?.registrationFailed === true;
   const shortcutFallbackActive = (
     globalAgentStopShortcutStatus?.usingFallback === true
@@ -93,7 +90,9 @@ function GeneralSettingsTab({ config, onConfigChange }) {
           <p>
             {generalSettingsSkin.globalStopShortcut.descriptionPrefix}
             {' '}
-            <strong>{getGlobalAgentStopShortcutLabel(globalStopShortcut)}</strong>
+            <strong>
+              {DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel(globalStopShortcut)}
+            </strong>
             .
           </p>
           {shortcutFallbackActive ? (
@@ -101,7 +100,9 @@ function GeneralSettingsTab({ config, onConfigChange }) {
               {generalSettingsSkin.globalStopShortcut.fallbackPrefix}
               {' '}
               <strong>
-                {getGlobalAgentStopShortcutLabel(globalAgentStopShortcutStatus.resolvedAccelerator)}
+                {DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel(
+                  globalAgentStopShortcutStatus.resolvedAccelerator,
+                )}
               </strong>
               {' '}
               {generalSettingsSkin.globalStopShortcut.fallbackSuffix}

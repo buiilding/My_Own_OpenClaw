@@ -7,8 +7,8 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import DashboardShell from '../features/dashboard/components/DashboardShell';
 import DesktopOnboardingSlideshow from '../features/onboarding/components/DesktopOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
-import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import { selectStartupSurface } from './startupSurface';
+import { DesktopShortcutRuntimeClient } from './runtime/desktopShortcutRuntimeClient';
 import { DesktopStartupRuntimeClient } from './runtime/desktopStartupRuntimeClient';
 import { DesktopWindowRuntimeClient } from './runtime/desktopWindowRuntimeClient';
 import { AppProvider } from './providers/AppProvider';
@@ -127,7 +127,9 @@ function AppContent() {
     return (
       <DesktopOnboardingSlideshow
         allowWindowMaximize={false}
-        stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}
+        stopAgentShortcutLabel={DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel(
+          config?.global_agent_stop_shortcut,
+        )}
       />
     );
   }

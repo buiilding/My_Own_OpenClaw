@@ -17,7 +17,8 @@ the SDK-shaped query runtime:
 1. `GeneralSettingsTab.jsx` renders the **Global Stop Shortcut** selector and
    emits `onConfigChange({ global_agent_stop_shortcut })`.
 2. Renderer config storage normalizes the selected accelerator through
-   `agentStopShortcut.js` and persists it locally.
+   `DesktopShortcutRuntimeClient`, which delegates to the shortcut helper, and
+   persists it locally.
 3. `appConfigRuntimeSync.js` and the main settings sync path strip
    `global_agent_stop_shortcut` before sending backend `update-settings`
    payloads. This is local desktop state, not backend model/session config.
@@ -66,8 +67,11 @@ Supported accelerators come from
 | `linux` | `CommandOrControl+Shift+Escape` (`Ctrl + Shift + Esc`) | `CommandOrControl+Alt+.`, `CommandOrControl+Shift+.` |
 | `darwin` | `CommandOrControl+Shift+Escape` (`Command + Shift + Esc`) | `CommandOrControl+Alt+.`, `CommandOrControl+Shift+.` |
 
-The renderer uses platform labels to show user-facing shortcut text. Electron
-main uses `process.platform` to normalize and register accelerators.
+The renderer uses `DesktopShortcutRuntimeClient` for platform labels, supported
+options, focused-window `Esc` detection, and config normalization. The lower-
+level `agentStopShortcut.js` helper owns DOM/platform/catalog interpretation and
+is imported by the runtime client and owner-level tests. Electron main uses
+`process.platform` to normalize and register accelerators.
 
 ## Status Projection
 

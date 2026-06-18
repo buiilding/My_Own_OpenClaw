@@ -8008,3 +8008,20 @@ Each completed slice should report:
   `screenshot_refs` message shape, artifact URL shape, inline screenshot
   parsing, replay preservation, and artifact image fetch IPC behavior are
   unchanged.
+
+### 2026-06-18 renderer shortcut runtime client boundary
+
+- Finding: app startup, onboarding, chat key handling, settings, and config
+  storage imported `agentStopShortcut.js` directly for focused-window `Esc`
+  handling and global stop-shortcut labels/options/normalization.
+- Change: added `DesktopShortcutRuntimeClient` as the renderer app runtime
+  facade over shortcut helper policy, then routed app/feature/config callers
+  through it while keeping platform/catalog/DOM-event interpretation in
+  `agentStopShortcut.js`.
+- Validation: focused shortcut, config storage, onboarding, settings, chat
+  binding, and renderer boundary Jest coverage, direct production import scans,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. The local `Esc` stop behavior,
+  `global_agent_stop_shortcut` persisted value, platform accelerator catalog,
+  fallback labels, and Electron main global shortcut registration contract are
+  unchanged.

@@ -4,8 +4,8 @@
 
 import { useEffect } from 'react';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
+import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
 import { extractAudioChunkPayload } from '../utils/audioChunkEvents';
-import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
 import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
@@ -61,7 +61,7 @@ export function useChatInterfaceMenuDismiss({
 export function useChatInterfaceStopShortcut(canStop, handleStopTurn) {
   useEffect(() => {
     const handleStopShortcut = (event) => {
-      if (!canStop || !isAgentStopShortcutEvent(event)) {
+      if (!canStop || !DesktopShortcutRuntimeClient.isAgentStopShortcutEvent(event)) {
         return;
       }
       event.preventDefault();

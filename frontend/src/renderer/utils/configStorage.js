@@ -2,7 +2,7 @@
  * Defines config storage configuration for the renderer UI.
  */
 
-import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/shortcuts/agentStopShortcut';
+import { DesktopShortcutRuntimeClient } from '../app/runtime/desktopShortcutRuntimeClient';
 import {
   DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
@@ -55,7 +55,7 @@ const DEFAULT_RENDERER_CONFIG = {
   agent_disabled_remote_tools: [],
   agent_enabled_mcp_servers: [],
   browser_automation_enabled: false,
-  global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(),
+  global_agent_stop_shortcut: DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
   appearance_mode: 'system',
@@ -155,7 +155,7 @@ function buildRendererConfig(overrides = {}) {
     ...DEFAULT_RENDERER_CONFIG,
     ...filteredOverrides,
     selected_model_id: normalizedSelectedModelId,
-    global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(
+    global_agent_stop_shortcut: DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator(
       filteredOverrides.global_agent_stop_shortcut,
     ),
     agent_custom_instructions: typeof filteredOverrides.agent_custom_instructions === 'string'

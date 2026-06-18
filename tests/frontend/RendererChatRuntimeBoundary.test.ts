@@ -909,6 +909,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts'),
       'utf8',
     );
+    const shortcutClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts'),
+      'utf8',
+    );
     const workspaceClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts'),
       'utf8',
@@ -935,8 +939,11 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardShellSource).toContain('DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings');
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
     expect(bindingsSource).not.toContain('IpcBridge.on');
+    expect(bindingsSource).not.toContain('infrastructure/shortcuts/agentStopShortcut');
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
+    expect(bindingsSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
+    expect(shortcutClientSource).toContain('isAgentStopShortcutEvent');
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSION');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');

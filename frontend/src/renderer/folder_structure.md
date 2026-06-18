@@ -27,6 +27,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
+│   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 │   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │

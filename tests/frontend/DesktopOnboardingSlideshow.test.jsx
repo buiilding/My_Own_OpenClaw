@@ -192,9 +192,9 @@ describe('DesktopOnboardingSlideshow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Minimize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(1, 'window-minimize', undefined);
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'window-toggle-maximize', undefined);
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(3, 'window-close', undefined);
+    expect(mockIpcInvoke.mock.calls[0]).toEqual(['window-minimize']);
+    expect(mockIpcInvoke.mock.calls[1]).toEqual(['window-toggle-maximize']);
+    expect(mockIpcInvoke.mock.calls[2]).toEqual(['window-close']);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();

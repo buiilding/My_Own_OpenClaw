@@ -106,6 +106,52 @@ describe('renderer settings runtime boundary', () => {
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.SET_ACTIVE_WORKSPACE');
   });
 
+  test('global stop shortcut settings and storage route through app runtime client', async () => {
+    const generalSettingsSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab.jsx',
+      ),
+      'utf8',
+    );
+    const configStorageSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/utils/configStorage.js'),
+      'utf8',
+    );
+    const shortcutClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const source of [generalSettingsSource, configStorageSource]) {
+      expect(source).not.toContain('infrastructure/shortcuts/agentStopShortcut');
+    }
+    expect(generalSettingsSource).toContain('DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutOptions');
+    expect(generalSettingsSource).toContain('DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel');
+    expect(configStorageSource).toContain('DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator');
+    expect(shortcutClientSource).toContain('normalizeGlobalAgentStopShortcutAccelerator');
+  });
+
+  test('app startup and onboarding shortcut labels route through app runtime client', async () => {
+    const appSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/App.jsx'),
+      'utf8',
+    );
+    const onboardingSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx',
+      ),
+      'utf8',
+    );
+
+    for (const source of [appSource, onboardingSource]) {
+      expect(source).not.toContain('infrastructure/shortcuts/agentStopShortcut');
+    }
+    expect(appSource).toContain('DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel');
+    expect(onboardingSource).toContain('DesktopShortcutRuntimeClient.getAgentStopShortcutLabel');
+  });
+
   test('agent settings routes extension and capability IPC through app runtime client', async () => {
     const source = await fs.readFile(
       path.resolve(
