@@ -136,7 +136,7 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
   const definition: JsonRecord = {
     version: 1,
     id: normalizeString(options.id) || 'agent-default',
-    name: normalizeString(options.name) || 'Desktop Agent',
+    name: normalizeString(options.name) || 'Agent',
     mode: (
       systemPromptContent
       || promptLayers.length > 0

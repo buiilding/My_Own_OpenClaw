@@ -21,8 +21,8 @@ SDK and Electron builder inputs use the public camelCase `agentsMd` option;
 the snake_case `agents_md` spelling is only the generated backend wire field
 inside the final `agent_definition` object.
 When callers omit a display name, `buildAgentDefinition(...)` uses the generic
-`Desktop Agent` default so SDK-authored agent definitions do not embed
-WindieOS product copy outside host skin/config boundaries.
+`Agent` default so SDK-authored agent definitions do not embed WindieOS product
+copy or desktop-host assumptions outside host skin/config boundaries.
 The Python SDK mirrors that boundary with generic generated identities:
 `python-agent-*` ids, `Python Agent` display names, and `conv-python-agent`
 conversation defaults when callers omit those values.

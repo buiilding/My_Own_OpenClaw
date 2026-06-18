@@ -262,7 +262,7 @@ describe('Agent SDK client behavior', () => {
 
     expect(definition).toMatchObject({
       id: 'agent-default',
-      name: 'Desktop Agent',
+      name: 'Agent',
       mode: 'default',
     });
     expect(isDefaultAgentDefinition(definition)).toBe(true);

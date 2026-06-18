@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 SDK agent definition default name
+
+- Finding: the reusable SDK `buildAgentDefinition(...)` fallback display name was `Desktop Agent`, which avoided WindieOS product copy but still leaked a desktop-host assumption into CLI, TUI, and custom UI SDK callers.
+- Change: changed the TypeScript SDK and checked-in CommonJS fallback name to `Agent`, updated the focused builder test, and clarified the agent-definition docs. Electron/WindieOS still passes its host-skin agent name explicitly.
+- Validation: focused `WindieSdkClient` builder Jest coverage, SDK TypeScript no-emit check, stale default-name scan, and scoped diff check.
+- Compatibility: public SDK default display name changes only when callers omit `name`; explicit agent names, Electron host skin names, backend wire fields, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 
 ### 2026-06-18 frontend OpenAI Codex OAuth IPC launcher removal
 

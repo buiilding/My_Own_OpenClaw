@@ -107,7 +107,7 @@ function buildAgentDefinition(options = {}) {
     const definition = {
         version: 1,
         id: normalizeString(options.id) || 'agent-default',
-        name: normalizeString(options.name) || 'Desktop Agent',
+        name: normalizeString(options.name) || 'Agent',
         mode: (systemPromptContent
             || promptLayers.length > 0
             || skills.length > 0
