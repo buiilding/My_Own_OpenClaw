@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs/frontend: rename the renderer skin facade architecture wording from
+  active desktop-agent skin to active desktop-runtime skin and guard it in
+  renderer boundary coverage; no migration is required because this is docs
+  and test terminology only.
 - tests/frontend: hide retired desktop-agent preload argument literals behind
   constructed negative assertions; no migration is required because this is
   test-only scan hygiene and the active `--desktop-runtime-ipc-channels`

@@ -52,6 +52,16 @@ describe('renderer app runtime boundary', () => {
     expect(sdkFacadeSource).not.toContain('desktop agent UI');
   });
 
+  test('frontend architecture docs describe renderer skin facades with desktop-runtime wording', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),
+      'utf8',
+    );
+
+    expect(source).toContain('active desktop-runtime skin');
+    expect(source).not.toContain('active desktop-agent skin');
+  });
+
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),

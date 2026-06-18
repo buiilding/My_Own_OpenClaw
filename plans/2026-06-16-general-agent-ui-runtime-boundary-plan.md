@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer skin architecture wording cleanup
+
+- Finding: the frontend architecture runtime map still described
+  `desktopRuntimeSkin.js` as a facade over an active desktop-agent skin even
+  though the renderer skin/config boundary now uses desktop-runtime wording.
+- Change: updated the architecture wording to active desktop-runtime skin and
+  added renderer app boundary coverage so the stale phrase stays retired.
+- Validation: focused renderer app runtime boundary Jest coverage, stale
+  architecture phrase scan, and `git diff --check`.
+- Compatibility: no migration required. This is docs/test terminology only;
+  renderer skin exports, product copy, CSS, settings, storage, IPC, and
+  runtime behavior are unchanged.
+
 ### 2026-06-18 preload argument retired-literal scan cleanup
 
 - Finding: focused window/preload tests already asserted that the retired

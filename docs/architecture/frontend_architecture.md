@@ -375,7 +375,7 @@ Primary modules:
   - WindieOS-specific renderer copy, tool catalog presentation, and display-safe
     runtime labels for the active renderer skin.
 - `renderer/app/skin/desktopRuntimeSkin.js`:
-  - Generic renderer-facing facade over the active desktop-agent skin.
+  - Generic renderer-facing facade over the active desktop-runtime skin.
   - Settings, memory, onboarding, and chat feature components should read
     product copy, app-specific tool catalog choices, destructive-action labels,
     panel wording, empty-state text, and renderer-local runtime fallback
