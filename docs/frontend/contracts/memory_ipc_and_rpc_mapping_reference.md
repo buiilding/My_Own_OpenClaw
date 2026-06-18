@@ -88,7 +88,9 @@ SDK/local-runtime camelCase to sidecar snake_case conversions include:
 - `episodic.db` memory rows with `record_kind='interaction'`: completed user+assistant memory pairs used by the Episodic Memory view and semantic summarizer.
 - `semantic.db` memory rows: extracted durable facts and summaries.
 
-Renderer transcript projection clients now route through the SDK conversation continuity service and the sidecar-backed chat-event store. The legacy transcript-row IPC/RPC path has been removed.
+Renderer transcript projection clients now route through the SDK conversation
+continuity service and the local-runtime-backed chat-event store. The legacy
+transcript-row IPC/RPC path has been removed.
 
 Completed-turn memory storage is SDK-owned. The SDK formats the memory text,
 calls backend `/api/embeddings/`, and then calls sidecar

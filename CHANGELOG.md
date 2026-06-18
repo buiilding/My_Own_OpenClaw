@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: describe trace and transcript persistence through the
+  local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
+  add boundary coverage to keep those references generic; no migration is
+  required because this is docs/test-only terminology cleanup.
 - sdk: sync generated CommonJS local-runtime discovery output with the
   TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
   in CJS builds; no migration is required because accepted discovery metadata
@@ -2288,6 +2292,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: describe trace and transcript persistence through the
+  local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
+  add boundary coverage to keep those references generic; no migration is
+  required because this is docs/test-only terminology cleanup.
 - sdk: sync generated CommonJS local-runtime discovery output with the
   TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
   in CJS builds; no migration is required because accepted discovery metadata
@@ -4071,6 +4079,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: describe trace and transcript persistence through the
+  local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
+  add boundary coverage to keep those references generic; no migration is
+  required because this is docs/test-only terminology cleanup.
 - sdk: sync generated CommonJS local-runtime discovery output with the
   TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
   in CJS builds; no migration is required because accepted discovery metadata
@@ -4509,6 +4521,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: describe trace and transcript persistence through the
+  local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
+  add boundary coverage to keep those references generic; no migration is
+  required because this is docs/test-only terminology cleanup.
 - sdk: sync generated CommonJS local-runtime discovery output with the
   TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
   in CJS builds; no migration is required because accepted discovery metadata
@@ -4977,6 +4993,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: describe trace and transcript persistence through the
+  local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
+  add boundary coverage to keep those references generic; no migration is
+  required because this is docs/test-only terminology cleanup.
 - sdk: sync generated CommonJS local-runtime discovery output with the
   TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
   in CJS builds; no migration is required because accepted discovery metadata
@@ -7401,6 +7421,10 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- docs/frontend: describe trace and transcript persistence through the
+  local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
+  add boundary coverage to keep those references generic; no migration is
+  required because this is docs/test-only terminology cleanup.
 - sdk: sync generated CommonJS local-runtime discovery output with the
   TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
   in CJS builds; no migration is required because accepted discovery metadata

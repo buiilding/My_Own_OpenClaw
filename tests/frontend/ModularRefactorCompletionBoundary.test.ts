@@ -228,6 +228,21 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('local sidecar execution');
   });
 
+  test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {
+    const docs = await Promise.all([
+      read('docs/debug/runtime_traces.md'),
+      read('docs/architecture/frontend_architecture.md'),
+      read('docs/frontend/contracts/memory_ipc_and_rpc_mapping_reference.md'),
+      read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('local-runtime-backed `LocalRuntimeConversationStore`');
+    expect(docText).toContain('local-runtime-backed chat-event store');
+    expect(docText).toContain('returns sanitized search metadata');
+    expect(docText).not.toContain('sidecar-backed');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

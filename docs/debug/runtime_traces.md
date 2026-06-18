@@ -37,15 +37,14 @@ tokens, credentials, raw SQL rows, or full stack traces in durable trace rows.
 Current durable traced paths:
 
 - `memory.retrieval`: SDK query enrichment records retrieval, embedding,
-  local-runtime search, injection, and completion spans. The sidecar-backed
-  local runtime returns sanitized search metadata such as searched memory
+  local-runtime search, injection, and completion spans. The SDK local runtime
+  returns sanitized search metadata such as searched memory
   types, limits, result counts, embedding-space version, and duration.
 - `screenshot.capture`: SDK query screenshot resource resolution records
   request, resolver, Electron main surface-preparation, local-runtime capture,
-  artifact upload, and backend query payload application spans. The
-  sidecar-backed local runtime returns sanitized capture metadata such as
-  capture engine, dimensions, crop bounds, monitor id, byte count, content type,
-  and duration.
+  artifact upload, and backend query payload application spans. The SDK local
+  runtime returns sanitized capture metadata such as capture engine, dimensions,
+  crop bounds, monitor id, byte count, content type, and duration.
 - `query.dispatch`: SDK conversation runtime records backend send start/end or
   skip spans with transport availability, backend acceptance, request ids, and
   duration.
@@ -137,9 +136,9 @@ Current durable traced paths:
   control, dispatch, and worker stream events. Rows include run id as request
   id, action/status/control mode, counts, assignment booleans, and payload key
   counts without query text or worker payload bodies.
-- `local_runtime.lifecycle`: SDK local-runtime helpers record sidecar-backed
-  status, tool-list, and shutdown spans with ready/running booleans, tool
-  count, version presence, shutdown mode, and response key counts.
+- `local_runtime.lifecycle`: SDK local-runtime helpers record status,
+  tool-list, and shutdown spans with ready/running booleans, tool count,
+  version presence, shutdown mode, and response key counts.
 - `agent.definition`: SDK conversation send records agent definition shape with
   merged tool/plugin/MCP/skill counts, SDK-vs-query agent-definition presence,
   SDK-vs-query client-manifest tool counts, key count, workspace-path presence,

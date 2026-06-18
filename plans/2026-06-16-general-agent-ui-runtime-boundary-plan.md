@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 frontend trace and transcript local-runtime docs
+
+- Finding: runtime trace, frontend architecture, memory IPC/RPC, and transcript
+  reference docs still described SDK conversation persistence as
+  `sidecar-backed`, which routed readers toward the Python implementation
+  instead of the SDK local-runtime/store contract.
+- Change: rewrote those docs to describe the public store/runtime boundary as
+  local-runtime-backed while leaving concrete sidecar RPC names below that
+  boundary, and added a focused docs-boundary guard in
+  `ModularRefactorCompletionBoundary.test.ts`.
+- Validation: focused `ModularRefactorCompletionBoundary.test.ts` coverage,
+  docs listing, stale `sidecar-backed` scan across the touched docs, and diff
+  checks.
+- Compatibility: no migration required. This is docs/test terminology cleanup;
+  storage tables, SDK commands, sidecar RPC names, IPC channels, and runtime
+  payloads are unchanged.
 ### 2026-06-18 SDK local runtime discovery CJS parity
 
 - Finding: the TypeScript local-runtime discovery parser rejected camelCase
