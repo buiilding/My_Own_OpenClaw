@@ -10,16 +10,55 @@ class DummySession:
     pass
 
 
+def _read(path: str) -> str:
+    return Path(path).read_text(encoding="utf-8")
+
+
 def test_tool_result_receiver_source_uses_local_runtime_boundary_wording():
-    source = Path("backend/src/agent/tools/waiting/receiver.py").read_text()
-    api_handler_source = Path("backend/src/api/handlers/tool_result.py").read_text()
+    source = _read("backend/src/agent/tools/waiting/receiver.py")
+    api_handler_source = _read("backend/src/api/handlers/tool_result.py")
+    query_handler_source = _read("backend/src/api/handlers/query.py")
+    api_folder_source = _read("backend/src/api/folder_structure.md")
+    backend_readme = _read("docs/backend/README.md")
+    runtime_flow_matrix = _read(
+        "docs/backend/inventory/backend_runtime_flow_matrix_reference.md"
+    )
+    backend_inventory = _read(
+        "docs/backend/inventory/backend_full_functionality_inventory_reference.md"
+    )
+    observability_reference = _read(
+        "docs/backend/inventory/protocols/observability/backend_protocol_correlation_logging_and_telemetry_signal_reference.md"
+    )
+    architecture_docs = "\n".join(
+        [
+            _read("docs/architecture/tool_system.md"),
+            _read("docs/architecture/architecture.md"),
+            _read("docs/architecture/communication_flow.md"),
+        ]
+    )
 
     assert "SDK/local-runtime tool results" in source
     assert "local-runtime payloads" in source
+    assert "SDK/local-runtime tool results" in api_folder_source
+    assert "SDK/local-runtime tool results return" in backend_readme
+    assert "SDK/local-runtime tool result ingress" in runtime_flow_matrix
+    assert "SDK/local-runtime tool, synthetic, and bundle results" in backend_inventory
+    assert "[Timing] Query received from client" in query_handler_source
+    assert "[Timing] Query received from client" in observability_reference
+    assert "SDK/local-runtime tool execution result" in architecture_docs
+    assert "SDK/local-runtime tool result payload" in architecture_docs
     assert "from frontend" not in source
     assert "frontend format" not in source
     assert "messages from the SDK/local runtime" in api_handler_source
     assert "message from frontend" not in api_handler_source
+    assert "tool execution results from frontend" not in api_folder_source
+    assert "Tool results return from frontend" not in backend_readme
+    assert "Tool result ingress from frontend" not in runtime_flow_matrix
+    assert "results from frontend" not in backend_inventory
+    assert "Query received from frontend" not in query_handler_source
+    assert "Query received from frontend" not in observability_reference
+    assert "Receives tool result from frontend" not in architecture_docs
+    assert "Tool execution result from frontend" not in architecture_docs
 
 
 def test_receive_individual_result_preserves_required_system_state_without_metadata_injection():

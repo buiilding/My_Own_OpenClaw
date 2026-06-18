@@ -84,7 +84,7 @@ Functionality:
 
 - `query`: starts stream execution task and delegates to query execution service.
 - `stop_query`: cancels active query task by user and emits stop semantics.
-- `tool_result`: ingests tool/synthetic/bundle results from frontend.
+- `tool_result`: ingests SDK/local-runtime tool, synthetic, and bundle results.
 - `settings`: load/update frontend-owned settings and model list retrieval.
 - `rehydrate`: replaces conversation history from SDK-projected snapshot entries.
 - `wakeword`: handles wakeword-triggered entry flow.

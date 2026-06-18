@@ -254,7 +254,7 @@ Primary folders under `backend/src`:
 3. Handler registry dispatches by `type` (for example `query`).
 4. Query handler starts stream pipeline + TTS session and delegates to `AgentSession`.
 5. Agent loop builds prompt, calls provider, parses response, may dispatch tools.
-6. Tool results return from frontend (`tool-result` or `tool-bundle-result`).
+6. SDK/local-runtime tool results return through `tool-result` or `tool-bundle-result`.
 7. Result processor commits tool outputs to history, loop continues or completes.
 8. Streamed events are formatted and sent back to frontend with transport context.
 

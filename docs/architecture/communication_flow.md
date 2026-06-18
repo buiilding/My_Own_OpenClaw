@@ -275,7 +275,7 @@ assigns `message_index` as local append order for display and replay.
 - Payload: `{}`
 
 **`tool-result`**
-- Purpose: Tool execution result from frontend
+- Purpose: SDK/local-runtime tool execution result
 - Payload: `{ request_id, success, data?: { output, system_state?: { active_window, mouse_position }, screenshot_ref?, screenshot? }, error? }`
 - Notes:
   - `system_state` is optional; when present, `active_window` and `mouse_position` are required.

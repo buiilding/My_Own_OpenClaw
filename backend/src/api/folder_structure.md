@@ -58,7 +58,7 @@ backend/src/api/
 ├── handlers/                           # HANDLER LAYER - Message type-specific processing
 │   ├── query.py                       # QueryMessageHandler - Processes user queries, orchestrates agent interaction
 │   ├── settings.py                    # ListModelsHandler - Handles model listing requests
-│   ├── tool_result.py                 # ToolResultHandler - Routes tool execution results from frontend to AgentSession (delegates processing)
+│   ├── tool_result.py                 # ToolResultHandler - Routes SDK/local-runtime tool results to AgentSession (delegates processing)
 │   └── wakeword.py                    # WakewordHandler - Handles wakeword detection and activation
 │
 └── processing/                         # PROCESSING LAYER - Event formatting, TTS, and streaming

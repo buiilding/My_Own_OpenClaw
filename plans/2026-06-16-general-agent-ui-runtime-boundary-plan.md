@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend tool-result/query client wording
+
+- Finding: backend hub docs, architecture protocol references, the API source
+  map, and the query-accepted log still described local tool results and query
+  ingress as frontend-owned even after result ingress moved to the
+  SDK/local-runtime boundary.
+- Change: reworded tool-result ingress references to SDK/local-runtime payload
+  ownership, changed the backend query accepted log from frontend to client,
+  and extended the backend source/doc guard for the retired phrases.
+- Validation: focused backend tool-result receiver pytest, backend py_compile
+  for the query handler, docs listing, stale phrase scan, and diff check.
+- Compatibility: no migration required. This changes docs/log wording and
+  source-map comments only; websocket message types, payloads, storage,
+  credentials, permissions, and local execution behavior are unchanged.
+
 ### 2026-06-18 backend rehydrate SDK snapshot wording
 
 - Finding: backend rehydrate handler/service/session docstrings and nearby

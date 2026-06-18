@@ -231,7 +231,7 @@ Backend lane additions:
 
 **ToolResultHandler** (`agent/tools/waiting/handler.py`) processes results:
 
-1. Receives tool result from frontend
+1. Receives SDK/local-runtime tool result payload
 2. Stores result in centralized **ToolResultStorage** (with TTL-based cleanup)
 3. Processes screenshot and OCR
 4. Updates conversation history (O(1) access via cached LLM format)

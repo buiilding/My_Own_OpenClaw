@@ -85,7 +85,7 @@ Validated by:
 
 ### Query lifecycle (`query.py`, `query_execution.py`)
 
-- query accepted: `[Timing] Query received from frontend ...` (`info`)
+- query accepted: `[Timing] Query received from client ...` (`info`)
 - query completed: `[Timing] Query processing completed in ...` (`info`)
 - stream ends without terminal event: warning with user + turn correlation
 

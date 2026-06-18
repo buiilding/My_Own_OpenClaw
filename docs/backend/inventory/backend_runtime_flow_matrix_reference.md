@@ -38,7 +38,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 | Tool preparation phase | `backend/src/agent/tools/preparation/preparer.py` | Screenshot + OCR helpers, coordinate resolvers | Resolved tool call registration |
 | Tool send phase | `backend/src/agent/tools/sending/sender.py` | Tool/bundle event shaping | `tool-call` / `tool-bundle` event emission |
 | Tool wait phase | `backend/src/tools/orchestrator.py` | `backend/src/tools/single_tool_execution.py`, `backend/src/tools/bundle_execution.py` | Awaited result (single/bundle) |
-| Tool result ingress from frontend | `backend/src/api/handlers/tool_result.py` | `backend/src/agent/tools/waiting/{handler,receiver,router}.py` | Future resolution in result storage |
+| SDK/local-runtime tool result ingress | `backend/src/api/handlers/tool_result.py` | `backend/src/agent/tools/waiting/{handler,receiver,router}.py` | Future resolution in result storage |
 | Tool result processing phase | `backend/src/agent/tools/processing/processor.py` | `backend/src/agent/tools/processing/transformer.py`, `backend/src/agent/history/history_committer.py` | History mutation + cleanup |
 
 ## API Processing + Transport Flows

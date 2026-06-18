@@ -204,7 +204,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
             return
 
         try:
-            logger.info("[Timing] Query received from frontend (user_id=%s)", user_id)
+            logger.info("[Timing] Query received from client (user_id=%s)", user_id)
             await self.execution_service.execute(
                 message,
                 websocket,

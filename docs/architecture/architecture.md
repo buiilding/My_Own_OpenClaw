@@ -311,7 +311,7 @@ Screenshots are captured strategically at key points to provide visual context f
 - `list-models`: Request available models
 - `load-settings`: Load frontend-owned settings snapshot from backend session/default config
 - `update-settings`: Update session config (applies on next query)
-- `tool-result`: Tool execution result from frontend
+- `tool-result`: SDK/local-runtime tool execution result
 - `tool-bundle-result`: Atomic bundle execution result
 - `wakeword-detected`: Wakeword activation event
 
