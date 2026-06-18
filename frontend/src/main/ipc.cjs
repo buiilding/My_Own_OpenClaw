@@ -1565,17 +1565,17 @@ function initializeIpc(win, options = {}) {
   initializeIpcStartupState({
     loadInstallAuthStateFromDisk,
     applyInstallAuthState,
-    loadCachedFrontendConfigFromDisk,
+    loadCachedDesktopUiConfigFromDisk: loadCachedFrontendConfigFromDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
-    setLatestFrontendConfig: (config) => {
+    setLatestDesktopUiConfig: (config) => {
       latestFrontendConfig = config;
     },
     setGlobalAgentStopShortcutAccelerator,
     setAgentLoopStopShortcutEnabled,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     isAgentLoopStopShortcutPhase,
-    onFrontendConfigLoaded: refreshEnabledMcpServersAfterStartup,
+    onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup,
     log,
   });
 

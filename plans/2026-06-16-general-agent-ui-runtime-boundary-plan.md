@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config startup hydration boundary
+
+- Finding: IPC startup hydration still accepted and used frontend-named config
+  dependency slots for loading the desktop UI config cache, setting the latest
+  config, and notifying MCP refresh after hydration.
+- Change: promoted desktop UI config dependency slots for startup hydration,
+  switched the main-process wiring and focused startup tests to the canonical
+  names, kept frontend-named slots as compatibility fallbacks, and updated the
+  main SDK boundary guard.
+- Validation: focused startup state and main SDK boundary Jest coverage,
+  startup/main syntax checks, stale active-startup-slot scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. The persisted filename, IPC channels,
+  config payload shape, shortcut fallback, MCP refresh behavior, redaction,
+  credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config handler registration boundary
 
 - Finding: after the disk helper rename, Electron main still registered

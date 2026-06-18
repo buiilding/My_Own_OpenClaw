@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: promote desktop UI config dependency names in IPC startup hydration so
+  startup cache hydration and MCP refresh callbacks no longer use
+  frontend-named slots; no migration is required because persisted config,
+  IPC channels, shortcut fallback, and MCP refresh behavior are unchanged.
 - main: promote desktop UI config IPC handler registration as the canonical
   Electron-main API while keeping the legacy frontend-named registration export
   as an alias; no migration is required because `load-frontend-config` /

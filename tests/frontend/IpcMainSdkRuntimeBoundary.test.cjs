@@ -68,7 +68,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(wakeCall).toContain('getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() })');
     expect(wakeCall).toContain('localToolLifecycle');
     expect(wakeCall).not.toContain('conversationRef:');
-    expect(source).toContain('onFrontendConfigLoaded: refreshEnabledMcpServersAfterStartup');
+    expect(source).toContain('onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup');
     expect(source).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(source).toContain('[Main][SDK] client_initialized');
     expect(source).toContain('[Main][SDK] creating_client backend=');

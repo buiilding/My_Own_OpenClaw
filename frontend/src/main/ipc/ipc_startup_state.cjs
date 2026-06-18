@@ -5,40 +5,48 @@
 function initializeIpcStartupState({
   loadInstallAuthStateFromDisk,
   applyInstallAuthState,
+  loadCachedDesktopUiConfigFromDisk,
   loadCachedFrontendConfigFromDisk,
   isValidConfigPayload,
   applyShortcutStatusFallbackToConfig,
+  setLatestDesktopUiConfig,
   setLatestFrontendConfig,
   setGlobalAgentStopShortcutAccelerator,
   setAgentLoopStopShortcutEnabled,
   getResponseOverlayPhase,
   isAgentLoopStopShortcutPhase,
+  onDesktopUiConfigLoaded,
   onFrontendConfigLoaded,
   log,
 }) {
+  const loadCachedConfigFromDisk = loadCachedDesktopUiConfigFromDisk
+    || loadCachedFrontendConfigFromDisk;
+  const setLatestConfig = setLatestDesktopUiConfig || setLatestFrontendConfig;
+  const onConfigLoaded = onDesktopUiConfigLoaded || onFrontendConfigLoaded;
+
   loadInstallAuthStateFromDisk(log)
     .then((state) => {
       applyInstallAuthState(state);
     })
     .catch(() => {});
 
-  loadCachedFrontendConfigFromDisk()
+  loadCachedConfigFromDisk()
     .then((config) => {
       if (!isValidConfigPayload(config)) {
         return;
       }
       const nextConfig = applyShortcutStatusFallbackToConfig({ ...config });
-      setLatestFrontendConfig(nextConfig);
+      setLatestConfig(nextConfig);
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
         setGlobalAgentStopShortcutAccelerator(nextConfig.global_agent_stop_shortcut);
       }
-      if (typeof onFrontendConfigLoaded === 'function') {
-        onFrontendConfigLoaded(nextConfig);
+      if (typeof onConfigLoaded === 'function') {
+        onConfigLoaded(nextConfig);
       }
     })
     .catch((error) => {
       if (typeof log === 'function') {
-        log(`Failed to hydrate cached frontend config during startup: ${error?.message || error}`);
+        log(`Failed to hydrate cached desktop UI config during startup: ${error?.message || error}`);
       }
     });
 

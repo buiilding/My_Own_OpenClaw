@@ -1,5 +1,5 @@
 /**
- * Covers ipc startup state. behavior in the frontend test suite.
+ * Covers IPC startup state behavior in the frontend test suite.
  */
 
 const {
@@ -18,7 +18,7 @@ function createDeps(overrides = {}) {
       userId: 'user-1',
     })),
     applyInstallAuthState: jest.fn(),
-    loadCachedFrontendConfigFromDisk: jest.fn(async () => ({
+    loadCachedDesktopUiConfigFromDisk: jest.fn(async () => ({
       speech_mode_enabled: true,
       global_agent_stop_shortcut: 'CommandOrControl+.',
     })),
@@ -27,18 +27,18 @@ function createDeps(overrides = {}) {
       ...config,
       shortcutFallbackApplied: true,
     })),
-    setLatestFrontendConfig: jest.fn(),
+    setLatestDesktopUiConfig: jest.fn(),
     setGlobalAgentStopShortcutAccelerator: jest.fn(),
     setAgentLoopStopShortcutEnabled: jest.fn(),
     getResponseOverlayPhase: jest.fn(() => 'active-loop'),
     isAgentLoopStopShortcutPhase: jest.fn((phase) => phase === 'active-loop'),
-    onFrontendConfigLoaded: jest.fn(),
+    onDesktopUiConfigLoaded: jest.fn(),
     ...overrides,
   };
 }
 
 describe('ipc_startup_state', () => {
-  test('hydrates install auth and cached frontend config', async () => {
+  test('hydrates install auth and cached desktop UI config', async () => {
     const deps = createDeps();
 
     initializeIpcStartupState(deps);
@@ -53,13 +53,13 @@ describe('ipc_startup_state', () => {
       speech_mode_enabled: true,
       global_agent_stop_shortcut: 'CommandOrControl+.',
     });
-    expect(deps.setLatestFrontendConfig).toHaveBeenCalledWith({
+    expect(deps.setLatestDesktopUiConfig).toHaveBeenCalledWith({
       speech_mode_enabled: true,
       global_agent_stop_shortcut: 'CommandOrControl+.',
       shortcutFallbackApplied: true,
     });
     expect(deps.setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+.');
-    expect(deps.onFrontendConfigLoaded).toHaveBeenCalledWith({
+    expect(deps.onDesktopUiConfigLoaded).toHaveBeenCalledWith({
       speech_mode_enabled: true,
       global_agent_stop_shortcut: 'CommandOrControl+.',
       shortcutFallbackApplied: true,
@@ -68,7 +68,7 @@ describe('ipc_startup_state', () => {
 
   test('notifies startup consumers with persisted MCP enablement', async () => {
     const deps = createDeps({
-      loadCachedFrontendConfigFromDisk: jest.fn(async () => ({
+      loadCachedDesktopUiConfigFromDisk: jest.fn(async () => ({
         agent_enabled_mcp_servers: ['mcp:cua-driver'],
       })),
     });
@@ -76,7 +76,7 @@ describe('ipc_startup_state', () => {
     initializeIpcStartupState(deps);
     await flushPromises();
 
-    expect(deps.onFrontendConfigLoaded).toHaveBeenCalledWith({
+    expect(deps.onDesktopUiConfigLoaded).toHaveBeenCalledWith({
       agent_enabled_mcp_servers: ['mcp:cua-driver'],
       shortcutFallbackApplied: true,
     });
@@ -90,7 +90,7 @@ describe('ipc_startup_state', () => {
     expect(deps.setAgentLoopStopShortcutEnabled).toHaveBeenCalledWith(true);
   });
 
-  test('ignores invalid cached frontend config', async () => {
+  test('ignores invalid cached desktop UI config', async () => {
     const deps = createDeps({
       isValidConfigPayload: jest.fn(() => false),
     });
@@ -98,9 +98,9 @@ describe('ipc_startup_state', () => {
     initializeIpcStartupState(deps);
     await flushPromises();
 
-    expect(deps.setLatestFrontendConfig).not.toHaveBeenCalled();
+    expect(deps.setLatestDesktopUiConfig).not.toHaveBeenCalled();
     expect(deps.setGlobalAgentStopShortcutAccelerator).not.toHaveBeenCalled();
-    expect(deps.onFrontendConfigLoaded).not.toHaveBeenCalled();
+    expect(deps.onDesktopUiConfigLoaded).not.toHaveBeenCalled();
   });
 
   test('startup hydration failures are fail-open', async () => {
@@ -108,7 +108,7 @@ describe('ipc_startup_state', () => {
       loadInstallAuthStateFromDisk: jest.fn(async () => {
         throw new Error('auth read failed');
       }),
-      loadCachedFrontendConfigFromDisk: jest.fn(async () => {
+      loadCachedDesktopUiConfigFromDisk: jest.fn(async () => {
         throw new Error('config read failed');
       }),
     });
@@ -117,6 +117,6 @@ describe('ipc_startup_state', () => {
     await expect(flushPromises()).resolves.toBeUndefined();
 
     expect(deps.applyInstallAuthState).not.toHaveBeenCalled();
-    expect(deps.setLatestFrontendConfig).not.toHaveBeenCalled();
+    expect(deps.setLatestDesktopUiConfig).not.toHaveBeenCalled();
   });
 });
