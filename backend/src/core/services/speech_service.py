@@ -25,4 +25,4 @@ class SpeechService(Protocol):
         """Wait for the backend to finish generating audio."""
 
     async def stream_audio(self) -> AsyncGenerator[Dict[str, Any], None]:
-        """Yield normalized audio payloads for frontend playback."""
+        """Yield normalized audio payloads for client playback."""

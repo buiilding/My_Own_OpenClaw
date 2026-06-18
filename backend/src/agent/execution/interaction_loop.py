@@ -484,8 +484,8 @@ class InteractionLoop:
                 # execute() failed or client disconnected. This prevents tool state
                 # (request_ids, pending results, resolved calls) from leaking in session.
                 # Process tool results for history storage (for LLM context)
-                # Note: Frontend displays tool results immediately after execution.
-                # Backend only processes results for conversation history, not for display.
+                # Note: SDK/UI projections display tool results immediately after execution.
+                # Backend only processes results for conversation history, not for UI display.
                 # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
                 # which are already yielded by ToolSender during tool preparation/sending.
                 # BUNDLE EXECUTION FIX: For bundles, process_results() was already called above,

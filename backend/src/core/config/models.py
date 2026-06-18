@@ -125,14 +125,14 @@ class LLMProviders(BaseModel):
 
 
 class ProviderApiKeyOverride(BaseModel):
-    """Frontend-managed API key override for a single online provider."""
+    """Client-managed API key override for a single online provider."""
 
     enabled: bool = False
     api_key: str = ""
 
 
 class ProviderApiKeys(BaseModel):
-    """Frontend-managed API key overrides by provider."""
+    """Client-managed API key overrides by provider."""
 
     openai: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
     anthropic: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)

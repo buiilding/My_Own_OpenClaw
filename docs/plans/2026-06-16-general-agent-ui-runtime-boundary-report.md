@@ -669,6 +669,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   browser tool schemas, CDP/profile behavior, environment variables,
   permissions, storage, and SDK local-runtime execution are unchanged.
 
+### 2026-06-18 Backend Comment Client/Local-Runtime Wording Slice
+
+- Finding: focused source scans still found frontend-owned wording in backend
+  comments/docstrings for SDK tool screenshot capture, audio playback, session
+  active-window metadata, provider API-key overrides, and tool-result display;
+  the sidecar browser registry test also used product browser wording for
+  import failures.
+- Decision: keep these files behaviorally unchanged and update only source
+  comments/docstrings so backend policy/runtime code describes client, UI
+  projection, and local-runtime ownership accurately.
+- Change: reworded the SDK tool template capability comment, speech-service
+  stream docstring, context factory session metadata comment, provider API-key
+  model docstrings, interaction-loop tool-result display comment, and browser
+  registry import-failure comment.
+- Validation: targeted stale wording scan, Python compile checks for touched
+  backend/sidecar Python files, docs listing, and `git diff --check` passed.
+- Compatibility: no migration required. Provider config models, speech
+  payloads, ToolContext metadata, tool-result history processing, sidecar
+  browser imports, permissions, credentials, and storage are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

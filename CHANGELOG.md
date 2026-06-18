@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sidecar comments: reword source comments and docstrings around SDK
+  tool templates, audio playback, session metadata, provider API-key overrides,
+  tool-result display, and browser registry imports to client/UI/local-runtime
+  ownership terminology.
 - docs/sidecar/sdk: reword dedicated-browser examples, workflow guidance,
   runtime dependency comments, and sidecar browser tool test docstrings away
   from product-specific browser naming in generic local-runtime surfaces.

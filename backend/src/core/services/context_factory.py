@@ -149,7 +149,7 @@ class ContextFactory:
         # Create context
         workspace = workspace_root or os.getcwd()
 
-        # Metadata from session (includes active window provided by frontend)
+        # Metadata from session (includes active window provided by the client)
         session_metadata = {}
         if effective_session_ref and hasattr(effective_session_ref, "metadata"):
             session_metadata.update(effective_session_ref.metadata)

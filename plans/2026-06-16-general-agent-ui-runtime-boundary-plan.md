@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend comment client/local-runtime wording boundary
+
+- Finding: backend source comments and docstrings still described SDK tool
+  screenshot capture, audio playback, session metadata, provider API-key
+  overrides, and tool-result display as frontend-owned, while a sidecar browser
+  registry comment still used product browser wording.
+- Change: reworded those comments/docstrings to client, UI projection, and
+  local-runtime ownership terms without changing executable code.
+- Validation: targeted stale wording scan, Python compile checks for the
+  touched backend/sidecar Python files, docs listing, and diff check.
+- Compatibility: no migration required. This is comments/docstrings only;
+  provider config models, speech payloads, ToolContext metadata, tool-result
+  history processing, sidecar browser imports, permissions, credentials, and
+  storage are unchanged.
+
 ### 2026-06-18 dedicated browser local-runtime wording boundary
 
 - Finding: SDK local-tool examples, sidecar workflow docs, dependency comments,

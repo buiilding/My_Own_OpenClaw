@@ -56,7 +56,7 @@ def _is_missing_playwright_import(error: ImportError) -> bool:
 
 
 # Skip all tests only if the optional Playwright dependency itself is unavailable.
-# Import failures from WindieOS browser modules should fail collection.
+# Import failures from dedicated browser modules should fail collection.
 try:
     from tools.browser.browser_tool import execute_browser
 
