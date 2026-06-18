@@ -56,7 +56,6 @@ Optional env inputs:
 - runs API key resolution (first non-empty):
   - `WINDIE_VM_RUNS_API_KEY`
   - `WINDIE_RUNS_API_KEY`
-  - `WINDIE_DEMO_API_KEY`
 
 If key resolves, worker includes `x-windie-runs-key` on all `/api/runs/*` HTTP calls.
 

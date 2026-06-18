@@ -96,7 +96,7 @@ Worker behavior:
 - dispatches assigned run queries via `sendAutomatedQuery(...)`
 - relays backend stream events back to run-event API (`worker-stream` source)
 - applies queued stop controls by sending backend stop messages
-- supports API key headers (`WINDIE_VM_RUNS_API_KEY`, fallback `WINDIE_RUNS_API_KEY` / `WINDIE_DEMO_API_KEY`)
+- supports API key headers (`WINDIE_VM_RUNS_API_KEY`, fallback `WINDIE_RUNS_API_KEY`)
 
 ## Renderer Send and Stream Runtime
 

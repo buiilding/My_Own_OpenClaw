@@ -46,9 +46,8 @@ Config source:
 `resolve_runs_api_key()` precedence:
 
 1. `WINDIE_RUNS_API_KEY`
-2. `WINDIE_DEMO_API_KEY`
 
-Both are normalized through `normalize_optional_string(...)` (trim + empty->`None`).
+The value is normalized through `normalize_optional_string(...)` (trim + empty->`None`).
 
 `verify_runs_api_key(...)` dependency behavior:
 

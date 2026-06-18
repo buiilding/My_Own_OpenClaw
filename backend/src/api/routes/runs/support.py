@@ -48,9 +48,7 @@ def normalize_optional_string(value: Optional[str]) -> Optional[str]:
 
 
 def resolve_runs_api_key() -> Optional[str]:
-    return normalize_optional_string(
-        os.getenv("WINDIE_RUNS_API_KEY") or os.getenv("WINDIE_DEMO_API_KEY")
-    )
+    return normalize_optional_string(os.getenv("WINDIE_RUNS_API_KEY"))
 
 
 def resolve_runs_control_api_key() -> Optional[str]:

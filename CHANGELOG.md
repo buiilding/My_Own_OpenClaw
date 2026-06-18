@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/runs: remove the `WINDIE_DEMO_API_KEY` fallback from runs API
+  auth and VM worker headers so run control uses `WINDIE_RUNS_API_KEY` plus
+  optional `WINDIE_VM_RUNS_API_KEY`; deployments using only the removed demo
+  key must set the runs key explicitly.
+
 - docs/runtime-boundary: clarify local-only deployment and sidecar packaging
   topology around SDK local runtime and explicit backend provisioning; no
   migration is required because packaging and runtime behavior are unchanged.

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 runs API demo key fallback removal
+
+- Finding: runs-route auth and VM worker startup still accepted
+  `WINDIE_DEMO_API_KEY` as a secondary shared secret, keeping a demo-era
+  compatibility credential in the hosted run-control boundary.
+- Change: removed the backend runs auth fallback, removed the VM worker header
+  fallback, updated route/worker tests, and swept docs so backend runs auth
+  uses `WINDIE_RUNS_API_KEY` with optional worker override
+  `WINDIE_VM_RUNS_API_KEY`.
+- Validation: py_compile for runs support, focused VM worker Jest coverage,
+  docs listing, stale `WINDIE_DEMO_API_KEY` scan, and `git diff --check`.
+  Backend route pytest was attempted directly and through `bin/windie`, but
+  could not collect because the `jarvis` conda env was unavailable and the
+  fallback Python lacks `fastapi`/`litellm`.
+- Compatibility: persisted data and API payload schemas do not change.
+  Runtime configuration changes for deployments that still set only the
+  removed demo key; set `WINDIE_RUNS_API_KEY` instead.
+
 ### 2026-06-18 local deployment topology wording cleanup
 
 - Finding: deployment and Python sidecar packaging docs still used local

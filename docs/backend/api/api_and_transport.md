@@ -75,7 +75,7 @@ Implementation:
 Runtime notes:
 
 - required auth header: `x-windie-runs-key`
-- expected key resolved from `WINDIE_RUNS_API_KEY` or `WINDIE_DEMO_API_KEY`
+- expected key resolved from `WINDIE_RUNS_API_KEY`
 - missing backend runs key returns HTTP `503`
 - service instance is app-state scoped (`request.app.state.vm_run_control_service`) and lazily initialized
 

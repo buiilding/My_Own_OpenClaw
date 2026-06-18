@@ -859,8 +859,7 @@ Every runs endpoint requires a configured backend key and matching request heade
 x-windie-runs-key: <shared-key>
 ```
 
-If neither `WINDIE_RUNS_API_KEY` nor `WINDIE_DEMO_API_KEY` is configured, the
-runs API returns HTTP `503`.
+If `WINDIE_RUNS_API_KEY` is not configured, the runs API returns HTTP `503`.
 
 ### POST `/api/runs/`
 

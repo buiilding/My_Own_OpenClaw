@@ -122,7 +122,7 @@ This path is gated by provider/model reasoning preference resolution (`resolve_p
 
 Support/runtime contracts:
 
-- API key enforcement: `x-windie-runs-key` must match `WINDIE_RUNS_API_KEY` or `WINDIE_DEMO_API_KEY`; routes fail closed with `503` when neither key is configured
+- API key enforcement: `x-windie-runs-key` must match `WINDIE_RUNS_API_KEY`; routes fail closed with `503` when the key is not configured
 - service instance is app-state scoped (`request.app.state.vm_run_control_service`)
 - active run limit per workspace is env-configurable (`WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE`, default `1`)
 

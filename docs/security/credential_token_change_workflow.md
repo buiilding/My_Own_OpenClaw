@@ -53,7 +53,7 @@ Important places:
 
 ### Runs API key
 
-Runs auth is a shared control-plane key, not install identity. The backend resolves the expected key from `WINDIE_RUNS_API_KEY` or `WINDIE_DEMO_API_KEY`. VM workers resolve their outgoing header from `WINDIE_VM_RUNS_API_KEY`, `WINDIE_RUNS_API_KEY`, or `WINDIE_DEMO_API_KEY`.
+Runs auth is a shared control-plane key, not install identity. The backend resolves the expected key from `WINDIE_RUNS_API_KEY`. VM workers resolve their outgoing header from `WINDIE_VM_RUNS_API_KEY` or `WINDIE_RUNS_API_KEY`.
 
 The header is:
 

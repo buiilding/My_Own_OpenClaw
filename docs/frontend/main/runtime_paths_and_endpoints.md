@@ -86,7 +86,6 @@ Optional runs auth header:
 - if any are set, first non-empty value is used for `x-windie-runs-key`:
   - `WINDIE_VM_RUNS_API_KEY`
   - `WINDIE_RUNS_API_KEY`
-  - `WINDIE_DEMO_API_KEY`
 
 ## Python Runtime and Script Resolution
 

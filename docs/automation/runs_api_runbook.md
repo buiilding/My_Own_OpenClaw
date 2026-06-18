@@ -27,16 +27,14 @@ x-windie-runs-key: <shared-key>
 Backend accepted env vars:
 
 - `WINDIE_RUNS_API_KEY`
-- `WINDIE_DEMO_API_KEY`
 
 Worker env lookup order:
 
 1. `WINDIE_VM_RUNS_API_KEY`
 2. `WINDIE_RUNS_API_KEY`
-3. `WINDIE_DEMO_API_KEY`
 
 If the backend has no runs key configured, `/api/runs/*` fails closed with
-`503`. Configure one of the backend env vars before enabling VM run control.
+`503`. Configure the backend env var before enabling VM run control.
 
 ## Endpoint Matrix
 

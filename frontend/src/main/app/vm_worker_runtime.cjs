@@ -112,7 +112,7 @@ function createVmWorkerRuntime(options = {}) {
   const configuredAgentId = normalizeOptionalString(env.WINDIE_VM_AGENT_ID);
   const heartbeatMs = parseHeartbeatMs(env.WINDIE_VM_WORKER_HEARTBEAT_MS);
   const runsApiKey = normalizeOptionalString(
-    env.WINDIE_VM_RUNS_API_KEY || env.WINDIE_RUNS_API_KEY || env.WINDIE_DEMO_API_KEY,
+    env.WINDIE_VM_RUNS_API_KEY || env.WINDIE_RUNS_API_KEY,
   );
   const runsApiHeaders = runsApiKey
     ? { 'x-windie-runs-key': runsApiKey }

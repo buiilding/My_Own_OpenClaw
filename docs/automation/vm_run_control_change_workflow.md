@@ -123,7 +123,7 @@ Electron heartbeat invariants:
 - worker id defaults to `worker-{backend-user-id}`.
 - VM id defaults to `vm-{worker_id}`.
 - heartbeat status is `running` while there are active run/conversation mappings, otherwise `ready`.
-- runs key lookup order is `WINDIE_VM_RUNS_API_KEY`, then `WINDIE_RUNS_API_KEY`, then `WINDIE_DEMO_API_KEY`.
+- runs key lookup order is `WINDIE_VM_RUNS_API_KEY`, then `WINDIE_RUNS_API_KEY`.
 
 If a run is created but never assigned, inspect in this order:
 
@@ -250,14 +250,14 @@ Runs API auth lives beside the runs routes, not in desktop chat settings.
 Backend:
 
 - route dependency: `backend/src/api/routes/runs/support.py`
-- accepted env vars: `WINDIE_RUNS_API_KEY`, `WINDIE_DEMO_API_KEY`
+- accepted env var: `WINDIE_RUNS_API_KEY`
 - header: `x-windie-runs-key`
 - when no backend key is configured, routes fail closed with HTTP `503`
 
 Electron worker:
 
 - code root: `frontend/src/main/app/vm_worker_runtime.cjs`
-- key lookup order: `WINDIE_VM_RUNS_API_KEY`, `WINDIE_RUNS_API_KEY`, `WINDIE_DEMO_API_KEY`
+- key lookup order: `WINDIE_VM_RUNS_API_KEY`, `WINDIE_RUNS_API_KEY`
 - sends `x-windie-runs-key` when a key is available
 
 Config docs to update when keys or VM worker env vars change:

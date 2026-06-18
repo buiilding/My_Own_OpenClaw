@@ -394,15 +394,14 @@ async def test_stop_all_runs_sets_matching_active_runs_to_stopped() -> None:
     assert run_other_state.status == "awaiting_worker"
 
 
-def test_verify_runs_api_key_respects_demo_key_env(
+def test_verify_runs_api_key_respects_runs_key_env(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("WINDIE_DEMO_API_KEY", "demo-key")
-    verify_runs_api_key("demo-key")
+    monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-key")
+    verify_runs_api_key("runs-key")
     with pytest.raises(HTTPException) as exc_info:
         verify_runs_api_key("wrong-key")
     assert exc_info.value.status_code == 401
-    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     monkeypatch.delenv("WINDIE_RUNS_API_KEY", raising=False)
     with pytest.raises(HTTPException) as missing_config:
         verify_runs_api_key(None)
@@ -413,7 +412,6 @@ def test_runs_routes_fail_closed_when_key_is_not_configured(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("WINDIE_RUNS_API_KEY", raising=False)
-    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     client = create_runs_test_client()
 
     create_response = client.post(
@@ -432,7 +430,6 @@ def test_runs_routes_require_matching_key_when_configured(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-secret")
-    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     client = create_runs_test_client()
 
     missing_response = client.post(
@@ -466,7 +463,6 @@ def test_get_run_route_network_contract(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-secret")
-    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     client = create_runs_test_client()
     headers = {"x-windie-runs-key": "runs-secret"}
 
@@ -518,7 +514,6 @@ def test_worker_dispatched_route_requires_key_and_acknowledges_run(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-secret")
-    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     client = create_runs_test_client()
     headers = {"x-windie-runs-key": "runs-secret"}
     created_response = client.post(
@@ -579,7 +574,6 @@ def test_stop_all_requires_distinct_control_key(
 
     monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-secret")
     monkeypatch.setenv("WINDIE_RUNS_CONTROL_API_KEY", "control-secret")
-    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     client = create_runs_test_client()
     service = _FakeRunsService()
     client.app.state.vm_run_control_service = service

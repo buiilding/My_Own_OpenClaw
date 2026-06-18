@@ -104,7 +104,7 @@ Behavior:
 Auth note:
 
 - runs routes require header `x-windie-runs-key`
-- when neither `WINDIE_RUNS_API_KEY` nor `WINDIE_DEMO_API_KEY` is set, runs routes fail closed with HTTP `503`
+- when `WINDIE_RUNS_API_KEY` is not set, runs routes fail closed with HTTP `503`
 
 Failure behavior:
 
