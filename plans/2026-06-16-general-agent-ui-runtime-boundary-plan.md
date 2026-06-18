@@ -7988,3 +7988,23 @@ Each completed slice should report:
 - Compatibility: no migration required. The `renderer-log` IPC payload shape,
   message text redaction defaults, diagnostic toggles, capture-phase
   click/change listener, and send-message breadcrumb fields are unchanged.
+
+### 2026-06-18 renderer screenshot artifact presentation facade
+
+- Finding: chat screenshot presentation, replay, stream event helpers, and data
+  URL image parsing still imported `screenshotMessageState.js` and
+  `ArtifactImageUtils.ts` directly even though artifact URL and image IPC
+  commands already route through `DesktopArtifactRuntimeClient`.
+- Change: expanded `DesktopArtifactRuntimeClient` to expose screenshot
+  attachment normalization, artifact ref inference, replay screenshot
+  normalization, and artifact image content-type/extension helpers. Feature
+  callers now use that app runtime client, and `screenshotMessageState.js`
+  accepts an injected artifact URL builder so feature-facing URL derivation uses
+  the app runtime endpoint facade.
+- Validation: focused screenshot, replay, data URL, stream event, and renderer
+  chat boundary Jest coverage, direct chat feature service-import scans, docs
+  listing, and `git diff --check`.
+- Compatibility: no migration required. The `screenshotRef`/`screenshotUrl`/
+  `screenshot_refs` message shape, artifact URL shape, inline screenshot
+  parsing, replay preservation, and artifact image fetch IPC behavior are
+  unchanged.

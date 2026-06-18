@@ -11,6 +11,7 @@ title: "Screenshot Message State and SDK Projection Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
+- `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 - `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
 - `frontend/src/renderer/features/chat/utils/message/messageScreenshots.js`
@@ -46,9 +47,15 @@ URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
 1. parses inline screenshot data
 2. rejects `artifact://`, `http://`, and `https://` values as inline payloads
 3. builds remote state from explicit `screenshotRef` or artifact URL-derived ref
-4. derives `screenshotUrl` from `buildRuntimeArtifactUrl(ref)` when a ref exists
-   and no URL was provided
+4. derives `screenshotUrl` from the supplied artifact URL builder when a ref
+   exists and no URL was provided
 5. optionally drops inline screenshot bytes when remote metadata exists
+
+`screenshotMessageState.js` keeps the low-level normalization rules and defaults
+to the runtime endpoint store for owner-level infrastructure tests. Renderer
+feature code should call the screenshot helpers through
+`DesktopArtifactRuntimeClient`, which injects the app runtime artifact URL
+builder and keeps endpoint-derived URLs behind the renderer runtime boundary.
 
 `buildMessageScreenshotState(...)` uses
 `preserveInlineScreenshotWithRemote: false`, so renderer chat rows prefer the
@@ -84,8 +91,8 @@ If a replayed or resumed image is missing:
 
 1. inspect the SDK display row raw metadata for `screenshotRef`,
    `screenshotUrl`, or `screenshot_refs`
-2. verify `RuntimeEndpointStore` has the active runtime HTTP URL before deriving
-   artifact URLs
+2. verify `DesktopArtifactRuntimeClient` has the active runtime HTTP URL before
+   deriving artifact URLs
 3. confirm `screenshot` is actual inline image data, not an artifact id
 4. check `useResolvedMessageScreenshots.js` fetch/cache behavior for remote
    artifact URLs

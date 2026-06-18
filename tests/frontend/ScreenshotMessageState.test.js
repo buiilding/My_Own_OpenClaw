@@ -40,6 +40,16 @@ describe('screenshotMessageState', () => {
     ]);
   });
 
+  test('buildRemoteScreenshotAttachment accepts an injected artifact url builder', () => {
+    const artifactUrlBuilder = jest.fn((artifactId) => `http://runtime.test/artifacts/${artifactId}`);
+
+    expect(buildRemoteScreenshotAttachment('artifact-3', null, { artifactUrlBuilder })).toEqual({
+      screenshotRef: 'artifact-3',
+      screenshotUrl: 'http://runtime.test/artifacts/artifact-3',
+    });
+    expect(artifactUrlBuilder).toHaveBeenCalledWith('artifact-3');
+  });
+
   test('resolveScreenshotAttachmentState can preserve inline screenshots alongside remote refs', () => {
     expect(resolveScreenshotAttachmentState({
       screenshot: 'data:image/png;base64,inline-shot',

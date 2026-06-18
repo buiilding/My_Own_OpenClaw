@@ -10,11 +10,31 @@ import {
 } from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
 import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => ({
-  DesktopArtifactRuntimeClient: {
-    buildArtifactUrl: jest.fn((artifactId) => `http://runtime.test/api/artifacts/${artifactId}`),
-  },
-}));
+jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => {
+  const imageUtils = jest.requireActual(
+    '../../frontend/src/renderer/infrastructure/services/ArtifactImageUtils',
+  );
+  const screenshotState = jest.requireActual(
+    '../../frontend/src/renderer/infrastructure/services/screenshotMessageState',
+  );
+  const buildArtifactUrl = jest.fn((artifactId) => `http://runtime.test/api/artifacts/${artifactId}`);
+  const withArtifactUrlBuilder = (input = {}) => ({
+    ...input,
+    artifactUrlBuilder: buildArtifactUrl,
+  });
+
+  return {
+    DesktopArtifactRuntimeClient: {
+      buildArtifactUrl,
+      normalizeArtifactImageContentType: imageUtils.normalizeArtifactImageContentType,
+      resolveArtifactImageExtension: imageUtils.resolveArtifactImageExtension,
+      inferArtifactRefFromUrl: screenshotState.inferArtifactRefFromUrl,
+      resolveScreenshotAttachmentState: (input) => (
+        screenshotState.resolveScreenshotAttachmentState(withArtifactUrlBuilder(input))
+      ),
+    },
+  };
+});
 
 describe('messageScreenshots', () => {
   beforeEach(() => {

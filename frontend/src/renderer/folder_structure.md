@@ -19,6 +19,7 @@ frontend/src/renderer/
 │   ├── main.jsx                         # React entry point - routes App/minimal overlays by ?view=
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
+│   │   ├── desktopArtifactRuntimeClient.ts # Renderer artifact URL, image fetch, screenshot attachment, and content-type facade
 │   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
 │   │   ├── desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
 │   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers

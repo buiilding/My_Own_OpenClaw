@@ -2,10 +2,7 @@
  * Provides the data url image utils module for the renderer UI.
  */
 
-import {
-  normalizeArtifactImageContentType,
-  resolveArtifactImageExtension,
-} from '../../../infrastructure/services/ArtifactImageUtils';
+import { DesktopArtifactRuntimeClient } from '../../../app/runtime/desktopArtifactRuntimeClient';
 
 export function readFileAsDataUrl(
   file,
@@ -35,11 +32,13 @@ export function parseBase64ImageDataUrl(dataUrl, fallbackContentType = null) {
   if (!match) {
     return null;
   }
-  const contentType = normalizeArtifactImageContentType(match[1] || fallbackContentType);
+  const contentType = DesktopArtifactRuntimeClient.normalizeArtifactImageContentType(
+    match[1] || fallbackContentType,
+  );
   return {
     base64: match[2],
     contentType,
-    extension: resolveArtifactImageExtension(contentType),
+    extension: DesktopArtifactRuntimeClient.resolveArtifactImageExtension(contentType),
     previewUrl: dataUrl,
   };
 }

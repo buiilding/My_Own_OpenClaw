@@ -2,9 +2,7 @@
  * Provides the chat stream event utils module for the renderer UI.
  */
 
-import {
-  buildRemoteScreenshotAttachment,
-} from '../../../../infrastructure/services/screenshotMessageState';
+import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
@@ -36,7 +34,7 @@ export function buildScreenshotAttachment(
   screenshotRef: string | null | undefined,
   screenshotUrl?: string | null,
 ) {
-  return buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
+  return DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
 }
 
 export function resolveErrorText(payload: ErrorPayload | null | undefined): string {

@@ -124,6 +124,10 @@ Rules:
   directly.
 - Renderer feature code should use `DesktopArtifactRuntimeClient.buildArtifactUrl(...)`
   instead of importing the endpoint store directly.
+- Renderer feature code should use `DesktopArtifactRuntimeClient` for
+  screenshot attachment normalization, artifact ref inference, and artifact
+  image content-type or extension parsing instead of importing renderer service
+  helpers directly.
 - Do not import artifact upload IPC code during app startup only to build display URLs.
 
 ## Backend Artifact Route and Store Changes

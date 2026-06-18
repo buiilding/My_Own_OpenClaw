@@ -5,11 +5,9 @@
 import { useCallback } from 'react';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useChatStore } from '../stores/chatStore';
-import {
-  resolveReplayScreenshotState,
-} from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigRuntimeSync';
+import { DesktopArtifactRuntimeClient } from '../../../app/runtime/desktopArtifactRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
@@ -240,7 +238,7 @@ export function useConversationReplayActions({
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const replayConversation = [...replayContextMessages, editUserMessage];
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-    const replayScreenshot = resolveReplayScreenshotState({
+    const replayScreenshot = DesktopArtifactRuntimeClient.resolveReplayScreenshotState({
       screenshotRef: editUserMessage.screenshotRef || null,
       screenshotUrl: editUserMessage.screenshotUrl || null,
       screenshotContentType: editUserMessage.screenshotContentType || null,
@@ -297,7 +295,7 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex + 1);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-    const replayScreenshot = resolveReplayScreenshotState({
+    const replayScreenshot = DesktopArtifactRuntimeClient.resolveReplayScreenshotState({
       screenshotRef: retryUserMessage.screenshotRef || null,
       screenshotUrl: retryUserMessage.screenshotUrl || null,
       screenshotContentType: retryUserMessage.screenshotContentType || null,

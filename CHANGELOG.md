@@ -50,6 +50,10 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: route chat screenshot artifact URL presentation through the
   desktop artifact runtime client instead of importing the runtime endpoint
   store from chat feature code.
+- renderer/runtime: route chat screenshot attachment normalization, artifact ref
+  inference, and artifact image content-type parsing through the desktop
+  artifact runtime client instead of importing renderer service helpers from
+  chat feature code.
 - renderer/runtime: route VM-mode startup checks in app/chat surfaces through a
   renderer app startup runtime client instead of importing the URL parser
   helper directly.

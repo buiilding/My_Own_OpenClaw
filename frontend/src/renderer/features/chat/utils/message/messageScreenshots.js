@@ -2,12 +2,7 @@
  * Provides the message screenshots module for the renderer UI.
  */
 
-import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
 import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
-import {
-  inferArtifactRefFromUrl,
-  resolveScreenshotAttachmentState,
-} from '../../../../infrastructure/services/screenshotMessageState';
 import { normalizeNonEmptyString } from '../../../../utils/normalizeNonEmptyString';
 
 function resolveAttachmentSrc(attachment) {
@@ -21,7 +16,9 @@ function resolveAttachmentSrc(attachment) {
     return DesktopArtifactRuntimeClient.buildArtifactUrl(attachment.screenshotRef);
   }
   if (attachment.screenshot) {
-    const contentType = normalizeArtifactImageContentType(attachment.screenshotContentType);
+    const contentType = DesktopArtifactRuntimeClient.normalizeArtifactImageContentType(
+      attachment.screenshotContentType,
+    );
     return `data:${contentType};base64,${attachment.screenshot}`;
   }
   return null;
@@ -35,7 +32,7 @@ export function resolveStaticScreenshotAttachmentSrc(attachment) {
     return resolveAttachmentSrc(attachment);
   }
   const normalizedUrl = normalizeNonEmptyString(attachment.screenshotUrl);
-  if (normalizedUrl && !inferArtifactRefFromUrl(normalizedUrl)) {
+  if (normalizedUrl && !DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(normalizedUrl)) {
     return normalizedUrl;
   }
   return null;
@@ -44,7 +41,7 @@ export function resolveStaticScreenshotAttachmentSrc(attachment) {
 export function resolveMessageScreenshotAttachments(message) {
   if (Array.isArray(message?.screenshots) && message.screenshots.length > 0) {
     return message.screenshots
-      .map((attachment) => resolveScreenshotAttachmentState({
+      .map((attachment) => DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState({
         screenshot: attachment?.screenshot ?? null,
         screenshotRef: attachment?.screenshotRef ?? null,
         screenshotUrl: attachment?.screenshotUrl ?? null,
@@ -58,7 +55,7 @@ export function resolveMessageScreenshotAttachments(message) {
       ));
   }
 
-  const fallbackAttachment = resolveScreenshotAttachmentState({
+  const fallbackAttachment = DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState({
     screenshot: message?.screenshot ?? null,
     screenshotRef: message?.screenshotRef ?? null,
     screenshotUrl: message?.screenshotUrl ?? null,

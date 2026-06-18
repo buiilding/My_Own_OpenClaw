@@ -4,7 +4,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
-import { inferArtifactRefFromUrl } from '../../../../infrastructure/services/screenshotMessageState';
 import {
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
@@ -19,7 +18,7 @@ function buildArtifactCacheKey(attachment) {
   if (typeof attachment.screenshotRef === 'string' && attachment.screenshotRef.trim()) {
     return attachment.screenshotRef.trim();
   }
-  return inferArtifactRefFromUrl(attachment.screenshotUrl);
+  return DesktopArtifactRuntimeClient.inferArtifactRefFromUrl(attachment.screenshotUrl);
 }
 
 async function resolveArtifactAttachmentSrc(attachment) {

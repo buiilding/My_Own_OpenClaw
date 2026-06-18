@@ -353,6 +353,22 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'utils/message/messageScreenshots.js'),
       'utf8',
     );
+    const resolvedScreenshotSource = await fs.readFile(
+      path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
+      'utf8',
+    );
+    const replayActionsSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
+      'utf8',
+    );
+    const dataUrlImageSource = await fs.readFile(
+      path.join(chatRoot, 'utils/dataUrlImageUtils.js'),
+      'utf8',
+    );
+    const chatStreamEventSource = await fs.readFile(
+      path.join(chatRoot, 'utils/chatStream/chatStreamEventUtils.ts'),
+      'utf8',
+    );
     const artifactClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
       'utf8',
@@ -365,7 +381,25 @@ describe('renderer chat runtime boundary', () => {
     expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.buildArtifactUrl');
     expect(screenshotSource).not.toContain('RuntimeEndpointStore');
     expect(screenshotSource).not.toContain('buildRuntimeArtifactUrl');
+    for (const source of [
+      screenshotSource,
+      resolvedScreenshotSource,
+      replayActionsSource,
+      dataUrlImageSource,
+      chatStreamEventSource,
+    ]) {
+      expect(source).not.toContain('infrastructure/services/screenshotMessageState');
+      expect(source).not.toContain('infrastructure/services/ArtifactImageUtils');
+    }
+    expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState');
+    expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.normalizeArtifactImageContentType');
+    expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
+    expect(replayActionsSource).toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
+    expect(dataUrlImageSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
+    expect(chatStreamEventSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
     expect(artifactClientSource).toContain('DesktopRuntimeEndpointClient.buildArtifactUrl');
+    expect(artifactClientSource).toContain('resolveScreenshotAttachmentState');
+    expect(artifactClientSource).toContain('normalizeArtifactImageContentType');
     expect(endpointClientSource).toContain('buildRuntimeArtifactUrl');
   });
 

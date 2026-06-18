@@ -2,6 +2,17 @@
  * Coordinates desktop artifact image commands for renderer runtime clients.
  */
 
+import {
+  normalizeArtifactImageContentType,
+  resolveArtifactImageExtension,
+} from '../../infrastructure/services/ArtifactImageUtils';
+import {
+  buildRemoteScreenshotAttachment,
+  buildRemoteScreenshotAttachments,
+  inferArtifactRefFromUrl,
+  resolveReplayScreenshotState,
+  resolveScreenshotAttachmentState,
+} from '../../infrastructure/services/screenshotMessageState';
 import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 
@@ -19,9 +30,60 @@ export type ShowImageContextMenuRequest = {
   src: string;
 };
 
+function buildArtifactUrl(artifactId: string): string {
+  return DesktopRuntimeEndpointClient.buildArtifactUrl(artifactId);
+}
+
+function withArtifactUrlBuilder<TOptions extends Record<string, unknown> = Record<string, unknown>>(
+  options: TOptions | null | undefined = {},
+): TOptions & { artifactUrlBuilder: (artifactId: string) => string } {
+  return {
+    ...(options || {}),
+    artifactUrlBuilder: buildArtifactUrl,
+  } as TOptions & { artifactUrlBuilder: (artifactId: string) => string };
+}
+
 export const DesktopArtifactRuntimeClient = {
   buildArtifactUrl(artifactId: string): string {
-    return DesktopRuntimeEndpointClient.buildArtifactUrl(artifactId);
+    return buildArtifactUrl(artifactId);
+  },
+
+  normalizeArtifactImageContentType,
+
+  resolveArtifactImageExtension,
+
+  inferArtifactRefFromUrl,
+
+  buildRemoteScreenshotAttachment(
+    screenshotRef: string | null | undefined,
+    screenshotUrl?: string | null,
+    options: Record<string, unknown> = {},
+  ) {
+    return buildRemoteScreenshotAttachment(
+      screenshotRef,
+      screenshotUrl,
+      withArtifactUrlBuilder(options),
+    );
+  },
+
+  buildRemoteScreenshotAttachments(
+    screenshotRefs: unknown,
+    screenshotUrl?: string | null,
+    options: Record<string, unknown> = {},
+  ) {
+    return buildRemoteScreenshotAttachments(
+      screenshotRefs,
+      screenshotUrl,
+      withArtifactUrlBuilder(options),
+    );
+  },
+
+  resolveScreenshotAttachmentState(input: Record<string, unknown>) {
+    return resolveScreenshotAttachmentState(withArtifactUrlBuilder(input));
+  },
+
+  resolveReplayScreenshotState(input: Record<string, unknown>) {
+    return resolveReplayScreenshotState(withArtifactUrlBuilder(input));
   },
 
   fetchArtifactImage(request: FetchArtifactImageRequest): Promise<FetchArtifactImageResult> {
