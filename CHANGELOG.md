@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- backend/tools: replace `open_app` sidecar lifecycle wording with detached
+  desktop-process language across backend schemas, sidecar manifest, generated
+  built-in manifest, and tool docs; no migration is required because tool
+  names, arguments, execution behavior, event payloads, storage, and persisted
+  data are unchanged.
 - docs/frontend: rename the renderer skin facade architecture wording from
   active desktop-agent skin to active desktop-runtime skin and guard it in
   renderer boundary coverage; no migration is required because this is docs

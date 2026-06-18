@@ -84,8 +84,8 @@ class OpenAppArgs(BaseModel):
     command: str = Field(
         ...,
         description=(
-            "Executable or app command to launch detached from sidecar lifecycle. "
-            "Use this for opening GUI apps that should remain running even if agent/sidecar exits."
+            "Executable or app command to launch as a detached desktop process. "
+            "Use this for opening GUI apps that should remain running after the current agent turn ends."
         ),
     )
     args: Optional[list[str]] = Field(

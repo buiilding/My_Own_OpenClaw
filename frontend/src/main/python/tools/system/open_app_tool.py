@@ -24,7 +24,7 @@ _SCREENSHOT_VERIFY_DELAY_SECONDS = 0.75
 
 
 async def open_app(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Launch an app detached from sidecar lifecycle with optional verification."""
+    """Launch an app as a detached desktop process with optional verification."""
     command = args.get("command")
     if not isinstance(command, str) or not command.strip():
         return {"success": False, "error": "command is required"}

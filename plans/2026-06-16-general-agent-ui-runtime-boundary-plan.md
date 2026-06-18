@@ -119,6 +119,23 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 open-app detached process wording cleanup
+
+- Finding: `open_app` still exposed sidecar/agent lifecycle wording in the
+  backend remote stub, backend argument description, sidecar manifest, generated
+  built-in manifest, and system-tool docs even though the behavior is simply a
+  detached desktop process launch.
+- Change: replaced the stale lifecycle wording with detached desktop-process
+  language at the backend, sidecar, generated manifest, and docs surfaces while
+  leaving the executable contract unchanged.
+- Validation: generated the built-in tool manifest; ran sidecar manifest parity
+  pytest, backend system-tool catalog/schema/remote-contract pytest, docs check,
+  stale wording scan, and diff check. Backend client manifest pytest collection
+  is blocked in this shell because the `jarvis` conda env is unavailable and
+  the fallback Python lacks `fastapi`.
+- Compatibility: no migration required. Tool names, arguments, execution target,
+  runtime behavior, event payloads, storage, and persisted data are unchanged.
+
 
 ### 2026-06-18 renderer skin architecture wording cleanup
 

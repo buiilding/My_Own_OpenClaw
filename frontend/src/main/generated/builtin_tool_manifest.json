@@ -714,7 +714,7 @@
     },
     {
       "argument_resolution": "passthrough",
-      "description": "Launch a GUI app detached from sidecar/agent lifecycle so the app remains running even if the current agent turn or sidecar process ends.\n\nVerification modes:\n- window (default): polls open windows for expected title.\n- screenshot: captures visual proof after launch and returns capture artifact fields.\n- none: fastest acknowledgment without verification.\n\nUse this for open-and-leave-running app workflows.",
+      "description": "Launch a GUI app as a detached desktop process so it remains running after the current agent turn ends.\n\nVerification modes:\n- window (default): polls open windows for expected title.\n- screenshot: captures visual proof after launch and returns capture artifact fields.\n- none: fastest acknowledgment without verification.\n\nUse this for open-and-leave-running app workflows.",
       "executable_schema": {
         "additionalProperties": false,
         "description": "Arguments for detached app launch tool.",

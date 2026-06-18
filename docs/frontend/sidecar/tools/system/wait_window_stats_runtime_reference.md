@@ -226,7 +226,7 @@ Contract:
 
 Runtime behavior:
 
-- launches process detached from sidecar lifecycle (app keeps running if agent/sidecar exits)
+- launches a detached desktop process (app keeps running after the current agent turn ends)
 - validates `directory` as absolute existing directory when provided
 - verification modes:
   - `none`: immediate launch acknowledgment

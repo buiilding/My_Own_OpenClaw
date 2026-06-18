@@ -79,8 +79,8 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
 class RemoteOpenAppTool(RemoteToolBase, Tool[OpenAppArgs]):
     name = "open_app"
     description = (
-        "Launch a GUI app detached from sidecar/agent lifecycle so the app remains running even if "
-        "the current agent turn or sidecar process ends.\n\n"
+        "Launch a GUI app as a detached desktop process so it remains running after "
+        "the current agent turn ends.\n\n"
         "Verification modes:\n"
         "- window (default): polls open windows for expected title.\n"
         "- screenshot: captures visual proof after launch and returns capture artifact fields.\n"

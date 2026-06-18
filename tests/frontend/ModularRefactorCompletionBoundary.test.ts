@@ -426,6 +426,8 @@ describe('modular sdk refactor completion boundary', () => {
         'tool_execution_service_and_hook_runtime',
         'Tool Execution Service and Hook Runtime',
         'Frontend Tool Execution Service',
+        'generic desktop-' + 'agent Browser Use',
+        'Desktop ' + 'Agent Browser Use Session',
         'tool_execution_backend_envelope',
         'Tool Execution Backend Envelope Builder',
         'Retired Renderer Tool Result Envelope',

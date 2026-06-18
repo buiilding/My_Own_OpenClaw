@@ -8,7 +8,7 @@ title: "Dedicated Browser Runtime"
 
 # Dedicated Browser Runtime
 
-WindieOS does not automate the user's default browser profile by default. `connect` now targets a generic desktop-agent Browser Use daemon session through `BrowserUseEngineRuntime`; Browser Use owns browser launch/session mechanics.
+WindieOS does not automate the user's default browser profile by default. `connect` now targets a generic desktop-runtime Browser Use daemon session through `BrowserUseEngineRuntime`; Browser Use owns browser launch/session mechanics.
 
 ## Launch And Profile Isolation
 
