@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Tool Lifecycle Python Sidecar Failure Labels
+
+- Finding: tool execution lifecycle and schema policy docs still used
+  unqualified sidecar failure and executable-argument labels.
+- Change: qualified missing-tool/result rows, executable-argument parity, and
+  validation checklist wording as Python sidecar ownership; the modular tool
+  routing guard now covers the lifecycle doc.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; tool
+  schemas, SDK runtime dispatch, Electron bridge behavior, Python sidecar
+  execution, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Agent-Visible Pipeline Python Sidecar Labels
 
 - Finding: the agent-visible data pipeline still used broad frontend/sidecar

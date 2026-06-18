@@ -43,7 +43,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 - Python sidecar owns local executable tool registry entries and actual local machine actions.
 - Backend-only tools such as `web_search` do not need sidecar parity, but they still need policy and provider capability tests.
 - Python sidecar-only helper behavior must not be model-visible until the backend catalog and policy deliberately expose it.
-- Exact schema parity is required only where accepted client-local model-facing args are also the sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
+- Exact schema parity is required only where accepted client-local model-facing args are also the Python sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
 - Provider-native declarations may be added after canonical filtering, but policy must still prevent disabled grounded function schemas from leaking to the model.
 - Client manifest validation is partial and structural: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.
 - Client schemas own explicitly overridable built-in local tools. They must not add arbitrary backend execution targets.
@@ -209,7 +209,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Built-in client-local tool names use accepted client schemas as the final
   provider-visible local schema. Backend catalog specs are fallback/default
   entries, not replacements for accepted client manifests.
-- Backend model-facing args and sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
+- Backend model-facing args and Python sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
 - Policy gates are centralized in `ToolPolicy` or agent capability policy, not scattered through prompt construction, provider code, or renderer UI.
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.
 - Request ids, tool-call ids, bundle ids, artifact refs, and screenshot refs survive SDK/main/local-runtime transport.

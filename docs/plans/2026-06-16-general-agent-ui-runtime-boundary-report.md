@@ -123,8 +123,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   registry/runtime ownership in local execution failure rows.
   The agent-visible data pipeline now qualifies Python sidecar and executable
   local-runtime ownership in local tool execution/result rows.
+  Tool execution lifecycle and schema policy docs now qualify Python sidecar
+  missing-tool/result and executable-argument parity ownership.
 
 ## Inspection Log
+
+### 2026-06-18 Tool Lifecycle Python Sidecar Failure Labels Slice
+
+- Worktree was clean after `854f762c3`, with `main` ahead of `origin/main` by
+  833 commits.
+- Finding: tool execution lifecycle and schema policy docs still used
+  unqualified sidecar failure and executable-argument labels.
+- Change: qualified missing-tool/result rows, executable-argument parity, and
+  validation checklist wording as Python sidecar ownership; the modular tool
+  routing guard now covers the lifecycle doc.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; tool
+  schemas, SDK runtime dispatch, Electron bridge behavior, Python sidecar
+  execution, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Agent-Visible Pipeline Python Sidecar Labels Slice
 

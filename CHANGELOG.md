@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: qualify tool execution lifecycle sidecar failure rows as Python
+  sidecar ownership.
 - docs/architecture: qualify agent-visible pipeline sidecar labels as Python
   sidecar or local-runtime ownership.
 - docs/tools: qualify tool troubleshooting registry/runtime owners as Python
