@@ -44,14 +44,14 @@ Chat history is stored in `conversation_events`, not as memory rows. Memory rows
 The SDK local-runtime store calls these sidecar JSON-RPC methods behind public
 SDK command names:
 
-- `store_chat_event`
-- `list_chat_conversations`
-- `search_chat_conversations`
-- `get_chat_events`
-- `get_chat_conversation_revision`
-- `delete_chat_conversation`
-- `replace_chat_conversation`
-- `rewrite_chat_conversation_after_event`
+- `conversation.append_event`
+- `conversation.list`
+- `conversation.search`
+- `conversation.load_events`
+- `conversation.get_revision`
+- `conversation.delete`
+- `conversation.replace`
+- `conversation.rewrite_after_event`
 - `clear_chat_history`
 - `list_episodic_memories`
 - `list_semantic_memories`
@@ -110,31 +110,31 @@ command boundaries.
 
 ## Key Handler Semantics
 
-### `store_chat_event`
+### `conversation.append_event`
 
 - appends or replaces an event in `conversation_events`
 - stores metadata, attachments, full event payload, and optional compaction checkpoint
 - assigns `message_index` when omitted
 
-### `replace_chat_conversation`
+### `conversation.replace`
 
 - atomically replaces all `conversation_events` rows for one user conversation
-- accepts the same event fields as `store_chat_event`, batched in `events`
+- accepts the same event fields as `conversation.append_event`, batched in `events`
 - uses the provided `message_index` values to preserve replacement order
 - rolls back the delete if any replacement event cannot be inserted
 
-### `list_chat_conversations`
+### `conversation.list`
 
 - groups `conversation_events` by `conversation_id`
 - returns newest-first conversation summaries with title derived from the first user message or latest content
 - returns `record_kind='chat_event'`
 
-### `get_chat_events`
+### `conversation.load_events`
 
 - returns ordered events for one conversation
 - supports `after_message_index` cursor pagination
 
-### `delete_chat_conversation`
+### `conversation.delete`
 
 - deletes `conversation_events` for one conversation
 - does not delete episodic or semantic memory rows

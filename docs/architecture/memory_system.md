@@ -202,9 +202,9 @@ renderer-facing payload shapes.
 - `conversations.list` and `conversations.search` list/search chat metadata
   through SDK conversation store APIs.
 
-Renderer feature code must not call sidecar-style channels such as
-`list_episodic_memories`, `list_semantic_memories`, `list_chat_conversations`,
-or `get_chat_events` for user-facing memory or chat concepts.
+Renderer feature code must not call local-runtime JSON-RPC methods such as
+`list_episodic_memories`, `list_semantic_memories`, `conversation.list`, or
+`conversation.load_events` for user-facing memory or chat concepts.
 
 Current title behavior for chats:
 - A new chat can appear in `Your chats` after the first chat event is stored.

@@ -44,7 +44,7 @@ flowchart LR
 
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, sidecar `store_chat_event` tests |
+| User or assistant row appears in UI but is missing after restart | SDK store/display projection | `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, SDK conversation runtime/store | `DesktopConversationStore.test.ts`, `SdkDisplayChatMessageProjection.test.ts`, sidecar `conversation.append_event` tests |
 | Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state and SDK display projection | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `sdkDisplayChatMessageProjection.ts`, replay tool helpers | `ConversationReplayToolMessages.test.js`, `SdkDisplayChatMessageProjection.test.ts`, backend linkage validation tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Dashboard conversation list is missing, stale, or ordered wrong | Sidecar conversation storage plus dashboard loader | `frontend/src/main/python/memory/chat_event_store.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_chat_event_store.py`, `tests/frontend/DashboardConversationLoad.test.js` |
@@ -70,7 +70,7 @@ flowchart LR
    - Chat stream handlers consume SDK conversation events and active-turn projections.
    - Desktop conversation store calls cross Electron main into the sidecar storage boundary.
    - Main process maps payload keys before calling sidecar JSON-RPC.
-   - Sidecar `store_chat_event` normalizes and stores rows in `LocalMemoryStore`.
+   - Sidecar `conversation.append_event` normalizes and stores rows in `LocalMemoryStore`.
 
 4. Preserve replay shape.
    - Stored transcript rows must reconstruct stable user, assistant, tool-call, tool-output, bundle, transparency, screenshot, and model metadata rows.
@@ -114,7 +114,7 @@ flowchart LR
 
 1. Confirm the row was emitted as an SDK conversation event.
 2. Confirm renderer IPC called the main memory bridge with the expected payload.
-3. Confirm sidecar `store_chat_event` wrote a row with the expected user/conversation/message type.
+3. Confirm sidecar `conversation.append_event` wrote a row with the expected user/conversation/message type.
 4. Confirm dashboard/list replay is querying the same user and conversation.
 5. Confirm SDK display projection maps the stored event into the expected chat row.
 

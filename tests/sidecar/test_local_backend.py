@@ -876,25 +876,29 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "delete_semantic_memory",
         "clear_local_memory",
         "clear_chat_history",
-        "store_chat_event",
         "conversation.append_event",
-        "list_chat_conversations",
         "conversation.list",
-        "search_chat_conversations",
         "conversation.search",
-        "get_chat_events",
         "conversation.load_events",
-        "get_chat_conversation_revision",
         "conversation.get_revision",
-        "delete_chat_conversation",
         "conversation.delete",
-        "replace_chat_conversation",
         "conversation.replace",
         "conversation.rewrite_after_event",
         "update_conversation_title",
         "get_conversation_title_state",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
+    retired_direct_chat_methods = {
+        "store_chat_event",
+        "list_chat_conversations",
+        "search_chat_conversations",
+        "get_chat_events",
+        "get_chat_conversation_revision",
+        "delete_chat_conversation",
+        "replace_chat_conversation",
+        "rewrite_chat_conversation_after_event",
+    }
+    assert retired_direct_chat_methods.isdisjoint(set(backend.protocol.methods.keys()))
 
 
 @pytest.mark.asyncio

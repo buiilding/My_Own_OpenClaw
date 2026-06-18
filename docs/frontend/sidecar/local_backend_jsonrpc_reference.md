@@ -72,16 +72,20 @@ Memory methods:
 
 Chat-event methods:
 
-- `store_chat_event`
-- `replace_chat_conversation`
-- `rewrite_chat_conversation_after_event`
-- `list_chat_conversations`
-- `search_chat_conversations`
-- `get_chat_events`
-- `get_chat_conversation_revision`
-- `delete_chat_conversation`
+- `conversation.append_event`
+- `conversation.replace`
+- `conversation.rewrite_after_event`
+- `conversation.list`
+- `conversation.search`
+- `conversation.load_events`
+- `conversation.get_revision`
+- `conversation.delete`
 
-The legacy transcript-row conversation methods are not registered.
+The legacy transcript-row conversation methods and retired direct chat-history
+method names (`store_chat_event`, `list_chat_conversations`,
+`search_chat_conversations`, `get_chat_events`, `get_chat_conversation_revision`,
+`delete_chat_conversation`, `replace_chat_conversation`, and
+`rewrite_chat_conversation_after_event`) are not registered.
 
 ## Main Bridge to JSON-RPC Mapping
 
@@ -121,10 +125,10 @@ assistant, tool-call, tool-output, compaction, metadata, and attachment events.
 Conversation listing/search/replay reads from this table.
 
 `conversation_revisions` stores the current SDK conversation revision for
-local-runtime-backed conversations. `replace_chat_conversation` updates it atomically
-with the replacement event rows, and `get_chat_conversation_revision` reads it
-before falling back to the latest event revision. This keeps edit/resend and
-retry rewrites from reporting an old preserved event revision.
+local-runtime-backed conversations. `conversation.replace` updates it
+atomically with the replacement event rows, and `conversation.get_revision`
+reads it before falling back to the latest event revision. This keeps
+edit/resend and retry rewrites from reporting an old preserved event revision.
 
 `store_memory_by_embedding` writes SDK-formatted interaction memory rows with `record_kind='interaction'` and a caller-provided embedding. Those rows power Episodic Memory and semantic summarization. They are not the visible chat replay source. The sidecar does not call backend embeddings for memory writes.
 

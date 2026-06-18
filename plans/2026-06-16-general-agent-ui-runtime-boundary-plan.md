@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 sidecar conversation RPC direct-name removal
+
+- Finding: the Python sidecar still registered retired direct chat-history JSON-RPC names such as `store_chat_event` and `list_chat_conversations`, even though the SDK local-runtime conversation store already calls the canonical `conversation.*` methods.
+- Change: removed the direct chat-history method registrations, kept the same handler implementations behind `conversation.append_event`, `conversation.list`, `conversation.search`, `conversation.load_events`, `conversation.get_revision`, `conversation.delete`, `conversation.replace`, and `conversation.rewrite_after_event`, and updated docs/tests to make the SDK-shaped local-runtime contract explicit.
+- Validation: focused sidecar registry pytest, Python compile check for `local_backend.py`, docs listing, exact retired-method scan, and `git diff --check`. The full `test_local_backend.py` file still has an unrelated Windows/Linux browser-binary preference failure in `test_find_available_browser_binary_prefers_system_browser_over_playwright_cache`.
+- Compatibility: SDK/Electron callers already use the `conversation.*` methods, so no persisted-data, storage, IPC channel, settings, credential, permission, or event-payload migration is required. Direct sidecar JSON-RPC callers using the retired chat-history method names must migrate to the `conversation.*` names.
+
 ### 2026-06-18 sidecar SDK endpoint no-retry coverage
 
 - Finding: after removing sidecar endpoint fallbacks, the architecture

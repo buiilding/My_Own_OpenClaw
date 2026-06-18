@@ -192,14 +192,14 @@ builds the sidecar method and params behind that boundary.
 | SDK local-runtime store | `delete_semantic_memory` | `memoryId -> memory_id` |
 | SDK local-runtime store | `clear_local_memory` | `userId -> user_id`; clears local memory records for the user scope |
 | SDK local-runtime store | `clear_chat_history` | `userId -> user_id`; clears chat-history records for the user scope |
-| SDK local-runtime store | `store_chat_event` | transcript metadata (`messageType -> message_type`, etc.) |
-| SDK local-runtime store | `replace_chat_conversation` | replacement event payload plus conversation/user/record-kind normalization |
-| SDK local-runtime store | `rewrite_chat_conversation_after_event` | conversation/user/anchor-event normalization for replay truncation and rewrite |
-| SDK local-runtime store | `list_chat_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
-| SDK local-runtime store | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |
-| SDK local-runtime store | `get_chat_events` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
-| SDK local-runtime store | `get_chat_conversation_revision` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
-| SDK local-runtime store | `delete_chat_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `conversation.append_event` | transcript metadata (`messageType -> message_type`, etc.) |
+| SDK local-runtime store | `conversation.replace` | replacement event payload plus conversation/user/record-kind normalization |
+| SDK local-runtime store | `conversation.rewrite_after_event` | conversation/user/anchor-event normalization for replay truncation and rewrite |
+| SDK local-runtime store | `conversation.list` | `userId -> user_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `conversation.search` | `userId -> user_id` with query/limit passthrough |
+| SDK local-runtime store | `conversation.load_events` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `conversation.get_revision` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| SDK local-runtime store | `conversation.delete` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | readiness probe (internal) | `ping` | Startup readiness checks |
 | diagnostics (registered in sidecar) | `get_status` | Read through SDK local-runtime status helpers |
 
@@ -211,16 +211,15 @@ Registered callable surface:
 - Memory: `search_memory_by_embedding`, `store_memory_by_embedding`,
   `list_episodic_memories`, `list_semantic_memories`,
   `delete_episodic_memory`, `delete_semantic_memory`, `clear_local_memory`
-- Conversation/history canonical methods: `store_chat_event`,
+- Conversation/history SDK methods: `conversation.append_event`,
+  `conversation.list`, `conversation.search`, `conversation.load_events`,
+  `conversation.get_revision`, `conversation.delete`, `conversation.replace`,
+  `conversation.rewrite_after_event`, `clear_chat_history`,
+  `update_conversation_title`, `get_conversation_title_state`
+- Retired direct chat-history methods are not registered: `store_chat_event`,
   `list_chat_conversations`, `search_chat_conversations`, `get_chat_events`,
   `get_chat_conversation_revision`, `delete_chat_conversation`,
-  `replace_chat_conversation`, `rewrite_chat_conversation_after_event`,
-  `clear_chat_history`, `update_conversation_title`,
-  `get_conversation_title_state`
-- Conversation/history dot-name aliases: `conversation.append_event`,
-  `conversation.list`, `conversation.search`, `conversation.load_events`,
-  `conversation.get_revision`, `conversation.delete`,
-  `conversation.replace`, `conversation.rewrite_after_event`
+  `replace_chat_conversation`, `rewrite_chat_conversation_after_event`
 - Health/diagnostics/setup: `ping`, `get_status`, `install_browser_chromium`,
   `determine_macos_system_events_automation_permission`
 

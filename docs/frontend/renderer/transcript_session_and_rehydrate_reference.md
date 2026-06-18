@@ -189,7 +189,7 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
 - dashboard chat deletion goes through the SDK store path so visible transcript
   rows, chat-event rows, metadata, title/search rows, attachments, and working
   memories are deleted together
-- compacted transcript replacements use `replace_chat_conversation` so the
+- compacted transcript replacements use `conversation.replace` so the
   durable chat-event log is updated in one transaction
 
 ## Troubleshooting
@@ -198,7 +198,7 @@ If transcript rows never appear:
 
 1. verify transcript session has both `conversationRef` and `userId`
 2. verify `updateTranscriptSession(...)` runs after IPC status/backend events
-3. inspect sidecar `store_chat_event` handling and SDK store calls
+3. inspect sidecar `conversation.append_event` handling and SDK store calls
 
 If resumed conversation loses screenshot/tool linkage:
 

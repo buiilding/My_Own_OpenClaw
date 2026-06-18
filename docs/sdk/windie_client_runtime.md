@@ -545,8 +545,8 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   store factory, and the SDK
   `LocalRuntimeConversationStore`. The factory owns local transcript projection
   replacement, workspace metadata, rewritten row enrichment, and the rehydrate
-  projection used before the resend turn. Replacement is one sidecar
-  `replace_chat_conversation` call so local durable state is not deleted before
+  projection used before the resend turn. Replacement is one local-runtime
+  `conversation.replace` call so local durable state is not deleted before
   the rewritten projection is stored. The call carries the rewrite
   `newRevisionId` as conversation revision metadata, so sidecar metadata and
   `getRevision()` report the replacement revision even if the preserved rows

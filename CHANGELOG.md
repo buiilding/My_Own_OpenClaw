@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sidecar/sdk: remove retired direct chat-history JSON-RPC method names
+  from the Python sidecar registry so the SDK local-runtime store owns the
+  canonical `conversation.*` contract; SDK callers already use these methods,
+  and no persisted-data or storage migration is required.
 
 - frontend/tests: hide retired desktop-agent channel-group, private marker,
   capture-processor, and debug-toggle literals from boundary assertions and
