@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 first-read docs SDK local-runtime topology boundary
+
+- Finding: README, architecture, API, web, install, help, and ownership-routing docs still described the default client topology as a local sidecar, which obscured the SDK local-runtime public boundary and made the Python sidecar look like the reusable contract.
+- Change: updated those first-read and public routing docs to say SDK local runtime for local execution, while preserving Python sidecar wording where it names the backing implementation, and added a guard for the retired local-sidecar topology phrases.
+- Validation: focused ModularRefactorCompletionBoundary Jest coverage, stale first-read local-sidecar wording scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes documentation and guard coverage only; SDK APIs, Electron local-runtime launch, Python sidecar execution, tool schemas, settings, and persisted data are unchanged.
+
 ### 2026-06-17 landing reference docs public-copy boundary
 
 - Finding: landing reference docs still documented the older Desktop assistant hero, OS-level control feature card, sidecar execution feature wording, and placeholder footer-link contract after the UI moved to desktop-runtime/local-runtime copy and real resource links.

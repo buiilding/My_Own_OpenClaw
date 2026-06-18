@@ -8,7 +8,7 @@ title: "Landing Page"
 
 # Landing Page
 
-The landing page is a standalone frontend surface under `frontend/src/landing`. It is not the Electron desktop dashboard and should not depend on Electron IPC, local sidecar state, user credentials, or backend websocket sessions.
+The landing page is a standalone frontend surface under `frontend/src/landing`. It is not the Electron desktop dashboard and should not depend on Electron IPC, local runtime state, user credentials, or backend websocket sessions.
 
 For section, anchor, CTA, styling, and product-claim changes, start with [Landing Page Change Workflow](landing_page_change_workflow.md).
 

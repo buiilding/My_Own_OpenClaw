@@ -188,6 +188,37 @@ describe('modular sdk refactor completion boundary', () => {
     expect(landingDocText).not.toContain('mixed real/placeholder links');
   });
 
+  test('first-read docs describe SDK local runtime as the public local contract', async () => {
+    const docs = await Promise.all([
+      read('README.md'),
+      read('docs/architecture/architecture.md'),
+      read('docs/reference/api_reference.md'),
+      read('docs/web/web_client_integration.md'),
+      read('docs/web/web_surface_matrix.md'),
+      read('docs/web/landing_page.md'),
+      read('docs/getting-started/installation.md'),
+      read('docs/help/doctor_checklist.md'),
+      read('docs/install/uninstall_reinstall_reset.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/development/agent_runtime_ownership_and_change_routing.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('SDK local runtime');
+    expect(docText).toContain('local runtime-backed tool');
+    expect(docText).toContain('local-runtime executed');
+    expect(docText).not.toContain('hosted-backend plus local sidecar');
+    expect(docText).not.toContain('local sidecar daemon');
+    expect(docText).not.toContain('The local sidecar owns');
+    expect(docText).not.toContain('call the local sidecar');
+    expect(docText).not.toContain('local sidecar action');
+    expect(docText).not.toContain('local sidecar tools');
+    expect(docText).not.toContain('local sidecar state');
+    expect(docText).not.toContain('hosted backend with a local sidecar');
+    expect(docText).not.toContain('local sidecar-backed tool');
+    expect(docText).not.toContain('local sidecar execution');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

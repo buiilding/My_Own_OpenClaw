@@ -8,14 +8,14 @@ title: "Web Client Integration"
 
 # Web Client Integration
 
-WindieOS hosted clients talk directly to the backend. They do not use Electron IPC and they do not execute local desktop tools through the sidecar.
+WindieOS hosted clients talk directly to the backend. They do not use Electron IPC and they do not execute local desktop tools through the SDK local runtime.
 
 ## Client Types
 
 | Client | Current path | Use for | Not for |
 | --- | --- | --- | --- |
-| TypeScript hosted client | `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` | artifacts, SDK routes, websocket query transport | local sidecar tools or Electron-only state |
-| Python hosted client | `frontend/src/main/python/windie/sdk.py` | sidecar/developer hosted backend access | direct local desktop automation without sidecar tool path |
+| TypeScript hosted client | `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` | artifacts, SDK routes, websocket query transport | local runtime tools or Electron-only state |
+| Python hosted client | `frontend/src/main/python/windie/sdk.py` | Python SDK hosted backend access | direct local desktop automation without local runtime tool path |
 | Electron renderer `ApiClient` | renderer infrastructure | app-internal UI/runtime requests | public browser SDK contract |
 | VM worker runtime | `frontend/src/main/app/vm_worker_runtime.cjs` | `/api/runs/*` assignment/control and normal websocket dispatch | normal desktop user query routing |
 
@@ -35,7 +35,7 @@ WindieOS hosted clients talk directly to the backend. They do not use Electron I
 
 - Hosted clients can call backend APIs.
 - Hosted clients cannot directly run local screenshot, mouse, keyboard, file, process, or browser tools.
-- Local tools execute through the desktop app's sidecar path.
+- Local tools execute through the desktop app's local runtime path.
 - SDK perception routes can expose backend OCR/vision/introspection without starting Electron.
 - Websocket query clients must handle streamed events and tool-call handoff explicitly if they are not the desktop app.
 

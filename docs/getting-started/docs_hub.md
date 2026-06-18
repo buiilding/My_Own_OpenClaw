@@ -58,7 +58,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
 - [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging changes.
 - [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
-- [Extension Convention](../development/extensions.md) for reusable local sidecar tool schemas, main-process plugin tools, MCP servers, prompt layers, extension skills, settings panels, lifecycle hooks, and extension docs.
+- [Extension Convention](../development/extensions.md) for reusable local runtime tool schemas, main-process plugin tools, MCP servers, prompt layers, extension skills, settings panels, lifecycle hooks, and extension docs.
 - [MCP Runtime](../development/mcp.md) for connecting stdio MCP servers, discovering MCP tools, and exposing them through the client tool manifest.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md) for changing `/api/runs/*`, worker heartbeat assignment, event timelines, controls, runs keys, and Electron VM worker dispatch.
@@ -168,7 +168,7 @@ Likely code:
 - `frontend/src/renderer/infrastructure/ipc/**`
 - `backend/src/api/routes/**`
 - `backend/src/api/handlers/**`
-- `frontend/src/main/python/**` when local sidecar execution is involved
+- `frontend/src/main/python/**` when Python sidecar execution is involved behind the SDK local runtime
 
 Validate producer/consumer tests on both sides of the changed channel. Do not reuse another channel's private payload shape as an implicit compatibility shortcut.
 

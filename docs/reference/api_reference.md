@@ -16,7 +16,7 @@ WindieOS uses a hosted backend control plane with:
 The intended SDK split is:
 
 - call the backend for backend-owned capabilities such as OCR, vision/prediction, artifacts, and agent APIs
-- call the local sidecar for machine-touching capabilities such as screenshot, click, type, browser/runtime control, files, and processes
+- call the SDK local runtime for machine-touching capabilities such as screenshot, click, type, browser/runtime control, files, and processes
 
 SDK consumers should not need to start a local backend process just to use hosted OCR or prediction routes.
 
@@ -343,7 +343,7 @@ The intended usage pattern is:
 1. capture or provide an image locally
 2. upload it to `/api/artifacts/` or send it inline
 3. call `/api/sdk/ocr/*` or `/api/sdk/vision/*`
-4. use the returned bbox/center/candidate data to drive a local sidecar action if needed
+4. use the returned bbox/center/candidate data to drive a local runtime action if needed
 
 These routes are for hosted backend use. They are not meant to require SDK consumers to spin up a local backend process just to resolve OCR or prediction.
 

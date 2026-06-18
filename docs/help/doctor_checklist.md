@@ -108,7 +108,7 @@ Check:
 - packaged log path from `WINDIE_LOG_FILE` if set
 - sidecar runtime starts without system Python/conda
 - backend endpoint snapshot matches expectation
-- one local sidecar-backed tool succeeds
+- one local runtime-backed tool succeeds
 
 Use:
 

@@ -10,13 +10,13 @@ For architecture navigation by ownership, state, and failure domain, start with 
 
 ## Overview
 
-WindieOS is built as a distributed system with a clear separation between frontend (Electron/React), local execution runtime (Python sidecar), and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
+WindieOS is built as a distributed system with a clear separation between frontend (Electron/React), SDK local runtime backed by the Python sidecar, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
 The intended product boundary is:
 
 - **Hosted backend control plane** for OCR, vision/prediction, agent orchestration, artifacts, and session state.
-- **Local sidecar execution plane** for actions that must touch the user's machine: screenshots, mouse, keyboard, browser/runtime control, local files, and local processes.
-- **Open-source client surface** made up of the UI, sidecar, and SDK. The SDK should call the hosted backend when it needs backend-owned capabilities; it should not require users to run a backend locally just to use OCR, prediction, or hosted agent APIs.
+- **SDK local-runtime execution plane** for actions that must touch the user's machine: screenshots, mouse, keyboard, browser/runtime control, local files, and local processes.
+- **Open-source client surface** made up of the UI, SDK local runtime, Python sidecar implementation, and SDK. The SDK should call the hosted backend when it needs backend-owned capabilities; it should not require users to run a backend locally just to use OCR, prediction, or hosted agent APIs.
 
 Current runtime topology includes both:
 
@@ -69,7 +69,7 @@ Local-only or self-hosted mode remains available for privacy-first users or inte
 - Local model execution when configured
 - Optional local backend deployment when explicitly provisioned
 
-This is not the primary open-source SDK contract. The default client contract is hosted-backend plus local sidecar.
+This is not the primary open-source SDK contract. The default client contract is hosted backend plus SDK local runtime.
 
 ## High-Level Architecture
 
@@ -212,13 +212,13 @@ This is not the primary open-source SDK contract. The default client contract is
 
 The SDK is expected to route work across both runtime planes instead of treating everything as a local tool call:
 
-1. SDK captures a screenshot through the local sidecar when fresh local state is needed.
+1. SDK captures a screenshot through the local runtime when fresh local state is needed.
 2. SDK uploads the image to the hosted backend artifact API or sends inline base64.
 3. SDK calls hosted perception APIs such as `/api/sdk/ocr/*` or `/api/sdk/vision/*`.
 4. Hosted backend returns deterministic grounding data such as OCR rows, candidate IDs, bounding boxes, and click centers.
-5. SDK sends the resulting local action, such as click or type, back through the sidecar.
+5. SDK sends the resulting local action, such as click or type, back through the local runtime.
 
-Example: `desktop.clickText("Search Amazon")` is a hybrid operation, not a pure local action. The sidecar captures the screen and performs the click, while the hosted backend resolves the OCR text target.
+Example: `desktop.clickText("Search Amazon")` is a hybrid operation, not a pure local action. The local runtime captures the screen and performs the click, while the hosted backend resolves the OCR text target.
 
 ### Screenshot Capture Strategy
 

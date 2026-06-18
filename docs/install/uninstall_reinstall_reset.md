@@ -78,7 +78,7 @@ The helper targets Debian/Ubuntu systems with `apt`, packages Linux targets, ins
 1. Confirm the installed app launches.
 2. Confirm backend endpoint snapshot matches the intended host.
 3. Send one prompt.
-4. Run one local sidecar-backed tool.
+4. Run one local runtime-backed tool.
 5. Check packaged logs for sidecar startup/import failures.
 6. If packaging changed, inspect package contents for `resources/python-runtime`.
 

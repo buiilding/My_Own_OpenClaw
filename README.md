@@ -82,12 +82,12 @@ be shaped by the person using it.
 If the default instructions are wrong, replace them. If the UI does not fit your
 workflow, change the frontend. If the agent needs a new capability, add a local
 tool, skill, plugin, or MCP server. If you want to build a different desktop
-agent entirely, use the Windie SDK, sidecar daemon, and hosted-agent contracts as
+agent entirely, use the Windie SDK, local runtime, and hosted-agent contracts as
 the starting point.
 
-The repo is structured so the desktop app, local sidecar, SDKs, extension roots,
-and backend contracts can be developed directly instead of treated as a closed
-product shell.
+The repo is structured so the desktop app, SDK local runtime, Python sidecar
+implementation, extension roots, and backend contracts can be developed directly
+instead of treated as a closed product shell.
 
 ## Architecture
 
@@ -102,14 +102,15 @@ CLI / custom UI / Electron desktop / tests
         v
 Windie SDK runtime
         |-- hosted backend HTTP/WebSocket
-        |-- local sidecar daemon
+        |-- SDK local runtime (Python sidecar daemon)
         |-- conversation store adapters
 ```
 
 The hosted backend owns inference, model/provider policy, prompts, provider
 history, compaction decisions, OCR/vision/prediction policy, and backend-visible
-tool schemas. The local sidecar owns filesystem, shell, browser, computer-use,
-MCP, plugin, extension, local memory, and permission-checked desktop execution.
+tool schemas. The SDK local runtime owns filesystem, shell, browser,
+computer-use, MCP, plugin, extension, local memory, and permission-checked
+desktop execution, backed by the Python sidecar implementation.
 
 The Electron desktop is the flagship reference client built on that SDK
 runtime. It should render SDK display projections, collect user input, expose
