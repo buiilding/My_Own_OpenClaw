@@ -9508,6 +9508,24 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 Frontend Architecture AgentRuntimeTransport Wording
+
+- Finding: `docs/architecture/frontend_architecture.md` still named
+  `BackendTransport` as an active SDK interface for desktop-specific renderer
+  adapters after the SDK made `AgentRuntimeTransport` the canonical
+  conversation-runtime transport type and retained `BackendTransport` only as a
+  TypeScript compatibility alias.
+- Change: updated the frontend architecture overview to route desktop adapters
+  through `ConversationStore` and `AgentRuntimeTransport`, and extended the SDK
+  package-boundary guard so the overview cannot describe the compatibility alias
+  as the active host adapter boundary again.
+- Validation: focused SDK package-boundary test, docs listing, source scan, and
+  diff checks.
+- Compatibility: no migration required. Runtime code, websocket behavior, SDK
+  commands, payloads, storage, IPC channels, settings, credentials,
+  permissions, hosted backend URLs, provider policy, and existing
+  `BackendTransport` TypeScript callers are unchanged.
+
 ### 2026-06-18 SDK AgentRuntimeTransport Boundary
 
 - Finding: `AgentRuntimeTransport` was already the documented reusable SDK

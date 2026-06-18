@@ -27,6 +27,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: align first-read local tool routing and schema workflow wording
+  so local-runtime executable authority owns what can run locally while Python
+  sidecar remains the concrete implementation. No migration required.
+- docs/architecture: describe renderer desktop-specific adapters behind
+  `AgentRuntimeTransport` instead of the legacy `BackendTransport`
+  compatibility alias, and guard the SDK boundary docs wording. No migration
+  required.
 - docs/tools: route computer-use, tool execution lifecycle, and local tool
   channel ownership through local-runtime executable action authority while
   keeping Python sidecar executor details visible. No migration required.

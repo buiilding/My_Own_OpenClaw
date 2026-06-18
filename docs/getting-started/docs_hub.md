@@ -16,7 +16,7 @@ WindieOS has four hard runtime boundaries:
 - The hosted FastAPI backend owns the agent loop, model-facing tool schema, LLM providers, streaming contracts, OCR/vision, TTS/STT, embeddings, artifacts, and SDK routes.
 - The Electron main desktop host owns desktop windows, overlays, permissions, preload IPC, local config persistence, OS integration, and SDK local-runtime host context.
 - The renderer owns desktop UI presentation, conversation projection display, settings views, dashboard surfaces, voice UI, and user interaction state.
-- The Python sidecar owns local tool execution, browser automation, filesystem/shell/computer actions, local memory storage, system state, and wakeword subprocesses.
+- The local runtime owns local tool execution, browser automation, filesystem/shell/computer actions, local memory storage, system state, and wakeword subprocess authority; the Python sidecar is the current concrete implementation for those local capabilities.
 
 Desktop host, renderer, and Python sidecar code must not import backend code for parity. Keep parity in explicit contracts, generated schemas, and tests.
 

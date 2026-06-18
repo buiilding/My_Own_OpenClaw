@@ -155,6 +155,10 @@ describe('@windie/sdk package boundary', () => {
       path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts'),
       'utf8',
     );
+    const frontendArchitectureSource = fs.readFileSync(
+      path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),
+      'utf8',
+    );
 
     expect(conversationTypesSource).toContain('export type AgentRuntimeTransport = {');
     expect(conversationTypesSource).toContain('export type BackendTransport = AgentRuntimeTransport;');
@@ -162,6 +166,8 @@ describe('@windie/sdk package boundary', () => {
     expect(conversationRuntimeSource).not.toContain('transport?: BackendTransport;');
     expect(continuitySource).toContain("Pick<AgentRuntimeTransport, 'rehydrateConversation'>");
     expect(continuitySource).not.toContain("Pick<BackendTransport, 'rehydrateConversation'>");
+    expect(frontendArchitectureSource).toContain('ConversationStore` and `AgentRuntimeTransport');
+    expect(frontendArchitectureSource).not.toContain('ConversationStore` and `BackendTransport');
   });
 
   test('exports generic backend socket factory helpers', () => {

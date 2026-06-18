@@ -11,7 +11,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and Python sidecar local executor implementation.
 
-The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas; the Python sidecar owns the concrete local tool implementations. Do not make the desktop client or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas and local executable authority; the Python sidecar provides the current concrete local tool implementations. Do not make the desktop client or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
@@ -34,13 +34,13 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
   entries, client-manifest envelope/trust validation, visibility policy,
   provider projection, backend-executed tool argument validation, tool-result
   ingestion, and history conversion.
-- Agent SDK and the desktop local-runtime host own client-local schemas; Python sidecar owns the concrete local tool implementations.
+- Agent SDK and the desktop local-runtime host own client-local schemas and local executable authority; Python sidecar provides the current concrete local tool implementations.
 - SDK/main owns streamed tool-call consumption for execution, single/bundle local orchestration, and backend result envelope submission.
 - Renderer owns streamed tool-call/tool-output display projection and transcript rendering.
 - Electron main owns the local tool execution adapter, scoped renderer host
   capability channels, SDK local-runtime host context, display/window context,
   and local-runtime availability status.
-- Python sidecar owns local executable tool registry entries and actual local machine actions.
+- The local runtime owns local executable tool registry authority and actual local machine actions through the Python sidecar implementation.
 - Backend-only tools such as `web_search` do not need sidecar parity, but they still need policy and provider capability tests.
 - Python sidecar-only helper behavior must not be model-visible until the backend catalog and policy deliberately expose it.
 - Exact schema parity is required only where accepted client-local model-facing args are also the Python sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.

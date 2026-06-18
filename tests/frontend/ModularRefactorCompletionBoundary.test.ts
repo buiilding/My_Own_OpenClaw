@@ -574,6 +574,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('executable local-runtime payload');
     expect(docText).toContain('local-runtime validation');
     expect(docText).toContain('Python sidecar tests for implementation parity');
+    expect(docText).toContain('The local runtime owns local tool execution');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
     expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('SDK desktop agent');
@@ -604,6 +605,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('local runtime owns executable desktop actions');
     expect(toolRoutingDocText).toContain('local runtime owns actual mouse');
     expect(toolRoutingDocText).toContain('concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary');
+    expect(toolRoutingDocText).toContain('local-runtime host own client-local tool schemas and local executable authority');
+    expect(toolRoutingDocText).toContain('The local runtime owns what can actually run locally');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -613,6 +616,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('the sidecar owns executable desktop actions');
     expect(toolRoutingDocText).not.toContain('the sidecar owns actual mouse');
     expect(toolRoutingDocText).not.toContain('Python sidecar owns executable local machine actions');
+    expect(toolRoutingDocText).not.toContain('The Python sidecar owns what can actually run locally');
+    expect(toolRoutingDocText).not.toContain('Python sidecar owns the concrete local tool implementations');
+    expect(toolRoutingDocText).not.toContain('Python sidecar owns local executable tool registry entries');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

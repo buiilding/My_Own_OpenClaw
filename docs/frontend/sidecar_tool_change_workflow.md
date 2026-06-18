@@ -14,7 +14,7 @@ WindieOS tool execution crosses four layers:
 1. Backend exposes model-facing tool schemas and receives tool results.
 2. SDK runtime interprets streamed tool-call events and builds backend result envelopes.
 3. Electron main hosts SDK desktop adapters and supplies host context to the SDK local runtime.
-4. Python sidecar executes local actions and returns simple executable results.
+4. The local runtime executes local actions through the Python sidecar implementation and returns simple executable results.
 
 Do not make the sidecar import backend schemas. Keep parity in explicit tests and docs.
 
@@ -25,7 +25,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Backend schema and policy | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/tools/tool_selection.py` | Model-visible tool names, descriptions, JSON schema, policy/profile filtering, tool-call history. |
 | SDK runtime dispatch | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Tool-call event consumption, bundle/single orchestration, backend result envelope, normalized tool-output events. |
 | Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime*.cjs`, `packages/windie-sdk-js/src/runtime/Agent.ts` | SDK local-runtime host context, payload mapping, timeouts, display/window context. |
-| Python sidecar | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | JSON-RPC handlers, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
+| Local runtime implementation | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | Python sidecar JSON-RPC handlers, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
 | Tests | `tests/backend`, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
 
 ## Add or Change a Tool
@@ -33,7 +33,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Step | What to inspect | Why |
 | --- | --- | --- |
 | 1. Decide model-facing behavior | `backend/src/tools` and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md) | The backend owns what the model can request. |
-| 2. Decide executable payload | `frontend/src/main/python/tools` and Python sidecar registry docs | The Python sidecar owns what can actually run locally. |
+| 2. Decide executable payload | `frontend/src/main/python/tools` and Python sidecar registry docs | The local runtime owns what can actually run locally; the Python sidecar registry documents the current implementation. |
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a sidecar action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | `ToolResultEnvelope`, backend tool-result handler, sidecar tool result models | Backend history needs consistent success/error output. |
 | 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, Python sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |

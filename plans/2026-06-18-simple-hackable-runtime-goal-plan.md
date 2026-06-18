@@ -275,6 +275,25 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a first-read local tool authority wording slice by
+  updating `docs/getting-started/docs_hub.md`,
+  `docs/frontend/sidecar_tool_change_workflow.md`, and
+  `docs/tools/tool_schema_policy_change_workflow.md` so local-runtime
+  executable authority owns what can run locally while Python sidecar remains
+  the concrete implementation. The modular docs boundary guard now covers the
+  new first-read/schema workflow owner phrases and the retired Python
+  sidecar-as-owner phrases. Validation: focused modular docs boundary test,
+  docs listing, exact stale-owner phrase scan, and diff checks. No migration
+  required; no code path, payload, storage, IPC, settings, tool schema,
+  credential, permission, hosted URL, or provider-policy behavior changed.
+- 2026-06-18: completed a frontend architecture SDK transport wording slice by
+  replacing the remaining active `BackendTransport` interface reference with
+  `AgentRuntimeTransport` and guarding the architecture overview from
+  presenting the compatibility alias as the live desktop adapter boundary.
+  Validation: focused SDK package-boundary test, docs listing, source scan, and
+  diff checks. No migration required; no code path, payload, storage, IPC,
+  settings, tool schema, credential, permission, hosted backend URL, or
+  provider-policy behavior changed.
 - 2026-06-18: completed a tool-execution ownership wording slice by updating
   `docs/tools/tool_execution_lifecycle.md`, `docs/tools/computer.md`, and
   `docs/channels/sidecar_and_tool_channels.md` so public tool routing says the
