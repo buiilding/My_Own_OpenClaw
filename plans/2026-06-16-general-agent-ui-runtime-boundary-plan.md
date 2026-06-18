@@ -119,6 +119,24 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 sidecar backend endpoint fallback removal
+
+- Finding: sidecar backend config still parsed Electron-owned `BACKEND_HTTP_URL`
+  and exposed a multi-candidate URL helper, and Python HTTP/SDK clients still
+  iterated backend endpoint fallbacks on 5xx or network errors.
+- Change: removed `get_backend_http_urls`, removed sidecar parsing of
+  `BACKEND_HTTP_URL`, simplified sidecar remote clients and the Python SDK to
+  one resolved backend URL, and updated sidecar endpoint docs/tests around the
+  injected `WINDIE_BACKEND_HTTP_URL` boundary.
+- Validation: focused sidecar backend-config, remote-api, remote-semantic, and
+  Python SDK client pytest; Python compile check for touched modules; docs check;
+  stale fallback-helper scan; and diff check. Formatting with black could not
+  run because black is unavailable in the fallback Python environment.
+- Compatibility: sidecar processes no longer read `BACKEND_HTTP_URL` directly;
+  Electron main remains the owner of endpoint env precedence and injects the
+  resolved `WINDIE_BACKEND_HTTP_URL`. No persisted-data, IPC, storage, tool
+  schema, or event-payload migration is required.
+
 ### 2026-06-18 layer log fallback prefix runtime rename
 
 - Finding: the shared Electron layer log sink still used `[Desktop Agent]`

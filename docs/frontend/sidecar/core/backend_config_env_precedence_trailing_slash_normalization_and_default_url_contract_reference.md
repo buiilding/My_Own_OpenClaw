@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for sidecar backend endpoint config: env-var precedence, empty-value fallback behavior, default hosted URL contract, and trailing-slash normalization semantics."
+summary: "Deep reference for sidecar backend endpoint config: injected endpoint ownership, default hosted URL contract, and trailing-slash normalization semantics."
 read_when:
   - When changing `windie/_backend_config.py` or introducing new sidecar/backend endpoint env vars.
   - When debugging sidecar requests targeting the wrong backend URL due to env precedence or slash-normalization drift.
 title: "Backend Config Env-Precedence, Trailing-Slash Normalization, and Default-URL Contract Reference"
 ---
 
-# Backend Config Env-Precedence, Trailing-Slash Normalization, and Default-URL Contract Reference
+# Backend Config Injected-Endpoint, Trailing-Slash Normalization, and Default-URL Contract Reference
 
 ## Canonical Modules
 
@@ -21,26 +21,24 @@ Endpoint resolution logic lives in `windie/_backend_config.py`.
 Constants and function:
 
 - `DEFAULT_BACKEND_HTTP_URL = "https://api.windieos.com"`
-- `get_backend_http_urls() -> list[str]`
 - `get_backend_http_url() -> str`
 
-`get_backend_http_urls()` is the canonical candidate list for sidecar backend-bound clients
-when an explicit URL is not passed. `get_backend_http_url()` returns the first candidate.
+`get_backend_http_url()` is the canonical backend URL for sidecar backend-bound clients
+when an explicit URL is not passed.
 
-## Resolution Precedence Contract
+## Resolution Contract
 
 URL resolution order:
 
 1. `WINDIE_BACKEND_HTTP_URL`
-2. `BACKEND_HTTP_URL`
-3. `DEFAULT_BACKEND_HTTP_URL`
+2. `DEFAULT_BACKEND_HTTP_URL`
 
 Semantics:
 
 - empty strings are ignored
-- trailing slashes are stripped before dedupe
-- duplicate URLs are collapsed while preserving first-seen order
-- if `WINDIE_BACKEND_HTTP_URL=""`, fallback continues to later candidates
+- trailing slashes are stripped
+- Electron main owns `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, host/port, and hosted-default precedence before launching the sidecar
+- the sidecar consumes only the resolved `WINDIE_BACKEND_HTTP_URL` value, or the hosted default when that injected value is missing/blank
 
 ## Normalization Contract
 
@@ -67,18 +65,17 @@ Each consumer applies additional endpoint-specific path suffixes on top of this 
 
 `tests/sidecar/test_backend_config.py` verifies:
 
-- default hosted backend when both env vars missing
-- `WINDIE_BACKEND_HTTP_URL` precedence over `BACKEND_HTTP_URL`
-- fallback to `BACKEND_HTTP_URL` when Windie-specific env is empty
+- default hosted backend when injected env is missing
+- `WINDIE_BACKEND_HTTP_URL` is the only sidecar endpoint override
+- `BACKEND_HTTP_URL` is ignored in the sidecar because Electron main owns endpoint resolution
 - preservation of non-trailing path segments
 - stripping of multiple trailing slashes
-- ordered dedupe across explicit env values and the hosted default
 
 ## Drift Hotspots
 
-1. Reordering env precedence can silently redirect sidecar traffic between intended backends.
-2. Removing empty-string fallback behavior can treat blank env values as valid URLs.
-3. Dropping trailing-slash stripping or dedupe can create duplicate/double-slash retry targets.
+1. Reintroducing `BACKEND_HTTP_URL` parsing in the sidecar duplicates Electron main endpoint ownership.
+2. Treating blank env values as valid URLs can send malformed requests.
+3. Dropping trailing-slash stripping can create double-slash endpoint paths.
 4. Changing default URL without synchronized desktop/runtime defaults can break hosted desktop assumptions.
 
 ## Related Pages

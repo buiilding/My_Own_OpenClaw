@@ -1132,7 +1132,6 @@ class AgentSdkClient(RemoteApiClientBase):
         if not self._session:
             await self.initialize()
 
-        last_network_error: Optional[Exception] = None
         method_name = method.lower().strip()
         normalized_payload = (
             _filter_sdk_http_payload(path, payload)
@@ -1144,50 +1143,35 @@ class AgentSdkClient(RemoteApiClientBase):
             if isinstance(normalized_payload, dict)
             else None
         )
-        for index, backend_url in enumerate(self.backend_urls):
-            try:
-                request_url = f"{backend_url}{path}"
-                request_timeout = self._aiohttp.ClientTimeout(
-                    total=self.timeout_seconds
+        try:
+            request_url = f"{self.backend_url}{path}"
+            request_timeout = self._aiohttp.ClientTimeout(total=self.timeout_seconds)
+            if method_name == "get":
+                request_context = self._session.get(
+                    request_url,
+                    headers=self._build_auth_headers(),
+                    timeout=request_timeout,
                 )
-                if method_name == "get":
-                    request_context = self._session.get(
-                        request_url,
-                        headers=self._build_auth_headers(),
-                        timeout=request_timeout,
-                    )
-                elif method_name == "post":
-                    request_context = self._session.post(
-                        request_url,
-                        json=sanitized_payload,
-                        headers=self._build_auth_headers(),
-                        timeout=request_timeout,
-                    )
-                else:
-                    raise ValueError(f"Unsupported method: {method}")
-                async with request_context as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        if self._should_try_fallback_for_status(
-                            response.status
-                        ) and index + 1 < len(self.backend_urls):
-                            continue
-                        raise Exception(
-                            _build_error_message(response.status, error_text)
-                        )
+            elif method_name == "post":
+                request_context = self._session.post(
+                    request_url,
+                    json=sanitized_payload,
+                    headers=self._build_auth_headers(),
+                    timeout=request_timeout,
+                )
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+            async with request_context as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise Exception(_build_error_message(response.status, error_text))
 
-                    data = await response.json()
-                    if not isinstance(data, dict):
-                        raise Exception("SDK API returned a non-object JSON payload")
-                    self.backend_url = backend_url
-                    return data
-            except self._aiohttp.ClientError as err:
-                last_network_error = err
-                if index + 1 < len(self.backend_urls):
-                    continue
-                raise Exception(f"Failed to connect to sdk service: {err}") from err
-
-        raise Exception(f"Failed to connect to sdk service: {last_network_error}")
+                data = await response.json()
+                if not isinstance(data, dict):
+                    raise Exception("SDK API returned a non-object JSON payload")
+                return data
+        except self._aiohttp.ClientError as err:
+            raise Exception(f"Failed to connect to sdk service: {err}") from err
 
     async def upload_artifact(
         self,
@@ -1199,47 +1183,31 @@ class AgentSdkClient(RemoteApiClientBase):
         if not self._session:
             await self.initialize()
 
-        last_network_error: Optional[Exception] = None
-        for index, backend_url in enumerate(self.backend_urls):
-            try:
-                form = self._aiohttp.FormData()
-                form.add_field(
-                    "file",
-                    content,
-                    filename=filename,
-                    content_type=content_type or "application/octet-stream",
-                )
-                async with self._session.post(
-                    f"{backend_url}/api/artifacts/",
-                    data=form,
-                    headers=self._build_auth_headers(),
-                    timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
-                ) as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        if self._should_try_fallback_for_status(
-                            response.status
-                        ) and index + 1 < len(self.backend_urls):
-                            continue
-                        raise Exception(
-                            f"Artifacts API returned {response.status}: {error_text}"
-                        )
-                    data = await response.json()
-                    if not isinstance(data, dict):
-                        raise Exception(
-                            "Artifacts API returned a non-object JSON payload"
-                        )
-                    self.backend_url = backend_url
-                    return data
-            except self._aiohttp.ClientError as err:
-                last_network_error = err
-                if index + 1 < len(self.backend_urls):
-                    continue
-                raise Exception(
-                    f"Failed to connect to artifacts service: {err}"
-                ) from err
-
-        raise Exception(f"Failed to connect to artifacts service: {last_network_error}")
+        try:
+            form = self._aiohttp.FormData()
+            form.add_field(
+                "file",
+                content,
+                filename=filename,
+                content_type=content_type or "application/octet-stream",
+            )
+            async with self._session.post(
+                f"{self.backend_url}/api/artifacts/",
+                data=form,
+                headers=self._build_auth_headers(),
+                timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise Exception(
+                        f"Artifacts API returned {response.status}: {error_text}"
+                    )
+                data = await response.json()
+                if not isinstance(data, dict):
+                    raise Exception("Artifacts API returned a non-object JSON payload")
+                return data
+        except self._aiohttp.ClientError as err:
+            raise Exception(f"Failed to connect to artifacts service: {err}") from err
 
     def artifact_url(self, artifact_id: str) -> str:
         return f"{self.backend_url.rstrip('/')}/api/artifacts/{quote(artifact_id)}"
@@ -1486,34 +1454,29 @@ class AgentSdkClient(RemoteApiClientBase):
                 "Agent SDK wake_up requires a user_id or default_user_id"
             )
 
-        last_network_error: Optional[Exception] = None
-        backend_urls = (
-            [backend_url.rstrip("/")]
+        candidate_backend_url = (
+            backend_url.rstrip("/")
             if _clean_string(backend_url)
-            else self.backend_urls
+            else self.backend_url
         )
-        for candidate_backend_url in backend_urls:
-            try:
-                websocket = await self._session.ws_connect(
-                    _derive_ws_url(candidate_backend_url),
-                    headers=self._build_auth_headers(),
-                    timeout=self.timeout_seconds,
-                )
-                session = AgentSdkAgentSession(
-                    websocket=websocket,
-                    user_id=effective_user_id.strip(),
-                    operating_system=_detect_operating_system(),
-                    agent_definition=agent_definition,
-                    local_runtime=local_runtime,
-                )
-                await session.initialize()
-                self.backend_url = candidate_backend_url
-                return session
-            except self._aiohttp.ClientError as err:
-                last_network_error = err
-                continue
-
-        raise Exception(f"Failed to connect to agent websocket: {last_network_error}")
+        try:
+            websocket = await self._session.ws_connect(
+                _derive_ws_url(candidate_backend_url),
+                headers=self._build_auth_headers(),
+                timeout=self.timeout_seconds,
+            )
+            session = AgentSdkAgentSession(
+                websocket=websocket,
+                user_id=effective_user_id.strip(),
+                operating_system=_detect_operating_system(),
+                agent_definition=agent_definition,
+                local_runtime=local_runtime,
+            )
+            await session.initialize()
+            self.backend_url = candidate_backend_url
+            return session
+        except self._aiohttp.ClientError as err:
+            raise Exception(f"Failed to connect to agent websocket: {err}") from err
 
     def _needs_local_runtime(
         self,

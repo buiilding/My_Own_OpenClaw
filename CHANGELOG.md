@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sidecar/sdk: remove sidecar-local backend endpoint fallback aliases and
+  multi-endpoint retry loops so Python clients use one resolved endpoint from
+  `WINDIE_BACKEND_HTTP_URL` or the hosted default; no migration is required for
+  persisted data, but sidecar processes no longer read `BACKEND_HTTP_URL` directly.
 - frontend/main: rename the layer log sink fallback prefix from Desktop
   Agent to Desktop Runtime; no migration is required because log file paths,
   environment overrides, caller-supplied app prefixes, console mirroring,
