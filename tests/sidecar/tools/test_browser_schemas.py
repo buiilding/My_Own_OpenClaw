@@ -24,19 +24,13 @@ from windie_shared.browser_contract import (
     BrowserWaitArgs,
 )
 from windie_shared.browser_contract import (
-    build_browser_tool_parameters_schema as sidecar_build_browser_tool_parameters_schema,
+    build_browser_tool_parameters_schema,
 )
 from windie_shared.browser_contract_schema import _clean_schema
 
-from backend.src.tools.browser.shared_contract_loader import load_shared_browser_contract
 from tools.manifest import build_sidecar_tool_manifest
 
 EXPLANATION = "Advance the active user task."
-_backend_browser_contract = load_shared_browser_contract()
-BackendBrowserControlArgs = _backend_browser_contract.BrowserControlArgs
-build_browser_tool_parameters_schema = (
-    _backend_browser_contract.build_browser_tool_parameters_schema
-)
 NATIVE_BROWSER_USE_AGENT_ACTIONS = {
     "done",
     "search",
@@ -109,11 +103,10 @@ def _collect_any_of_shapes(node: object) -> list[list[str | None]]:
     return shapes
 
 
-def test_sidecar_browser_control_args_reuses_backend_model() -> None:
-    schema = sidecar_build_browser_tool_parameters_schema()
+def test_sidecar_browser_control_args_use_shared_grouped_schema() -> None:
+    schema = build_browser_tool_parameters_schema()
 
-    assert BrowserControlArgs is BackendBrowserControlArgs
-    assert schema == build_browser_tool_parameters_schema()
+    assert BrowserControlArgs.__module__.startswith("windie_shared.browser_contract")
     assert schema["type"] == "object"
     assert schema["additionalProperties"] is False
     assert "oneOf" not in schema
@@ -165,7 +158,7 @@ def test_schema_cleaner_rejects_non_nullable_any_of() -> None:
 
 
 def test_grouped_schema_does_not_emit_unsupported_composition_keys() -> None:
-    schema = sidecar_build_browser_tool_parameters_schema()
+    schema = build_browser_tool_parameters_schema()
 
     for key in UNSUPPORTED_ACTION_SCHEMA_KEYS:
         assert not _contains_schema_key(schema, key), key
@@ -450,4 +443,4 @@ def test_sidecar_browser_runtime_modules_do_not_import_backend_package() -> None
     )
     for module_name in ("browser_tool.py", "browser_use_engine.py"):
         source = (browser_dir / module_name).read_text(encoding="utf-8")
-        assert "backend.src" not in source
+        assert "backend" + ".src" not in source

@@ -9,6 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - tests/sidecar: keep the tool-registry exposed-name parity check on the
   generated sidecar manifest instead of importing backend tool catalog Python
   into the sidecar test suite.
+- tests/sidecar: keep browser schema coverage on the shared browser contract
+  module instead of importing the backend shared-contract loader.
 - docs/runtime: align active contract-touchpoint docs with renderer,
   Electron main, SDK local-runtime, Python sidecar, and backend ownership
   instead of stale frontend-owned/frontend-backend boundary wording.

@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Sidecar Browser Schema Shared Contract Boundary
+
+- Worktree was clean after `4395e2e20`, with `main` ahead of `origin/main` by
+  868 commits.
+- Remaining sidecar backend-import scans were inspected after the tool-registry
+  manifest slice.
+- Finding: the sidecar browser schema test imported the backend
+  shared-contract loader to prove the backend-loaded browser model matched the
+  sidecar model, even though both runtimes use the same shared
+  `windie_shared.browser_contract` module and backend loader behavior is
+  covered in backend tests.
+- Change: kept sidecar browser schema coverage on the shared contract module
+  directly and removed the backend package import from the sidecar browser
+  schema suite.
+- Validation: focused sidecar browser schema pytest, targeted sidecar backend
+  import scan, docs listing, and diff check.
+- Compatibility: no migration required. Shared browser schema output, backend
+  loader behavior, generated sidecar manifests, browser tool validation, and
+  runtime execution are unchanged.
+
 ### 2026-06-18 Sidecar Tool Registry Manifest Boundary
 
 - Worktree was clean after `840468789`, with `main` ahead of `origin/main` by

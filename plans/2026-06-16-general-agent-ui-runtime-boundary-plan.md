@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Sidecar Browser Schema Shared Contract Boundary
+
+- Finding: the sidecar browser schema test imported the backend
+  shared-contract loader to prove the backend-loaded browser model matched the
+  sidecar model, even though both runtimes use the same shared
+  `windie_shared.browser_contract` module and backend loader behavior is
+  covered in backend tests.
+- Change: kept sidecar browser schema coverage on the shared contract module
+  directly and removed the backend package import from the sidecar browser
+  schema suite.
+- Validation: focused sidecar browser schema pytest, targeted sidecar backend
+  import scan, docs listing, and diff check.
+- Compatibility: no migration required. Shared browser schema output, backend
+  loader behavior, generated sidecar manifests, browser tool validation, and
+  runtime execution are unchanged.
+
 ### 2026-06-18 Sidecar Tool Registry Manifest Boundary
 
 - Finding: the sidecar tool-registry test imported
