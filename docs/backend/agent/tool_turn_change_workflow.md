@@ -222,7 +222,7 @@ Start docs:
 - The change names the tool-turn stage it owns.
 - Model-facing schema and executable local-runtime payload remain separate.
 - Request IDs and tool-call IDs survive parse, preparation, dispatch, wait, result, and history.
-- Synthetic failures emit frontend-visible events in the same order as real tool calls.
+- Synthetic failures emit client-visible events in the same order as real tool calls.
 - Bundle behavior stays atomic or the contract is explicitly updated.
 - Cancellation reconciles pending tool-call history rows.
 - Producer and consumer tests cover every changed boundary.

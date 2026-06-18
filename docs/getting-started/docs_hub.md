@@ -511,7 +511,7 @@ Likely code:
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/renderer/features/settings/**`
 
-Validate backend config service tests, frontend settings sync tests, and model/settings ACK routing tests.
+Validate backend config service tests, renderer settings sync tests, and model/settings ACK routing tests.
 
 ### Change Packaging, Release, Security, or Hosted Runtime
 

@@ -142,7 +142,7 @@ If registry alignment fails:
 If renderer receives unexpected/untyped settings/model events:
 
 1. verify emitted type matches constants (`settings-loaded`, `settings-updated`, `models-listed`)
-2. verify frontend consumer path listens for non-stream ACK/control message types
+2. verify SDK/renderer consumer paths listen for non-stream ACK/control message types
 
 ## Related Pages
 

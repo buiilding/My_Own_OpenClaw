@@ -35,7 +35,7 @@ Do not treat API work as only a router edit. Most changes move through several l
 - Backend API does not own Electron window behavior, renderer presentation, or Python sidecar local execution.
 - Do not trust renderer-provided user identity on hosted auth paths; use installed auth context where required.
 - Keep route request/response models close to the route package unless there is an established shared schema.
-- Keep outgoing websocket payload changes aligned with formatter specs and frontend consumers.
+- Keep outgoing websocket payload changes aligned with formatter specs and SDK/renderer consumers.
 - Preserve package export compatibility when a route package has tests or clients importing from the package root.
 - Keep sanitized client-facing errors separate from server logs.
 
@@ -79,9 +79,9 @@ When changing an emitted event:
 
 - Update formatter class and formatter spec together.
 - Update outgoing schema contract and event reference docs.
-- Preserve canonical event names used by frontend consumers.
+- Preserve canonical event names used by SDK/renderer consumers.
 - Test typed event input and dict compatibility when both are supported.
-- Add frontend consumer tests when renderer behavior depends on new/changed fields.
+- Add SDK or renderer consumer tests when renderer behavior depends on new/changed fields.
 
 ## Auth and Error Checklist
 
@@ -111,7 +111,7 @@ Before committing API work:
 
 - Did router registration, route models, handler/service logic, auth, and docs all move together?
 - Did tests cover success and realistic failure cases?
-- Did outgoing websocket events preserve frontend-visible names and required fields?
+- Did outgoing websocket events preserve client-visible names and required fields?
 - Did auth changes update gateway/security/client docs?
 - Did package exports remain compatible where existing imports depend on package-level symbols?
 - Did `CHANGELOG.md` mention the API behavior or docs change?

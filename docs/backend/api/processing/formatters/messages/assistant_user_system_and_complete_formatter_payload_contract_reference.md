@@ -105,7 +105,7 @@ No formatter-unit tests in this file currently target user/system full-message f
 
 ## Drift Hotspots
 
-1. Removing assistant required-field guard can surface invalid `assistant-message-full` payloads to frontend consumers.
+1. Removing assistant required-field guard can surface invalid `assistant-message-full` payloads to SDK/renderer consumers.
 2. Dict-event paths for user/system formatters can drift from strict `outgoing.py` payload shapes if upstream validation weakens.
 3. Changing completion payload from `{}` to non-empty shape can break consumers that treat completion as a marker event.
 

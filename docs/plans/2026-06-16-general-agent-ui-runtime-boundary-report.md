@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `e2217374d` (`docs(security): align provider settings ownership wording`)
+- Latest inspected plan checkpoint: `60bb203f1` (`docs(frontend): align renderer config state wording`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -51,8 +51,35 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   stale broad frontend terminology. Renderer config-state docs now describe
   renderer config, desktop UI config persistence, and backend client-settings
   validation while preserving legacy-named config channels and filenames.
+  Backend event-contract docs now describe SDK/renderer/client consumers rather
+  than frontend-specific consumers.
 
 ## Inspection Log
+
+### 2026-06-18 Backend Event Consumer Wording Slice
+
+- Worktree was clean after `60bb203f1` before this slice, with `main` ahead of
+  `origin/main` by 803 commits.
+- Recent commits showed backend stream-consumer and renderer config wording
+  already converging, while backend API route, formatter, message-type, and
+  tool-turn docs still used frontend-specific event consumer and display
+  terminology.
+- Finding: backend event-producing docs still described websocket event
+  consumers, visible event names, error display, and provider/settings
+  validation tests in frontend-specific terms even though the backend owns the
+  producer contract and SDK/renderer/client code consumes it.
+- Change: reworded those docs to SDK/renderer consumers, client-visible event
+  names, renderer display paths, and renderer settings tests.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to include the
+  touched backend API/formatter/message-type/reference docs and guard the stale
+  event-consumer phrases.
+- Validation: focused modular boundary Jest coverage; targeted stale
+  event-consumer wording scan over current docs; docs listing; `git diff
+  --check`.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  websocket event names, outgoing schemas, SDK projections, renderer display,
+  settings payloads, credentials, permissions, provider policy, local-runtime
+  dispatch, and storage are unchanged.
 
 ### 2026-06-18 Renderer/Desktop UI Config State Wording Slice
 

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend event consumer wording boundary
+
+- Finding: backend API route, formatter, message-type, tool-turn, reference,
+  and getting-started docs still described websocket event consumers, visible
+  event names, error display, and provider/settings validation tests with
+  frontend-specific terminology, even though the backend owns producer
+  contracts and SDK/renderer/client code consumes them.
+- Change: reworded those docs to SDK/renderer consumers, client-visible event
+  names, renderer display paths, and renderer settings tests; expanded the
+  modular boundary test to guard the stale frontend event-consumer phrases
+  across the touched docs.
+- Validation: focused modular boundary Jest coverage, targeted stale
+  event-consumer wording scan over current docs, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  websocket event names, outgoing schemas, SDK projections, renderer display,
+  settings payloads, credentials, permissions, provider policy, local-runtime
+  dispatch, and storage are unchanged.
+
 ### 2026-06-18 renderer/desktop UI config state wording boundary
 
 - Finding: current renderer, frontend inventory, preload, MCP, backend config,

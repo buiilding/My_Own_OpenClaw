@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: align API route, formatter, message-type, and tool-turn
+  event-consumer wording with SDK/renderer/client consumers instead of
+  frontend-specific event/display terminology.
 - docs/frontend: align renderer and desktop UI config state guidance with
   renderer config, desktop UI config, and client-settings patch ownership while
   preserving legacy-named config channels and filenames.

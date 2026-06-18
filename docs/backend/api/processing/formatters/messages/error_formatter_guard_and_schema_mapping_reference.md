@@ -2,7 +2,7 @@
 summary: "Deep reference for error formatter contracts: sanitized error payload mapping and schema-safe payload shape expectations."
 read_when:
   - When changing `ErrorEventFormatter` payload mapping or guard logic.
-  - When debugging mismatched error payload fields in frontend consumers.
+  - When debugging mismatched error payload fields in SDK/renderer consumers.
 title: "Error Formatter Guard and Schema-Mapping Reference"
 ---
 
@@ -46,7 +46,7 @@ Schema alignment:
 
 ## Drift Hotspots
 
-1. Reverting error key mapping (`message` vs `content`) breaks `ErrorPayload` contract and frontend display paths.
+1. Reverting error key mapping (`message` vs `content`) breaks `ErrorPayload` contract and renderer display paths.
 2. Bypassing `sanitize_stream_error_message(...)` can leak internal exception details over the websocket.
 
 ## Related Pages
