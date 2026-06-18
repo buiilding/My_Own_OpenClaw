@@ -120,6 +120,41 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python-only local runtime launch targets
+
+- Finding: Electron main still accepted stale packaged `sidecar-bin`,
+  extensionless service-name, and direct `.pyc` launch target shapes even though
+  current desktop and wakeword callers pass concrete `.py` entrypoint names and
+  packaged builds ship `python-runtime/sidecar/*.pyc`.
+- Change: removed the binary/service-name compatibility path, kept local
+  runtime launches on concrete Python entrypoints resolved through bundled
+  Python, narrowed wakeword process-error copy to Python executable failures,
+  and hardened packaged wakeword coverage to use the platform-native bundled
+  Python candidate.
+- Validation: focused runtime path, local runtime launch option, wakeword
+  bridge, wakeword runtime helper, and main host skin Jest coverage; frontend
+  lint; docs listing; diff check; and stale binary-launch residue scan.
+- Compatibility: no migration required. This narrows accepted launch target
+  inputs but does not change IPC, credentials, permissions, storage, event
+  payloads, or packaged runtime file layout.
+
+### 2026-06-18 dashboard resume local-runtime event wording
+
+- Finding: the dashboard memory/resume reference, dashboard shell references,
+  replay workflow diagram, and memory routing docs still said conversation
+  resume/listing loads canonical sidecar `conversation_events`, sidecar event
+  rows, or sidecar transcript storage, while the SDK conversation
+  library/local-runtime event store is the contract.
+- Change: reworded the resume step to canonical local-runtime
+  `conversation_events`, updated dashboard recent-chat sources, the workflow
+  diagram/rules, transcript storage routing, and tightened the transcript docs
+  guard for the retired phrases.
+- Validation: focused modular docs boundary coverage, exact stale phrase scan,
+  docs listing, and scoped diff check.
+- Compatibility: no migration required. This changes docs/tests only; dashboard
+  resume behavior, SDK event rows, local-runtime storage, IPC, and persisted
+  data are unchanged.
+
 ### 2026-06-18 transcript replay local-runtime event wording
 
 - Finding: memory replay docs described canonical replay state as sidecar events,

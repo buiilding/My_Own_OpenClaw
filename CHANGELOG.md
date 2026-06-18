@@ -13,6 +13,11 @@ All notable changes to WindieOS will be documented in this file.
   `python-runtime/sidecar/*.pyc` and production callers already pass `.py`
   entrypoint names.
 
+- docs/frontend/memory: describe dashboard conversation resume, dashboard recent
+  chat sources, replay workflow storage, and transcript-storage routing as
+  canonical local-runtime `conversation_events` instead of canonical sidecar
+  events; no migration is required because this changes docs and boundary guards
+  only.
 - docs/memory: describe transcript replay and conversation identity storage as
   SDK local-runtime event-log ownership instead of canonical sidecar events; no
   migration is required because this changes docs and boundary guards only,

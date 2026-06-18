@@ -26,7 +26,6 @@ jest.mock('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs', () 
 }));
 
 describe('wakeword_bridge', () => {
-  const originalPlatform = process.platform;
   let spawn;
   let ipcMain;
   let handlers;
@@ -440,10 +439,9 @@ describe('wakeword_bridge', () => {
   test('packaged mode disables wakeword runtime model downloads', () => {
     const originalResourcesPath = process.resourcesPath;
     process.resourcesPath = '/opt/WindieOS/resources';
-    Object.defineProperty(process, 'platform', {
-      value: 'linux',
-      configurable: true,
-    });
+    const runtimePython = process.platform === 'win32'
+      ? '/opt/WindieOS/resources/python-runtime/python.exe'
+      : '/opt/WindieOS/resources/python-runtime/bin/python3';
 
     try {
       initBridge({
@@ -452,7 +450,7 @@ describe('wakeword_bridge', () => {
           const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
           return (
             normalizedCandidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
-            || normalizedCandidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
+            || normalizedCandidate === runtimePython
           );
         },
       });
@@ -463,17 +461,18 @@ describe('wakeword_bridge', () => {
         WINDIE_PACKAGED_APP: '1',
         WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
         PYTHONDONTWRITEBYTECODE: '1',
-        PYTHONNOUSERSITE: '1',
       }));
-      expect(String(spawnOptions.env.PYTHONHOME).replace(/\\/g, '/'))
-        .toMatch(/\/opt\/WindieOS\/resources\/python-runtime$/);
+      if (process.platform === 'win32') {
+        expect(spawnOptions.env.PYTHONHOME).toBeUndefined();
+        expect(spawnOptions.env.PYTHONNOUSERSITE).toBeUndefined();
+      } else {
+        expect(String(spawnOptions.env.PYTHONHOME).replace(/\\/g, '/'))
+          .toMatch(/\/opt\/WindieOS\/resources\/python-runtime$/);
+        expect(spawnOptions.env.PYTHONNOUSERSITE).toBe('1');
+      }
       expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
     } finally {
       process.resourcesPath = originalResourcesPath;
-      Object.defineProperty(process, 'platform', {
-        value: originalPlatform,
-        configurable: true,
-      });
     }
   });
 
