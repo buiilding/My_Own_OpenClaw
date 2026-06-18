@@ -1,6 +1,7 @@
 """Tests for LLMProvider base class."""
 
 import asyncio
+import contextvars
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -756,6 +757,30 @@ class TestStreamUsageDiagnostics:
         assert a_stream_usage == {"prompt_tokens": 1, "total_tokens": 11}
         assert a_usage == {"prompt_tokens": 1, "total_tokens": 11}
         assert a_payload == {"content": "alpha"}
+
+    def test_request_local_usage_and_payload_do_not_fall_back_to_shared_state(
+        self, provider
+    ):
+        provider._record_stream_usage_from_chunk(
+            {"usage": {"prompt_tokens": 5, "total_tokens": 8}}
+        )
+        provider._set_last_stream_response_payload({"content": "isolated"})
+
+        assert provider.get_last_stream_usage() == {
+            "prompt_tokens": 5,
+            "total_tokens": 8,
+        }
+        assert provider.get_last_usage() == {"prompt_tokens": 5, "total_tokens": 8}
+        assert provider.get_last_stream_response_payload() == {"content": "isolated"}
+
+        clean_context = contextvars.Context()
+
+        assert clean_context.run(provider.get_last_stream_usage) is None
+        assert clean_context.run(provider.get_last_usage) is None
+        assert clean_context.run(provider.get_last_stream_response_payload) is None
+        diagnostics = clean_context.run(provider.get_stream_cache_diagnostics, "model")
+        assert diagnostics["status"] == "unknown"
+        assert diagnostics["reason"] == "provider_usage_unavailable"
 
 
 class TestCompletionContentHelpers:
