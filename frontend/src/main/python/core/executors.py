@@ -1,5 +1,5 @@
 """
-Bounded executor management for sidecar blocking workloads.
+Bounded executor management for local-runtime blocking workloads.
 
 Two pools are maintained:
 - interactive: latency-sensitive tool/system-state offloads

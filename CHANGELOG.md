@@ -81,6 +81,9 @@ All notable changes to WindieOS will be documented in this file.
   wording.
 - sidecar/runtime: describe the shared Python user-data path helper with
   local-runtime storage ownership instead of sidecar-owned storage wording.
+- sidecar/runtime: describe shared Python stdout, env flag, executor, and
+  memory helper docs with local-runtime ownership instead of broad sidecar
+  service wording.
 - sdk/local-runtime: treat daemon discovery launch contexts as compatibility
   supersets so generic Agent SDK and WindieOS launch keys do not force local
   runtime restart loops.

@@ -1,4 +1,4 @@
-"""Shared episodic embedding policy for sidecar memory writes and startup backfill."""
+"""Shared episodic embedding policy for local-runtime memory writes and startup backfill."""
 
 from __future__ import annotations
 

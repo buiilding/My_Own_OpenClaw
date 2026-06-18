@@ -1,5 +1,5 @@
 """
-Shared JSON line writer for sidecar stdout protocols.
+Shared JSON line writer for local-runtime stdout protocols.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ def write_json_line(payload: Any) -> None:
     """
     Serialize a payload as one UTF-8 JSON line and flush stdout.
 
-    This keeps sidecar protocol writes consistent across JSON-RPC and
+    This keeps local-runtime protocol writes consistent across JSON-RPC and
     lightweight line-based services.
     """
     sanitized_payload = sanitize_surrogates(payload)

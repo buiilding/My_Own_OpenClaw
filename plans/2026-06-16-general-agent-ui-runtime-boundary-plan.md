@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python Local-Runtime Helper Wording Boundary
+
+- Finding: shared Python stdout JSON, executor, env-flag, memory operation, and
+  episodic embedding-policy helpers still described themselves as sidecar
+  services/processes even though they now serve the generic local-runtime helper
+  layer.
+- Change: updated the helper docstrings and adjacent Python runtime layout note
+  to local-runtime ownership wording, and added focused source guards in the
+  existing sidecar test suite so the retired broad sidecar labels do not drift
+  back into those helper docs.
+- Validation: focused sidecar pytest coverage, Python bytecode compilation,
+  docs listing, targeted source scan, and diff-check validation.
+- Compatibility: no migration required. Runtime behavior, JSON line output,
+  executor sizing/env aliases, memory normalization, embedding backfill, IPC,
+  storage, tool schemas, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Chat Runtime Type Boundary
 
 - Finding: frontend typecheck was blocked in renderer chat/artifact adapters by

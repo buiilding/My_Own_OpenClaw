@@ -5,6 +5,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
+import memory.operations as memory_operations_module  # noqa: E402
 from memory.operations import (  # noqa: E402
     build_semanticization_metadata,
     build_completed_turn_memory_metadata,
@@ -20,6 +21,11 @@ from memory.operations import (  # noqa: E402
     normalize_store_memory_by_embedding_payload,
     store_memory_by_embedding,
 )
+
+
+def test_memory_operations_module_doc_uses_local_runtime_wording():
+    assert "local-runtime services" in (memory_operations_module.__doc__ or "")
+    assert "sidecar services" not in (memory_operations_module.__doc__ or "")
 
 
 @pytest.mark.parametrize(

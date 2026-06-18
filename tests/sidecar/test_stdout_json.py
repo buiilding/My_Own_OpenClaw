@@ -9,6 +9,11 @@ ensure_frontend_python_path()
 from core import stdout_json as stdout_json_module  # noqa: E402
 
 
+def test_stdout_json_module_doc_uses_local_runtime_wording():
+    assert "local-runtime stdout protocols" in (stdout_json_module.__doc__ or "")
+    assert "sidecar stdout protocols" not in (stdout_json_module.__doc__ or "")
+
+
 def _install_dummy_stdout(monkeypatch, *, write_error: Exception | None = None):
     class DummyBuffer:
         def __init__(self):

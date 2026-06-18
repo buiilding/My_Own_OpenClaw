@@ -9,6 +9,11 @@ import core.executors as executors  # noqa: E402
 import pytest
 
 
+def test_executor_module_doc_uses_local_runtime_wording():
+    assert "local-runtime blocking workloads" in (executors.__doc__ or "")
+    assert "sidecar blocking workloads" not in (executors.__doc__ or "")
+
+
 @pytest.fixture(autouse=True)
 def reset_executors():
     executors.shutdown_all_executors(wait=True)

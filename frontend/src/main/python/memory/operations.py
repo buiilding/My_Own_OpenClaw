@@ -1,5 +1,5 @@
 """
-Shared memory request/response helpers for sidecar services.
+Shared memory request/response helpers for local-runtime services.
 """
 
 from __future__ import annotations

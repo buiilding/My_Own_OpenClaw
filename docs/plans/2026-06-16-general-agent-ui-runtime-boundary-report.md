@@ -173,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Python Local-Runtime Helper Wording Boundary
+
+- Worktree was clean after `52722910f`, with `main` ahead of `origin/main` by
+  49 commits.
+- Remaining Python helper wording scans were inspected after the shared
+  user-data helper wording slice.
+- Finding: shared stdout JSON, executor, env-flag, memory operation, and
+  episodic embedding-policy helpers still described their generic helper scope
+  as sidecar service/process ownership.
+- Change: updated those helper docstrings and the adjacent Python runtime layout
+  note to local-runtime ownership wording, then added focused source guards in
+  nearby sidecar tests.
+- Validation: focused sidecar pytest coverage, bytecode compilation, docs
+  listing, targeted source scan, and diff check.
+- Compatibility: no migration required. JSON stdout payloads, executor env
+  aliases, memory payload normalization, embedding backfill queries, IPC,
+  storage, tool schemas, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Main Layer Log Env Skin Boundary
 
 - Worktree was clean after `3ce9249c0`, with `main` ahead of `origin/main` by

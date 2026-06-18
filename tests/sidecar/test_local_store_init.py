@@ -9,8 +9,14 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 import memory.local_store as local_store_module  # noqa: E402
+import memory.transcript_embedding_policy as embedding_policy_module  # noqa: E402
 from memory.local_store import LocalMemoryStore  # noqa: E402
 from memory.transcript_embedding_policy import should_embed_episodic_entry  # noqa: E402
+
+
+def test_transcript_embedding_policy_doc_uses_local_runtime_wording():
+    assert "local-runtime memory writes" in (embedding_policy_module.__doc__ or "")
+    assert "sidecar memory writes" not in (embedding_policy_module.__doc__ or "")
 
 
 def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):

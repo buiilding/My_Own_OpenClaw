@@ -1,4 +1,4 @@
-"""Environment flag parsing helpers shared across sidecar processes."""
+"""Environment flag parsing helpers shared across local-runtime processes."""
 
 from __future__ import annotations
 
