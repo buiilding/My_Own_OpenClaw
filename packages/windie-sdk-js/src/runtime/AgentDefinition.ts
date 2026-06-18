@@ -5,6 +5,9 @@
 import type { JsonRecord } from '../conversation/types.js';
 import { stampAgentDefinitionCapabilityMetadata } from './CapabilityManifest.js';
 
+const DEFAULT_AGENT_DEFINITION_MODE = 'default';
+const LEGACY_DEFAULT_AGENT_DEFINITION_MODE = 'windie_default';
+
 export type BuildAgentDefinitionOptions = {
   id?: unknown;
   name?: unknown;
@@ -145,7 +148,7 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
       || clientManifestHasTools(clientToolManifest)
     )
       ? 'default_plus_overrides'
-      : 'windie_default',
+      : DEFAULT_AGENT_DEFINITION_MODE,
     system_prompt: systemPromptContent
       ? { mode: 'replace', content: systemPromptContent }
       : { mode: 'default' },
@@ -165,5 +168,8 @@ export function buildAgentDefinition(options: BuildAgentDefinitionOptions = {}):
 }
 
 export function isDefaultAgentDefinition(definition: unknown): boolean {
-  return isJsonRecord(definition) && definition.mode === 'windie_default';
+  return isJsonRecord(definition) && (
+    definition.mode === DEFAULT_AGENT_DEFINITION_MODE
+    || definition.mode === LEGACY_DEFAULT_AGENT_DEFINITION_MODE
+  );
 }

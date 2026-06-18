@@ -162,7 +162,7 @@ class AgentDefinition(BaseModel):
     version: int = Field(default=1, ge=1, le=1)
     id: Optional[str] = Field(None, min_length=1, max_length=128)
     name: Optional[str] = Field(None, max_length=128)
-    mode: Literal["windie_default", "default_plus_overrides", "custom"] = (
+    mode: Literal["default", "default_plus_overrides", "custom"] = (
         "default_plus_overrides"
     )
     system_prompt: AgentSystemPromptDefinition = Field(
@@ -180,6 +180,13 @@ class AgentDefinition(BaseModel):
     @classmethod
     def validate_optional_strings(cls, value: Optional[str]) -> Optional[str]:
         return _normalize_optional_string(value)
+
+    @field_validator("mode", mode="before")
+    @classmethod
+    def normalize_mode(cls, value: Any) -> Any:
+        if value == "windie_default":
+            return "default"
+        return value
 
     def system_prompt_override(self) -> Optional[str]:
         return self.system_prompt.replacement_content()

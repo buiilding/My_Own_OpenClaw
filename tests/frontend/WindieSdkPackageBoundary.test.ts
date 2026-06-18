@@ -77,7 +77,7 @@ describe('@windie/sdk package boundary', () => {
     expect(AgentSession).toBeDefined();
     expect(AgentChatSession).toBeDefined();
     expect(createAgentLocalRuntimeProvider).toBeDefined();
-    expect(isDefaultAgentDefinition({ mode: 'windie_default' })).toBe(true);
+    expect(isDefaultAgentDefinition({ mode: 'default' })).toBe(true);
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveModelFacingToolCallId).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();

@@ -30,9 +30,10 @@ conversation defaults when callers omit those values.
 If `agent_definition` is omitted, the backend uses the default WindieOS agent:
 the default backend prompt, built-in tools, backend policy, and normal provider
 projection.
-The backend wire value for that generated default remains the `windie_default`
-mode for compatibility; SDK and host code should use
-`isDefaultAgentDefinition(...)` instead of checking the literal directly.
+The backend wire value for that generated default is the generic `default` mode.
+The backend still accepts the legacy `windie_default` input value and normalizes
+it to `default`; SDK and host code should use `isDefaultAgentDefinition(...)`
+instead of checking either literal directly.
 
 ## Websocket Handshake
 

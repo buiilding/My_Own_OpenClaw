@@ -263,9 +263,13 @@ describe('Agent SDK client behavior', () => {
     expect(definition).toMatchObject({
       id: 'agent-default',
       name: 'Desktop Agent',
-      mode: 'windie_default',
+      mode: 'default',
     });
     expect(isDefaultAgentDefinition(definition)).toBe(true);
+    expect(isDefaultAgentDefinition({
+      ...definition,
+      mode: 'windie_default',
+    })).toBe(true);
     expect(isDefaultAgentDefinition({
       ...definition,
       mode: 'default_plus_overrides',

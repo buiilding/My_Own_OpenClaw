@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildAgentDefinition = buildAgentDefinition;
 exports.isDefaultAgentDefinition = isDefaultAgentDefinition;
 const CapabilityManifest_js_1 = require("./CapabilityManifest.js");
+const DEFAULT_AGENT_DEFINITION_MODE = 'default';
+const LEGACY_DEFAULT_AGENT_DEFINITION_MODE = 'windie_default';
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
@@ -115,7 +117,7 @@ function buildAgentDefinition(options = {}) {
             || workspacePath
             || clientManifestHasTools(clientToolManifest))
             ? 'default_plus_overrides'
-            : 'windie_default',
+            : DEFAULT_AGENT_DEFINITION_MODE,
         system_prompt: systemPromptContent
             ? { mode: 'replace', content: systemPromptContent }
             : { mode: 'default' },
@@ -133,5 +135,6 @@ function buildAgentDefinition(options = {}) {
     return JSON.parse(JSON.stringify(definition));
 }
 function isDefaultAgentDefinition(definition) {
-    return isJsonRecord(definition) && definition.mode === 'windie_default';
+    return isJsonRecord(definition) && (definition.mode === DEFAULT_AGENT_DEFINITION_MODE
+        || definition.mode === LEGACY_DEFAULT_AGENT_DEFINITION_MODE);
 }
