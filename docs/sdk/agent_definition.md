@@ -1,5 +1,5 @@
 ---
-summary: "First-class agent definition contract and SDK `buildAgentDefinition` builder for clients that initialize WindieOS agents without the Electron frontend, including capability metadata stamping, Electron `electron_agent_definition_inputs.cjs` handoff, the current replacement for the old planned post-handshake `frontend-tool-schemas` flow, and the removed top-level `client_tool_manifest` handshake fallback."
+summary: "First-class agent definition contract and SDK `buildAgentDefinition` builder for clients that initialize WindieOS agents without the Electron desktop app, including capability metadata stamping, Electron `electron_agent_definition_inputs.cjs` handoff, the current replacement for the old planned post-handshake `frontend-tool-schemas` flow, and the removed top-level `client_tool_manifest` handshake fallback."
 read_when:
   - When building a custom WindieOS UI, TUI, CLI, or hosted client.
   - When changing websocket handshake, prompt layers, client tool manifests, skills, AGENTS.md forwarding, or plugin metadata.

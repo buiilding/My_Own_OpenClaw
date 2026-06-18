@@ -1,7 +1,7 @@
 ---
-summary: "Conceptual runtime model for WindieOS across hosted backend, Electron frontend, renderer, preload, and Python sidecar."
+summary: "Conceptual runtime model for WindieOS across hosted backend, Electron main, renderer, preload, and Python sidecar."
 read_when:
-  - When explaining how WindieOS is split across backend, frontend, and sidecar.
+  - When explaining how WindieOS is split across backend, desktop host, renderer, and sidecar.
   - When deciding which runtime owns a feature before touching code.
 title: "Runtime Model"
 ---
@@ -28,7 +28,7 @@ local to the user's computer.
 - Backend owns the model-facing contract.
 - Sidecar owns local execution.
 - Renderer owns UI state and display projections; Electron main hosts SDK runtime adapters and desktop process control.
-- Frontend and sidecar must not import backend code to keep schema parity. Use generated/shared contracts and tests instead.
+- Desktop host, renderer, and sidecar must not import backend code to keep schema parity. Use generated/shared contracts and tests instead.
 - Provider and capability health should narrow what the model sees before prompting, not after a failing tool call.
 
 ## Request Shape

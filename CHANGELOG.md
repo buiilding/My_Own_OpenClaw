@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/concepts/sdk: align runtime-model, installation, SDK agent-definition,
+  and mobile-planning docs with Electron desktop app/main, renderer, and SDK
+  local-runtime ownership wording.
 - docs/getting-started: split first-read runtime boundary bullets into hosted
   backend, Electron main desktop host, renderer UI, and Python sidecar owners.
 - docs/sidecar: rename visible sidecar hub and link labels from frontend

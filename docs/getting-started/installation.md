@@ -56,7 +56,7 @@ conda create -n jarvis python=3.11
 conda activate jarvis
 ```
 
-If you plan to run the Electron frontend (which spawns the Python sidecar) and want a separate env:
+If you plan to run the Electron desktop app (whose main process starts the Python sidecar) and want a separate env:
 
 ```bash
 conda create -n frontend_jarvis python=3.11

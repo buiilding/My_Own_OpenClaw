@@ -102,7 +102,7 @@ Implementation steps:
 2. Refactor Electron-only call sites to go through interfaces:
    - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
    - `frontend/src/renderer/infrastructure/api/client.ts`
-   - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
+   - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
    - `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
    - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 3. Keep existing desktop behavior by implementing a `DesktopRuntime` adapter that wraps current IPC channels.

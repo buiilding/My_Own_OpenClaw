@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 orientation docs desktop-host wording
+
+- Finding: concept, installation, SDK agent-definition, and mobile planning
+  docs still used broad Electron frontend wording for the desktop app boundary,
+  backend parity boundary, or SDK client independence, and the mobile plan still
+  referenced the removed renderer `ToolExecutionService` path.
+- Change: reworded those docs to Electron desktop app, Electron main host,
+  renderer, desktop host/renderer/sidecar parity, and SDK tool coordinator
+  ownership; expanded the modular boundary guard for the retired phrases.
+- Validation: focused modular boundary Jest, docs listing, targeted stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  SDK agent definitions, Electron main inputs, renderer UI, sidecar execution,
+  tool dispatch, IPC channels, credentials, permissions, provider policy, and
+  storage are unchanged.
+
 ### 2026-06-18 first-read runtime boundary wording
 
 - Finding: the documentation hub still described a three-boundary model where

@@ -65,9 +65,32 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime sidecar label while preserving existing
   `docs/frontend/sidecar/...` file paths. The first-read documentation hub now
   separates hosted backend, Electron main desktop host, renderer UI, and Python
-  sidecar ownership.
+  sidecar ownership. Concept, installation, SDK agent-definition, and mobile
+  planning docs now use Electron desktop app/main, renderer, and SDK
+  local-runtime ownership wording instead of broad Electron frontend labels.
 
 ## Inspection Log
+
+### 2026-06-18 Orientation Docs Desktop-Host Wording Slice
+
+- Worktree was clean after `9254ea3e5` before this slice, with `main` ahead of
+  `origin/main` by 808 commits.
+- Recent commits showed first-read runtime owners split, while concepts,
+  installation, SDK agent-definition, and mobile planning docs still used broad
+  Electron frontend wording for the desktop app boundary, backend parity
+  boundary, or SDK client independence.
+- Finding: those docs blurred Electron main host, renderer, and SDK/local
+  runtime responsibilities, and the mobile plan still referenced the removed
+  renderer `ToolExecutionService` path.
+- Change: reworded those docs to Electron desktop app, Electron main host,
+  renderer, desktop host/renderer/sidecar parity, and SDK tool coordinator
+  ownership; expanded the modular boundary guard for the retired phrases.
+- Validation: focused modular boundary Jest, docs listing, targeted stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  SDK agent definitions, Electron main inputs, renderer UI, sidecar execution,
+  tool dispatch, IPC channels, credentials, permissions, provider policy, and
+  storage are unchanged.
 
 ### 2026-06-18 First-Read Runtime Boundary Wording Slice
 
