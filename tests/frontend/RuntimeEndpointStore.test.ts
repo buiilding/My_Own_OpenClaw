@@ -42,18 +42,17 @@ describe('RuntimeEndpointStore', () => {
   test('runtime endpoint client syncs generic runtime snapshot URL', () => {
     DesktopRuntimeEndpointClient.syncFromConnectionSnapshot({
       runtimeHttpUrl: 'http://10.0.0.42:9001/runtime/',
-      backendHttpUrl: 'http://legacy.example:9001',
     });
 
     expect(buildRuntimeArtifactUrl('art-2')).toBe('http://10.0.0.42:9001/runtime/api/artifacts/art-2');
   });
 
-  test('runtime endpoint client preserves backend snapshot compatibility', () => {
+  test('runtime endpoint client ignores backend-shaped snapshot fields', () => {
     DesktopRuntimeEndpointClient.syncFromConnectionSnapshot({
       backendHttpUrl: 'http://10.0.0.43:9001',
     });
 
-    expect(buildRuntimeArtifactUrl('art-2')).toBe('http://10.0.0.43:9001/api/artifacts/art-2');
+    expect(buildRuntimeArtifactUrl('art-2')).toBe('http://127.0.0.1:8765/api/artifacts/art-2');
   });
 
 });

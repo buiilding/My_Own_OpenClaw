@@ -206,8 +206,8 @@ describe('useChatMessageSender', () => {
           conversationRef: null,
           userId: null,
           isConnected: true,
-          backendWsUrl: 'ws://127.0.0.1:8765/ws',
-          backendHttpUrl: 'http://127.0.0.1:8765',
+          runtimeWsUrl: 'ws://127.0.0.1:8765/ws',
+          runtimeHttpUrl: 'http://127.0.0.1:8765',
         });
       }
       return Promise.resolve({ success: true });

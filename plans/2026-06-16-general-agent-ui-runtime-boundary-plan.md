@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main/Renderer Runtime Endpoint Snapshot Boundary
+
+- Finding: main-to-renderer connection snapshots still exposed endpoint fields
+  as `backendHttpUrl`/`backendWsUrl`, and the renderer endpoint client kept a
+  backend-shaped fallback parser after the generic `runtimeHttpUrl` path was in
+  place.
+- Change: `ipc-status`, `get-client-user-id`, and the main connection-state
+  helper now publish `runtimeHttpUrl`/`runtimeWsUrl`, and the renderer endpoint
+  client accepts only the generic runtime field.
+- Validation: focused IPC lifecycle, app config, runtime endpoint, and chat
+  sender tests plus syntax checks, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Backend endpoint resolution, websocket
+  connection behavior, artifact routes, transcription gateway URL construction,
+  stored renderer config, credentials, permissions, and provider policy are
+  unchanged.
+
 ### 2026-06-18 SDK/Main Trusted Screenshot Materialization Boundary
 
 - Finding: Electron main owned both the trusted temp screenshot path boundary
@@ -7892,9 +7908,9 @@ Each completed slice should report:
 - Validation: focused runtime endpoint, app config, voice boundary, screenshot,
   docs listing, `git diff --check`, and source scans confirming active
   renderer consumers use the runtime endpoint store.
-- Compatibility: no migration required. Endpoint state is still in memory, the
-  IPC payload still carries `backendHttpUrl`, and old backend-named imports
-  continue to resolve through the wrapper.
+- Compatibility: no migration required. Endpoint state is still in memory. The
+  later 2026-06-18 runtime endpoint snapshot boundary replaced renderer-facing
+  `backendHttpUrl` IPC payload fields with `runtimeHttpUrl`.
 
 ### 2026-06-17 renderer settings facade IPC wording
 
@@ -8936,16 +8952,14 @@ Each completed slice should report:
   generic renderer provider instead of the app-runtime adapter.
 - Change: moved endpoint extraction into `DesktopRuntimeEndpointClient` via
   `syncFromConnectionSnapshot(...)`, added generic `runtimeHttpUrl` support,
-  preserved legacy `backendHttpUrl` compatibility, and updated provider tests
-  plus endpoint-store coverage for both snapshot shapes.
+  and updated provider tests plus endpoint-store coverage for snapshot routing.
 - Validation: focused AppConfigProvider and RuntimeEndpointStore Jest coverage,
   frontend typecheck, docs listing, source scans, and `git diff --check`.
-- Compatibility: no migration required. Existing main-process IPC status
-  snapshots that emit `backendHttpUrl` continue to update renderer artifact and
-  transcription endpoint URLs; generic hosts may emit `runtimeHttpUrl`. No
-  storage, credential, permission, IPC channel, artifact URL shape, transcript
-  session, local-runtime launch, hosted backend URL, or provider-policy
-  contract changes.
+- Compatibility: no migration required. The later 2026-06-18 main/renderer
+  runtime endpoint snapshot boundary removes backend-shaped endpoint fallback
+  parsing from the renderer endpoint client. No storage, credential, permission,
+  IPC channel, artifact URL shape, transcript session, local-runtime launch,
+  hosted backend URL, or provider-policy contract changes.
 
 ### 2026-06-18 Python local-runtime user-data helper wording boundary
 

@@ -50,8 +50,8 @@ Primary test sources:
 
 - `isConnected`
 - `userId`
-- `backendWsUrl`
-- `backendHttpUrl`
+- `runtimeWsUrl`
+- `runtimeHttpUrl`
 
 Lifecycle:
 

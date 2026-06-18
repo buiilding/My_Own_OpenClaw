@@ -263,13 +263,13 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   });
 
   test('syncs runtime endpoint snapshot when get-client-user-id includes endpoint metadata', async () => {
-    setClientUserIdResponse({ backendHttpUrl: 'http://10.0.0.42:9001' });
+    setClientUserIdResponse({ runtimeHttpUrl: 'http://10.0.0.42:9001' });
 
     renderAppConfigContext();
     await flushAsyncEffects();
 
     expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith({
-      backendHttpUrl: 'http://10.0.0.42:9001',
+      runtimeHttpUrl: 'http://10.0.0.42:9001',
     });
     expect(mockSetRuntimeEndpointHttpUrl).not.toHaveBeenCalled();
   });

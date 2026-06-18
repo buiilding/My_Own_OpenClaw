@@ -1286,8 +1286,8 @@ function buildIpcStatusPayload(connected) {
   return {
     isConnected: connected,
     userId: currentUserId,
-    backendWsUrl: backendEndpointState.getWsUrl(),
-    backendHttpUrl: backendEndpointState.getHttpUrl(),
+    runtimeWsUrl: backendEndpointState.getWsUrl(),
+    runtimeHttpUrl: backendEndpointState.getHttpUrl(),
     globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }
@@ -1684,8 +1684,8 @@ function initializeIpc(win, options = {}) {
       serverUserId: currentServerUserId,
       sessionId: currentSessionId,
       isConnected,
-      backendWsUrl: backendEndpointState.getWsUrl(),
-      backendHttpUrl: backendEndpointState.getHttpUrl(),
+      runtimeWsUrl: backendEndpointState.getWsUrl(),
+      runtimeHttpUrl: backendEndpointState.getHttpUrl(),
       globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
     };
   });
@@ -2077,8 +2077,8 @@ function getBackendConnectionState() {
     sessionId: currentSessionId,
     serverUserId: currentServerUserId,
     conversationRef: currentConversationRef,
-    backendWsUrl: backendEndpointState.getWsUrl(),
-    backendHttpUrl: backendEndpointState.getHttpUrl(),
+    runtimeWsUrl: backendEndpointState.getWsUrl(),
+    runtimeHttpUrl: backendEndpointState.getHttpUrl(),
     globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }

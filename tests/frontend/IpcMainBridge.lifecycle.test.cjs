@@ -79,11 +79,11 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     return null;
   }
 
-  async function expectClientEndpoints(handlers, backendWsUrl, backendHttpUrl) {
+  async function expectClientEndpoints(handlers, runtimeWsUrl, runtimeHttpUrl) {
     const clientInfo = await handlers['get-client-user-id']();
     expect(clientInfo).toEqual(expect.objectContaining({
-      backendWsUrl,
-      backendHttpUrl,
+      runtimeWsUrl,
+      runtimeHttpUrl,
     }));
   }
 
