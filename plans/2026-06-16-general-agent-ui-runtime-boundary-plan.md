@@ -9262,3 +9262,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Embedding API calls, vector payloads,
   memory storage/search behavior, JSON-RPC method names, IPC channels, hosted
   backend URLs, credentials, permissions, and provider policy are unchanged.
+
+### 2026-06-18 Python memory record-kind wording boundary
+
+- Finding: the shared Python memory record-kind/source constants module still
+  described those constants as sidecar memory metadata even though they belong
+  to the reusable local-runtime memory storage contract.
+- Change: reworded the module docstring to local-runtime memory ownership and
+  added a focused memory source-copy guard.
+- Validation: focused memory operations source guard, Python compile checks,
+  stale sidecar memory record-kind scan, and diff checks.
+- Compatibility: no migration required. Record-kind values, memory source
+  values, SQLite/FAISS storage, JSON-RPC methods, IPC channels, hosted backend
+  URLs, credentials, permissions, and provider policy are unchanged.
