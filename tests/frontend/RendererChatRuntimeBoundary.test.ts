@@ -628,6 +628,30 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_CHATBOX');
   });
 
+  test('message artifact image UI routes desktop IPC through app runtime client', async () => {
+    const resolverSource = await fs.readFile(
+      path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
+      'utf8',
+    );
+    const userMessageSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/content/UserMessage.jsx'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(resolverSource).not.toContain('FETCH_ARTIFACT_IMAGE');
+    expect(resolverSource).not.toContain('IpcBridge.invoke');
+    expect(resolverSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
+    expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
+    expect(userMessageSource).not.toContain('IpcBridge.invoke');
+    expect(userMessageSource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
+    expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

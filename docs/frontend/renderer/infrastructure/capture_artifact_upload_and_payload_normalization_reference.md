@@ -13,6 +13,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+- `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
@@ -132,6 +133,10 @@ Current ownership:
 - Renderer chat presentation consumes projected SDK/backend events; it does not
   construct model-facing result payloads or upload screenshot artifacts before
   dispatch.
+- Renderer app runtime owns authenticated artifact image fetch and native image
+  context-menu IPC calls through `desktopArtifactRuntimeClient.ts`; message
+  presentation and screenshot resolution call that adapter instead of importing
+  artifact IPC channel constants directly.
 
 ## Removed ToolExecutionPayloads Route
 

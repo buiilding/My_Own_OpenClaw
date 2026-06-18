@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route message artifact image fetches and image context menu
+  actions through a renderer app runtime artifact client instead of importing
+  artifact IPC channels from message presentation code.
 - renderer/runtime: route chat send-surface chatbox restore through a renderer
   app runtime window client instead of invoking the window IPC channel directly
   from message-send preparation.

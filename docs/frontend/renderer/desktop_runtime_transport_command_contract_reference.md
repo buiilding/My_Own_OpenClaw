@@ -16,6 +16,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
@@ -86,6 +87,13 @@ instead of importing desktop IPC channel constants directly.
 commands used by generic chat runtime flows, such as restoring the chatbox after
 overlay-origin sends. Chat send preparation applies the UI policy and calls this
 runtime client instead of importing window IPC channel constants directly.
+
+`desktopArtifactRuntimeClient.ts` owns renderer adapter calls for desktop
+artifact image commands used by generic message presentation, including
+authenticated artifact image fetches and native image context-menu actions.
+Message screenshot resolution and user screenshot presentation keep only display
+policy and call this runtime client instead of importing artifact IPC channel
+constants directly.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

@@ -46,7 +46,7 @@ flowchart LR
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `WindieSdkContextEnrichment.test.ts` |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
 | Replayed message loses images | Message screenshot resolver and transcript replay | `messageScreenshots.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `MessageScreenshots.test.js`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
-| Artifact image fails once and never recovers | IPC-backed artifact screenshot cache | `useResolvedMessageScreenshots.js` | `MessageContent.test.jsx` retry-after-failure coverage |
+| Artifact image fails once and never recovers | App-runtime-backed artifact screenshot cache | `desktopArtifactRuntimeClient.ts`, `useResolvedMessageScreenshots.js` | `MessageContent.test.jsx` retry-after-failure coverage |
 | Copy image to clipboard fails | Electron clipboard image IPC | `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcClipboardImageHandler.test.cjs` |
 
 Clipboard image IPC trust boundary:

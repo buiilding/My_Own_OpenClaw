@@ -146,8 +146,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer message-send preparation now routes send-surface chatbox restore
   through a renderer app runtime window client instead of invoking the window
   IPC channel directly.
+  Renderer message screenshot resolution and user screenshot presentation now
+  route artifact image fetch and native image context-menu calls through a
+  renderer app runtime artifact client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Artifact Image Runtime Client Slice
+
+- Worktree was clean after `adb1770ed`, with `main` ahead of `origin/main` by
+  841 commits.
+- Finding: message screenshot resolution and user screenshot presentation
+  imported artifact image IPC channels directly for authenticated artifact fetch
+  and native image context-menu actions.
+- Change: added `DesktopArtifactRuntimeClient` under the renderer app runtime
+  layer and routed message artifact image fetch/context-menu calls through it.
+- Validation: focused renderer chat boundary test, message content tests,
+  targeted direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Artifact fetch/context-menu channel
+  strings, payload shapes, screenshot replay/cache behavior, clipboard trust
+  boundaries, Electron main handlers, SDK query commands, storage, credentials,
+  and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Chatbox Window Runtime Client Slice
 

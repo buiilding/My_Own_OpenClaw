@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
 import { inferArtifactRefFromUrl } from '../../../../infrastructure/services/screenshotMessageState';
 import {
   resolveMessageScreenshotAttachments,
@@ -30,7 +30,7 @@ async function resolveArtifactAttachmentSrc(attachment) {
 
   let pending = artifactImagePromiseCache.get(cacheKey);
   if (!pending) {
-    pending = IpcBridge.invoke(INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE, {
+    pending = DesktopArtifactRuntimeClient.fetchArtifactImage({
       artifactId: attachment.screenshotRef || null,
       url: attachment.screenshotUrl || null,
     })

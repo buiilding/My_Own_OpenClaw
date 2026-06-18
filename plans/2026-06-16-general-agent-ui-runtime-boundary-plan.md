@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Artifact Image Runtime Client
+
+- Finding: message screenshot resolution and user screenshot presentation
+  imported artifact image IPC channels directly for authenticated artifact fetch
+  and native image context-menu actions.
+- Change: added `DesktopArtifactRuntimeClient` under the renderer app runtime
+  layer and routed message artifact image fetch/context-menu calls through it.
+- Validation: focused renderer chat boundary test, message content tests,
+  targeted direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Artifact fetch/context-menu channel
+  strings, payload shapes, screenshot replay/cache behavior, clipboard trust
+  boundaries, Electron main handlers, SDK query commands, storage, credentials,
+  and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Chatbox Window Runtime Client
 
 - Finding: message-send preparation invoked the desktop `show-chatbox` IPC
