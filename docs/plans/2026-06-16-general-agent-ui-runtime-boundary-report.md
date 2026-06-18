@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Active Contract Docs Boundary Wording
+
+- Worktree was clean after `c9bbb849a`, with `main` ahead of `origin/main` by
+  862 commits.
+- Recent commits and current stale-wording scans were inspected before editing
+  docs.
+- Finding: active docs still described contract touchpoints as
+  `Frontend-owned` or `Frontend/backend` boundaries even though current
+  ownership is split across renderer UI, Electron main host, SDK local-runtime
+  callers, Python sidecar execution, and backend hosted contracts.
+- Change: reworded the docs index, backend websocket command contract, and
+  frontend inventory contract-touchpoint reference to name concrete runtime
+  owners; expanded the modular boundary guard to cover those docs.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scans for the touched docs, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  IPC channels, websocket payloads, schema fixtures, provider policy,
+  credentials, and local execution are unchanged.
+
 ### 2026-06-18 Main VM Worker Runs Auth Boundary Guard
 
 - Worktree was clean after `e47600187`, with `main` ahead of `origin/main` by

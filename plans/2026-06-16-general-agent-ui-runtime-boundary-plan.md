@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Active Contract Docs Boundary Wording
+
+- Finding: active docs still described contract touchpoints as
+  `Frontend-owned` or `Frontend/backend` boundaries even though the current
+  split is renderer UI, Electron main host, SDK local-runtime callers, Python
+  sidecar execution, and backend hosted orchestration/contracts.
+- Change: reworded the docs index, backend websocket command contract, and
+  frontend inventory contract-touchpoint reference to name the concrete runtime
+  owners; expanded the modular boundary guard to include those docs.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scans for the touched docs, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  IPC channels, websocket payloads, schema fixtures, provider policy, and local
+  execution are unchanged.
+
 ### 2026-06-18 Main VM Worker Runs Auth Boundary Guard
 
 - Finding: the VM worker runtime now receives the hosted runs API auth header

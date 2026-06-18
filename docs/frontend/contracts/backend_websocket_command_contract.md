@@ -1,8 +1,8 @@
 ---
-summary: "Frontend/backend websocket command contract reference for incoming message envelope fields, payload-owned fields, and schema fixture validation."
+summary: "Electron main to backend websocket command contract reference for incoming message envelope fields, payload-owned fields, and schema fixture validation."
 read_when:
   - When changing desktop query, stop, rehydrate, settings, model-list, compact-history, or tool-result websocket sends.
-  - When debugging backend schema errors caused by frontend websocket payload fields.
+  - When debugging backend schema errors caused by Electron main or SDK websocket payload fields.
 title: "Backend WebSocket Command Contract"
 ---
 
@@ -33,9 +33,9 @@ These fields belong to the websocket envelope, not command payloads:
 
 ## Payload Contract
 
-Backend Pydantic models in `incoming.py` own command payload keys. The JSON fixture in `incoming_message_contract.json` is a test-only export of those keys for frontend contract tests; frontend runtime code must not import Python.
+Backend Pydantic models in `incoming.py` own command payload keys. The JSON fixture in `incoming_message_contract.json` is a test-only export of those keys for desktop client contract tests; Electron main, renderer, and SDK runtime code must not import backend Python.
 
-Frontend sends must validate against that fixture for:
+Electron main and SDK websocket sends must validate against that fixture for:
 
 - `query`
 - `stop-query`

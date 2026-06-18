@@ -1,14 +1,14 @@
 ---
-summary: "Frontend-focused contract map across renderer IPC channels, main-process handlers, sidecar JSON-RPC methods, and backend stream/tool payload boundaries."
+summary: "Desktop client contract map across renderer IPC channels, main-process handlers, SDK local-runtime callers, sidecar JSON-RPC methods, and backend stream/tool payload boundaries."
 read_when:
-  - When changing renderer/main/sidecar contracts for query, tool, memory, or voice flows.
+  - When changing renderer/main/SDK local-runtime/sidecar contracts for query, tool, memory, or voice flows.
   - When debugging IPC mismatch, missing event handling, or sidecar method payload drift.
 title: "Frontend IPC and Sidecar Contract Touchpoints Reference"
 ---
 
 # Frontend IPC and Sidecar Contract Touchpoints Reference
 
-This reference maps renderer/main/sidecar contract boundaries and their paired modules.
+This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, and backend contract boundaries with their paired modules.
 
 ## Renderer <-> Main IPC Touchpoints
 
@@ -40,7 +40,7 @@ This reference maps renderer/main/sidecar contract boundaries and their paired m
 
 ## Tool Runtime Touchpoints
 
-| Frontend owner | Sidecar owner | Contract files | Contract note |
+| Desktop client owner | Sidecar owner | Contract files | Contract note |
 | --- | --- | --- | --- |
 | SDK conversation/tool runtime | Tool registry | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `main/python/tools/registry.py`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | Tool names and correlation ids must match exactly |
 | Tool payload shaping | Tool result envelope | `ToolExecutionPayloads.ts`, `main/python/tools/result.py` | `success/error/output` key stability |
@@ -49,7 +49,7 @@ This reference maps renderer/main/sidecar contract boundaries and their paired m
 
 ## Memory + Transcript Touchpoints
 
-| Frontend owner | Sidecar/backend owner | Contract files | Contract note |
+| Desktop client owner | Sidecar/backend owner | Contract files | Contract note |
 | --- | --- | --- | --- |
 | SDK transcript projection store | Sidecar transcript store methods | `renderer/app/runtime/desktopConversationContinuityService.ts`, `renderer/app/runtime/desktopConversationLibraryClient.js`, `renderer/infrastructure/transcript/desktopConversationStore.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
 | Memory search/store invokes | Local store + remote clients | Renderer dashboard/memory hooks, `memory/local_store.py`, remote clients | Search quality/latency regressions |
@@ -57,7 +57,7 @@ This reference maps renderer/main/sidecar contract boundaries and their paired m
 
 ## Voice + Audio Touchpoints
 
-| Frontend owner | Pair owner | Contract files | Contract note |
+| Desktop client owner | Pair owner | Contract files | Contract note |
 | --- | --- | --- | --- |
 | Voice mode hook | Gateway protocol | `renderer/features/voice/hooks/useVoiceMode.ts` | Gateway frame/metadata mismatch |
 | Wakeword capture hook | Wakeword bridge/service | `useWakewordDetection.ts`, `main/wakeword_bridge.cjs`, `main/wakeword_bridge_runtime.cjs`, `main/python/wakeword_service.py` | False retriggers or silent failures |
