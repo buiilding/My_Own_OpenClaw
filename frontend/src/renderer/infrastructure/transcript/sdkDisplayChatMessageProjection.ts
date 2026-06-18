@@ -58,9 +58,6 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     return {};
   }
   const payload: Record<string, unknown> = {};
-  const raw = metadata.raw && typeof metadata.raw === 'object' && !Array.isArray(metadata.raw)
-    ? metadata.raw as Record<string, unknown>
-    : null;
   const copyKeys: Array<keyof typeof metadata> = [
     'reasoningText',
     'toolName',
@@ -86,9 +83,6 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
       payload[key] = value;
     }
   });
-  if (raw) {
-    payload.raw = raw;
-  }
   return payload;
 }
 

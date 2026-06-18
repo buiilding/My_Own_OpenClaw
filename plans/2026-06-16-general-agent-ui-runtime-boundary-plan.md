@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer display-row raw diagnostics boundary
+
+- Finding: the renderer display-row adapter copied SDK display-row
+  `metadata.raw` into chat-message detail payloads, letting backend diagnostic
+  envelopes drift into presentational renderer state even though renderer
+  consumers only need projected identity, screenshot, source, and status fields.
+- Change: removed `metadata.raw` forwarding from
+  `sdkDisplayChatMessageProjection.ts` and added projection coverage proving raw
+  SDK diagnostics stay out of renderer chat details.
+- Validation: focused display-row projection Jest coverage, renderer raw
+  forwarding source scan, docs listing, and diff check.
+- Compatibility: no migration required. SDK display rows may still retain raw
+  diagnostics for SDK callers and inspection, but renderer chat state no longer
+  stores or displays that raw object.
+
 ### 2026-06-18 SDK display-row source event metadata boundary
 
 - Finding: SDK display-row metadata exposed tool-progress source identity to the

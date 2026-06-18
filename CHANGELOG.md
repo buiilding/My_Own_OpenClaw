@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/renderer: expose SDK display-row event source as `sourceEventType` instead
   of the raw-prefixed `rawEventType`, keeping raw backend event inspection inside
   SDK normalization/projection code.
+- renderer: stop forwarding SDK display-row `metadata.raw` diagnostics into
+  renderer chat-message detail payloads.
 - sdk: normalize completed-turn model metadata onto `turn_completed` events so
   title generation consumes SDK event fields instead of unwrapping
   `payload.rawEvent`.

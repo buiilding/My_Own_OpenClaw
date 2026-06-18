@@ -610,5 +610,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).toContain('sourceEventType');
     expect(source).not.toContain('rawEventType');
+    expect(source).not.toContain('metadata.raw');
+    expect(source).not.toContain('payload.raw');
   });
 });
