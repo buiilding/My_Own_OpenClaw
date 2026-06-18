@@ -58,6 +58,8 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/wakeword: accept the generic
   `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD` env name while preserving the
   WindieOS host-skin alias.
+- sidecar/wakeword: accept the generic `AGENT_WAKEWORD_MODEL_DIR` model-cache
+  override while preserving the WindieOS sidecar alias.
 - sidecar/tools: accept generic `AGENT_PERMISSION_STATE_PATH` permission-state
   env configuration for workspace-relative filesystem and shell path
   resolution while preserving the WindieOS host-skin alias.

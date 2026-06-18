@@ -69,7 +69,8 @@ def test_resolve_wakeword_model_supports_uppercase_models_map():
 
 
 def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_path):
-    monkeypatch.delenv("WINDIE_WAKEWORD_MODEL_DIR", raising=False)
+    monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_MODEL_DIR, raising=False)
+    monkeypatch.delenv(wakeword_service.ENV_WAKEWORD_MODEL_DIR, raising=False)
     monkeypatch.setattr(
         wakeword_service, "app_user_data_root", lambda: tmp_path / "windieos"
     )
@@ -78,6 +79,23 @@ def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_pa
         wakeword_service.resolve_wakeword_model_directory()
         == tmp_path / "windieos" / "wakeword" / "models"
     )
+
+
+def test_resolve_wakeword_model_directory_prefers_agent_env(monkeypatch, tmp_path):
+    agent_dir = tmp_path / "agent-models"
+    windie_dir = tmp_path / "windie-models"
+    monkeypatch.setenv(wakeword_service.ENV_AGENT_WAKEWORD_MODEL_DIR, str(agent_dir))
+    monkeypatch.setenv(wakeword_service.ENV_WAKEWORD_MODEL_DIR, str(windie_dir))
+
+    assert wakeword_service.resolve_wakeword_model_directory() == agent_dir
+
+
+def test_resolve_wakeword_model_directory_supports_windie_legacy_env(monkeypatch, tmp_path):
+    windie_dir = tmp_path / "windie-models"
+    monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_MODEL_DIR, raising=False)
+    monkeypatch.setenv(wakeword_service.ENV_WAKEWORD_MODEL_DIR, str(windie_dir))
+
+    assert wakeword_service.resolve_wakeword_model_directory() == windie_dir
 
 
 def test_resolve_wakeword_allow_runtime_download_prefers_agent_env(monkeypatch):

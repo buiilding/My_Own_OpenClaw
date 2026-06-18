@@ -8355,3 +8355,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing WindieOS seed env names
   continue to work, generic hosts can use the Agent names, and seed storage
   paths, schemas, cleanup rules, and inserted mock payloads are unchanged.
+
+### 2026-06-18 Python wakeword model-cache env alias boundary
+
+- Finding: the Python wakeword service already treated model bootstrap as
+  reusable local-runtime behavior, but its model-cache directory override still
+  read only `WINDIE_WAKEWORD_MODEL_DIR`.
+- Change: made wakeword model-cache resolution read
+  `AGENT_WAKEWORD_MODEL_DIR` first with the WindieOS alias preserved.
+- Validation: focused Python wakeword model-directory pytest coverage, docs
+  listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS model-cache overrides
+  continue to work, generic hosts can use `AGENT_WAKEWORD_MODEL_DIR`, and the
+  default WindieOS user-data cache location plus model download/bootstrap
+  behavior are unchanged.

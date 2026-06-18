@@ -25,6 +25,8 @@ WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
 ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
+ENV_AGENT_WAKEWORD_MODEL_DIR = "AGENT_WAKEWORD_MODEL_DIR"
+ENV_WAKEWORD_MODEL_DIR = "WINDIE_WAKEWORD_MODEL_DIR"
 
 
 def _emit_status(status: str, message: str | None = None, **extra: Any) -> None:
@@ -96,9 +98,10 @@ def resolve_wakeword_model(openwakeword_mod: Any) -> Tuple[str, Optional[str]]:
 
 
 def resolve_wakeword_model_directory() -> Path:
-    env_dir = os.environ.get("WINDIE_WAKEWORD_MODEL_DIR", "").strip()
-    if env_dir:
-        return Path(env_dir).expanduser()
+    for env_name in (ENV_AGENT_WAKEWORD_MODEL_DIR, ENV_WAKEWORD_MODEL_DIR):
+        env_dir = os.environ.get(env_name, "").strip()
+        if env_dir:
+            return Path(env_dir).expanduser()
     return app_user_data_root() / "wakeword" / "models"
 
 
