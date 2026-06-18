@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 _AUTH_STATE_ENV_KEYS = (
+    "AGENT_BACKEND_AUTH_STATE_PATH",
     "WINDIE_BACKEND_AUTH_STATE_PATH",
     "BACKEND_AUTH_STATE_PATH",
 )

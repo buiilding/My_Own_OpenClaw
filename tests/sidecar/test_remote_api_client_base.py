@@ -42,12 +42,16 @@ class DemoClient(RemoteApiClientBase):
 
 
 def test_remote_api_client_requires_backend_url(monkeypatch):
+    monkeypatch.delenv("AGENT_BACKEND_HTTP_URL", raising=False)
     monkeypatch.delenv("WINDIE_BACKEND_HTTP_URL", raising=False)
     monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
 
     with pytest.raises(
         RuntimeError,
-        match="Agent SDK backend URL is required. Pass backend_url or set WINDIE_BACKEND_HTTP_URL.",
+        match=(
+            "Agent SDK backend URL is required. Pass backend_url or set "
+            "AGENT_BACKEND_HTTP_URL"
+        ),
     ):
         DemoClient()
 
@@ -67,7 +71,8 @@ async def test_post_success_json_uses_primary_backend():
 
 @pytest.mark.asyncio
 async def test_post_success_json_raises_after_hosted_network_error_without_local_fallback(monkeypatch):
-    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("AGENT_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.delenv("WINDIE_BACKEND_HTTP_URL", raising=False)
     monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = DemoClient()
     client._session = SequentialSession(

@@ -133,12 +133,20 @@ function buildLocalRuntimeDaemonEnv({
     ...process.env,
     PYTHONUNBUFFERED: '1',
     [envConfig.backendHttpUrl]: endpointConfig.httpUrl,
+    ...(envConfig.backendHttpUrl !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.backendHttpUrl
+      ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.backendHttpUrl]: endpointConfig.httpUrl }
+      : {}),
     [envConfig.packagedApp]: isPackaged ? '1' : '0',
     [envConfig.browserFeaturePackAutoinstall]: isPackaged ? '0' : '1',
     [envConfig.sourcePath]: sourceIdentity.sourcePath,
     [envConfig.sourceStamp]: sourceIdentity.sourceStamp,
     ...(typeof authStatePath === 'string' && authStatePath.trim()
-      ? { [envConfig.backendAuthStatePath]: authStatePath.trim() }
+      ? {
+          [envConfig.backendAuthStatePath]: authStatePath.trim(),
+          ...(envConfig.backendAuthStatePath !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.backendAuthStatePath
+            ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.backendAuthStatePath]: authStatePath.trim() }
+            : {}),
+        }
       : {}),
     ...(typeof permissionStatePath === 'string' && permissionStatePath.trim()
       ? { [envConfig.permissionStatePath]: permissionStatePath.trim() }

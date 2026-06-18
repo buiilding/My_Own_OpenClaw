@@ -55,6 +55,9 @@ The bridge:
 - Sidecar runtime modules do not import backend Python packages at startup. Client-side
   tool exposure and memory-type normalization are kept local to the sidecar runtime,
   while tests enforce parity against backend tool contracts.
+- Backend-bound Python SDK clients require an explicit `backend_url` or injected
+  `AGENT_BACKEND_HTTP_URL`; `WINDIE_BACKEND_HTTP_URL` remains a WindieOS
+  compatibility alias and there is no hosted URL fallback inside the sidecar.
 - On Linux, the Electron launcher filters one known harmless Chromium
   `StartTransientUnit ... UnitExists` stderr line during startup; on macOS it also
   filters the Chromium `SetApplicationIsDaemon ... paramErr` LaunchServices warning
@@ -125,10 +128,11 @@ Local memory is implemented in the sidecar:
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Durable title state in `frontend/src/main/python/memory/conversation_title_store.py`
 - Uses backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` APIs
-- Backend base URL comes from an explicit client `backend_url` or the
-  `WINDIE_BACKEND_HTTP_URL` value injected by Electron main from the hosted
-  endpoint resolver. Missing sidecar endpoint config fails fast instead of
-  falling back to a hosted default.
+- Backend base URL comes from an explicit client `backend_url` or
+  `AGENT_BACKEND_HTTP_URL`; WindieOS Electron launches mirror the hosted
+  endpoint resolver into that generic env and `WINDIE_BACKEND_HTTP_URL`.
+  Missing sidecar endpoint config fails fast instead of falling back to a
+  hosted default.
 - Sidecar backend-backed HTTP clients do not parse Electron endpoint env aliases or retry alternate backend URLs. Remote memory/title/summarization calls stay pinned to the injected backend endpoint.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 - Pending summarization cadence is turn-based: watermark pending count increments

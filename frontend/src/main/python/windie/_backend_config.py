@@ -4,7 +4,12 @@ Shared backend endpoint configuration for the Python sidecar.
 
 import os
 
-BACKEND_HTTP_URL_ENV = "WINDIE_BACKEND_HTTP_URL"
+BACKEND_HTTP_URL_ENV = "AGENT_BACKEND_HTTP_URL"
+LEGACY_BACKEND_HTTP_URL_ENV = "WINDIE_BACKEND_HTTP_URL"
+BACKEND_HTTP_URL_ENVS = (
+    BACKEND_HTTP_URL_ENV,
+    LEGACY_BACKEND_HTTP_URL_ENV,
+)
 
 
 def _normalize_backend_http_url(value: str | None) -> str | None:
@@ -19,12 +24,14 @@ def get_backend_http_url() -> str:
     Resolve backend HTTP URL used by sidecar memory clients.
 
     Electron main owns endpoint override precedence and passes the resolved
-    value to the sidecar as ``WINDIE_BACKEND_HTTP_URL``.
+    value to the sidecar through the configured local-runtime env key. Standalone
+    SDK callers may set ``AGENT_BACKEND_HTTP_URL`` directly.
     """
-    resolved_url = _normalize_backend_http_url(os.getenv(BACKEND_HTTP_URL_ENV))
-    if resolved_url:
-        return resolved_url
+    for env_key in BACKEND_HTTP_URL_ENVS:
+        resolved_url = _normalize_backend_http_url(os.getenv(env_key))
+        if resolved_url:
+            return resolved_url
     raise RuntimeError(
         "Agent SDK backend URL is required. Pass backend_url or set "
-        f"{BACKEND_HTTP_URL_ENV}."
+        f"{BACKEND_HTTP_URL_ENV} (legacy {LEGACY_BACKEND_HTTP_URL_ENV} is also supported)."
     )

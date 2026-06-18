@@ -8162,3 +8162,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Wakeword status JSON parsing, process
   lifecycle diagnostics, subprocess env keys, and renderer wakeword IPC behavior
   are unchanged.
+
+### 2026-06-18 Python SDK backend env alias boundary
+
+- Finding: Python SDK hosted clients and install-auth helpers still required
+  WindieOS-specific backend URL/auth-state env names, even though the reusable
+  SDK boundary should accept generic Agent SDK env names.
+- Change: made `AGENT_BACKEND_HTTP_URL` and
+  `AGENT_BACKEND_AUTH_STATE_PATH` the generic Python SDK env names, preserved
+  WindieOS env aliases for compatibility, and mirrored Electron-resolved
+  WindieOS launch values into the generic keys so sidecar endpoint precedence
+  stays deterministic.
+- Validation: focused sidecar backend-config, remote API base, auth helper, and
+  daemon discovery pytest coverage; focused local-runtime launch Jest coverage;
+  stale backend-env wording scans; docs listing; and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS Electron launches and
+  `WINDIE_BACKEND_HTTP_URL` / `WINDIE_BACKEND_AUTH_STATE_PATH` callers continue
+  to work, while standalone Python SDK callers may use the generic Agent SDK
+  env names. Hosted URL fallback remains intentionally absent.

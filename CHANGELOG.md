@@ -46,6 +46,9 @@ All notable changes to WindieOS will be documented in this file.
   Electron launch helpers.
 - main/wakeword: inject the WindieOS wakeword stderr log marker from the main
   host skin instead of hardcoding it inside the generic wakeword bridge runtime.
+- sdk/python: accept generic `AGENT_BACKEND_HTTP_URL` and
+  `AGENT_BACKEND_AUTH_STATE_PATH` env names for Python SDK hosted clients while
+  preserving WindieOS env aliases for existing Electron-launched sidecars.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.
