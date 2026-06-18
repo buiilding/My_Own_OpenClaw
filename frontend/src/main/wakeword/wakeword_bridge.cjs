@@ -137,11 +137,19 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
     launchKind: launchTarget.kind,
     packaged: packagedApp,
   });
+  const packagedAppEnvValue = packagedApp ? '1' : '0';
+  const allowRuntimeDownloadEnvValue = packagedApp ? '0' : '1';
   const wakewordEnv = {
     ...process.env,
     PYTHONUNBUFFERED: '1',
-    [wakewordEnvConfig.packagedApp]: packagedApp ? '1' : '0',
-    [wakewordEnvConfig.allowRuntimeDownload]: packagedApp ? '0' : '1',
+    [wakewordEnvConfig.packagedApp]: packagedAppEnvValue,
+    ...(wakewordEnvConfig.packagedApp !== DEFAULT_WAKEWORD_ENV.packagedApp
+      ? { [DEFAULT_WAKEWORD_ENV.packagedApp]: packagedAppEnvValue }
+      : {}),
+    [wakewordEnvConfig.allowRuntimeDownload]: allowRuntimeDownloadEnvValue,
+    ...(wakewordEnvConfig.allowRuntimeDownload !== DEFAULT_WAKEWORD_ENV.allowRuntimeDownload
+      ? { [DEFAULT_WAKEWORD_ENV.allowRuntimeDownload]: allowRuntimeDownloadEnvValue }
+      : {}),
     ...(
       packagedApp
       && launchTarget.kind === 'python'

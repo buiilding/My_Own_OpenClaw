@@ -55,6 +55,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/runtime: accept generic `AGENT_*` local-runtime feature env names for
   semantic summarizer, packaged-app, and browser feature-pack flags while
   preserving WindieOS host-skin aliases.
+- sidecar/wakeword: accept the generic
+  `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD` env name while preserving the
+  WindieOS host-skin alias.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.

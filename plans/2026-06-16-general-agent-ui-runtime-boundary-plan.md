@@ -8215,3 +8215,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing WindieOS env names continue to
   work, generic host launches now work with `AGENT_*` feature flags, and
   packaged/browser/summarizer runtime behavior is otherwise unchanged.
+
+### 2026-06-18 Python wakeword env alias boundary
+
+- Finding: generic Electron wakeword launch plans emitted
+  `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD`, but the Python wakeword service
+  still read only the WindieOS runtime-download flag.
+- Change: made the Python wakeword service read the generic Agent SDK wakeword
+  env name first with the WindieOS alias preserved, and mirrored WindieOS
+  host-skin wakeword launch values into the generic env names during Electron
+  wakeword subprocess launch so inherited shell env cannot override the
+  configured skin values.
+- Validation: focused Python wakeword env flag pytest coverage, focused
+  Electron wakeword launch Jest coverage, source scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS wakeword env names
+  continue to work, generic host launches now work with
+  `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD`, and model bootstrap/runtime-download
+  behavior is otherwise unchanged.

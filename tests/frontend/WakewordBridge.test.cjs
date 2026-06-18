@@ -509,12 +509,12 @@ describe('wakeword_bridge', () => {
 
       const spawnOptions = spawn.mock.calls[0][2];
       expect(spawnOptions.env).toEqual(expect.objectContaining({
+        AGENT_PACKAGED_APP: '1',
+        AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
         WINDIE_PACKAGED_APP: '1',
         WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
         PYTHONDONTWRITEBYTECODE: '1',
       }));
-      expect(spawnOptions.env.AGENT_PACKAGED_APP).toBeUndefined();
-      expect(spawnOptions.env.AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD).toBeUndefined();
     } finally {
       process.resourcesPath = originalResourcesPath;
     }

@@ -80,14 +80,41 @@ def test_resolve_wakeword_model_directory_uses_windieos_root(monkeypatch, tmp_pa
     )
 
 
+def test_resolve_wakeword_allow_runtime_download_prefers_agent_env(monkeypatch):
+    monkeypatch.setenv(
+        wakeword_service.ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        "1",
+    )
+    monkeypatch.setenv(
+        wakeword_service.ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        "0",
+    )
+
+    assert wakeword_service.resolve_wakeword_allow_runtime_download() is False
+
+
+def test_resolve_wakeword_allow_runtime_download_supports_windie_legacy_env(monkeypatch):
+    monkeypatch.delenv(
+        wakeword_service.ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        raising=False,
+    )
+    monkeypatch.setenv(
+        wakeword_service.ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        "0",
+    )
+
+    assert wakeword_service.resolve_wakeword_allow_runtime_download() is False
+
+
 def test_create_model_supports_new_openwakeword_signature():
+    model_path = str(Path("/tmp/hey_jarvis.onnx"))
     model, inference = wakeword_service.create_model(
         _NewApiModel,
-        "/tmp/hey_jarvis.onnx",
+        model_path,
     )
 
     assert isinstance(model, _NewApiModel)
-    assert model.wakeword_model_paths == ["/tmp/hey_jarvis.onnx"]
+    assert model.wakeword_model_paths == [model_path]
     assert inference == "onnx"
 
 

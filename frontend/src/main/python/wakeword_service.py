@@ -23,6 +23,7 @@ from core.user_data_paths import app_user_data_root
 
 WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
+ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 
 
@@ -49,6 +50,13 @@ def _send_result(writer, payload: Dict[str, Any]) -> None:
     writer.write(len(encoded).to_bytes(4, byteorder="little"))
     writer.write(encoded)
     writer.flush()
+
+
+def _env_flag_enabled_any(names: tuple[str, ...], default: bool = True) -> bool:
+    for name in names:
+        if os.getenv(name) is not None:
+            return env_flag_enabled(name, default=default)
+    return default
 
 
 def _load_download_models_func() -> Optional[Callable[[Iterable[str]], Any]]:
@@ -92,6 +100,16 @@ def resolve_wakeword_model_directory() -> Path:
     if env_dir:
         return Path(env_dir).expanduser()
     return app_user_data_root() / "wakeword" / "models"
+
+
+def resolve_wakeword_allow_runtime_download() -> bool:
+    return _env_flag_enabled_any(
+        (
+            ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+            ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        ),
+        default=True,
+    )
 
 
 def resolve_model_path_from_directory(
@@ -357,10 +375,7 @@ def run_service() -> int:
 
     model_name, model_path = resolve_wakeword_model(openwakeword_mod)
     model_directory = resolve_wakeword_model_directory()
-    allow_runtime_download = env_flag_enabled(
-        ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
-        default=True,
-    )
+    allow_runtime_download = resolve_wakeword_allow_runtime_download()
     if not ensure_models_available(
         model_name,
         model_path,

@@ -38,6 +38,11 @@ Startup pipeline:
    When cached models are used, auxiliary feature-model paths (`melspectrogram`, `embedding_model`) are resolved from the same cache directory so ONNX fallback does not drift back to broken package-relative defaults.
 5. inference framework tries `tflite` first, falls back to `onnx` on failure
 
+Runtime model downloads are controlled by `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD`
+with `WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD` preserved as the WindieOS host
+alias. Electron host-skin launches set both keys when the skin uses the WindieOS
+alias, so generic Python wakeword code can prefer `AGENT_*` deterministically.
+
 Status payloads are written to stderr JSON lines:
 
 - `downloading`
