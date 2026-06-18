@@ -10,6 +10,7 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
+const runtimePathsPath = path.join(mainRoot, 'app/runtime_paths.cjs');
 const runtimeModePath = path.join(mainRoot, 'app/runtime_mode.cjs');
 const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
@@ -66,6 +67,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("appDataDirName: 'windieos'");
     expect(skinSource).toContain("diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB'");
     expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
+    expect(skinSource).toContain('runtimePaths');
+    expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
     expect(skinSource).toContain('logging');
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain('sdkAgentName');
@@ -272,7 +275,23 @@ describe('main host skin/config boundary', () => {
     const source = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
 
     expect(source).toContain('local-runtime Python executable');
+    expect(source).toContain('resolveRuntimePathEnvConfig');
+    expect(source).not.toContain('WINDIE_PYTHON_PATH');
     expect(source).not.toContain('frontend_jarvis Python executable');
+  });
+
+  test('runtime path Python override env name lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const runtimePathsSource = fs.readFileSync(runtimePathsPath, 'utf8');
+    const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const mainWindowSource = fs.readFileSync(mainWindowRuntimePath, 'utf8');
+
+    expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
+    expect(runtimePathsSource).toContain("pythonPath: 'AGENT_PYTHON_PATH'");
+    expect(runtimePathsSource).toContain('resolveRuntimePathEnvConfig');
+    expect(runtimePathsSource).not.toContain('WINDIE_PYTHON_PATH');
+    expect(ipcSource).toContain('runtimePathEnv: mainHostSkin.runtimePaths.env');
+    expect(mainWindowSource).toContain('runtimePathEnv: mainHostSkin?.runtimePaths?.env');
   });
 
   test('local runtime helpers consume host copy with generic defaults', () => {

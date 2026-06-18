@@ -96,7 +96,9 @@ runtime launch resolver.
 
 Resolution order:
 
-1. `WINDIE_PYTHON_PATH` if exists
+1. configured host Python-path env key if it exists. WindieOS supplies
+   `WINDIE_PYTHON_PATH` through `mainHostSkin.runtimePaths.env`; the generic
+   helper fallback is `AGENT_PYTHON_PATH`.
 2. bundled runtime candidates (packaged app)
 3. dev-only fallback: active conda env (`CONDA_PREFIX`) python
 4. dev-only fallback command (`py` on Windows, `python3` elsewhere)
@@ -173,7 +175,8 @@ If sidecar fails to start in packaged builds:
 
 1. verify bundled `.pyc` exists under `resources/python-runtime/sidecar`
 2. verify bundled python executable exists under `resources/python-runtime` or `resources/python`
-3. check `WINDIE_PYTHON_PATH` overrides and file existence in dev mode
+3. check the configured Python-path env override (`WINDIE_PYTHON_PATH` for the
+   WindieOS skin) and file existence in dev mode
 
 If settings persistence fails:
 

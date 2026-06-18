@@ -53,6 +53,12 @@ const dataPaths = Object.freeze({
   }),
 });
 
+const runtimePaths = Object.freeze({
+  env: Object.freeze({
+    pythonPath: 'WINDIE_PYTHON_PATH',
+  }),
+});
+
 const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
 });
@@ -140,6 +146,7 @@ const mainHostSkin = Object.freeze({
   identity,
   assets,
   dataPaths,
+  runtimePaths,
   logging,
   hostedBackend,
   vmWorker,

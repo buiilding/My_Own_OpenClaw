@@ -11,6 +11,7 @@ const {
 } = require('../app/backend_endpoints.cjs');
 const {
   resolveLocalRuntimeLaunchTarget,
+  resolveRuntimePathEnvConfig,
 } = require('../app/runtime_paths.cjs');
 const {
   shouldForwardStderrLine,
@@ -49,12 +50,13 @@ const LOCAL_RUNTIME_LOG_PREFIXES = [
   '[MCP]',
 ];
 
-function createMissingCommandError({ isPackaged, copy = {} } = {}) {
+function createMissingCommandError({ isPackaged, copy = {}, runtimePathEnv = {} } = {}) {
   if (isPackaged) {
     return copy.missingPythonRuntime
       || 'Bundled Python runtime not found in app resources. Please reinstall this app.';
   }
-  return 'Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the local-runtime Python executable.';
+  const pythonPathEnvKey = resolveRuntimePathEnvConfig(runtimePathEnv).pythonPath;
+  return `Python executable not found. Install Python 3 or set ${pythonPathEnvKey} to the local-runtime Python executable.`;
 }
 
 function resolveLocalRuntimeSourceStamp(launchTarget) {
@@ -162,15 +164,18 @@ function createDesktopLocalRuntimeLaunchPlan({
   isPackaged = false,
   permissionStatePath,
   authStatePath,
+  runtimePathEnv,
   WebSocketImpl,
   copy = {},
   resolveLaunchTarget = resolveLocalRuntimeLaunchTarget,
 } = {}) {
-  const launchTarget = resolveLaunchTarget('sidecar_daemon.py');
+  const launchTarget = resolveLaunchTarget('sidecar_daemon.py', {
+    runtimePathEnv,
+  });
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     return {
       ok: false,
-      error: createMissingCommandError({ isPackaged, copy }),
+      error: createMissingCommandError({ isPackaged, copy, runtimePathEnv }),
       launchTarget,
     };
   }

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Runtime Python Env Skin Boundary
+
+- Finding: `runtime_paths.cjs` still hardcoded `WINDIE_PYTHON_PATH` while
+  otherwise acting as the generic packaged/source local-runtime launch helper
+  for both the sidecar daemon and wakeword service.
+- Change: added configurable runtime-path env keys with a generic
+  `AGENT_PYTHON_PATH` helper fallback, moved the WindieOS override env name into
+  `mainHostSkin.runtimePaths.env`, and passed that skin config through the
+  sidecar and wakeword launch composition paths.
+- Validation: focused runtime path Jest coverage, main host skin boundary Jest
+  coverage, local runtime launch option Jest coverage, targeted source scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_PYTHON_PATH`; packaged bundled-runtime guardrails, conda fallback
+  behavior, wakeword launch resolution, and launch-plan shape are unchanged.
+
 ### 2026-06-18 Main Diagnostics Env Skin Boundary
 
 - Finding: the app diagnostics store already read the WindieOS app-data

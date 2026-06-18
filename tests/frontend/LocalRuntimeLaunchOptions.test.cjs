@@ -100,8 +100,20 @@ describe('desktop local runtime launch options', () => {
 
     expect(plan.ok).toBe(false);
     expect(plan.error)
-      .toBe('Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the local-runtime Python executable.');
+      .toBe('Python executable not found. Install Python 3 or set AGENT_PYTHON_PATH to the local-runtime Python executable.');
     expect(plan.error).not.toContain('frontend_jarvis');
+  });
+
+  test('uses configured host Python path env in dev missing command guidance', () => {
+    const plan = createDesktopLocalRuntimeLaunchPlan({
+      isPackaged: false,
+      runtimePathEnv: mainHostSkin.runtimePaths.env,
+      resolveLaunchTarget: () => ({ kind: 'python', command: null }),
+    });
+
+    expect(plan.ok).toBe(false);
+    expect(plan.error)
+      .toBe('Python executable not found. Install Python 3 or set WINDIE_PYTHON_PATH to the local-runtime Python executable.');
   });
 
   test('uses generic local-runtime wording for missing daemon script errors', () => {

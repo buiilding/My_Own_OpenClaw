@@ -36,11 +36,14 @@ function expectPathArray(actual, expected) {
 describe('runtime_paths local runtime launch target resolution', () => {
   const originalResourcesPath = process.resourcesPath;
   const originalCondaPrefix = process.env.CONDA_PREFIX;
+  const originalAgentPythonPath = process.env.AGENT_PYTHON_PATH;
+  const originalWindiePythonPath = process.env.WINDIE_PYTHON_PATH;
   const originalPlatform = process.platform;
 
   beforeEach(() => {
     process.resourcesPath = '/opt/WindieOS/resources';
     delete process.env.WINDIE_PYTHON_PATH;
+    delete process.env.AGENT_PYTHON_PATH;
     delete process.env.CONDA_PREFIX;
     jest.clearAllMocks();
   });
@@ -56,12 +59,56 @@ describe('runtime_paths local runtime launch target resolution', () => {
     } else {
       delete process.env.CONDA_PREFIX;
     }
+    if (typeof originalAgentPythonPath === 'string') {
+      process.env.AGENT_PYTHON_PATH = originalAgentPythonPath;
+    } else {
+      delete process.env.AGENT_PYTHON_PATH;
+    }
+    if (typeof originalWindiePythonPath === 'string') {
+      process.env.WINDIE_PYTHON_PATH = originalWindiePythonPath;
+    } else {
+      delete process.env.WINDIE_PYTHON_PATH;
+    }
   });
 
   test('does not export the retired sidecar-named launch resolver', () => {
     withIsolatedRuntimePaths(({ runtimePaths }) => {
       expect(runtimePaths.resolveSidecarLaunchTarget).toBeUndefined();
       expect(typeof runtimePaths.resolveLocalRuntimeLaunchTarget).toBe('function');
+    });
+  });
+
+  test('uses generic Python path env by default', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = false;
+      process.env.AGENT_PYTHON_PATH = '/opt/agent/python3';
+      fs.existsSync.mockImplementation((candidate) => (
+        samePath(candidate, '/opt/agent/python3')
+        || toPosixPath(candidate).endsWith('/src/main/python/sidecar_daemon.py')
+      ));
+
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
+
+      expectPath(target.command, '/opt/agent/python3');
+    });
+  });
+
+  test('uses configured host Python path env when supplied', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = false;
+      process.env.WINDIE_PYTHON_PATH = '/opt/windie/python3';
+      fs.existsSync.mockImplementation((candidate) => (
+        samePath(candidate, '/opt/windie/python3')
+        || toPosixPath(candidate).endsWith('/src/main/python/sidecar_daemon.py')
+      ));
+
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py', {
+        runtimePathEnv: {
+          pythonPath: 'WINDIE_PYTHON_PATH',
+        },
+      });
+
+      expectPath(target.command, '/opt/windie/python3');
     });
   });
 

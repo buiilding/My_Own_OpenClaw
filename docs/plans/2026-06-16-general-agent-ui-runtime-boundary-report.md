@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main Runtime Python Env Skin Boundary
+
+- Worktree was clean after `7029d77e9`, with `main` ahead of `origin/main` by
+  874 commits.
+- Main-process product/env coupling scans were inspected after the diagnostics
+  env-key slice.
+- Finding: `runtime_paths.cjs` still hardcoded `WINDIE_PYTHON_PATH` while
+  otherwise acting as the generic packaged/source local-runtime launch helper
+  for both the sidecar daemon and wakeword service.
+- Change: added configurable runtime-path env keys with a generic
+  `AGENT_PYTHON_PATH` helper fallback, moved the WindieOS override env name into
+  `mainHostSkin.runtimePaths.env`, and passed that skin config through the
+  sidecar and wakeword launch composition paths.
+- Validation: focused runtime path Jest coverage, main host skin boundary Jest
+  coverage, local runtime launch option Jest coverage, targeted source scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_PYTHON_PATH`; packaged bundled-runtime guardrails, conda fallback
+  behavior, wakeword launch resolution, and launch-plan shape are unchanged.
+
 ### 2026-06-18 Main Diagnostics Env Skin Boundary
 
 - Worktree was clean after `e7f6f109d`, with `main` ahead of `origin/main` by

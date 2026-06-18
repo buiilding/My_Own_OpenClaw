@@ -8,6 +8,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const DEFAULT_RUNTIME_PATH_ENV = Object.freeze({
+  pythonPath: 'AGENT_PYTHON_PATH',
+});
 let electronApp = null;
 try {
   ({ app: electronApp } = require('electron'));
@@ -49,6 +52,23 @@ function firstExistingPath(paths) {
     }
   }
   return null;
+}
+
+function normalizeEnvKey(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function resolveRuntimePathEnvConfig(runtimePathEnv = {}) {
+  return {
+    pythonPath: normalizeEnvKey(
+      runtimePathEnv.pythonPath,
+      DEFAULT_RUNTIME_PATH_ENV.pythonPath,
+    ),
+  };
 }
 
 function normalizePythonEntrypointName(scriptName) {
@@ -100,8 +120,12 @@ function getBundledPythonExecutableCandidates() {
   ]);
 }
 
-function resolvePythonExecutablePath() {
-  const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
+function resolvePythonExecutablePath({
+  env = process.env,
+  runtimePathEnv = {},
+} = {}) {
+  const envConfig = resolveRuntimePathEnvConfig(runtimePathEnv);
+  const explicitPythonPath = env[envConfig.pythonPath];
   if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
     return explicitPythonPath;
   }
@@ -117,7 +141,7 @@ function resolvePythonExecutablePath() {
     return null;
   }
 
-  const condaPrefix = process.env.CONDA_PREFIX;
+  const condaPrefix = env.CONDA_PREFIX;
   if (condaPrefix) {
     const condaPython = process.platform === 'win32'
       ? path.join(condaPrefix, 'python.exe')
@@ -151,10 +175,10 @@ function resolveBundledRuntimeRootFromExecutable(executablePath) {
   return executableDir;
 }
 
-function resolveLocalRuntimeLaunchTarget(scriptName) {
+function resolveLocalRuntimeLaunchTarget(scriptName, options = {}) {
   const normalizedScript = String(scriptName || '').trim();
   const scriptPath = resolvePythonScriptPath(normalizedScript);
-  const pythonCommand = resolvePythonExecutablePath();
+  const pythonCommand = resolvePythonExecutablePath(options);
   return {
     kind: 'python',
     command: pythonCommand,
@@ -167,4 +191,5 @@ function resolveLocalRuntimeLaunchTarget(scriptName) {
 
 module.exports = {
   resolveLocalRuntimeLaunchTarget,
+  resolveRuntimePathEnvConfig,
 };
