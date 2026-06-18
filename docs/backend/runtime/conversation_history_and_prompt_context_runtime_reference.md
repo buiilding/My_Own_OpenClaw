@@ -106,26 +106,28 @@ This preserves strict provider tool-message linkage while keeping screenshot con
 
 ## Rehydrate Normalization Rules
 
-`replace_with_entries(entries)` reconstructs history from frontend transcript payloads.
+`replace_with_entries(entries)` reconstructs history from SDK rehydrate payloads.
 
 Normalization includes:
 
 - role normalization (`tool`, `assistant`, fallback user)
-- API rehydrate boundary normalization from current frontend labels
-  (`tool-output`, `tool-call`, `llm-text`, `user`, etc.) into canonical stored
+- API rehydrate boundary validation of SDK-projected canonical stored
   `MessageType` values
 - preservation of assistant tool-call rows with `tool_calls`
 - preservation of tool rows with `tool_call_id`
 - structured transparency restore:
   - `transparency.fullUserMessage.content` overrides visible user text during rehydrate
-  - `transparency.fullAssistantMessage.content` overrides visible assistant `llm-text` during rehydrate
+  - `transparency.fullAssistantMessage.content` overrides visible assistant content during rehydrate
   - first available `transparency.systemPrompt` is restored onto `ConversationHistory.system_prompt`
 - sanitization of internal bundle orchestration traces from explicit
-  `tool-bundle` message type or `bundled_tools` tool-name metadata into plain
-  assistant context rows so rehydrate does not synthesize non-executable tool
-  names into assistant `tool_calls`
-- Gemini continuity guard: tool-call `thought_signature` is preserved when rehydrated tool-call payloads include it (either `tool_calls` arrays or JSON tool-call content fields)
-- tool-call content parsing/normalization logic is delegated to `rehydrate_tool_call_normalization.py` so entry-level rehydrate routing stays isolated from JSON/tool-call shape handling
+  `tool-bundle` / `bundled_tools` tool-name metadata into plain assistant
+  context rows so rehydrate does not synthesize non-executable tool names into
+  assistant `tool_calls`
+- Gemini continuity guard: tool-call `thought_signature` is preserved when
+  rehydrated structured tool-call payloads include it
+- tool-call normalization is delegated to
+  `rehydrate_tool_call_normalization.py` so entry-level rehydrate routing stays
+  isolated from structured tool-call shape handling
 - transparency/system-prompt/full-content restoration helpers are delegated to `rehydrate_transparency_resolution.py` so entry normalizer state/routing stays decoupled from content-source precedence logic
 
 `ConversationHistory.replace_with_entries(...)` requires canonical stored
@@ -136,9 +138,10 @@ Normalization includes:
 - `tool_output`
 - `context_compaction`
 
-The API rehydrate normalizer owns frontend label conversion before entries
-reach history. Unknown or old stored message-type aliases are rejected instead
-of falling back by role.
+The SDK rehydrate projection owns current message-type emission before entries
+reach the backend. Rows without a message type still default from role for SDK
+snapshots, but explicit unknown or old stored message-type aliases are rejected
+instead of being repaired at the backend boundary.
 
 Key outcome: rehydrated history can be passed through provider normalization without dropping linked tool messages.
 

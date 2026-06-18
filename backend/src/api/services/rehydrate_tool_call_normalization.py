@@ -17,67 +17,6 @@ def extract_thought_signature(*sources: Optional[Dict[str, Any]]) -> Optional[st
     return None
 
 
-def extract_tool_call_details(
-    *,
-    content: str,
-    fallback_tool_name: Optional[str],
-) -> tuple[str, Dict[str, Any], Optional[str], Optional[str]]:
-    tool_name = fallback_tool_name or "unknown_tool"
-    arguments: Dict[str, Any] = {}
-    tool_call_id: Optional[str] = None
-    thought_signature: Optional[str] = None
-    if not isinstance(content, str) or not content.strip():
-        return tool_name, arguments, tool_call_id, thought_signature
-
-    try:
-        payload = json.loads(content)
-    except (TypeError, ValueError):
-        return tool_name, arguments, tool_call_id, thought_signature
-
-    if not isinstance(payload, dict):
-        return tool_name, arguments, tool_call_id, thought_signature
-
-    function_payload = payload.get("function")
-    if not isinstance(function_payload, dict):
-        function_payload = None
-
-    parsed_name = normalize_optional_string(
-        payload.get("name")
-        if function_payload is None
-        else payload.get("name") or function_payload.get("name")
-    )
-    if parsed_name:
-        tool_name = parsed_name
-    parsed_call_id = normalize_optional_string(
-        payload.get("id")
-        if function_payload is None
-        else payload.get("id") or function_payload.get("id")
-    )
-    if parsed_call_id:
-        tool_call_id = parsed_call_id
-    parsed_arguments = payload.get("args")
-    if isinstance(parsed_arguments, dict):
-        arguments = dict(parsed_arguments)
-    elif function_payload is not None:
-        function_arguments = function_payload.get("arguments")
-        if isinstance(function_arguments, dict):
-            arguments = dict(function_arguments)
-        elif isinstance(function_arguments, str) and function_arguments.strip():
-            try:
-                decoded_arguments = json.loads(function_arguments)
-            except (TypeError, ValueError):
-                decoded_arguments = None
-            if isinstance(decoded_arguments, dict):
-                arguments = decoded_arguments
-
-    thought_signature = extract_thought_signature(
-        payload,
-        function_payload,
-    )
-
-    return tool_name, arguments, tool_call_id, thought_signature
-
-
 def normalize_tool_calls(raw_tool_calls: Any) -> List[Dict[str, Any]]:
     if not isinstance(raw_tool_calls, list):
         return []
@@ -127,10 +66,3 @@ def normalize_tool_calls(raw_tool_calls: Any) -> List[Dict[str, Any]]:
             normalized_call["thought_signature"] = thought_signature
         normalized_calls.append(normalized_call)
     return normalized_calls
-
-
-def normalize_optional_string(value: Optional[str]) -> Optional[str]:
-    if not isinstance(value, str):
-        return None
-    normalized = value.strip()
-    return normalized or None

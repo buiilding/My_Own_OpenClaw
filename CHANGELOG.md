@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: remove rehydrate message-type alias compatibility by having the
+  SDK emit canonical stored `MessageType` values and rejecting explicit
+  non-canonical labels at the backend rehydrate boundary; no migration is
+  included because current SDK snapshots now send canonical values and omitted
+  message types still default from role.
 - docs/backend: rename the backend tool bridge policy page to local-runtime
   bridge ownership and reword tool preparation/result-ingress docs and source
   comments around SDK-submitted local-runtime payloads; no migration is

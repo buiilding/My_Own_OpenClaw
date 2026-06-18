@@ -125,7 +125,7 @@ async def test_execute_resolves_screenshot_ref_from_artifact_store():
             {
                 "role": "user",
                 "content": "hello",
-                "message_type": "user",
+                "message_type": "user_query",
                 "screenshot_ref": "shot-1",
             }
         ]
@@ -150,7 +150,7 @@ async def test_execute_forwards_workspace_repo_instructions_to_session_manager()
             {
                 "role": "user",
                 "content": "hello",
-                "message_type": "user",
+                "message_type": "user_query",
             }
         ],
         workspace_path="/work/WindieOS",
@@ -180,7 +180,7 @@ async def test_execute_prefers_inline_screenshot_over_artifact_ref():
             {
                 "role": "assistant",
                 "content": "reply",
-                "message_type": "assistant",
+                "message_type": "assistant_response",
                 "screenshot": "inline-b64",
                 "screenshot_ref": "unused-ref",
             }
@@ -203,7 +203,7 @@ async def test_execute_raises_when_artifact_store_unavailable_for_screenshot_ref
             {
                 "role": "user",
                 "content": "hello",
-                "message_type": "user",
+                "message_type": "user_query",
                 "screenshot_ref": "shot-missing",
             }
         ]
@@ -224,7 +224,7 @@ async def test_execute_continues_when_artifact_ref_load_fails():
             {
                 "role": "assistant",
                 "content": "with image ref",
-                "message_type": "assistant",
+                "message_type": "assistant_response",
                 "screenshot_ref": "shot-missing",
             }
         ]
@@ -241,7 +241,7 @@ def test_normalize_rehydrated_tool_output_rejects_orphan_tool_output():
     entry = SimpleNamespace(
         role="tool",
         content="replace output",
-        message_type="tool-output",
+        message_type="tool_output",
         tool_name="replace",
         correlation_id=None,
         tool_call_id=None,
@@ -266,7 +266,7 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
     entry = SimpleNamespace(
         role="assistant",
         content="not valid json",
-        message_type="tool-call",
+        message_type="assistant_response",
         tool_name="ignored-fallback",
         correlation_id=None,
         tool_call_id=None,
@@ -306,7 +306,7 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
             "thought_signature": "sig-structured-1",
         }
     ]
-    assert normalized_entry["correlation_id"] == "call-structured-1"
+    assert normalized_entry["correlation_id"] is None
     assert pending_tool_call_ids == ["call-structured-1"]
     assert known_tool_call_ids == {"call-structured-1"}
 
@@ -316,7 +316,7 @@ def test_normalize_rehydrated_entry_ignores_singular_structured_tool_call_alias(
     entry = SimpleNamespace(
         role="assistant",
         content="not valid json",
-        message_type="tool-call",
+        message_type="assistant_response",
         tool_name=None,
         correlation_id=None,
         tool_call_id=None,
@@ -332,16 +332,26 @@ def test_normalize_rehydrated_entry_ignores_singular_structured_tool_call_alias(
         },
     )
 
-    with pytest.raises(ValueError, match="without a tool call id"):
-        _normalize_entry(
-            entry=entry,
-            index=8,
-            image_data=None,
-            known_tool_call_ids=known_tool_call_ids,
-            pending_tool_call_ids=[],
-            transparency=None,
-        )
+    entries = _normalize_entry(
+        entry=entry,
+        index=8,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_ids=[],
+        transparency=None,
+    )
 
+    assert entries == [
+        {
+            "role": "assistant",
+            "content": "not valid json",
+            "message_type": "assistant_response",
+            "tool_name": None,
+            "correlation_id": None,
+            "timestamp": "2026-02-26T00:00:00Z",
+            "image_data": None,
+        }
+    ]
     assert known_tool_call_ids == set()
 
 
@@ -350,7 +360,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
     entry = SimpleNamespace(
         role="tool",
         content='{"bundle_id":"bundle-1","tools":[{"name":"mouse_control","arguments":{"x":1,"y":2}}]}',
-        message_type="tool-bundle",
+        message_type="tool_output",
         tool_name="tool-bundle",
         correlation_id="bundle-1",
         tool_call_id=None,
@@ -379,7 +389,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
     entry = SimpleNamespace(
         role="tool",
         content="bundled_tools output:\nstatus: failed",
-        message_type="tool-output",
+        message_type="tool_output",
         tool_name="bundled_tools",
         correlation_id="bundle-1",
         tool_call_id=None,
@@ -437,7 +447,7 @@ def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_conten
     entry = SimpleNamespace(
         role="assistant",
         content='{"bundle_id":"bundle-1","tools":[{"name":"mouse_control"}]}',
-        message_type="assistant-message",
+        message_type="assistant_response",
         tool_name=None,
         correlation_id=None,
         tool_call_id=None,
@@ -457,7 +467,7 @@ def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_conten
         {
             "role": "assistant",
             "content": '{"bundle_id":"bundle-1","tools":[{"name":"mouse_control"}]}',
-            "message_type": "assistant-message",
+            "message_type": "assistant_response",
             "tool_name": None,
             "correlation_id": None,
             "timestamp": "2026-02-26T00:00:00Z",
@@ -473,7 +483,7 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
     assistant_entry = SimpleNamespace(
         role="assistant",
         content="",
-        message_type="assistant-message",
+        message_type="assistant_response",
         tool_name=None,
         correlation_id=None,
         tool_call_id=None,
@@ -497,7 +507,7 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
     tool_output_entry = SimpleNamespace(
         role="tool",
         content="done",
-        message_type="tool-output",
+        message_type="tool_output",
         tool_name="read_file",
         correlation_id=None,
         tool_call_id=None,
@@ -526,7 +536,7 @@ def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content(
             {"type": "thinking", "text": "private reasoning"},
             {"type": "output_text", "text": "Visible answer."},
         ],
-        message_type="assistant-message",
+        message_type="assistant_response",
         tool_name=None,
         correlation_id=None,
         tool_call_id=None,
@@ -549,7 +559,7 @@ def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content(
             "structured_content": [
                 {"type": "output_text", "text": "Visible answer."},
             ],
-            "message_type": "assistant-message",
+            "message_type": "assistant_response",
             "tool_name": None,
             "correlation_id": None,
             "timestamp": "2026-02-26T00:00:00Z",
@@ -565,7 +575,7 @@ def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_cont
         content=[
             {"type": "thinking", "text": "private reasoning"},
         ],
-        message_type="assistant-message",
+        message_type="assistant_response",
         tool_name=None,
         correlation_id=None,
         tool_call_id=None,
@@ -595,7 +605,7 @@ def test_normalize_rehydrated_entry_preserves_structured_tool_content():
                 "image_url": {"url": "data:image/png;base64,abc123"},
             },
         ],
-        message_type="tool-output",
+        message_type="tool_output",
         tool_name="read_file",
         correlation_id=None,
         tool_call_id="call-1",
@@ -643,7 +653,7 @@ def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
     entry = SimpleNamespace(
         role="tool",
         content="done",
-        message_type="tool-output",
+        message_type="tool_output",
         tool_name="replace",
         correlation_id=None,
         tool_call_id="call-2",
@@ -664,7 +674,7 @@ def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
     assert state.pending_tool_call_ids == ["call-1"]
 
 
-def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
+def test_normalize_rehydrated_tool_call_alias_rejects_even_with_explicit_id():
     known_tool_call_ids = set()
     entry = SimpleNamespace(
         role="tool",
@@ -677,30 +687,20 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
         tool_calls=None,
     )
 
-    pending_tool_call_ids = []
-    entries = _normalize_entry(
-        entry=entry,
-        index=2,
-        image_data=None,
-        known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_ids=pending_tool_call_ids,
-        transparency=None,
-    )
+    with pytest.raises(ValueError, match="unsupported message_type='tool-call'"):
+        _normalize_entry(
+            entry=entry,
+            index=2,
+            image_data=None,
+            known_tool_call_ids=known_tool_call_ids,
+            pending_tool_call_ids=[],
+            transparency=None,
+        )
 
-    assert len(entries) == 1
-    call_entry = entries[0]
-    assert call_entry["role"] == "assistant"
-    assert call_entry["correlation_id"] == "call-explicit"
-    assert call_entry["tool_calls"][0] == {
-        "id": "call-explicit",
-        "name": "read_file",
-        "arguments": {"path": "/tmp/a.txt"},
-    }
-    assert pending_tool_call_ids == ["call-explicit"]
-    assert known_tool_call_ids == {"call-explicit"}
+    assert known_tool_call_ids == set()
 
 
-def test_normalize_rehydrated_tool_call_entry_rejects_missing_tool_call_id():
+def test_normalize_rehydrated_tool_call_alias_rejects_missing_tool_call_id():
     known_tool_call_ids = set()
     entry = SimpleNamespace(
         role="assistant",
@@ -713,7 +713,7 @@ def test_normalize_rehydrated_tool_call_entry_rejects_missing_tool_call_id():
         tool_calls=None,
     )
 
-    with pytest.raises(ValueError, match="without a tool call id"):
+    with pytest.raises(ValueError, match="unsupported message_type='tool-call'"):
         _normalize_entry(
             entry=entry,
             index=3,
@@ -747,7 +747,7 @@ async def test_execute_restores_system_prompt_and_full_transparency_content():
             {
                 "role": "user",
                 "content": "visible user text",
-                "message_type": "user",
+                "message_type": "user_query",
                 "transparency": {
                     "systemPrompt": "System prompt from transcript",
                     "fullUserMessage": {
@@ -758,7 +758,7 @@ async def test_execute_restores_system_prompt_and_full_transparency_content():
             {
                 "role": "assistant",
                 "content": "visible assistant text",
-                "message_type": "llm-text",
+                "message_type": "assistant_response",
                 "transparency": {
                     "fullAssistantMessage": {
                         "content": "<full_assistant>payload</full_assistant>",
@@ -776,17 +776,24 @@ async def test_execute_restores_system_prompt_and_full_transparency_content():
     assert manager.session.history.system_prompt == "System prompt from transcript"
 
 
-def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_content():
+def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_structured_calls():
     known_tool_call_ids = set()
     entry = SimpleNamespace(
-        role="tool",
-        content='{"id":"call-1","name":"browser","args":{"action":"snapshot"},"thought_signature":"sig-123"}',
-        message_type="tool-call",
+        role="assistant",
+        content="",
+        message_type="assistant_response",
         tool_name=None,
         correlation_id=None,
         tool_call_id=None,
         timestamp="2026-02-26T00:00:00Z",
-        tool_calls=None,
+        tool_calls=[
+            {
+                "id": "call-1",
+                "name": "browser",
+                "arguments": {"action": "snapshot"},
+                "thought_signature": "sig-123",
+            }
+        ],
     )
 
     pending_tool_call_ids = []
@@ -820,7 +827,7 @@ async def test_execute_rejects_unanswered_tool_call():
             {
                 "role": "assistant",
                 "content": "",
-                "message_type": "assistant-message",
+                "message_type": "assistant_response",
                 "tool_calls": [
                     {
                         "id": "call-1",
@@ -849,7 +856,7 @@ async def test_execute_rejects_multi_tool_turn_with_one_missing_output():
             {
                 "role": "assistant",
                 "content": "",
-                "message_type": "assistant-message",
+                "message_type": "assistant_response",
                 "tool_calls": [
                     {
                         "id": "call-1",
@@ -866,7 +873,7 @@ async def test_execute_rejects_multi_tool_turn_with_one_missing_output():
             {
                 "role": "tool",
                 "content": "pwd output",
-                "message_type": "tool-output",
+                "message_type": "tool_output",
                 "tool_call_id": "call-1",
             },
         ]
@@ -882,14 +889,26 @@ async def test_execute_rejects_multi_tool_turn_with_one_missing_output():
 
 def test_normalize_stored_message_type_emits_canonical_history_values():
     assert (
-        RehydrateEntryNormalizer.normalize_stored_message_type("context_summary")
-        is None
-    )
-    assert (
-        RehydrateEntryNormalizer.normalize_stored_message_type("context-compaction")
-        == "context_compaction"
-    )
-    assert (
-        RehydrateEntryNormalizer.normalize_stored_message_type("assistant-message")
+        RehydrateEntryNormalizer.normalize_stored_message_type(
+            role="assistant",
+            message_type=None,
+        )
         == "assistant_response"
     )
+    assert (
+        RehydrateEntryNormalizer.normalize_stored_message_type(
+            role="assistant",
+            message_type="context_compaction",
+        )
+        == "context_compaction"
+    )
+    with pytest.raises(ValueError, match="unsupported message_type='assistant-message'"):
+        RehydrateEntryNormalizer.normalize_stored_message_type(
+            role="assistant",
+            message_type="assistant-message",
+        )
+    with pytest.raises(ValueError, match="unsupported message_type='context-compaction'"):
+        RehydrateEntryNormalizer.normalize_stored_message_type(
+            role="assistant",
+            message_type="context-compaction",
+        )

@@ -1154,6 +1154,7 @@ function bundleOutputMessages(event: ConversationEvent): JsonRecord[] {
   if (steps.length === 0) {
     return [withStructuredPayload({
       role: 'tool',
+      message_type: 'tool_output',
       content: contentFromPayload(event.payload),
       tool_name: 'tool_bundle',
     }, {
@@ -1168,6 +1169,7 @@ function bundleOutputMessages(event: ConversationEvent): JsonRecord[] {
     const toolName = stringField(step, 'toolName', 'tool_name', 'tool') ?? 'tool_bundle';
     return withStructuredPayload({
       role: 'tool',
+      message_type: 'tool_output',
       content: stepOutputContent(step),
       tool_call_id: toolCallId,
       tool_name: toolName,
@@ -1701,18 +1703,21 @@ function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
   if (event.type === 'user_message') {
     return [withStructuredPayload({
       role: 'user',
+      message_type: 'user_query',
       content: textFromPayload(event.payload),
     }, event.payload)];
   }
   if (event.type === 'assistant_message') {
     return [withStructuredPayload({
       role: 'assistant',
+      message_type: 'assistant_response',
       content: textFromPayload(event.payload),
     }, event.payload)];
   }
   if (event.type === 'tool_call') {
     return [withStructuredPayload({
       role: 'assistant',
+      message_type: 'assistant_response',
       content: textFromPayload(event.payload),
       tool_calls: toolCallsFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
@@ -1721,6 +1726,7 @@ function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
   if (event.type === 'tool_bundle_call') {
     return [withStructuredPayload({
       role: 'assistant',
+      message_type: 'assistant_response',
       content: contentFromPayload(event.payload),
       tool_calls: toolCallsFromPayload(event.payload),
     }, {
@@ -1734,6 +1740,7 @@ function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
   if (event.type === 'tool_output') {
     return [withStructuredPayload({
       role: 'tool',
+      message_type: 'tool_output',
       content: modelTextFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
       tool_name: toolNameFromPayload(event.payload),

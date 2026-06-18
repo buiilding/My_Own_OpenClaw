@@ -2428,13 +2428,13 @@ async def test_rehydrate_handler_rebuilds_session_history():
                 {
                     "role": "user",
                     "content": "hello",
-                    "message_type": "user",
+                    "message_type": "user_query",
                     "timestamp": "2026-02-02T20:00:00Z",
                 },
                 {
                     "role": "assistant",
                     "content": "hi",
-                    "message_type": "llm-text",
+                    "message_type": "assistant_response",
                     "timestamp": "2026-02-02T20:00:01Z",
                 },
             ],
@@ -2478,14 +2478,14 @@ async def test_rehydrate_handler_ignores_missing_screenshot_ref(monkeypatch):
                 {
                     "role": "user",
                     "content": "hello",
-                    "message_type": "user",
+                    "message_type": "user_query",
                     "timestamp": "2026-02-02T20:00:00Z",
                     "screenshot_ref": "missing-artifact.jpg",
                 },
                 {
                     "role": "assistant",
                     "content": "hi",
-                    "message_type": "llm-text",
+                    "message_type": "assistant_response",
                     "timestamp": "2026-02-02T20:00:01Z",
                 },
             ],
@@ -2518,28 +2518,49 @@ async def test_rehydrate_handler_rebuilds_tool_linkage_for_resumed_transcript():
                 {
                     "role": "user",
                     "content": "please read the file",
-                    "message_type": "user",
+                    "message_type": "user_query",
                     "timestamp": "2026-02-12T10:00:00Z",
                 },
                 {
-                    "role": "tool",
-                    "content": '{"name":"read_file","args":{"file_path":"/tmp/a.txt"}}',
-                    "message_type": "tool-call",
+                    "role": "assistant",
+                    "content": "",
+                    "message_type": "assistant_response",
+                    "tool_calls": [
+                        {
+                            "id": "call_read_file_1",
+                            "name": "read_file",
+                            "arguments": {"file_path": "/tmp/a.txt"},
+                        }
+                    ],
                     "timestamp": "2026-02-12T10:00:01Z",
                 },
                 {
                     "role": "tool",
                     "content": "read_file output:\nFile path: /tmp/a.txt\n\nalpha",
-                    "message_type": "tool-output",
+                    "message_type": "tool_output",
+                    "tool_call_id": "call_read_file_1",
                     "timestamp": "2026-02-12T10:00:02Z",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "message_type": "assistant_response",
+                    "tool_calls": [
+                        {
+                            "id": "call_replace_1",
+                            "name": "replace",
+                            "arguments": {"text": "alpha"},
+                        }
+                    ],
+                    "timestamp": "2026-02-12T10:00:03Z",
                 },
                 {
                     "role": "tool",
                     "content": "replace output:\nstatus: successful",
-                    "message_type": "tool-output",
+                    "message_type": "tool_output",
                     "tool_name": "replace",
-                    "correlation_id": "call_replace_1",
-                    "timestamp": "2026-02-12T10:00:03Z",
+                    "tool_call_id": "call_replace_1",
+                    "timestamp": "2026-02-12T10:00:04Z",
                 },
             ],
             "rehydrate_mode": "replace",
@@ -2587,23 +2608,36 @@ async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
                 {
                     "role": "user",
                     "content": "See screenshot",
-                    "message_type": "user",
+                    "message_type": "user_query",
                     "screenshot": "data:image/png;base64,user-inline",
                     "timestamp": "2026-02-12T10:00:00Z",
                 },
                 {
                     "role": "assistant",
                     "content": "Visible answer.",
-                    "message_type": "llm-text",
+                    "message_type": "assistant_response",
                     "timestamp": "2026-02-12T10:00:01Z",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "message_type": "assistant_response",
+                    "tool_calls": [
+                        {
+                            "id": "call_1",
+                            "name": "read_file",
+                            "arguments": {"file_path": "/tmp/a.txt"},
+                        }
+                    ],
+                    "timestamp": "2026-02-12T10:00:02Z",
                 },
                 {
                     "role": "tool",
                     "content": "done",
-                    "message_type": "tool-output",
+                    "message_type": "tool_output",
                     "tool_call_id": "call_1",
                     "screenshot": "data:image/png;base64,tool-inline",
-                    "timestamp": "2026-02-12T10:00:02Z",
+                    "timestamp": "2026-02-12T10:00:03Z",
                 },
             ],
             "rehydrate_mode": "replace",
@@ -2620,7 +2654,7 @@ async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
     assert entries[1]["content"] == "Visible answer."
     assert entries[1]["image_data"] is None
     assert entries[2]["role"] == "assistant"
-    assert entries[2]["message_type"] == "tool-call"
+    assert entries[2]["message_type"] == "assistant_response"
     assert entries[2]["tool_calls"][0]["id"] == "call_1"
     assert entries[3]["role"] == "tool"
     assert entries[3]["content"] == "done"
@@ -2656,4 +2690,4 @@ async def test_rehydrate_handler_normalizes_context_compaction_message_type():
 
     assert not websocket.sent
     entries = session_manager.session.rehydrate_calls[0]["entries"]
-    assert entries[0]["message_type"] == "context-compaction"
+    assert entries[0]["message_type"] == "context_compaction"
