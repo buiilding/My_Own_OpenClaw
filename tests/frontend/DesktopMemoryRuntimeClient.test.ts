@@ -4,6 +4,8 @@
 
 import { DesktopMemoryRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
   invokeAgentSdkCommand: jest.fn(),
@@ -71,5 +73,19 @@ describe('DesktopMemoryRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(2, 'conversations.clearAll', {
       userId: 'user-1',
     });
+  });
+
+  test('subscribes to memory store changes through desktop runtime fan-out', () => {
+    const removeListener = jest.fn();
+    const listener = jest.fn();
+    const onSpy = jest.spyOn(IpcBridge, 'on').mockReturnValue(removeListener);
+
+    expect(DesktopMemoryRuntimeClient.onMemoryStoreChanged(listener)).toBe(removeListener);
+    expect(onSpy).toHaveBeenCalledWith(
+      DESKTOP_RUNTIME_ON_CHANNELS.MEMORY_STORE_CHANGED,
+      listener,
+    );
+
+    onSpy.mockRestore();
   });
 });

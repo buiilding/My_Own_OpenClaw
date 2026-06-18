@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Memory Store Runtime Client
+
+- Finding: `MemorySection` already used `DesktopMemoryRuntimeClient` for
+  memory list/delete commands but still subscribed to the memory-store changed
+  desktop runtime channel directly.
+- Change: widened `DesktopMemoryRuntimeClient` with
+  `onMemoryStoreChanged(...)` and routed the dashboard memory refresh
+  subscription through it while leaving tab/search/normalization/delete
+  presentation in `MemorySection`.
+- Validation: focused desktop memory runtime client, memory section, renderer
+  chat boundary tests, targeted memory section direct IPC scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. Memory list/delete commands,
+  memory-store change payloads, refresh behavior, storage, credentials, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Renderer Workspace Settings Runtime Client
 
 - Finding: `WorkspaceSettingsTab` used workspace access helpers for commands

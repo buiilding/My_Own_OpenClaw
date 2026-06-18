@@ -47,7 +47,7 @@ the owner map before changing code.
 | Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `desktopConversationLibraryClient.js`, `desktopConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
 | Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `desktopConversationStore.ts`, `conversationSessionRuntime.ts`, `conversationWorkspaceBinding.js`, Electron main SDK runtime registry | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationWorkspaceBinding.test.js`, `tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs` |
 | Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx` |
-| Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, memory IPC contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory IPC/sidecar tests |
+| Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, `DesktopMemoryRuntimeClient`, memory runtime contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory runtime/sidecar tests |
 | Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `modelSelectionUtils.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
 | Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/SettingsManagementHook.test.ts` |
 | Usage panel changes from placeholder to real data | `components/sections/UsageSection.jsx`, token/usage event consumers, backend token-count docs | `tests/frontend/UsageSection.test.jsx`, token-count renderer/backend tests when data becomes real |
@@ -64,7 +64,7 @@ flowchart TD
     sidebar --> conversations["useDashboardConversations"]
     conversations --> transcript["local transcript store + snapshot loader"]
     conversations --> session["chat/session + workspace binding helpers"]
-    panels --> memory["MemorySection -> memory IPC"]
+    panels --> memory["MemorySection -> DesktopMemoryRuntimeClient"]
     panels --> models["ModelsSection -> AppConfig update"]
     panels --> settings["SettingsSection -> AppConfig/AppStatus sync"]
     panels --> usage["UsageSection placeholder or usage data"]

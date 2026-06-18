@@ -55,9 +55,11 @@ Runtime methods used by this surface:
 - `DesktopMemoryRuntimeClient.listEpisodicMemories(200)`
 - `DesktopMemoryRuntimeClient.listSemanticMemories(200)`
 - `DesktopMemoryRuntimeClient.deleteMemoryItem({ memoryId, kind })`
+- `DesktopMemoryRuntimeClient.onMemoryStoreChanged(...)`
 
-The runtime client owns the sidecar-shaped IPC channel names and result
-normalization. Dashboard feature code must not import memory IPC constants.
+The runtime client owns SDK-shaped memory commands, memory-store fan-out channel
+names, and result normalization. Dashboard feature code must not import memory
+IPC constants.
 
 Toggle behavior contract:
 
@@ -130,6 +132,13 @@ Normalization:
 ### Procedural tab
 
 - currently placeholder list (`[]`) with static empty-state messaging.
+
+### Store-change refresh
+
+- `DesktopMemoryRuntimeClient.onMemoryStoreChanged(...)` triggers a full memory
+  reload.
+- `MemorySection` does not inspect the event payload user id; command runtime
+  owns active memory user resolution.
 
 ### Delete behavior
 

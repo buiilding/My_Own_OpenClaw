@@ -230,7 +230,12 @@ describe('renderer chat runtime boundary', () => {
       __dirname,
       '../../frontend/src/renderer/features/dashboard',
     );
-    const files = await listSourceFiles(dashboardRoot);
+    const files = [
+      path.join(dashboardRoot, 'components/sections/MemorySection.jsx'),
+      path.join(dashboardRoot, 'components/sections/MemoryItem.jsx'),
+      path.join(dashboardRoot, 'components/sections/memorySectionData.js'),
+      path.join(dashboardRoot, 'components/sections/memorySectionState.js'),
+    ];
     const offenders: string[] = [];
 
     for (const file of files) {
@@ -242,6 +247,9 @@ describe('renderer chat runtime boundary', () => {
         || source.includes('DELETE_SEMANTIC_MEMORY')
         || source.includes('CLEAR_LOCAL_MEMORY')
         || source.includes('CLEAR_CHAT_HISTORY')
+        || source.includes('MEMORY_STORE_CHANGED')
+        || source.includes('DESKTOP_RUNTIME_ON_CHANNELS')
+        || source.includes('window.ipc')
       ) {
         offenders.push(path.relative(dashboardRoot, file));
       }

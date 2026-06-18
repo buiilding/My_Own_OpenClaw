@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Renderer Memory Store Runtime Client Slice
+
+- Worktree was clean after `e235c9e05`, with `main` ahead of `origin/main` by
+  853 commits.
+- Recent related commits were inspected before touching the memory panel path.
+- Finding: `MemorySection` already used `DesktopMemoryRuntimeClient` for
+  memory list/delete commands but still subscribed to the memory-store changed
+  desktop runtime channel directly.
+- Change: widened `DesktopMemoryRuntimeClient` with
+  `onMemoryStoreChanged(...)` and routed the dashboard memory refresh
+  subscription through it while leaving tab/search/normalization/delete
+  presentation in `MemorySection`.
+- Validation: focused desktop memory runtime client, memory section, renderer
+  chat boundary tests, targeted memory section direct IPC scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. Memory list/delete commands,
+  memory-store change payloads, refresh behavior, storage, credentials, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Renderer Workspace Settings Runtime Client Slice
 
 - Worktree was clean after `7a8fd3d0a`, with `main` ahead of `origin/main` by

@@ -10,14 +10,16 @@ const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetri
 const mockListEpisodicMemories = jest.fn();
 const mockListSemanticMemories = jest.fn();
 const mockDeleteMemoryItem = jest.fn();
+const mockOnMemoryStoreChanged = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: 'user-1' };
-let ipcListeners = {};
+let memoryStoreChangedListener = null;
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', () => ({
   DesktopMemoryRuntimeClient: {
     listEpisodicMemories: (...args) => mockListEpisodicMemories(...args),
     listSemanticMemories: (...args) => mockListSemanticMemories(...args),
     deleteMemoryItem: (...args) => mockDeleteMemoryItem(...args),
+    onMemoryStoreChanged: (...args) => mockOnMemoryStoreChanged(...args),
   },
 }));
 
@@ -35,19 +37,18 @@ describe('MemorySection', () => {
     mockListEpisodicMemories.mockResolvedValue([]);
     mockListSemanticMemories.mockResolvedValue([]);
     mockDeleteMemoryItem.mockResolvedValue(undefined);
+    mockOnMemoryStoreChanged.mockReset();
     mockSessionInfo = { conversationRef: null, userId: 'user-1' };
-    ipcListeners = {};
-    window.ipc = {
-      on: jest.fn((channel, listener) => {
-        ipcListeners[channel] = listener;
-        return jest.fn();
-      }),
-    };
+    memoryStoreChangedListener = null;
+    mockOnMemoryStoreChanged.mockImplementation((listener) => {
+      memoryStoreChangedListener = listener;
+      return jest.fn();
+    });
     window.localStorage.removeItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
   });
 
   afterEach(() => {
-    delete window.ipc;
+    memoryStoreChangedListener = null;
   });
 
   test('loads episodic and semantic memories without using conversation list', async () => {
@@ -297,14 +298,11 @@ describe('MemorySection', () => {
     await screen.findByText('No memories found');
 
     await waitFor(() => {
-      expect(window.ipc.on).toHaveBeenCalledWith(
-        'windie:memory-store-changed',
-        expect.any(Function),
-      );
+      expect(mockOnMemoryStoreChanged).toHaveBeenCalledWith(expect.any(Function));
     });
 
     await act(async () => {
-      ipcListeners['windie:memory-store-changed']?.({
+      memoryStoreChangedListener?.({
         type: 'memory_store_changed',
         payload: {
           userId: 'authenticated-user',
@@ -340,7 +338,7 @@ describe('MemorySection', () => {
     await screen.findByText('No memories found');
 
     await act(async () => {
-      ipcListeners['windie:memory-store-changed']?.({
+      memoryStoreChangedListener?.({
         type: 'memory_store_changed',
         payload: {
           userId: 'other-user',

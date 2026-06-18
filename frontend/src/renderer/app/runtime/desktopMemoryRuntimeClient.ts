@@ -4,12 +4,16 @@
 
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
+import { IpcBridge } from '../../infrastructure/ipc/bridge';
+import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 type MemoryKind = 'episodic' | 'semantic';
 
 type MemoryListData = {
   memories?: unknown[];
 };
+
+export type MemoryStoreChangedListener = (payload?: unknown) => void;
 
 async function listMemories(type: MemoryKind, limit: number): Promise<unknown[]> {
   const data = await invokeAgentSdkCommand<MemoryListData>(SDK_RUNTIME_COMMANDS.MEMORIES_LIST, {
@@ -47,5 +51,9 @@ export const DesktopMemoryRuntimeClient = {
 
   async clearChatHistory(userId: string): Promise<unknown> {
     return invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL, { userId });
+  },
+
+  onMemoryStoreChanged(listener: MemoryStoreChangedListener): (() => void) | undefined {
+    return IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.MEMORY_STORE_CHANGED, listener);
   },
 };

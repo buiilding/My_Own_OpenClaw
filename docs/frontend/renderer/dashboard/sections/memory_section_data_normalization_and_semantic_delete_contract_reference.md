@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, and runtime-backed delete IPC contracts."
+summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, runtime-backed delete, and memory-store refresh contracts."
 read_when:
   - When changing `MemorySection.jsx`, `MemoryItem.jsx`, or `memorySectionData.js`.
   - When debugging dashboard memory list shape drift, episodic/semantic delete failures, or search/edit state behavior.
@@ -23,6 +23,7 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 
 - memory type tabs (`episodic`, `semantic`, `procedural`)
 - fetch + normalization on mount/user switch
+- refresh on memory-store change fan-out
 - local search filter
 - episodic/semantic delete RPC flow (for runtime-backed rows)
 
@@ -47,6 +48,13 @@ Initial load runs both calls in parallel:
 
 - `DesktopMemoryRuntimeClient.listEpisodicMemories(200)`
 - `DesktopMemoryRuntimeClient.listSemanticMemories(200)`
+
+Store-change refresh:
+
+- `DesktopMemoryRuntimeClient.onMemoryStoreChanged(...)`
+- refreshes both episodic and semantic lists
+- the panel does not inspect user ids from the store-change payload; active user
+  resolution remains with the memory runtime commands
 
 Normalization modules:
 
@@ -87,9 +95,9 @@ Add/edit controls are intentionally not exposed in `MemorySection`. The panel is
   `DesktopMemoryRuntimeClient.deleteMemoryItem({ userId, memoryId, kind })`
 - rows without a runtime memory id are removed from local list only
 
-`DesktopMemoryRuntimeClient` contains the sidecar-shaped IPC channel names and
-result normalization. `MemorySection` must stay UI-scoped and call the facade
-instead of importing memory IPC constants.
+`DesktopMemoryRuntimeClient` contains the SDK-shaped memory commands and desktop
+memory-store fan-out channel. `MemorySection` must stay UI-scoped and call the
+facade instead of importing memory IPC constants.
 
 After delete:
 
@@ -115,6 +123,7 @@ After delete:
 - left close button delegates `onClose`
 - semantic delete uses the memory runtime client with expected payload
 - episodic delete uses the memory runtime client with expected payload
+- memory-store fan-out refreshes through the memory runtime client
 - unsupported local add/edit actions are not rendered
 - semantic delete path does not use `window.confirm`
 
@@ -123,7 +132,9 @@ After delete:
 1. Changing sidecar memory payload shape without updating normalizers.
 2. Reintroducing local add/edit without a backend write path creates reload-time data loss.
 3. Removing runtime memory id propagation (`runtimeMemoryId`) breaks delete routing.
-4. Divergent user-id fallback policy can split memory visibility by session state.
+4. Importing `MEMORY_STORE_CHANGED` in the panel bypasses the runtime client and
+   reintroduces desktop transport details into UI code.
+5. Divergent user-id fallback policy can split memory visibility by session state.
 
 ## Related Pages
 
