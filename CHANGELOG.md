@@ -24,6 +24,10 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/chat: tighten renderer runtime boundary typing for artifact URL
   helpers, pending-turn broadcasts, and stop tracking so frontend typecheck can
   validate chat projection/state adapters again.
+- renderer/runtime: route runtime endpoint snapshot field extraction through
+  `DesktopRuntimeEndpointClient`, with generic `runtimeHttpUrl` support and
+  legacy `backendHttpUrl` compatibility, instead of exposing backend-shaped
+  endpoint fields in `AppConfigProvider`.
 - main/diagnostics: inject WindieOS app diagnostics database and user-data env
   names from the main host skin instead of hardcoding them inside the generic
   diagnostics store.

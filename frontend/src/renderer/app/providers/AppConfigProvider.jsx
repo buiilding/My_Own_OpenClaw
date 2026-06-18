@@ -187,7 +187,7 @@ export function AppConfigProvider({ children }) {
       userId: extractTranscriptUserId(data),
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
     });
-    DesktopRuntimeEndpointClient.setHttpUrl(data?.backendHttpUrl);
+    DesktopRuntimeEndpointClient.syncFromConnectionSnapshot(data);
     if (runtimeConnectedRef.current) {
       syncCurrentConfigToRuntime();
     }

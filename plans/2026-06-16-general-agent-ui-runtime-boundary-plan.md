@@ -8718,3 +8718,22 @@ Each completed slice should report:
   state path env names, bearer-token loading, hosted HTTP request behavior,
   storage, credentials, permissions, IPC, local-runtime launch, and provider
   policy are unchanged.
+
+### 2026-06-18 Renderer runtime endpoint snapshot boundary
+
+- Finding: `AppConfigProvider` still read the backend-shaped
+  `backendHttpUrl` IPC status field directly before forwarding it into the
+  renderer endpoint store, which kept backend transport vocabulary inside the
+  generic renderer provider instead of the app-runtime adapter.
+- Change: moved endpoint extraction into `DesktopRuntimeEndpointClient` via
+  `syncFromConnectionSnapshot(...)`, added generic `runtimeHttpUrl` support,
+  preserved legacy `backendHttpUrl` compatibility, and updated provider tests
+  plus endpoint-store coverage for both snapshot shapes.
+- Validation: focused AppConfigProvider and RuntimeEndpointStore Jest coverage,
+  frontend typecheck, docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. Existing main-process IPC status
+  snapshots that emit `backendHttpUrl` continue to update renderer artifact and
+  transcription endpoint URLs; generic hosts may emit `runtimeHttpUrl`. No
+  storage, credential, permission, IPC channel, artifact URL shape, transcript
+  session, local-runtime launch, hosted backend URL, or provider-policy
+  contract changes.

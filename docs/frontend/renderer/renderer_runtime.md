@@ -29,7 +29,7 @@ Provider responsibilities:
   - model list loading/refresh
   - runtime settings sync
   - one-shot `list-models` request guard in main dashboard renderer only
-  - IPC status snapshot projection (`backendHttpUrl`, transcript user/session wiring, global stop-shortcut fallback status)
+  - IPC status snapshot projection (runtime endpoint sync, transcript user/session wiring, global stop-shortcut fallback status)
   - disk/localStorage sync
   - wakeword enabled/suppressed state
 - `AppStatusProvider`:

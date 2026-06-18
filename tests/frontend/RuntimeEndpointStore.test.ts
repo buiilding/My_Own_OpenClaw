@@ -7,6 +7,9 @@ import {
   buildRuntimeTranscriptionWebSocketUrl,
   setRuntimeEndpointHttpUrl,
 } from '../../frontend/src/renderer/infrastructure/services/RuntimeEndpointStore';
+import {
+  DesktopRuntimeEndpointClient,
+} from '../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient';
 
 describe('RuntimeEndpointStore', () => {
   beforeEach(() => {
@@ -34,6 +37,23 @@ describe('RuntimeEndpointStore', () => {
     setRuntimeEndpointHttpUrl('https://api.windieos.test/base');
 
     expect(buildRuntimeTranscriptionWebSocketUrl()).toBe('wss://api.windieos.test/ws/transcription');
+  });
+
+  test('runtime endpoint client syncs generic runtime snapshot URL', () => {
+    DesktopRuntimeEndpointClient.syncFromConnectionSnapshot({
+      runtimeHttpUrl: 'http://10.0.0.42:9001/runtime/',
+      backendHttpUrl: 'http://legacy.example:9001',
+    });
+
+    expect(buildRuntimeArtifactUrl('art-2')).toBe('http://10.0.0.42:9001/runtime/api/artifacts/art-2');
+  });
+
+  test('runtime endpoint client preserves backend snapshot compatibility', () => {
+    DesktopRuntimeEndpointClient.syncFromConnectionSnapshot({
+      backendHttpUrl: 'http://10.0.0.43:9001',
+    });
+
+    expect(buildRuntimeArtifactUrl('art-2')).toBe('http://10.0.0.43:9001/api/artifacts/art-2');
   });
 
 });

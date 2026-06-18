@@ -35,6 +35,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient', () => ({
   DesktopRuntimeEndpointClient: {
     setHttpUrl: jest.fn(),
+    syncFromConnectionSnapshot: jest.fn(),
   },
 }));
 jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
@@ -56,6 +57,7 @@ export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 export const mockSetRuntimeEndpointHttpUrl = DesktopRuntimeEndpointClient.setHttpUrl as jest.Mock;
+export const mockSyncRuntimeEndpointFromSnapshot = DesktopRuntimeEndpointClient.syncFromConnectionSnapshot as jest.Mock;
 export const mockDesktopSettingsListModels = DesktopSettingsRuntimeClient.listModels as jest.Mock;
 export const mockDesktopSettingsRequestStartupModels = DesktopSettingsRuntimeClient.requestDashboardStartupModelList as jest.Mock;
 export const mockDesktopSettingsUpdateSettings = DesktopSettingsRuntimeClient.updateSettings as jest.Mock;

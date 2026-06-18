@@ -13,6 +13,7 @@ import {
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
   mockSetRuntimeEndpointHttpUrl,
+  mockSyncRuntimeEndpointFromSnapshot,
   mockUpdateTranscriptSession,
   ON_CHANNELS,
   registerAppConfigProviderSuiteLifecycle,
@@ -261,13 +262,16 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
-  test('sets artifact runtime http URL when get-client-user-id includes endpoint metadata', async () => {
+  test('syncs runtime endpoint snapshot when get-client-user-id includes endpoint metadata', async () => {
     setClientUserIdResponse({ backendHttpUrl: 'http://10.0.0.42:9001' });
 
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockSetRuntimeEndpointHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
+    expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith({
+      backendHttpUrl: 'http://10.0.0.42:9001',
+    });
+    expect(mockSetRuntimeEndpointHttpUrl).not.toHaveBeenCalled();
   });
 
   test('updates transcript session from IPC status events with userId', () => {
@@ -283,17 +287,20 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'ipc-user-1');
   });
 
-  test('sets artifact runtime http URL from IPC status payload', () => {
+  test('syncs runtime endpoint snapshot from IPC status payload', () => {
     renderAppConfigContext();
 
     const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
     expect(ipcStatusHandler).toEqual(expect.any(Function));
 
     act(() => {
-      ipcStatusHandler?.({ backendHttpUrl: 'http://10.0.0.42:9001' });
+      ipcStatusHandler?.({ runtimeHttpUrl: 'http://10.0.0.42:9001' });
     });
 
-    expect(mockSetRuntimeEndpointHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
+    expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith({
+      runtimeHttpUrl: 'http://10.0.0.42:9001',
+    });
+    expect(mockSetRuntimeEndpointHttpUrl).not.toHaveBeenCalled();
   });
 
   test('syncs current config to settings runtime when IPC status reports connected', () => {

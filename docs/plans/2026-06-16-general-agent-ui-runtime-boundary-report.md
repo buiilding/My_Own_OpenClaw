@@ -2488,6 +2488,29 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   storage, credentials, permissions, IPC, local-runtime launch, and provider
   policy are unchanged.
 
+### 2026-06-18 Renderer Runtime Endpoint Snapshot Slice
+
+- Finding: `AppConfigProvider` still pulled the backend-shaped
+  `backendHttpUrl` field out of IPC status snapshots before forwarding it to
+  runtime endpoint state, leaving backend transport vocabulary in the generic
+  renderer config provider.
+- Decision: keep the current IPC payload compatible, but make the renderer
+  app-runtime client own status-snapshot endpoint extraction and add a generic
+  field name for future hosts.
+- Change: added `DesktopRuntimeEndpointClient.syncFromConnectionSnapshot(...)`
+  with `runtimeHttpUrl` primary support and `backendHttpUrl` compatibility,
+  changed `AppConfigProvider` to pass the whole snapshot to that adapter, and
+  added focused coverage for provider delegation plus generic/legacy endpoint
+  snapshot handling.
+- Validation: focused AppConfigProvider and RuntimeEndpointStore Jest coverage,
+  frontend typecheck, docs listing, source scans, and `git diff --check`
+  passed.
+- Compatibility: no migration required. Existing main-process IPC status
+  snapshots that emit `backendHttpUrl` keep working; generic hosts may emit
+  `runtimeHttpUrl`. Storage, credentials, permissions, IPC channel names,
+  artifact/transcription URL shapes, transcript session binding, local-runtime
+  launch, hosted backend URL, and provider policy are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
