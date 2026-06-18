@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: clarify backend endpoint resolution and docs as Electron main plus local-runtime consumer ownership, and lock old main-process-plus-sidecar endpoint wording out of focused coverage; no migration is required because endpoint env names, URL derivation, SDK/local-runtime payloads, and stored settings are unchanged.
+
 - backend/core: remove unused streaming chunk TypedDict aliases from
   `core.types.schemas`; no migration is required because runtime stream events
   and outgoing formatter schemas are unchanged.

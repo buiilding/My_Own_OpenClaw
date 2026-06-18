@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main endpoint local-runtime wording boundary
+
+- Finding: backend endpoint resolution still described its Electron main boundary
+  as "main process + sidecar," and main-process routing docs described stale
+  endpoint propagation as a sidecar symptom even though Electron main forwards
+  endpoint config through the generic local-runtime boundary.
+- Change: updated the endpoint module header, main workflow routing text, and
+  install troubleshooting symptom language to use local-runtime ownership, and
+  added focused endpoint coverage so the old sidecar-named endpoint header stays
+  removed.
+- Validation: focused backend endpoint Jest coverage, docs listing, stale
+  wording scan, and diff checks.
+- Compatibility: no migration required. Endpoint env names, URL derivation,
+  SDK/local-runtime payloads, daemon discovery, tool schemas, and stored
+  settings are unchanged.
+
 ### 2026-06-17 local runtime verbose stderr env boundary
 
 - Finding: Electron main still used `WINDIE_VERBOSE_SIDECAR_STDERR` as the

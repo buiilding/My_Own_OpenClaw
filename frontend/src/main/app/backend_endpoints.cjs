@@ -1,5 +1,5 @@
 /**
- * Backend endpoint resolution for Electron main process + sidecar.
+ * Backend endpoint resolution for Electron main process and local runtime consumers.
  *
  * Supported env vars:
  * - BACKEND_WS_URL   (highest priority for WebSocket URL)

@@ -39,9 +39,13 @@ describe('backend_endpoints hosted defaults', () => {
 
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_HOST');
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_PORT');
+    expect(source).toContain(
+      'Backend endpoint resolution for Electron main process and local runtime consumers.',
+    );
     expect(source).toContain('resolveLoopbackFallbackEndpoints');
     expect(source).toContain('explicitHostOrPortOverride');
     expect(source).toContain('loopbackCandidates');
+    expect(source).not.toContain('Backend endpoint resolution for Electron main process + sidecar.');
     expect(source).not.toContain(['DEFAULT', 'LOCAL', 'BACKEND', 'HOST'].join('_'));
     expect(source).not.toContain(['DEFAULT', 'LOCAL', 'BACKEND', 'PORT'].join('_'));
     expect(source).not.toContain(['resolveLocal', 'FallbackEndpoints'].join(''));
