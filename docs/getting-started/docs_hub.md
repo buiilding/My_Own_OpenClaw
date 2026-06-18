@@ -38,7 +38,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Sessions and Conversations](../concepts/sessions_and_conversations.md) for user/session/conversation identity, transcript replay, backend rehydrate, and wrong-thread debugging.
 - [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs.
-- [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) for transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, and tool-row reconstruction.
+- [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) for transcript writes, pending queues, local-runtime transcript storage, dashboard replay/resume, backend rehydrate payloads, and tool-row reconstruction.
 - [Streaming and Events](../concepts/streaming_and_events.md) for websocket event families, renderer consumers, token-counts, tool events, and audio side-channels.
 - [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md) for backend event dataclasses, formatter specs, outgoing schemas, Electron rebroadcast, renderer guards, stream handlers, terminal events, and audio side-channels.
 - [Prompt and Tool Context](../concepts/prompt_and_tool_context.md) for prompt inputs, repo instructions, tool-schema visibility, and transparency events.

@@ -3,7 +3,7 @@ summary: "Workflow for changing WindieOS SDK-backed transcript projections, conv
 read_when:
   - When changing SDK display projections, local conversation snapshots, dashboard conversation replay, or backend rehydrate payload construction.
   - When visible chat rows persist incorrectly, dashboard resume shows the wrong messages, replay loses tool rows, or backend context after resume does not match the stored transcript.
-  - When deciding whether a transcript/replay bug belongs to renderer transcript state, Electron transcript-session sync, sidecar transcript storage, dashboard replay actions, or backend rehydrate services.
+  - When deciding whether a transcript/replay bug belongs to renderer transcript state, Electron transcript-session sync, local-runtime transcript storage, dashboard replay actions, or backend rehydrate services.
 title: "Transcript Replay Change Workflow"
 ---
 
@@ -11,7 +11,7 @@ title: "Transcript Replay Change Workflow"
 
 Use this workflow for the visible-chat projection path. WindieOS transcript replay is related to memory, but it is not the same thing as semantic memory or backend active model history.
 
-The core rule is: sidecar `conversation_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
+The core rule is: SDK local-runtime `conversation_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
 
 ## Runtime Path
 
@@ -20,7 +20,7 @@ flowchart LR
     A["SDK conversation event"] --> B["desktop conversation store factory"]
     B --> C["Electron main memory RPC mapper"]
     C --> D["sidecar chat event handler"]
-    D --> E["sidecar conversation_events rows"]
+    D --> E["local-runtime conversation_events rows"]
     E --> F["dashboard conversation list/search"]
     E --> G["SDK display/rehydrate projections"]
     G --> I["backend RehydrateExecutionService"]
@@ -31,7 +31,7 @@ flowchart LR
 
 - SDK projection/runtime code owns visible chat projection, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
-- The sidecar owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs.
+- The SDK local-runtime store owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs; the Python sidecar implements the current SQLite backing store.
 - Backend rehydrate owns conversion from stored transcript entries into
   model-compatible backend history. It normalizes current transcript
   projections and rejects missing or stale tool linkage instead of repairing or

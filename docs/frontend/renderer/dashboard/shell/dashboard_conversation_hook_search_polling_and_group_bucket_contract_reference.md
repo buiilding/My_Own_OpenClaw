@@ -108,7 +108,7 @@ When `includeSearchMetadata=true`, adds:
 
 `handleOpenConversation(conversation)`:
 
-1. loads canonical SDK conversation events from sidecar `conversation_events` through the desktop conversation library/runtime
+1. loads canonical SDK conversation events from local-runtime `conversation_events` through the desktop conversation library/runtime
 2. projects rows through the SDK display conversation builders
 3. marks backend inference state unknown so the continuity runtime can lazily rehydrate from the SDK snapshot
 4. updates transcript session and active conversation ref

@@ -3,7 +3,7 @@ summary: "Workflow for changing WindieOS user/session/conversation identity, tra
 read_when:
   - When changing `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, dashboard resume, rehydrate payloads, stop-query routing, or active stream filtering.
   - When debugging messages, tool calls, tool results, screenshots, memory rows, dashboard conversations, VM runs, or backend history landing in the wrong conversation.
-  - When changing renderer transcript identity, Electron main transcript sync, backend session registry behavior, sidecar transcript storage identity, or replay/rehydrate linkage.
+  - When changing renderer transcript identity, Electron main transcript sync, backend session registry behavior, local-runtime transcript storage identity, or replay/rehydrate linkage.
 title: "Session and Conversation Identity Change Workflow"
 ---
 
@@ -39,7 +39,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | `turn_ref` | no | renderer send path and backend stream events | Use to correlate one user turn, stream events, stop-query, stale-turn filtering, and tool execution. |
 | `tool_call_id` | yes within model history | backend/provider history and transcript tool rows | Preserve across transcript, replay, rehydrate, and strict provider history. |
 | `request_id` / `correlation_id` | no to semi-durable | backend tool wait path, SDK/main tool coordinator, transcript projection persistence | Use to resolve in-flight tool results and reconstruct UI/tool rows. Preserve until result/history conversion completes. |
-| `message_index` | yes within sidecar store | sidecar transcript storage | Use for replay ordering, pagination, semanticization windows, and dashboard conversation views. |
+| `message_index` | yes within local-runtime store | local-runtime transcript storage | Use for replay ordering, pagination, semanticization windows, and dashboard conversation views. |
 
 ## Runtime Flow
 

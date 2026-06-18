@@ -142,7 +142,7 @@ Normalization:
 `handleOpenConversation(conversation)` shell behavior:
 
 1. guard missing `conversation_id`.
-2. ask the SDK conversation library to load canonical sidecar `conversation_events`.
+2. ask the SDK conversation library to load canonical local-runtime `conversation_events`.
 3. project SDK events for UI display.
 4. mark the conversation inference session unknown for lazy continuity rehydrate.
 5. update active conversation + transcript session identity.

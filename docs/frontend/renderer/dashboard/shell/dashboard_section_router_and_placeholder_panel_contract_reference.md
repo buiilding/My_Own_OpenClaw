@@ -64,7 +64,7 @@ Collapsed rail behavior:
 
 Recent chat list behavior:
 
-- source channel: SDK conversation library, backed by sidecar `conversation_events`.
+- source channel: SDK conversation library, backed by local-runtime `conversation_events`.
 - load path runs on mount and when session user id changes.
 - list is filtered to rows with `conversation_id`.
 - sort order is descending by `last_timestamp`.

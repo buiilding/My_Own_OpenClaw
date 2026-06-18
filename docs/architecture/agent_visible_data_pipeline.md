@@ -67,7 +67,7 @@ Renderer, Electron main, and local-runtime payloads are allowed to differ from t
 | Local tool result | Eventually: model-facing tool output after backend transforms it | Sidecar `ToolResult` dict with `success`, `data`, `error`, screenshot/file/artifact fields | `frontend/src/main/python/tools/result.py`, sidecar tool modules, Electron bridge helpers | Large or binary data should become artifact/file refs where possible, not repeated inline payloads through every transport. |
 | Tool result return | Tool output row that the next model turn can consume | SDK runtime sends `tool-result` or `tool-bundle-result` over websocket with request/bundle IDs | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/transport/AgentSession.ts`, `backend/src/api/handlers/tool_result.py` | Request IDs and tool-call IDs are not decoration. Missing IDs create history and wait-state corruption. |
 | Backend history commit | Provider-replay-safe assistant/tool rows in conversation history | Result transformer output, history committer rows, token cache updates | `backend/src/agent/tools/processing`, `backend/src/agent/history` | The visible transcript can differ from backend history, but both must preserve enough structure for replay and rehydrate. |
-| Transcript and replay | The agent may later see replay/rehydrate context derived from transcript rows | Renderer transcript rows, sidecar transcript storage, backend rehydrate payloads | `frontend/src/renderer/infrastructure/transcript`, `frontend/src/main/python/memory`, backend rehydrate inputs | Transcript rows must not be lossy display-only copies when future prompt context depends on them. |
+| Transcript and replay | The agent may later see replay/rehydrate context derived from transcript rows | Renderer transcript rows, local-runtime transcript storage, backend rehydrate payloads | `frontend/src/renderer/infrastructure/transcript`, `frontend/src/main/python/memory`, backend rehydrate inputs | Transcript rows must not be lossy display-only copies when future prompt context depends on them. |
 
 ## Layer Classification
 
@@ -116,7 +116,7 @@ Question the design when you see any of these:
 | IPC or JSON-RPC mapper | preload/channel parity tests, main bridge tests, sidecar protocol tests |
 | Tool execution path | backend tool-turn tests, SDK coordinator/runtime tests, main IPC tool-router tests, sidecar tool tests |
 | Tool result/history shape | backend result ingress/transform/history tests plus transcript replay tests |
-| Transcript/replay shape | renderer transcript queue tests, sidecar transcript storage tests, backend rehydrate tests |
+| Transcript/replay shape | renderer transcript queue tests, local-runtime transcript storage tests, backend rehydrate tests |
 | Docs-only pipeline change | `bin/windie docs list`, `git diff --check`, and focused Markdown link checks |
 
 ## Related Docs

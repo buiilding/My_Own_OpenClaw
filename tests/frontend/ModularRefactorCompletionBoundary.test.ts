@@ -253,8 +253,11 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/renderer/dashboard_memory_management_and_resume_reference.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       read('docs/frontend/sidecar/local_backend_jsonrpc_reference.md'),
+      read('docs/memory/README.md'),
+      read('docs/memory/memory_change_workflow.md'),
       read('docs/memory/session_conversation_identity_change_workflow.md'),
       read('docs/memory/transcript_and_replay.md'),
+      read('docs/memory/transcript_replay_change_workflow.md'),
       read('docs/operations/release_packaging_change_workflow.md'),
       read('docs/platforms/platform_change_workflow.md'),
       read('docs/platforms/packaging_runtime_matrix.md'),
@@ -267,12 +270,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime-backed store adapters');
     expect(docText).toContain('local-runtime-backed local tool');
     expect(docText).toContain('canonical local-runtime events');
+    expect(docText).toContain('local-runtime conversation_events rows');
     expect(docText).toContain('local-runtime event store path');
     expect(docText).toContain('returns sanitized search metadata');
     expect(docText).not.toContain('sidecar-backed');
     expect(docText).not.toContain('canonical sidecar events');
     expect(docText).not.toContain('canonical sidecar chat-event log');
+    expect(docText).not.toContain('canonical sidecar `conversation_events`');
     expect(docText).not.toContain('sidecar event store path');
+    expect(docText).not.toContain('sidecar transcript storage');
   });
 
   test('renderer runtime docs describe local tool execution through SDK local runtime', async () => {

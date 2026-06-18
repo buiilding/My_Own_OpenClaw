@@ -84,7 +84,7 @@ Avoid: fixing a missing image only in the renderer before checking whether the c
 
 ## Transcript Or Replay Behavior
 
-Owner: SDK/runtime stores and renderer projection, with sidecar transcript storage and backend rehydrate contracts where applicable.
+Owner: SDK/runtime stores and renderer projection, with local-runtime transcript storage and backend rehydrate contracts where applicable.
 
 Start with [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md), [Sessions and Conversations](../concepts/sessions_and_conversations.md), and [Session and Transcript Reference](../reference/session_and_transcript_reference.md).
 

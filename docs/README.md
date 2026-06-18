@@ -128,7 +128,7 @@ contracts.
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
 - [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, sidecar memory, semanticization, backend history, and compaction changes
 - [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Change workflow for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, resume, rehydrate, and stale-stream routing
-- [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Change workflow for transcript writes, pending queues, dashboard replay/resume, sidecar transcript storage, backend rehydrate payloads, and tool-row reconstruction
+- [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Change workflow for transcript writes, pending queues, dashboard replay/resume, local-runtime transcript storage, backend rehydrate payloads, and tool-row reconstruction
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and local execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes

@@ -151,7 +151,7 @@ Do not invent new identifiers inside UI components. Use the transcript/session r
 
 | Failure | Avoid | Fix direction |
 | --- | --- | --- |
-| Missing dashboard row | Do not patch backend history | Check sidecar transcript storage and dashboard query path. |
+| Missing dashboard row | Do not patch backend history | Check local-runtime transcript storage and dashboard query path. |
 | Backend loses context after reopening | Do not rewrite sidecar DB | Fix renderer rehydrate payload or backend rehydrate service. |
 | Semantic fact is wrong | Do not edit raw transcript | Fix semanticization prompt/parser/source filtering or delete only derived semantic memory when intentional. |
 | Tool output appears without tool call | Do not hide the UI row | Fix tool linkage preservation in transcript or rehydrate repair. |
