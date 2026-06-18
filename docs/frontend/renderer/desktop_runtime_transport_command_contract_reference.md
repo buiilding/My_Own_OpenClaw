@@ -118,6 +118,12 @@ backend `audio-chunk` side channel. Chat interface bindings keep audio payload
 parsing and playback queue policy while delegating the channel subscription to
 this app runtime client.
 
+`desktopVoiceRuntimeClient.ts` owns renderer voice runtime commands and local
+wakeword bridge IPC. Wakeword hooks keep capture lifecycle, cooldown,
+thresholding, and local error policy while delegating wakeword audio chunks,
+enable/disable sends, and wakeword detected/status subscriptions to this app
+runtime client.
+
 `desktopWorkspaceRuntimeClient.ts` owns the renderer subscription to workspace
 access update fan-out. `ChatInterface` keeps active-workspace refresh,
 conversation binding, and workspace-picked new-chat policy while delegating the

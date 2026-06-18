@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { float32ToPcm16, normalizeAudioCaptureChunkSize } from '../utils/audioEncoding';
 import {
   cleanupAudioCaptureNodes,
@@ -118,15 +118,15 @@ export function useWakewordDetection(
 
     // Convert Int16Array to ArrayBuffer for transmission
     const buffer = audioData.buffer;
-    IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
+    DesktopVoiceRuntimeClient.sendWakewordAudioChunk(buffer);
   }, []);
 
   const requestWakewordEnable = useCallback(() => {
-    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE, {});
+    DesktopVoiceRuntimeClient.enableWakeword();
   }, []);
 
   const requestWakewordDisable = useCallback(() => {
-    IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE, {});
+    DesktopVoiceRuntimeClient.disableWakeword();
   }, []);
 
   const logUnexpectedAudioContextCloseError = useCallback((err: unknown) => {

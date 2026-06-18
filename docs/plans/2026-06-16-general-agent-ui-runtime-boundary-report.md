@@ -160,8 +160,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   route through the renderer app runtime window client.
   Renderer dashboard conversation refresh and title-poll subscriptions now route
   through the renderer app runtime conversation event client.
+  Renderer wakeword audio, enable/disable, detected, and status IPC now route
+  through the renderer app voice runtime client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Wakeword Bridge Voice Runtime Client Slice
+
+- Worktree was clean after `7f2afb3f0`, with `main` ahead of `origin/main` by
+  847 commits.
+- Finding: wakeword capture and bridge-event hooks still imported wakeword IPC
+  send/on channels directly while transcription and wakeword notification paths
+  used `DesktopVoiceRuntimeClient`.
+- Change: widened `DesktopVoiceRuntimeClient` to own wakeword audio chunks,
+  enable/disable sends, and detected/status subscriptions, then routed
+  `useWakewordDetection` and `useWakewordBridgeEvents` through it.
+- Validation: focused desktop voice runtime client, renderer voice boundary,
+  wakeword detection, wakeword bridge-event hook tests, targeted direct wakeword
+  IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Wakeword channel strings, payload
+  shapes, capture lifecycle, cooldown/threshold behavior, microphone permission
+  flow, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Dashboard Conversation Event Subscription Slice
 

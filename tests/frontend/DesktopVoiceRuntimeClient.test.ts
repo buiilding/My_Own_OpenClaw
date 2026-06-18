@@ -3,6 +3,11 @@
  */
 
 import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
+import {
+  IpcBridge,
+  ON_CHANNELS,
+  SEND_CHANNELS,
+} from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 const mockInvokeAgentSdkCommand = jest.fn(async () => undefined);
 
@@ -16,6 +21,12 @@ describe('DesktopVoiceRuntimeClient', () => {
   beforeEach(() => {
     mockInvokeAgentSdkCommand.mockReset();
     mockInvokeAgentSdkCommand.mockResolvedValue(undefined);
+    jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
+    jest.spyOn(IpcBridge, 'on').mockImplementation(() => jest.fn());
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   test('sends wakeword notifications through the desktop runtime transport', async () => {
@@ -30,6 +41,24 @@ describe('DesktopVoiceRuntimeClient', () => {
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).rejects.toThrow(
       'backend unavailable',
     );
+  });
+
+  test('routes wakeword bridge commands and events through typed desktop IPC', () => {
+    const detectedListener = jest.fn();
+    const statusListener = jest.fn();
+    const buffer = new ArrayBuffer(4);
+
+    DesktopVoiceRuntimeClient.sendWakewordAudioChunk(buffer);
+    DesktopVoiceRuntimeClient.enableWakeword();
+    DesktopVoiceRuntimeClient.disableWakeword();
+    DesktopVoiceRuntimeClient.onWakewordDetected(detectedListener);
+    DesktopVoiceRuntimeClient.onWakewordStatus(statusListener);
+
+    expect(IpcBridge.send).toHaveBeenCalledWith(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
+    expect(IpcBridge.send).toHaveBeenCalledWith(SEND_CHANNELS.WAKEWORD_ENABLE, {});
+    expect(IpcBridge.send).toHaveBeenCalledWith(SEND_CHANNELS.WAKEWORD_DISABLE, {});
+    expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_DETECTED, detectedListener);
+    expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_STATUS, statusListener);
   });
 
   test('sends transcription gateway protocol setup messages', () => {

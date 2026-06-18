@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Wakeword Bridge Voice Runtime Client
+
+- Finding: wakeword capture and bridge-event hooks still imported wakeword IPC
+  send/on channels directly while transcription and wakeword notification paths
+  used `DesktopVoiceRuntimeClient`.
+- Change: widened `DesktopVoiceRuntimeClient` to own wakeword audio chunks,
+  enable/disable sends, and detected/status subscriptions, then routed
+  `useWakewordDetection` and `useWakewordBridgeEvents` through it.
+- Validation: focused desktop voice runtime client, renderer voice boundary,
+  wakeword detection, wakeword bridge-event hook tests, targeted direct wakeword
+  IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Wakeword channel strings, payload
+  shapes, capture lifecycle, cooldown/threshold behavior, microphone permission
+  flow, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Dashboard Conversation Event Subscription
 
 - Finding: `useDashboardConversations` still subscribed to the desktop runtime

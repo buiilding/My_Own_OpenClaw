@@ -158,14 +158,15 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 
 Hook startup:
 
-1. `useWakewordBridgeEvents` subscribes `wakeword-detected` + `wakeword-status`
-2. send `wakeword-enable` to request service activation/status
+1. `useWakewordBridgeEvents` subscribes through `DesktopVoiceRuntimeClient`
+   wakeword event helpers
+2. send wakeword enable through `DesktopVoiceRuntimeClient` to request service activation/status
 3. start microphone capture only when `enabled && isReady`
 
 Wakeword capture path:
 
 - convert mic frames Float32 -> PCM16
-- send ArrayBuffer via `SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK`
+- send ArrayBuffer via `DesktopVoiceRuntimeClient.sendWakewordAudioChunk(...)`
 - main process handles service transport details
 
 Detection guardrails:
@@ -173,7 +174,8 @@ Detection guardrails:
 - confidence validated with `resolveConfidence`
 - 2-second cooldown prevents rapid retrigger loops
 - threshold compare (`default 0.5`)
-- on accepted detection: send `wakeword-disable` immediately before callback
+- on accepted detection: disable wakeword through `DesktopVoiceRuntimeClient`
+  immediately before callback
 
 Chunk-size normalization:
 

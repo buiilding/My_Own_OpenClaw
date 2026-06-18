@@ -4,6 +4,7 @@
 
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { buildRuntimeTranscriptionWebSocketUrl } from '../../infrastructure/services/RuntimeEndpointStore';
+import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
   type: 'set_langs',
@@ -25,6 +26,17 @@ type DesktopTranscriptionGatewayEvent =
   }
   | { type: 'unknown'; messageType: string | null };
 
+export type WakewordDetectionPayload = {
+  model?: string;
+  confidence?: unknown;
+  score?: unknown;
+};
+
+export type WakewordStatusPayload = {
+  ready?: boolean;
+  error?: string | null;
+};
+
 function parseBoolean(value: unknown): boolean {
   return value === true || value === 'true';
 }
@@ -39,6 +51,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export const DesktopVoiceRuntimeClient = {
   wakewordDetected(): Promise<string | void> {
     return createDesktopRuntimeTransport(null).wakewordDetected({});
+  },
+
+  sendWakewordAudioChunk(buffer: ArrayBufferLike): void {
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
+  },
+
+  enableWakeword(): void {
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE, {});
+  },
+
+  disableWakeword(): void {
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE, {});
+  },
+
+  onWakewordDetected(listener: (payload: WakewordDetectionPayload) => void): (() => void) | undefined {
+    return IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, listener as (payload: unknown) => void);
+  },
+
+  onWakewordStatus(listener: (payload: WakewordStatusPayload) => void): (() => void) | undefined {
+    return IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, listener as (payload: unknown) => void);
   },
 
   getTranscriptionGatewayUrl(): string {

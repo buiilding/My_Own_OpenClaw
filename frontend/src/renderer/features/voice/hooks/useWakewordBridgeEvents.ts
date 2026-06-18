@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 import { isWithinCooldown, resolveConfidence } from '../utils/wakewordEventUtils';
 import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
 
@@ -40,7 +40,7 @@ export function useWakewordBridgeEvents({
   enabledRef.current = enabled;
 
   useEffect(() => {
-    const unsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, (data: any) => {
+    const unsubscribe = DesktopVoiceRuntimeClient.onWakewordDetected((data: any) => {
       if (!enabledRef.current) {
         return;
       }
@@ -90,7 +90,7 @@ export function useWakewordBridgeEvents({
       });
     });
 
-    const statusUnsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, (status: any) => {
+    const statusUnsubscribe = DesktopVoiceRuntimeClient.onWakewordStatus((status: any) => {
       setIsReady((prevReady) => {
         if (prevReady !== status.ready) {
           logVoiceDebugTrace('wakeword-service-status', {

@@ -37,6 +37,29 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('JSON.parse');
   });
 
+  test('wakeword hooks delegate bridge IPC to the desktop voice runtime', async () => {
+    const detectionHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts',
+    );
+    const bridgeHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts',
+    );
+    const detectionSource = await fs.readFile(detectionHookPath, 'utf8');
+    const bridgeSource = await fs.readFile(bridgeHookPath, 'utf8');
+
+    expect(detectionSource).toContain('DesktopVoiceRuntimeClient.sendWakewordAudioChunk');
+    expect(detectionSource).toContain('DesktopVoiceRuntimeClient.enableWakeword');
+    expect(detectionSource).toContain('DesktopVoiceRuntimeClient.disableWakeword');
+    expect(detectionSource).not.toContain('SEND_CHANNELS');
+    expect(detectionSource).not.toContain('IpcBridge.');
+    expect(bridgeSource).toContain('DesktopVoiceRuntimeClient.onWakewordDetected');
+    expect(bridgeSource).toContain('DesktopVoiceRuntimeClient.onWakewordStatus');
+    expect(bridgeSource).not.toContain('ON_CHANNELS');
+    expect(bridgeSource).not.toContain('IpcBridge.');
+  });
+
   test('voice hooks route lifecycle traces through the gated voice debug helper', async () => {
     const hookPaths = [
       '../../frontend/src/renderer/features/voice/hooks/useVoiceMode.ts',

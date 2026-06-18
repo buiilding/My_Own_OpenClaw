@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route wakeword audio, enable/disable, detected, and status
+  IPC through the renderer app voice runtime client.
 - renderer/runtime: route dashboard conversation event refresh and title-poll
   subscriptions through the renderer app runtime conversation event client.
 - renderer/runtime: route app startup, wakeword chatbox restore, and main-window
