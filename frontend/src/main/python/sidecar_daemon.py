@@ -830,9 +830,12 @@ class McpStdioClient:
 
 class LocalRuntimeDaemon:
     def __init__(
-        self, *, backend: LocalRuntimeService | None = None, token: str | None = None
+        self,
+        *,
+        local_runtime: LocalRuntimeService | None = None,
+        token: str | None = None,
     ):
-        self.backend = backend or LocalRuntimeService()
+        self.local_runtime = local_runtime or LocalRuntimeService()
         self.token = token or secrets.token_urlsafe(32)
         self.created_at = time.time()
         self.events: set[web.WebSocketResponse] = set()
@@ -840,8 +843,8 @@ class LocalRuntimeDaemon:
         self.mcp_specs: dict[str, McpServerSpec] = {}
         self.mcp_status_by_server_id: dict[str, dict[str, Any]] = {}
         self.shutdown_event: asyncio.Event | None = None
-        if hasattr(self.backend, "set_event_sink"):
-            self.backend.set_event_sink(self.emit_event)
+        if hasattr(self.local_runtime, "set_event_sink"):
+            self.local_runtime.set_event_sink(self.emit_event)
 
     def bind_shutdown_event(self, shutdown_event: asyncio.Event) -> None:
         self.shutdown_event = shutdown_event
@@ -889,7 +892,7 @@ class LocalRuntimeDaemon:
             self.events.discard(ws)
 
     async def build_status_payload(self) -> dict[str, Any]:
-        status = await self.backend._handle_get_status()
+        status = await self.local_runtime._handle_get_status()
         status.update(
             {
                 "daemon": {
@@ -927,11 +930,11 @@ class LocalRuntimeDaemon:
             self.shutdown_event.set()
 
     async def handle_tools(self, request: web.Request) -> web.Response:
-        return web.json_response(self.backend.tool_registry.get_tool_manifest())
+        return web.json_response(self.local_runtime.tool_registry.get_tool_manifest())
 
     async def handle_register_module(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        tool = self.backend.tool_registry.register_module_tool(
+        tool = self.local_runtime.tool_registry.register_module_tool(
             name=payload.get("name"),
             module=payload.get("module"),
             schema=payload.get("schema"),
@@ -953,7 +956,7 @@ class LocalRuntimeDaemon:
             return web.json_response(
                 {"success": False, "error": "plugin path is required"}, status=400
             )
-        result = self.backend.tool_registry.register_plugin_tools(
+        result = self.local_runtime.tool_registry.register_plugin_tools(
             plugin_path=plugin_path
         )
         await self.emit_event({"type": "plugin-registered", "payload": result})
@@ -1117,8 +1120,10 @@ class LocalRuntimeDaemon:
                 "mcpToolCount": len(
                     [
                         tool
-                        for tool in self.backend.tool_registry.get_tool_manifest().get(
-                            "tools", []
+                        for tool in (
+                            self.local_runtime.tool_registry.get_tool_manifest().get(
+                                "tools", []
+                            )
                         )
                         if normalize_string(tool.get("mcp_server_id"))
                     ]
@@ -1143,7 +1148,7 @@ class LocalRuntimeDaemon:
             await client.close()
             self.mcp_specs.pop(server_id, None)
             self.mcp_status_by_server_id.pop(server_id, None)
-            self.backend.tool_registry.unregister_dynamic_tools_by_source(
+            self.local_runtime.tool_registry.unregister_dynamic_tools_by_source(
                 kind="mcp",
                 server_id=server_id,
             )
@@ -1178,7 +1183,7 @@ class LocalRuntimeDaemon:
             if trace_id:
                 client.trace_id = trace_id
         self.mcp_specs[server.id] = server
-        self.backend.tool_registry.unregister_dynamic_tools_by_source(
+        self.local_runtime.tool_registry.unregister_dynamic_tools_by_source(
             kind="mcp",
             server_id=server.id,
         )
@@ -1321,7 +1326,7 @@ class LocalRuntimeDaemon:
                 return ToolResult.success_result(build_mcp_tool_data(result))
 
             registered.append(
-                self.backend.tool_registry.register_runtime_tool(
+                self.local_runtime.tool_registry.register_runtime_tool(
                     name=exposed_name,
                     handler=_handler,
                     schema=schema,
@@ -1367,7 +1372,7 @@ class LocalRuntimeDaemon:
             )
         context_token = CURRENT_MCP_EXECUTION_CONTEXT.set(execution_context)
         try:
-            result = await self.backend._handle_execute_tool(
+            result = await self.local_runtime._handle_execute_tool(
                 tool_name=tool_name,
                 args=args,
             )
@@ -1388,7 +1393,7 @@ class LocalRuntimeDaemon:
 
     async def handle_rpc(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        response = await self.backend.protocol.handle_request(payload)
+        response = await self.local_runtime.protocol.handle_request(payload)
         if response is None:
             return web.json_response({"success": True})
         return web.json_response(response)
@@ -1426,7 +1431,7 @@ class LocalRuntimeDaemon:
         elif command in {"tools/list", "list-tools", "control/tools"}:
             response = {
                 "type": "tools",
-                "payload": self.backend.tool_registry.get_tool_manifest(),
+                "payload": self.local_runtime.tool_registry.get_tool_manifest(),
             }
         else:
             response = {"type": "error", "error": "unknown_command", "command": command}
@@ -1438,7 +1443,7 @@ class LocalRuntimeDaemon:
         await self.close_local_runtime_resources()
         for client in self.mcp_clients.values():
             await client.close()
-        await self.backend.shutdown()
+        await self.local_runtime.shutdown()
 
     async def close_local_runtime_resources(self) -> None:
         try:
@@ -1481,7 +1486,7 @@ async def run_daemon(
     discovery_file: Path = DEFAULT_DISCOVERY_FILE,
 ) -> None:
     daemon = LocalRuntimeDaemon(token=token)
-    await daemon.backend.initialize()
+    await daemon.local_runtime.initialize()
     shutdown_event = asyncio.Event()
     daemon.bind_shutdown_event(shutdown_event)
     app = daemon.create_app()

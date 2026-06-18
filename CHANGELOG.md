@@ -73,6 +73,8 @@ All notable changes to WindieOS will be documented in this file.
   level configuration while preserving the WindieOS sidecar alias.
 - sidecar/extensions: accept generic `AGENT_CONTRIBUTIONS_DIR` local-runtime
   plugin contribution-root configuration while preserving the WindieOS alias.
+- sidecar/daemon: name the daemon-owned `LocalRuntimeService` dependency as
+  local runtime instead of backend inside daemon code and tests.
 - sidecar/tools: expose built-in executable manifest helpers through
   local-runtime names instead of sidecar/backend-shaped Python helper names.
 - sidecar/extensions: use generic `local_runtime_plugin_*` private import

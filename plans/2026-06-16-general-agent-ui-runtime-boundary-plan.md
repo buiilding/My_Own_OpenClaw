@@ -8472,3 +8472,18 @@ Each completed slice should report:
   names, schema roles, executable schemas, plugin/MCP registration, IPC,
   permissions, credentials, storage, provider policy, and backend tool
   projection are unchanged; only Python helper names and references changed.
+
+### 2026-06-18 sidecar daemon local-runtime dependency name boundary
+
+- Finding: `LocalRuntimeDaemon` still stored its in-process
+  `LocalRuntimeService` as `backend`, which blurred the hosted backend
+  authority with the daemon-owned local execution service.
+- Change: renamed the constructor dependency and instance field to
+  `local_runtime`, updated tests and call sites, and added a source-copy guard
+  against restoring `self.backend`/`daemon.backend` for this local service.
+- Validation: focused sidecar daemon pytest coverage, source scans, docs
+  listing, and `git diff --check`.
+- Compatibility: no migration required. HTTP endpoints, JSON-RPC payloads,
+  discovery files, auth headers, tool/MCP registration, permissions, storage,
+  credentials, provider policy, and hosted backend URL handling are unchanged;
+  only Python-internal daemon dependency names changed.

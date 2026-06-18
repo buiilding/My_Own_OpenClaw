@@ -37,6 +37,8 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert "Run the WindieOS sidecar daemon." not in source
     assert "WINDIE_SIDECAR_SOURCE_PATH" not in source
     assert "WINDIE_SIDECAR_SOURCE_STAMP" not in source
+    assert "self.backend" not in source
+    assert "daemon.backend" not in source
     assert f'emit_sidecar_layer_log("{retired_local_sidecar_prefix}", "status requested")' not in source
     assert f'emit_sidecar_layer_log("[Local{"Backend"}]", "status requested")' not in source
     assert '"[SidecarDaemon] listening' not in source
@@ -203,7 +205,7 @@ class FakeStructuredMcpClient(FakeMcpClient):
         }
 
 
-class FakeBackendWithEventSink:
+class FakeLocalRuntimeWithEventSink:
     def __init__(self):
         self.event_sink = None
 
@@ -214,7 +216,7 @@ class FakeBackendWithEventSink:
         return None
 
 
-class FakeBackendWithShutdown:
+class FakeLocalRuntimeWithShutdown:
     def __init__(self):
         self.shutdown_calls = 0
 
@@ -222,7 +224,7 @@ class FakeBackendWithShutdown:
         self.shutdown_calls += 1
 
 
-class FakeBackendWithExecuteTool:
+class FakeLocalRuntimeWithExecuteTool:
     def __init__(self, result=None):
         self.calls = []
         self.result = result or {"success": True, "data": {"output": "ok"}}
@@ -473,7 +475,7 @@ async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
     async def save_note(args):
         return {"success": True, "data": {"output": args["text"]}}
 
-    daemon.backend.tool_registry.register_runtime_tool(
+    daemon.local_runtime.tool_registry.register_runtime_tool(
         name="sdk_note",
         handler=save_note,
         schema={
@@ -524,8 +526,8 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
-    backend = FakeBackendWithExecuteTool()
-    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
+    local_runtime = FakeLocalRuntimeWithExecuteTool()
+    daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest({"toolName": "read_file", "args": {"file_path": "/tmp/a"}})
@@ -534,13 +536,13 @@ async def test_sidecar_daemon_execute_tool_requires_canonical_tool_name():
 
     assert response.status == 400
     assert payload == {"success": False, "error": "tool_name is required"}
-    assert backend.calls == []
+    assert local_runtime.calls == []
 
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
-    backend = FakeBackendWithExecuteTool()
-    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
+    local_runtime = FakeLocalRuntimeWithExecuteTool()
+    daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest(
@@ -558,13 +560,13 @@ async def test_sidecar_daemon_execute_tool_rejects_mcp_metadata_aliases():
         "success": False,
         "error": "MCP execution metadata does not support removed field(s): requestId",
     }
-    assert backend.calls == []
+    assert local_runtime.calls == []
 
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sync(capsys):
-    backend = FakeBackendWithExecuteTool()
-    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
+    local_runtime = FakeLocalRuntimeWithExecuteTool()
+    daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest({"tool_name": "browser", "args": {"action": "status"}})
@@ -574,15 +576,15 @@ async def test_sidecar_daemon_execute_tool_log_labels_passive_browser_session_sy
 
     assert response.status == 200
     assert payload == {"success": True, "data": {"output": "ok"}}
-    assert backend.calls == [("browser", {"action": "status"})]
+    assert local_runtime.calls == [("browser", {"action": "status"})]
     assert "[BrowserSession] sync action=status success=True" in captured.err
     assert "[Tool] executed name=browser" not in captured.err
 
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(capsys):
-    backend = FakeBackendWithExecuteTool()
-    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
+    local_runtime = FakeLocalRuntimeWithExecuteTool()
+    daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
     response = await daemon.handle_execute_tool(
         FakeRequest({"tool_name": "browser", "args": {"action": "click", "index": 4}})
@@ -592,18 +594,18 @@ async def test_sidecar_daemon_execute_tool_log_includes_active_browser_action(ca
 
     assert response.status == 200
     assert payload == {"success": True, "data": {"output": "ok"}}
-    assert backend.calls == [("browser", {"action": "click", "index": 4})]
+    assert local_runtime.calls == [("browser", {"action": "click", "index": 4})]
     assert "[Tool] executed name=browser action=click success=True" in captured.err
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_binds_backend_event_sink_to_event_socket():
-    backend = FakeBackendWithEventSink()
-    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
+async def test_sidecar_daemon_binds_local_runtime_event_sink_to_event_socket():
+    local_runtime = FakeLocalRuntimeWithEventSink()
+    daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
     ws = FakeEventSocket()
     daemon.events.add(ws)
 
-    await backend.event_sink(
+    await local_runtime.event_sink(
         {
             "type": "conversation-title-updated",
             "payload": {"conversation_id": "conv-1", "title": "Generated Title"},
@@ -619,7 +621,7 @@ async def test_sidecar_daemon_binds_backend_event_sink_to_event_socket():
 
 
 @pytest.mark.asyncio
-async def test_sidecar_daemon_rpc_endpoint_uses_backend_protocol():
+async def test_sidecar_daemon_rpc_endpoint_uses_local_runtime_protocol():
     daemon = LocalRuntimeDaemon(token="test-token")
 
     response = await daemon.handle_rpc(
@@ -777,7 +779,7 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
     registration_payload = json.loads(registration.text)
     assert registration_payload["success"] is True
     assert registration_payload["registered_tools"][0]["name"] == "mcp_notes__remember"
-    manifest = daemon.backend.tool_registry.get_tool_manifest()
+    manifest = daemon.local_runtime.tool_registry.get_tool_manifest()
     mcp_tool = next(
         tool for tool in manifest["tools"] if tool["name"] == "mcp_notes__remember"
     )
@@ -1028,7 +1030,7 @@ async def test_sidecar_daemon_reconciles_removed_mcp_tools():
         )
     )
     assert first.status == 200
-    assert daemon.backend.tool_registry.has_tool("mcp_notes__remember")
+    assert daemon.local_runtime.tool_registry.has_tool("mcp_notes__remember")
 
     second = await daemon.handle_register_mcp(
         FakeRequest({"replace": True, "servers": []})
@@ -1038,7 +1040,7 @@ async def test_sidecar_daemon_reconciles_removed_mcp_tools():
     assert second.status == 200
     assert payload["success"] is True
     assert payload["registered_tools"] == []
-    assert not daemon.backend.tool_registry.has_tool("mcp_notes__remember")
+    assert not daemon.local_runtime.tool_registry.has_tool("mcp_notes__remember")
     assert "notes" not in daemon.mcp_clients
 
 
@@ -1084,7 +1086,7 @@ async def test_sidecar_daemon_shutdown_endpoint_signals_daemon_loop():
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_close_shuts_down_browser_runtime(monkeypatch):
-    backend = FakeBackendWithShutdown()
+    local_runtime = FakeLocalRuntimeWithShutdown()
     shutdown_calls = []
 
     async def fake_shutdown_browser_runtime():
@@ -1102,9 +1104,9 @@ async def test_sidecar_daemon_close_shuts_down_browser_runtime(monkeypatch):
         "shutdown_browser_runtime",
         fake_shutdown_browser_runtime,
     )
-    daemon = LocalRuntimeDaemon(backend=backend, token="test-token")
+    daemon = LocalRuntimeDaemon(local_runtime=local_runtime, token="test-token")
 
     await daemon.close()
 
     assert shutdown_calls == [True]
-    assert backend.shutdown_calls == 1
+    assert local_runtime.shutdown_calls == 1
