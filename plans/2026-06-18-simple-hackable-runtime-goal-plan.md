@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a desktop wakeword main-file label follow-up by naming
+  `frontend/src/main/python/wakeword_service.py` as the local-runtime wakeword
+  service implementation instead of a sidecar-owned service in the desktop
+  voice guide. The voice routing docs guard now blocks the retired
+  `Sidecar wakeword service:` label. Validation: focused modular docs boundary
+  test, exact stale wakeword main-file label scan, and diff checks. No
+  migration required; no code path, payload, storage, IPC, settings, tool
+  schema, credential, permission, hosted URL, provider-policy, wakeword
+  protocol, microphone capture, or TTS behavior changed.
 - 2026-06-18: completed a renderer settings owner-label slice by routing
   settings debug ownership and config filtering docs through renderer,
   Electron main, backend, or local-runtime boundaries instead of sidecar-owned

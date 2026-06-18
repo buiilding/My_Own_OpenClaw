@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/desktop: label the wakeword main-file entry as the local-runtime
+  wakeword service implementation instead of a sidecar-owned service. No
+  migration required.
 - docs/settings: route settings debug ownership through local-runtime wording
   instead of sidecar-owned settings and config-field labels while preserving the
   Python sidecar docs as implementation-specific follow-up. No migration
