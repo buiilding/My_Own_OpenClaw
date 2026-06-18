@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sidecar: align the Python sidecar architecture memory section with the
+  required injected backend endpoint contract; no migration is required because
+  this changes docs/tests only.
 - docs/frontend: align Electron main workflow wording with SDK local-runtime
   bridge ownership instead of sidecar-owned execution/backend-bridge phrasing;
   no migration is required because this changes docs/tests only.

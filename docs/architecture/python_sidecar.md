@@ -125,7 +125,10 @@ Local memory is implemented in the sidecar:
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Durable title state in `frontend/src/main/python/memory/conversation_title_store.py`
 - Uses backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` APIs
-- Backend base URL comes from `WINDIE_BACKEND_HTTP_URL`, normally injected by Electron main from the hosted endpoint resolver, then default `https://api.windieos.com`.
+- Backend base URL comes from an explicit client `backend_url` or the
+  `WINDIE_BACKEND_HTTP_URL` value injected by Electron main from the hosted
+  endpoint resolver. Missing sidecar endpoint config fails fast instead of
+  falling back to a hosted default.
 - Sidecar backend-backed HTTP clients do not parse Electron endpoint env aliases or retry alternate backend URLs. Remote memory/title/summarization calls stay pinned to the injected backend endpoint.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 - Pending summarization cadence is turn-based: watermark pending count increments

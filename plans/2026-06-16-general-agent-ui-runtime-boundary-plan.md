@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 sidecar architecture backend endpoint contract
+
+- Finding: the architecture-level Python sidecar page still said memory clients
+  defaulted to `https://api.windieos.com`, even though sidecar backend-bound
+  clients now require an explicit `backend_url` or injected
+  `WINDIE_BACKEND_HTTP_URL`.
+- Change: reworded the memory section around required injected endpoint
+  ownership and added a sidecar config doc guard against reintroducing the
+  hosted default fallback wording.
+- Validation: focused sidecar backend-config pytest, docs listing, stale
+  fallback wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; sidecar
+  endpoint resolution, credentials, payloads, storage, and hosted helper calls
+  are unchanged.
+
 ### 2026-06-18 Electron main local-runtime workflow wording
 
 - Finding: the main-process workflow still said the sidecar owns execution and
