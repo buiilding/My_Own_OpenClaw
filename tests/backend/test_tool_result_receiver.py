@@ -1,11 +1,25 @@
 """Covers tool result receiver behavior in the backend test suite."""
 
+from pathlib import Path
+
 from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
 from backend.src.api.schemas.incoming import ToolBundleStepResult
 
 
 class DummySession:
     pass
+
+
+def test_tool_result_receiver_source_uses_local_runtime_boundary_wording():
+    source = Path("backend/src/agent/tools/waiting/receiver.py").read_text()
+    api_handler_source = Path("backend/src/api/handlers/tool_result.py").read_text()
+
+    assert "SDK/local-runtime tool results" in source
+    assert "local-runtime payloads" in source
+    assert "from frontend" not in source
+    assert "frontend format" not in source
+    assert "messages from the SDK/local runtime" in api_handler_source
+    assert "message from frontend" not in api_handler_source
 
 
 def test_receive_individual_result_preserves_required_system_state_without_metadata_injection():

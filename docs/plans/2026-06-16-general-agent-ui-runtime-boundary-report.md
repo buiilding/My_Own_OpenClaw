@@ -41,6 +41,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `WINDIE_BACKEND_URL` instead of falling back to a hardcoded WindieOS hosted
   URL. Python sidecar/SDK hosted HTTP clients now follow the same explicit
   endpoint boundary through `backend_url` or `WINDIE_BACKEND_HTTP_URL`.
+  Backend tool-result receiver and API handler wording now describes
+  SDK/local-runtime result ingress instead of stale frontend result ownership.
 
 ## Inspection Log
 
@@ -385,6 +387,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: `get_backend_http_url()` now raises a generic Agent SDK backend URL error when no sidecar backend URL is configured.
 - Change: remote semantic/base-client tests now pass explicit local URLs where endpoint selection is not the behavior under test and cover the missing-config failure path.
 
+### 2026-06-18 Backend Tool Result Receiver Wording Slice
+
+- Finding: backend tool-result receiver and API handler docstrings still described inbound tool results as frontend results even though the current ingress owner is SDK/main local-runtime result submission.
+- Decision: keep compatibility payload names and method signatures unchanged, but update backend source wording around the local-runtime result boundary.
+- Change: `ToolResultReceiver` now documents SDK/local-runtime payload conversion, and `ToolResultHandler` docstrings now describe SDK/local-runtime websocket messages.
+- Change: the receiver test now guards the local-runtime wording and prevents the old frontend-result phrasing from returning in this backend path.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -425,6 +434,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK hosted install registration is explicit caller policy instead of endpoint-hostname inference.
 - [x] SDK hosted endpoint selection is caller-supplied instead of hardcoded in `AgentClient`.
 - [x] Python sidecar/SDK hosted endpoint selection is caller or host supplied instead of hardcoded in shared config.
+- [x] Backend tool-result receiver wording reflects SDK/local-runtime ingress instead of frontend-owned results.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -629,6 +639,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Validation: Python compile checks passed for `_backend_config.py`,
   `_remote_api_client_base.py`, and `remote_semantic_client.py`.
 - Validation: `rg -n "DEFAULT_BACKEND_HTTP_URL|https://api\.windieos\.com|api\.windieos\.com" frontend\src\main\python\windie frontend\src\main\python\core tests\sidecar\test_backend_config.py` returned no matches.
+- Validation: focused backend tool-result receiver and waiting-handler tests
+  passed through `scripts\python-in-env.cmd backend`; the wrapper reported that
+  `jarvis` was unavailable and used the current shell environment.
+- Validation: Python compile checks passed for `receiver.py` and
+  `tool_result.py`.
+- Validation: source scan found only the new SDK/local-runtime wording and the
+  boundary-test assertions in the touched backend result-ingress files.
 
 ## Remaining Findings
 
@@ -701,6 +718,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Python sidecar/SDK hosted endpoint selection now requires caller config or
   `WINDIE_BACKEND_HTTP_URL`; shared Python backend config no longer embeds the
   WindieOS hosted backend URL.
+- Backend tool-result receiver and API handler source wording now describes
+  SDK/local-runtime result ingress rather than frontend-owned tool results.
 - SDK hosted HTTP, local-runtime HTTP, and backend websocket construction
   failures now use generic Agent SDK dependency diagnostics. Exported
   `WindieSdkClient` and `createWindieSdkBackendSocket` names remain unchanged.

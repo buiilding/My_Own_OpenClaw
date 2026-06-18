@@ -84,7 +84,7 @@ class ToolResultHandler(MessageHandler):
         self, message: BaseMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
-        Handle tool-result or tool-bundle-result message from frontend.
+        Handle tool-result or tool-bundle-result messages from the SDK/local runtime.
 
         Routes to appropriate handler based on message type.
 
@@ -131,7 +131,7 @@ class ToolResultHandler(MessageHandler):
         self, message: ToolBundleResultMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
-        Handle tool-bundle-result message from frontend.
+        Handle tool-bundle-result messages from the SDK/local runtime.
 
         Args:
             message: Validated ToolBundleResultMessage Pydantic model

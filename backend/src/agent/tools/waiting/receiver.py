@@ -1,7 +1,7 @@
 """
 Tool result receiver.
 
-Receives tool results from frontend and converts to ToolResult format.
+Receives SDK/local-runtime tool results and converts them to ToolResult format.
 """
 
 import logging
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 
 class ToolResultReceiver:
     """
-    Receives tool results from frontend.
+    Receives tool results from the SDK/local runtime.
 
     Responsibility: Receiving and converting results only.
-    Converts frontend format to ToolResult format.
+    Converts local-runtime payloads to ToolResult format.
     """
 
     def __init__(self, session: "AgentSession"):
@@ -52,7 +52,7 @@ class ToolResultReceiver:
         error: Optional[str],
     ) -> ToolResult:
         """
-        Receive and convert individual tool result from frontend.
+        Receive and convert an individual local-runtime tool result.
 
         Args:
             request_id: Request ID for the tool result
@@ -83,7 +83,7 @@ class ToolResultReceiver:
         error: Optional[str],
     ) -> ToolResult:
         """
-        Receive and convert atomic bundle result from frontend.
+        Receive and convert an atomic local-runtime bundle result.
 
         Args:
             bundle_id: Bundle ID for the bundle result
