@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 sidecar wait delay ownership wording boundary
+
+- Finding: the Python wait tool and sidecar folder map said the frontend handled
+  wait-delay screenshot/system-state capture even though current delay is owned
+  by the SDK local-runtime coordinator before post-action capture.
+- Change: reworded the wait-tool docstring/comment and folder map to SDK local
+  runtime delay ownership while preserving the sidecar's non-blocking behavior.
+- Validation: stale wait-delay ownership scan, focused sidecar wait-tool test,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is comments/docs only; wait tool
+  return payloads, SDK delay behavior, screenshot capture, JSON-RPC contracts,
+  IPC, permissions, credentials, and backend wire metadata are unchanged.
+
 ### 2026-06-18 sidecar source-local ownership wording boundary
 
 - Finding: source-local Python sidecar comments and the folder map still called

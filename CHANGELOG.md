@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar: clarify that wait-tool post-action delay is coordinated by the SDK
+  local runtime rather than the renderer/frontend.
 - sidecar docs/comments: rename source-local frontend sidecar wording to
   local-runtime Python sidecar ownership.
 - renderer tests/docs: rename local renderer config mocks and shortcut drift

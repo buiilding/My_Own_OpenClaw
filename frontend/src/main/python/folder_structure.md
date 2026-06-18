@@ -57,7 +57,7 @@ frontend/src/main/python/
         ├── shell_process_registry.py  # Background shell session registry
         ├── process_tool.py            # process() - Manage background shell sessions (poll/log/write/kill)
         ├── stats_tool.py              # get_system_stats() - System statistics (CPU, memory, battery) using psutil
-        ├── wait_tool.py               # wait() - Wait tool (returns immediately, frontend handles delay)
+        ├── wait_tool.py               # wait() - Wait tool (returns immediately; SDK local runtime coordinates delay)
         └── window_tool.py            # switch_to_window(), get_open_windows() - Window management using platform abstraction
 ```
 

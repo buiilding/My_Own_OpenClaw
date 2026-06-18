@@ -14,8 +14,9 @@ async def wait(args: Dict[str, Any]) -> ToolResult:
     """
     Wait tool - returns immediately without blocking.
     
-    The actual wait delay is handled by the frontend, which delays screenshot/system state
-    capture by the specified seconds. This ensures the wait doesn't block other operations.
+    The actual wait delay is handled by the SDK local-runtime coordinator, which
+    delays post-action screenshot/system-state capture by the specified seconds.
+    This ensures the sidecar tool doesn't block other operations.
     
     Args:
         args: Dictionary with required 'seconds' parameter
@@ -33,8 +34,8 @@ async def wait(args: Dict[str, Any]) -> ToolResult:
         if not isinstance(seconds, (int, float)) or seconds < 0:
             return ToolResult.error_result("seconds must be a non-negative number")
         
-        # Return immediately - the frontend will delay screenshot/system state capture
-        # This ensures the wait doesn't block other operations
+        # Return immediately; the SDK local-runtime coordinator delays
+        # screenshot/system-state capture without blocking sidecar operations.
         seconds_float = float(seconds)
         
         # Format message based on seconds value
