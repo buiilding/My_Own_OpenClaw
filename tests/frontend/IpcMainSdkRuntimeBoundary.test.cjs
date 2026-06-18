@@ -65,7 +65,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
     expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
     expect(wakeCall).toContain("mcps: process.env.NODE_ENV === 'test'");
-    expect(wakeCall).toContain('getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() })');
+    expect(wakeCall).toContain('getEnabledMcpServerSpecsForConfig({ config: getDesktopUiConfigForMcpRegistry() })');
     expect(wakeCall).toContain('localToolLifecycle');
     expect(wakeCall).not.toContain('conversationRef:');
     expect(source).toContain('onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup');

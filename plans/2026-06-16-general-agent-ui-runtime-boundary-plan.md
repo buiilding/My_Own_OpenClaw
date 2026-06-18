@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config MCP registry boundary
+
+- Finding: MCP registry and SDK wake-up paths still read config through
+  `getFrontendConfigForMcpRegistry`, even though the data is the desktop UI
+  config persisted and cached by Electron main.
+- Change: renamed the active helper to `getDesktopUiConfigForMcpRegistry` and
+  updated the main SDK boundary guard.
+- Validation: focused main SDK boundary and IPC bridge lifecycle Jest coverage,
+  main syntax check, stale helper scan, docs listing, and diff check.
+- Compatibility: no migration required. MCP enablement payloads, SDK MCP
+  registration behavior, persisted config filename, IPC channels, redaction,
+  credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config settings sync boundary
 
 - Finding: IPC settings sync preserved local-only desktop UI config fields

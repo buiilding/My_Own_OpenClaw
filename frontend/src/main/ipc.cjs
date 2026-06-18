@@ -467,7 +467,7 @@ function preserveMainOwnedFrontendConfigFields(config, options = {}) {
   };
 }
 
-function getFrontendConfigForMcpRegistry() {
+function getDesktopUiConfigForMcpRegistry() {
   return preserveMainOwnedFrontendConfigFields(latestFrontendConfig || {});
 }
 
@@ -1138,7 +1138,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
     builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
     mcps: process.env.NODE_ENV === 'test'
       ? []
-      : getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() }),
+      : getEnabledMcpServerSpecsForConfig({ config: getDesktopUiConfigForMcpRegistry() }),
     ...(process.env.NODE_ENV === 'test' ? { memory: false, persistence: false } : {}),
     localToolLifecycle,
   });
@@ -1218,7 +1218,7 @@ async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_C
 }
 
 async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
-  const config = getFrontendConfigForMcpRegistry();
+  const config = getDesktopUiConfigForMcpRegistry();
   if (process.env.NODE_ENV !== 'test') {
     const agent = await ensureAgent({ reason });
     if (typeof agent.refreshMcpServers === 'function') {
@@ -1594,7 +1594,7 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.handle('list-agent-extensions', async () => {
     const registry = loadPublicExtensionRegistry();
-    const mcpRegistry = listMcpServersForConfig({ config: getFrontendConfigForMcpRegistry() });
+    const mcpRegistry = listMcpServersForConfig({ config: getDesktopUiConfigForMcpRegistry() });
     return {
       ...registry,
       mcps: mcpRegistry.mcps,
@@ -1602,7 +1602,7 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.handle('list-mcp-servers', async () => (
-    listMcpServersForConfig({ config: getFrontendConfigForMcpRegistry() })
+    listMcpServersForConfig({ config: getDesktopUiConfigForMcpRegistry() })
   ));
 
   ipcMain.handle('set-mcp-server-enabled', async (_event, payload = {}) => {
@@ -1614,7 +1614,7 @@ function initializeIpc(win, options = {}) {
       };
     }
     const result = await updateMcpServerEnablementForConfig({
-      config: getFrontendConfigForMcpRegistry(),
+      config: getDesktopUiConfigForMcpRegistry(),
       serverId,
       enabled: payload.enabled === true,
       persistConfig: (nextConfig) => persistFrontendConfigToDisk(nextConfig, {
@@ -1627,7 +1627,7 @@ function initializeIpc(win, options = {}) {
     });
     if (result?.success === true && process.env.NODE_ENV !== 'test') {
       const agent = await ensureAgent({ reason: 'mcp-manifest-refresh' });
-      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: getFrontendConfigForMcpRegistry() });
+      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: getDesktopUiConfigForMcpRegistry() });
       await agent.registerMcps?.(enabledSpecs, { replace: true });
       result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-sdk-refresh');
     }

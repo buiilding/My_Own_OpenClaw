@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename the MCP registry config accessor to
+  `getDesktopUiConfigForMcpRegistry` so MCP manifest refreshes read from the
+  desktop UI config boundary; no migration is required because MCP enablement
+  payloads, persistence, and SDK registration behavior are unchanged.
 - main: promote desktop UI config dependency names in IPC settings sync so
   local-only config preservation and initial settings hydration no longer use
   frontend-named slots; no migration is required because backend settings
