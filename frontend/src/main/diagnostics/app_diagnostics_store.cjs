@@ -51,7 +51,7 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
     purpose: 'Local runtime bridge initialization and lifecycle status outside a specific browser action.',
   },
   [MCP_DISCOVERY_DIAGNOSTICS_PATH]: {
-    owner: 'Electron main and sidecar MCP runtime',
+    owner: 'Electron main and local-runtime MCP adapters',
     purpose: 'MCP stdio discovery, initialization, timeout, and sanitized startup failure evidence.',
   },
   [MCP_ENABLEMENT_DIAGNOSTICS_PATH]: {
@@ -59,11 +59,11 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
     purpose: 'MCP dashboard enablement toggles and frontend-config persistence lifecycle.',
   },
   [MCP_EXECUTION_DIAGNOSTICS_PATH]: {
-    owner: 'Python sidecar MCP runtime',
+    owner: 'Python local-runtime MCP adapter',
     purpose: 'MCP tool call execution lifecycle with tool ids, correlation ids, and sanitized transport failures.',
   },
   [MCP_REGISTRATION_DIAGNOSTICS_PATH]: {
-    owner: 'Python sidecar MCP runtime',
+    owner: 'Python local-runtime MCP adapter',
     purpose: 'SDK/local-runtime MCP registration, reconciliation, and registered tool counts.',
   },
   [PERMISSION_PROBE_DIAGNOSTICS_PATH]: {

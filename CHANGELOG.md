@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename MCP diagnostic owner descriptions from sidecar MCP
+  runtime wording to local-runtime MCP adapter wording; no migration is
+  required because diagnostic path ids, event payloads, storage, and runtime
+  behavior are unchanged.
 - sdk/js: remove unused exported Agent conversation helper option aliases for
   load, clear, edit/retry preparation methods; callers should use the direct
   method option object shapes, with no runtime, storage, or wire-payload

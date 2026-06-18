@@ -132,6 +132,18 @@ describe('app diagnostics store', () => {
         path: LOCAL_RUNTIME_LIFECYCLE_DIAGNOSTICS_PATH,
         owner: 'Electron main local runtime bridge',
       }),
+      expect.objectContaining({
+        path: MCP_DISCOVERY_DIAGNOSTICS_PATH,
+        owner: 'Electron main and local-runtime MCP adapters',
+      }),
+      expect.objectContaining({
+        path: MCP_EXECUTION_DIAGNOSTICS_PATH,
+        owner: 'Python local-runtime MCP adapter',
+      }),
+      expect.objectContaining({
+        path: MCP_REGISTRATION_DIAGNOSTICS_PATH,
+        owner: 'Python local-runtime MCP adapter',
+      }),
     ]));
   });
 

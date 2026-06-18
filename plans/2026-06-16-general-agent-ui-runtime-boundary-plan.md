@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main MCP diagnostics owner local-runtime wording
+
+- Finding: MCP diagnostic path definitions still described discovery, execution,
+  and registration ownership as sidecar MCP runtime even though Electron main
+  exposes them through local-runtime diagnostics.
+- Change: renamed the owner descriptions to local-runtime MCP adapter wording and
+  expanded diagnostics boundary coverage for discovery, execution, and
+  registration path owners.
+- Validation: focused AppDiagnosticsStore Jest test, recent history review, docs
+  route lookup, and stale MCP owner phrase scan.
+- Compatibility: no migration required because diagnostic path ids, event
+  payloads, SQLite storage, and runtime behavior are unchanged.
+
 ### 2026-06-18 SDK Agent conversation helper option alias removal
 
 - Finding: `LoadConversationOptions`, `AgentClearConversationsOptions`,
