@@ -9306,3 +9306,20 @@ Each completed slice should report:
   handlers, memory storage/search behavior, title persistence, semanticization,
   IPC channels, hosted backend URLs, credentials, permissions, and provider
   policy are unchanged.
+
+### 2026-06-18 storage docs local-runtime memory ownership boundary
+
+- Finding: storage, session identity, and context routing docs still named
+  durable transcript/memory SQLite, FAISS, search, and dashboard conversation
+  behavior as sidecar-memory ownership even though the boundary is
+  local-runtime memory with Python sidecar modules as the current
+  implementation.
+- Change: reworded storage persistence, session/conversation, prompt/context,
+  context/memory, and agent workflow routing docs to use local-runtime memory
+  ownership; added focused modular-boundary guards for the stale phrases.
+- Validation: focused modular-boundary guard, docs listing, stale sidecar-memory
+  scan for touched docs, and diff checks.
+- Compatibility: no migration required. File paths, doc links, JSON-RPC
+  methods, SQLite/FAISS schemas, transcript rows, memory search/list/title
+  behavior, IPC channels, hosted backend URLs, credentials, permissions, and
+  provider policy are unchanged.

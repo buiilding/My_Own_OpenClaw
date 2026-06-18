@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for changing WindieOS storage and persistence across renderer transcript/session storage, Electron user-data files, sidecar SQLite/FAISS memory, backend artifacts, install-auth SQLite, caches, and in-memory services."
+summary: "Workflow for changing WindieOS storage and persistence across renderer transcript/session storage, Electron user-data files, local-runtime SQLite/FAISS memory, backend artifacts, install-auth SQLite, caches, and in-memory services."
 read_when:
-  - When adding, removing, migrating, or debugging durable or semi-durable data in renderer storage, Electron user-data files, sidecar memory SQLite/FAISS, backend artifact storage, install auth SQLite, local config, caches, or VM run state.
+  - When adding, removing, migrating, or debugging durable or semi-durable data in renderer storage, Electron user-data files, local-runtime memory SQLite/FAISS, backend artifact storage, install auth SQLite, local config, caches, or VM run state.
   - When debugging missing chats, stale dashboard data, corrupted memory indexes, artifact 404s, install-token persistence, config values that reappear after reload, or data that disappears after restart.
 title: "Storage and Persistence Change Workflow"
 ---
@@ -18,7 +18,7 @@ Use this workflow for storage shape, migration, retention, reset, and data-loss 
 | --- | --- | --- | --- |
 | Renderer browser storage | React renderer | renderer config subset, transcript session info, local snapshots | survives renderer reload when local/session storage survives |
 | Electron user-data files | Electron main | `frontend-config.json`, `install-auth.json`, permission state, endpoint-derived local config | survives app restart until user-data reset |
-| Sidecar local DB/index files | Python sidecar | transcript rows, episodic/semantic memories, conversation titles, FAISS indexes, semanticization watermark | survives app restart, must migrate defensively |
+| Local-runtime memory DB/index files | SDK local-runtime memory boundary, currently backed by the Python sidecar | transcript rows, episodic/semantic memories, conversation titles, FAISS indexes, semanticization watermark | survives app restart, must migrate defensively |
 | Backend disk stores | Hosted backend | artifacts, install-auth SQLite | survives backend process restart if path is persistent |
 | Backend process memory | Hosted backend | active sessions/history, tool futures, VM run registry, cache entries, OCR/vision loaded models | lost on process restart |
 | Packaged resource/runtime files | Electron package and build scripts | bundled Python runtime, feature-pack state, app resources | replaced by reinstall/package update |
@@ -33,9 +33,9 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | Transcript session identity cache | Renderer transcript session runtime plus Electron sync | `sessionInfoStorage.ts`, `transcriptSessionRuntime.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | `tests/frontend/TranscriptSessionState.test.ts`, `IpcTranscriptSessionSync.test.cjs` | [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
 | Frontend user settings | Renderer config storage and Electron config file | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) |
-| Sidecar transcript/memory SQLite | Python sidecar memory store | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Sidecar Local Memory](../memory/sidecar_local_memory.md) |
-| Sidecar FAISS indexes and vector mappings | Python sidecar memory store | `frontend/src/main/python/memory/faiss_index.py`, `sqlite_store.py`, `local_store.py` | `tests/sidecar/test_local_store_init.py`, `test_local_store_delete_cleanup.py`, storage tests | [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) |
-| Semanticization watermark | Python sidecar summarizer | `frontend/src/main/python/memory/watermark_state.py`, `summarizer.py`, `conversation_semanticization_runtime.py` | `tests/sidecar/test_memory_summarizer.py`, semanticization tests | [Local Runtime Sidecar Memory Hub](../frontend/sidecar/memory/README.md) |
+| Local-runtime transcript/memory SQLite | Local-runtime memory store, currently backed by Python sidecar modules | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Local Runtime Memory](../memory/sidecar_local_memory.md) |
+| Local-runtime FAISS indexes and vector mappings | Local-runtime memory store, currently backed by Python sidecar modules | `frontend/src/main/python/memory/faiss_index.py`, `sqlite_store.py`, `local_store.py` | `tests/sidecar/test_local_store_init.py`, `test_local_store_delete_cleanup.py`, storage tests | [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) |
+| Semanticization watermark | Local-runtime memory summarizer, currently backed by Python sidecar modules | `frontend/src/main/python/memory/watermark_state.py`, `summarizer.py`, `conversation_semanticization_runtime.py` | `tests/sidecar/test_memory_summarizer.py`, semanticization tests | [Local Runtime Sidecar Memory Hub](../frontend/sidecar/memory/README.md) |
 | Backend artifacts | Backend artifact service | `backend/src/services/artifacts/store.py`, `backend/src/api/routes/artifacts/**` | `tests/backend/test_artifacts_store.py`, artifact route tests | [Artifact Change Workflow](../desktop/artifact_change_workflow.md) |
 | Backend install-auth DB | Backend auth service | `backend/src/api/auth/service.py` | `tests/backend/test_install_auth.py` | [Hosted Backend Auth](../operations/hosted_backend_auth.md) |
 | Backend active history and compaction state | Backend agent runtime | `backend/src/agent/history/**`, `backend/src/agent/compaction/**` | backend history/compaction/interaction-loop tests | [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md) |
@@ -49,7 +49,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 
 - Renderer storage is for UI state and visible transcript projection, not backend model history.
 - Electron user-data files are app-local operational state, not a hosted account database.
-- Sidecar SQLite/FAISS owns local memory and transcript search/listing, not backend active prompt context.
+- Local-runtime SQLite/FAISS owns local memory and transcript search/listing, not backend active prompt context.
 - Backend artifact storage owns uploaded binary artifacts and metadata, not renderer local snapshots.
 - Backend install-auth SQLite stores token hashes and install records, not provider credentials.
 - Backend in-memory registries must be documented as ephemeral unless a durable store is implemented.
@@ -127,11 +127,11 @@ Validate:
 - reset/uninstall docs name the files or state scope accurately.
 - credentials and local paths are not committed into fixtures.
 
-### Change sidecar memory SQLite schema
+### Change local-runtime memory SQLite schema
 
 Read:
 
-- [Sidecar Local Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/sidecar_local_memory.md)
 - [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 - [Local Runtime Sidecar Memory Storage Hub](../frontend/sidecar/memory/storage/README.md)
 
@@ -152,7 +152,7 @@ Validate:
 
 Migration rule: add columns/indexes defensively with probes and fallback logging. Do not remove or rename columns without a real migration path and compatibility tests for existing user DBs.
 
-### Change sidecar FAISS or vector mapping persistence
+### Change local-runtime FAISS or vector mapping persistence
 
 Read:
 
@@ -179,7 +179,7 @@ Validate:
 Read:
 
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
-- [Sidecar Local Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/sidecar_local_memory.md)
 - [Local Runtime Sidecar Memory Hub](../frontend/sidecar/memory/README.md)
 
 Edit:
@@ -264,9 +264,9 @@ Validate:
 
 | Symptom | First checks | Likely owner |
 | --- | --- | --- |
-| Visible chat exists but is missing after reload | SDK projection writes, sidecar store payload, conversation id | SDK projection runtime or sidecar memory |
+| Visible chat exists but is missing after reload | SDK projection writes, local-runtime store payload, conversation id | SDK projection runtime or local-runtime memory |
 | Dashboard conversation exists but backend context is empty | rehydrate payload and backend rehydrate service | renderer replay/rehydrate or backend API service |
-| Semantic memory search is stale | embeddings availability, FAISS mapping, semanticization watermark | sidecar memory/index/summarizer |
+| Semantic memory search is stale | embeddings availability, FAISS mapping, semanticization watermark | local-runtime memory/index/summarizer |
 | App forgets model/settings after restart | renderer local storage, Electron config file, config filter | renderer/Electron config persistence |
 | Install auth works once then disappears | `install-auth.json` read/write, user-data reset, registration response normalization | Electron install auth persistence |
 | Artifact 404 after upload | artifact id, base dir, owner metadata | backend artifact store or Electron upload bridge |
@@ -282,8 +282,8 @@ Validate:
 | SDK transcript writes/session storage | `<windie> test frontend -- DesktopConversationContinuityService DesktopConversationStore SdkDisplayChatMessageProjection TranscriptStorage TranscriptSession` |
 | Frontend config persistence | `<windie> test frontend -- configStorage AppConfigPersistence AppConfigProvider` |
 | Electron install auth state | focused frontend install-auth/IPC tests plus backend auth tests if contract changes |
-| Sidecar SQLite/memory schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |
-| Sidecar FAISS/vector mapping | sidecar local-store delete/search/init tests and corrupted-index coverage |
+| Local-runtime SQLite/memory schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py` |
+| Local-runtime FAISS/vector mapping | local-runtime memory delete/search/init tests and corrupted-index coverage |
 | Semanticization/watermark | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_memory_summarizer.py` plus semanticization tests |
 | Backend artifacts | `./scripts/python-in-env backend pytest tests/backend/test_artifacts_store.py` plus artifact route tests |
 | Backend install-auth DB | `./scripts/python-in-env backend pytest tests/backend/test_install_auth.py` |
@@ -307,7 +307,7 @@ Before committing a storage change:
 
 - [Data Flow and State Ownership](data_flow_and_state_ownership.md)
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
-- [Sidecar Local Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/sidecar_local_memory.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
 - [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md)
 - [Credential and Token Change Workflow](../security/credential_token_change_workflow.md)

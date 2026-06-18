@@ -15,10 +15,10 @@ WindieOS uses several related identifiers. Do not collapse them into one concept
 | `user_id` | hosted backend identity plus Electron main/renderer snapshots | scopes backend sessions, local transcript rows, memory search, settings, and install auth state |
 | `session_id` | backend session/runtime and websocket events | identifies a live backend runtime session and stream context |
 | `conversation_ref` | renderer transcript runtime and backend session registry | stable conversation/thread key for transcript replay, backend history, VM runs, and stale-turn filtering |
-| transcript row id/index | sidecar memory store and renderer transcript queue | persists visible chat rows, replay state, and dashboard conversation lists |
+| transcript row id/index | local-runtime memory store and renderer transcript queue | persists visible chat rows, replay state, and dashboard conversation lists |
 | turn/message id | renderer send path and backend stream events | correlates one user turn, local optimistic row, stream events, and tool execution |
 
-The backend session map is conversation-scoped. The renderer transcript runtime is conversation-scoped. The sidecar memory store persists transcript rows by conversation. If any one layer invents a new conversation id without synchronizing the others, replay, memory, tool results, or active UI filtering will drift.
+The backend session map is conversation-scoped. The renderer transcript runtime is conversation-scoped. The local-runtime memory store persists transcript rows by conversation. If any one layer invents a new conversation id without synchronizing the others, replay, memory, tool results, or active UI filtering will drift.
 
 ## Current Lifecycle
 
@@ -28,8 +28,8 @@ The backend session map is conversation-scoped. The renderer transcript runtime 
 4. Query send uses the resolved conversation ref or the main-process fallback.
 5. Backend `SessionManager` resolves the `(user_id, conversation_ref)` session and runs the turn under that conversation.
 6. Backend stream events carry `conversation_ref`, `session_id`, and turn fields back through Electron main.
-7. Renderer filters stream events against the active conversation and writes transcript rows through the sidecar.
-8. Dashboard resume loads sidecar transcript rows and sends backend `rehydrate-conversation` so model history can continue safely.
+7. Renderer filters stream events against the active conversation and writes transcript rows through the local runtime.
+8. Dashboard resume loads local-runtime transcript rows and sends backend `rehydrate-conversation` so model history can continue safely.
 
 ## Rehydrate Is Not Replay
 
@@ -55,7 +55,7 @@ Replay displays stored transcript rows in the UI. Rehydrate converts stored tran
 | new user messages persist to the wrong chat | renderer transcript session runtime and main-process `transcript-session-sync` |
 | backend continues old context after opening a past chat | dashboard resume rehydrate payload and backend rehydrate services |
 | tool output appears but model does not continue | backend session lookup, tool-result ingress, request/tool-call id linkage |
-| deleting a chat leaves it searchable or resumable | sidecar transcript/replay deletion paths and dashboard refresh |
+| deleting a chat leaves it searchable or resumable | local-runtime transcript/replay deletion paths and dashboard refresh |
 | VM run starts a new thread unexpectedly | `/api/runs/*` metadata `conversation_ref` defaulting and VM worker dispatch payload |
 
 ## Deep Docs

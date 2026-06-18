@@ -50,7 +50,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('executeLocalTool:');
     const wakeCall = ipcSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
-    expect(wakeCall).toContain('name: mainHostSkin.identity.sdkAgentName');
+    expect(wakeCall).toContain('name: ipcHostCopy.identity.sdkAgentName');
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
     expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
     expect(wakeCall).toContain('localToolLifecycle');
@@ -763,6 +763,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/architecture/data_flow_and_state_ownership.md',
       'docs/architecture/agent_visible_data_pipeline.md',
       'docs/architecture/tool_system.md',
+      'docs/architecture/storage_persistence_change_workflow.md',
       'docs/automation/vm_run_control_change_workflow.md',
       'docs/frontend/sidecar_tool_change_workflow.md',
       'docs/frontend/main/local_backend/process_lifecycle_change_workflow.md',
@@ -848,6 +849,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/planning/windieos_self_edit_config_plan.md',
       'docs/development/testing.md',
       'docs/development/validation_matrix.md',
+      'docs/development/agent_development_workflow.md',
       'docs/development/README.md',
       'docs/development/developer_guide.md',
       'docs/frontend/sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md',
@@ -864,7 +866,10 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/automation/automation_boundaries.md',
       'docs/automation/vm_run_control_change_workflow.md',
       'docs/concepts/README.md',
+      'docs/concepts/context_and_memory.md',
+      'docs/concepts/prompt_and_tool_context.md',
       'docs/concepts/runtime_model.md',
+      'docs/concepts/sessions_and_conversations.md',
       'docs/README.md',
       'docs/tools/tool_execution_lifecycle.md',
       'docs/tools/README.md',
@@ -902,6 +907,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/backend/api/processing/formatters/signals/chunk_and_thinking_formatter_required_content_and_skip_contract_reference.md',
       'docs/gateway/websocket_connection_change_workflow.md',
       'docs/frontend/sidecar/browser/browser_runtime_deterministic_extraction_contract_reference.md',
+      'docs/memory/session_conversation_identity_change_workflow.md',
       'docs/frontend/renderer/dashboard/dashboard_change_workflow.md',
       'docs/browser/README.md',
       'docs/planning/windieos_mobile_app_plan.md',
@@ -1065,6 +1071,12 @@ describe('modular sdk refactor completion boundary', () => {
         'after sidecar executes',
         'Electron bridge or sidecar',
         'Sidecar local memory/search',
+        'transcript/replay/local memory | renderer plus sidecar memory',
+        'transcript row id/index | sidecar memory store',
+        'sidecar memory search via Electron main',
+        'Sidecar transcript/memory SQLite',
+        'Change sidecar memory SQLite schema',
+        'Sidecar SQLite/memory schema',
         '| sidecar local tool runtime variable changed',
         'and sidecar runtime reader',
         'The sidecar owns host OS automation',

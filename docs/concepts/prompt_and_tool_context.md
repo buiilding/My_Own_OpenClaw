@@ -20,7 +20,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 | conversation history | backend session history, rehydrate payloads | model-facing prior messages and valid tool-call/tool-output pairs |
 | current user content | Electron main query payload builder | `<user_query>` plus optional memory and attachment context |
 | repo instructions | Electron main local discovery and backend fallback discovery | applicable `AGENTS.md` guidance when working in local repos |
-| memory sections | sidecar memory search via Electron main | episodic and semantic context, excluding active conversation when possible |
+| memory sections | local-runtime memory search via Electron main | episodic and semantic context, excluding active conversation when possible |
 | screenshots/artifacts | renderer capture/upload and backend artifact store | visual/multimodal context and durable replay refs |
 | tool schemas | backend tool registry, policy, provider projection | model-visible capabilities for the current session |
 | capability/provider health | backend policy/config | hides unavailable tools or coordinate methods before prompting |
@@ -141,7 +141,7 @@ Question the design when:
 | --- | --- |
 | model did not see repo instructions | Electron repo instruction runtime and backend prompt constructor fallback discovery |
 | tool missing from prompt | backend tool policy, provider health gates, `agent_definition.tools` availability, provider projection |
-| tool visible but sidecar cannot execute it | backend-sidecar parity tests and sidecar exposed-tool registry |
+| tool visible but local runtime cannot execute it | backend/local-runtime parity tests and sidecar exposed-tool registry |
 | transparency panel missing tool schemas | backend prompt metadata event emission and frontend transparency handlers |
 | screenshot shown in UI but not useful to model | artifact upload refs, query payload screenshot context, backend artifact fetch path |
 | model saw stale or duplicate context | `PromptConstructor._build_prompt_messages`, client prompt layers, and backend history rendering |

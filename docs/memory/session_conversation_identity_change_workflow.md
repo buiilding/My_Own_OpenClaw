@@ -26,7 +26,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 | visible transcript row does not persist or persists under wrong conversation | SDK projection store and local-runtime event store path | `packages/windie-sdk-js/src/stores`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/main/python/memory/local_store.py` | [Transcript and Replay](transcript_and_replay.md), [Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md) | SDK/main projection tests, sidecar transcript tests |
 | dashboard resume displays rows but backend forgets context | SDK rehydrate projection plus backend rehydrate service | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | [Memory Change Workflow](memory_change_workflow.md), [Backend History and Semantic Routes](backend_history_and_semantic_routes.md) | SDK rehydrate tests, `tests/backend/test_rehydrate_*.py` |
 | tool-call/tool-output linkage breaks after replay or rehydrate | SDK tool projection state plus backend rehydrate linkage/history | SDK tool projection files, `backend/src/api/services/rehydrate_tool_*`, `backend/src/agent/history/*` | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), [Backend History Tool-Call ID Staging Reference](../backend/agent/history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md) | SDK tool projection tests, `tests/backend/test_rehydrate_tool_linkage.py`, `tests/backend/test_conversation_history.py` |
-| conversation list/search/title/delete behavior drifts | sidecar memory and dashboard views | `frontend/src/main/python/memory/conversation_*`, dashboard hooks, local conversation store | [Sidecar Local Memory](sidecar_local_memory.md), [Memory Troubleshooting](memory_troubleshooting.md) | `tests/sidecar/test_conversation_*.py`, dashboard conversation tests |
+| conversation list/search/title/delete behavior drifts | local-runtime memory and dashboard views | `frontend/src/main/python/memory/conversation_*`, dashboard hooks, local conversation store | [Local Runtime Memory](sidecar_local_memory.md), [Memory Troubleshooting](memory_troubleshooting.md) | `tests/sidecar/test_conversation_*.py`, dashboard conversation tests |
 | VM run opens or resumes the wrong conversation | runs API metadata and VM worker dispatch | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) | backend runs tests, frontend VM worker tests |
 
 ## Identifier Boundaries
@@ -57,7 +57,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 
 ### Resume Existing Conversation
 
-1. Dashboard loads sidecar transcript rows for the selected conversation.
+1. Dashboard loads local-runtime transcript rows for the selected conversation.
 2. Renderer converts rows to visible chat messages.
 3. Renderer builds a backend rehydrate payload from the stored transcript rows.
 4. Backend `RehydrateConversationHandler` delegates to `RehydrateExecutionService`.
@@ -112,7 +112,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 
 ### Change Transcript Storage or Conversation Lists
 
-1. Update renderer transcript writer and sidecar memory storage together when the persisted payload changes.
+1. Update renderer transcript writer and local-runtime memory storage together when the persisted payload changes.
 2. Keep `conversation_ref`, `user_id`, role, message type, timestamp, and message index stable.
 3. Update dashboard list/search/title/delete consumers when storage fields or query ordering change.
 4. Validate frontend transcript/pending tests and sidecar conversation list/search/title tests.
@@ -153,7 +153,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 ### Deleted Conversation Still Appears
 
 - Confirm renderer local replay state is cleared.
-- Confirm sidecar transcript rows and derived conversation summaries/titles were deleted or invalidated.
+- Confirm local-runtime transcript rows and derived conversation summaries/titles were deleted or invalidated.
 - Confirm search/list caches are refreshed.
 - Confirm semantic derived rows are intentionally retained or removed according to memory docs.
 

@@ -39,7 +39,7 @@ Start with [Documentation Hub](../getting-started/docs_hub.md), then choose the 
 | local computer/filesystem/shell/browser execution | sidecar tools |
 | IPC bridge, sidecar process, windows, overlays, permissions | Electron main |
 | chat/dashboard/settings/memory/model UI | renderer |
-| transcript/replay/local memory | renderer plus sidecar memory; backend history when live agent state changes |
+| transcript/replay/local memory | renderer plus local-runtime memory; backend history when live agent state changes |
 | packaging/reinstall/release/hosted endpoint | operations |
 
 Do not patch a downstream consumer to hide an upstream contract bug unless the consumer is actually the owner.

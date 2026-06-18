@@ -14,9 +14,9 @@ WindieOS context is assembled from live UI state, stored transcript state, local
 
 | Source | Runtime owner | Purpose |
 | --- | --- | --- |
-| Chat transcript | Renderer and sidecar memory store | Local visible conversation history, replay, resume, search, and dashboard lists |
+| Chat transcript | Renderer and local-runtime memory store | Local visible conversation history, replay, resume, search, and dashboard lists |
 | Backend conversation history | Backend session/history modules | Model-facing history and tool-call/tool-output linkage during active backend sessions |
-| Semantic memory | Sidecar local memory plus backend semantic/title endpoints | Durable facts and summaries derived from completed interactions |
+| Semantic memory | Local-runtime memory plus backend semantic/title endpoints | Durable facts and summaries derived from completed interactions |
 | Screenshots and artifacts | Renderer capture/upload, backend artifact store | Multimodal context for the model and durable refs for replay/tool output |
 | System state | Sidecar system-state collectors and renderer/main payload builders | Active app/window/screen state for context and tool transparency |
 | Repo instructions | Electron main and backend prompt construction | Local `AGENTS.md` instructions forwarded when the hosted backend cannot inspect local files directly |
@@ -32,7 +32,7 @@ WindieOS context is assembled from live UI state, stored transcript state, local
 ## Implementation Entry Points
 
 - Renderer transcript queue: `frontend/src/renderer/infrastructure/transcript/*`
-- Sidecar memory store: `frontend/src/main/python/memory/*`
+- Local-runtime memory store: `frontend/src/main/python/memory/*`
 - Backend memory routes: `backend/src/api/routes/memory/*`
 - Backend embedding/semantic services: `backend/src/services/*embedding*`, `backend/src/api/routes/memory/semantic/*`
 - Artifact flow: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`, `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`, `backend/src/api/routes/artifacts/*`, `backend/src/services/artifacts/*`
