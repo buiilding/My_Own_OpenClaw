@@ -28,6 +28,7 @@ const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
 );
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 10000;
 const DEFAULT_DAEMON_POLL_INTERVAL_MS = 100;
+const DEFAULT_LOCAL_RUNTIME_DAEMON_ENTRYPOINT = 'local_runtime_daemon.py';
 const DEFAULT_LOCAL_RUNTIME_DAEMON_ENV = Object.freeze({
   backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
   backendAuthStatePath: 'AGENT_BACKEND_AUTH_STATE_PATH',
@@ -41,8 +42,7 @@ const DEFAULT_LOCAL_RUNTIME_DAEMON_ENV = Object.freeze({
   logLevel: 'AGENT_LOCAL_RUNTIME_LOG_LEVEL',
 });
 
-const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
-  'sidecar_daemon.py',
+const LOCAL_RUNTIME_SOURCE_STAMP_SUPPORT_FILES = [
   'local_backend.py',
   'local_backend_memory_handlers.py',
 ];
@@ -68,6 +68,14 @@ function resolveLocalRuntimeDaemonEnvConfig(localRuntimeEnv = {}) {
       normalizeEnvKey(localRuntimeEnv?.[key], fallback),
     ]),
   ));
+}
+
+function resolveLocalRuntimeDaemonEntrypoint(daemonEntrypoint) {
+  if (typeof daemonEntrypoint !== 'string') {
+    return DEFAULT_LOCAL_RUNTIME_DAEMON_ENTRYPOINT;
+  }
+  const normalized = daemonEntrypoint.trim();
+  return normalized.length > 0 ? normalized : DEFAULT_LOCAL_RUNTIME_DAEMON_ENTRYPOINT;
 }
 
 function resolveDaemonLaunchContextEnvKeys(localRuntimeEnv = {}) {
@@ -104,7 +112,12 @@ function resolveLocalRuntimeSourceStamp(launchTarget) {
     };
   }
   const sourceDir = path.dirname(resolvedPath);
-  const stampParts = LOCAL_RUNTIME_SOURCE_STAMP_FILES.map((fileName) => {
+  const entrypointFile = path.basename(resolvedPath);
+  const stampFiles = [
+    entrypointFile,
+    ...LOCAL_RUNTIME_SOURCE_STAMP_SUPPORT_FILES.filter((fileName) => fileName !== entrypointFile),
+  ];
+  const stampParts = stampFiles.map((fileName) => {
     const filePath = path.join(sourceDir, fileName);
     try {
       const stat = fs.statSync(filePath);
@@ -250,6 +263,7 @@ function writeLocalRuntimeDaemonLogLine(line, {
 
 function createDesktopLocalRuntimeLaunchPlan({
   backendEndpoints,
+  daemonEntrypoint,
   discoveryFile = DEFAULT_DAEMON_DISCOVERY_PATH,
   isPackaged = false,
   localRuntimeEnv,
@@ -262,7 +276,7 @@ function createDesktopLocalRuntimeLaunchPlan({
   copy = {},
   resolveLaunchTarget = resolveLocalRuntimeLaunchTarget,
 } = {}) {
-  const launchTarget = resolveLaunchTarget('sidecar_daemon.py', {
+  const launchTarget = resolveLaunchTarget(resolveLocalRuntimeDaemonEntrypoint(daemonEntrypoint), {
     runtimePathEnv,
     runtimePaths,
   });

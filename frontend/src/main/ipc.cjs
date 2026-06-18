@@ -740,6 +740,7 @@ function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
       httpUrl: backendEndpointState.getHttpUrl(),
     },
     copy: mainHostSkin.bundledRuntime,
+    daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
     localRuntimeEnv: mainHostSkin.localRuntime.env,
     runtimePaths: mainHostSkin.runtimePaths,
     userDataRoot: appUserDataRoot(),

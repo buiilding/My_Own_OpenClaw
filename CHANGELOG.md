@@ -65,6 +65,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/runtime: inject WindieOS local-runtime daemon and wakeword subprocess env
   key names from the main host skin instead of hardcoding them inside generic
   Electron launch helpers.
+- main/runtime: inject the WindieOS Python local-runtime daemon entrypoint from
+  the main host skin instead of hardcoding `sidecar_daemon.py` inside the
+  generic Electron launch helper.
 - main/wakeword: inject the WindieOS wakeword stderr log marker from the main
   host skin instead of hardcoding it inside the generic wakeword bridge runtime.
 - sdk/python: accept generic `AGENT_BACKEND_HTTP_URL` and

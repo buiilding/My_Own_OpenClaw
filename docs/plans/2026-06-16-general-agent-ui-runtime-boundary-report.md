@@ -173,6 +173,29 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main Local-Runtime Entrypoint Skin Boundary
+
+- Worktree was clean after `2f3edfec2`, with `main` ahead of `origin/main` by
+  50 commits.
+- Electron main launch helper history and current launch tests were inspected
+  after the shared Python helper wording slice.
+- Finding: `local_runtime_launch_options.cjs` still passed
+  `sidecar_daemon.py` directly to the generic launch-target resolver, leaving a
+  WindieOS Python entrypoint literal inside the reusable Electron local-runtime
+  launch helper.
+- Change: added a generic `local_runtime_daemon.py` launch-helper default,
+  moved WindieOS's active `sidecar_daemon.py` entrypoint into
+  `mainHostSkin.localRuntime`, passed it from the IPC composition root, and made
+  source-stamp generation derive the entrypoint file from the resolved launch
+  target.
+- Validation: focused launch, host-skin, runtime-path, and IPC boundary Jest
+  coverage, CommonJS syntax checks, docs listing, targeted source scan, and
+  diff check.
+- Compatibility: no migration required. Current WindieOS desktop startup still
+  launches `sidecar_daemon.py`; packaged path resolution, daemon discovery,
+  env aliases, source-stamp payload shape, IPC, storage, credentials, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Python Local-Runtime Helper Wording Boundary
 
 - Worktree was clean after `52722910f`, with `main` ahead of `origin/main` by

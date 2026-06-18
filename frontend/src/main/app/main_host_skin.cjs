@@ -189,6 +189,7 @@ const bundledRuntime = Object.freeze({
 });
 
 const localRuntime = Object.freeze({
+  daemonEntrypoint: 'sidecar_daemon.py',
   env: Object.freeze({
     backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL',
     backendAuthStatePath: 'WINDIE_BACKEND_AUTH_STATE_PATH',

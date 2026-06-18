@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Local-Runtime Entrypoint Skin Boundary
+
+- Finding: the generic Electron local-runtime launch helper still selected
+  `sidecar_daemon.py` directly, so the reusable host launch path knew the
+  WindieOS Python sidecar entrypoint name even after env, path, and copy had
+  moved into host-skin configuration.
+- Change: added a generic `local_runtime_daemon.py` launch-helper default,
+  moved WindieOS's current `sidecar_daemon.py` entrypoint into
+  `mainHostSkin.localRuntime`, and passed that skin-owned entrypoint through the
+  IPC composition root. Source-stamp generation now derives the entrypoint file
+  from the resolved launch target instead of a hardcoded daemon filename.
+- Validation: focused Electron launch/host-skin/runtime-path boundary Jest
+  coverage, CommonJS syntax checks, docs listing, targeted source scan, and
+  diff-check validation.
+- Compatibility: no migration required. WindieOS desktop launches still start
+  `sidecar_daemon.py`; packaged runtime paths, daemon discovery, env aliases,
+  source stamps, IPC, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Python Local-Runtime Helper Wording Boundary
 
 - Finding: shared Python stdout JSON, executor, env-flag, memory operation, and
