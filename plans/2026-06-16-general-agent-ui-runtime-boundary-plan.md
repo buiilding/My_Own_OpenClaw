@@ -129,10 +129,10 @@ Each completed slice should report:
   configures backend endpoint defaults and debug env names explicitly, and made
   the IPC bridge harness configure the same host runtime values in tests.
 - Validation: focused host-skin boundary, SDK IPC boundary, bridge lifecycle,
-  backend endpoint, and debug-env Jest coverage plus CommonJS syntax checks.
-  `IpcMainBridge.query` is currently blocked by unrelated dirty SDK visual
-  resource changes removing `normalizeBackendEventToConversationEvent` from
-  the working tree.
+  backend endpoint, debug-env, and query-bridge Jest coverage plus CommonJS
+  syntax checks. After the SDK visual-resource materialization slice landed,
+  `ipc.cjs` now imports the private backend-wire normalizer from its transport
+  owner module instead of relying on a package-root export.
 - Compatibility: no migration required. Backend endpoint selection, debug env
   flags, SDK wake-up, query routing, IPC channels, storage, credentials,
   provider policy, and local tool execution are unchanged.

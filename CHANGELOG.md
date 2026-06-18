@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- main/ipc: import the private SDK backend-event normalizer from its transport
+  owner module instead of the SDK package root, preserving the root export
+  boundary while restoring query bridge normalization. No migration required.
 - cli/commits: raise the buffered capture capacity used by Windie CLI history
   scans so `windie commits search` no longer fails with `spawnSync git ENOBUFS`
   in large repos.

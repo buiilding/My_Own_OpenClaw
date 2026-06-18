@@ -161,8 +161,10 @@ const {
   isDefaultAgentDefinition,
   TraceRecorder,
   createConversationEvent,
-  normalizeBackendEventToConversationEvent,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
+const {
+  normalizeBackendEventToConversationEvent,
+} = require('../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 const { logChatPillMainTrace } = require('./debug/chat_pill_trace_runtime.cjs');
 const {
   logLiveSurfaceTrace,
