@@ -8,6 +8,10 @@ jest.mock('electron', () => ({
   app: { isPackaged: false },
 }));
 
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
 function withIsolatedRuntimePaths(testFn) {
   jest.isolateModules(() => {
     const fs = require('fs');
@@ -115,6 +119,27 @@ describe('runtime_paths local runtime launch target resolution', () => {
   test('resolves packaged daemon bytecode through bundled Python', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = true;
+      const localRuntimePyc = '/opt/WindieOS/resources/python-runtime/local-runtime/sidecar_daemon.pyc';
+      const runtimePython = process.platform === 'win32'
+        ? '/opt/WindieOS/resources/python-runtime/python.exe'
+        : '/opt/WindieOS/resources/python-runtime/bin/python3';
+      fs.existsSync.mockImplementation((candidate) => (
+        samePath(candidate, localRuntimePyc)
+        || samePath(candidate, runtimePython)
+      ));
+
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
+
+      expect(target.kind).toBe('python');
+      expectPath(target.command, runtimePython);
+      expectPathArray(target.args, [localRuntimePyc]);
+      expectPath(target.resolvedPath, localRuntimePyc);
+    });
+  });
+
+  test('uses configured host packaged entrypoint directory for WindieOS compatibility', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = true;
       const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc';
       const runtimePython = process.platform === 'win32'
         ? '/opt/WindieOS/resources/python-runtime/python.exe'
@@ -124,7 +149,9 @@ describe('runtime_paths local runtime launch target resolution', () => {
         || samePath(candidate, runtimePython)
       ));
 
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py', {
+        runtimePaths: mainHostSkin.runtimePaths,
+      });
 
       expect(target.kind).toBe('python');
       expectPath(target.command, runtimePython);
@@ -144,8 +171,8 @@ describe('runtime_paths local runtime launch target resolution', () => {
       const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
 
       expect(target.kind).toBe('python');
-      expectPath(target.resolvedPath, '/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc');
-      expectPathArray(target.args, ['/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc']);
+      expectPath(target.resolvedPath, '/opt/WindieOS/resources/python-runtime/local-runtime/sidecar_daemon.pyc');
+      expectPathArray(target.args, ['/opt/WindieOS/resources/python-runtime/local-runtime/sidecar_daemon.pyc']);
     });
   });
 
@@ -169,10 +196,10 @@ describe('runtime_paths local runtime launch target resolution', () => {
     try {
       withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
         app.isPackaged = true;
-        const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc';
+        const localRuntimePyc = '/opt/WindieOS/resources/python-runtime/local-runtime/sidecar_daemon.pyc';
         const runtimePython = '/opt/WindieOS/resources/python-runtime/Scripts/python.exe';
         fs.existsSync.mockImplementation((candidate) => (
-          samePath(candidate, sidecarPyc)
+          samePath(candidate, localRuntimePyc)
           || samePath(candidate, runtimePython)
         ));
 
@@ -180,8 +207,8 @@ describe('runtime_paths local runtime launch target resolution', () => {
 
         expect(target.kind).toBe('python');
         expectPath(target.command, runtimePython);
-        expectPathArray(target.args, [sidecarPyc]);
-        expectPath(target.resolvedPath, sidecarPyc);
+        expectPathArray(target.args, [localRuntimePyc]);
+        expectPath(target.resolvedPath, localRuntimePyc);
       });
     } finally {
       Object.defineProperty(process, 'platform', {
@@ -195,12 +222,12 @@ describe('runtime_paths local runtime launch target resolution', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = true;
       process.env.CONDA_PREFIX = '/opt/conda/envs/windie';
-      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc';
+      const localRuntimePyc = '/opt/WindieOS/resources/python-runtime/local-runtime/wakeword_service.pyc';
       const condaPython = process.platform === 'win32'
         ? '/opt/conda/envs/windie/python.exe'
         : '/opt/conda/envs/windie/bin/python3';
       fs.existsSync.mockImplementation((candidate) => (
-        samePath(candidate, sidecarPyc)
+        samePath(candidate, localRuntimePyc)
         || samePath(candidate, condaPython)
       ));
 
@@ -208,8 +235,8 @@ describe('runtime_paths local runtime launch target resolution', () => {
 
       expect(target.kind).toBe('python');
       expect(target.command).toBe(null);
-      expectPathArray(target.args, [sidecarPyc]);
-      expectPath(target.resolvedPath, sidecarPyc);
+      expectPathArray(target.args, [localRuntimePyc]);
+      expectPath(target.resolvedPath, localRuntimePyc);
     });
   });
 

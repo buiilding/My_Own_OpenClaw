@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Packaged Runtime Path Skin Boundary
+
+- Finding: `runtime_paths.cjs` still baked
+  `resources/python-runtime/sidecar` into the generic Electron host packaged
+  launch resolver, even though the helper now resolves local-runtime launch
+  targets for both the daemon and wakeword service.
+- Change: added a generic runtime-path config with
+  `local-runtime` as the default packaged bytecode directory, moved WindieOS's
+  existing `sidecar` packaged entrypoint directory into
+  `mainHostSkin.runtimePaths`, and passed the full runtime-path skin through
+  local-runtime and wakeword launch composition.
+- Validation: focused runtime path, local-runtime launch, wakeword bridge, main
+  host skin boundary, docs listing, source scan, and diff-check validation.
+- Compatibility: no migration required. Generic hosts default to
+  `resources/python-runtime/local-runtime`, while WindieOS packaged builds keep
+  using `resources/python-runtime/sidecar`; Python executable env behavior and
+  packaged fail-closed semantics are unchanged.
+
 ### 2026-06-18 Main Local Runtime Log Layer Boundary
 
 - Finding: the reusable layer log sink still treated `sidecar` as a built-in

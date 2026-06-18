@@ -51,6 +51,7 @@ describe('wakeword_bridge', () => {
     isPackaged = false,
     mockExistsSync = null,
     mainWindow: suppliedMainWindow = null,
+    runtimePaths = undefined,
     wakewordEnv = undefined,
   } = {}) => {
     jest.resetModules();
@@ -121,6 +122,7 @@ describe('wakeword_bridge', () => {
     const onWakewordDetected = jest.fn();
 
     bridge.initializeWakewordBridge(mainWindow, onWakewordDetected, {
+      ...(runtimePaths ? { runtimePaths } : {}),
       ...(wakewordEnv ? { wakewordEnv } : {}),
     });
 
@@ -459,7 +461,7 @@ describe('wakeword_bridge', () => {
         mockExistsSync: (candidate) => {
           const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
           return (
-            normalizedCandidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
+            normalizedCandidate === '/opt/WindieOS/resources/python-runtime/local-runtime/wakeword_service.pyc'
             || normalizedCandidate === runtimePython
           );
         },
@@ -496,6 +498,7 @@ describe('wakeword_bridge', () => {
     try {
       initBridge({
         isPackaged: true,
+        runtimePaths: mainHostSkin.runtimePaths,
         wakewordEnv: mainHostSkin.wakeword.env,
         mockExistsSync: (candidate) => {
           const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');

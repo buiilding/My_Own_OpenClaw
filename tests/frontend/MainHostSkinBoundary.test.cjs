@@ -73,6 +73,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB'");
     expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
     expect(skinSource).toContain('runtimePaths');
+    expect(skinSource).toContain("packagedEntrypointDirName: 'sidecar'");
     expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
     expect(skinSource).toContain('gpu');
     expect(skinSource).toContain("forceSoftwareRendering: 'WINDIE_FORCE_SOFTWARE_RENDERING'");
@@ -382,10 +383,12 @@ describe('main host skin/config boundary', () => {
 
     expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
     expect(runtimePathsSource).toContain("pythonPath: 'AGENT_PYTHON_PATH'");
+    expect(runtimePathsSource).toContain("DEFAULT_PACKAGED_ENTRYPOINT_DIR_NAME = 'local-runtime'");
     expect(runtimePathsSource).toContain('resolveRuntimePathEnvConfig');
+    expect(runtimePathsSource).toContain('resolveRuntimePathConfig');
     expect(runtimePathsSource).not.toContain('WINDIE_PYTHON_PATH');
-    expect(ipcSource).toContain('runtimePathEnv: mainHostSkin.runtimePaths.env');
-    expect(mainWindowSource).toContain('runtimePathEnv: mainHostSkin?.runtimePaths?.env');
+    expect(ipcSource).toContain('runtimePaths: mainHostSkin.runtimePaths');
+    expect(mainWindowSource).toContain('runtimePaths: mainHostSkin?.runtimePaths');
   });
 
   test('GPU software rendering env name lives in host skin config', () => {

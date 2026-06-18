@@ -245,17 +245,23 @@ function createDesktopLocalRuntimeLaunchPlan({
   authStatePath,
   userDataRoot,
   runtimePathEnv,
+  runtimePaths,
   WebSocketImpl,
   copy = {},
   resolveLaunchTarget = resolveLocalRuntimeLaunchTarget,
 } = {}) {
   const launchTarget = resolveLaunchTarget('sidecar_daemon.py', {
     runtimePathEnv,
+    runtimePaths,
   });
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     return {
       ok: false,
-      error: createMissingCommandError({ isPackaged, copy, runtimePathEnv }),
+      error: createMissingCommandError({
+        isPackaged,
+        copy,
+        runtimePathEnv: runtimePaths?.env || runtimePathEnv,
+      }),
       launchTarget,
     };
   }

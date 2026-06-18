@@ -739,7 +739,7 @@ function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
     },
     copy: mainHostSkin.bundledRuntime,
     localRuntimeEnv: mainHostSkin.localRuntime.env,
-    runtimePathEnv: mainHostSkin.runtimePaths.env,
+    runtimePaths: mainHostSkin.runtimePaths,
     userDataRoot: appUserDataRoot(),
     ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
   });

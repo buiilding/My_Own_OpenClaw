@@ -98,6 +98,7 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
 
   const launchTarget = resolveLocalRuntimeLaunchTarget('wakeword_service.py', {
     runtimePathEnv: options.runtimePathEnv,
+    runtimePaths: options.runtimePaths,
   });
   const packagedApp = Boolean(app && app.isPackaged);
   const wakewordEnvConfig = resolveWakewordEnvConfig(options.wakewordEnv);

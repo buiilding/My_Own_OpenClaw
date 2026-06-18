@@ -54,6 +54,7 @@ const dataPaths = Object.freeze({
 });
 
 const runtimePaths = Object.freeze({
+  packagedEntrypointDirName: 'sidecar',
   env: Object.freeze({
     pythonPath: 'WINDIE_PYTHON_PATH',
   }),

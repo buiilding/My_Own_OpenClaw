@@ -98,7 +98,9 @@ Resolution order:
 
 1. configured host Python-path env key if it exists. WindieOS supplies
    `WINDIE_PYTHON_PATH` through `mainHostSkin.runtimePaths.env`; the generic
-   helper fallback is `AGENT_PYTHON_PATH`.
+   helper fallback is `AGENT_PYTHON_PATH`. WindieOS also supplies
+   `mainHostSkin.runtimePaths.packagedEntrypointDirName = "sidecar"` so
+   existing packaged resources remain under the current directory name.
 2. bundled runtime candidates (packaged app)
 3. dev-only fallback: active conda env (`CONDA_PREFIX`) python
 4. dev-only fallback command (`py` on Windows, `python3` elsewhere)
@@ -126,7 +128,10 @@ Resolution behavior:
   or `wakeword_service.py`
 - command: internal Python executable resolution
 - script path:
-  - packaged: `<resources>/python-runtime/sidecar/<entrypoint>.pyc`
+  - packaged generic default:
+    `<resources>/python-runtime/local-runtime/<entrypoint>.pyc`
+  - packaged WindieOS host skin:
+    `<resources>/python-runtime/sidecar/<entrypoint>.pyc`
   - dev: `frontend/src/main/python/<entrypoint>.py`
 
 Returned launch target object:
@@ -171,9 +176,10 @@ If backend relay fails:
 2. verify `resolveBackendEndpoints` output shape and protocol
 3. confirm ws handshake origin compatibility (`wsOrigin`)
 
-If sidecar fails to start in packaged builds:
+If the local runtime fails to start in packaged builds:
 
-1. verify bundled `.pyc` exists under `resources/python-runtime/sidecar`
+1. verify bundled `.pyc` exists under the host-configured packaged entrypoint
+   directory (`resources/python-runtime/sidecar` for WindieOS)
 2. verify bundled python executable exists under `resources/python-runtime` or `resources/python`
 3. check the configured Python-path env override (`WINDIE_PYTHON_PATH` for the
    WindieOS skin) and file existence in dev mode

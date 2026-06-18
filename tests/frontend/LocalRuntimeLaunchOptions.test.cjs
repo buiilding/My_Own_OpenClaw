@@ -124,7 +124,7 @@ describe('desktop local runtime launch options', () => {
   test('uses configured host Python path env in dev missing command guidance', () => {
     const plan = createDesktopLocalRuntimeLaunchPlan({
       isPackaged: false,
-      runtimePathEnv: mainHostSkin.runtimePaths.env,
+      runtimePaths: mainHostSkin.runtimePaths,
       resolveLaunchTarget: () => ({ kind: 'python', command: null }),
     });
 

@@ -274,7 +274,7 @@ function createMainWindow({
     }
   }, {
     bundledRuntimeCopy: mainHostSkin?.bundledRuntime,
-    runtimePathEnv: mainHostSkin?.runtimePaths?.env,
+    runtimePaths: mainHostSkin?.runtimePaths,
     wakewordEnv: mainHostSkin?.wakeword?.env,
     wakewordStderrLogMarkers: mainHostSkin?.wakeword?.stderrLogMarkers,
   });

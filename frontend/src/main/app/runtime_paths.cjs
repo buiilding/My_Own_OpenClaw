@@ -3,7 +3,8 @@
  *
  * Packaged builds can run from app.asar, where child processes cannot execute
  * scripts directly from the archive. Packaged local runtime code is expected
- * under resources/python-runtime/sidecar as sourceless bytecode.
+ * under resources/python-runtime/local-runtime as sourceless bytecode unless a
+ * host skin maps the packaged entrypoint directory for compatibility.
  */
 
 const fs = require('fs');
@@ -11,6 +12,7 @@ const path = require('path');
 const DEFAULT_RUNTIME_PATH_ENV = Object.freeze({
   pythonPath: 'AGENT_PYTHON_PATH',
 });
+const DEFAULT_PACKAGED_ENTRYPOINT_DIR_NAME = 'local-runtime';
 let electronApp = null;
 try {
   ({ app: electronApp } = require('electron'));
@@ -62,6 +64,22 @@ function normalizeEnvKey(value, fallback) {
   return normalized.length > 0 ? normalized : fallback;
 }
 
+function normalizePackagedEntrypointDirName(value, fallback = DEFAULT_PACKAGED_ENTRYPOINT_DIR_NAME) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  if (
+    normalized.length === 0
+    || path.basename(normalized) !== normalized
+    || normalized === '.'
+    || normalized === '..'
+  ) {
+    return fallback;
+  }
+  return normalized;
+}
+
 function resolveRuntimePathEnvConfig(runtimePathEnv = {}) {
   return {
     pythonPath: normalizeEnvKey(
@@ -69,6 +87,28 @@ function resolveRuntimePathEnvConfig(runtimePathEnv = {}) {
       DEFAULT_RUNTIME_PATH_ENV.pythonPath,
     ),
   };
+}
+
+function resolveRuntimePathConfig(runtimePaths = {}) {
+  const envSource = runtimePaths?.env && typeof runtimePaths.env === 'object'
+    ? runtimePaths.env
+    : runtimePaths;
+  return {
+    env: resolveRuntimePathEnvConfig(envSource),
+    packagedEntrypointDirName: normalizePackagedEntrypointDirName(
+      runtimePaths?.packagedEntrypointDirName,
+    ),
+  };
+}
+
+function resolveRuntimePathConfigFromOptions(options = {}) {
+  if (options.runtimePaths && typeof options.runtimePaths === 'object') {
+    return resolveRuntimePathConfig(options.runtimePaths);
+  }
+  return resolveRuntimePathConfig({
+    env: options.runtimePathEnv,
+    packagedEntrypointDirName: options.packagedEntrypointDirName,
+  });
 }
 
 function normalizePythonEntrypointName(scriptName) {
@@ -80,7 +120,7 @@ function normalizePythonEntrypointName(scriptName) {
   return scriptBaseName;
 }
 
-function resolvePythonScriptPath(scriptName) {
+function resolvePythonScriptPath(scriptName, runtimePathConfig = resolveRuntimePathConfig()) {
   const scriptBaseName = normalizePythonEntrypointName(scriptName);
 
   if (isPackagedApp()) {
@@ -88,7 +128,7 @@ function resolvePythonScriptPath(scriptName) {
     return path.join(
       resourcesRoot,
       'python-runtime',
-      'sidecar',
+      runtimePathConfig.packagedEntrypointDirName,
       `${scriptBaseName.slice(0, -3)}.pyc`,
     );
   }
@@ -123,8 +163,11 @@ function getBundledPythonExecutableCandidates() {
 function resolvePythonExecutablePath({
   env = process.env,
   runtimePathEnv = {},
+  runtimePaths = null,
 } = {}) {
-  const envConfig = resolveRuntimePathEnvConfig(runtimePathEnv);
+  const envConfig = runtimePaths && typeof runtimePaths === 'object'
+    ? resolveRuntimePathConfig(runtimePaths).env
+    : resolveRuntimePathEnvConfig(runtimePathEnv);
   const explicitPythonPath = env[envConfig.pythonPath];
   if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
     return explicitPythonPath;
@@ -135,7 +178,7 @@ function resolvePythonExecutablePath({
     return bundledPython;
   }
 
-  // Packaged apps should run with bundled sidecar runtime only.
+  // Packaged apps should run with the bundled local runtime only.
   // Avoid silently depending on a user-installed interpreter.
   if (isPackagedApp()) {
     return null;
@@ -177,7 +220,8 @@ function resolveBundledRuntimeRootFromExecutable(executablePath) {
 
 function resolveLocalRuntimeLaunchTarget(scriptName, options = {}) {
   const normalizedScript = String(scriptName || '').trim();
-  const scriptPath = resolvePythonScriptPath(normalizedScript);
+  const runtimePathConfig = resolveRuntimePathConfigFromOptions(options);
+  const scriptPath = resolvePythonScriptPath(normalizedScript, runtimePathConfig);
   const pythonCommand = resolvePythonExecutablePath(options);
   return {
     kind: 'python',
@@ -191,5 +235,6 @@ function resolveLocalRuntimeLaunchTarget(scriptName, options = {}) {
 
 module.exports = {
   resolveLocalRuntimeLaunchTarget,
+  resolveRuntimePathConfig,
   resolveRuntimePathEnvConfig,
 };
