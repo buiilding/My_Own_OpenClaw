@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
   runtime path, bundled-runtime, and local-runtime copies into generic window
   runtimes as narrow values instead of forwarding the full WindieOS host skin.
   No migration required.
+- main/permissions: remove the full host-skin fallback from permission IPC
+  runtime now that the Electron composition root passes `permissionCopy`
+  directly. No migration required.
 - docs/agents: require agents to redo required orientation after every
   compaction summary before continuing implementation or analysis.
 - docs/plans: add a shared image-resource materialization goal plan covering

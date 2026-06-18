@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Permission IPC Fallback Removal
+
+- Finding: after permission services moved to injected `permissionCopy`,
+  `permission_ipc_runtime.cjs` still accepted `mainHostSkin` as a compatibility
+  fallback. That left a stale duplicate authority for permission copy inside
+  generic IPC registration.
+- Change: removed the host-skin fallback from permission IPC runtime and kept
+  the WindieOS permission copy handoff at the Electron main composition root.
+- Validation: focused permission IPC, permission service, and host-skin
+  boundary Jest coverage plus CommonJS syntax checks.
+- Compatibility: no migration required. Permission probes, permission request
+  IPC channels, state storage, diagnostics, platform adapters, credentials, and
+  tool execution are unchanged.
+
 ### 2026-06-18 Main Window Host-Skin Boundary
 
 - Finding: `main_window_runtime.cjs` and the window bootstrap still accepted the

@@ -267,7 +267,9 @@ describe('main host skin/config boundary', () => {
     expect(fs.readFileSync(indexPath, 'utf8'))
       .toContain('permissionCopy: mainHostSkin.permissions');
     expect(fs.readFileSync(permissionIpcRuntimePath, 'utf8'))
-      .toContain('permissionCopy: permissionCopy || mainHostSkin?.permissions || {}');
+      .toContain('permissionCopy: permissionCopy || {}');
+    expect(fs.readFileSync(permissionIpcRuntimePath, 'utf8'))
+      .not.toContain('mainHostSkin');
   });
 
   test('query event builders keep product copy in the host skin', () => {
