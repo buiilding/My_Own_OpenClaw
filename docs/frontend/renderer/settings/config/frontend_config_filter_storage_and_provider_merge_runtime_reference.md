@@ -128,13 +128,13 @@ Electron frontend-config persistence are scrubbed.
 
 ## Provider Merge/Apply Guards (`appConfigPersistence`)
 
-`sanitizeFrontendProviderConfig`:
+`sanitizeRendererProviderConfig`:
 
 - returns `{}` for non-plain objects
 - applies the renderer-owned config allowlist
 - drops keys whose value is `undefined`
 
-`mergeFrontendProviderConfig(base, patch)`:
+`mergeRendererProviderConfig(base, patch)`:
 
 - shallow merges sanitized base + patch
 

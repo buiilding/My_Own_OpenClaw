@@ -14,9 +14,9 @@ import { setRuntimeEndpointHttpUrl } from '../../infrastructure/services/Runtime
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
   applyConfigIfChanged,
-  buildFrontendConfigPersistencePayload,
-  mergeFrontendProviderConfig,
-  sanitizeFrontendProviderConfig,
+  buildRendererConfigPersistencePayload,
+  mergeRendererProviderConfig,
+  sanitizeRendererProviderConfig,
 } from './appConfigPersistence';
 import {
   buildImmediateRuntimeConfig,
@@ -88,8 +88,8 @@ export function AppConfigProvider({ children }) {
   }, [configRef]);
 
   const buildMergedRendererConfig = useCallback((incomingConfig) => {
-    return sanitizeFrontendProviderConfig(
-      mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
+    return sanitizeRendererProviderConfig(
+      mergeRendererProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
     );
   }, [configRef]);
 
@@ -105,7 +105,7 @@ export function AppConfigProvider({ children }) {
       saveStatusCallbackRef.current();
     }
 
-    const persistenceConfig = buildFrontendConfigPersistencePayload(nextConfig);
+    const persistenceConfig = buildRendererConfigPersistencePayload(nextConfig);
 
     if (persistToStorage) {
       saveConfigToStorage(persistenceConfig);

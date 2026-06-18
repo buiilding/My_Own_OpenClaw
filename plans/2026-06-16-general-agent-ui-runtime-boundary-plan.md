@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer app config persistence helper boundary
+
+- Finding: `appConfigPersistence.js` still exported renderer-internal provider
+  merge/sanitize/persistence helpers with frontend config names even though
+  callers are `AppConfigProvider` and focused renderer tests.
+- Change: renamed those helpers to renderer provider/config terminology,
+  updated docs/tests/callers, and removed the previous frontend-named helper
+  exports instead of adding compatibility aliases.
+- Validation: focused AppConfig persistence/provider/storage IPC Jest tests,
+  docs listing, stale helper-name scan, and diff check.
+- Compatibility: no migration required. Renderer config fields, localStorage
+  and disk payloads, IPC channel names, backend `update-settings` payloads,
+  credentials, permissions, and SDK projections are unchanged.
+
 ### 2026-06-18 renderer runtime sync local-only config boundary
 
 - Finding: `appConfigRuntimeSync.js` used a private
@@ -250,10 +264,8 @@ Each completed slice should report:
   frontend-named surfaces.
 - Change: renamed private config storage helpers and AppConfigProvider callbacks
   to renderer config names, updated the settings-management comment and docs
-  references, and preserved exported compatibility names such as
-  `filterFrontendConfig`, `sanitizeFrontendProviderConfig`,
-  `buildFrontendConfigPersistencePayload`, `load-frontend-config`, and
-  `save-frontend-config`.
+  references, and kept then-existing compatibility names for the exported
+  filter helper, IPC channels, and disk contract.
 - Validation: focused config storage/AppConfigProvider/settings hook Jest
   coverage, stale private helper-name scan, docs listing, and diff check.
 - Compatibility: no migration required. Renderer localStorage/disk config shape,

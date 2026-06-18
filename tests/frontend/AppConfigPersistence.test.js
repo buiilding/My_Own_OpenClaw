@@ -4,15 +4,15 @@
 
 import {
   applyConfigIfChanged,
-  buildFrontendConfigPersistencePayload,
-  mergeFrontendProviderConfig,
-  sanitizeFrontendProviderConfig,
+  buildRendererConfigPersistencePayload,
+  mergeRendererProviderConfig,
+  sanitizeRendererProviderConfig,
 } from '../../frontend/src/renderer/app/providers/appConfigPersistence';
 
 describe('appConfigPersistence', () => {
   test('sanitizes config by stripping undefined fields', () => {
     expect(
-      sanitizeFrontendProviderConfig({
+      sanitizeRendererProviderConfig({
         speech_mode_enabled: true,
         include_query_screenshot: undefined,
         selected_model_id: 'model-a',
@@ -67,13 +67,13 @@ describe('appConfigPersistence', () => {
     expect(setConfig).not.toHaveBeenCalled();
   });
 
-  test('sanitizeFrontendProviderConfig does not mutate input object', () => {
+  test('sanitizeRendererProviderConfig does not mutate input object', () => {
     const input = {
       speech_mode_enabled: true,
       model_provider: 'openai',
     };
 
-    const output = sanitizeFrontendProviderConfig(input);
+    const output = sanitizeRendererProviderConfig(input);
     expect(output).toEqual({
       speech_mode_enabled: true,
       model_provider: 'openai',
@@ -93,9 +93,9 @@ describe('appConfigPersistence', () => {
     expect(setConfig).not.toHaveBeenCalled();
   });
 
-  test('mergeFrontendProviderConfig preserves base fields and applies patch fields', () => {
+  test('mergeRendererProviderConfig preserves base fields and applies patch fields', () => {
     expect(
-      mergeFrontendProviderConfig(
+      mergeRendererProviderConfig(
         { model_mode: 'online', speech_mode_enabled: false },
         { speech_mode_enabled: true },
       ),
@@ -105,9 +105,9 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('mergeFrontendProviderConfig deep-merges provider_api_keys entries', () => {
+  test('mergeRendererProviderConfig deep-merges provider_api_keys entries', () => {
     expect(
-      mergeFrontendProviderConfig(
+      mergeRendererProviderConfig(
         {
           provider_api_keys: {
             openai: { enabled: true, api_key: 'sk-base' },
@@ -128,9 +128,9 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('sanitizeFrontendProviderConfig strips undefined provider_api_keys fields', () => {
+  test('sanitizeRendererProviderConfig strips undefined provider_api_keys fields', () => {
     expect(
-      sanitizeFrontendProviderConfig({
+      sanitizeRendererProviderConfig({
         provider_api_keys: {
           openai: { enabled: true, api_key: undefined },
         },
@@ -142,9 +142,9 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('mergeFrontendProviderConfig drops unknown config fields through the renderer allowlist', () => {
+  test('mergeRendererProviderConfig drops unknown config fields through the renderer allowlist', () => {
     expect(
-      mergeFrontendProviderConfig(
+      mergeRendererProviderConfig(
         {
           backend_only_state: { token: 'base-token' },
         },
@@ -155,9 +155,9 @@ describe('appConfigPersistence', () => {
     ).toEqual({});
   });
 
-  test('buildFrontendConfigPersistencePayload redacts provider secrets and drops unknown fields', () => {
+  test('buildRendererConfigPersistencePayload redacts provider secrets and drops unknown fields', () => {
     expect(
-      buildFrontendConfigPersistencePayload({
+      buildRendererConfigPersistencePayload({
         provider_api_keys: {
           openai: { enabled: true, api_key: 'sk-openai' },
         },

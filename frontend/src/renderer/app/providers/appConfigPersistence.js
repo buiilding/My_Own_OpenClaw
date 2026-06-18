@@ -52,7 +52,7 @@ function mergeProviderApiKeys(baseConfig, patchConfig) {
   return merged;
 }
 
-export function sanitizeFrontendProviderConfig(config) {
+export function sanitizeRendererProviderConfig(config) {
   if (!isPlainObject(config)) {
     return {};
   }
@@ -70,8 +70,8 @@ export function sanitizeFrontendProviderConfig(config) {
   return sanitized;
 }
 
-export function buildFrontendConfigPersistencePayload(config) {
-  const sanitized = sanitizeFrontendProviderConfig(config);
+export function buildRendererConfigPersistencePayload(config) {
+  const sanitized = sanitizeRendererProviderConfig(config);
   if (isPlainObject(sanitized.provider_api_keys)) {
     const providerApiKeys = {};
     for (const [provider, entry] of Object.entries(sanitized.provider_api_keys)) {
@@ -87,10 +87,10 @@ export function buildFrontendConfigPersistencePayload(config) {
   return sanitized;
 }
 
-export function mergeFrontendProviderConfig(baseConfig, patchConfig) {
+export function mergeRendererProviderConfig(baseConfig, patchConfig) {
   const mergedConfig = {
-    ...sanitizeFrontendProviderConfig(baseConfig),
-    ...sanitizeFrontendProviderConfig(patchConfig),
+    ...sanitizeRendererProviderConfig(baseConfig),
+    ...sanitizeRendererProviderConfig(patchConfig),
   };
 
   const mergedProviderApiKeys = mergeProviderApiKeys(baseConfig, patchConfig);

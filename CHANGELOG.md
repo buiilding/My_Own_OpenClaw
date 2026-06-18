@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename AppConfig persistence provider helpers from frontend
+  provider/config terminology to renderer provider/config terminology.
 - renderer: rename the private runtime-sync local-only settings set from
   frontend config to renderer config terminology while preserving settings sync
   behavior.
