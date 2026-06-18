@@ -39,7 +39,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   WindieOS hosted-endpoint hostname inference. SDK hosted endpoint selection is
   now caller-supplied through `backendUrl`, `httpBaseUrl`, or
   `WINDIE_BACKEND_URL` instead of falling back to a hardcoded WindieOS hosted
-  URL.
+  URL. Python sidecar/SDK hosted HTTP clients now follow the same explicit
+  endpoint boundary through `backend_url` or `WINDIE_BACKEND_HTTP_URL`.
 
 ## Inspection Log
 
@@ -377,6 +378,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: hosted SDK operations now fail fast unless callers pass `backendUrl`, pass `httpBaseUrl`, or set `WINDIE_BACKEND_URL`.
 - Change: the hardcoded WindieOS hosted endpoint was removed from TypeScript source and checked-in CJS output, and public SDK docs now construct `AgentClient` with an explicit hosted endpoint.
 
+### 2026-06-18 Python Sidecar Hosted Endpoint Config Slice
+
+- Finding: the shared Python backend config still fell back to `https://api.windieos.com`, letting sidecar remote semantic clients and Python SDK HTTP clients select the WindieOS hosted backend without caller or host configuration.
+- Decision: keep Electron main as the desktop host endpoint owner by requiring `WINDIE_BACKEND_HTTP_URL` or an explicit Python `backend_url` for hosted HTTP clients.
+- Change: `get_backend_http_url()` now raises a generic Agent SDK backend URL error when no sidecar backend URL is configured.
+- Change: remote semantic/base-client tests now pass explicit local URLs where endpoint selection is not the behavior under test and cover the missing-config failure path.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -416,6 +424,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] SDK local-runtime sidecar timeout diagnostics use generic local sidecar daemon wording.
 - [x] SDK hosted install registration is explicit caller policy instead of endpoint-hostname inference.
 - [x] SDK hosted endpoint selection is caller-supplied instead of hardcoded in `AgentClient`.
+- [x] Python sidecar/SDK hosted endpoint selection is caller or host supplied instead of hardcoded in shared config.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -613,6 +622,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Validation: focused hosted-endpoint tests passed, including the source/CJS
   assertion that endpoint selection is caller supplied.
 - Validation: `rg -n "https://api\.windieos\.com|api\.windieos\.com" packages\windie-sdk-js\src packages\windie-sdk-js\cjs` returned no matches.
+- Validation: focused sidecar backend-config, remote API base, remote semantic
+  client, Python SDK init, and package-boundary tests passed through
+  `scripts\python-in-env.cmd sidecar`; the wrapper reported that
+  `frontend_jarvis` was unavailable and used the current shell environment.
+- Validation: Python compile checks passed for `_backend_config.py`,
+  `_remote_api_client_base.py`, and `remote_semantic_client.py`.
+- Validation: `rg -n "DEFAULT_BACKEND_HTTP_URL|https://api\.windieos\.com|api\.windieos\.com" frontend\src\main\python\windie frontend\src\main\python\core tests\sidecar\test_backend_config.py` returned no matches.
 
 ## Remaining Findings
 
@@ -682,6 +698,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK hosted endpoint selection now requires caller config or
   `WINDIE_BACKEND_URL`; the generic SDK runtime no longer embeds the WindieOS
   hosted backend URL.
+- Python sidecar/SDK hosted endpoint selection now requires caller config or
+  `WINDIE_BACKEND_HTTP_URL`; shared Python backend config no longer embeds the
+  WindieOS hosted backend URL.
 - SDK hosted HTTP, local-runtime HTTP, and backend websocket construction
   failures now use generic Agent SDK dependency diagnostics. Exported
   `WindieSdkClient` and `createWindieSdkBackendSocket` names remain unchanged.

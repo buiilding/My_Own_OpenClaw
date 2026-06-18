@@ -4,7 +4,7 @@ Shared backend endpoint configuration for the Python sidecar.
 
 import os
 
-DEFAULT_BACKEND_HTTP_URL = "https://api.windieos.com"
+BACKEND_HTTP_URL_ENV = "WINDIE_BACKEND_HTTP_URL"
 
 
 def _normalize_backend_http_url(value: str | None) -> str | None:
@@ -21,7 +21,10 @@ def get_backend_http_url() -> str:
     Electron main owns endpoint override precedence and passes the resolved
     value to the sidecar as ``WINDIE_BACKEND_HTTP_URL``.
     """
-    return (
-        _normalize_backend_http_url(os.getenv("WINDIE_BACKEND_HTTP_URL"))
-        or DEFAULT_BACKEND_HTTP_URL
+    resolved_url = _normalize_backend_http_url(os.getenv(BACKEND_HTTP_URL_ENV))
+    if resolved_url:
+        return resolved_url
+    raise RuntimeError(
+        "Agent SDK backend URL is required. Pass backend_url or set "
+        f"{BACKEND_HTTP_URL_ENV}."
     )

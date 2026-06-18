@@ -41,6 +41,17 @@ class DemoClient(RemoteApiClientBase):
         )
 
 
+def test_remote_api_client_requires_backend_url(monkeypatch):
+    monkeypatch.delenv("WINDIE_BACKEND_HTTP_URL", raising=False)
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
+
+    with pytest.raises(
+        RuntimeError,
+        match="Agent SDK backend URL is required. Pass backend_url or set WINDIE_BACKEND_HTTP_URL.",
+    ):
+        DemoClient()
+
+
 @pytest.mark.asyncio
 async def test_post_success_json_uses_primary_backend():
     client = DemoClient(backend_url="http://localhost:9999")

@@ -1218,7 +1218,7 @@ async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
     await assert_client_initialize_reuses_session_and_close_resets(
         monkeypatch,
         windie_sdk_module.aiohttp,
-        AgentSdkClient(),
+        AgentSdkClient(backend_url="http://localhost:8765"),
     )
 
 

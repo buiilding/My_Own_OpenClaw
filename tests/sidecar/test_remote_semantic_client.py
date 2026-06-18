@@ -46,7 +46,7 @@ async def test_summarize_normalizes_missing_summary_and_facts_to_defaults():
         200,
         json_data={"success": True, "summary": None, "facts": None},
     )
-    client = RemoteSemanticClient()
+    client = RemoteSemanticClient(backend_url="http://localhost:9999")
     client._session = DummySession(response=response)
 
     summary, facts = await client.summarize(["hello"], user_id="u-defaults")
@@ -57,7 +57,7 @@ async def test_summarize_normalizes_missing_summary_and_facts_to_defaults():
 
 @pytest.mark.asyncio
 async def test_summarize_non_200_raises_error_with_status_text():
-    client = RemoteSemanticClient()
+    client = RemoteSemanticClient(backend_url="http://localhost:9999")
     client._session = DummySession(response=DummyResponse(503, text_data="backend down"))
 
     with pytest.raises(Exception, match="Semantic API returned 503: backend down"):
@@ -66,7 +66,7 @@ async def test_summarize_non_200_raises_error_with_status_text():
 
 @pytest.mark.asyncio
 async def test_summarize_raises_when_api_reports_success_false():
-    client = RemoteSemanticClient()
+    client = RemoteSemanticClient(backend_url="http://localhost:9999")
     client._session = DummySession(response=DummyResponse(200, json_data={"success": False}))
 
     with pytest.raises(Exception, match="Semantic API returned success=false"):
@@ -76,7 +76,7 @@ async def test_summarize_raises_when_api_reports_success_false():
 @pytest.mark.asyncio
 async def test_summarize_wraps_network_client_error():
     network_error = aiohttp.ClientError("no route")
-    client = RemoteSemanticClient()
+    client = RemoteSemanticClient(backend_url="http://localhost:9999")
     client._session = DummySession(post_error=network_error)
 
     with pytest.raises(Exception, match="Failed to connect to semantic service"):
@@ -106,13 +106,13 @@ async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
     await assert_client_initialize_reuses_session_and_close_resets(
         monkeypatch,
         remote_semantic_client_module.aiohttp,
-        RemoteSemanticClient(),
+        RemoteSemanticClient(backend_url="http://localhost:9999"),
     )
 
 
 @pytest.mark.asyncio
 async def test_close_is_noop_when_session_not_initialized():
-    client = RemoteSemanticClient()
+    client = RemoteSemanticClient(backend_url="http://localhost:9999")
 
     await client.close()
 

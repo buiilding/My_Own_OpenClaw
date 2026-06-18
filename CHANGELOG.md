@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: remove the Python sidecar/SDK hardcoded WindieOS hosted
+  backend URL fallback so remote semantic and SDK HTTP clients require an
+  explicit `backend_url` or `WINDIE_BACKEND_HTTP_URL`; no desktop migration is
+  required because Electron main already passes the resolved host endpoint.
 - sdk: remove the hardcoded WindieOS hosted backend URL fallback from
   `AgentClient`; SDK callers must pass `backendUrl`/`httpBaseUrl` or set
   `WINDIE_BACKEND_URL` for hosted operations. Electron main already supplies
