@@ -135,6 +135,9 @@ export function useChatLoopTransportState({
   useEffect(() => {
     DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
       .then((payload) => {
+        if (typeof payload?.isConnected !== 'boolean') {
+          return;
+        }
         dispatch({
           type: CHAT_LOOP_MACHINE_EVENT.IPC_STATUS,
           connected: payload?.isConnected === true,

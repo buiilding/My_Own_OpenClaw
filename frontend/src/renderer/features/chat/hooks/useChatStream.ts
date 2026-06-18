@@ -3,8 +3,6 @@
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
-import { IpcBridge } from '../../../infrastructure/ipc/bridge';
-import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../../infrastructure/ipc/channels';
 import type { ConversationEvent } from '../../../infrastructure/api/agentSdkClient';
 import {
   useChatStore,
@@ -23,6 +21,7 @@ import { useChatStreamCompletionHandler } from './chatStream/useChatStreamComple
 import {
   handleConversationEventIngress,
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
+import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
@@ -228,7 +227,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, (data: unknown) => {
+    const removeListener = DesktopConversationRuntimeEventClient.onConversationEvent((data: unknown) => {
       handleConversationEventIngress(data as ConversationEvent, {
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         setActiveConversationRef,
@@ -238,7 +237,9 @@ export function useChatStream(enableTranscript: boolean = true) {
       });
     });
 
-    return removeListener;
+    return () => {
+      removeListener?.();
+    };
   }, [
     enableTranscript,
     dispatchConversationEvent,

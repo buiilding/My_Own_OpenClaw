@@ -3,8 +3,6 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { IpcBridge } from '../../../infrastructure/ipc/bridge';
-import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../../infrastructure/ipc/channels';
 import { useChatStore } from '../stores/chatStore';
 import type { ChatMessage, SdkCurrentTurnProjection } from '../stores/chatStore';
 import type {
@@ -17,6 +15,7 @@ import {
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
+import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { logRendererLiveSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
 import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../utils/message/sourceChannels';
 import {
@@ -167,10 +166,7 @@ export function useConversationRuntimeProjectionStream(): void {
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
 
   useEffect(() => {
-    if (!DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN) {
-      return undefined;
-    }
-    const removeListener = IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, (payload: unknown) => {
+    const removeListener = DesktopConversationRuntimeEventClient.onPendingTurn((payload: unknown) => {
       applyPendingTurnBroadcast(payload);
     });
     return () => {
@@ -179,10 +175,7 @@ export function useConversationRuntimeProjectionStream(): void {
   }, [applyPendingTurnBroadcast]);
 
   useEffect(() => {
-    if (!DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN) {
-      return undefined;
-    }
-    const removeListener = IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, (payload: unknown) => {
+    const removeListener = DesktopConversationRuntimeEventClient.onCurrentTurn((payload: unknown) => {
       const payloadRecord = payload && typeof payload === 'object'
         ? payload as Record<string, unknown>
         : {};
@@ -265,10 +258,7 @@ export function useConversationRuntimeProjectionStream(): void {
   ]);
 
   useEffect(() => {
-    if (!DESKTOP_RUNTIME_ON_CHANNELS.ROWS) {
-      return undefined;
-    }
-    const removeListener = IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, (payload: unknown) => {
+    const removeListener = DesktopConversationRuntimeEventClient.onDisplayRows((payload: unknown) => {
       if (!isSdkDisplayRows(payload)) {
         return;
       }

@@ -12,6 +12,9 @@ export type DesktopIpcStatusListener = (payload: DesktopIpcStatusPayload | null 
 
 export const DesktopClientSessionRuntimeClient = {
   loadMainSessionSnapshot(): Promise<unknown> {
+    if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
+      return Promise.resolve(undefined);
+    }
     return IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID);
   },
 

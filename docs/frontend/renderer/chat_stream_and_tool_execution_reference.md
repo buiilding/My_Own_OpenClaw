@@ -21,6 +21,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
@@ -106,7 +107,8 @@ Thinking status constants from `chatStreamThinkingStatus.ts`:
 
 ## Runtime Projection Listener and Side Effects
 
-`useConversationRuntimeProjectionStream` listens to SDK `windie:current-turn` and
+`useConversationRuntimeProjectionStream` subscribes through
+`DesktopConversationRuntimeEventClient` to SDK `windie:current-turn` and
 `windie:rows` projections, then maps SDK display rows through
 `buildChatMessagesFromSdkDisplayRows(...)`. Display-row presentation metadata
 uses `sdk:display-rows` as its source label; the `windie:rows` name is only the
@@ -197,6 +199,9 @@ Listener source:
   - `windie:current-turn` for active assistant text, tool progress, phase, and
     terminal state
   - `windie:conversation-event` for transcript/session side effects
+- renderer hooks subscribe to those channels through
+  `DesktopConversationRuntimeEventClient`; hook-local policy owns validation,
+  stale-turn guards, transcript updates, and projection side effects
 
 Pre-routing and workspace resolution:
 

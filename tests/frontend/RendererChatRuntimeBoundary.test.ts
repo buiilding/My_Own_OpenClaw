@@ -300,12 +300,38 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts'),
       'utf8',
     );
+    const eventClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts'),
+      'utf8',
+    );
 
-    expect(streamSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+    expect(streamSource).toContain('DesktopConversationRuntimeEventClient.onConversationEvent');
+    expect(streamSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
     expect(streamSource).not.toContain('ON_CHANNELS.WINDIE_CONVERSATION_EVENT');
     expect(streamSource).not.toContain('ON_CHANNELS.FROM_BACKEND');
     expect(streamSource).not.toContain('handleBackendStreamIngress');
     expect(ingressSource).not.toContain('normalizeBackendEventToConversationEvent');
+    expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+  });
+
+  test('conversation runtime projections subscribe through app runtime client', async () => {
+    const projectionSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useConversationRuntimeProjectionStream.ts'),
+      'utf8',
+    );
+    const eventClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts'),
+      'utf8',
+    );
+
+    expect(projectionSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS');
+    expect(projectionSource).not.toContain('IpcBridge.on');
+    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onPendingTurn');
+    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurn');
+    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onDisplayRows');
+    expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
+    expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
+    expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
   });
 
   test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {

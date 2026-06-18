@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Conversation Event Runtime Client
+
+- Finding: chat stream and SDK projection hooks imported conversation runtime
+  fan-out channel constants directly for conversation events, pending turns,
+  current-turn projections, and display rows.
+- Change: added `DesktopConversationRuntimeEventClient` under the renderer app
+  runtime layer and routed stream/projection subscriptions through it while
+  leaving hook-owned validation, stale-turn policy, side effects, and row merging
+  in place. While validating the slice, preserved the previous chat loop startup
+  behavior that ignores unavailable/malformed main-session snapshots instead of
+  synthesizing a disconnect.
+- Validation: focused renderer chat boundary test, chat stream/projection tests,
+  response overlay state test, targeted direct IPC scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. `windie:conversation-event`,
+  `windie:pending-turn`, `windie:current-turn`, and `windie:rows` channel
+  strings, payload shapes, replay behavior, transcript/session projection,
+  Electron main fan-out, main-session snapshot payloads, SDK query commands,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Client Session Runtime Client
 
 - Finding: chat session bootstrap and loop transport state imported the main

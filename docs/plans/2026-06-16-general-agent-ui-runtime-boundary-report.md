@@ -152,8 +152,32 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer chat session bootstrap and loop transport state now route the main
   client snapshot and IPC status subscription through a renderer app runtime
   client.
+  Renderer chat stream and SDK projection hooks now route conversation fan-out
+  subscriptions through a renderer app runtime conversation event client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Conversation Event Runtime Client Slice
+
+- Worktree was clean after `d3fc4855d`, with `main` ahead of `origin/main` by
+  843 commits.
+- Finding: chat stream and SDK projection hooks imported conversation runtime
+  fan-out channel constants directly for conversation events, pending turns,
+  current-turn projections, and display rows.
+- Change: added `DesktopConversationRuntimeEventClient` under the renderer app
+  runtime layer and routed stream/projection subscriptions through it while
+  leaving hook-owned validation, stale-turn policy, side effects, and row merging
+  in place. While validating the slice, preserved the previous chat loop startup
+  behavior that ignores unavailable/malformed main-session snapshots instead of
+  synthesizing a disconnect.
+- Validation: focused renderer chat boundary test, chat stream/projection tests,
+  response overlay state test, targeted direct IPC scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. `windie:conversation-event`,
+  `windie:pending-turn`, `windie:current-turn`, and `windie:rows` channel
+  strings, payload shapes, replay behavior, transcript/session projection,
+  Electron main fan-out, main-session snapshot payloads, SDK query commands,
+  storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Client Session Runtime Client Slice
 

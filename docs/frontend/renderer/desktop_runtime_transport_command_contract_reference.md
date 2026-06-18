@@ -16,6 +16,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
@@ -100,6 +101,13 @@ constants directly.
 desktop client/session snapshot and IPC transport status subscription. Chat
 session bootstrap and loop transport projection call this runtime client instead
 of importing `get-client-user-id` or `ipc-status` channel constants directly.
+
+`desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
+SDK conversation runtime fan-out channels: conversation events, pending turns,
+current-turn projections, and display rows. `useChatStream` and
+`useConversationRuntimeProjectionStream` retain validation, stale-turn policy,
+projection side effects, and display-row merging while delegating channel names
+and `IpcBridge.on(...)` calls to this app runtime client.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

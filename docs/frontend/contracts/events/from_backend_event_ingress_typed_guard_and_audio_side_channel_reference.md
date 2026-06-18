@@ -14,6 +14,7 @@ title: "Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
@@ -94,7 +95,8 @@ by `ipc_backend_event_channels.cjs` to a renderer provider channel.
 
 Renderer event channels have separate listeners with different filters:
 
-- `windie:conversation-event` -> `useChatStream`:
+- `windie:conversation-event` -> `DesktopConversationRuntimeEventClient` ->
+  `useChatStream`:
   - requires `isBackendEvent(...)`
   - applies conversation filtering (`shouldIgnoreEventForActiveConversation`)
   - updates stream tracking, chat messages, transcript writes

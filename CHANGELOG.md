@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat stream and SDK projection subscriptions through
+  a renderer app runtime conversation event client instead of importing
+  conversation fan-out channels from chat hooks.
+- renderer/runtime: preserve chat loop startup transport sync no-op behavior
+  when the main-session snapshot channel is unavailable or returns no
+  connection flag.
 - renderer/runtime: route chat session bootstrap and loop transport status
   through a renderer app runtime client instead of importing client snapshot and
   IPC status channels from chat hooks.
