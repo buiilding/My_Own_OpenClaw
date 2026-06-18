@@ -451,8 +451,8 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
 
   test('logs successful compaction event storage after local runtime RPC succeeds', async () => {
     const rpc = jest.fn(async () => ({ success: true, data: { message_index: 7 } }));
-    const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
-    process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
+    const previousDebugCompactionStdout = process.env.AGENT_DEBUG_COMPACTION_STDOUT;
+    process.env.AGENT_DEBUG_COMPACTION_STDOUT = '1';
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const store = new LocalRuntimeConversationStore({
       userId: 'user-1',
@@ -492,9 +492,9 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
     expect(logSpy.mock.calls[0][1]).not.toHaveProperty('summaryText');
     logSpy.mockRestore();
     if (previousDebugCompactionStdout === undefined) {
-      delete process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+      delete process.env.AGENT_DEBUG_COMPACTION_STDOUT;
     } else {
-      process.env.WINDIE_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
+      process.env.AGENT_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
     }
   });
 });

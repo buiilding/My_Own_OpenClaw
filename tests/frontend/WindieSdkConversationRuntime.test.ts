@@ -2782,8 +2782,8 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
-    const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
-    process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
+    const previousDebugCompactionStdout = process.env.AGENT_DEBUG_COMPACTION_STDOUT;
+    process.env.AGENT_DEBUG_COMPACTION_STDOUT = '1';
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
@@ -2833,9 +2833,9 @@ describe('Agent SDK conversation runtime core', () => {
     expect(logSpy.mock.calls[0][1]).not.toHaveProperty('summaryText');
     logSpy.mockRestore();
     if (previousDebugCompactionStdout === undefined) {
-      delete process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+      delete process.env.AGENT_DEBUG_COMPACTION_STDOUT;
     } else {
-      process.env.WINDIE_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
+      process.env.AGENT_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
     }
 
     expect(applied).toMatchObject({
@@ -2859,8 +2859,8 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('backend compaction normalization ignores camelCase generation aliases', () => {
-    const previousDebugCompactionStdout = process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
-    process.env.WINDIE_DEBUG_COMPACTION_STDOUT = '1';
+    const previousDebugCompactionStdout = process.env.AGENT_DEBUG_COMPACTION_STDOUT;
+    process.env.AGENT_DEBUG_COMPACTION_STDOUT = '1';
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
@@ -2892,9 +2892,9 @@ describe('Agent SDK conversation runtime core', () => {
     );
     logSpy.mockRestore();
     if (previousDebugCompactionStdout === undefined) {
-      delete process.env.WINDIE_DEBUG_COMPACTION_STDOUT;
+      delete process.env.AGENT_DEBUG_COMPACTION_STDOUT;
     } else {
-      process.env.WINDIE_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
+      process.env.AGENT_DEBUG_COMPACTION_STDOUT = previousDebugCompactionStdout;
     }
   });
 

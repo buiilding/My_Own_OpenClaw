@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeBackendEventToConversationEvent = normalizeBackendEventToConversationEvent;
 const events_js_1 = require("../conversation/events.js");
 const TraceRecorder_js_1 = require("../runtime/TraceRecorder.js");
+const debugEnv_js_1 = require("../runtime/debugEnv.js");
 const toolCorrelationIds_js_1 = require("../tools/toolCorrelationIds.js");
 function payloadOf(event) {
     return (event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload))
@@ -221,7 +222,7 @@ function tracePayloadFromBackendEvent(event, base) {
     };
 }
 function logCompactionNormalization(event, base, normalizedType, payload) {
-    if (!isCompactionStdoutEnabled()) {
+    if (!(0, debugEnv_js_1.isCompactionStdoutEnabled)()) {
         return;
     }
     const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
@@ -243,10 +244,6 @@ function logCompactionNormalization(event, base, normalizedType, payload) {
         afterTokens: numberField(payload, 'after_tokens'),
         removedMessages: numberField(payload, 'removed_messages'),
     });
-}
-function isCompactionStdoutEnabled() {
-    const env = globalThis.process?.env;
-    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 function missingBackendIdentityEvent(event, base) {
     return (0, events_js_1.createConversationEvent)({

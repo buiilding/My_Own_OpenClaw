@@ -7845,3 +7845,19 @@ Each completed slice should report:
   existing `WINDIE_*` env names consumed by the Python local-runtime and
   wakeword services; generic Electron host helpers use `AGENT_*` defaults
   unless a host skin injects another subprocess env map.
+
+### 2026-06-18 SDK compaction debug env boundary
+
+- Finding: SDK compaction debug helpers still read
+  `WINDIE_DEBUG_COMPACTION_STDOUT` inside the reusable conversation runtime,
+  backend event normalization, and local-runtime conversation store paths.
+- Change: added an SDK debug env helper with the generic
+  `AGENT_DEBUG_COMPACTION_STDOUT` flag and routed TS/CJS compaction debug
+  checks through it.
+- Validation: focused SDK compaction Jest coverage, public conversation store
+  API Jest coverage, stale flag scans, docs listing, CJS require syntax check,
+  and `git diff --check`.
+- Compatibility: migration required for this debug-only flag: use
+  `AGENT_DEBUG_COMPACTION_STDOUT` instead of
+  `WINDIE_DEBUG_COMPACTION_STDOUT`. No persisted data, API, tool, or
+  conversation-event behavior changes.

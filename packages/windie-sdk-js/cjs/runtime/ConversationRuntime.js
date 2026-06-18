@@ -16,6 +16,7 @@ const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js")
 const TraceRecorder_js_1 = require("./TraceRecorder.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
 const conversationEventScope_js_1 = require("./conversationEventScope.js");
+const debugEnv_js_1 = require("./debugEnv.js");
 const TurnInputPipeline_js_1 = require("./TurnInputPipeline.js");
 function nowMs() {
     return Date.now();
@@ -24,10 +25,6 @@ function durationSince(startedAtMs) {
     return Math.max(0, Date.now() - startedAtMs);
 }
 const LOCAL_RUNTIME_RPC_TRACE_PATH = 'local_runtime.rpc';
-function isCompactionStdoutEnabled() {
-    const env = globalThis.process?.env;
-    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
-}
 function optionalRequestId(value) {
     return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
@@ -1747,7 +1744,7 @@ class SdkConversationRuntime {
         if (!(0, conversationEventScope_js_1.isConversationControlEvent)(event)) {
             return;
         }
-        if (!isCompactionStdoutEnabled()) {
+        if (!(0, debugEnv_js_1.isCompactionStdoutEnabled)()) {
             return;
         }
         console.log('[Agent SDK][Compaction] backend event rejected', {

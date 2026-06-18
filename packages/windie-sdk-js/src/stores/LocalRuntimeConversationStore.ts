@@ -26,6 +26,7 @@ import {
   buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
+import { isCompactionStdoutEnabled } from '../runtime/debugEnv.js';
 import type { AgentLocalRuntimeClient } from '../runtime/LocalRuntime.js';
 import { latestCompactedReplayFromEvents } from './compactedReplayEvents.js';
 
@@ -230,11 +231,6 @@ function logStoredCompactionEvent(
     skippedReason: normalizeString(payload.skippedReason),
     hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
   });
-}
-
-function isCompactionStdoutEnabled(): boolean {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
-  return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 
 function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | null {

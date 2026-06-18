@@ -12,6 +12,7 @@ import type {
   TraceRuntime,
   TraceStatus,
 } from '../conversation/types.js';
+import { isCompactionStdoutEnabled } from '../runtime/debugEnv.js';
 import { sanitizeTraceData } from '../runtime/TraceRecorder.js';
 import { resolveModelFacingToolCallId } from '../tools/toolCorrelationIds.js';
 
@@ -287,11 +288,6 @@ function logCompactionNormalization(
     afterTokens: numberField(payload, 'after_tokens'),
     removedMessages: numberField(payload, 'removed_messages'),
   });
-}
-
-function isCompactionStdoutEnabled(): boolean {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
-  return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 
 function missingBackendIdentityEvent(

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalRuntimeConversationStore = void 0;
 const metadata_js_1 = require("../conversation/metadata.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
+const debugEnv_js_1 = require("../runtime/debugEnv.js");
 const compactedReplayEvents_js_1 = require("./compactedReplayEvents.js");
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 const LOCAL_RUNTIME_RPC_DIAGNOSTIC_STAGE = 'local_runtime_rpc';
@@ -149,7 +150,7 @@ function responseMessageIndex(response) {
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 function logStoredCompactionEvent(event, params, response) {
-    if (!isCompactionStdoutEnabled()) {
+    if (!(0, debugEnv_js_1.isCompactionStdoutEnabled)()) {
         return;
     }
     const payload = normalizeRecord(event.payload) ?? {};
@@ -169,10 +170,6 @@ function logStoredCompactionEvent(event, params, response) {
         skippedReason: normalizeString(payload.skippedReason),
         hasCompactionCheckpoint: Boolean(params.compaction_checkpoint),
     });
-}
-function isCompactionStdoutEnabled() {
-    const env = globalThis.process?.env;
-    return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
 }
 function metadataFromRow(row) {
     const conversationRef = normalizeString(row.conversation_id);

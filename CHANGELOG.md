@@ -29,6 +29,8 @@ All notable changes to WindieOS will be documented in this file.
 - main/runtime: inject WindieOS local-runtime daemon and wakeword subprocess env
   key names from the main host skin instead of hardcoding them inside generic
   Electron launch helpers.
+- sdk/runtime: use the generic `AGENT_DEBUG_COMPACTION_STDOUT` debug flag for
+  SDK compaction stdout logging instead of a WindieOS-specific env name.
 - main/runtime: inject the WindieOS verbose local-runtime stderr env name from
   the main host skin instead of hardcoding it inside generic local-runtime
   stderr filtering.

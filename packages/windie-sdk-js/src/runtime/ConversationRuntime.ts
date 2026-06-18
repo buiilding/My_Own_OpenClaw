@@ -46,6 +46,7 @@ import {
 import { TraceRecorder, type TraceEventInput } from './TraceRecorder.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 import { getConversationEventScope, isConversationControlEvent } from './conversationEventScope.js';
+import { isCompactionStdoutEnabled } from './debugEnv.js';
 import {
   resolveTurnInputResources,
   type TurnInputResourceResolutionResult,
@@ -60,11 +61,6 @@ function durationSince(startedAtMs: number): number {
 }
 
 const LOCAL_RUNTIME_RPC_TRACE_PATH = 'local_runtime.rpc';
-
-function isCompactionStdoutEnabled(): boolean {
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
-  return env?.WINDIE_DEBUG_COMPACTION_STDOUT === '1';
-}
 
 function optionalRequestId(value: string | void | null | undefined): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
