@@ -195,6 +195,7 @@ const wakeword = Object.freeze({
     packagedApp: 'WINDIE_PACKAGED_APP',
     allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD',
   }),
+  stderrLogMarkers: Object.freeze(['hey_jarvis']),
 });
 
 const mainHostSkin = Object.freeze({

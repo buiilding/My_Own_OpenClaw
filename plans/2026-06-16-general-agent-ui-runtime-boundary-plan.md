@@ -8147,3 +8147,18 @@ Each completed slice should report:
 - Compatibility: no migration required. The permission onboarding storage key,
   persisted state shape, parse failure behavior, and best-effort write behavior
   are unchanged.
+
+### 2026-06-18 main wakeword stderr marker skin boundary
+
+- Finding: the generic Electron wakeword bridge stderr parser still hardcoded
+  the WindieOS `hey_jarvis` model marker alongside neutral Python and detection
+  log markers.
+- Change: added host-configured wakeword stderr log markers to the main host
+  skin, threaded them through main-window wakeword initialization, and kept the
+  generic wakeword bridge runtime limited to neutral default markers.
+- Validation: focused wakeword bridge runtime and main host skin boundary Jest
+  coverage, direct `hey_jarvis` main-process source scan, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Wakeword status JSON parsing, process
+  lifecycle diagnostics, subprocess env keys, and renderer wakeword IPC behavior
+  are unchanged.

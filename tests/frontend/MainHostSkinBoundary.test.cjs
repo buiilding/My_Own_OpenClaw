@@ -25,6 +25,7 @@ const mainWindowRuntimePath = path.join(mainRoot, 'surfaces/main_window_runtime.
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
 const extensionManifestPath = path.join(mainRoot, 'extensions/extension_manifest.cjs');
+const wakewordBridgePath = path.join(mainRoot, 'wakeword/wakeword_bridge.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime_launch_options.cjs');
 const localRuntimeUtilsPath = path.join(mainRoot, 'sidecar/local_runtime_utils.cjs');
@@ -329,10 +330,7 @@ describe('main host skin/config boundary', () => {
 
   test('wakeword process env names live in host skin config', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
-    const wakewordSource = fs.readFileSync(
-      path.join(mainRoot, 'wakeword/wakeword_bridge.cjs'),
-      'utf8',
-    );
+    const wakewordSource = fs.readFileSync(wakewordBridgePath, 'utf8');
     const mainWindowSource = fs.readFileSync(mainWindowRuntimePath, 'utf8');
 
     expect(skinSource).toContain("packagedApp: 'WINDIE_PACKAGED_APP'");
@@ -343,6 +341,22 @@ describe('main host skin/config boundary', () => {
     expect(mainWindowSource).toContain('wakewordEnv: mainHostSkin?.wakeword?.env');
     expect(wakewordSource).not.toContain('WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD');
     expect(wakewordSource).not.toContain('WINDIE_PACKAGED_APP');
+  });
+
+  test('wakeword stderr product markers live in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const wakewordSource = fs.readFileSync(wakewordBridgePath, 'utf8');
+    const wakewordRuntimeSource = fs.readFileSync(wakewordRuntimePath, 'utf8');
+    const mainWindowSource = fs.readFileSync(mainWindowRuntimePath, 'utf8');
+
+    expect(skinSource).toContain("stderrLogMarkers: Object.freeze(['hey_jarvis'])");
+    expect(wakewordRuntimeSource).toContain('DEFAULT_WAKEWORD_STDERR_LOG_MARKERS');
+    expect(wakewordRuntimeSource).toContain("'[Python]'");
+    expect(wakewordRuntimeSource).toContain("'DETECTED'");
+    expect(wakewordSource).toContain('wakewordStderrLogMarkers');
+    expect(mainWindowSource).toContain('wakewordStderrLogMarkers: mainHostSkin?.wakeword?.stderrLogMarkers');
+    expect(wakewordRuntimeSource).not.toContain('hey_jarvis');
+    expect(wakewordSource).not.toContain('hey_jarvis');
   });
 
   test('local runtime launch fallback avoids conda-environment-specific copy', () => {

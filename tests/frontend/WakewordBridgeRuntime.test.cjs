@@ -4,8 +4,10 @@ const {
   emitWakewordStatus,
   handleWakewordStderrLine,
   normalizeAudioChunk,
+  normalizeWakewordStderrLogMarkers,
   resolveWakewordProcessErrorMessage,
   resolveWakewordStartErrorMessage,
+  shouldLogWakewordStderrLine,
 } = require('../../frontend/src/main/wakeword/wakeword_bridge_runtime.cjs');
 const {
   mainHostSkin,
@@ -136,6 +138,43 @@ describe('wakeword_bridge_runtime', () => {
       'wakeword-status',
       { ready: false, error: 'model failed' },
     );
+  });
+
+  test('uses neutral wakeword stderr log markers by default', () => {
+    const markers = normalizeWakewordStderrLogMarkers();
+
+    expect(shouldLogWakewordStderrLine('[Python] loaded model', markers)).toBe(true);
+    expect(shouldLogWakewordStderrLine('*** DETECTED *** generic-model', markers)).toBe(true);
+    expect(shouldLogWakewordStderrLine('score update for hey_jarvis', markers)).toBe(false);
+  });
+
+  test('logs host-configured wakeword stderr markers', () => {
+    const log = jest.fn();
+
+    handleWakewordStderrLine({
+      line: 'score update for hey_jarvis',
+      mainWindow: null,
+      getIsPythonReady: () => false,
+      setIsPythonReady: jest.fn(),
+      logMarkers: mainHostSkin.wakeword.stderrLogMarkers,
+      log,
+    });
+
+    expect(log).toHaveBeenCalledWith('score update for hey_jarvis');
+  });
+
+  test('does not log WindieOS wakeword markers without host config', () => {
+    const log = jest.fn();
+
+    handleWakewordStderrLine({
+      line: 'score update for hey_jarvis',
+      mainWindow: null,
+      getIsPythonReady: () => false,
+      setIsPythonReady: jest.fn(),
+      log,
+    });
+
+    expect(log).not.toHaveBeenCalled();
   });
 
   test('resolves ENOENT process errors with Python executable guidance', () => {

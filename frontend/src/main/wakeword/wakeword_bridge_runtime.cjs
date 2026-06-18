@@ -56,11 +56,40 @@ function shouldSuppressWakewordLogLine(line) {
     || line.includes('Failed to CreateInstance in ICD');
 }
 
+const DEFAULT_WAKEWORD_STDERR_LOG_MARKERS = Object.freeze([
+  '[Python]',
+  'DETECTED',
+]);
+
+function normalizeWakewordStderrLogMarkers(markers) {
+  if (!Array.isArray(markers)) {
+    return DEFAULT_WAKEWORD_STDERR_LOG_MARKERS;
+  }
+
+  const normalizedMarkers = markers
+    .filter((marker) => typeof marker === 'string' && marker.trim().length > 0)
+    .map((marker) => marker.trim());
+
+  if (normalizedMarkers.length === 0) {
+    return DEFAULT_WAKEWORD_STDERR_LOG_MARKERS;
+  }
+
+  return Object.freeze([
+    ...DEFAULT_WAKEWORD_STDERR_LOG_MARKERS,
+    ...normalizedMarkers,
+  ]);
+}
+
+function shouldLogWakewordStderrLine(line, markers = DEFAULT_WAKEWORD_STDERR_LOG_MARKERS) {
+  return markers.some((marker) => line.includes(marker));
+}
+
 function handleWakewordStderrLine({
   line,
   mainWindow,
   getIsPythonReady,
   setIsPythonReady,
+  logMarkers,
   log = console.log,
   error = console.error,
 }) {
@@ -91,7 +120,7 @@ function handleWakewordStderrLine({
     }
   }
 
-  if (trimmed.includes('[Python]') || trimmed.includes('DETECTED') || trimmed.includes('hey_jarvis')) {
+  if (shouldLogWakewordStderrLine(trimmed, normalizeWakewordStderrLogMarkers(logMarkers))) {
     log(trimmed);
   } else if (trimmed.toLowerCase().includes('error')) {
     error(trimmed);
@@ -133,6 +162,8 @@ module.exports = {
   emitWakewordStatus,
   handleWakewordStderrLine,
   normalizeAudioChunk,
+  normalizeWakewordStderrLogMarkers,
   resolveWakewordProcessErrorMessage,
   resolveWakewordStartErrorMessage,
+  shouldLogWakewordStderrLine,
 };

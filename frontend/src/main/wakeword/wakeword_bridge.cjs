@@ -101,6 +101,7 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
   });
   const packagedApp = Boolean(app && app.isPackaged);
   const wakewordEnvConfig = resolveWakewordEnvConfig(options.wakewordEnv);
+  const wakewordStderrLogMarkers = options.wakewordStderrLogMarkers;
   stderrBuffer = '';
 
   const startErrorMessage = resolveWakewordStartErrorMessage({
@@ -218,6 +219,7 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
             });
           }
         },
+        logMarkers: wakewordStderrLogMarkers,
         log: (...args) => writeWakewordLog('log', ...args),
         error: (...args) => writeWakewordLog('error', ...args),
       });
