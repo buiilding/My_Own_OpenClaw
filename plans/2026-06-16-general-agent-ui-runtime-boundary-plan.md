@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer MCP Runtime Client
+
+- Finding: `McpsSection` still invoked MCP registry list, refresh, and
+  enablement IPC channels directly.
+- Change: added `DesktopMcpRuntimeClient` for MCP registry commands and routed
+  the MCP dashboard section through it while leaving registry normalization,
+  toggle presentation, and error display in the section.
+- Validation: focused MCP section and renderer chat boundary tests, targeted
+  MCP section direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. MCP registry payloads, enablement
+  persistence, discovery refresh behavior, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Renderer Memory Store Runtime Client
 
 - Finding: `MemorySection` already used `DesktopMemoryRuntimeClient` for

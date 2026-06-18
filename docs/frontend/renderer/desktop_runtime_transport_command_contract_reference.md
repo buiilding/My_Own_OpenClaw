@@ -131,6 +131,11 @@ commands plus the desktop memory-store change fan-out. Dashboard memory UI owns
 tabs, search, normalization, and delete presentation while delegating memory
 runtime commands and refresh subscriptions to this client.
 
+`desktopMcpRuntimeClient.ts` owns desktop MCP registry list, refresh, and
+enablement commands. The MCP dashboard section owns registry normalization,
+toggle presentation, and error display while delegating desktop IPC commands to
+this client.
+
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,
 current-turn projections, and display rows. `useChatStream`,

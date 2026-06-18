@@ -258,6 +258,32 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('dashboard MCP section routes registry IPC through app runtime client', async () => {
+    const sectionSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/McpsSection.jsx',
+      ),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMcpRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(sectionSource).not.toContain('IpcBridge');
+    expect(sectionSource).not.toContain('INVOKE_CHANNELS');
+    expect(sectionSource).not.toContain('LIST_MCP_SERVERS');
+    expect(sectionSource).not.toContain('REFRESH_MCP_SERVERS');
+    expect(sectionSource).not.toContain('SET_MCP_SERVER_ENABLED');
+    expect(sectionSource).toContain('DesktopMcpRuntimeClient.listMcpServers');
+    expect(sectionSource).toContain('DesktopMcpRuntimeClient.refreshMcpServers');
+    expect(sectionSource).toContain('DesktopMcpRuntimeClient.setMcpServerEnabled');
+    expect(clientSource).toContain('INVOKE_CHANNELS.LIST_MCP_SERVERS');
+    expect(clientSource).toContain('INVOKE_CHANNELS.REFRESH_MCP_SERVERS');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SET_MCP_SERVER_ENABLED');
+  });
+
   test('chat stream event routing and stale-turn guards stay behind app runtime helpers', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),

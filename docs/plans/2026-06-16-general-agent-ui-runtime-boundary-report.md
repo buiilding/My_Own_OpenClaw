@@ -173,6 +173,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Renderer MCP Runtime Client Slice
+
+- Worktree was clean after `ea8c1d6cd`, with `main` ahead of `origin/main` by
+  854 commits.
+- Recent related commits were inspected before touching the MCP dashboard
+  section.
+- Finding: `McpsSection` still invoked MCP registry list, refresh, and
+  enablement IPC channels directly.
+- Change: added `DesktopMcpRuntimeClient` for MCP registry commands and routed
+  the MCP dashboard section through it while leaving registry normalization,
+  toggle presentation, and error display in the section.
+- Validation: focused MCP section and renderer chat boundary tests, targeted
+  MCP section direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. MCP registry payloads, enablement
+  persistence, discovery refresh behavior, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Renderer Memory Store Runtime Client Slice
 
 - Worktree was clean after `e235c9e05`, with `main` ahead of `origin/main` by

@@ -8,7 +8,7 @@ import {
   RefreshCcw,
   X,
 } from 'lucide-react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { DesktopMcpRuntimeClient } from '../../../../app/runtime/desktopMcpRuntimeClient';
 import { CloneToggle } from './settings/settingsControls';
 
 function normalizeMcpRegistry(payload) {
@@ -32,7 +32,7 @@ function McpsSection({ onClose = () => {} }) {
     setError('');
     setIsLoading(true);
     try {
-      const payload = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_MCP_SERVERS);
+      const payload = await DesktopMcpRuntimeClient.listMcpServers();
       setRegistry(normalizeMcpRegistry(payload));
     } catch (loadError) {
       setRegistry({ mcps: [], errors: [], mcp_errors: [] });
@@ -50,7 +50,7 @@ function McpsSection({ onClose = () => {} }) {
     setError('');
     setIsRefreshing(true);
     try {
-      const payload = await IpcBridge.invoke(INVOKE_CHANNELS.REFRESH_MCP_SERVERS);
+      const payload = await DesktopMcpRuntimeClient.refreshMcpServers();
       setRegistry(normalizeMcpRegistry(payload));
     } catch (refreshError) {
       setError(refreshError?.message || 'Unable to refresh MCP servers.');
@@ -62,7 +62,7 @@ function McpsSection({ onClose = () => {} }) {
   const handleToggle = useCallback(async (server, enabled) => {
     setError('');
     try {
-      const payload = await IpcBridge.invoke(INVOKE_CHANNELS.SET_MCP_SERVER_ENABLED, {
+      const payload = await DesktopMcpRuntimeClient.setMcpServerEnabled({
         id: server.extension_id || server.mcp_id || server.id,
         enabled,
       });

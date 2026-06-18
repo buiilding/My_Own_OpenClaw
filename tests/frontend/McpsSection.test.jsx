@@ -45,7 +45,7 @@ describe('McpsSection', () => {
     mockInvoke.mockReset();
   });
 
-  test('lists MCPs and toggles enablement through IPC', async () => {
+  test('lists MCPs and toggles enablement through the runtime client', async () => {
     mockInvoke
       .mockResolvedValueOnce(registry())
       .mockResolvedValueOnce({
@@ -73,7 +73,7 @@ describe('McpsSection', () => {
     expect(await screen.findByText('Ready')).toBeInTheDocument();
   });
 
-  test('refreshes MCP discovery through IPC', async () => {
+  test('refreshes MCP discovery through the runtime client', async () => {
     mockInvoke
       .mockResolvedValueOnce(registry({ effective_enabled: true }))
       .mockResolvedValueOnce(registry({
