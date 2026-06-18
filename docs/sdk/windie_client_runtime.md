@@ -103,7 +103,7 @@ Ownership rules:
   `tools.mode = replace_client_manifest`, mutates the SDK agent definition, and
   includes that updated client manifest on the next `ask`, `run`, `stream`, or
   conversation send.
-- the SDK agent stream-event module owns the public event projection from
+- the Agent SDK stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
 - the SDK `Agent` runtime module owns high-level agent helpers such as

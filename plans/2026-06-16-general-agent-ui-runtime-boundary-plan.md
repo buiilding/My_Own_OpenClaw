@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Agent SDK Runtime Channel Wording
+
+- Finding: channel routing, tool lifecycle, stream-event, and memory IPC docs
+  still used SDK-agent wording for Agent SDK backend transport/runtime/API
+  paths.
+- Change: reworded those references to Agent SDK backend transport,
+  conversation runtime, stream-event module, and public Agent SDK APIs, and
+  extended the modular boundary guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  IPC channels, websocket messages, SDK APIs, backend transport behavior,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Local Runtime Payload Diagnostic Wording
 
 - Finding: the local runtime sidecar hub and unicode sanitizer helper still

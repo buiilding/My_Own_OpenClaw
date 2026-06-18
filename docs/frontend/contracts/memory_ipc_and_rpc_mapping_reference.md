@@ -32,7 +32,7 @@ Memory storage and retrieval:
 - Renderer-facing memory UI uses SDK-shaped `memories.list`,
   `memories.delete`, and `memories.clearAll` commands over
   `window.agentSdk.invoke`.
-- Electron main maps those commands to public SDK agent APIs.
+- Electron main maps those commands to public Agent SDK APIs.
 - Sidecar memory RPC names remain implementation details behind the SDK local
   runtime.
 - Chat clear uses SDK-shaped `conversations.clearAll`.

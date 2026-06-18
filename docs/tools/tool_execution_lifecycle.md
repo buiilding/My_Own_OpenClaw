@@ -14,7 +14,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 
 The SDK tool execution source of truth is
 `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, called from the
-SDK agent/conversation runtime. The generated CommonJS package output is built
+Agent SDK conversation runtime. The generated CommonJS package output is built
 from TypeScript; the removed
 `packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js` artifact is not a
 current boundary and should not be reintroduced as a parallel Electron tool

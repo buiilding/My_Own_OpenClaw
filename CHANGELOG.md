@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: align remaining channel, tool lifecycle, stream-event, and
+  memory IPC references with Agent SDK runtime/API wording instead of SDK-agent
+  phrasing.
 - docs/sidecar: describe raw diagnostic payload preservation and unicode
   sanitation through local-runtime payload wording instead of sidecar payloads.
 - docs/browser: qualify browser shared-contract validation and tool catalog

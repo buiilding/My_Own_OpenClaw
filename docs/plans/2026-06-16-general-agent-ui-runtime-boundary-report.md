@@ -109,9 +109,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of unqualified sidecar validation/runtime or frontend/sidecar manifest
   wording. Local runtime sidecar diagnostics and the unicode sanitizer helper
   now describe diagnostic values as local-runtime JSON-RPC/payload data instead
-  of sidecar payloads.
+  of sidecar payloads. Channel routing, tool lifecycle, stream-event, and
+  memory IPC docs now use Agent SDK backend transport/runtime/API wording
+  instead of SDK-agent phrasing for command and projection paths.
 
 ## Inspection Log
+
+### 2026-06-18 Agent SDK Runtime Channel Wording Slice
+
+- Worktree was clean after `1ecfffd4a`, with `main` ahead of `origin/main` by
+  826 commits.
+- Finding: channel routing, tool lifecycle, stream-event, and memory IPC docs
+  still used SDK-agent wording for Agent SDK backend transport/runtime/API
+  paths.
+- Change: reworded those references to Agent SDK backend transport,
+  conversation runtime, stream-event module, and public Agent SDK APIs, and
+  extended the modular boundary guard for the stale phrases.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  IPC channels, websocket messages, SDK APIs, backend transport behavior,
+  storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Local Runtime Payload Diagnostic Wording Slice
 
