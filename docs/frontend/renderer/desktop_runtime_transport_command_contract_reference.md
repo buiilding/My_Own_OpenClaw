@@ -16,6 +16,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient.ts`
 - `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
@@ -74,6 +75,11 @@ SDK-shaped command is
 pending-turn IPC send channel. Chat hooks and message-send utilities update
 their local store state, then call this runtime client instead of importing
 desktop IPC channel constants directly.
+
+`desktopLiveSurfaceTraceRuntimeClient.ts` owns the renderer adapter for the
+live-surface trace IPC send channel. Chat stream debug utilities decide whether
+to emit diagnostics and build redacted payloads, then call this runtime client
+instead of importing desktop IPC channel constants directly.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

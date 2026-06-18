@@ -3,7 +3,7 @@
  */
 
 import { useChatStore } from '../../stores/chatStore';
-import { IpcBridge, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { DesktopLiveSurfaceTraceRuntimeClient } from '../../../../app/runtime/desktopLiveSurfaceTraceRuntimeClient';
 
 function getRendererSearch(): string {
   if (typeof window === 'undefined') {
@@ -115,7 +115,7 @@ export function logRendererLiveSurfaceTrace(
   };
   console.log('[LiveSurfaceTrace]', payload);
   try {
-    IpcBridge.send(SEND_CHANNELS.LIVE_SURFACE_TRACE, payload);
+    DesktopLiveSurfaceTraceRuntimeClient.send(payload);
   } catch (_error) {
     // Dev-only trace forwarding should never break renderer presentation.
   }

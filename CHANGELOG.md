@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat live-surface trace forwarding through a renderer
+  app runtime client instead of importing the trace IPC channel from chat stream
+  utilities.
 - renderer/runtime: route chat pending-turn desktop IPC through a renderer app
   runtime client instead of importing the send channel from chat hooks and
   message-send utilities.

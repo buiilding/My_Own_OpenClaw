@@ -140,8 +140,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer chat send and stop code now routes desktop pending-turn IPC through
   a renderer app runtime client instead of importing the desktop send channel
   directly from chat hooks and message-send utilities.
+  Renderer chat stream debug utilities now route live-surface trace IPC through
+  a renderer app runtime client instead of importing the trace send channel
+  directly.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Live-Surface Trace Runtime Client Slice
+
+- Worktree was clean after `60b9cae7d`, with `main` ahead of `origin/main` by
+  839 commits.
+- Finding: chat stream debug utilities imported the live-surface trace IPC send
+  channel directly, keeping a desktop host transport detail in chat stream code.
+- Change: added `DesktopLiveSurfaceTraceRuntimeClient` under the renderer app
+  runtime layer and routed live-surface trace forwarding through it.
+- Validation: focused renderer chat boundary test, chat response state trace
+  tests, docs listing, and diff check.
+- Compatibility: no migration required. Live-surface trace channel strings,
+  diagnostic payload shapes, chat presentation behavior, Electron main logging,
+  storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Pending-Turn Runtime Client Slice
 

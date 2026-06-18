@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Live-Surface Trace Runtime Client
+
+- Finding: chat stream debug utilities imported the live-surface trace IPC send
+  channel directly, keeping a desktop host transport detail in chat stream code.
+- Change: added `DesktopLiveSurfaceTraceRuntimeClient` under the renderer app
+  runtime layer and routed live-surface trace forwarding through it.
+- Validation: focused renderer chat boundary test, chat response state trace
+  tests, docs listing, and diff check.
+- Compatibility: no migration required. Live-surface trace channel strings,
+  diagnostic payload shapes, chat presentation behavior, Electron main logging,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Pending-Turn Runtime Client
 
 - Finding: chat send and stop feature code imported desktop pending-turn IPC
