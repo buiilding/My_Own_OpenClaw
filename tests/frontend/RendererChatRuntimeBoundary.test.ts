@@ -102,6 +102,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('chat runtime hooks read app config through renderer config runtime facade', async () => {
     const hookFiles = [
+      'components/ChatInterface.jsx',
       'hooks/useChatMessageSender.ts',
       'hooks/useChatStream.ts',
       'hooks/useChatSurfaceController.js',

@@ -9169,14 +9169,15 @@ Each completed slice should report:
 
 ### 2026-06-18 renderer chat config-context runtime facade boundary
 
-- Finding: chat runtime hooks still imported `useAppConfigContext` directly from
-  app providers for send lifecycle, stream model capabilities, surface toggles,
-  and retry/edit replay model selection. That kept hook-level reusable chat
-  runtime code coupled to provider composition internals.
+- Finding: chat runtime hooks and `ChatInterface` still imported
+  `useAppConfigContext` directly from app providers for send lifecycle, stream
+  model capabilities, surface toggles, provider/model menus, and retry/edit
+  replay model selection. That kept reusable core chat UI/runtime code coupled
+  to provider composition internals.
 - Change: added `useDesktopRendererConfigContext()` to
   `DesktopRendererConfigRuntimeClient`, routed the chat sender, stream,
-  surface controller, and replay hooks through it, and guarded those hooks
-  against direct app-provider context imports.
+  surface controller, replay hooks, and `ChatInterface` through it, and guarded
+  those chat paths against direct app-provider context imports.
 - Validation: focused chat hook/runtime boundary coverage, frontend typecheck,
   docs listing, and diff checks.
 - Compatibility: no migration required. React context value shape, settings

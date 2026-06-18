@@ -31,8 +31,8 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopRendererConfigRuntimeClient` so chat send, replay, and manual
   compaction paths no longer import app-provider runtime-sync internals. No
   migration required.
-- renderer/app: route chat hook access to renderer app config through
-  `DesktopRendererConfigRuntimeClient`, keeping hook-level chat runtime code off
+- renderer/app: route chat hook/component access to renderer app config through
+  `DesktopRendererConfigRuntimeClient`, keeping core chat runtime UI code off
   direct app-provider context imports. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last

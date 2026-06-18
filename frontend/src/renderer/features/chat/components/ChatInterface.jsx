@@ -17,7 +17,7 @@ import {
   useChatInterfaceNewChatEvent,
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
-import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
+import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
@@ -84,7 +84,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
-  const { config, updateConfig, availableModels } = useAppConfigContext();
+  const { config, updateConfig, availableModels } = useDesktopRendererConfigContext();
   const sessionInfo = useRendererConversationSessionInfo();
   const [activeWorkspace, setActiveWorkspace] = useState(() => ({
     activeWorkspaceName: '',
