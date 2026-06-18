@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK display-row source event metadata boundary
+
+- Finding: SDK display-row metadata exposed tool-progress source identity to the
+  renderer as `rawEventType`, and the renderer display-row adapter consumed that
+  raw-prefixed field for search-source badges even though it only needs a public
+  SDK source event name.
+- Change: renamed the SDK display-row metadata field to `sourceEventType`,
+  stamped normalized backend events with `sourceEventType` at SDK transport
+  ingress, updated checked-in CJS parity, and removed `rawEventType` from the
+  renderer display-row projection path.
+- Validation: focused SDK conversation-runtime and display-row projection Jest
+  coverage, renderer runtime boundary source assertion, stale `rawEventType`
+  scan, docs listing, and diff check.
+- Compatibility: no migration required for active runtime paths. Existing
+  conversation events still retain raw backend diagnostics inside SDK payloads
+  for inspection/legacy projection fallback, while renderer-visible display rows
+  now consume the public `sourceEventType` field.
+
 ### 2026-06-18 backend/SDK skipped local execution metadata boundary
 
 - Finding: backend synthetic/display-only tool events still used

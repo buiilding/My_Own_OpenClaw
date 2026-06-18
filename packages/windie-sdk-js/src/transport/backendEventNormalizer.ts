@@ -156,6 +156,7 @@ function backendSequenceOf(event: BackendEvent): number | null {
 function backendEventMetadata(event: BackendEvent): JsonRecord {
   return {
     backendSequence: backendSequenceOf(event),
+    sourceEventType: event.type,
     rawEvent: event as unknown as JsonRecord,
   };
 }

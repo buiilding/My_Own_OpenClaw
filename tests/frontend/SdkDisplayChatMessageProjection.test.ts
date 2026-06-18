@@ -248,7 +248,7 @@ describe('sdkDisplayChatMessageProjection', () => {
           toolName: 'web_search',
           requestId: 'req-search-1',
           correlationId: 'corr-search-1',
-          rawEventType: 'web-search-progress',
+          sourceEventType: 'web-search-progress',
         },
       },
     ])).toEqual([

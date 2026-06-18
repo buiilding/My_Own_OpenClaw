@@ -601,4 +601,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('toolEvent.payload');
     expect(source).not.toContain('structuredPayload');
   });
+
+  test('display-row chat projection consumes SDK source event metadata', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('sourceEventType');
+    expect(source).not.toContain('rawEventType');
+  });
 });

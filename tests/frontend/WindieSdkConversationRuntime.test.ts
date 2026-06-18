@@ -2070,6 +2070,7 @@ describe('Agent SDK conversation runtime core', () => {
         text: 'Searched example.com',
         requestId: 'req-search-1',
         correlationId: 'corr-search-1',
+        sourceEventType: 'web-search-progress',
         structuredPayload: expect.objectContaining({ query: 'example' }),
         rawEvent: expect.objectContaining({ type: 'web-search-progress' }),
       }),

@@ -75,7 +75,7 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     'screenshotRefs',
     'screenshot',
     'screenshotContentType',
-    'rawEventType',
+    'sourceEventType',
     'success',
     'modelId',
     'modelProvider',
@@ -214,14 +214,14 @@ function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
 
 function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
-  const rawEventType = recordField(payload, 'rawEventType');
+  const sourceEventType = recordField(payload, 'sourceEventType');
   return {
     id: message.id,
     text: message.text,
     sender: 'assistant',
     type: 'search-source',
-    sourceEventType: typeof rawEventType === 'string' && rawEventType.trim()
-      ? rawEventType
+    sourceEventType: typeof sourceEventType === 'string' && sourceEventType.trim()
+      ? sourceEventType
       : 'web-search-progress',
     sourceChannel: SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
     turnRef: message.turnRef ?? undefined,

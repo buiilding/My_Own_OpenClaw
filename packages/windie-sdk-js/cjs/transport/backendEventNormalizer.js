@@ -131,6 +131,7 @@ function backendSequenceOf(event) {
 function backendEventMetadata(event) {
     return {
         backendSequence: backendSequenceOf(event),
+        sourceEventType: event.type,
         rawEvent: event,
     };
 }

@@ -223,7 +223,11 @@ function stringArrayField(record, ...keys) {
     }
     return null;
 }
-function rawEventTypeFromPayload(payload) {
+function sourceEventTypeFromPayload(payload) {
+    const sourceEventType = (0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type');
+    if (sourceEventType) {
+        return sourceEventType;
+    }
     const rawEvent = (0, toolOutputContent_js_1.recordFromUnknown)(payload.rawEvent);
     return rawEvent ? (0, toolOutputContent_js_1.stringField)(rawEvent, 'type') : null;
 }
@@ -247,7 +251,7 @@ function displayRowMetadata(event) {
         screenshot: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshot', 'image'),
         screenshotContentType: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type'),
         structuredPayload: structuredPayloadFrom(event.payload),
-        rawEventType: rawEventTypeFromPayload(event.payload),
+        sourceEventType: sourceEventTypeFromPayload(event.payload),
         success: typeof event.payload.success === 'boolean' ? event.payload.success : null,
         modelId: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelId', 'model_id'),
         modelProvider: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelProvider', 'model_provider'),

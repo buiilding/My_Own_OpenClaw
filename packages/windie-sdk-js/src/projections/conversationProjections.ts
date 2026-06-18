@@ -264,7 +264,11 @@ function stringArrayField(record: JsonRecord, ...keys: string[]): string[] | nul
   return null;
 }
 
-function rawEventTypeFromPayload(payload: JsonRecord): string | null {
+function sourceEventTypeFromPayload(payload: JsonRecord): string | null {
+  const sourceEventType = stringField(payload, 'sourceEventType', 'source_event_type');
+  if (sourceEventType) {
+    return sourceEventType;
+  }
   const rawEvent = recordFromUnknown(payload.rawEvent);
   return rawEvent ? stringField(rawEvent, 'type') : null;
 }
@@ -289,7 +293,7 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     screenshot: stringField(event.payload, 'screenshot', 'image'),
     screenshotContentType: stringField(event.payload, 'screenshotContentType', 'screenshot_content_type'),
     structuredPayload: structuredPayloadFrom(event.payload),
-    rawEventType: rawEventTypeFromPayload(event.payload),
+    sourceEventType: sourceEventTypeFromPayload(event.payload),
     success: typeof event.payload.success === 'boolean' ? event.payload.success : null,
     modelId: stringField(event.payload, 'modelId', 'model_id'),
     modelProvider: stringField(event.payload, 'modelProvider', 'model_provider'),

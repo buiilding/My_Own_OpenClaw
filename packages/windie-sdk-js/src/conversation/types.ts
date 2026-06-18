@@ -245,7 +245,7 @@ export type SdkDisplayRowMetadata = {
   screenshotRefs?: string[] | null;
   screenshot?: string | null;
   screenshotContentType?: string | null;
-  rawEventType?: string | null;
+  sourceEventType?: string | null;
   success?: boolean | null;
   modelId?: string | null;
   modelProvider?: string | null;
