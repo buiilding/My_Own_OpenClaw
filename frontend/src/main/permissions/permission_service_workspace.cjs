@@ -14,7 +14,7 @@ const {
 } = require('./permission_service_runtime.cjs');
 
 function getWorkspaceCopy(deps = {}) {
-  const copy = deps.mainHostSkin?.permissions?.workspace || {};
+  const copy = deps.permissionCopy?.workspace || {};
   return {
     folderPickerTitle: copy.folderPickerTitle || 'Select workspace folder',
   };

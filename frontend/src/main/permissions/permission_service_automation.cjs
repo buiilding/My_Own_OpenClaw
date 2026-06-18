@@ -8,7 +8,7 @@ const {
 } = require('./permission_service_runtime.cjs');
 
 function getMacAutomationCopy(deps = {}) {
-  const copy = deps.mainHostSkin?.permissions?.macAutomation || {};
+  const copy = deps.permissionCopy?.macAutomation || {};
   return {
     probeRemediation: (
       copy.probeRemediation

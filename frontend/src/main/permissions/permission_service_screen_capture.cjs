@@ -9,7 +9,7 @@ const {
 } = require('./permission_service_runtime.cjs');
 
 function getScreenCaptureCopy(deps = {}) {
-  const copy = deps.mainHostSkin?.permissions?.screenCapture || {};
+  const copy = deps.permissionCopy?.screenCapture || {};
   return {
     systemSettingsRemediation: copy.systemSettingsRemediation || 'Open System Settings -> Privacy & Security -> Screen Recording and enable this app.',
     waitingForGrant: copy.waitingForGrant || 'Waiting for Screen Recording access. Enable this app in System Settings if the macOS prompt does not complete the grant.',

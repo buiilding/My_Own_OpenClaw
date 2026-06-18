@@ -173,6 +173,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main Permission Copy Boundary
+
+- Worktree was clean after `c467eb884`, with `main` ahead of `origin/main` by
+  51 commits.
+- Permission service modules, IPC runtime wiring, and host-skin boundary tests
+  were inspected after the local-runtime entrypoint skin slice.
+- Finding: browser, screen-capture, macOS automation, input-control,
+  microphone, and workspace permission services still reached into the full
+  host-skin object for copy, so generic permission adapters knew the
+  WindieOS-specific skin shape instead of receiving local adapter copy.
+- Change: routed permission services through generic `permissionCopy`, extracted
+  `mainHostSkin.permissions` at the Electron IPC composition root, and kept the
+  IPC runtime open to direct `permissionCopy` injection for tests or alternate
+  hosts.
+- Validation: focused permission and host-skin boundary Jest coverage,
+  CommonJS syntax checks, docs listing, targeted source scan, and diff check.
+- Compatibility: no migration required. Permission status behavior, prompts,
+  remediation copy, OS probes, browser runtime install consent, workspace
+  persistence, IPC channels, credentials, and provider policy are unchanged.
+  Security boundary is unchanged; this only narrows the dependency shape visible
+  to individual permission adapters.
+
 ### 2026-06-18 Main Local-Runtime Entrypoint Skin Boundary
 
 - Worktree was clean after `2f3edfec2`, with `main` ahead of `origin/main` by

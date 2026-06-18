@@ -452,7 +452,7 @@ function initializeMainProcessIpc() {
       systemPreferences,
       dialog,
       desktopCapturer,
-      mainHostSkin,
+      permissionCopy: mainHostSkin.permissions,
       platform: process.platform,
       userDataPath: getUserDataPath(),
       focusPermissionPromptWindow: async () => {

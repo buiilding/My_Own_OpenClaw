@@ -14,7 +14,7 @@ const {
 } = require('./permission_service_runtime.cjs');
 
 function getMicrophoneCopy(deps = {}) {
-  const copy = deps.mainHostSkin?.permissions?.microphone || {};
+  const copy = deps.permissionCopy?.microphone || {};
   return {
     osPrivacyRemediation: copy.osPrivacyRemediation || 'Enable microphone access for this app in OS privacy settings.',
   };

@@ -8,7 +8,7 @@ const {
 } = require('./permission_service_runtime.cjs');
 
 function getBrowserAutomationCopy(deps = {}) {
-  const copy = deps.mainHostSkin?.permissions?.browserAutomation || {};
+  const copy = deps.permissionCopy?.browserAutomation || {};
   return {
     installDialogTitle: copy.installDialogTitle || 'Install Browser Runtime',
     installDialogConfirmLabel: copy.installDialogConfirmLabel || 'Install Chromium',

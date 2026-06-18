@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Permission Copy Boundary
+
+- Finding: generic permission service modules still reached through
+  `deps.mainHostSkin?.permissions` for browser, screen capture, macOS
+  automation, input control, microphone, and workspace copy. That kept the full
+  WindieOS host-skin shape visible inside individual permission adapters instead
+  of at the IPC composition boundary.
+- Change: made permission services consume a generic `permissionCopy` object,
+  extracted `mainHostSkin.permissions` in the Electron IPC composition root, and
+  kept the IPC runtime compatible with direct `permissionCopy` injection.
+- Validation: focused permission and host-skin boundary Jest coverage,
+  CommonJS syntax checks, docs listing, targeted source scan, and diff-check
+  validation.
+- Compatibility: no migration required. Permission prompts, remediation copy,
+  OS permission probes, browser runtime install consent, workspace storage,
+  IPC channels, credentials, and provider policy are unchanged. Security
+  boundary remains the same: only the adapter dependency shape changed.
+
 ### 2026-06-18 Main Local-Runtime Entrypoint Skin Boundary
 
 - Finding: the generic Electron local-runtime launch helper still selected

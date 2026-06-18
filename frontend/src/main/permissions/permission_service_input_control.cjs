@@ -12,7 +12,7 @@ const {
 } = require('./permission_service_runtime.cjs');
 
 function getInputControlCopy(deps = {}) {
-  const copy = deps.mainHostSkin?.permissions?.inputControl || {};
+  const copy = deps.permissionCopy?.inputControl || {};
   return {
     accessibilityRemediation: copy.accessibilityRemediation || 'Open System Settings -> Privacy & Security -> Accessibility and enable this app.',
   };

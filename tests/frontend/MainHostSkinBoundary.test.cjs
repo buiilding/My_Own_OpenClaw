@@ -48,6 +48,7 @@ const screenCapturePermissionServicePath = path.join(mainRoot, 'permissions/perm
 const inputControlPermissionServicePath = path.join(mainRoot, 'permissions/permission_service_input_control.cjs');
 const microphonePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_microphone.cjs');
 const workspacePermissionServicePath = path.join(mainRoot, 'permissions/permission_service_workspace.cjs');
+const permissionIpcRuntimePath = path.join(mainRoot, 'permissions/permission_ipc_runtime.cjs');
 const permissionManifestPath = path.resolve(__dirname, '../../frontend/src/shared/permissions/permission_manifest.json');
 const mainMarkerConsumerPaths = [
   layerLogSinkPath,
@@ -224,7 +225,7 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('WindieOS could not request macOS Automation permission.');
   });
 
-  test('browser and automation permission services consume injected host skin copy', () => {
+  test('permission services consume injected permission copy', () => {
     const sources = [
       fs.readFileSync(browserPermissionServicePath, 'utf8'),
       fs.readFileSync(automationPermissionServicePath, 'utf8'),
@@ -235,12 +236,18 @@ describe('main host skin/config boundary', () => {
     ];
 
     for (const source of sources) {
-      expect(source).toContain('deps.mainHostSkin');
+      expect(source).toContain('deps.permissionCopy');
+      expect(source).not.toContain('deps.mainHostSkin');
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('WindieOS browser');
       expect(source).not.toContain('enable WindieOS under System Events');
       expect(source).not.toContain('Select workspace folder for WindieOS');
     }
+
+    expect(fs.readFileSync(indexPath, 'utf8'))
+      .toContain('permissionCopy: mainHostSkin.permissions');
+    expect(fs.readFileSync(permissionIpcRuntimePath, 'utf8'))
+      .toContain('permissionCopy: permissionCopy || mainHostSkin?.permissions || {}');
   });
 
   test('query event builders keep product copy in the host skin', () => {

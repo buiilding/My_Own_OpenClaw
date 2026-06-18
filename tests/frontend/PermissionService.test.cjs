@@ -349,7 +349,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('filesystem_workspace_access', {
       platform: 'linux',
-      mainHostSkin,
+      permissionCopy: mainHostSkin.permissions,
       permissionStateStore,
       fs: {
         existsSync: jest.fn(() => true),
