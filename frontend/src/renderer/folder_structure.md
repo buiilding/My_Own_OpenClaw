@@ -111,7 +111,6 @@ frontend/src/renderer/
 │   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
-│   │       ├── audioChunkEvents.js      # audioChunkEvents - Validates/extracts audio-chunk payloads for playback
 │   │       ├── messageSender/            # messageSender - Payload normalization and SDK turn resource handle utilities
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization

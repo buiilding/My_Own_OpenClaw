@@ -59,6 +59,24 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain(`active desktop-${'agent'} skin`);
   });
 
+  test('audio chunk payload parsing stays behind the app runtime audio client', async () => {
+    const audioRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopAudioRuntimeClient.ts'),
+      'utf8',
+    );
+    const chatBindingsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatInterfaceBindings.js'),
+      'utf8',
+    );
+
+    expect(audioRuntimeSource).toContain('extractDesktopAudioChunkPayload');
+    expect(audioRuntimeSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
+    expect(chatBindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
+    expect(chatBindingsSource).not.toContain('audioChunkEvents');
+    expect(chatBindingsSource).not.toContain('extractAudioChunkPayload');
+    expect(chatBindingsSource).not.toContain("event.type !== 'audio-chunk'");
+  });
+
   test('renderer transport docs classify app-runtime clients before cleanup', async () => {
     const source = await fs.readFile(
       path.resolve(

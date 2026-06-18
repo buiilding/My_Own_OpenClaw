@@ -23,6 +23,6 @@ title: "Frontend Backend Event Schema Docs Hub"
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`

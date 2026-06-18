@@ -14,7 +14,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 
@@ -148,7 +148,7 @@ Not all renderer-facing backend events use `isBackendEvent`.
 
 Important untyped paths:
 
-- `audio-chunk`: routed to `audio-chunk` and parsed by `extractAudioChunkPayload(...)`
+- `audio-chunk`: routed to `audio-chunk` and parsed by `extractDesktopAudioChunkPayload(...)`
 - `models-listed`: routed to `backend-settings-event` and consumed by `routeConfigSettingsEvent(...)`
 - `settings-updated`: routed to `backend-settings-event` and consumed by `AppStatusProvider` listener
 

@@ -16,7 +16,6 @@ title: "Audio Chunk Playback and Stop Semantics Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
@@ -31,8 +30,9 @@ Audio output from backend follows this route:
    renderer channel
 3. renderer chat runtime (`useChatInterfaceAudioChunkStream` used by
    `ChatInterface`) listens through `DesktopAudioRuntimeClient`
-4. `extractAudioChunkPayload(...)` filters and validates audio payload shape
-5. valid chunk is enqueued in the audio player created by
+4. `DesktopAudioRuntimeClient` filters and validates audio payload shape with
+   `extractDesktopAudioChunkPayload(...)`
+5. valid chunk is emitted to chat bindings and enqueued in the audio player created by
    `DesktopAudioRuntimeClient.createAudioPlayer()`
 
 Important distinction:
@@ -58,7 +58,7 @@ Result:
 
 ## Renderer Audio Payload Gate
 
-`extractAudioChunkPayload(data)` accepts only:
+`extractDesktopAudioChunkPayload(data)` accepts only:
 
 - `data.type === "audio-chunk"`
 - `payload.audio` is string (base64 PCM16)

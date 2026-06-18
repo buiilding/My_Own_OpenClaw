@@ -9543,6 +9543,23 @@ Each completed slice should report:
   channels, settings, storage files, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
 
+### 2026-06-18 Renderer Audio App-Runtime Payload Boundary
+
+- Finding: chat feature code still imported `audioChunkEvents.js` and parsed
+  raw `audio-chunk` IPC envelopes directly, even though
+  `desktopAudioRuntimeClient.ts` already owned the renderer subscription to the
+  audio side channel.
+- Change: moved audio payload validation into `DesktopAudioRuntimeClient` as
+  `extractDesktopAudioChunkPayload(...)`, made `onAudioChunk(...)` emit only
+  normalized audio chunks, removed the chat utility parser, and updated docs and
+  boundary tests to keep raw audio channel parsing behind the app-runtime
+  facade.
+- Validation: focused audio parser, chat wiring, and renderer app-runtime
+  boundary Jest coverage, docs listing, source scan, and diff checks.
+- Compatibility: no migration required. The `audio-chunk` IPC channel, payload
+  shape, playback queue behavior, stop/new-query behavior, credentials,
+  permissions, storage, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-18 browser tool local-runtime wording
 
 - Finding: public browser-tool docs still described the reusable execution

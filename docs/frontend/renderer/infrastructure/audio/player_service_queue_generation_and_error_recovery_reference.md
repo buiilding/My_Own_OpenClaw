@@ -12,7 +12,7 @@ title: "Player Service Queue, Generation, and Error-Recovery Reference"
 
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `tests/frontend/PlayerService.test.ts`
 
 ## Runtime Boundary
@@ -26,7 +26,7 @@ title: "Player Service Queue, Generation, and Error-Recovery Reference"
 Caller wiring:
 
 1. `ChatInterface` subscribes to `ON_CHANNELS.AUDIO_CHUNK`
-2. `extractAudioChunkPayload(...)` filters/normalizes `audio-chunk` events
+2. `extractDesktopAudioChunkPayload(...)` filters/normalizes `audio-chunk` events
 3. `audioPlayerRef.current.enqueueAudio(chunk)` passes data to PlayerService
 
 ## Queue and Playback Contract

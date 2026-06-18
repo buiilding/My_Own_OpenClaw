@@ -19,7 +19,7 @@ title: "Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference"
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 
 ## Ingress Path
 
@@ -112,7 +112,7 @@ Renderer event channels have separate listeners with different filters:
 - `audio-chunk` -> `ChatInterface` audio path:
   - does not use `isBackendEvent(...)`
   - subscribes through `DesktopAudioRuntimeClient`
-  - uses `extractAudioChunkPayload(...)` parser
+  - uses `extractDesktopAudioChunkPayload(...)` parser
 
 No single global consumer owns all backend event types.
 
@@ -120,7 +120,7 @@ No single global consumer owns all backend event types.
 
 `audio-chunk` handling is intentionally separate from typed union:
 
-- parser location: `audioChunkEvents.js`
+- parser location: `desktopAudioRuntimeClient.ts`
 - required shape:
   - `type === "audio-chunk"`
   - `payload.audio` string
@@ -170,7 +170,7 @@ Missing `conversation_ref` or `turn_ref` can degrade filtering precision.
 2. event is routed to `windie:conversation-event` but `BACKEND_EVENT_TYPES` is
    not updated
 3. payload keys changed but per-event handlers still read old keys
-4. `audio-chunk` shape changes without updating `extractAudioChunkPayload`
+4. `audio-chunk` shape changes without updating `extractDesktopAudioChunkPayload`
 5. overlay-phase mapping in `ipc.cjs` diverges from event semantics
 
 ## Debug Checklist

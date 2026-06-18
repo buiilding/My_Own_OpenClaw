@@ -5,14 +5,12 @@
 import { useEffect } from 'react';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
-import { extractAudioChunkPayload } from '../utils/audioChunkEvents';
 import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
   useEffect(() => {
-    const removeListener = DesktopAudioRuntimeClient.onAudioChunk((data) => {
-      const audioChunk = extractAudioChunkPayload(data);
-      if (audioChunk && audioPlayerRef.current) {
+    const removeListener = DesktopAudioRuntimeClient.onAudioChunk((audioChunk) => {
+      if (audioPlayerRef.current) {
         audioPlayerRef.current.enqueueAudio(audioChunk);
       }
     });

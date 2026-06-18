@@ -5,7 +5,30 @@
 import { PlayerService } from '../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 
-export type DesktopAudioChunkListener = (payload: unknown) => void;
+export type DesktopAudioChunk = {
+  audio: string;
+  sample_rate: number;
+};
+
+export type DesktopAudioChunkListener = (payload: DesktopAudioChunk) => void;
+
+export function extractDesktopAudioChunkPayload(data: unknown): DesktopAudioChunk | null {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  const event = data as { type?: unknown; payload?: unknown };
+  if (event.type !== 'audio-chunk' || !event.payload || typeof event.payload !== 'object') {
+    return null;
+  }
+
+  const payload = event.payload as { audio?: unknown; sample_rate?: unknown };
+  if (typeof payload.audio !== 'string' || typeof payload.sample_rate !== 'number') {
+    return null;
+  }
+
+  return { audio: payload.audio, sample_rate: payload.sample_rate };
+}
 
 export const DesktopAudioRuntimeClient = {
   createAudioPlayer(): PlayerService {
@@ -16,6 +39,11 @@ export const DesktopAudioRuntimeClient = {
     if (!ON_CHANNELS?.AUDIO_CHUNK) {
       return undefined;
     }
-    return IpcBridge.on(ON_CHANNELS.AUDIO_CHUNK, listener);
+    return IpcBridge.on(ON_CHANNELS.AUDIO_CHUNK, (data) => {
+      const audioChunk = extractDesktopAudioChunkPayload(data);
+      if (audioChunk) {
+        listener(audioChunk);
+      }
+    });
   },
 };

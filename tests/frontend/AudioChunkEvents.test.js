@@ -1,13 +1,15 @@
 /**
- * Covers audio chunk event parsing behavior in the frontend test suite.
+ * Covers desktop audio runtime event parsing behavior in the frontend test suite.
  */
 
-import { extractAudioChunkPayload } from '../../frontend/src/renderer/features/chat/utils/audioChunkEvents';
+import {
+  extractDesktopAudioChunkPayload,
+} from '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient';
 
-describe('audioChunkEvents', () => {
+describe('desktopAudioRuntimeClient audio chunk parsing', () => {
   test('returns normalized audio chunk payload for valid audio-chunk events', () => {
     expect(
-      extractAudioChunkPayload({
+      extractDesktopAudioChunkPayload({
         type: 'audio-chunk',
         payload: { audio: 'base64-data', sample_rate: 16000 },
       }),
@@ -15,14 +17,14 @@ describe('audioChunkEvents', () => {
   });
 
   test('returns null for invalid event envelopes', () => {
-    expect(extractAudioChunkPayload(null)).toBeNull();
-    expect(extractAudioChunkPayload({})).toBeNull();
-    expect(extractAudioChunkPayload({ type: 'tool-call', payload: {} })).toBeNull();
+    expect(extractDesktopAudioChunkPayload(null)).toBeNull();
+    expect(extractDesktopAudioChunkPayload({})).toBeNull();
+    expect(extractDesktopAudioChunkPayload({ type: 'tool-call', payload: {} })).toBeNull();
   });
 
   test('returns null for malformed audio chunk payloads', () => {
-    expect(extractAudioChunkPayload({ type: 'audio-chunk', payload: null })).toBeNull();
-    expect(extractAudioChunkPayload({ type: 'audio-chunk', payload: { sample_rate: 16000 } })).toBeNull();
-    expect(extractAudioChunkPayload({ type: 'audio-chunk', payload: { audio: 'abc', sample_rate: '16000' } })).toBeNull();
+    expect(extractDesktopAudioChunkPayload({ type: 'audio-chunk', payload: null })).toBeNull();
+    expect(extractDesktopAudioChunkPayload({ type: 'audio-chunk', payload: { sample_rate: 16000 } })).toBeNull();
+    expect(extractDesktopAudioChunkPayload({ type: 'audio-chunk', payload: { audio: 'abc', sample_rate: '16000' } })).toBeNull();
   });
 });

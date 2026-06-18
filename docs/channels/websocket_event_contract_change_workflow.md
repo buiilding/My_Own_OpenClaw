@@ -25,7 +25,7 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 | tool-call, tool-output, or tool-bundle event changes | backend tool formatter plus SDK conversation/tool runtime and renderer display consumers | backend tool formatters, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, renderer tool message utilities | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | backend tool formatter/result tests plus SDK conversation-runtime and renderer display tests |
 | prompt transparency event changes | backend prompt/event presenter plus SDK display/rehydrate projection consumers | `backend/src/agent/llm/event_presenter.py`, prompt events/formatters, SDK conversation projections, backend rehydrate transparency resolution | [Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md) | prompt/event tests plus SDK projection and backend rehydrate transparency tests |
 | token-count, usage, cache, or thinking status changes | backend token usage event plus renderer token/thinking handlers | token-count formatter, stream processor, renderer thinking/token utilities | [Usage and Token Accounting](../concepts/usage_and_token_accounting.md), [Token Count Event and Usage Diagnostics Reference](../backend/runtime/token_count_event_and_usage_diagnostics_reference.md) | backend token/usage tests plus frontend token/thinking tests |
-| `audio-chunk` or TTS stream changes | backend TTS/audio path and renderer audio chunk parser | `backend/src/api/processing/tts`, `frontend/src/renderer/features/chat/utils/audioChunkEvents.js` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) | backend TTS tests plus `tests/frontend/AudioChunkEvents.test.js` |
+| `audio-chunk` or TTS stream changes | backend TTS/audio path and renderer app-runtime audio parser | `backend/src/api/processing/tts`, `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) | backend TTS tests plus `tests/frontend/AudioChunkEvents.test.js` |
 | settings/model ACK event changes | non-query websocket handlers and app config listeners | backend settings/model handlers, renderer app config event listeners | [Settings and Model ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md), [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) | backend handler tests plus app config/status frontend tests |
 
 ## Boundary Rules
@@ -122,7 +122,7 @@ Tool events are both UI state and SDK runtime execution requests.
   dispatch.
 - Confirm active conversation/turn filters are not dropping it.
 - Confirm payload field names match the renderer consumer.
-- For audio, confirm `extractAudioChunkPayload(...)` accepts the shape.
+- For audio, confirm `extractDesktopAudioChunkPayload(...)` accepts the shape.
 
 ### Event Updates Wrong Conversation
 

@@ -14,7 +14,7 @@ title: "Backend Event Consumer Matrix Reference"
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/main/ipc.cjs`
@@ -85,7 +85,7 @@ Core effects:
 
 Consumes untyped audio event shape on `audio-chunk`:
 
-- `audio-chunk` (parsed by `extractAudioChunkPayload`)
+- `audio-chunk` (parsed by `extractDesktopAudioChunkPayload`)
 
 Effects:
 
@@ -152,7 +152,7 @@ Potential contract drifts that cause silent drops:
 2. backend renames payload keys without updating event-specific handlers
 3. event intended for config/status/capability path but only wired in chat
    stream path (or vice versa)
-4. audio events changed without updating `extractAudioChunkPayload`
+4. audio events changed without updating `extractDesktopAudioChunkPayload`
 
 ## Debug Checklist
 

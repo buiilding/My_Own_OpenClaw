@@ -182,9 +182,10 @@ effects, and display-row merging while delegating channel names and
 `IpcBridge.on(...)` calls to this app runtime client.
 
 `desktopAudioRuntimeClient.ts` owns the renderer subscription to the untyped
-backend `audio-chunk` side channel. Chat interface bindings keep audio payload
-parsing and playback queue policy while delegating the channel subscription to
-this app runtime client.
+backend `audio-chunk` side channel and validates that payload into normalized
+audio chunks before chat code sees it. Chat interface bindings keep playback
+queue policy while delegating channel subscription and payload parsing to this
+app runtime client.
 
 `desktopVoiceRuntimeClient.ts` owns renderer voice runtime commands and local
 wakeword bridge IPC. Wakeword hooks keep capture lifecycle, cooldown,

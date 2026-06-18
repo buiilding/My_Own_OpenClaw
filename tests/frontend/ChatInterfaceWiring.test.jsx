@@ -195,12 +195,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoR
   useDesktopTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
 }));
 
-const mockExtractAudioChunkPayload = jest.fn(() => null);
-
-jest.mock('../../frontend/src/renderer/features/chat/utils/audioChunkEvents', () => ({
-  extractAudioChunkPayload: (...args) => mockExtractAudioChunkPayload(...args),
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/components/MessageList', () => (props) =>
   mockMessageList(props),
 );
@@ -296,8 +290,6 @@ describe('ChatInterface wiring', () => {
     });
     mockIpcListeners.clear();
     mockMessageList.mockClear();
-    mockExtractAudioChunkPayload.mockClear();
-    mockExtractAudioChunkPayload.mockReturnValue(null);
     mockUpdateConfig.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
@@ -588,8 +580,6 @@ describe('ChatInterface wiring', () => {
   });
 
   test('subscribes to typed audio chunks without backend-wire stream traffic', () => {
-    mockExtractAudioChunkPayload.mockReturnValue({ audio: 'abc', sample_rate: 24000 });
-
     render(<ChatInterface />);
 
     expect(mockIpcListeners.has('audio-chunk')).toBe(true);

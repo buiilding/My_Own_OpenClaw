@@ -29,7 +29,7 @@ Do not route live dictation through wakeword. Do not route wakeword chunks to tr
 | `/ws/transcription` rejects or disconnects | backend transcription gateway | `backend/src/api/routes/transcription`, `backend/src/api/services/transcription` | [Voice and Audio Channels](voice_and_audio_channels.md), [HTTP and WebSocket Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md) | `tests/backend/test_transcription_gateway.py`, provider-specific transcription tests |
 | STT provider events map incorrectly | backend transcription provider adapter | `backend/src/api/services/transcription/openai_realtime.py`, `backend/src/api/services/transcription/nova_proxy.py`, `backend/src/api/services/transcription/protocol.py` | [Voice and Audio Channels](voice_and_audio_channels.md) | `tests/backend/test_openai_realtime_transcription.py`, `tests/backend/test_transcription_gateway.py` |
 | backend response has no TTS audio | backend TTS session, manager, processor, provider | `backend/src/api/processing/tts`, `backend/src/api/services/tts_session.py`, `backend/src/core/services/*tts*` | [Backend TTS Manager Audio Stream and Cleanup Reference](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md), [Backend TTS and Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md) | `tests/backend/test_tts_manager.py`, `tests/backend/test_tts_session.py`, `tests/backend/test_tts_buffer.py` |
-| audio chunks arrive but do not play or overlap after stop | renderer audio chunk parser and player service | `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`, `frontend/src/renderer/infrastructure/audio/PlayerService.ts`, chat stop/new-query handlers | [Audio Chunk Playback and Stop Semantics Reference](../frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md) | `tests/frontend/AudioChunkEvents.test.js`, audio player tests, stop/new-query tests |
+| audio chunks arrive but do not play or overlap after stop | renderer app-runtime audio parser and player service | `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`, `frontend/src/renderer/infrastructure/audio/PlayerService.ts`, chat stop/new-query handlers | [Audio Chunk Playback and Stop Semantics Reference](../frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md) | `tests/frontend/AudioChunkEvents.test.js`, audio player tests, stop/new-query tests |
 
 ## Ownership Rules
 
@@ -125,7 +125,7 @@ Primary files:
 - `backend/src/core/services/tts_service.py`
 - `backend/src/core/services/elevenlabs_tts_service.py`
 - `backend/src/core/services/tts_buffer.py`
-- `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 
