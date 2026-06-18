@@ -133,6 +133,22 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+
+### 2026-06-18 frontend OpenAI Codex OAuth IPC launcher removal
+
+- Finding: Electron main still registered OpenAI Codex OAuth login/logout invoke
+  channels and carried a PKCE/local-callback helper even though renderer settings
+  no longer exposed OAuth controls and searches showed no live UI caller.
+- Change: deleted the desktop OAuth helper and IPC handler, removed invoke-channel
+  constants and host-skin copy, deleted focused tests for the dormant flow, and
+  rewrote docs around the remaining VM worker/runtime and provider credential surfaces.
+- Validation: `bin\windie.cmd docs check`, `cd frontend && npm.cmd run test --
+  ../tests/frontend/MainHostSkinBoundary.test.cjs ../tests/frontend/PreloadIpcChannels.test.cjs`,
+  `cd frontend && npm.cmd run audit:knip`, and `git diff --check` passed.
+- Compatibility: no migration required. No renderer UI invoked these channels;
+  provider API-key loading and broader provider OAuth config fields remain unchanged.
+  Security surface is reduced by removing an unused local callback server/browser-launch path.
+
 ### 2026-06-18 renderer source badge SDK wording
 
 - Finding: renderer dev-only source badges labeled SDK conversation/display origins as backend-style `* API` strings and joined badge segments with a non-ASCII divider that showed up poorly in shell/test output.

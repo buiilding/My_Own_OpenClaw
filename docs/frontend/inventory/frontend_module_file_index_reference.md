@@ -33,7 +33,6 @@ Core runtime:
 - `frontend/src/main/app/runtime_paths.cjs`
 - `frontend/src/main/app/runtime_mode.cjs`
 - `frontend/src/main/app/vm_worker_runtime.cjs`
-- `frontend/src/main/app/openai_codex_oauth.cjs`
 
 Overlay/window control helpers:
 

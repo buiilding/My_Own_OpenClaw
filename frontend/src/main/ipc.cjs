@@ -4,7 +4,6 @@
 
 const {
   ipcMain,
-  shell,
   Menu,
   BrowserWindow,
   screen,
@@ -129,13 +128,6 @@ const {
   DESKTOP_RUNTIME_INVOKE_CHANNELS,
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('./ipc/ipc_desktop_runtime_channels.cjs');
-const {
-  loginOpenAICodexOAuth,
-  logoutOpenAICodexOAuth,
-} = require('./app/openai_codex_oauth.cjs');
-const {
-  registerOpenAICodexOAuthHandlers,
-} = require('./ipc/ipc_openai_codex_oauth_handlers.cjs');
 const {
   registerClipboardImageHandler,
 } = require('./ipc/ipc_clipboard_image.cjs');
@@ -1687,14 +1679,6 @@ function initializeIpc(win, options = {}) {
       backendEndpointState.getHttpUrl(),
       ...backendEndpointState.getCandidates().map((candidate) => candidate.httpUrl),
     ],
-  });
-
-  registerOpenAICodexOAuthHandlers({
-    ipcMain,
-    loginOpenAICodexOAuth,
-    logoutOpenAICodexOAuth,
-    openExternal: (url) => shell.openExternal(url),
-    copy: mainHostSkin.openAICodexOAuth,
   });
 
   ipcMain.on('transcript-session-sync', (event, payload = {}) => {

@@ -20,7 +20,6 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Install user/install ids | Backend install auth service | Returned with install token and cached by Electron main | Stable hosted identity and websocket user binding | Renderer-claimed identity override |
 | Runs API key | Environment variables `WINDIE_RUNS_API_KEY`, worker `WINDIE_VM_RUNS_API_KEY` | Env only | `/api/runs/*` route dependency and VM worker | General hosted REST auth |
 | Provider API keys | Backend config/env or explicit provider settings | `backend/src/core/config/*`, provider settings UI where supported | LLM, OCR, vision, embedding, STT, TTS providers | Install identity or local machine permission |
-| OpenAI Codex OAuth state | `frontend/src/main/app/openai_codex_oauth.cjs` and settings/UI where still supported | Provider-specific OAuth flow | Provider auth for supported models | Generic login, install auth, or app account auth |
 | Sidecar remote client auth | Electron/main loaded install token passed to sidecar remote clients | Main/sidecar config and remote client headers | Remote embeddings/semantic/title clients when hosted backend auth is enabled | Local memory DB authorization |
 
 ## Handling Rules
@@ -43,7 +42,6 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Runs key behavior | `backend/src/api/routes/runs/support.py`, VM worker runtime | `tests/backend/test_run_control_routes.py`, route helper tests |
 | Provider credential loading | `backend/src/core/config/loader.py`, config models, provider constructors | config loader/model tests and provider-specific tests |
 | Provider credential UI | Renderer settings/app config providers | AppConfigProvider, SettingsSection, ModelsSection tests |
-| OAuth state | `frontend/src/main/app/openai_codex_oauth.cjs` | `tests/frontend/OpenAICodexOAuth.test.cjs` |
 | Remote sidecar clients | `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests |
 
 ## Failure Routing

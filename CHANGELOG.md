@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: remove the dormant OpenAI Codex OAuth IPC launcher, helper modules,
+  invoke-channel constants, host-skin copy, tests, and current docs; no migration
+  is required because no renderer UI invoked the flow, provider API-key config and
+  broader provider OAuth config fields remain unchanged, and the unused local
+  callback/browser-launch surface is gone.
 - Updated renderer dev source badges to use SDK/projection wording and an ASCII separator instead of backend API labels.
 - Clarified SDK managed backend docs so reconnect, endpoint fallback, and idle-close policy are described as distinct lifecycle concerns.
 - Renamed SDK managed backend close metadata from `fallbackScheduled` to `reconnectScheduled`, keeping endpoint fallback reporting on the explicit fallback hooks.

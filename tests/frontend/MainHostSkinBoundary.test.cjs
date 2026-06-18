@@ -15,8 +15,6 @@ const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_
 const retiredDesktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
 const ipcRendererWindowsPath = path.join(mainRoot, 'ipc/ipc_renderer_windows.cjs');
 const ipcQueryBroadcastPath = path.join(mainRoot, 'ipc/ipc_query_broadcast.cjs');
-const openAICodexOAuthPath = path.join(mainRoot, 'app/openai_codex_oauth.cjs');
-const openAICodexOAuthHandlersPath = path.join(mainRoot, 'ipc/ipc_openai_codex_oauth_handlers.cjs');
 const mainWindowIconRuntimePath = path.join(mainRoot, 'surfaces/main_window_icon_runtime.cjs');
 const mainWindowRuntimePath = path.join(mainRoot, 'surfaces/main_window_runtime.cjs');
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
@@ -89,10 +87,6 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('missingWakewordExecutable');
     expect(skinSource).toContain('localRuntime');
     expect(skinSource).toContain('browserWarmupExplanation');
-    expect(skinSource).toContain('openAICodexOAuth');
-    expect(skinSource).toContain('tokenExchangeFailure');
-    expect(skinSource).toContain('loginFailure');
-    expect(skinSource).toContain('logoutFailure');
   });
 
   test('shared permission manifest uses generic desktop-runtime descriptions', () => {
@@ -222,24 +216,14 @@ describe('main host skin/config boundary', () => {
     }
   });
 
-  test('local runtime and OAuth helpers consume host copy with generic defaults', () => {
+  test('local runtime helpers consume host copy with generic defaults', () => {
     const localRuntimeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
-    const oauthSource = fs.readFileSync(openAICodexOAuthPath, 'utf8');
-    const oauthHandlerSource = fs.readFileSync(openAICodexOAuthHandlersPath, 'utf8');
 
     expect(localRuntimeSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
     expect(localRuntimeSource).toContain('localRuntimeCopy.browserWarmupExplanation');
     expect(localRuntimeSource).toContain('Agent SDK local runtime resolver is unavailable.');
     expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
     expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
-    expect(oauthSource).toContain('Return to the app for details');
-    expect(oauthSource).toContain('copy.loginFailure');
-    expect(oauthSource).not.toContain('Return to WindieOS');
-    expect(oauthSource).not.toContain('OpenAI Codex OAuth login failed');
-    expect(oauthHandlerSource).toContain('copy ? { copy } : {}');
-    expect(oauthHandlerSource).toContain('oauthCopy.loginFailure');
-    expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth login failed.');
-    expect(oauthHandlerSource).not.toContain('OpenAI Codex OAuth sign-out failed.');
   });
 
   test('host skin local readiness copy uses local-runtime wording', () => {

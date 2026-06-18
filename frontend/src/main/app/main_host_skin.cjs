@@ -109,12 +109,6 @@ const localRuntime = Object.freeze({
   browserWarmupExplanation: `Open the ${productName} browser for onboarding and profile setup.`,
 });
 
-const openAICodexOAuth = Object.freeze({
-  tokenExchangeFailure: `Token exchange failed. Return to ${productName} for details.`,
-  loginFailure: 'OpenAI Codex OAuth login failed.',
-  logoutFailure: 'OpenAI Codex OAuth sign-out failed.',
-});
-
 const mainHostSkin = Object.freeze({
   productName,
   identity,
@@ -124,7 +118,6 @@ const mainHostSkin = Object.freeze({
   queryEvents,
   bundledRuntime,
   localRuntime,
-  openAICodexOAuth,
   permissions: Object.freeze({
     browserAutomation,
     macAutomation,

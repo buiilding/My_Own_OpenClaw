@@ -49,7 +49,7 @@ The backend provider factory registers:
 
 | Provider | Read first | Primary tests |
 | --- | --- | --- |
-| OpenAI | [OpenAI Provider](openai.md) | `tests/backend/test_openai_provider.py`, `tests/backend/test_web_search_capabilities.py`, `tests/frontend/OpenAICodexOAuth.test.cjs` |
+| OpenAI | [OpenAI Provider](openai.md) | `tests/backend/test_openai_provider.py`, `tests/backend/test_web_search_capabilities.py` |
 | Anthropic | [Anthropic Provider](anthropic.md) | `tests/backend/test_anthropic_provider.py`, `tests/backend/test_provider_native_reasoning.py` |
 | Gemini | [Gemini Provider](gemini.md) | `tests/backend/test_gemini_provider.py`, `tests/backend/test_web_search_capabilities.py` |
 | OpenRouter | [OpenRouter Provider](openrouter.md) | `tests/backend/test_openrouter_provider.py`, `tests/backend/test_models_config.py` |

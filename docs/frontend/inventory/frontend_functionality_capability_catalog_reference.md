@@ -66,7 +66,6 @@ Primary files:
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
-- `frontend/src/main/app/openai_codex_oauth.cjs`
 
 Capabilities:
 
@@ -81,7 +80,6 @@ Capabilities:
 - Persists frontend config to disk and returns merged config payloads to renderer.
 - Query send path resolves `conversation_ref` from payload or cached backend-ref fallback and reuses it for both local echo and outbound websocket message.
 - Query send gates first turn on config sync only when cached frontend config payload is object-valid; invalid payloads are dropped instead of sent.
-- Exposes OpenAI Codex OAuth login/logout IPC handlers backed by PKCE + local callback server flow.
 
 ## 3) Main Local Runtime + Permission/Privilege Bridges
 

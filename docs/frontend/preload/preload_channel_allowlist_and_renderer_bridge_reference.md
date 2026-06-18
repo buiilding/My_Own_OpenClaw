@@ -92,8 +92,6 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 - `list-mcp-servers`
 - `set-mcp-server-enabled`
 - `refresh-mcp-servers`
-- `openai-codex-oauth-login`
-- `openai-codex-oauth-logout`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`

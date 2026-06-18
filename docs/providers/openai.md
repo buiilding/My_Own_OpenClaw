@@ -1,14 +1,14 @@
 ---
-summary: "OpenAI provider guide for WindieOS covering Responses routing, native reasoning, native web search, Codex OAuth, tool compatibility, and tests."
+summary: "OpenAI provider guide for WindieOS covering Responses routing, native reasoning, native web search, tool compatibility, and tests."
 read_when:
-  - When changing OpenAI model behavior, Responses API routing, native web search, Codex OAuth, or OpenAI tool-call compatibility.
+  - When changing OpenAI model behavior, Responses API routing, native web search, or OpenAI tool-call compatibility.
   - When debugging OpenAI-specific streaming, reasoning, web-search sources, or provider credentials.
 title: "OpenAI Provider"
 ---
 
 # OpenAI Provider
 
-WindieOS treats OpenAI as an online LLM provider with extra routing for native reasoning, native web search, and Codex OAuth-capable models.
+WindieOS treats OpenAI as an online LLM provider with extra routing for native reasoning and native web search.
 
 ## Code Ownership
 
@@ -20,7 +20,6 @@ WindieOS treats OpenAI as an online LLM provider with extra routing for native r
 | Chat tool compatibility | `backend/src/llm/providers/openai_tool_prep.py` |
 | Model catalog/capabilities | `backend/src/llm/models/models_config.py` |
 | Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
-| OAuth helper | `frontend/src/main/app/openai_codex_oauth.cjs` |
 | Dashboard model/API key UI | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `ApiKeysSection.jsx` |
 
 ## Runtime Selection
@@ -49,9 +48,8 @@ and do not carry OpenAI-specific image detail metadata.
 
 Credential priority is:
 
-1. OpenAI Codex OAuth token, only when the selected model supports `supports_codex_oauth` and the token is connected and unexpired.
-2. Frontend-managed API key override in `provider_api_keys.openai`.
-3. Environment variable from `OpenAIConfig.api_key_env`, default `OPENAI_API_KEY`.
+1. Frontend-managed API key override in `provider_api_keys.openai`.
+2. Environment variable from `OpenAIConfig.api_key_env`, default `OPENAI_API_KEY`.
 
 Do not add a second OpenAI key-loading path in provider code. Keep credentials centralized in `load_api_key_for_provider`.
 
@@ -105,5 +103,5 @@ Focused frontend tests:
 
 ```bash
 cd frontend
-bin/windie test frontend -- OpenAICodexOAuth.test.cjs ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
+bin/windie test frontend -- ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
 ```

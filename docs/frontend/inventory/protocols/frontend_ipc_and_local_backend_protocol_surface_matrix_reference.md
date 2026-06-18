@@ -23,7 +23,7 @@ sidecar local runtime:
 - Shared preload/main channel registry: `frontend/src/shared/ipcChannels.json`
 - Preload allowlist boundary: `frontend/src/preload.js`
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
+- Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs` + `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - Main-to-sidecar scoped host bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
@@ -78,8 +78,6 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `list-mcp-servers` | `main/ipc.cjs` | Lists configured MCP servers from frontend config |
 | `set-mcp-server-enabled` | `main/ipc.cjs` | Persists MCP enablement and refreshes SDK MCP registration when running outside tests |
 | `refresh-mcp-servers` | `main/ipc.cjs` | Rebuilds current MCP server registry from config |
-| `openai-codex-oauth-login` | `main/ipc/ipc_openai_codex_oauth_handlers.cjs` | Starts OpenAI Codex OAuth through the main-process auth helper |
-| `openai-codex-oauth-logout` | `main/ipc/ipc_openai_codex_oauth_handlers.cjs` | Clears OpenAI Codex OAuth state |
 | `list-permissions` | `main/permissions/permission_ipc_runtime.cjs` | Returns permission manifest + status bundle |
 | `check-permissions` | `main/permissions/permission_ipc_runtime.cjs` | Batch permission probe result list |
 | `check-permission` | `main/permissions/permission_ipc_runtime.cjs` | Single permission probe shortcut |

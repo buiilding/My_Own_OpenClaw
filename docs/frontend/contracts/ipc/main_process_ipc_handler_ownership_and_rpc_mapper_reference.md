@@ -22,7 +22,6 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
-- `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`
@@ -100,9 +99,6 @@ Notable behavior:
   `ipc_artifact_handlers.cjs`; upload delegates to the shared artifact uploader,
   and protected image fetch ensures install auth before calling
   `ipc_artifact_fetch.cjs`
-- `openai-codex-oauth-login` and `openai-codex-oauth-logout` are registered by
-  `ipc_openai_codex_oauth_handlers.cjs`, while the OAuth callback/token flow
-  remains owned by `openai_codex_oauth.cjs`
 - clipboard image copy and image context-menu copy share the same main-process
   fetch policy: bounded `data:image/*` URLs are decoded locally; HTTP(S) fetches
   are limited to trusted backend-origin `/api/artifacts/...` URLs, use manual

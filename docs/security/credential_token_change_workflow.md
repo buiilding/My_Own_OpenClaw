@@ -24,7 +24,6 @@ Core rule: install auth identifies a desktop install to the hosted backend, runs
 | Runs API key | Runs route dependency and VM worker runtime | `backend/src/api/routes/runs/support.py`, `backend/src/api/routes/runs/router.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py`, `tests/frontend/VmWorkerRuntime.test.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Provider env keys | Backend config and provider constructors | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/llm/providers/**` | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, provider tests | [Provider Credentials](../providers/credentials.md) |
 | Frontend-managed provider key overrides | Renderer settings and backend frontend-config patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
-| OpenAI Codex OAuth state | Electron main OAuth helper plus backend config resolution | `frontend/src/main/app/openai_codex_oauth.cjs`, `frontend/src/main/ipc.cjs`, `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` | `tests/frontend/OpenAICodexOAuth.test.cjs`, `tests/backend/test_config_loader.py` | [OpenAI Provider](../providers/openai.md) |
 | Secret logging, redaction, and fixtures | Producing runtime and test fixture owner | logging call sites in backend, Electron, renderer, sidecar, and tests | focused tests for the changed boundary plus fixture scans | [Observability Change Workflow](../debug/observability_change_workflow.md) |
 
 ## Credential Classes
@@ -257,24 +256,21 @@ Validate:
 - backend settings patch accepts only allowed provider credential fields.
 - no frontend setting becomes a generic backend config write channel.
 
-### Change OAuth state
+### Change provider OAuth state
 
 Read:
 
 - [OpenAI Provider](../providers/openai.md)
 - [Provider Credentials](../providers/credentials.md)
-- [VM Worker Runtime and OpenAI Codex OAuth Reference](../frontend/main/vm_worker_runs_bridge_and_openai_codex_oauth_runtime_reference.md)
 
 Edit:
 
-- `frontend/src/main/app/openai_codex_oauth.cjs` for auth flow, callback parsing, token/profile shape, and persistence.
-- `frontend/src/main/ipc.cjs` for exposed IPC handlers.
-- renderer provider settings only if the current UI exposes or should expose the flow.
 - `backend/src/core/config/models.py` and `backend/src/core/config/loader.py` for backend consumption.
+- renderer config persistence only when the current UI exposes or should expose
+  the flow. The desktop app does not currently expose an OAuth launcher.
 
 Validate:
 
-- callback payload normalization rejects malformed state.
 - disconnect/clear behavior removes sensitive token material.
 - config loading can resolve OAuth access tokens without breaking API-key paths.
 - tests use fake tokens and never snapshot real material.
@@ -343,7 +339,7 @@ Validate:
 | Runs key | `./scripts/python-in-env backend pytest tests/backend/test_run_control_routes.py tests/backend/test_run_control_route_helpers.py` and `cd frontend && npm run test -- VmWorkerRuntime` when worker headers change |
 | Provider config/key resolution | `./scripts/python-in-env backend pytest tests/backend/test_config_models.py tests/backend/test_config_loader.py` plus provider-specific tests |
 | Frontend provider settings | `cd frontend && npm run test -- ModelsSection AppConfigPersistence configStorage configFilter` |
-| OAuth helper | `cd frontend && npm run test -- OpenAICodexOAuth` plus backend config-loader tests if backend consumption changes |
+| Provider OAuth config | backend config-loader tests plus focused renderer config tests if frontend persistence changes |
 | Sidecar remote auth | focused sidecar remote-client pytest module plus backend auth-route test for the called endpoint |
 | Docs-only credential changes | `bin/windie docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 

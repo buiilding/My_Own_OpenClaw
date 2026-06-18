@@ -97,9 +97,6 @@ Behavior:
 - `list-agent-extensions` -> public extension metadata plus MCP registry snapshot
 - `list-mcp-servers` / `set-mcp-server-enabled` / `refresh-mcp-servers` ->
   MCP registry and enablement controls
-- `openai-codex-oauth-login` / `openai-codex-oauth-logout` -> OpenAI Codex
-  OAuth helper flow
-
 ## Phase-owned overlay channels (`overlay_phase_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-chatbox-visual-anchor-height` -> chat-pill anchor height updates for deterministic response overlay re-anchoring

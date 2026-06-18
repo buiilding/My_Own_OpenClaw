@@ -96,8 +96,6 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 - `list-mcp-servers`
 - `set-mcp-server-enabled`
 - `refresh-mcp-servers`
-- `openai-codex-oauth-login`
-- `openai-codex-oauth-logout`
 - `list-permissions`
 - `check-permissions`
 - `check-permission`

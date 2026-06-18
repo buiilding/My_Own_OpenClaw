@@ -43,7 +43,7 @@ Key examples:
 - `get-system-state`
 - image clipboard/context-menu channels
 - config load/save
-- extension, MCP, and OpenAI Codex OAuth channels
+- extension and MCP channels
 - window management and display queries
 - `get-displays` payload includes `{ id, label, isPrimary, bounds, scaleFactor }` from main-process display mapper
   - details: [Display Query Handler Display Inventory Payload Contract Reference](../main/display_query_handler_display_inventory_payload_contract_reference.md)

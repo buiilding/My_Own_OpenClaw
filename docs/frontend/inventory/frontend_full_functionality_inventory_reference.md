@@ -78,7 +78,6 @@ Primary files:
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
-- `frontend/src/main/app/openai_codex_oauth.cjs`
 
 Functionality:
 
@@ -93,7 +92,6 @@ Functionality:
 - Relays SDK `user_message` projections and fallback error envelopes for failed
   sends through split broadcaster helpers.
 - Persists/loads frontend config to disk and keeps in-memory config snapshot.
-- Exposes OpenAI Codex OAuth login/logout IPC handlers for non-UI callers; the renderer settings UI does not currently surface OAuth controls.
 
 ### 1.3 Local Runtime Bridge (Main <-> SDK <-> Python)
 

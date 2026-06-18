@@ -8,9 +8,9 @@ title: "Provider Credentials"
 
 # Provider Credentials
 
-WindieOS supports environment-variable credentials, frontend-managed provider overrides, limited OAuth credential entries, and hosted install authentication. Never commit real credentials in docs, tests, or config.
+WindieOS supports environment-variable credentials, frontend-managed provider overrides, and hosted install authentication. Never commit real credentials in docs, tests, or config.
 
-For code-owner routing and validation commands across install tokens, runs keys, provider keys, OAuth state, sidecar auth headers, and logging, start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
+For code-owner routing and validation commands across install tokens, runs keys, provider keys, sidecar auth headers, and logging, start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
 
 ## Environment Variables
 
@@ -35,10 +35,6 @@ Use these overrides only through the config/settings path. Do not bypass the bac
 
 `update-settings` may carry raw provider API keys into backend session config. `load-settings` must not echo those secrets back to clients; it returns the provider entries with `api_key` redacted to an empty string while preserving non-secret state such as `enabled`.
 
-## OAuth Entries
-
-The current OAuth config surface includes `openai_codex`. The main-process OAuth helper lives at `frontend/src/main/app/openai_codex_oauth.cjs`. Renderer controls may not expose every compatible backend setting, so verify current UI before documenting a user-visible OAuth flow.
-
 ## Hosted Install Auth
 
 Hosted installs use install-token authentication when enabled. Relevant code lives in:
@@ -54,4 +50,4 @@ Hosted installs use install-token authentication when enabled. Relevant code liv
 - Check whether the provider factory actually registered the provider.
 - Check frontend overrides only after confirming environment variables are absent or intentionally overridden.
 - Check hosted auth headers when a remote REST route works locally but fails through the packaged app.
-- Check [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) when a symptom could belong to install auth, runs auth, provider credentials, OAuth state, sidecar header propagation, or secret logging.
+- Check [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) when a symptom could belong to install auth, runs auth, provider credentials, sidecar header propagation, or secret logging.

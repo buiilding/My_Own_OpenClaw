@@ -46,8 +46,6 @@ const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     LIST_MCP_SERVERS: 'list-mcp-servers',
     SET_MCP_SERVER_ENABLED: 'set-mcp-server-enabled',
     REFRESH_MCP_SERVERS: 'refresh-mcp-servers',
-    OPENAI_CODEX_OAUTH_LOGIN: 'openai-codex-oauth-login',
-    OPENAI_CODEX_OAUTH_LOGOUT: 'openai-codex-oauth-logout',
     LIST_PERMISSIONS: 'list-permissions',
     CHECK_PERMISSIONS: 'check-permissions',
     CHECK_PERMISSION: 'check-permission',
