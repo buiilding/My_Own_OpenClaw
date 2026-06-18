@@ -55,7 +55,7 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     from backend.src.api.processing.formatters.web_search_progress import (
         WebSearchProgressEventFormatter,
     )
-    from backend.src.core.events import (
+    from backend.src.core.events.streaming_events import (
         AssistantMessageFullEvent,
         ChunkEvent,
         ContextCompactionCompletedEvent,

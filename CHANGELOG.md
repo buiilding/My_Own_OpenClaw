@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/bootstrap: import `PromptManager` from its concrete owner module
   during service initialization so namespace-package export cleanup does not
   break hosted backend startup.
+- backend/api: load streaming event formatter specs from the concrete
+  `streaming_events` owner module instead of the removed package-root
+  `core.events` export surface.
 
 ### Changed
 

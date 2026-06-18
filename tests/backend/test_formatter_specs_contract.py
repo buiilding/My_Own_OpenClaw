@@ -13,6 +13,10 @@ def test_get_formatter_specs_returns_cached_tuple():
     assert first is second
     assert len(first) > 0
     assert all(len(spec) == 3 for spec in first)
+    assert all(
+        event_cls.__module__ == "backend.src.core.events.streaming_events"
+        for event_cls, _, _ in first
+    )
 
 
 def test_get_formatter_specs_contains_expected_stream_types():
