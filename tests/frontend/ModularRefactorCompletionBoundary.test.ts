@@ -660,18 +660,25 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('browser contract docs route shared validation through the local runtime boundary', async () => {
     const docs = await Promise.all([
+      read('docs/README.md'),
+      read('docs/backend/README.md'),
+      read('docs/backend/tools/README.md'),
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
       read('docs/backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md'),
       read('docs/browser/browser_change_workflow.md'),
       read('docs/frontend/sidecar/browser/contracts/README.md'),
       read('docs/frontend/sidecar/browser_action_runtime_reference.md'),
       read('docs/frontend/sidecar/browser_automation_stack.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/tools/README.md'),
       read('docs/tools/tool_catalog_matrix.md'),
     ]);
     const docText = docs.join('\n');
 
     expect(docText).toContain('local-runtime validation');
     expect(docText).toContain('local-runtime validation backed by Python sidecar');
+    expect(docText).toContain('Backend-Local Runtime Browser Schema Parity');
+    expect(docText).toContain('backend/local-runtime parity');
     expect(docText).toContain('local-runtime browser execution');
     expect(docText).toContain('Python sidecar Browser Use adapters');
     expect(docText).toContain('Desktop client/local-runtime manifest');
