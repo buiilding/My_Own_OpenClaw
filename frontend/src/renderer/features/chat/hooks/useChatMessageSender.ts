@@ -6,7 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
-import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
@@ -23,7 +23,7 @@ import {
 import { IpcBridge } from '../../../infrastructure/ipc/bridge';
 import { DESKTOP_AGENT_SEND_CHANNELS } from '../../../infrastructure/ipc/channels';
 
-const chatSkin = desktopAgentSkin.chat;
+const chatSkin = desktopRuntimeSkin.chat;
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;

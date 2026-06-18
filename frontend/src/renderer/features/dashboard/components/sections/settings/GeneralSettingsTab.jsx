@@ -4,14 +4,14 @@
 
 import PropTypes from 'prop-types';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
-import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import {
   getGlobalAgentStopShortcutLabel,
   getGlobalAgentStopShortcutOptions,
 } from '../../../../../infrastructure/shortcuts/agentStopShortcut';
 import { CloneToggle, SelectDropdown } from './settingsControls';
 
-const generalSettingsSkin = desktopAgentSkin.settings.general;
+const generalSettingsSkin = desktopRuntimeSkin.settings.general;
 
 function GeneralSettingsTab({ config, onConfigChange }) {
   const {

@@ -18,7 +18,7 @@ import {
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
-import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
@@ -62,7 +62,7 @@ import {
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
 
-const chatSkin = desktopAgentSkin.chat;
+const chatSkin = desktopRuntimeSkin.chat;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

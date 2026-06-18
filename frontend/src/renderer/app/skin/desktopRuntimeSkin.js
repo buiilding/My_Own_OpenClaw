@@ -1,8 +1,8 @@
 /**
- * Exposes the active renderer skin through a generic desktop-agent name.
+ * Exposes the active renderer skin through a generic desktop-runtime name.
  */
 
 export {
   formatToolAcceptanceRuntimeSummary,
-  windieDesktopSkin as desktopAgentSkin,
+  windieDesktopSkin as desktopRuntimeSkin,
 } from './windieDesktopSkin';

@@ -3,14 +3,14 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../../../permissions/utils/permissionGrantEffects';
 import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
-const browserSettingsSkin = desktopAgentSkin.settings.browser;
+const browserSettingsSkin = desktopRuntimeSkin.settings.browser;
 
 function BrowserSettingsTab() {
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);

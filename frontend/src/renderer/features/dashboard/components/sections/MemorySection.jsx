@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
-import { desktopAgentSkin } from '../../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
 import { DESKTOP_AGENT_ON_CHANNELS } from '../../../../infrastructure/ipc/channels';
 import {
   getMemoryRetrievalInjectionEnabled,
@@ -28,7 +28,7 @@ import {
   resolveActiveMemoryTypeInfo,
 } from './memorySectionState';
 
-const memoryPanelSkin = desktopAgentSkin.memoryPanel;
+const memoryPanelSkin = desktopRuntimeSkin.memoryPanel;
 
 function MemorySection({ onClose = () => {} }) {
   const [activeType, setActiveType] = useState('episodic');

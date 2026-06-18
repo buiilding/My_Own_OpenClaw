@@ -349,7 +349,7 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain('Python backend');
   });
 
-  test('main-private host markers use generic desktop-agent naming', () => {
+  test('main-private host markers use generic desktop-runtime naming', () => {
     const bannedMarkers = [
       '__windieConsoleStreamErrorGuardInstalled',
       '__windieLayerLogInstalled',

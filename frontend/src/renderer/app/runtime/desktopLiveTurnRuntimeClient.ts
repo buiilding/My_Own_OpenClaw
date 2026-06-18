@@ -10,7 +10,7 @@ import {
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
-import { desktopAgentSkin } from '../skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../skin/desktopRuntimeSkin';
 
 type CaptureMeta = {
   source_w?: number;
@@ -71,7 +71,7 @@ function throwIfFailedIpcResult(result: unknown): void {
   }
   const message = 'error' in result && typeof result.error === 'string' && result.error.trim()
     ? result.error.trim()
-    : desktopAgentSkin.runtime.sendCommandFailure;
+    : desktopRuntimeSkin.runtime.sendCommandFailure;
   throw new Error(message);
 }
 

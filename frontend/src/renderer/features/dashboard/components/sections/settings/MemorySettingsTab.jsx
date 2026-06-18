@@ -3,10 +3,10 @@
  */
 
 import PropTypes from 'prop-types';
-import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import { useMemorySettingsActions } from './useMemorySettingsActions';
 
-const memorySettingsSkin = desktopAgentSkin.settings.memory;
+const memorySettingsSkin = desktopRuntimeSkin.settings.memory;
 
 function MemorySettingsTab({ onChatsCleared }) {
   const {

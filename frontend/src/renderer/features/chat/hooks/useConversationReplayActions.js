@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { desktopAgentSkin } from '../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
@@ -25,7 +25,7 @@ import { createConversationRef } from '../utils/session/conversationRef';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 
-const chatSkin = desktopAgentSkin.chat;
+const chatSkin = desktopRuntimeSkin.chat;
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({

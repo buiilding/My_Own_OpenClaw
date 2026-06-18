@@ -7,7 +7,7 @@ import {
   DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
   DEFAULT_PROVIDER_OAUTH,
-} from '../app/skin/desktopAgentConfig';
+} from '../app/skin/desktopRuntimeConfig';
 
 /**
  * Local storage utilities for configuration persistence.

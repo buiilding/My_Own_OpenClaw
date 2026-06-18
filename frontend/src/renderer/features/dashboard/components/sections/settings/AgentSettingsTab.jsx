@@ -6,12 +6,12 @@ import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   formatToolAcceptanceRuntimeSummary,
-  desktopAgentSkin,
-} from '../../../../../app/skin/desktopAgentSkin';
+  desktopRuntimeSkin,
+} from '../../../../../app/skin/desktopRuntimeSkin';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import { CloneToggle } from './settingsControls';
 
-const agentSettingsSkin = desktopAgentSkin.settings.agent;
+const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
 
 function toggleListValue(values, value, enabled) {
   const source = Array.isArray(values) ? values : [];

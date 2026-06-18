@@ -8,9 +8,9 @@ const path = require('path');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const appPath = path.join(rendererRoot, 'app/App.jsx');
 const skinPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.js');
-const skinFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.js');
-const skinConfigFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentConfig.js');
-const skinCssFacadePath = path.join(rendererRoot, 'app/skin/desktopAgentSkin.css');
+const skinFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeSkin.js');
+const skinConfigFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeConfig.js');
+const skinCssFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeSkin.css');
 const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
 const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
@@ -39,7 +39,7 @@ describe('renderer skin/config boundary', () => {
     expect(skinSource).toContain('web_search');
     expect(skinSource).toContain('run_shell_command');
     expect(skinSource).toContain('requireUserMessage');
-    expect(skinFacadeSource).toContain('windieDesktopSkin as desktopAgentSkin');
+    expect(skinFacadeSource).toContain('windieDesktopSkin as desktopRuntimeSkin');
     expect(skinFacadeSource).toContain("from './windieDesktopSkin'");
   });
 
@@ -49,7 +49,7 @@ describe('renderer skin/config boundary', () => {
     const skinCssSource = fs.readFileSync(skinCssPath, 'utf8');
     const dashboardShellCssSource = fs.readFileSync(dashboardShellCssPath, 'utf8');
 
-    expect(appSource).toContain("import './skin/desktopAgentSkin.css'");
+    expect(appSource).toContain("import './skin/desktopRuntimeSkin.css'");
     expect(appSource).not.toContain("import './skin/windieDesktopSkin.css'");
     expect(skinCssFacadeSource).toContain('@import "./windieDesktopSkin.css"');
     expect(skinCssSource).toContain('--cg-brand-app-icon-url');
@@ -70,7 +70,7 @@ describe('renderer skin/config boundary', () => {
     ].map(read);
 
     for (const source of settingsSources) {
-      expect(source).toContain('desktopAgentSkin');
+      expect(source).toContain('desktopRuntimeSkin');
       expect(source).not.toContain('windieDesktopSkin');
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('Windie Browser');
@@ -84,7 +84,7 @@ describe('renderer skin/config boundary', () => {
   test('memory panel consumes skin copy instead of hard-coding product copy', () => {
     const source = fs.readFileSync(path.join(dashboardSectionsRoot, 'MemorySection.jsx'), 'utf8');
 
-    expect(source).toContain('desktopAgentSkin');
+    expect(source).toContain('desktopRuntimeSkin');
     expect(source).not.toContain('windieDesktopSkin');
     expect(source).not.toContain('WindieOS builds understanding');
     expect(source).not.toContain('Memories will appear as you interact with WindieOS');
@@ -102,7 +102,7 @@ describe('renderer skin/config boundary', () => {
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
 
     for (const source of consumers) {
-      expect(source).toContain('desktopAgentSkin');
+      expect(source).toContain('desktopRuntimeSkin');
       expect(source).not.toContain('windieDesktopSkin');
       expect(source).not.toContain('WindieOS onboarding');
       expect(source).not.toContain('Start WindieOS');
@@ -154,9 +154,9 @@ describe('renderer skin/config boundary', () => {
     expect(configFacadeSource).toContain("from './providerCredentialSettings'");
     expect(providerSkinSource).toContain('DEFAULT_PROVIDER_API_KEYS');
     expect(providerSkinSource).toContain('PROVIDER_API_KEY_SPECS');
-    expect(configStorageSource).toContain('desktopAgentConfig');
+    expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).not.toContain('providerCredentialSettings');
-    expect(apiKeysSource).toContain('desktopAgentConfig');
+    expect(apiKeysSource).toContain('desktopRuntimeConfig');
     expect(apiKeysSource).not.toContain('providerCredentialSettings');
     expect(configStorageSource).not.toContain('openai: { enabled: false');
     expect(apiKeysSource).not.toContain('OpenAI API Key');
@@ -171,7 +171,7 @@ describe('renderer skin/config boundary', () => {
     expect(modelDefaultsSource).toContain('DEFAULT_MODEL_SELECTION');
     expect(modelDefaultsSource).toContain("provider: 'openai'");
     expect(modelDefaultsSource).toContain("modelId: 'gpt-5.4@@gpt-5-4-none-thinking'");
-    expect(configStorageSource).toContain('desktopAgentConfig');
+    expect(configStorageSource).toContain('desktopRuntimeConfig');
     expect(configStorageSource).not.toContain('modelSelectionDefaults');
     expect(configStorageSource).not.toContain("model_provider: 'openai'");
     expect(configStorageSource).not.toContain("selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking'");
@@ -193,9 +193,9 @@ describe('renderer skin/config boundary', () => {
     expect(providerDisplaySource).toContain('PROVIDER_MODEL_DISPLAY_FALLBACKS');
     expect(providerDisplaySource).toContain('PROVIDER_LABEL_OVERRIDES');
     expect(providerDisplaySource).toContain('OpenAI flagship model family');
-    expect(modelCardDataSource).toContain('desktopAgentConfig');
+    expect(modelCardDataSource).toContain('desktopRuntimeConfig');
     expect(modelCardDataSource).not.toContain('providerModelDisplaySettings');
-    expect(chatModelOptionsSource).toContain('desktopAgentConfig');
+    expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
     expect(chatModelOptionsSource).not.toContain('providerModelDisplaySettings');
     expect(modelCardDataSource).not.toContain("provider.includes('openai')");
     expect(modelCardDataSource).not.toContain('OpenAI flagship model family');

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer skin/config facade runtime naming
+
+- Finding: after the renderer skin/config facade files moved to desktop-runtime
+  filenames, the exported facade names and consumers still used stale
+  `desktopAgentSkin` and `desktopAgentConfig` symbols.
+- Change: renamed the facade exports, renderer imports, docs, and boundary
+  assertions to `desktopRuntimeSkin` and `desktopRuntimeConfig` without keeping
+  compatibility aliases.
+- Validation: focused RendererSkinConfigBoundary, FrontendOnboardingSlideshow,
+  and DesktopSettingsRuntimeClient Jest tests, Knip audit, docs search, and stale
+  facade-name scan.
+- Compatibility: no migration required. Rendered copy, CSS loading, provider
+  defaults, settings storage, IPC, and runtime payloads are unchanged.
+
 ### 2026-06-18 permission manifest runtime copy
 
 - Finding: the shared permission manifest still used desktop-agent wording in

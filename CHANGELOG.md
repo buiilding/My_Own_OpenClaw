@@ -5,7 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
-- frontend/permissions: replace desktop-agent wording in shared permission
+- frontend/renderer: rename the renderer skin/config facade symbols, imports,
+  docs, and boundary tests from `desktopAgent*` to `desktopRuntime*` after the
+  facade files moved; no migration is required because rendered copy, CSS,
+  provider defaults, settings storage, IPC, and runtime payloads are unchanged.- frontend/permissions: replace desktop-agent wording in shared permission
   manifest descriptions with desktop-runtime copy; no migration is required
   because permission ids, manifest version, probes, and grant state are unchanged.
 - frontend/main: rename the internal Electron main SDK client factory from

@@ -374,7 +374,7 @@ Primary modules:
 - `renderer/app/skin/windieDesktopSkin.js`:
   - WindieOS-specific renderer copy, tool catalog presentation, and display-safe
     runtime labels for the active renderer skin.
-- `renderer/app/skin/desktopAgentSkin.js`:
+- `renderer/app/skin/desktopRuntimeSkin.js`:
   - Generic renderer-facing facade over the active desktop-agent skin.
   - Settings, memory, onboarding, and chat feature components should read
     product copy, app-specific tool catalog choices, destructive-action labels,
@@ -382,14 +382,14 @@ Primary modules:
     messages from this generic skin facade instead of importing the WindieOS
     skin/config directly or hard-coding WindieOS wording and sidecar/backend
     runtime names inline.
-- `renderer/app/skin/desktopAgentConfig.js`:
+- `renderer/app/skin/desktopRuntimeConfig.js`:
   - Generic renderer-facing facade over active model selection, provider
     credential, and provider display defaults supplied by the WindieOS
     skin/config files.
   - Config storage, dashboard settings helpers, model cards, and chat model
     labels should import this facade instead of individual product skin/config
     modules.
-- `renderer/app/skin/desktopAgentSkin.css`:
+- `renderer/app/skin/desktopRuntimeSkin.css`:
   - Generic renderer-facing stylesheet entrypoint for the active skin. The
     WindieOS icon asset remains in the product-specific skin stylesheet behind
     this facade.

@@ -3,14 +3,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { desktopAgentSkin } from '../../../../../app/skin/desktopAgentSkin';
+import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import { IpcBridge, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import {
   fetchActiveWorkspaceSelection,
   requestActiveWorkspaceSelection,
 } from '../../../../../infrastructure/workspace/workspaceAccess';
 
-const workspaceSettingsSkin = desktopAgentSkin.settings.workspace;
+const workspaceSettingsSkin = desktopRuntimeSkin.settings.workspace;
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (

@@ -1,5 +1,5 @@
 /**
- * Exposes active renderer skin config through a generic desktop-agent name.
+ * Exposes active renderer skin config through a generic desktop-runtime name.
  */
 
 export { DEFAULT_MODEL_SELECTION } from './modelSelectionDefaults';
