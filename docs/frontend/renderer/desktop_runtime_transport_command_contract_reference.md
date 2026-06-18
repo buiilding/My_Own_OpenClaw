@@ -15,6 +15,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
@@ -108,11 +109,16 @@ Message screenshot resolution and user screenshot presentation keep only display
 policy and call this runtime client instead of importing artifact IPC channel
 constants directly.
 
+`desktopAppConfigRuntimeClient.ts` owns renderer config disk persistence and
+settings-event fan-out for app-level config/status providers so those providers
+do not import config persistence or settings-event channel constants directly.
+
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
 desktop client/session snapshot and IPC transport status subscription. Chat
-session bootstrap, loop transport projection, and dashboard user snapshot
+session bootstrap, loop transport projection, dashboard user snapshot
 fallback call this runtime client instead of importing `get-client-user-id` or
-`ipc-status` channel constants directly.
+`ipc-status` channel constants directly. App config runtime snapshot handling
+also calls this client for startup and connection-status user context.
 
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,
@@ -130,8 +136,8 @@ this app runtime client.
 `desktopVoiceRuntimeClient.ts` owns renderer voice runtime commands and local
 wakeword bridge IPC. Wakeword hooks keep capture lifecycle, cooldown,
 thresholding, and local error policy while delegating wakeword audio chunks,
-enable/disable sends, and wakeword detected/status subscriptions to this app
-runtime client.
+enable/disable sends, wakeword detected/status subscriptions, and app-level
+wakeword-toggle fan-out to this app runtime client.
 
 `desktopWorkspaceRuntimeClient.ts` owns the renderer subscription to workspace
 access update fan-out. `ChatInterface` keeps active-workspace refresh,

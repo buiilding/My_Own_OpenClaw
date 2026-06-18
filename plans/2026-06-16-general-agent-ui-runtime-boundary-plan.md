@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer App Config Provider Runtime Clients
+
+- Finding: `AppConfigProvider` and `AppStatusProvider` still imported settings,
+  config persistence, session snapshot/status, and wakeword-toggle IPC channels
+  directly even though adjacent renderer paths already used app runtime clients.
+- Change: added `DesktopAppConfigRuntimeClient` for renderer config disk
+  persistence and settings-event fan-out, routed session snapshot/status through
+  `DesktopClientSessionRuntimeClient`, and routed wakeword-toggle fan-out through
+  `DesktopVoiceRuntimeClient` while leaving config merge, save-status, runtime
+  sync, and wakeword suppression policy in the providers.
+- Validation: focused app config provider, app status provider, renderer
+  settings boundary tests, targeted provider direct IPC scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. Renderer config storage keys, disk
+  config payloads, settings events, session snapshot/status payloads,
+  wakeword-toggle payloads, provider credential redaction, storage, credentials,
+  and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Dashboard Shell Runtime Clients
 
 - Finding: `DashboardShell` still imported main-window open-target and

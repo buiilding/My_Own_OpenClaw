@@ -37,6 +37,10 @@ export type WakewordStatusPayload = {
   error?: string | null;
 };
 
+export type WakewordTogglePayload = {
+  enabled?: unknown;
+};
+
 function parseBoolean(value: unknown): boolean {
   return value === true || value === 'true';
 }
@@ -71,6 +75,10 @@ export const DesktopVoiceRuntimeClient = {
 
   onWakewordStatus(listener: (payload: WakewordStatusPayload) => void): (() => void) | undefined {
     return IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, listener as (payload: unknown) => void);
+  },
+
+  onWakewordToggle(listener: (payload: WakewordTogglePayload) => void): (() => void) | undefined {
+    return IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, listener as (payload: unknown) => void);
   },
 
   getTranscriptionGatewayUrl(): string {

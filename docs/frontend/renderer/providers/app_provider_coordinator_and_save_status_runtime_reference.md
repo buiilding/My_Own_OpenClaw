@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for AppProvider/AppConfigProvider/AppStatusProvider coordination: settings save callback bridge, shift-tab mode toggle guardrails, persistence layers, and IPC sync behavior."
+summary: "Deep reference for AppProvider/AppConfigProvider/AppStatusProvider coordination: settings save callback bridge, shift-tab mode toggle guardrails, persistence layers, and runtime-client sync behavior."
 read_when:
   - When changing renderer config/status providers or app-level keyboard shortcut behavior.
   - When debugging stale config persistence, duplicate model-list fetches, or save-status stuck states.
@@ -13,6 +13,9 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/providers/configComparison.ts`
@@ -83,10 +86,10 @@ Initialization/sync inputs:
 
 1. localStorage (`loadConfigFromStorage`) as initial state seed
 2. renderer view (`window.location.search`) for initial wakeword suppression seed
-3. settings-event listener for `models-listed`
-4. IPC status events (`ipc-status`) for transcript user and backend HTTP URL snapshot
-5. initial `get-client-user-id` invoke for startup snapshot
-6. disk config load (`load-frontend-config`) merge path
+3. settings-event listener through `DesktopAppConfigRuntimeClient.onSettingsEvent(...)` for `models-listed`
+4. `DesktopClientSessionRuntimeClient.onIpcStatus(...)` for transcript user and runtime HTTP URL snapshot
+5. `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()` for startup snapshot
+6. disk config load through `DesktopAppConfigRuntimeClient.loadRendererConfig()`
 7. browser `storage` event cross-window sync
 
 One-time model-list request guard:
@@ -114,13 +117,25 @@ One-time model-list request guard:
 3. invoke save-status callback if registered
 4. build a redacted persistence payload for renderer localStorage and Electron disk config
 5. persist localStorage
-6. invoke `save-frontend-config` with provider API keys and OAuth tokens scrubbed
-7. sync the live, unredacted provider credential patch to backend settings when backend-owned settings changed
+6. persist through `DesktopAppConfigRuntimeClient.saveRendererConfig(...)` with provider API keys and OAuth tokens scrubbed
+7. sync the live, unredacted provider credential patch to SDK runtime settings when runtime-owned settings changed
 
 Shared commit path:
 
 - disk-load reconcile, runtime fallback config writes, and explicit `updateConfig(...)` calls all flow through the same apply/commit helper path
 - browser `storage` sync reuses the same apply path but skips disk/backend side effects
+
+## Runtime Client Boundary
+
+`AppConfigProvider` and `AppStatusProvider` own renderer state machines only.
+Desktop host transport is routed through app runtime clients:
+
+- `DesktopAppConfigRuntimeClient` owns renderer config disk persistence and settings-event fan-out.
+- `DesktopClientSessionRuntimeClient` owns main-session snapshots and connection status fan-out.
+- `DesktopVoiceRuntimeClient` owns wakeword-toggle fan-out.
+- `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
+
+Provider code should not import `IpcBridge`, channel constants, or desktop runtime channel names directly.
 
 ## AppStatusProvider Save-State Machine
 
@@ -143,9 +158,9 @@ Cleanup:
 
 ## Wakeword Suppression Wiring
 
-Channel listener:
+Runtime listener:
 
-- `ON_CHANNELS.WAKEWORD_TOGGLE`
+- `DesktopVoiceRuntimeClient.onWakewordToggle(...)`
 
 Payload handling:
 
@@ -177,7 +192,7 @@ Net effect:
 If settings button shows perpetual saving:
 
 1. verify `registerSaveStatusCallback` is called by coordinator
-2. verify backend emits `settings-updated` or matching failure error message
+2. verify the settings runtime emits `settings-updated` or matching failure error message
 3. inspect timeout path in `AppStatusProvider` and timer cleanup
 
 If updates appear in UI but not backend:

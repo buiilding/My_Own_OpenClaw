@@ -15,6 +15,8 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 - `frontend/src/renderer/utils/configFilter.js`
 - `frontend/src/renderer/utils/configStorage.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `tests/frontend/configFilter.test.js`
@@ -118,9 +120,10 @@ Save semantics (`saveConfigToStorage`):
 - returns boolean success/failure
 
 Disk persistence uses the same redaction rule. `AppConfigProvider` builds a
-redacted persistence payload before invoking `SAVE_FRONTEND_CONFIG`, and
-Electron main defensively redacts provider secrets again on both
-`save-frontend-config` and disk `load-frontend-config` legacy-named routes.
+redacted persistence payload before calling
+`DesktopAppConfigRuntimeClient.saveRendererConfig(...)`, and Electron main
+defensively redacts provider secrets again on both `save-frontend-config` and
+disk `load-frontend-config` legacy-named routes.
 
 Live provider credential edits still flow to backend settings through
 `DesktopSettingsRuntimeClient.updateSettings(...)`; only renderer-local and
@@ -151,9 +154,9 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 ### Startup sources
 
 1. seed state from `loadConfigFromStorage()`
-2. invoke `LOAD_FRONTEND_CONFIG` and merge filtered disk config
-3. invoke `GET_CLIENT_USER_ID` snapshot
-4. subscribe to `IPC_STATUS` and settings event channel updates
+2. call `DesktopAppConfigRuntimeClient.loadRendererConfig()` and merge filtered disk config
+3. call `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`
+4. subscribe through `DesktopClientSessionRuntimeClient.onIpcStatus(...)` and `DesktopAppConfigRuntimeClient.onSettingsEvent(...)`
 
 ### Update path (`updateConfig`)
 
@@ -161,7 +164,7 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 2. `applyConfigIfChanged` gate
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)
-5. async disk save (`SAVE_FRONTEND_CONFIG`) with redacted provider credential fields
+5. async disk save through `DesktopAppConfigRuntimeClient.saveRendererConfig(...)` with redacted provider credential fields
 6. runtime sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
 Deferred runtime fields:

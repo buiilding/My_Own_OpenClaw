@@ -173,6 +173,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Renderer App Config Provider Runtime Clients Slice
+
+- Worktree was clean after `df90a36e7`, with `main` ahead of `origin/main` by
+  851 commits.
+- Recent commits and the empty diff were inspected after compaction before
+  continuing the renderer boundary work.
+- Finding: `AppConfigProvider` and `AppStatusProvider` still imported settings,
+  config persistence, session snapshot/status, and wakeword-toggle IPC channels
+  directly even though adjacent renderer paths already used app runtime clients.
+- Change: added `DesktopAppConfigRuntimeClient` for renderer config disk
+  persistence and settings-event fan-out, routed session snapshot/status through
+  `DesktopClientSessionRuntimeClient`, and routed wakeword-toggle fan-out through
+  `DesktopVoiceRuntimeClient` while leaving config merge, save-status, runtime
+  sync, and wakeword suppression policy in the providers.
+- Validation: focused app config provider, app status provider, renderer
+  settings boundary tests, targeted provider direct IPC scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. Renderer config storage keys, disk
+  config payloads, settings events, session snapshot/status payloads,
+  wakeword-toggle payloads, provider credential redaction, storage, credentials,
+  and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Dashboard Shell Runtime Clients Slice
 
 - Worktree was clean after `2ffbd4190`, with `main` ahead of `origin/main` by

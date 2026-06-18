@@ -28,6 +28,55 @@ describe('renderer settings runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('app config and status providers route desktop IPC through app runtime clients', async () => {
+    const providerFiles = [
+      'app/providers/AppConfigProvider.jsx',
+      'app/providers/AppStatusProvider.jsx',
+    ];
+    const offenders: string[] = [];
+
+    for (const relativePath of providerFiles) {
+      const source = await fs.readFile(
+        path.resolve(__dirname, '../../frontend/src/renderer', relativePath),
+        'utf8',
+      );
+      if (
+        source.includes('IpcBridge')
+        || source.includes('INVOKE_CHANNELS')
+        || source.includes('ON_CHANNELS')
+        || source.includes('SAVE_FRONTEND_CONFIG')
+        || source.includes('LOAD_FRONTEND_CONFIG')
+        || source.includes('BACKEND_SETTINGS_EVENT')
+        || source.includes('GET_CLIENT_USER_ID')
+        || source.includes('IPC_STATUS')
+        || source.includes('WAKEWORD_TOGGLE')
+      ) {
+        offenders.push(relativePath);
+      }
+    }
+
+    const appConfigClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts'),
+      'utf8',
+    );
+    const sessionClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts'),
+      'utf8',
+    );
+    const voiceClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(offenders).toEqual([]);
+    expect(appConfigClientSource).toContain('INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG');
+    expect(appConfigClientSource).toContain('INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG');
+    expect(appConfigClientSource).toContain('ON_CHANNELS.BACKEND_SETTINGS_EVENT');
+    expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
+    expect(sessionClientSource).toContain('ON_CHANNELS.IPC_STATUS');
+    expect(voiceClientSource).toContain('ON_CHANNELS.WAKEWORD_TOGGLE');
+  });
+
   test('settings runtime facade describes SDK command IPC rather than backend IPC', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts'),

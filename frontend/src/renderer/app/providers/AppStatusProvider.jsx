@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntimeClient';
 import { AppStatusContext } from './AppStatusContext';
 
 /**
@@ -56,9 +56,9 @@ export function AppStatusProvider({ children }) {
   }, [clearTimer, scheduleIdleReset]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onSettingsEvent);
+    const removeListener = DesktopAppConfigRuntimeClient.onSettingsEvent(onSettingsEvent);
     return () => {
-      removeListener();
+      removeListener?.();
       clearTimer(saveTimeoutId);
       clearTimer(resetTimeoutId);
     };

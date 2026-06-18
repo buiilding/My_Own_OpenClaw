@@ -5,7 +5,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterRendererConfig } from '../../utils/configFilter';
-import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
@@ -22,8 +21,11 @@ import {
   buildImmediateRuntimeConfig,
   hasImmediateRuntimeConfigChanges,
 } from './appConfigRuntimeSync';
+import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntimeClient';
+import { DesktopClientSessionRuntimeClient } from '../runtime/desktopClientSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
 import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 function resolveInitialWakewordSuppressed() {
@@ -111,7 +113,7 @@ export function AppConfigProvider({ children }) {
       saveConfigToStorage(persistenceConfig);
     }
     if (persistToDisk) {
-      IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, persistenceConfig).catch((error) => {
+      DesktopAppConfigRuntimeClient.saveRendererConfig(persistenceConfig).catch((error) => {
         console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
       });
     }
@@ -197,10 +199,10 @@ export function AppConfigProvider({ children }) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onSettingsEvent);
+    const removeListener = DesktopAppConfigRuntimeClient.onSettingsEvent(onSettingsEvent);
 
     return () => {
-      removeListener();
+      removeListener?.();
     };
   }, [onSettingsEvent]);
 
@@ -209,7 +211,7 @@ export function AppConfigProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {
+    const removeListener = DesktopClientSessionRuntimeClient.onIpcStatus((data) => {
       applyRuntimeConnectionSnapshot(data);
     });
     return () => {
@@ -218,7 +220,7 @@ export function AppConfigProvider({ children }) {
   }, [applyRuntimeConnectionSnapshot]);
 
   useEffect(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+    DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
       .then((result) => {
         applyRuntimeConnectionSnapshot(result);
       })
@@ -228,7 +230,7 @@ export function AppConfigProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
 
-    IpcBridge.invoke(INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG).then((diskConfig) => {
+    DesktopAppConfigRuntimeClient.loadRendererConfig().then((diskConfig) => {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
@@ -298,7 +300,7 @@ export function AppConfigProvider({ children }) {
   const wakewordEnabled = isWakewordEnabledInConfig(config);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
+    const removeListener = DesktopVoiceRuntimeClient.onWakewordToggle((data) => {
       if (typeof data?.enabled === 'boolean') {
         setWakewordSuppressed(!data.enabled);
       }
