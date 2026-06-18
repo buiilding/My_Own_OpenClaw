@@ -1,8 +1,8 @@
 ---
-summary: "Local-runtime memory guide covering episodic and semantic memory, LocalRuntimeService memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
+summary: "Local-runtime memory guide covering episodic and semantic memory, stale sidecar episodic semantic memory wording, LocalRuntimeService memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
 read_when:
   - When changing local-runtime episodic or semantic memory, local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or local-runtime memory storage.
-  - When debugging local memory search, dashboard memory sections, conversation titles, or semantic memory generation.
+  - When debugging local memory search, dashboard memory sections, conversation titles, semantic memory generation, or stale sidecar episodic semantic memory references.
 title: "Local Runtime Memory"
 ---
 

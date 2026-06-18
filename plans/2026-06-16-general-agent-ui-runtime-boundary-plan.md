@@ -9449,3 +9449,18 @@ Each completed slice should report:
   behavior, renderer commands, Python sidecar daemon and handler modules,
   storage schemas, IPC channels, credentials, permissions, hosted backend URLs,
   and provider policy are unchanged.
+
+### 2026-06-18 one-message runtime trace boundary
+
+- Finding: the renderer, Electron main, SDK runtime, backend stream, local
+  runtime, SDK projection, and renderer display diagnostics were documented in
+  separate places, but there was no single owner-routed playbook for tracing one
+  user message end to end.
+- Change: added a sanitized one-message trace playbook to the runtime trace
+  guide and a docs-index guard so debug queries route to that canonical
+  evidence path.
+- Validation: focused docs-index routing test, docs listing, diff checks, and
+  exact route scans.
+- Compatibility: no migration required. Runtime behavior, persisted payloads,
+  storage schemas, IPC channels, tool schemas, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.

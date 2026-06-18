@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed the first debuggable trace slice by adding a
+  one-message runtime trace playbook to `docs/debug/runtime_traces.md`. The
+  playbook preserves the recent ownership direction by routing renderer action,
+  Electron main handoff, SDK dispatch/projection, backend stream/provider
+  policy, local-runtime tool execution, and renderer display through existing
+  sanitized diagnostics instead of adding a parallel debug surface. Validation:
+  focused docs-index routing test, docs listing, diff checks, and exact route
+  scans. No migration required; no payload, storage, IPC, settings, tool
+  schema, credential, permission, or provider-policy behavior changed.
 - 2026-06-18: plan created after reviewing `AGENTS.md`, runtime ownership docs,
   the existing general runtime-boundary plan, and recent commits around
   local-runtime naming, renderer app-runtime facades, SDK runtime helper

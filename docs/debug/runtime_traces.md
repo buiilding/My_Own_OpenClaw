@@ -1,7 +1,8 @@
 ---
-summary: "Runtime trace guide for stream events, chat pill phases, renderer trace platform labeling after deprecated navigator.platform removal, tool screenshots, overlay windows, local-runtime JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and appUserDataRoot."
+summary: "Runtime trace guide for one-message trace playbook debugging across renderer action, main bridge, SDK runtime, backend stream, local-runtime tool execution, SDK projection, renderer display, chat pill phases, renderer trace platform labeling after deprecated navigator.platform removal, tool screenshots, overlay windows, local-runtime JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and appUserDataRoot."
 read_when:
   - When debugging event ordering across backend, Electron main, renderer, or sidecar.
+  - When tracing one user message through renderer action, main bridge handoff, SDK runtime dispatch, backend stream, local-runtime tool execution, SDK projection, and renderer display.
   - When changing stream handling, overlay phases, screenshot capture, tool execution, or websocket routing.
   - When stale code, tests, or docs mention `navigator.platform` in renderer trace logging; renderer trace labels use `navigator.userAgentData.platform` with user-agent fallback.
   - When resolving app diagnostics inspection helper references such as `queryDiagnosticEvents`, `inspectDiagnosticTrace`, `listDiagnosticPathDefinitions`, `diagnosticsDatabasePath`, or `appUserDataRoot`.
@@ -13,6 +14,40 @@ title: "Runtime Traces"
 Runtime traces are useful when a bug depends on event order, process boundaries, or transient UI state. Enable the smallest trace that can prove which boundary broke.
 
 Use [Observability Change Workflow](observability_change_workflow.md) before adding or renaming trace flags.
+
+## One-Message Trace Playbook
+
+Use this route first when one user message leaves the compose box but the
+response, tool result, overlay, or transcript row looks wrong. Start with the
+correlation ids from `ipc.bridge`, then move to durable turn traces once you
+have a `conversationRef` and `turnRef`.
+
+```bash
+<windie> diagnostics list --path ipc.bridge --limit 50
+<windie> trace <conversation-ref> <turn-ref>
+```
+
+| Stage | Owner | Evidence to prove | First place to inspect |
+| --- | --- | --- | --- |
+| Renderer action | Generic chat desktop UI plus WindieOS skin/config | A renderer send intent produced one SDK-shaped conversation send with message length, resource count, and a `queryMessageId`. | `ipc.bridge` row `renderer query.send`; `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`; [Query Payload and Relay Reference](../frontend/main/query_payload_and_relay_reference.md). |
+| Main handoff | Generic Electron agent host plus OS/window/permission/endpoint adapters | Main accepted the renderer command, applied settings/endpoint gates, and forwarded one query to the SDK/backend transport. | `ipc.bridge` rows `settings update.*`, `backend connection.*`, and `renderer query.send`; `frontend/src/main/ipc/ipc_query_send_runtime.cjs`; [Query Send and Stream Relay Change Workflow](../frontend/main/query_send_and_stream_relay_change_workflow.md). |
+| SDK runtime dispatch | Durable SDK conversation runtime | The runtime resolved turn resources, shaped agent definition/client manifest data, and sent or skipped backend dispatch with explicit transport state. | Durable `query.resources`, `agent.definition`, `settings.sync`, and `query.dispatch` trace rows from `<windie> trace <conversation-ref> <turn-ref>`; [Windie Client Runtime](../sdk/windie_client_runtime.md). |
+| Backend hosted orchestration | WindieOS hosted FastAPI orchestration, provider policy, prompt/runtime specifics | Backend accepted the query, built prompt/provider/tool policy, emitted stream events, and reached a terminal state. | `ipc.bridge` rows `backend first_event` and `backend complete`; durable `backend.stream`, `backend.prompt`, `provider.call`, and `tool.schema.policy` traces; [Query Execution and Stream Pipeline Reference](../backend/runtime/query_execution_and_stream_pipeline_reference.md). |
+| Local-runtime tool execution | SDK local-runtime contracts plus the current Python sidecar implementation | A backend `tool-call` or `tool-bundle` reached the SDK coordinator, ran through the local executor, returned matching request/bundle ids, and produced one display-owned local output. | `ipc.bridge` rows `backend tool_call` / `tool_output`; durable `tool.execution`, `local_runtime.rpc`, and `browser.runtime` traces; [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md). |
+| SDK projection | Durable SDK projections for current turn, rows, overlay phase, and rehydrate | Backend/local events became SDK `windie:current-turn` and `windie:rows` projections with the expected phase, tool-output, or error state. | `WINDIE_DEBUG_STREAM_EVENTS=1` for live SDK projection progress; durable `overlay.phase` traces; `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`; [Conversation Runtime](../sdk/conversation_runtime.md). |
+| Renderer display | Generic chat desktop UI package plus WindieOS display skin | The renderer consumed SDK projection state and the main surface policy made the pill/overlay visible or hidden for the same turn. | `surface.visibility` app diagnostics, `[LiveSurfaceTrace]` when enabled, and renderer chat stream hooks; [Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md). |
+
+If evidence is missing at a stage, fix the producer for that stage before
+adding downstream fallback parsing. Use app diagnostics for pre-turn app/main
+state such as `ipc.bridge` or `surface.visibility`; use durable `trace_event`
+rows for turn-scoped SDK/backend/local-runtime timelines that must survive
+restart.
+
+Keep this playbook sanitized. Do not add prompt text, raw user/assistant
+messages, provider payloads, credentials, file contents, shell output,
+screenshots, URLs, browser page text, or tool output bodies to trace rows.
+Prefer ids, counts, booleans, durations, enum stages, and short error
+summaries.
 
 ## Durable Path Trace Events
 

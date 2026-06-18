@@ -201,27 +201,40 @@ describe('windie docs index', () => {
     expect(findDocs('WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL')[0].path).toBe(expectedPath);
   });
 
-  test('routes removed search-memory RPC queries to local backend JSON-RPC docs', () => {
-    const expectedPath = path.join('docs', 'frontend', 'sidecar', 'local_backend_jsonrpc_reference.md');
+  test('routes removed search-memory RPC queries to current memory boundary docs', () => {
+    const jsonRpcPath = path.join('docs', 'frontend', 'sidecar', 'local_backend_jsonrpc_reference.md');
+    const mapperPath = path.join(
+      'docs',
+      'frontend',
+      'contracts',
+      'memory_ipc_and_rpc_mapping_reference.md',
+    );
 
-    expect(findDocs('removed search-memory text query')[0].path).toBe(expectedPath);
-    expect(findDocs('search_memory text-query RPC removed')[0].path).toBe(expectedPath);
+    expect(findDocs('removed search-memory text query')[0].path).toBe(jsonRpcPath);
+    expect(findDocs('search_memory text-query RPC removed')[0].path).toBe(mapperPath);
   });
 
-  test('routes frontend protocol channel count queries to the IPC matrix', () => {
-    const expectedPath = path.join(
+  test('routes frontend protocol channel count and mapper queries to current IPC docs', () => {
+    const matrixPath = path.join(
       'docs',
       'frontend',
       'inventory',
       'protocols',
       'frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md',
     );
+    const mapperPath = path.join(
+      'docs',
+      'frontend',
+      'contracts',
+      'ipc',
+      'main_process_ipc_handler_ownership_and_rpc_mapper_reference.md',
+    );
 
     expect(
       findDocs('frontend protocol channel counts windie invoke get local backend status')[0].path,
-    ).toBe(expectedPath);
+    ).toBe(matrixPath);
     expect(findDocs('renderer invoke channels compiled rpc mapper definitions')[0].path).toBe(
-      expectedPath,
+      mapperPath,
     );
   });
 
@@ -510,6 +523,17 @@ describe('windie docs index', () => {
     expect(findDocs('listDiagnosticPathDefinitions diagnostic paths')[0].path).toBe(
       expectedPath,
     );
+  });
+
+  test('routes one-message runtime trace playbook queries to runtime traces', () => {
+    const expectedPath = path.join('docs', 'debug', 'runtime_traces.md');
+
+    expect(
+      findDocs('one message trace playbook renderer action SDK projection local-runtime tool execution')[0].path,
+    ).toBe(expectedPath);
+    expect(
+      findDocs('debug one user message ipc bridge backend stream renderer display')[0].path,
+    ).toBe(expectedPath);
   });
 
   test('routes layer log sink helper queries to the logging guide', () => {
@@ -919,19 +943,26 @@ describe('windie docs index', () => {
   });
 
   test('routes removed sandbox executor queries to tool security docs', () => {
-    const expectedPath = path.join(
+    const securityPath = path.join(
       'docs',
       'backend',
       'tools',
       'tool_security_policy_and_executor_reference.md',
     );
+    const registryPath = path.join(
+      'docs',
+      'backend',
+      'tools',
+      'security',
+      'policy_permissions_audit_and_executor_registry_reference.md',
+    );
 
-    expect(findDocs('ProcessSandboxedExecutor removed')[0].path).toBe(expectedPath);
+    expect(findDocs('ProcessSandboxedExecutor removed')[0].path).toBe(securityPath);
     expect(findDocs('sandboxed executor placeholder removed')[0].path).toBe(
-      expectedPath,
+      securityPath,
     );
     expect(findDocs('ProcessSandboxedExecutor NotImplementedError')[0].path).toBe(
-      expectedPath,
+      registryPath,
     );
   });
 

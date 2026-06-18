@@ -27,6 +27,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: add a one-message runtime trace playbook that routes renderer
+  action, main query handoff, SDK dispatch, backend stream, local-runtime tool
+  execution, SDK projection, and renderer display through existing sanitized
+  diagnostics. No migration required.
+- docs/search: align docs-index routing guards for current memory IPC,
+  main-process RPC mapper, backend tool-security registry, and stale
+  sidecar-memory query owners. No migration required.
 - docs/plans: clarify the long-running scope for the simple hackable runtime
   goal around structural clarity, diagnostics, deletion, docs, contract tests,
   and explicit stop conditions for unstated product-judgment changes. No
