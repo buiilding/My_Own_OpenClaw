@@ -7,14 +7,14 @@ const retiredDesktopAgentChannelGroupName = (group) => `DESKTOP_${'AGENT'}_${gro
 
 describe('preload IPC channel registry', () => {
   let exposedIpc;
-  let exposedDesktopAgent;
+  let exposedAgentSdkBridge;
   let ipcRendererMock;
   let originalArgv;
 
   beforeEach(() => {
     jest.resetModules();
     exposedIpc = null;
-    exposedDesktopAgent = null;
+    exposedAgentSdkBridge = null;
     originalArgv = process.argv;
     ipcRendererMock = {
       send: jest.fn(),
@@ -31,7 +31,7 @@ describe('preload IPC channel registry', () => {
             exposedIpc = value;
           }
           if (key === 'desktopAgent') {
-            exposedDesktopAgent = value;
+            exposedAgentSdkBridge = value;
           }
         }),
       },
@@ -86,7 +86,7 @@ describe('preload IPC channel registry', () => {
   });
 
   test('exposes SDK-shaped command invoke over one IPC channel', async () => {
-    await expect(exposedDesktopAgent.invoke('memories.clearAll', {})).resolves.toBe('ok');
+    await expect(exposedAgentSdkBridge.invoke('memories.clearAll', {})).resolves.toBe('ok');
 
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
       command: 'memories.clearAll',
@@ -95,23 +95,23 @@ describe('preload IPC channel registry', () => {
   });
 
   test('rejects invalid Agent SDK command names before IPC', async () => {
-    await expect(exposedDesktopAgent.invoke('', { userId: 'user-1' })).rejects.toThrow(
+    await expect(exposedAgentSdkBridge.invoke('', { userId: 'user-1' })).rejects.toThrow(
       'Invalid Agent SDK command',
     );
     expect(ipcRendererMock.invoke).not.toHaveBeenCalledWith('windie:invoke', expect.anything());
   });
 
   test('does not expose the removed Windie browser-global command alias', () => {
-    expect(exposedDesktopAgent).toBeDefined();
+    expect(exposedAgentSdkBridge).toBeDefined();
     expect(global.windie).toBeUndefined();
   });
 
-  test('desktop agent bridge uses the desktop-runtime invoke channel group internally', () => {
+  test('Agent SDK bridge uses the desktop-runtime invoke channel group internally', () => {
     const source = fs.readFileSync(
       path.join(__dirname, '../../frontend/src/preload.js'),
       'utf8',
     );
-    const bridgeSource = source.slice(source.indexOf('const desktopAgentBridge'));
+    const bridgeSource = source.slice(source.indexOf('const agentSdkCommandBridge'));
 
     expect(source).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
     expect(source).not.toContain(retiredDesktopAgentChannelGroupName('INVOKE'));
@@ -152,7 +152,7 @@ describe('preload IPC channel registry', () => {
     await expect(exposedIpc.invoke('list-episodic-memories', { userId: 'user-1' })).rejects.toThrow(
       'Invalid invoke channel: list-episodic-memories',
     );
-    await expect(exposedDesktopAgent.invoke('memories.clearAll', {})).resolves.toBe('ok');
+    await expect(exposedAgentSdkBridge.invoke('memories.clearAll', {})).resolves.toBe('ok');
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
       command: 'memories.clearAll',
       payload: {},
@@ -163,7 +163,7 @@ describe('preload IPC channel registry', () => {
     await expect(exposedIpc.invoke('clear-chat-history', { userId: 'user-1' })).rejects.toThrow(
       'Invalid invoke channel: clear-chat-history',
     );
-    await expect(exposedDesktopAgent.invoke('conversations.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
+    await expect(exposedAgentSdkBridge.invoke('conversations.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
       command: 'conversations.clearAll',
       payload: { userId: 'user-1' },

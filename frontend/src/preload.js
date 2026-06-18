@@ -71,7 +71,7 @@ contextBridge.exposeInMainWorld('ipc', {
   },
 });
 
-const desktopAgentBridge = {
+const agentSdkCommandBridge = {
   invoke: (command, payload) => {
     if (typeof command !== 'string' || !command.trim()) {
       return Promise.reject(new Error('Invalid Agent SDK command'));
@@ -88,4 +88,4 @@ const desktopAgentBridge = {
   },
 };
 
-contextBridge.exposeInMainWorld('desktopAgent', desktopAgentBridge);
+contextBridge.exposeInMainWorld('desktopAgent', agentSdkCommandBridge);
