@@ -14,6 +14,8 @@ All notable changes to WindieOS will be documented in this file.
   SDK normalization/projection code.
 - renderer: stop forwarding SDK display-row `metadata.raw` diagnostics into
   renderer chat-message detail payloads.
+- sdk: rename the Agent query backend-wire extension field from `rawPayload` to
+  `backendPayload` across TS/CJS transports, Agent enrichment, and tests.
 - sdk: normalize completed-turn model metadata onto `turn_completed` events so
   title generation consumes SDK event fields instead of unwrapping
   `payload.rawEvent`.

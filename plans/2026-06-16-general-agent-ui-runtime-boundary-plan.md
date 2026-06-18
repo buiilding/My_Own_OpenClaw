@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK query backend payload boundary
+
+- Finding: the public Agent query input still exposed backend-wire query
+  extension fields as `rawPayload`, and SDK transports merged that raw-prefixed
+  object into outbound backend messages.
+- Change: renamed the field to `backendPayload` across Agent query input types,
+  Agent enrichment, websocket and managed-session transports, checked-in CJS
+  parity, and focused transport coverage; removed the `rawPayload` path instead
+  of keeping a compatibility alias.
+- Validation: focused SDK client transport Jest coverage, stale `rawPayload`
+  scan, docs listing, and diff check.
+- Compatibility: intentional SDK API rename. No migration is required for
+  in-repo callers because no current repository code used `rawPayload`; external
+  SDK callers should pass `backendPayload` for backend-wire query extension
+  fields. Backend websocket payload shape, filtering, credentials, permissions,
+  tool execution, and storage are unchanged.
+
 ### 2026-06-18 renderer display-row raw diagnostics boundary
 
 - Finding: the renderer display-row adapter copied SDK display-row

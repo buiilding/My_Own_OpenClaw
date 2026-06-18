@@ -1893,6 +1893,15 @@ describe('Agent SDK client behavior', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
+    await session.query({
+      text: 'hello backend payload',
+      conversationRef: 'conv-query',
+      backendPayload: {
+        repo_instruction_messages: [{ role: 'system', content: 'Use repo rules.' }],
+        agent_definition: { id: 'agent-from-backend-payload' },
+        renderer_only: true,
+      },
+    });
     await session.stopQuery({
       conversationRef: 'conv-1',
       turnRef: 'turn-1',
@@ -1928,6 +1937,16 @@ describe('Agent SDK client behavior', () => {
     });
 
     expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'hello backend payload',
+        conversation_ref: 'conv-query',
+        repo_instruction_messages: [{ role: 'system', content: 'Use repo rules.' }],
+        agent_definition: { id: 'agent-from-backend-payload' },
+      },
+    });
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0]).payload).not.toHaveProperty('renderer_only');
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
       type: 'stop-query',
       payload: {
         conversation_ref: 'conv-1',
@@ -1940,7 +1959,7 @@ describe('Agent SDK client behavior', () => {
     } as any)).rejects.toThrow(
       'AgentSession.stopQuery accepts conversationRef and turnRef; snake_case stop fields are not supported.',
     );
-    expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[2])).toMatchObject({
       type: 'update-settings',
       payload: {
         selected_model_id: 'gpt-test',
@@ -1952,7 +1971,7 @@ describe('Agent SDK client behavior', () => {
         },
       },
     });
-    expect(JSON.parse(FakeWebSocket.instances[0].sent[2])).toMatchObject({
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[3])).toMatchObject({
       type: 'rehydrate-conversation',
       payload: {
         conversation_ref: 'conv-1',
@@ -1960,7 +1979,7 @@ describe('Agent SDK client behavior', () => {
         rehydrate_mode: 'replace',
       },
     });
-    expect(JSON.parse(FakeWebSocket.instances[0].sent[3])).toMatchObject({
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[4])).toMatchObject({
       type: 'tool-result',
       payload: {
         request_id: 'req-1',

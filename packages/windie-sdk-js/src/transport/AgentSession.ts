@@ -38,7 +38,7 @@ export type AgentQueryInput = {
   text: string;
   conversationRef: string;
   agentDefinition?: JsonRecord;
-  rawPayload?: JsonRecord;
+  backendPayload?: JsonRecord;
   content?: string | null;
   screenshotRef?: string | null;
   screenshotRefs?: string[] | null;
@@ -324,14 +324,14 @@ export class AgentSession {
   }
 
   async query(payload: AgentQueryInput): Promise<string> {
-    const rawPayload = payload.rawPayload && typeof payload.rawPayload === 'object' && !Array.isArray(payload.rawPayload)
-      ? payload.rawPayload
+    const backendPayload = payload.backendPayload && typeof payload.backendPayload === 'object' && !Array.isArray(payload.backendPayload)
+      ? payload.backendPayload
       : {};
     return this.sendBackendMessage('query', {
-      ...rawPayload,
+      ...backendPayload,
       text: payload.text,
       conversation_ref: payload.conversationRef,
-      agent_definition: payload.agentDefinition ?? rawPayload.agent_definition,
+      agent_definition: payload.agentDefinition ?? backendPayload.agent_definition,
       content: payload.content ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,
       screenshot_refs: payload.screenshotRefs ?? undefined,
@@ -429,7 +429,7 @@ export function createAgentBackendTransport(
           ? payload.agent_definition as JsonRecord
           : null,
       ),
-      rawPayload: payload,
+      backendPayload: payload,
       turnRef: options.messageId ?? null,
       content: typeof payload.content === 'string' ? payload.content : null,
       screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,

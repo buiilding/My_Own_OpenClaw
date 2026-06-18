@@ -103,10 +103,10 @@ class ManagedAgentSession {
     }
     async query(payload) {
         return this.sendBackendMessage('query', {
-            ...(payload.rawPayload ?? {}),
+            ...(payload.backendPayload ?? {}),
             text: payload.text,
             conversation_ref: payload.conversationRef,
-            agent_definition: payload.agentDefinition ?? payload.rawPayload?.agent_definition,
+            agent_definition: payload.agentDefinition ?? payload.backendPayload?.agent_definition,
             content: payload.content ?? undefined,
             screenshot_ref: payload.screenshotRef ?? undefined,
             screenshot_refs: payload.screenshotRefs ?? undefined,

@@ -1093,7 +1093,7 @@ export class Agent {
       conversationRef: input.conversationRef,
       userId: this.userId,
       payload: {
-        ...(input.rawPayload ?? {}),
+        ...(input.backendPayload ?? {}),
         content: input.content ?? undefined,
         attachment_context: input.attachmentContext ?? undefined,
         attachment_filenames: input.attachmentFilenames ?? undefined,
@@ -1106,7 +1106,7 @@ export class Agent {
     return {
       ...input,
       agentDefinition: input.agentDefinition ?? this.agentDefinition,
-      rawPayload: enriched.payload,
+      backendPayload: enriched.payload,
       content: typeof enriched.payload.content === 'string' ? enriched.payload.content : input.content,
       attachmentContext: null,
       attachmentFilenames: null,
