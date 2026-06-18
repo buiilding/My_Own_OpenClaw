@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer surface local-runtime docs boundary
+
+- Finding: desktop surface docs and the renderer folder map still described
+  tool leases, dashboard memory, bundle execution, and result return as direct
+  sidecar concerns instead of SDK local-runtime ownership below renderer UI.
+- Change: updated the chat pill, dashboard, desktop hub, and renderer folder
+  maps to describe SDK local-runtime execution and Python sidecar implementation
+  as separate boundaries.
+- Validation: docs listing, stale wording scan, and diff checks.
+- Compatibility: no migration required. This is documentation-only cleanup; UI
+  code, SDK APIs, IPC payloads, local-runtime execution, tool schemas, and
+  stored settings are unchanged.
+
 ### 2026-06-17 SDK local-runtime docs wording boundary
 
 - Finding: SDK hub/runtime docs still described SDK-level local execution as

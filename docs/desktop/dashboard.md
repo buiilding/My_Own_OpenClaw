@@ -8,7 +8,7 @@ title: "Dashboard"
 
 # Dashboard
 
-The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but it depends on Electron main for backend connection, config persistence, and sidecar-backed memory operations.
+The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but it depends on Electron main for backend connection, config persistence, and SDK local-runtime-backed memory operations.
 
 ## Main Files
 

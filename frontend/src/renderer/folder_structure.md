@@ -2,7 +2,7 @@
 
 ## Overview
 
-The renderer process is the React-based UI layer of the Electron desktop application. It handles user interactions, displays chat messages, manages voice/wakeword detection, renders tool-call/tool-output projections, and communicates with the main process via IPC. Local tool execution is owned by the SDK main runtime and sidecar, not the renderer. The architecture follows a feature-based organization with clear separation between UI components, business logic (hooks), and infrastructure services.
+The renderer process is the React-based UI layer of the Electron desktop application. It handles user interactions, displays chat messages, manages voice/wakeword detection, renders tool-call/tool-output projections, and communicates with the main process via IPC. Local tool execution is owned by the SDK local runtime and implemented below that boundary by the Python sidecar, not the renderer. The architecture follows a feature-based organization with clear separation between UI components, business logic (hooks), and infrastructure services.
 
 ---
 
@@ -324,7 +324,7 @@ frontend/src/renderer/
    └─> packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts
        ├─> Route single tool or bundle to local runtime adapter
        ├─> Preserve request_id / bundle_id / tool_call_id
-       └─> Send tool-result or tool-bundle-result back to backend
+       └─> Return exactly one tool-result or tool-bundle-result to backend
            ↓
 3. SIDECAR EXECUTION
    └─> SDK local runtime → Python sidecar daemon
@@ -431,7 +431,7 @@ frontend/src/renderer/
    └─> Backend sends tool-bundle event through SDK runtime
            ↓
 2. SDK MAIN RUNTIME
-   └─> Executes bundle deterministically through sidecar and sends one tool-bundle-result
+   └─> Executes bundle deterministically through the SDK local runtime and sends one tool-bundle-result
            ↓
 3. UI UPDATE
    └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
@@ -570,8 +570,8 @@ App
 
 Renderer does not execute local tools or return backend tool results. It renders
 SDK display projections and runtime phase state. Electron main hosts the SDK
-runtime, routes tool calls to the sidecar, and returns exactly one
-`tool-result` or `tool-bundle-result` to the hosted backend.
+runtime, resolves the SDK local runtime backed by the Python sidecar, and
+returns exactly one `tool-result` or `tool-bundle-result` to the hosted backend.
 
 ### Computer-Use Tool Projections
 Tools that may appear in renderer display projections:
@@ -588,7 +588,7 @@ Tools that may appear in renderer display projections:
 - `correlationId` - Request or bundle ID for display correlation
 
 ### Bundle Execution
-- SDK runtime executes atomic bundles sequentially through the sidecar
+- SDK runtime executes atomic bundles sequentially through the local runtime
 - Bundle result delivery is main-process SDK runtime behavior
 - Renderer receives display-only bundle/tool output projections
 

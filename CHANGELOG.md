@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: align desktop surface and renderer folder maps with SDK local-runtime ownership for local tool execution; no migration is required because this is documentation-only boundary cleanup.
+
 - backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - docs/sdk: align SDK local-runtime docs and main adapter boundary tests away from local-sidecar wording while preserving concrete Python sidecar implementation references; no migration is required because this is docs/test coverage only.
 
