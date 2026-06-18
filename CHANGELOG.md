@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: extend the modular browser boundary guard across the
+  top-level docs, backend tools hubs, getting-started hub, and tools hub so
+  backend/local-runtime browser parity labels stay covered. No migration
+  required.
 - docs/browser: align browser hub, backend hub, sidecar browser-contract, and
   top-level docs navigation labels with backend/local-runtime schema parity
   wording. No migration required.
