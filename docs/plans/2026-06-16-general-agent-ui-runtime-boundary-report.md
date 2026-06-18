@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main VM Worker Runs Auth Boundary Guard
+
+- Worktree was clean after `e47600187`, with `main` ahead of `origin/main` by
+  861 commits.
+- Recent commits, current source scans, local-runtime naming notes, and hosted
+  install/runs auth ownership docs were inspected before adding more coverage.
+- Finding: the VM worker runtime now receives the hosted runs API auth header
+  from the WindieOS host skin, but the broad main-host skin boundary test did
+  not yet guard that ownership next to hosted endpoint URL ownership.
+- Change: extended the main host skin boundary test so `x-windie-runs-key`
+  must live in `main_host_skin.cjs` and must not be baked into the generic VM
+  worker runtime.
+- Validation: focused main host skin boundary test, VM worker runtime test,
+  targeted `frontend/src/main` source scan for `x-windie-runs-key`, docs
+  listing, and diff check.
+- Compatibility: no migration required. Runtime behavior, runs key env lookup,
+  hosted runs auth, endpoint selection, credentials, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-18 Main VM Worker Runs Auth Boundary
 
 - Worktree was clean after `03100ed7a`, with `main` ahead of `origin/main` by

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main VM Worker Runs Auth Boundary Guard
+
+- Finding: the VM worker runtime now receives the hosted runs API auth header
+  from the WindieOS host skin, but the broader main-host skin boundary test did
+  not yet guard that ownership alongside hosted endpoint URL ownership.
+- Change: extended the main host skin boundary coverage so
+  `x-windie-runs-key` is asserted in `main_host_skin.cjs` and rejected from the
+  generic VM worker runtime source.
+- Validation: focused main host skin boundary test, VM worker runtime test,
+  exact source scan for `x-windie-runs-key` under `frontend/src/main`, docs
+  listing, and diff check.
+- Compatibility: no migration required. Runtime behavior, env lookup order,
+  hosted runs auth, and endpoint selection are unchanged.
+
 ### 2026-06-18 Main VM Worker Runs Auth Boundary
 
 - Finding: the generic Electron VM worker runtime still constructed the hosted

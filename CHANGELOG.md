@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: extend the host-skin boundary guard so the hosted runs API auth
+  header remains skin-owned instead of moving back into the generic VM worker
+  runtime.
 - main/runtime: inject the hosted runs API auth header from the WindieOS host
   skin instead of baking the WindieOS header name into the generic VM worker
   runtime.

@@ -10,6 +10,7 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
+const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_channels.cjs');
 const retiredDesktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
@@ -71,6 +72,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('hostedBackend');
     expect(skinSource).toContain('https://api.windieos.com');
     expect(skinSource).toContain('wss://api.windieos.com/ws');
+    expect(skinSource).toContain("runsApiKeyHeader: 'x-windie-runs-key'");
     expect(skinSource).toContain('browserAutomation');
     expect(skinSource).toContain('macAutomation');
     expect(skinSource).toContain('localRuntimeNotReady');
@@ -107,11 +109,14 @@ describe('main host skin/config boundary', () => {
 
   test('hosted backend defaults live in host skin config', () => {
     const backendEndpointSource = fs.readFileSync(backendEndpointsPath, 'utf8');
+    const vmWorkerRuntimeSource = fs.readFileSync(vmWorkerRuntimePath, 'utf8');
 
     expect(backendEndpointSource).toContain("require('./main_host_skin.cjs')");
     expect(backendEndpointSource).toContain('mainHostSkin.hostedBackend');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
+    expect(vmWorkerRuntimeSource).toContain('runsApiKeyHeader');
+    expect(vmWorkerRuntimeSource).not.toContain('x-windie-runs-key');
   });
 
   test('main window icon asset filename lives in host skin config', () => {
