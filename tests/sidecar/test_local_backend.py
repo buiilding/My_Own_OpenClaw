@@ -274,42 +274,72 @@ class DummySummarizerInit:
         self.stopped = True
 
 
-def test_resolve_sidecar_log_level_defaults_to_warning(monkeypatch):
+def test_resolve_local_runtime_log_level_defaults_to_warning(monkeypatch):
+    monkeypatch.delenv(
+        local_backend_module.ENV_AGENT_LOCAL_RUNTIME_LOG_LEVEL, raising=False
+    )
     monkeypatch.delenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, raising=False)
     monkeypatch.delenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, raising=False)
 
     assert (
-        local_backend_module._resolve_sidecar_log_level()
+        local_backend_module._resolve_local_runtime_log_level()
         == local_backend_module.logging.WARNING
     )
 
 
-def test_resolve_sidecar_log_level_accepts_valid_levels(monkeypatch):
+def test_resolve_local_runtime_log_level_accepts_valid_levels(monkeypatch):
     monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "info")
 
     assert (
-        local_backend_module._resolve_sidecar_log_level()
+        local_backend_module._resolve_local_runtime_log_level()
         == local_backend_module.logging.INFO
     )
 
 
-def test_resolve_sidecar_log_level_prefers_agent_env(monkeypatch):
+def test_resolve_local_runtime_log_level_prefers_generic_local_runtime_env(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "debug")
+    monkeypatch.setenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, "error")
+    monkeypatch.setenv(
+        local_backend_module.ENV_AGENT_LOCAL_RUNTIME_LOG_LEVEL, "critical"
+    )
+
+    assert (
+        local_backend_module._resolve_local_runtime_log_level()
+        == local_backend_module.logging.CRITICAL
+    )
+
+
+def test_resolve_local_runtime_log_level_preserves_agent_sidecar_alias(monkeypatch):
     monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "debug")
     monkeypatch.setenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, "error")
 
     assert (
-        local_backend_module._resolve_sidecar_log_level()
+        local_backend_module._resolve_local_runtime_log_level()
         == local_backend_module.logging.ERROR
     )
 
 
-def test_resolve_sidecar_log_level_falls_back_on_invalid_value(monkeypatch):
+def test_resolve_local_runtime_log_level_falls_back_on_invalid_value(monkeypatch):
     monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "verbose-ish")
 
     assert (
-        local_backend_module._resolve_sidecar_log_level()
+        local_backend_module._resolve_local_runtime_log_level()
         == local_backend_module.logging.WARNING
     )
+
+
+def test_local_runtime_log_level_helper_uses_runtime_boundary_name():
+    source = (
+        Path(__file__).resolve().parents[2]
+        / "frontend"
+        / "src"
+        / "main"
+        / "python"
+        / "local_backend.py"
+    ).read_text(encoding="utf-8")
+
+    retired_helper_name = "_resolve_" + "sidecar_log_level"
+    assert retired_helper_name not in source
 
 
 def test_local_runtime_feature_flags_prefer_agent_env(monkeypatch):

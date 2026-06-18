@@ -38,6 +38,7 @@ const DEFAULT_LOCAL_RUNTIME_DAEMON_ENV = Object.freeze({
   sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
   permissionStatePath: 'AGENT_PERMISSION_STATE_PATH',
   userDataDir: 'AGENT_USER_DATA_DIR',
+  logLevel: 'AGENT_LOCAL_RUNTIME_LOG_LEVEL',
 });
 
 const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
@@ -135,6 +136,9 @@ function buildLocalRuntimeDaemonEnv({
   const inheritedSemanticSummarizer = typeof process.env[envConfig.semanticSummarizer] === 'string'
     ? process.env[envConfig.semanticSummarizer]
     : undefined;
+  const inheritedLogLevel = typeof process.env[envConfig.logLevel] === 'string'
+    ? process.env[envConfig.logLevel]
+    : undefined;
   const backendEnv = withLocalRuntimeNodeOptions({
     ...process.env,
     PYTHONUNBUFFERED: '1',
@@ -147,6 +151,14 @@ function buildLocalRuntimeDaemonEnv({
           [envConfig.semanticSummarizer]: inheritedSemanticSummarizer,
           ...(envConfig.semanticSummarizer !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.semanticSummarizer
             ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.semanticSummarizer]: inheritedSemanticSummarizer }
+            : {}),
+        }
+      : {}),
+    ...(typeof inheritedLogLevel === 'string'
+      ? {
+          [envConfig.logLevel]: inheritedLogLevel,
+          ...(envConfig.logLevel !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.logLevel
+            ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.logLevel]: inheritedLogLevel }
             : {}),
         }
       : {}),

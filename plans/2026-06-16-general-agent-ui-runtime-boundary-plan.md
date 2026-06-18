@@ -8661,3 +8661,23 @@ Each completed slice should report:
   behavior, requirements file selection, browser feature-pack markers,
   JSON-RPC methods, tool names/schemas, permissions, credentials, storage
   roots, hosted backend URL handling, and provider policy are unchanged.
+
+### 2026-06-18 Python local-runtime log-level env boundary
+
+- Finding: the Python local-runtime service had accepted the generic
+  `AGENT_SIDECAR_LOG_LEVEL` alias, but the reusable log-level contract and
+  resolver helper still used sidecar-specific naming for local-runtime stderr
+  verbosity.
+- Change: added `AGENT_LOCAL_RUNTIME_LOG_LEVEL` as the primary generic
+  log-level env name, kept `AGENT_SIDECAR_LOG_LEVEL` and
+  `WINDIE_SIDECAR_LOG_LEVEL` as compatibility aliases, renamed the Python
+  resolver to local-runtime terms, and made Electron launch env mirroring pass
+  the WindieOS host-skin log-level key into the generic key.
+- Validation: focused Python local-runtime log-level pytest coverage, focused
+  Electron local-runtime launch Jest coverage, docs listing, source scans, and
+  `git diff --check`.
+- Compatibility: no migration required. Existing `AGENT_SIDECAR_LOG_LEVEL`
+  and `WINDIE_SIDECAR_LOG_LEVEL` launches continue to work, WindieOS desktop
+  launches keep using the host-skin key, and logging destinations, stderr
+  filtering, JSON-RPC stdout behavior, storage, permissions, credentials, IPC,
+  hosted backend URL handling, and provider policy are unchanged.

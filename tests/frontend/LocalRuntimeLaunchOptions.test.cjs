@@ -155,6 +155,7 @@ describe('desktop local runtime launch options', () => {
       packagedApp: 'AGENT_PACKAGED_APP',
       sourcePath: 'AGENT_LOCAL_RUNTIME_SOURCE_PATH',
       sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
+      logLevel: 'AGENT_LOCAL_RUNTIME_LOG_LEVEL',
       userDataDir: 'AGENT_USER_DATA_DIR',
     });
     const plan = createDesktopLocalRuntimeLaunchPlan({
@@ -186,10 +187,14 @@ describe('desktop local runtime launch options', () => {
   test('uses configured host local-runtime daemon env keys in launch context', () => {
     const originalSemanticSummarizer = process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER;
     const originalAgentSemanticSummarizer = process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER;
+    const originalWindieLogLevel = process.env.WINDIE_SIDECAR_LOG_LEVEL;
+    const originalAgentLocalRuntimeLogLevel = process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL;
     let plan;
     try {
       process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = '0';
       process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER = '1';
+      process.env.WINDIE_SIDECAR_LOG_LEVEL = 'DEBUG';
+      process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL = 'INFO';
       plan = createDesktopLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
         localRuntimeEnv: mainHostSkin.localRuntime.env,
@@ -208,6 +213,16 @@ describe('desktop local runtime launch options', () => {
       } else {
         delete process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER;
       }
+      if (typeof originalWindieLogLevel === 'string') {
+        process.env.WINDIE_SIDECAR_LOG_LEVEL = originalWindieLogLevel;
+      } else {
+        delete process.env.WINDIE_SIDECAR_LOG_LEVEL;
+      }
+      if (typeof originalAgentLocalRuntimeLogLevel === 'string') {
+        process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL = originalAgentLocalRuntimeLogLevel;
+      } else {
+        delete process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL;
+      }
     }
 
     expect(plan.ok).toBe(true);
@@ -218,11 +233,13 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.env.AGENT_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
     expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/windie-data');
+    expect(plan.options.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL).toBe('DEBUG');
     expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
     expect(plan.options.env.WINDIE_USER_DATA_DIR).toBe('/tmp/windie-data');
+    expect(plan.options.env.WINDIE_SIDECAR_LOG_LEVEL).toBe('DEBUG');
     expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
     expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');

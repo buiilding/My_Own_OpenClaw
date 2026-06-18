@@ -2428,6 +2428,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   storage, backend websocket events, IPC channels, credentials, permissions,
   and provider policy are unchanged.
 
+### 2026-06-18 Python Local-Runtime Log-Level Env Slice
+
+- Finding: the Python local-runtime service had accepted
+  `AGENT_SIDECAR_LOG_LEVEL`, but the primary reusable env contract and resolver
+  helper still used sidecar-specific naming for local-runtime stderr verbosity.
+- Decision: keep the sidecar-named Agent env and WindieOS env as compatibility
+  aliases, but add a local-runtime-named primary env so generic hosts do not
+  need a sidecar-specific setting for reusable runtime logging.
+- Change: added `AGENT_LOCAL_RUNTIME_LOG_LEVEL`, renamed the Python resolver to
+  local-runtime terms, and made Electron local-runtime launch env mirroring pass
+  the WindieOS host-skin log-level key into the generic env key.
+- Validation: focused Python local-runtime log-level pytest coverage, focused
+  Electron local-runtime launch Jest coverage, docs listing, source scans, and
+  `git diff --check` passed.
+- Compatibility: no migration required. Existing `AGENT_SIDECAR_LOG_LEVEL` and
+  `WINDIE_SIDECAR_LOG_LEVEL` launches continue to work; logging destinations,
+  stderr filtering, JSON-RPC stdout behavior, storage, permissions,
+  credentials, IPC, hosted backend URL handling, and provider policy are
+  unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

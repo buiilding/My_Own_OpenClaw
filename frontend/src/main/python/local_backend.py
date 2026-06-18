@@ -70,6 +70,7 @@ ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = (
     "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
 )
 ENV_PACKAGED_APP = "WINDIE_PACKAGED_APP"
+ENV_AGENT_LOCAL_RUNTIME_LOG_LEVEL = "AGENT_LOCAL_RUNTIME_LOG_LEVEL"
 ENV_AGENT_SIDECAR_LOG_LEVEL = "AGENT_SIDECAR_LOG_LEVEL"
 ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
 CHROMIUM_INSTALL_TIMEOUT_SECONDS = 900
@@ -85,10 +86,14 @@ def _env_flag_enabled_any(names: tuple[str, ...], default: bool = True) -> bool:
     return default
 
 
-def _resolve_sidecar_log_level() -> int:
-    """Resolve sidecar Python log level from env with warning-safe fallback."""
+def _resolve_local_runtime_log_level() -> int:
+    """Resolve local-runtime Python log level from env with warning-safe fallback."""
     raw = None
-    for name in (ENV_AGENT_SIDECAR_LOG_LEVEL, ENV_SIDECAR_LOG_LEVEL):
+    for name in (
+        ENV_AGENT_LOCAL_RUNTIME_LOG_LEVEL,
+        ENV_AGENT_SIDECAR_LOG_LEVEL,
+        ENV_SIDECAR_LOG_LEVEL,
+    ):
         candidate = os.getenv(name)
         if candidate is not None:
             raw = candidate
@@ -116,7 +121,7 @@ def _collect_runtime_dependency_warnings() -> list[str]:
 
 # Configure logging
 logging.basicConfig(
-    level=_resolve_sidecar_log_level(),
+    level=_resolve_local_runtime_log_level(),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     stream=sys.stderr,  # Log to stderr to avoid interfering with stdout protocol
 )

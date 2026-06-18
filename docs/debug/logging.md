@@ -188,7 +188,7 @@ The Python local runtime logs to stderr in `frontend/src/main/python/local_backe
 
 | Control | Behavior |
 | --- | --- |
-| `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises sidecar Python logs to DEBUG. Generic hosts can use `AGENT_SIDECAR_LOG_LEVEL`. |
+| `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises local-runtime Python logs to DEBUG. Generic hosts should use `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; `AGENT_SIDECAR_LOG_LEVEL` remains a compatibility alias. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0` | Used by packaged reinstall flows to reduce local-runtime stderr noise. The generic Electron host helper defaults to `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR`; the WindieOS host skin maps the public Windie flag into that helper. |
 | `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` in WindieOS launches) | Disables the local semantic summarizer for focused local-runtime debugging; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
 | `AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` (`WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` in WindieOS launches) | Prevents sidecar browser feature-pack auto-install while debugging runtime availability; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
