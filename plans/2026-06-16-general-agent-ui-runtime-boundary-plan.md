@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Diagnostics Env Skin Boundary
+
+- Finding: the app diagnostics store already read the WindieOS app-data
+  directory name from `mainHostSkin.dataPaths`, but still hardcoded
+  `WINDIE_APP_DIAGNOSTICS_DB` and `WINDIE_USER_DATA_DIR` inside the generic
+  diagnostics store.
+- Change: moved those diagnostics/user-data override env names into
+  `mainHostSkin.dataPaths.env`, added generic fallback env names for non-Windie
+  hosts, and expanded diagnostics plus host-skin boundary coverage so WindieOS
+  data-path env names stay out of the generic diagnostics store source.
+- Validation: targeted diagnostics data-path env Jest coverage, main host skin
+  Jest coverage, targeted source scan for diagnostics env names, docs listing,
+  and diff check. The full app diagnostics persistence suite was attempted but
+  could not run in this environment because the `sqlite3` CLI is unavailable.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_APP_DIAGNOSTICS_DB` and `WINDIE_USER_DATA_DIR` through injected host
+  skin config; diagnostics DB location, user-data root fallback behavior, and
+  persisted schema are unchanged.
+
 ### 2026-06-18 Main Hosted Endpoint Env Skin Boundary
 
 - Finding: `backend_endpoints.cjs` already read hosted backend URLs from the

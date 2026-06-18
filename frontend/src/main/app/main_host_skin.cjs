@@ -47,6 +47,10 @@ const assets = Object.freeze({
 
 const dataPaths = Object.freeze({
   appDataDirName: 'windieos',
+  env: Object.freeze({
+    diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB',
+    userDataDir: 'WINDIE_USER_DATA_DIR',
+  }),
 });
 
 const logging = Object.freeze({

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/diagnostics: inject WindieOS app diagnostics database and user-data env
+  names from the main host skin instead of hardcoding them inside the generic
+  diagnostics store.
 - main/runtime: inject WindieOS hosted backend default endpoint override env
   names from the main host skin instead of hardcoding them inside the generic
   backend endpoint resolver.

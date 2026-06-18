@@ -24,6 +24,10 @@ const SURFACE_VISIBILITY_DIAGNOSTICS_PATH = 'surface.visibility';
 const RENDERER_INTERACTION_DIAGNOSTICS_PATH = 'renderer.interaction';
 const APP_DIAGNOSTICS_PATH = CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH;
 const DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime';
+const DEFAULT_DATA_PATH_ENV = Object.freeze({
+  diagnosticsDb: 'AGENT_APP_DIAGNOSTICS_DB',
+  userDataDir: 'AGENT_USER_DATA_DIR',
+});
 
 const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
@@ -225,22 +229,51 @@ const ALLOWED_DATA_KEYS = new Set([
   'audioEnabled',
 ]);
 
+function normalizeEnvKey(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function dataPathConfig() {
+  const dataPaths = mainHostSkin?.dataPaths || {};
+  const envConfig = dataPaths.env && typeof dataPaths.env === 'object'
+    ? dataPaths.env
+    : {};
+  return {
+    appDataDirName: dataPaths.appDataDirName || DEFAULT_APP_DATA_DIR_NAME,
+    env: {
+      diagnosticsDb: normalizeEnvKey(
+        envConfig.diagnosticsDb,
+        DEFAULT_DATA_PATH_ENV.diagnosticsDb,
+      ),
+      userDataDir: normalizeEnvKey(
+        envConfig.userDataDir,
+        DEFAULT_DATA_PATH_ENV.userDataDir,
+      ),
+    },
+  };
+}
+
 function diagnosticsDatabasePath() {
-  if (process.env.WINDIE_APP_DIAGNOSTICS_DB) {
-    return process.env.WINDIE_APP_DIAGNOSTICS_DB;
+  const config = dataPathConfig();
+  if (process.env[config.env.diagnosticsDb]) {
+    return process.env[config.env.diagnosticsDb];
   }
   return path.join(appUserDataRoot(), 'diagnostics', 'diagnostics.db');
 }
 
 function appUserDataRoot() {
-  const appDataDirName = mainHostSkin?.dataPaths?.appDataDirName || DEFAULT_APP_DATA_DIR_NAME;
-  if (process.env.WINDIE_USER_DATA_DIR) {
-    return process.env.WINDIE_USER_DATA_DIR;
+  const config = dataPathConfig();
+  if (process.env[config.env.userDataDir]) {
+    return process.env[config.env.userDataDir];
   }
   if (process.platform === 'win32') {
     return path.join(
       process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
-      appDataDirName,
+      config.appDataDirName,
     );
   }
   if (process.platform === 'darwin') {
@@ -248,12 +281,12 @@ function appUserDataRoot() {
       os.homedir(),
       'Library',
       'Application Support',
-      appDataDirName,
+      config.appDataDirName,
     );
   }
   return path.join(
     process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
-    appDataDirName,
+    config.appDataDirName,
   );
 }
 

@@ -64,6 +64,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('dataPaths');
     expect(skinSource).toContain('appIconFileName');
     expect(skinSource).toContain("appDataDirName: 'windieos'");
+    expect(skinSource).toContain("diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB'");
+    expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
     expect(skinSource).toContain('logging');
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain('sdkAgentName');
@@ -156,9 +158,15 @@ describe('main host skin/config boundary', () => {
     );
 
     expect(skinSource).toContain("appDataDirName: 'windieos'");
+    expect(skinSource).toContain("diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB'");
+    expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
     expect(diagnosticsSource).toContain("DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime'");
-    expect(diagnosticsSource).toContain('mainHostSkin?.dataPaths?.appDataDirName');
+    expect(diagnosticsSource).toContain('dataPathConfig');
+    expect(diagnosticsSource).toContain('dataPaths.appDataDirName');
+    expect(diagnosticsSource).toContain('mainHostSkin?.dataPaths');
     expect(diagnosticsSource).not.toContain('windieos');
+    expect(diagnosticsSource).not.toContain('WINDIE_APP_DIAGNOSTICS_DB');
+    expect(diagnosticsSource).not.toContain('WINDIE_USER_DATA_DIR');
   });
 
   test('main composition root consumes host skin copy for permission adapters', () => {

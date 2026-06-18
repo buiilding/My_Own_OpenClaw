@@ -272,6 +272,19 @@ describe('app diagnostics store', () => {
     expect(storeSource).not.toContain("return 'sidecar_unavailable';");
   });
 
+  test('diagnostics data path env names are supplied by host skin config', () => {
+    const storeSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/diagnostics/app_diagnostics_store.cjs'),
+      'utf8',
+    );
+
+    expect(storeSource).toContain('dataPathConfig');
+    expect(storeSource).toContain('AGENT_APP_DIAGNOSTICS_DB');
+    expect(storeSource).toContain('AGENT_USER_DATA_DIR');
+    expect(storeSource).not.toContain('WINDIE_APP_DIAGNOSTICS_DB');
+    expect(storeSource).not.toContain('WINDIE_USER_DATA_DIR');
+  });
+
   test('persists sanitized surface visibility diagnostics', () => {
     appendDiagnosticEvent({
       traceId: 'surface-diag-test',
