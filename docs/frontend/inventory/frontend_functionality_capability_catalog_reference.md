@@ -77,9 +77,9 @@ Capabilities:
 - Builds query payload with memory/system context sections.
 - Relays SDK `user_message` projections and user-safe error fallbacks for send
   failures.
-- Persists frontend config to disk and returns merged config payloads to renderer.
+- Persists desktop UI config to disk and returns merged config payloads to renderer.
 - Query send path resolves `conversation_ref` from payload or cached backend-ref fallback and reuses it for both local echo and outbound websocket message.
-- Query send gates first turn on config sync only when cached frontend config payload is object-valid; invalid payloads are dropped instead of sent.
+- Query send gates first turn on config sync only when cached desktop UI config payload is object-valid; invalid payloads are dropped instead of sent.
 
 ## 3) Main Local Runtime + Permission/Privilege Bridges
 

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config inventory docs boundary
+
+- Finding: frontend inventory docs still described Electron-main settings gate,
+  disk persistence, and MCP enablement reads as frontend config even though the
+  owning runtime is the desktop host and active source names are desktop UI
+  config.
+- Change: updated the inventory lifecycle, IPC protocol matrix, capability
+  catalog, and full functionality inventory to use desktop UI config for
+  main-owned persistence/state while keeping the legacy `load-frontend-config`
+  and `save-frontend-config` channel names visible.
+- Validation: docs listing, stale inventory scan, and diff check.
+- Compatibility: no migration required. This is documentation-only; persisted
+  filename, IPC channels, payloads, settings sync behavior, permissions, and
+  provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config filename label boundary
 
 - Finding: after removing Electron-main desktop UI config compatibility

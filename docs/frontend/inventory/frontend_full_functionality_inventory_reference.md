@@ -91,7 +91,7 @@ Functionality:
 - Builds query payload content with system-context XML + memory sections.
 - Relays SDK `user_message` projections and fallback error envelopes for failed
   sends through split broadcaster helpers.
-- Persists/loads frontend config to disk and keeps in-memory config snapshot.
+- Persists/loads desktop UI config to disk and keeps in-memory config snapshot.
 
 ### 1.3 Local Runtime Bridge (Main <-> SDK <-> Python)
 

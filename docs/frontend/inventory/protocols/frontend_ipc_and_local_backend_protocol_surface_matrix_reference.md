@@ -72,10 +72,10 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `prepare-surface-for-screenshot` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Applies screenshot-safe surface state before capture |
 | `restore-surface-after-screenshot` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Restores overlay state after screenshot capture |
 | `get-displays` | `main/surfaces/window_controls_ipc_runtime.cjs` | Return display inventory mapped as `{ id, label, isPrimary, bounds, scaleFactor }` |
-| `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
-| `save-frontend-config` | `main/ipc.cjs` | Persists frontend config to disk |
+| `load-frontend-config` | `main/ipc.cjs` | Reads desktop UI config from disk |
+| `save-frontend-config` | `main/ipc.cjs` | Persists desktop UI config to disk |
 | `list-agent-extensions` | `main/ipc.cjs` | Returns public extension metadata plus MCP registry snapshot |
-| `list-mcp-servers` | `main/ipc.cjs` | Lists configured MCP servers from frontend config |
+| `list-mcp-servers` | `main/ipc.cjs` | Lists configured MCP servers from desktop UI config |
 | `set-mcp-server-enabled` | `main/ipc.cjs` | Persists MCP enablement and refreshes SDK MCP registration when running outside tests |
 | `refresh-mcp-servers` | `main/ipc.cjs` | Rebuilds current MCP server registry from config |
 | `list-permissions` | `main/permissions/permission_ipc_runtime.cjs` | Returns permission manifest + status bundle |

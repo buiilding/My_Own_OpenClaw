@@ -61,7 +61,7 @@ Persistent main-process bridge state in `ipc.cjs`:
 
 - Connection/session: `ws`, `isConnected`, `currentUserId`, `currentSessionId`, `currentServerUserId`, `currentConversationRef`
 - Query mode: `isFirstQuery`
-- Settings gate: `latestFrontendConfig`, `hasAttemptedInitialSettingsSync`, `pendingSettingsSyncPromise`, `pendingSettingsSyncs`
+- Settings gate: `latestDesktopUiConfig`, `hasAttemptedInitialSettingsSync`, `pendingSettingsSyncPromise`, `pendingSettingsSyncs`
 - Overlay phase: `responseOverlayPhase` with allowed literals:
   - `idle`
   - `awaiting-first-chunk`

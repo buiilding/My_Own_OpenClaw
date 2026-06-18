@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: refresh frontend inventory references so Electron-main config
+  persistence, MCP enablement, and settings-gate state are described as desktop
+  UI config while preserving the legacy IPC channel names.
 - main: rename the desktop UI config persisted-filename constant and MCP
   enablement diagnostic wording so Electron-main source labels no longer call
   the host-owned disk file frontend config; no migration is required because
