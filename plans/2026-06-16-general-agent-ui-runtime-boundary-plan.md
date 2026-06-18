@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK local-runtime docs wording boundary
+
+- Finding: SDK hub/runtime docs still described SDK-level local execution as
+  "local sidecar" execution, and the main host-skin boundary test still allowed
+  local-runtime adapter headers to use that older wording.
+- Change: updated SDK and Electron-main docs to describe SDK-owned local-runtime
+  execution/bootstrap, and tightened the main host-skin boundary test so adapter
+  headers must use local-runtime wording and reject "local sidecar."
+- Validation: focused main host-skin Jest coverage, docs listing, stale wording
+  scan, and diff checks.
+- Compatibility: no migration required. This is docs and guard coverage only;
+  Python sidecar daemon/service filenames, SDK APIs, payloads, tool schemas,
+  and stored settings are unchanged.
+
 ### 2026-06-17 main endpoint local-runtime wording boundary
 
 - Finding: backend endpoint resolution still described its Electron main boundary

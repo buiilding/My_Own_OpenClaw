@@ -244,11 +244,12 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).not.toContain('local backend is not ready');
   });
 
-  test('main sidecar adapter headers use local-runtime boundary wording', () => {
+  test('main local-runtime adapter headers use local-runtime boundary wording', () => {
     for (const modulePath of localRuntimeBridgeModulePaths) {
       const header = fs.readFileSync(modulePath, 'utf8').split('\n').slice(0, 3).join('\n');
 
-      expect(header).toMatch(/local sidecar|local-runtime|local runtime/i);
+      expect(header).toMatch(/local-runtime|local runtime/i);
+      expect(header).not.toContain('local sidecar');
       expect(header).not.toContain('local backend');
     }
   });

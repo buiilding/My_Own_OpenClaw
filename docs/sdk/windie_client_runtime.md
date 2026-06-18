@@ -263,7 +263,7 @@ belong in public SDK methods on `Agent`, `ConversationRuntime`, or SDK
 stores.
 
 The `localToolLifecycle` callback is SDK-owned in timing and host-owned in
-policy. The SDK calls `beforeExecute(call)` immediately before local sidecar
+policy. The SDK calls `beforeExecute(call)` immediately before local-runtime
 execution and awaits the returned release callback in `finally`. Electron uses
 that hook for pointer-control and screenshot-capture leases. The SDK still owns
 tool order, result correlation, implicit post-action screenshots, and backend

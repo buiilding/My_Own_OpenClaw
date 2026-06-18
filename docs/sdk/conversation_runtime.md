@@ -37,7 +37,7 @@ SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`.
 | current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, error state, and live presentation state for UI surfaces |
 | backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
-| sidecar execution | local sidecar | sidecar runs local tools; it does not own conversation replay semantics |
+| local tool execution | SDK local runtime | the local runtime runs sidecar-backed tools; it does not own conversation replay semantics |
 | backend provider history | backend | provider-safe history remains backend-owned after result ingress |
 
 ## Event Model

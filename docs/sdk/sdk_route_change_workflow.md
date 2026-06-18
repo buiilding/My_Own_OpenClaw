@@ -3,7 +3,7 @@ summary: "Workflow for changing WindieOS SDK HTTP routes and hosted clients acro
 read_when:
   - When adding or changing `/api/sdk/*` routes or hosted SDK client methods.
   - When changing SDK OCR, vision, prompt-preview, query-plan, models, tool-schema, or artifact behavior.
-  - When deciding whether a hosted client feature belongs in SDK routes, websocket query transport, artifacts, or local sidecar tools.
+  - When deciding whether a hosted client feature belongs in SDK routes, websocket query transport, artifacts, or SDK local-runtime tools.
 title: "SDK Route Change Workflow"
 ---
 

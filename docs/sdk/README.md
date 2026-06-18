@@ -9,7 +9,7 @@ title: "SDK Hub"
 # SDK Hub
 
 WindieOS SDK docs cover the canonical client runtime for hosted backend access,
-local sidecar execution, and client-side conversation state. Electron, future
+SDK local-runtime execution, and client-side conversation state. Electron, future
 CLIs, custom UIs, and SDK users should share this runtime instead of owning
 separate backend websocket loops, replay logic, or tool-result routing.
 

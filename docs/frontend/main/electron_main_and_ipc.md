@@ -66,7 +66,7 @@ Responsibilities:
 - Adapts renderer IPC to the SDK main runtime.
 - Starts `AgentClient.wakeUp(...)` directly, uses the returned
   `agent.conversation(...)` runtime, and delegates backend websocket
-  construction, local sidecar/tool runtime bootstrap, envelope sends, close,
+  construction, SDK local-runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).
 - Gates first query on settings synchronization ACK.
