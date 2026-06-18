@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main extension entrypoint validator local-runtime naming
+
+- Finding: extension manifest parsing still used the private helper name
+  `hasSidecarEntrypoint` for plugin tool entrypoint validation even though the
+  owning main-process extension boundary describes local-runtime entrypoints.
+- Change: renamed the helper to `hasLocalRuntimeEntrypoint` and added focused
+  extension manifest coverage that keeps the stale helper name out while
+  preserving the existing executable contribution contract.
+- Validation: focused ExtensionManifest Jest test, docs route lookup, recent
+  history review, and stale helper-name scan.
+- Compatibility: no migration required because contribution paths, plugin
+  manifests, execution targets, IPC/storage, and runtime behavior are unchanged.
+
 ### 2026-06-18 main MCP diagnostics owner local-runtime wording
 
 - Finding: MCP diagnostic path definitions still described discovery, execution,

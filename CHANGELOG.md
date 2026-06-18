@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the private extension manifest plugin entrypoint
+  validator from sidecar to local-runtime wording; no migration is required
+  because contribution paths, plugin manifests, execution targets, and runtime
+  behavior are unchanged.
 - frontend/main: rename MCP diagnostic owner descriptions from sidecar MCP
   runtime wording to local-runtime MCP adapter wording; no migration is
   required because diagnostic path ids, event payloads, storage, and runtime

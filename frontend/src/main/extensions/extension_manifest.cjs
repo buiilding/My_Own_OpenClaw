@@ -68,7 +68,7 @@ function readSchemaValue(value, rootDir) {
   return readJsonFile(resolveInside(rootDir, schemaPath, 'Schema path'));
 }
 
-function hasSidecarEntrypoint(entrypoint, pluginDir) {
+function hasLocalRuntimeEntrypoint(entrypoint, pluginDir) {
   if (typeof entrypoint !== 'string' || !entrypoint.trim() || !entrypoint.includes(':')) {
     return false;
   }
@@ -166,7 +166,7 @@ function readToolContribution(rawTool, pluginDir, pluginId) {
   const name = normalizeString(rawTool.name);
   const entrypoint = normalizeString(rawTool.entrypoint);
   const toolSchema = readSchemaValue(rawTool.schema, pluginDir);
-  if (!name || !toolSchema || !hasSidecarEntrypoint(entrypoint, pluginDir)) {
+  if (!name || !toolSchema || !hasLocalRuntimeEntrypoint(entrypoint, pluginDir)) {
     return null;
   }
   return {

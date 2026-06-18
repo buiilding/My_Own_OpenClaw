@@ -148,6 +148,17 @@ describe('extension registry loader', () => {
     ]);
   });
 
+  test('uses local-runtime entrypoint naming inside manifest validation', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/extensions/extension_manifest.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('hasLocalRuntimeEntrypoint');
+    expect(source).not.toContain('hasSidecarEntrypoint');
+    expect(source).toContain("execution_target: 'sidecar'");
+  });
+
   test('returns public registry metadata without executable handlers', () => {
     const contributionRoot = writeExtensionRegistry();
     const publicRuntime = loadPublicExtensionRegistry({ contributionsDir: contributionRoot });
