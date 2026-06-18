@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 frontend interaction debug flag rename
+
+- Finding: the renderer frontend interaction logger still read private
+  browser-only diagnostics from `__DESKTOP_AGENT_*` window flags even though
+  this logger is a desktop-runtime UI diagnostic surface, not an agent
+  implementation contract.
+- Change: renamed the accepted diagnostic flags to `__DESKTOP_RUNTIME_*`,
+  updated logging docs, and added focused coverage that the retired
+  desktop-agent flag names no longer enable message-text or stdout logging.
+- Validation: focused frontend interaction logger Jest coverage, stale flag
+  scan, logging docs check, and `git diff --check`.
+- Compatibility: no migration required. These flags are private browser-only
+  diagnostics; renderer log payloads, IPC channels, log files, settings,
+  storage, and backend APIs are unchanged.
+
 ### 2026-06-18 shared SDK IPC registry key rename
 
 - Finding: after the main and renderer SDK channel facades moved to

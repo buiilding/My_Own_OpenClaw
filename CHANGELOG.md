@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename private frontend interaction debug window flags
+  from desktop-agent to desktop-runtime wording; no migration is required
+  because these are browser-only diagnostics and renderer interaction log
+  payloads, IPC, files, and persisted data are unchanged.
 - frontend/ipc: rename shared SDK IPC registry keys from desktop-agent to
   desktop-runtime wording; no migration is required because the `windie:*`
   channel strings, preload bridge shape, renderer events, command payloads,

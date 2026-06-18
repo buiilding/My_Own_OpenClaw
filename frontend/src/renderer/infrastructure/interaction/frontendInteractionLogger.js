@@ -141,7 +141,7 @@ function describeInteractionTarget(target) {
 }
 
 function isExplicitMessageTextDiagnosticEnabled() {
-  if (isWindowFlagEnabled('__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__')) {
+  if (isWindowFlagEnabled('__DESKTOP_RUNTIME_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__')) {
     return true;
   }
   if (typeof window === 'undefined') {
@@ -221,7 +221,7 @@ function formatFrontendInteractionSummary(entry = {}) {
 
 function logFrontendInteraction(action, details = {}) {
   const payload = createFrontendInteractionEntry(action, details);
-  if (isWindowFlagEnabled('__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__')) {
+  if (isWindowFlagEnabled('__DESKTOP_RUNTIME_DEBUG_SURFACE_STDOUT__')) {
     console.log(`[FrontendInteraction] ${formatFrontendInteractionSummary(payload)}`);
   }
   try {
