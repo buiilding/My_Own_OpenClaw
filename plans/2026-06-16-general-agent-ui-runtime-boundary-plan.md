@@ -9339,3 +9339,19 @@ Each completed slice should report:
   Python module paths, JSON-RPC methods, memory rows, search/list/title
   behavior, IPC channels, hosted backend URLs, credentials, permissions, and
   provider policy are unchanged.
+
+### 2026-06-18 endpoint docs local-runtime memory client boundary
+
+- Finding: endpoint, install, runtime configuration, and operational
+  troubleshooting docs described backend URL drift as sidecar-memory/API client
+  behavior, even though Electron injects the URL into the Python sidecar process
+  for local-runtime hosted helper clients.
+- Change: reworded those docs to local-runtime memory/API client ownership while
+  keeping the Python sidecar env injection and `WINDIE_BACKEND_HTTP_URL`
+  troubleshooting details explicit; added exact stale-phrase guards.
+- Validation: focused modular-boundary guard, docs listing, endpoint stale-scan,
+  and diff checks.
+- Compatibility: no migration required. Env var names, endpoint precedence,
+  sidecar process startup, local-runtime client behavior, IPC channels,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.

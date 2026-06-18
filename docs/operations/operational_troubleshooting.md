@@ -145,11 +145,11 @@ Read:
 - [Runtime Configuration Matrix](runtime_configuration_matrix.md)
 - [Configuration](configuration.md)
 
-### Sidecar memory/API calls hit a different backend than renderer websocket
+### Local-runtime memory/API calls hit a different backend than renderer websocket
 
 Likely owner:
 
-- Electron main sidecar env injection or sidecar backend URL resolution.
+- Electron main sidecar env injection or local-runtime backend URL resolution.
 
 Check:
 

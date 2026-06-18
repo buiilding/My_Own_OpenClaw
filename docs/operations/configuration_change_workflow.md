@@ -32,7 +32,7 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 - Backend config owns enforceable backend policy: providers, model defaults, auth, timeouts, inference routing, artifacts, capability gates, and API limits.
 - Electron main owns desktop process defaults: backend endpoint resolution, SDK local-runtime launch env facts, disk config, runtime mode, and package-mode behavior.
 - Renderer owns user-facing settings state and presentation. It persists only renderer-managed fields.
-- Sidecar owns local execution variables and backend URLs needed by sidecar memory/API clients.
+- Python sidecar startup owns local execution variables and backend URLs needed by local-runtime memory/API clients.
 - Release/CI owns signing, notarization, package targets, and bundled runtime build variables.
 - Secrets must come from environment variables or user-entered secure config surfaces. Do not commit real keys.
 

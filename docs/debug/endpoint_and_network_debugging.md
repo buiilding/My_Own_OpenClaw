@@ -1,7 +1,7 @@
 ---
-summary: "Endpoint and network debugging guide for WindieOS backend URL resolution, hosted defaults, Cloudflare tunnel checks, install auth, websocket closes, and sidecar backend URL drift."
+summary: "Endpoint and network debugging guide for WindieOS backend URL resolution, hosted defaults, Cloudflare tunnel checks, install auth, websocket closes, and local-runtime backend URL drift."
 read_when:
-  - When WindieOS connects to the wrong backend, hosted/local routes diverge, websocket connect fails, REST returns 401/502/404, or sidecar memory/API calls hit the wrong endpoint.
+  - When WindieOS connects to the wrong backend, hosted/local routes diverge, websocket connect fails, REST returns 401/502/404, or local-runtime memory/API calls hit the wrong endpoint.
   - When changing backend endpoint resolution defaults or Cloudflare/self-host routing.
 title: "Endpoint and Network Debugging"
 ---
@@ -24,7 +24,7 @@ Electron main owns endpoint selection:
 3. `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`
 4. hosted default
 
-The sidecar should receive `WINDIE_BACKEND_HTTP_URL` from Electron main. If sidecar memory/API calls hit a different backend than renderer websocket traffic, inspect main-process env injection before editing sidecar clients.
+The Python sidecar process should receive `WINDIE_BACKEND_HTTP_URL` from Electron main. If local-runtime memory/API calls hit a different backend than renderer websocket traffic, inspect main-process env injection before editing local-runtime hosted helper clients.
 
 ## Quick Checks
 
@@ -66,7 +66,7 @@ journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 | REST `/api/*` returns `401` | install auth | bearer token from same backend registration |
 | route returns `404` locally | FastAPI route registration | `backend/src/api/routes/__init__.py` |
 | websocket closes with `1008` | auth, handshake, or schema policy | bearer token, first handshake message, backend logs |
-| sidecar memory route hits wrong backend | main sidecar env injection | `WINDIE_BACKEND_HTTP_URL` in sidecar env |
+| local-runtime memory route hits wrong backend | main sidecar env injection | `WINDIE_BACKEND_HTTP_URL` in sidecar env |
 | `/api/runs/*` returns `401` | runs key | `x-windie-runs-key`, `WINDIE_RUNS_API_KEY`, `WINDIE_VM_RUNS_API_KEY` |
 
 ## Related Docs
