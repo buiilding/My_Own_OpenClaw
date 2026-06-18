@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 dedicated browser local-runtime wording boundary
+
+- Finding: SDK local-tool examples, sidecar workflow docs, dependency comments,
+  and browser tool test docstrings still described the generic dedicated
+  browser/local-runtime surface with WindieOS browser wording.
+- Change: reworded those surfaces to dedicated-browser ownership while keeping
+  product naming in the appropriate WindieOS app/docs context and preserving
+  existing browser tool behavior.
+- Validation: targeted stale product-browser wording scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. This is docs/comments/docstring only;
+  browser tool schemas, CDP/profile behavior, environment variables,
+  permissions, storage, and SDK local-runtime execution are unchanged.
+
 ### 2026-06-18 SDK projection raw-event fallback removal
 
 - Finding: after SDK ingress began stamping `sourceEventType`, display-row

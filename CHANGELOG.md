@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sidecar/sdk: reword dedicated-browser examples, workflow guidance,
+  runtime dependency comments, and sidecar browser tool test docstrings away
+  from product-specific browser naming in generic local-runtime surfaces.
 - backend/sdk: rename backend synthetic/display-only tool metadata from
   `skip_frontend_execution` to `skip_local_execution` across backend emitters,
   SDK coordination/projections, Python SDK local execution, tests, and docs.

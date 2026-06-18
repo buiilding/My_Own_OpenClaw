@@ -461,7 +461,7 @@ await client.executeTool({
   toolName: "browser",
   args: {
     action: "connect",
-    explanation: "Open the dedicated WindieOS browser."
+    explanation: "Open the dedicated browser."
   }
 });
 const status = await client.localStatus();

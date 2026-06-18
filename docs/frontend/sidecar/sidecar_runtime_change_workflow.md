@@ -35,7 +35,7 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 - Do not add renderer UI state or Electron window decisions to Python code. Return normalized data; let renderer/main own presentation/native orchestration.
 - Do not make sidecar depend on conda, source checkout paths, or system Python in packaged mode. Runtime dependencies belong in `frontend/src/main/python/requirements.runtime.txt` and packaging docs.
 - Keep JSON-RPC results serializable and explicit: return success/error envelopes instead of leaking tracebacks or unserializable objects to Electron main.
-- Browser runtime changes must preserve the dedicated Windie browser/session ownership policy unless the browser docs and tests are updated.
+- Browser runtime changes must preserve the dedicated browser/session ownership policy unless the browser docs and tests are updated.
 - Memory writes must distinguish transcript rows, interaction rows, semantic rows, and summarizer candidates. Do not make every transcript row a semantic candidate by accident.
 - Platform adapters should normalize OS differences for callers; avoid scattering platform branches through individual tools when an adapter exists.
 

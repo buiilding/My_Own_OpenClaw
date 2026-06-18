@@ -87,14 +87,14 @@ Core launcher modules:
 
 Policy:
 
-- WindieOS uses a dedicated browser profile dir (separate from user default profile)
+- The app uses a dedicated browser profile dir (separate from user default profile)
 - default CDP endpoint: `http://127.0.0.1:9333`
 - CDP port can be overridden with `WINDIE_BROWSER_CDP_PORT`
 - browser executable auto-detected cross-platform (Chrome/Brave/Edge/Chromium)
 
 Connect behavior:
 
-- adapter `connect` always targets WindieOS dedicated browser scope
+- adapter `connect` always targets the dedicated browser scope
 - runtime can auto-launch Chrome with CDP when endpoint unavailable
 
 ## Schema Validation and Safety

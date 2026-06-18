@@ -1,4 +1,4 @@
-"""Tests for the Windie browser tool entrypoint."""
+"""Tests for the dedicated browser tool entrypoint."""
 
 from __future__ import annotations
 

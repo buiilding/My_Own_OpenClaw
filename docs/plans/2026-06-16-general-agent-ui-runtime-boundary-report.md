@@ -647,6 +647,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Validation: source scan found only the new SDK/local-runtime wording and the
   boundary-test assertions in the touched backend result-ingress files.
 
+### 2026-06-18 Dedicated Browser Local-Runtime Wording Slice
+
+- Compaction recovery: inspected `git status --short --branch`, recent commits,
+  current diff, the user plan, execution plan, report, changelog, and targeted
+  sidecar/SDK browser wording before editing.
+- Finding: SDK local-tool examples, sidecar runtime workflow docs, sidecar
+  browser automation docs, the Python runtime dependency list, and browser tool
+  test docstrings still used WindieOS browser wording inside generic
+  dedicated-browser/local-runtime surfaces.
+- Decision: keep product ownership and trust-boundary docs where appropriate,
+  but make generic local-runtime examples, policy labels, dependency comments,
+  and test docstrings describe the dedicated browser without product-specific
+  browser naming.
+- Change: reworded the SDK `executeTool({ toolName: "browser" })` example,
+  sidecar browser/session workflow rule, browser automation profile/connect
+  policy bullets, Python dependency comment, and browser tool test docstring.
+- Validation: targeted stale wording scan, docs listing, and `git diff --check`
+  passed.
+- Compatibility: no migration required. This is docs/comments/docstring only;
+  browser tool schemas, CDP/profile behavior, environment variables,
+  permissions, storage, and SDK local-runtime execution are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
