@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 MCP control local-runtime refresh naming
+
+- Finding: Electron main MCP control already accepted a `localRuntime` object, but the private refresh helper and focused test names still described the path as refreshing through sidecar.
+- Change: renamed the private helper/result variable and focused test names to local-runtime wording.
+- Validation: focused McpControl Jest coverage, stale helper/test-name scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes private Electron main naming and test descriptions only; MCP registration behavior, local-runtime calls, sidecar daemon implementation, config, settings, and persisted data are unchanged.
+
 ### 2026-06-17 SDK local-runtime-backed store docs boundary
 
 - Finding: SDK conversation and AgentClient docs still called default persistence and Electron store adapters sidecar-backed, which put the Python implementation name in the reusable SDK store contract.

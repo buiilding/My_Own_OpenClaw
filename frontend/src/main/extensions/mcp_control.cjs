@@ -246,7 +246,7 @@ function summarizeMcpRegistry(registry = {}) {
   };
 }
 
-async function refreshMcpServersThroughSidecar({
+async function refreshMcpServersThroughLocalRuntime({
   config = null,
   contributionsDir = undefined,
   localRuntime = null,
@@ -318,13 +318,13 @@ async function refreshMcpServersForConfig({
   diagnostics = undefined,
   clientInfo = undefined,
 } = {}) {
-  const sidecarResult = await refreshMcpServersThroughSidecar({
+  const localRuntimeResult = await refreshMcpServersThroughLocalRuntime({
     config,
     contributionsDir,
     localRuntime,
   });
-  if (sidecarResult) {
-    return sidecarResult;
+  if (localRuntimeResult) {
+    return localRuntimeResult;
   }
   const registry = loadPublicExtensionRegistry({ contributionsDir });
   const enabledServers = getEnabledMcpServersFromConfig(config);

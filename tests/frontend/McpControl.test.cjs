@@ -172,7 +172,7 @@ describe('MCP control runtime', () => {
     expect(result.registry.mcps[0].tools).toEqual([]);
   });
 
-  test('refreshes enabled MCPs through sidecar when local runtime is available', async () => {
+  test('refreshes enabled MCPs through the local runtime when available', async () => {
     const contributionRoot = writeCuaMcpRegistry();
     const config = { agent_enabled_mcp_servers: ['mcp:cua-driver'] };
     const registerMcp = jest.fn(async () => ({
@@ -220,7 +220,7 @@ describe('MCP control runtime', () => {
     }));
   });
 
-  test('disabling a gated MCP reconciles sidecar with no enabled servers', async () => {
+  test('disabling a gated MCP reconciles the local runtime with no enabled servers', async () => {
     const contributionRoot = writeCuaMcpRegistry();
     const persistConfig = jest.fn(async () => ({ success: true }));
     const registerMcp = jest.fn(async () => ({
