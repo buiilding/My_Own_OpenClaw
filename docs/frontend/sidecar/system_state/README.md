@@ -1,5 +1,5 @@
 ---
-summary: "Frontend sidecar system-state docs hub for field collection semantics, platform adapters, and renderer/main JSON-RPC consumption paths."
+summary: "Local runtime sidecar system-state docs hub for field collection semantics, platform adapters, and renderer/main JSON-RPC consumption paths."
 read_when:
   - When changing `core/system_state.py` field contracts, fallback behavior, or platform probe logic.
   - When debugging `get-system-state` failures between renderer, Electron main, and Python sidecar.

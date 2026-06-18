@@ -565,8 +565,11 @@ describe('modular sdk refactor completion boundary', () => {
 
     for (const relativePath of docs) {
       const source = await read(relativePath);
-      if (source.includes('Frontend Sidecar')) {
-        offenders[relativePath] = ['Frontend Sidecar'];
+      const staleMentions = ['Frontend Sidecar', 'Frontend sidecar'].filter((needle) =>
+        source.includes(needle),
+      );
+      if (staleMentions.length > 0) {
+        offenders[relativePath] = staleMentions;
       }
     }
 

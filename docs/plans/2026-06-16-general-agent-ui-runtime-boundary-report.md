@@ -85,9 +85,34 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   docs now describe SDK/main local-runtime routing plus Python sidecar executor
   ownership instead of SDK desktop/agent runtime labels. Active routing, IPC,
   stream, tool, debug, node, and reference docs now use Agent SDK
-  runtime/tool-router wording instead of SDK agent/main runtime labels.
+  runtime/tool-router wording instead of SDK agent/main runtime labels. The
+  remaining sentence-case frontend-sidecar live docs now use local runtime
+  sidecar labels, and packaged endpoint fallback docs use desktop-local
+  loopback wording.
 
 ## Inspection Log
+
+### 2026-06-18 Local Runtime Sidecar Label Follow-Up Slice
+
+- Worktree was clean after `59877a899` before this slice, with `main` ahead of
+  `origin/main` by 816 commits.
+- Recent commits showed a prior local runtime sidecar label cleanup, while
+  current scans still found sentence-case frontend-sidecar wording in the system-state
+  docs hub and setup guide plus one "frontend-local" packaged endpoint fallback
+  label.
+- Finding: those labels preserved the old frontend-owned sidecar and endpoint
+  mental model in live docs even though the sidecar is the local runtime
+  authority behind SDK/Electron host boundaries.
+- Change: reworded the live system-state hub and platform setup guide to local
+  runtime sidecar labels, changed packaged endpoint fallback wording to
+  desktop-local loopback, and widened the modular boundary guard for
+  sentence-case frontend-sidecar wording.
+- Validation: focused modular boundary test, targeted stale-label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  sidecar process startup, Python dependencies, endpoint selection, hosted
+  defaults, IPC, credentials, permissions, storage, and provider policy are
+  unchanged.
 
 ### 2026-06-18 Agent SDK Runtime Routing Wording Slice
 

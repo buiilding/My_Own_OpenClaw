@@ -12,7 +12,7 @@ This guide sets up:
 - Backend Python environment (Python 3.11)
 - Backend dependencies from `backend/requirements.txt` (`backend/requirements_mac.txt` on macOS)
 - CUDA-aware Torch + ONNX Runtime GPU verification for OCR workloads
-- Frontend sidecar Python environment from `frontend/src/main/python/requirements.txt`
+- Local runtime sidecar Python environment from `frontend/src/main/python/requirements.txt`
 - Frontend Node dependencies and dev/electron launch checks
 
 ## 1) Backend setup (all platforms)
@@ -126,7 +126,7 @@ timeout 15s python -m backend.src.main
 
 If CUDA still falls back to CPU, your NVIDIA driver is likely older than the CUDA runtime expected by installed wheels; update driver and reinstall the matching torch/onnxruntime-gpu versions.
 
-## 3) Frontend sidecar Python setup
+## 3) Local runtime sidecar Python setup
 
 Create a second Python 3.11 environment for sidecar dependencies:
 

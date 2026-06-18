@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local runtime sidecar label follow-up
+
+- Finding: a sentence-case sidecar hub summary and setup guide still used a
+  frontend-sidecar label for the Python sidecar, and packaged endpoint docs still used
+  a "frontend-local" loopback fallback label.
+- Change: reworded those live docs to local runtime sidecar and desktop-local
+  endpoint fallback labels, and widened the modular boundary guard to catch
+  sentence-case frontend-sidecar wording.
+- Validation: focused modular boundary test, targeted stale-label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  sidecar process startup, Python dependencies, endpoint selection, hosted
+  defaults, IPC, credentials, permissions, storage, and provider policy are
+  unchanged.
+
 ### 2026-06-18 Agent SDK runtime routing wording
 
 - Finding: active routing, IPC, stream, tool, debug, node, and reference docs

@@ -255,7 +255,7 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 Default behavior:
 
 - Dev/source runs default to the hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless `BACKEND_*` explicitly pins a different target.
-- Packaged builds also default to the hosted backend and do not auto-fall back to frontend-local `127.0.0.1:8765`.
+- Packaged builds also default to the hosted backend and do not auto-fall back to desktop-local `127.0.0.1:8765`.
 - `WINDIE_DEFAULT_BACKEND_*` changes that hosted default when `BACKEND_*` is unset.
 - Preferred self-hosted setup for serving `api.windieos.com`: keep both the Cloudflare tunnel and the backend available as persistent user services so the hosted endpoint does not intermittently route to an origin with nothing listening on `127.0.0.1:8765`.
 
