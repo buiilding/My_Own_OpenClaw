@@ -25,7 +25,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     send: (...args) => mockSend(...args),
   },
   SEND_CHANNELS: {
-    DESKTOP_AGENT_PENDING_TURN: 'windie:pending-turn',
+    DESKTOP_RUNTIME_PENDING_TURN: 'windie:pending-turn',
   },
 }));
 

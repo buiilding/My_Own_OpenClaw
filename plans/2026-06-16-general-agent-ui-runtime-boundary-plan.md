@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 shared SDK IPC registry key rename
+
+- Finding: after the main and renderer SDK channel facades moved to
+  desktop-runtime terminology, the shared preload/main/renderer IPC registry
+  still exposed the SDK invoke, pending-turn, and projection channels under
+  desktop-agent keys even though those keys are internal constants rather than
+  public bridge names.
+- Change: renamed the shared registry keys and typed renderer expectations to
+  `DESKTOP_RUNTIME_*`, updated main/preload consumers, focused mocks, and
+  channel docs while preserving the existing `windie:*` IPC wire strings.
+- Validation: focused IPC/channel, preload, main host boundary, renderer app
+  boundary, renderer chat boundary, dashboard/conversation, browser-session,
+  chat wiring, pending-turn live-surface Jest coverage; docs listing;
+  frontend architecture and communication docs check; stale key scan; and
+  `git diff --check`.
+- Compatibility: no migration required. `window.desktopAgent`, IPC channel
+  string values, runtime command payloads, renderer event payloads, storage,
+  credentials, and backend APIs are unchanged.
+
 ### 2026-06-18 renderer IPC facade desktop-runtime channel naming
 
 - Finding: renderer runtime and feature code still imported private IPC facade

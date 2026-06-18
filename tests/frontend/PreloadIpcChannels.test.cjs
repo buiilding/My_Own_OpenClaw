@@ -42,15 +42,15 @@ describe('preload IPC channel registry', () => {
         LIVE_SURFACE_TRACE: 'live-surface-trace',
       },
       INVOKE_CHANNELS: {
-        DESKTOP_AGENT_INVOKE: 'windie:invoke',
+        DESKTOP_RUNTIME_INVOKE: 'windie:invoke',
         COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard',
         FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
         SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',
       },
       ON_CHANNELS: {
         SETTINGS_UPDATED: 'settings-updated',
-        DESKTOP_AGENT_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
-        DESKTOP_AGENT_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
+        DESKTOP_RUNTIME_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
+        DESKTOP_RUNTIME_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
       },
     };
     process.argv = [

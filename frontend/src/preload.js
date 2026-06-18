@@ -28,7 +28,7 @@ const VALID_INVOKE_CHANNELS = new Set(Object.values(INVOKE_CHANNELS));
 const VALID_ON_CHANNELS = new Set(Object.values(ON_CHANNELS));
 
 const DESKTOP_RUNTIME_INVOKE_CHANNELS = Object.freeze({
-  INVOKE: INVOKE_CHANNELS.DESKTOP_AGENT_INVOKE,
+  INVOKE: INVOKE_CHANNELS.DESKTOP_RUNTIME_INVOKE,
 });
 
 contextBridge.exposeInMainWorld('ipc', {

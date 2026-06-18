@@ -2,7 +2,7 @@
   "SEND_CHANNELS": {
     "RENDERER_LOG": "renderer-log",
     "LIVE_SURFACE_TRACE": "live-surface-trace",
-    "DESKTOP_AGENT_PENDING_TURN": "windie:pending-turn",
+    "DESKTOP_RUNTIME_PENDING_TURN": "windie:pending-turn",
     "TRANSCRIPT_SESSION_SYNC": "transcript-session-sync",
     "MOVE_CHATBOX_TO": "move-chatbox-to",
     "WAKEWORD_AUDIO_CHUNK": "wakeword-audio-chunk",
@@ -10,7 +10,7 @@
     "WAKEWORD_DISABLE": "wakeword-disable"
   },
   "INVOKE_CHANNELS": {
-    "DESKTOP_AGENT_INVOKE": "windie:invoke",
+    "DESKTOP_RUNTIME_INVOKE": "windie:invoke",
     "CAPTURE_SCREENSHOT_ATTACHMENT": "capture-screenshot-attachment",
     "READ_ATTACHMENT_FILE": "read-attachment-file",
     "RUN_BROWSER_ACTION": "run-browser-action",
@@ -53,13 +53,13 @@
     "GET_LOCAL_RUNTIME_STATUS": "get-local-runtime-status"
   },
   "ON_CHANNELS": {
-    "DESKTOP_AGENT_ROWS": "windie:rows",
-    "DESKTOP_AGENT_STATUS": "windie:status",
-    "DESKTOP_AGENT_CONVERSATION_EVENT": "windie:conversation-event",
-    "DESKTOP_AGENT_MEMORY_STORE_CHANGED": "windie:memory-store-changed",
-    "DESKTOP_AGENT_CONVERSATION_METADATA_INVALIDATED": "windie:conversation-metadata-invalidated",
-    "DESKTOP_AGENT_CURRENT_TURN": "windie:current-turn",
-    "DESKTOP_AGENT_PENDING_TURN": "windie:pending-turn",
+    "DESKTOP_RUNTIME_ROWS": "windie:rows",
+    "DESKTOP_RUNTIME_STATUS": "windie:status",
+    "DESKTOP_RUNTIME_CONVERSATION_EVENT": "windie:conversation-event",
+    "DESKTOP_RUNTIME_MEMORY_STORE_CHANGED": "windie:memory-store-changed",
+    "DESKTOP_RUNTIME_CONVERSATION_METADATA_INVALIDATED": "windie:conversation-metadata-invalidated",
+    "DESKTOP_RUNTIME_CURRENT_TURN": "windie:current-turn",
+    "DESKTOP_RUNTIME_PENDING_TURN": "windie:pending-turn",
     "TRANSCRIPT_SESSION_SYNC": "transcript-session-sync",
     "IPC_STATUS": "ipc-status",
     "LOCAL_RUNTIME_STATUS": "local-runtime-status",

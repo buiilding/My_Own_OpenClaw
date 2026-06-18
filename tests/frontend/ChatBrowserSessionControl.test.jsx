@@ -29,7 +29,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     RUN_BROWSER_ACTION: 'run-browser-action',
     GET_LOCAL_RUNTIME_STATUS: 'get-local-runtime-status',
-    DESKTOP_AGENT_INVOKE: 'windie:invoke',
+    DESKTOP_RUNTIME_INVOKE: 'windie:invoke',
   },
   ON_CHANNELS: {
     LOCAL_RUNTIME_STATUS: 'local-runtime-status',

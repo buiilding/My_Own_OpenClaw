@@ -118,7 +118,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   SEND_CHANNELS: {
     MOVE_CHATBOX_TO: 'move-chatbox-to',
-    DESKTOP_AGENT_PENDING_TURN: 'windie:pending-turn',
+    DESKTOP_RUNTIME_PENDING_TURN: 'windie:pending-turn',
   },
   INVOKE_CHANNELS: {
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',

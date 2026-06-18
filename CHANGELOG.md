@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/ipc: rename shared SDK IPC registry keys from desktop-agent to
+  desktop-runtime wording; no migration is required because the `windie:*`
+  channel strings, preload bridge shape, renderer events, command payloads,
+  and persisted data are unchanged.
 - frontend/renderer: rename private renderer IPC facade channel groups from
   `DESKTOP_AGENT_*_CHANNELS` to `DESKTOP_RUNTIME_*_CHANNELS`; no
   migration is required because shared IPC JSON keys, `windie:*` wire channel

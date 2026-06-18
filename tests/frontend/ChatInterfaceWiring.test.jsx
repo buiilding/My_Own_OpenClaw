@@ -179,7 +179,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockIpcInvoke(...args),
   },
   SEND_CHANNELS: {
-    DESKTOP_AGENT_PENDING_TURN: 'windie:pending-turn',
+    DESKTOP_RUNTIME_PENDING_TURN: 'windie:pending-turn',
   },
   INVOKE_CHANNELS: {
     CHECK_PERMISSION: 'check-permission',

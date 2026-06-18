@@ -35,10 +35,10 @@ specific renderer channels:
 
 Current channel constants:
 
-- `ON_CHANNELS.DESKTOP_AGENT_CONVERSATION_EVENT = "windie:conversation-event"`
-- `ON_CHANNELS.DESKTOP_AGENT_ROWS = "windie:rows"`
-- `ON_CHANNELS.DESKTOP_AGENT_STATUS = "windie:status"`
-- `ON_CHANNELS.DESKTOP_AGENT_CURRENT_TURN = "windie:current-turn"`
+- `ON_CHANNELS.DESKTOP_RUNTIME_CONVERSATION_EVENT = "windie:conversation-event"`
+- `ON_CHANNELS.DESKTOP_RUNTIME_ROWS = "windie:rows"`
+- `ON_CHANNELS.DESKTOP_RUNTIME_STATUS = "windie:status"`
+- `ON_CHANNELS.DESKTOP_RUNTIME_CURRENT_TURN = "windie:current-turn"`
 - `ON_CHANNELS.BACKEND_SETTINGS_EVENT = "backend-settings-event"`
 - `ON_CHANNELS.AGENT_CAPABILITY_EVENT = "agent-capability-event"`
 - `ON_CHANNELS.AUDIO_CHUNK = "audio-chunk"`

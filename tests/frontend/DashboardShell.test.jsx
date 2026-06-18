@@ -166,15 +166,15 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     },
   },
   INVOKE_CHANNELS: {
-    DESKTOP_AGENT_INVOKE: 'windie:invoke',
+    DESKTOP_RUNTIME_INVOKE: 'windie:invoke',
     SET_ACTIVE_WORKSPACE: 'set-active-workspace',
     GET_CLIENT_USER_ID: 'get-client-user-id',
   },
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
     IPC_STATUS: 'ipc-status',
-    DESKTOP_AGENT_CONVERSATION_EVENT: 'windie:conversation-event',
-    DESKTOP_AGENT_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
+    DESKTOP_RUNTIME_CONVERSATION_EVENT: 'windie:conversation-event',
+    DESKTOP_RUNTIME_CONVERSATION_METADATA_INVALIDATED: 'windie:conversation-metadata-invalidated',
   },
 }));
 
