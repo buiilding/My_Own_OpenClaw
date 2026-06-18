@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
+import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { runManualCompaction as runManualCompactionCommand } from '../utils/session/manualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import {
@@ -82,7 +82,7 @@ export function useChatSurfaceController({
   allowManualCompactionWhileBusy = false,
   warningContext = 'ChatSurface',
 }) {
-  const { config, updateConfig } = useAppConfigContext();
+  const { config, updateConfig } = useDesktopRendererConfigContext();
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
     pendingTurn,

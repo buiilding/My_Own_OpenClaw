@@ -2,8 +2,14 @@
  * Exposes renderer config helpers that runtime-facing feature code can share.
  */
 
+import { useAppConfigContext } from '../providers/AppConfigContext';
+
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function useDesktopRendererConfigContext() {
+  return useAppConfigContext();
 }
 
 export function buildDeferredQueryModelSelection(config) {

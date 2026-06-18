@@ -100,6 +100,28 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeClientSource).toContain('buildDeferredQueryModelSelection');
   });
 
+  test('chat runtime hooks read app config through renderer config runtime facade', async () => {
+    const hookFiles = [
+      'hooks/useChatMessageSender.ts',
+      'hooks/useChatStream.ts',
+      'hooks/useChatSurfaceController.js',
+      'hooks/useConversationReplayActions.js',
+    ];
+    const runtimeClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js'),
+      'utf8',
+    );
+
+    for (const relativePath of hookFiles) {
+      const source = await fs.readFile(path.join(chatRoot, relativePath), 'utf8');
+      expect(source).toContain('desktopRendererConfigRuntimeClient');
+      expect(source).not.toContain('app/providers/AppConfigContext');
+      expect(source).not.toContain('useAppConfigContext');
+    }
+    expect(runtimeClientSource).toContain('useAppConfigContext');
+    expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
+  });
+
   test('message sender does not persist live user transcript rows in renderer', async () => {
     const hookSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
