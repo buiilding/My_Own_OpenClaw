@@ -34,6 +34,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/app: route chat hook/component access to renderer app config through
   `DesktopRendererConfigRuntimeClient`, keeping core chat runtime UI code off
   direct app-provider context imports. No migration required.
+- renderer/app: route onboarding and dashboard settings config access through
+  `DesktopRendererConfigRuntimeClient`, so renderer feature modules no longer
+  import app-provider config context directly. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

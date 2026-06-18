@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
+import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../permissions/utils/permissionGrantEffects';
 import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';
@@ -75,7 +75,7 @@ export function useOnboardingPermissionActions() {
   const isLoading = usePermissionStore((state) => state.isLoading);
   const requestPermission = usePermissionStore((state) => state.requestPermission);
   const runPermissionProbe = usePermissionStore((state) => state.runPermissionProbe);
-  const { updateConfig } = useAppConfigContext();
+  const { updateConfig } = useDesktopRendererConfigContext();
   const [pendingPermissionId, setPendingPermissionId] = useState('');
   const [waitingPermissionId, setWaitingPermissionId] = useState('');
   const watchedPermissionIdRef = useRef('');

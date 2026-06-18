@@ -9184,3 +9184,22 @@ Each completed slice should report:
   storage, model selection, surface toggles, stream model-capability behavior,
   transcript sessions, IPC channels, local-runtime launch, hosted backend URLs,
   credentials, permissions, and provider policy are unchanged.
+
+### 2026-06-18 renderer feature config-context runtime facade boundary
+
+- Finding: after core chat moved to the renderer config runtime facade,
+  onboarding permission actions and dashboard settings tabs still imported
+  `useAppConfigContext` directly from app providers. That left feature modules
+  coupled to app-provider composition for config updates and global settings
+  status.
+- Change: routed onboarding permission actions, general settings, and browser
+  settings through `useDesktopRendererConfigContext()` and added a boundary
+  guard that renderer feature modules do not import `AppConfigContext`
+  directly.
+- Validation: focused app/runtime, settings, onboarding, and dashboard coverage,
+  frontend typecheck, docs listing, and diff checks.
+- Compatibility: no migration required. React context value shape, settings
+  storage, permission grant side effects, wakeword toggles, shortcut status,
+  browser automation permission flow, IPC channels, local-runtime launch,
+  hosted backend URLs, credentials, permissions, and provider policy are
+  unchanged.

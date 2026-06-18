@@ -273,6 +273,31 @@ describe('renderer app runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('renderer feature modules read app config through the runtime facade', async () => {
+    const featureRoot = path.join(rendererRoot, 'features');
+    const files = await listSourceFiles(featureRoot);
+    const offenders: string[] = [];
+    const runtimeClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopRendererConfigRuntimeClient.js'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const relativePath = normalizeRelativePath(path.relative(featureRoot, file));
+      const source = await fs.readFile(file, 'utf8');
+      if (
+        source.includes('app/providers/AppConfigContext')
+        || source.includes('useAppConfigContext')
+      ) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
+    expect(runtimeClientSource).toContain('useAppConfigContext');
+  });
+
   test('renderer app and feature code does not call SDK-owned sidecar/internal IPC channels', async () => {
     const roots = [
       path.join(rendererRoot, 'app'),
