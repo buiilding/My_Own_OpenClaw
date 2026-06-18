@@ -9289,3 +9289,20 @@ Each completed slice should report:
   Chrome termination, profile directory persistence, cookies/login state,
   JSON-RPC methods, IPC channels, credentials, permissions, and provider policy
   are unchanged.
+
+### 2026-06-18 memory docs local-runtime ownership boundary
+
+- Finding: canonical memory docs still titled the durable local memory guide as
+  Sidecar Local Memory and routed memory workflows through sidecar-local-store
+  wording, even though the ownership boundary is SDK/local-runtime memory with
+  the Python sidecar as the current backing implementation.
+- Change: retitled the canonical page to Local Runtime Memory and updated the
+  memory hub, change workflow, troubleshooting guide, and transcript replay
+  workflow to route durable memory storage/search/title/semanticization through
+  local-runtime memory terminology.
+- Validation: docs listing, focused stale sidecar-memory scan for the touched
+  memory docs, and diff checks.
+- Compatibility: no migration required. File paths, doc links, JSON-RPC
+  handlers, memory storage/search behavior, title persistence, semanticization,
+  IPC channels, hosted backend URLs, credentials, permissions, and provider
+  policy are unchanged.

@@ -1,16 +1,18 @@
 ---
-summary: "Sidecar local memory guide covering episodic and semantic memory, LocalRuntimeService memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
+summary: "Local-runtime memory guide covering episodic and semantic memory, LocalRuntimeService memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
 read_when:
-  - When changing sidecar episodic or semantic memory, local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or sidecar memory storage.
+  - When changing local-runtime episodic or semantic memory, local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or local-runtime memory storage.
   - When debugging local memory search, dashboard memory sections, conversation titles, or semantic memory generation.
-title: "Sidecar Local Memory"
+title: "Local Runtime Memory"
 ---
 
-# Sidecar Local Memory
+# Local Runtime Memory
 
-The Python sidecar owns local episodic and semantic memory persistence and search.
-Renderer and Electron main call it through the SDK local-runtime JSON-RPC path;
-backend code must not import sidecar memory code.
+The SDK local-runtime memory boundary owns local episodic and semantic memory
+persistence and search. The current backing implementation runs in the Python
+sidecar, and renderer/Electron main callers reach it through the SDK
+local-runtime JSON-RPC path. Backend code must not import local-runtime memory
+implementation code.
 
 ## Code Ownership
 
@@ -53,13 +55,14 @@ Do not use semanticization as the primary transcript persistence path. It is der
 ## Titles
 
 Conversation title storage, title-state reads, and conversation-list fallback
-belong in sidecar memory storage and JSON-RPC handlers. Hosted title generation belongs to the
+belong in local-runtime memory storage and JSON-RPC handlers. Hosted title generation belongs to the
 SDK/backend route path: after the first completed user plus assistant text
 exchange, the SDK may call the hosted title route and persist the generated
 title back through `update_conversation_title`.
 
-The sidecar must not call hosted title routes directly. It only persists durable
-titles, reports title state through `get_conversation_title_state`, emits
+The local-runtime memory implementation must not call hosted title routes
+directly. It only persists durable titles, reports title state through
+`get_conversation_title_state`, emits
 `conversation-title-updated`, and lists conversations with the fallback order
 `stored title -> first user message -> conversation id`. Title failures should
 not block transcript persistence or conversation listing.

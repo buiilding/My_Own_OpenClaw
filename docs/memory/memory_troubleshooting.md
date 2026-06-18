@@ -2,13 +2,13 @@
 summary: "Memory troubleshooting guide for missing chats, failed transcript persistence, stale semantic memory, title failures, and rehydrate/tool linkage issues."
 read_when:
   - When chats are missing, memory search is stale, conversation titles fail, or replay/rehydrate produces malformed tool rows.
-  - When deciding whether a memory bug belongs to renderer transcript, sidecar local memory, or backend rehydrate/history.
+  - When deciding whether a memory bug belongs to renderer transcript, local-runtime memory, or backend rehydrate/history.
 title: "Memory Troubleshooting"
 ---
 
 # Memory Troubleshooting
 
-Start by locating the layer. Most memory bugs are caused by assuming transcript, sidecar memory, and backend history are the same thing.
+Start by locating the layer. Most memory bugs are caused by assuming transcript, local-runtime memory, and backend history are the same thing.
 
 ## Visible Message Did Not Persist
 

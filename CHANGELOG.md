@@ -54,6 +54,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: describe dedicated browser profile persistence across
   SDK/local-runtime restarts instead of SDK/sidecar restarts. No migration
   required.
+- docs/memory: retitle canonical sidecar-memory guide/workflows around
+  local-runtime memory ownership while noting the current Python sidecar
+  backing implementation. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

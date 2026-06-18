@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for changing WindieOS transcript, replay, sidecar memory, backend history, semanticization, and compaction behavior across owning runtimes."
+summary: "Workflow for changing WindieOS transcript, replay, local-runtime memory, backend history, semanticization, and compaction behavior across owning runtimes."
 read_when:
   - When changing conversation persistence, replay, rehydrate, semantic memory, titles, search, backend history, or compaction.
   - When debugging missing chats, stale memory, wrong conversation ids, lost tool linkage, or semantic memory drift.
-  - When deciding whether a memory issue belongs to renderer transcript, sidecar local store, backend active history, or derived semantic memory.
+  - When deciding whether a memory issue belongs to renderer transcript, local-runtime memory storage, backend active history, or derived semantic memory.
 title: "Memory Change Workflow"
 ---
 
@@ -16,23 +16,23 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 | Symptom or request | Primary owner | First code roots | Tests |
 | --- | --- | --- | --- |
 | Visible chat row is missing or duplicated | SDK projection store plus renderer display handlers | `packages/windie-sdk-js/src/projections`, `packages/windie-sdk-js/src/runtime/Agent.ts`, chat stream handlers | SDK/main projection tests, `ChatStream*.test.ts` |
-| Conversation list/search is wrong | Sidecar local memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
+| Conversation list/search is wrong | Local-runtime memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
 | Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, desktop conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
 | Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
 | Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate linkage validation | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage.py` | SDK tool projection tests, backend rehydrate linkage tests |
-| Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
-| Embedding/search fails but transcript should still save | SDK embedding orchestration plus sidecar local store | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `local_store.py`, `faiss_index.py` | SDK memory tests, `tests/sidecar/test_local_store_*.py` |
+| Semantic memory is stale or noisy | Local-runtime semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
+| Embedding/search fails but transcript should still save | SDK embedding orchestration plus local-runtime memory store | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `local_store.py`, `faiss_index.py` | SDK memory tests, `tests/sidecar/test_local_store_*.py` |
 | Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
-| Memory RPC result is wrong | Sidecar memory handlers and local memory store | `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/memory/*` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_memory_operations.py` |
+| Memory RPC result is wrong | Local-runtime memory handlers and memory store | `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/memory/*` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_memory_operations.py` |
 
 ## Layer Contracts
 
 | Layer | Owns | Does not own |
 | --- | --- | --- |
 | Renderer transcript | Visible chat persistence, pending flushes, session ids, local replay payloads | Semantic summaries, vector indexes, backend model history |
-| Sidecar local memory | SQLite transcript rows, episodic/semantic records, FAISS index, conversation list/search/title, semanticization | Backend active context window, prompt history mutation |
+| Local-runtime memory | SQLite transcript rows, episodic/semantic records, FAISS index, conversation list/search/title, semanticization | Backend active context window, prompt history mutation |
 | Backend active history | Model-facing message history for active sessions, compaction, tool linkage during the loop | Durable local transcript storage or dashboard conversation listing |
-| Backend memory routes | Embeddings, semantic summarize/title service endpoints, route health | Local sidecar DB schema, renderer replay state, or sidecar orchestration |
+| Backend memory routes | Embeddings, semantic summarize/title service endpoints, route health | Local-runtime DB schema, renderer replay state, or local-runtime orchestration |
 | Dashboard UI | Listing/searching/deleting surfaced conversations and memories | Low-level storage schema, embedding provider behavior |
 
 ## Change Paths
@@ -92,11 +92,11 @@ Validation:
 - frontend replay and rehydrate payload tests,
 - backend rehydrate execution, normalization, transparency, and linkage validation tests.
 
-### Change Sidecar Durable Memory
+### Change Local-Runtime Durable Memory
 
 Read:
 
-- [Sidecar Local Memory](sidecar_local_memory.md)
+- [Local Runtime Memory](sidecar_local_memory.md)
 - [Local Runtime Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
 - [Memory Troubleshooting](memory_troubleshooting.md)
 
@@ -107,11 +107,11 @@ Likely code:
 - `sqlite_store.py`
 - `operations.py`
 - `conversation_*_runtime.py`
-- SDK embedding orchestration and sidecar remote semantic client
+- SDK embedding orchestration and local-runtime remote semantic client
 
 Validation:
 
-- sidecar local store, operations, memory service, conversation search/list/title, semanticization, and remote client tests.
+- local-runtime store, operations, memory service, conversation search/list/title, semanticization, and remote client tests.
 
 ### Change Backend Compaction
 
@@ -162,7 +162,7 @@ Do not invent new identifiers inside UI components. Use the transcript/session r
 - [Memory Hub](README.md)
 - [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
 - [Transcript and Replay](transcript_and_replay.md)
-- [Sidecar Local Memory](sidecar_local_memory.md)
+- [Local Runtime Memory](sidecar_local_memory.md)
 - [Backend History and Semantic Routes](backend_history_and_semantic_routes.md)
 - [Memory Troubleshooting](memory_troubleshooting.md)
 - [Code Change Surface Index](../reference/code_change_surface_index.md)
