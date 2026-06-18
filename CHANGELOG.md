@@ -11,7 +11,12 @@ All notable changes to WindieOS will be documented in this file.
   and align the backend trace schema with the local-runtime value; no migration
   is required because old stored conversation events can still be normalized as
   legacy producer data while new trace/event rows use the generic runtime
-  boundary.- sdk/backend/sidecar: rename the client tool manifest local execution target from `sidecar` to `local_runtime` across SDK builders, backend validation, generated/local manifests, plugin/MCP registrations, renderer skin labels, docs, and contract tests; no persisted-data migration is required because manifests are handshake/runtime payloads and retired `sidecar` target values now fail validation instead of aliasing.
+  boundary.
+- frontend/main: remove the redundant hard-coded Node deprecation stderr
+  suppressor from local-runtime daemon log filtering, leaving
+  `NODE_OPTIONS=--no-deprecation` as the single launch-time owner; no migration
+  is required because daemon environment, IPC, log files, and persisted data are
+  unchanged.- sdk/backend/sidecar: rename the client tool manifest local execution target from `sidecar` to `local_runtime` across SDK builders, backend validation, generated/local manifests, plugin/MCP registrations, renderer skin labels, docs, and contract tests; no persisted-data migration is required because manifests are handshake/runtime payloads and retired `sidecar` target values now fail validation instead of aliasing.
 - sdk/sidecar: rename the local-runtime daemon token header from `x-windie-sidecar-token` to `x-agent-local-runtime-token`, keeping `Authorization: Bearer <token>` as the alternate auth path; no persisted-data migration is required because daemon tokens are transient discovery/session secrets, and callers must use the new local-runtime header or bearer auth.
 - docs/runtime-boundary: route general public tool, security, gateway, memory, and routing docs through SDK/main local-execution wording instead of sidecar-execution/result labels; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - tests: move remaining retired `desktop-agent` literals in boundary assertions and SDK fixtures behind neutral custom-agent or constructed-string coverage so active stale-name scans only report intentional migration docs.
@@ -2616,7 +2621,11 @@ All notable changes to WindieOS will be documented in this file.
   is required because old stored conversation events can still be normalized as
   legacy producer data while new trace/event rows use the generic runtime
   boundary.
-- extensions: make generated extension/plugin scaffold copy and contribution
+- frontend/main: remove the redundant hard-coded Node deprecation stderr
+  suppressor from local-runtime daemon log filtering, leaving
+  `NODE_OPTIONS=--no-deprecation` as the single launch-time owner; no migration
+  is required because daemon environment, IPC, log files, and persisted data are
+  unchanged.- extensions: make generated extension/plugin scaffold copy and contribution
   docs describe local-runtime plugins and Python entrypoints instead of sidecar
   plugins; no migration is required because contribution paths and manifests are
   unchanged.
@@ -4425,7 +4434,11 @@ All notable changes to WindieOS will be documented in this file.
   is required because old stored conversation events can still be normalized as
   legacy producer data while new trace/event rows use the generic runtime
   boundary.
-- extensions: make generated extension/plugin scaffold copy and contribution
+- frontend/main: remove the redundant hard-coded Node deprecation stderr
+  suppressor from local-runtime daemon log filtering, leaving
+  `NODE_OPTIONS=--no-deprecation` as the single launch-time owner; no migration
+  is required because daemon environment, IPC, log files, and persisted data are
+  unchanged.- extensions: make generated extension/plugin scaffold copy and contribution
   docs describe local-runtime plugins and Python entrypoints instead of sidecar
   plugins; no migration is required because contribution paths and manifests are
   unchanged.
@@ -4889,7 +4902,11 @@ All notable changes to WindieOS will be documented in this file.
   is required because old stored conversation events can still be normalized as
   legacy producer data while new trace/event rows use the generic runtime
   boundary.
-- extensions: make generated extension/plugin scaffold copy and contribution
+- frontend/main: remove the redundant hard-coded Node deprecation stderr
+  suppressor from local-runtime daemon log filtering, leaving
+  `NODE_OPTIONS=--no-deprecation` as the single launch-time owner; no migration
+  is required because daemon environment, IPC, log files, and persisted data are
+  unchanged.- extensions: make generated extension/plugin scaffold copy and contribution
   docs describe local-runtime plugins and Python entrypoints instead of sidecar
   plugins; no migration is required because contribution paths and manifests are
   unchanged.
@@ -5383,7 +5400,11 @@ All notable changes to WindieOS will be documented in this file.
   is required because old stored conversation events can still be normalized as
   legacy producer data while new trace/event rows use the generic runtime
   boundary.
-- extensions: make generated extension/plugin scaffold copy and contribution
+- frontend/main: remove the redundant hard-coded Node deprecation stderr
+  suppressor from local-runtime daemon log filtering, leaving
+  `NODE_OPTIONS=--no-deprecation` as the single launch-time owner; no migration
+  is required because daemon environment, IPC, log files, and persisted data are
+  unchanged.- extensions: make generated extension/plugin scaffold copy and contribution
   docs describe local-runtime plugins and Python entrypoints instead of sidecar
   plugins; no migration is required because contribution paths and manifests are
   unchanged.
@@ -7833,7 +7854,11 @@ Includes the last 300 commits on `main`.
   is required because old stored conversation events can still be normalized as
   legacy producer data while new trace/event rows use the generic runtime
   boundary.
-- extensions: make generated extension/plugin scaffold copy and contribution
+- frontend/main: remove the redundant hard-coded Node deprecation stderr
+  suppressor from local-runtime daemon log filtering, leaving
+  `NODE_OPTIONS=--no-deprecation` as the single launch-time owner; no migration
+  is required because daemon environment, IPC, log files, and persisted data are
+  unchanged.- extensions: make generated extension/plugin scaffold copy and contribution
   docs describe local-runtime plugins and Python entrypoints instead of sidecar
   plugins; no migration is required because contribution paths and manifests are
   unchanged.

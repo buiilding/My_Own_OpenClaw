@@ -133,7 +133,20 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
-### 2026-06-18 local-runtime execution target contract
+
+### 2026-06-18 local runtime stderr deprecation suppressor cleanup
+
+- Finding: Electron main local-runtime stderr filtering still carried hard-coded
+  Node `url.parse()` deprecation-warning suppressors even though daemon launch
+  already injects `NODE_OPTIONS=--no-deprecation`.
+- Change: removed the redundant pattern table and suppression branch so
+  actionable warning-looking stderr lines use the normal log filter, while the
+  launch env remains the owner of Node deprecation suppression.
+- Validation: focused local-runtime launch-option Jest coverage, exact
+  deprecation-literal scan, SDK generated-output stale-contract scan, and
+  `git diff --check`.
+- Compatibility: no migration required. Daemon environment, IPC, layer log
+  paths, settings, credentials, and persisted data are unchanged.### 2026-06-18 local-runtime execution target contract
 
 - Finding: the client tool manifest contract still used `execution_target: sidecar` as the canonical local execution target across SDK builders, backend validation, generated manifests, plugin/MCP registration, renderer labels, docs, and tests, exposing the Python executor name as a reusable SDK/backend contract value.
 - Change: renamed the canonical local target to `local_runtime`, updated SDK TypeScript/CJS builders, Python SDK/manifests, backend validation, generated built-in manifests, plugin/MCP registration, renderer skin labels, docs, and focused tests; retired `sidecar` target values now fail backend manifest validation instead of being accepted or aliased.
