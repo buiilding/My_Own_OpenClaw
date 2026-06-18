@@ -422,8 +422,8 @@ contracts.
 - [**Backend Tool Preparation + Coordinate Resolution**](backend/tools/tool_preparation_and_coordinate_resolution_reference.md) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
 - [**Backend Tools Processing Hub**](backend/tools/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
 - [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
-- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, sidecar, Electron, renderer, and tests
-- [**Sidecar Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, local-runtime execution, Python sidecar adapters, Electron, renderer, and tests
+- [**Sidecar Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->local-runtime browser execution and CDP orchestration details backed by Python sidecar adapters
 - [**Sidecar Browser Action Runtime**](frontend/sidecar/browser_action_runtime_reference.md) - Browser Use CLI adapter action surface, payload rules, and timeout/error-code behavior
 - [**Sidecar Browser Docs Hub**](frontend/sidecar/browser/README.md) - Sub-hub for Browser Use CLI adapter and result normalization contracts
 - [**Sidecar Browser Contracts Docs Hub**](frontend/sidecar/browser/contracts/README.md) - Sub-hub for sidecar browser action schemas and validation boundary semantics

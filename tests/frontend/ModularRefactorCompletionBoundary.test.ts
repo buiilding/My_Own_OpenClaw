@@ -662,11 +662,18 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('Python sidecar validation');
     expect(docText).toContain('Python sidecar runtime');
+    expect(docText).toContain('local-runtime browser execution');
+    expect(docText).toContain('Python sidecar Browser Use adapters');
     expect(docText).toContain('Desktop client/local-runtime manifest');
     expect(docText).toContain('Python sidecar registry');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Sidecar registry:');
     expect(docText).not.toContain('Sidecar executable owner:');
+    expect(docText).not.toContain('shared contract, Python sidecar runtime, CDP launch');
+    expect(docText).not.toContain('sidecar action runtime');
+    expect(docText).not.toContain('Sidecar Browser Use engine adapter');
+    expect(docText).not.toContain('Sidecar Chrome launcher/detection');
+    expect(docText).not.toContain('SDK local-runtime bridge and sidecar browser execution');
     expect(docText).not.toMatch(/(?<!Python )sidecar validation entrypoint/);
     expect(docText).not.toMatch(/(?<!Python )sidecar runtime validation/);
     expect(docText).not.toMatch(/(?<!Python )sidecar runtime supported-action registry/);

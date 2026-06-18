@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: route Browser Change Workflow owner labels through
+  local-runtime browser execution and Python sidecar Browser Use adapters,
+  instead of presenting the sidecar runtime as a peer public owner. No migration
+  required.
+- renderer/audio: move `audio-chunk` payload validation into
+  `DesktopAudioRuntimeClient` so chat bindings receive normalized audio chunks
+  from the app-runtime facade instead of parsing raw IPC event envelopes. No
+  migration required.
 - docs/sdk: route the conversation continuity responsibility split and backend
   local-runtime tool bridge docs through local-runtime persistence/dispatch
   ownership while keeping Python sidecar backing implementation details

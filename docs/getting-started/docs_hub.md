@@ -365,7 +365,7 @@ Likely code:
 - `frontend/src/main/python/tools/browser/**`
 - `frontend/src/renderer/features/dashboard/components/*` for browser UI surfaces
 
-Validate backend/sidecar browser schema parity, Python sidecar browser action tests, and renderer browser header/status tests when UI changes.
+Validate backend/Python sidecar browser schema parity, Python sidecar browser action tests, and renderer browser header/status tests when UI changes.
 
 ### Change Renderer Chat, Dashboard, or Settings UI
 

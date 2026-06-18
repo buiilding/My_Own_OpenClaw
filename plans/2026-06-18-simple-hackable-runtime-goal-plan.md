@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a browser workflow owner-label slice by routing
+  `docs/browser/browser_change_workflow.md` and adjacent browser hub summaries
+  through local-runtime browser execution plus Python sidecar Browser Use
+  adapters, instead of presenting the sidecar runtime as a peer public owner.
+  Concrete Python sidecar validation/action tests remain visible where they
+  debug implementation behavior. Validation: focused modular docs boundary
+  test, docs listing, source scan, and diff checks. No migration required; no
+  code path, payload, storage, IPC, settings, tool schema, credential,
+  permission, or provider-policy behavior changed.
 - 2026-06-18: completed the renderer app-runtime inventory slice by adding a
   classification table to
   `docs/frontend/renderer/desktop_runtime_transport_command_contract_reference.md`.
@@ -321,6 +330,13 @@ For each completed slice, record:
   modular docs boundary test, docs listing, source scan, and diff checks. No
   migration required; no code path, payload, storage, IPC, settings, tool
   schema, credential, permission, or provider-policy behavior changed.
+- 2026-06-18: completed a renderer app-runtime audio boundary slice by moving
+  `audio-chunk` envelope validation from chat feature utilities into
+  `DesktopAudioRuntimeClient`. Chat bindings now consume normalized audio
+  chunks from the app-runtime facade, while the typed channel and payload shape
+  remain unchanged. Validation: focused audio parser, chat wiring, and renderer
+  app-runtime boundary Jest coverage plus docs listing, source scan, and diff
+  checks. No migration required.
 - 2026-06-18: completed a browser-tool public wording slice by routing
   `docs/tools/browser.md` and the tools hub through local-runtime execution and
   Python sidecar adapter/executor terminology instead of unqualified
