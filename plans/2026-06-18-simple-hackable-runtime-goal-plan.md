@@ -1,5 +1,5 @@
 ---
-summary: "General goal plan for making WindieOS simple, intuitive, hackable, and debuggable while continuing the current runtime ownership migration direction."
+summary: "Long-running-agent goal plan for making WindieOS structurally simple, intuitive to change, hackable, and debuggable."
 title: "Simple Hackable Runtime Goal Plan"
 ---
 
@@ -15,6 +15,12 @@ reversing the recent ownership cleanup work.
 The target is not fewer folders for their own sake. The target is that a
 developer can look at a behavior and quickly know which runtime owns it, which
 contract carries it, which diagnostic proves it, and which tests protect it.
+
+For long-running agent work, "simple and intuitive" means structurally simple:
+owner-correct code paths, clear command routes, fewer duplicate authorities,
+current docs, and diagnostics that explain runtime state. It does not mean
+unbounded product redesign, broad UI rewrites, or behavior changes without a
+named bug, trace, contract, or goal.
 
 This plan should continue the direction of the recent commits: align public
 language around runtime ownership, route UI features through app-runtime/SDK
@@ -50,6 +56,11 @@ requires it, but reusable contracts should use local-runtime terminology.
   persisted dependency requires them.
 - Do not collapse all code into fewer files if ownership would become less
   obvious.
+- Do not change chat pill, dashboard, overlay, typing-state, animation, or
+  interaction behavior unless the change is tied to a named bug, trace,
+  contract, or explicit product goal.
+- Do not add new user-facing product surfaces because they seem useful. Long
+  running work should make existing surfaces easier to reason about and debug.
 
 ## Design Principles
 
@@ -63,6 +74,42 @@ requires it, but reusable contracts should use local-runtime terminology.
 - Local runtime code should own local machine authority and executable tools.
 - Compatibility paths should have a named reason to remain or a deletion path.
 - Debugging should follow one traceable route from user intent to visible UI.
+
+## Long-Running Goal Scope
+
+Long-running agent work should make WindieOS structurally easier to change,
+inspect, and trust:
+
+- inventory confusing runtime ownership surfaces
+- remove verified stale aliases, fallback paths, and forwarding-only adapters
+- align docs, command help, diagnostics, errors, and public names with current
+  runtime ownership
+- add or improve diagnostics that identify producer, consumer, runtime owner,
+  correlation ids, and failure stage
+- add focused tests for ownership boundaries, command routing, schema parity,
+  replay contracts, and import boundaries
+- simplify code paths when behavior is preserved and validation proves it
+
+The long-running goal is not to keep refactoring forever. The goal is to make
+each completed slice leave WindieOS easier to debug, easier to extend, and less
+likely to route the same behavior through competing owners.
+
+## Long-Running Work Loop
+
+Each autonomous slice should be small enough to finish with evidence:
+
+1. Choose one ownership-confusion candidate, stale compatibility path, missing
+   diagnostic, or docs/code mismatch.
+2. Reread `AGENTS.md`, relevant docs, current code, and recent related commits.
+3. State the current owner, the confusing or duplicate path, and the simpler
+   owner-correct path before editing.
+4. Make the smallest behavior-preserving change unless the plan names a
+   verified bug.
+5. Add or update focused tests, docs, or diagnostics at the owning runtime.
+6. Update `CHANGELOG.md` with migration and security notes.
+7. Record the completion note.
+8. Stop if the next step would require product judgment not stated in the goal,
+   a verified bug, a trace, or an existing contract.
 
 ## Recent-Commit Alignment Guardrails
 
@@ -162,7 +209,8 @@ runtime authority.
 
 ### 6. Debuggable End-To-End Trace
 
-For common failures, provide one canonical route:
+This is the highest-priority workstream for long-running agents. For common
+failures, provide one canonical route:
 
 ```text
 renderer action
@@ -181,16 +229,21 @@ provider payloads.
 
 ## Candidate First Slices
 
-1. Inventory renderer app-runtime clients and classify each as real boundary,
-   forwarding-only, or migration shim.
-2. Inventory `ipc.cjs` responsibilities and identify the next owner-correct
-   extraction or deletion that does not change behavior.
-3. Search for stale public `sidecar`/`local_backend` wording and separate
-   implementation-process references from reusable local-runtime contracts.
+1. Document a single debug trace playbook for one user message through send,
+   backend stream, local tool execution, SDK projection, and renderer display.
+   The playbook should make it obvious which diagnostic command or event proves
+   each stage.
+2. Inventory renderer app-runtime clients and classify each as real boundary,
+   forwarding-only, or migration shim. Delete or rename only one verified
+   forwarding-only path per slice.
+3. Inventory `ipc.cjs` responsibilities and identify one owner-correct
+   extraction or deletion that preserves behavior and has a focused test target.
 4. Add or tighten boundary tests that prevent renderer feature modules from
    importing app-provider internals or backend-wire event helpers.
-5. Document a single debug trace playbook for one user message through send,
-   backend stream, local tool execution, and renderer projection.
+5. Search for stale public `sidecar`/`local_backend` wording and separate
+   implementation-process references from reusable local-runtime contracts.
+6. Align any stale doctor/status/diagnostics docs with the current `<windie>`
+   command surface so agents and humans start from the same runtime evidence.
 
 ## Validation Expectations
 
@@ -212,6 +265,7 @@ execution, and machine-path boundaries.
 For each completed slice, record:
 
 - goal pursued
+- long-running-agent scope respected
 - recent-commit direction preserved
 - ownership clarified
 - duplicate or compatibility path removed

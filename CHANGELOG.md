@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: clarify the long-running scope for the simple hackable runtime
+  goal around structural clarity, diagnostics, deletion, docs, contract tests,
+  and explicit stop conditions for unstated product-judgment changes. No
+  migration required.
 - docs/plans: add a simple hackable runtime goal plan that continues the
   recent runtime ownership migration direction and sets guardrails against
   reversing local-runtime, SDK-runtime, and renderer app-runtime cleanup. No
