@@ -1,18 +1,17 @@
 ---
-summary: "Deep reference for backend core tool-security primitives: fail-closed permission semantics, path/resource checks, audit parameter sanitization + lock-guarded log reads, removed ProcessSandboxedExecutor placeholder behavior, and runtime tool-executor registry behavior."
+summary: "Deep reference for backend core tool-security primitives: fail-closed permission semantics, path/resource checks, audit parameter sanitization + lock-guarded log reads, and removed executor registry behavior."
 read_when:
   - When changing tool permission declarations, blocked-tool/path policy, or audit log memory/concurrency controls.
-  - When implementing sandboxed execution and deciding executor registry switching behavior.
-  - When resolving stale references to removed `ProcessSandboxedExecutor`, sandboxed executor placeholder, or old sandbox `NotImplementedError` behavior.
-title: "Policy Permissions, Audit Sanitization, and Executor Registry Reference"
+  - When implementing sandboxed execution or resolving stale executor registry references.
+  - When resolving stale references to removed `ProcessSandboxedExecutor`, `ToolExecutor`, `DirectToolExecutor`, `get_tool_executor`, or `set_tool_executor`.
+title: "Policy Permissions, Audit Sanitization, and Removed Executor Registry Reference"
 ---
 
-# Policy Permissions, Audit Sanitization, and Executor Registry Reference
+# Policy Permissions, Audit Sanitization, and Removed Executor Registry Reference
 
 ## Canonical Modules
 
 - `backend/src/core/security/policy.py`
-- `backend/src/core/security/executor.py`
 - `backend/src/tools/tool_policy.py`
 - `backend/src/tools/remote_tools/base.py`
 
@@ -21,9 +20,10 @@ title: "Policy Permissions, Audit Sanitization, and Executor Registry Reference"
 Two distinct security layers exist:
 
 1. active tool-surface filtering (`tools/tool_policy.py`)
-2. deeper permission/audit/executor primitives (`core/security/*`)
+2. deeper permission/audit primitives (`core/security/policy.py`)
 
-Current production wiring primarily uses layer 1; layer 2 provides hardened primitives for stricter execution boundaries.
+Current production wiring primarily uses layer 1; layer 2 provides hardened
+permission and audit primitives for stricter execution boundaries.
 
 ## Permission Model (`SecurityPolicy`)
 
@@ -102,25 +102,21 @@ Query surface:
 
 - `get_audit_log(tool_name?, user_id?, limit=100)` applies filters on safe snapshot
 
-## Executor Registry and Isolation Semantics
+## Removed Executor Registry
 
-`core/security/executor.py` defines:
+`core/security/executor.py` has been removed.
+
+The removed module defined:
 
 - `ToolExecutor` abstract async interface
-- `DirectToolExecutor` (default, in-process)
-
-Runtime registry:
-
+- `DirectToolExecutor` wrapper around direct `tool.run(...)`
 - global thread-safe `_ToolExecutorRegistry`
-- `get_tool_executor()` returns current executor
-- `set_tool_executor(executor)` atomically swaps executor
+- `get_tool_executor()` / `set_tool_executor(...)`
 
-Important:
-
-- no sandboxed executor is currently exposed; add a concrete isolated executor
-  only with an implemented isolation strategy and tests
-- `ProcessSandboxedExecutor` was removed rather than kept as a placeholder; the
-  current export surface intentionally contains only implemented executor paths
+Those names were not imported by the live tool-orchestration path and only kept
+a future-hook surface alive. There is still no sandboxed executor exposed; add a
+concrete isolated execution boundary only with an implemented isolation strategy
+and tests.
 
 ## Current Integration Reality
 
@@ -132,7 +128,7 @@ Partially wired/deferred:
 
 - `SecurityPolicy` permission/path/resource checks
 - `ToolExecutionAudit` runtime logging integration at dispatch boundaries
-- real isolated executor implementation
+- real isolated execution boundary implementation
 
 Remote tools default `required_permissions = set()` in `remote_tools/base.py`.
 Sensitive filesystem and shell/process stubs override that default with explicit
@@ -145,11 +141,11 @@ enforcement can distinguish declared capability from an actual grant.
 2. Grant authorized permissions explicitly for each tool/deployment boundary.
 3. Enforce `check_permission` and `check_path_access` at dispatch boundary.
 4. Log `ToolExecutionAudit` on both success and failure paths.
-5. Decide and implement a concrete sandbox strategy before exposing a sandboxed executor.
+5. Decide and implement a concrete sandbox strategy before exposing sandboxed execution.
 6. Add tests for deny-by-default, blocked-path/tool behavior, and audit sanitization cycle/depth edge cases.
 
 ## Related Pages
 
 - [Backend Tools Security Docs Hub](README.md)
-- [Tool Security Policy and Executor Reference](../tool_security_policy_and_executor_reference.md)
+- [Tool Security Policy Reference](../tool_security_policy_and_executor_reference.md)
 - [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)

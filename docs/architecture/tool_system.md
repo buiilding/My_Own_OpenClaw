@@ -532,7 +532,7 @@ top-level `explanation` field when required by that tool's schema.
 ### Tool Execution Security
 
 - **Permission Model**: `SecurityPolicy` defines permissions, but sidecar execution does not enforce them yet
-- **Sandbox Hooks**: Executor abstraction allows sandboxing (not enabled by default)
+- **Sandboxing**: No executor abstraction is exposed; add a concrete isolated execution boundary only with an implemented strategy
 - **Resource Limits**: Limits are defined in `SecurityPolicy`, not enforced in sidecar by default
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 

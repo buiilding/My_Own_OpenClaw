@@ -56,7 +56,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 | Dependency graph composition | `backend/src/core/container/application.py` | `core_container`, `tool_container`, `memory_container`, `api_container` | Container facade exposure |
 | Config load/update/subscribe | `backend/src/core/config/manager.py` | `backend/src/core/config/service.py`, `backend/src/core/config/subscriptions.py` | Config-changed propagation |
 | Event publication | `backend/src/core/infrastructure/bus.py` | `backend/src/core/events/{bus_events,streaming_events}.py` | Subscriber callbacks |
-| Security/trust boundary | `backend/src/core/security/policy.py` | `backend/src/core/security/executor.py`, `backend/src/core/observability/trust_boundary_metrics.py` | Policy enforcement + metrics |
+| Security/trust boundary | `backend/src/core/security/policy.py` | `backend/src/core/observability/trust_boundary_metrics.py` | Policy primitives + metrics |
 
 ## LLM + Services Integration Flows
 

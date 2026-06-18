@@ -1,13 +1,13 @@
 ---
-summary: "Backend tool security reference: active ToolPolicy gating, core SecurityPolicy permission/audit primitives, executor registry behavior, removed ProcessSandboxedExecutor placeholder behavior, and current integration boundaries."
+summary: "Backend tool security reference: active ToolPolicy gating, core SecurityPolicy permission/audit primitives, removed executor registry behavior, and current integration boundaries."
 read_when:
   - When changing backend tool permission models, blocked-tool/path policy, or audit logging behavior.
   - When wiring sandboxed executors or debugging permission denials and tool security boundary drift.
-  - When resolving stale references to removed `ProcessSandboxedExecutor` or its old `NotImplementedError` placeholder behavior.
-title: "Tool Security Policy and Executor Reference"
+  - When resolving stale references to removed `ProcessSandboxedExecutor`, `ToolExecutor`, `DirectToolExecutor`, or executor registry behavior.
+title: "Tool Security Policy Reference"
 ---
 
-# Tool Security Policy and Executor Reference
+# Tool Security Policy Reference
 
 ## Canonical Modules
 
@@ -15,7 +15,6 @@ title: "Tool Security Policy and Executor Reference"
 - `backend/src/tools/orchestrator.py`
 - `backend/src/tools/remote_tools/base.py`
 - `backend/src/core/security/policy.py`
-- `backend/src/core/security/executor.py`
 
 ## Active Runtime Boundary (Today)
 
@@ -94,32 +93,29 @@ execution.
 - `check_resource_limits(...)` currently enforces timeout-only logic from `ResourceLimits.timeout`.
 - other resource limit fields are defined but not actively enforced in this module.
 
-## Executor Registry and Isolation State
+## Removed Executor Registry
 
-`core/security/executor.py` provides:
+`core/security/executor.py` has been removed. The registry exposed only direct
+in-process `tool.run(...)` semantics and was not wired into the live
+tool-orchestration path, so it acted as a compatibility/future-hook surface
+rather than an execution boundary.
 
-- `ToolExecutor` abstract interface
-- `DirectToolExecutor` (default, in-process)
-- thread-safe global executor registry (`get_tool_executor`, `set_tool_executor`)
-
-Current default execution path is direct executor semantics. There is no
-sandbox executor in the runtime; add a concrete isolated executor only when the
-process/container strategy is implemented and tested.
+The current backend tool execution path is owned by `tools/orchestrator.py` and
+the local-runtime bridge. Add a concrete isolated execution boundary there only
+when the process/container strategy is implemented and tested.
 
 ### Removed Sandbox Executor Placeholder
 
-`ProcessSandboxedExecutor` was removed from `core/security/executor.py` and from
-the former `backend.src.core.security` package export surface. The runtime no
-longer exposes a sandboxed executor placeholder that raises
-`NotImplementedError`. Stale searches for `ProcessSandboxedExecutor removed` or
-`ProcessSandboxedExecutor NotImplementedError` should route here. Current code
-exposes only the abstract `ToolExecutor`, the in-process `DirectToolExecutor`,
-and the registry helpers from `backend.src.core.security.executor`.
+`ProcessSandboxedExecutor` was removed first, followed by the unused executor
+registry itself. The runtime no longer exposes sandboxed executor placeholders,
+direct executor wrappers, or registry helpers. Stale searches for
+`ProcessSandboxedExecutor removed`, `ToolExecutor`, `DirectToolExecutor`,
+`get_tool_executor`, or `set_tool_executor` should route here.
 
 ## Integration Status Summary
 
 - Active and wired: `tools/tool_policy.py` filtering and method validation.
-- Defined but mostly unhooked in standard tool-orchestration flow: `core/security/policy.py` permission/resource/audit checks and the `core/security/executor.py` registry abstraction.
+- Defined but mostly unhooked in standard tool-orchestration flow: `core/security/policy.py` permission/resource/audit checks.
 
 ## Enablement Checklist (When Hardening Further)
 
@@ -127,10 +123,10 @@ and the registry helpers from `backend.src.core.security.executor`.
 2. Populate explicit `granted_permissions` for authorized tools/deployments.
 3. Add SecurityPolicy checks at concrete execution boundaries (tool dispatch and/or local-runtime bridge send path).
 4. Attach audit logging on both success and failure tool-result paths.
-5. Implement and test a concrete isolated executor before selecting a sandboxed execution mode.
+5. Implement and test a concrete isolated execution boundary before selecting a sandboxed execution mode.
 6. Add tests that assert deny-by-default, blocked paths/tools, and audit truncation behavior.
 
 ## Related Pages
 
 - [Backend Tools Security Docs Hub](security/README.md)
-- [Policy Permissions, Audit Sanitization, and Executor Registry Reference](security/policy_permissions_audit_and_executor_registry_reference.md)
+- [Policy Permissions, Audit Sanitization, and Removed Executor Registry Reference](security/policy_permissions_audit_and_executor_registry_reference.md)

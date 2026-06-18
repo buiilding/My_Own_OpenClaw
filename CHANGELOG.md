@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - docs/sdk: align SDK local-runtime docs and main adapter boundary tests away from local-sidecar wording while preserving concrete Python sidecar implementation references; no migration is required because this is docs/test coverage only.
 
 - frontend/main: clarify backend endpoint resolution and docs as Electron main plus local-runtime consumer ownership, and lock old main-process-plus-sidecar endpoint wording out of focused coverage; no migration is required because endpoint env names, URL derivation, SDK/local-runtime payloads, and stored settings are unchanged.
@@ -2258,6 +2259,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
@@ -4031,6 +4033,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
@@ -4459,6 +4462,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
@@ -4917,6 +4921,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to
@@ -7331,6 +7336,7 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- backend/core: remove the unused security executor registry and direct executor facade; no migration is required because live tool execution continues through ToolPolicy, tools/orchestrator, and the local-runtime bridge while SecurityPolicy permission/audit primitives remain.
 - Added `AgentRuntimeTransport` as the generic SDK host/runtime transport alias and switched the renderer desktop-agent runtime transport to use it instead of importing the backend-named transport type. No backend wire, IPC, storage, settings, credential, permission, or tool-execution migration is required.
 
 - frontend/renderer: rename dashboard memory row delete-routing fields to

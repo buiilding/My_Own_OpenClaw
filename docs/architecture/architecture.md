@@ -369,7 +369,7 @@ Core runtime services live under `backend/src/services/`:
 
 ### Tool Execution Security
 - **Permission Model**: `SecurityPolicy` defines permissions, not enforced in sidecar by default
-- **Sandboxing Hooks**: Executor abstraction allows sandboxed execution (not enabled by default)
+- **Sandboxing**: No executor abstraction is exposed; add a concrete isolated execution boundary only with an implemented strategy
 - **Resource Limits**: Defined in `SecurityPolicy`, not enforced in sidecar by default
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 

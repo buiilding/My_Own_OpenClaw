@@ -73,8 +73,7 @@ backend/src/core/
 │   └── wakeword_service.py            # WakewordService - wakeword activation logic and greeting selection policy
 │
 ├── security/                          # Security and trust boundary enforcement
-│   ├── policy.py                      # SecurityPolicy - permission checking, resource limits, audit logging
-│   └── executor.py                    # ToolExecutor - abstract base class, DirectToolExecutor, and runtime executor registry
+│   └── policy.py                      # SecurityPolicy - permission checking, resource limits, audit logging
 │
 ├── observability/                     # Observability and metrics
 │   └── trust_boundary_metrics.py     # MetricsService - tracks trust boundary violations and security events

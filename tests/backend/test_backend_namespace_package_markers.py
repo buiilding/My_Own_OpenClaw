@@ -132,7 +132,6 @@ CONCRETE_MODULES = [
     "backend.src.core.interfaces.tool",
     "backend.src.core.messages.structures",
     "backend.src.core.observability.trust_boundary_metrics",
-    "backend.src.core.security.executor",
     "backend.src.core.services.speech_service",
     "backend.src.core.types.enums",
     "backend.src.core.validation.settings_update_rules",
@@ -156,6 +155,7 @@ CONCRETE_MODULES = [
 
 REMOVED_MODULE_FACADES = [
     "backend/src/core/infrastructure/cache.py",
+    "backend/src/core/security/executor.py",
     "backend/src/tools/browser/schemas.py",
     "backend/src/tools/remote.py",
 ]

@@ -5033,3 +5033,19 @@ Each completed slice should report:
 - Compatibility: no migration required. These were unused backend-internal type
   aliases only; runtime stream events, formatter output, outgoing API schemas,
   and provider normalized response payloads are unchanged.
+### 2026-06-17 backend security executor registry
+
+- Finding: `backend/src/core/security/executor.py` exposed `ToolExecutor`,
+  `DirectToolExecutor`, and a global registry, but exact usage scans showed only
+  docs/export tests; live dispatch uses the backend tool orchestrator and
+  local-runtime bridge.
+- Change: deleted the executor module and export-surface test, then updated
+  security docs and source maps to mark the registry removed while keeping
+  `SecurityPolicy`/`Permission` primitives intact.
+- Validation: py_compile, focused security/marker pytest, exact stale scan,
+  docs list/search, and deletion absence check. The full namespace import sweep
+  was blocked by fallback Python missing `litellm` after the `jarvis` conda env
+  was unavailable.
+- Compatibility: no migration required. This removes an unused backend-internal
+  future-hook facade; tool schemas, local-runtime dispatch, policy filtering,
+  stored settings, and persisted data are unchanged.
