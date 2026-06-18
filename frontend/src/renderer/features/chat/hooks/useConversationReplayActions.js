@@ -189,7 +189,7 @@ async function executeReplayAction({
       }));
     } catch (sendError) {
       if (sendError && typeof sendError === 'object') {
-        sendError.__desktopAgentReplayStep = 'send';
+        sendError.__desktopRuntimeReplayStep = 'send';
       }
       throw sendError;
     }
@@ -199,7 +199,7 @@ async function executeReplayAction({
     setMessages(sourceMessages, conversationRef);
     setIsSending(false, conversationRef);
     if (typeof addMessage === 'function') {
-      const replayStep = error?.__desktopAgentReplayStep === 'send' ? 'send' : 'prepare';
+      const replayStep = error?.__desktopRuntimeReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({
         id: crypto.randomUUID(),
         text: replayStep === 'send'

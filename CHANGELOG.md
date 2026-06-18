@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the private replay send-error marker from
+  `__desktopAgentReplayStep` to `__desktopRuntimeReplayStep`; no migration is
+  required because the marker is transient renderer error metadata and replay
+  preparation/send behavior is unchanged.
 - sdk/js: remove the duplicate `AgentChatSession.onConversationEvent(...)`
   listener alias so chat sessions expose `onEvent(...)` as the single event
   subscription method; SDK callers using the removed alias must call `onEvent`,

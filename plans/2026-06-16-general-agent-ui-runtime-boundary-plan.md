@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer replay error marker runtime key
+
+- Finding: edit/resend and retry replay handling tagged send failures with the
+  private `__desktopAgentReplayStep` property even though this is renderer-local
+  runtime bookkeeping.
+- Change: renamed the transient marker to `__desktopRuntimeReplayStep` and
+  extended renderer boundary coverage to reject the retired desktop-agent replay
+  key.
+- Validation: focused RendererSkinConfigBoundary Jest test, replay docs route
+  lookup, and stale replay marker scan.
+- Compatibility: no migration required. The marker is transient error metadata;
+  replay preparation, send behavior, messages, IPC, settings, and persisted data
+  are unchanged.
+
 ### 2026-06-18 SDK chat session listener alias removal
 
 - Finding: `AgentChatSession` exposed both the canonical `onEvent` subscriber

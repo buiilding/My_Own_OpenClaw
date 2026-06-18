@@ -113,6 +113,7 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('dedicated Windie browser');
       expect(source).not.toContain('canStartWindieOs');
       expect(source).not.toContain('__windieReplayStep');
+      expect(source).not.toContain('__desktopAgentReplayStep');
       expect(source).not.toContain('backend reconnects');
     }
   });
