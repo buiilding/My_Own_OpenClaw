@@ -30,6 +30,7 @@ const {
   getKnownAgentLocalRuntime,
   ensureAgentLocalRuntime,
   getLatestDesktopUiConfig,
+  configureIpcHostRuntime,
   configureIpcHostCopyRuntime,
   initializeIpc,
   registerBackendMessageObserver,
@@ -116,11 +117,13 @@ const {
   configureMcpRuntime,
 } = require('./extensions/mcp_runtime.cjs');
 const {
-  configureDebugEnvRuntime,
   isDebugFlagEnabled,
 } = require('./app/debug_env.cjs');
 
-configureDebugEnvRuntime(mainHostSkin.debug);
+configureIpcHostRuntime({
+  hostedBackend: mainHostSkin.hostedBackend,
+  debug: mainHostSkin.debug,
+});
 configureAppDiagnosticsStore(mainHostSkin.diagnostics);
 configureLayerLogSink(mainHostSkin.logging);
 configureExtensionManifestRuntime(mainHostSkin.extensions);

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main IPC Backend/Debug Config Boundary
+
+- Finding: after host-copy and local-runtime launch config moved to narrow
+  IPC inputs, `ipc.cjs` still imported the WindieOS host skin for hosted
+  backend endpoint defaults and debug env names at module load.
+- Change: added `configureIpcHostRuntime` so the Electron main composition root
+  configures backend endpoint defaults and debug env names explicitly, and made
+  the IPC bridge harness configure the same host runtime values in tests.
+- Validation: focused host-skin boundary, SDK IPC boundary, bridge lifecycle,
+  backend endpoint, and debug-env Jest coverage plus CommonJS syntax checks.
+  `IpcMainBridge.query` is currently blocked by unrelated dirty SDK visual
+  resource changes removing `normalizeBackendEventToConversationEvent` from
+  the working tree.
+- Compatibility: no migration required. Backend endpoint selection, debug env
+  flags, SDK wake-up, query routing, IPC channels, storage, credentials,
+  provider policy, and local tool execution are unchanged.
+
 ### 2026-06-18 Main IPC Host-Copy Boundary
 
 - Finding: `ipc.cjs` still read `mainHostSkin.identity` for SDK wake-up and

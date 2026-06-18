@@ -17,7 +17,6 @@ const {
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
 } = require('./app/backend_endpoints.cjs');
-const { mainHostSkin } = require('./app/main_host_skin.cjs');
 const {
   configureDebugEnvRuntime,
   isDebugFlagEnabled,
@@ -170,13 +169,11 @@ const {
   summarizeCurrentTurn,
 } = require('./debug/live_surface_trace_runtime.cjs');
 
-configureBackendEndpointRuntime(mainHostSkin.hostedBackend);
 const backendEndpointState = createBackendEndpointState({
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   env: process.env,
 });
-configureDebugEnvRuntime(mainHostSkin.debug);
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
@@ -763,6 +760,12 @@ function buildDesktopLocalRuntimeOptions() {
   return process.env.NODE_ENV === 'test'
     ? { autoStartLocalRuntime: false }
     : { autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
+}
+
+function configureIpcHostRuntime(config = {}) {
+  configureBackendEndpointRuntime(config.hostedBackend);
+  backendEndpointState.refresh();
+  configureDebugEnvRuntime(config.debug);
 }
 
 function configureIpcHostCopyRuntime(copy = {}) {
@@ -2214,6 +2217,7 @@ module.exports = {
   BACKEND_CONNECT_TIMEOUT_MS,
   BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
   BACKEND_RECONNECT_INTERVAL_MS,
+  configureIpcHostRuntime,
   getBackendConnectionState,
   getKnownAgentLocalRuntime,
   configureIpcHostCopyRuntime,

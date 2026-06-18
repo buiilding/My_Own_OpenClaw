@@ -189,6 +189,15 @@ function initIpc(options = {}) {
     __dirname,
     '../../../frontend/src/main/ipc.cjs',
   ));
+  const { mainHostSkin } = require('../../../frontend/src/main/app/main_host_skin.cjs');
+  ipc.configureIpcHostRuntime({
+    hostedBackend: mainHostSkin.hostedBackend,
+    debug: mainHostSkin.debug,
+  });
+  ipc.configureIpcHostCopyRuntime({
+    identity: mainHostSkin.identity,
+    queryEvents: mainHostSkin.queryEvents,
+  });
   lastIpc = ipc;
 
   const mainWindow = {

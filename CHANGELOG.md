@@ -37,6 +37,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/ipc: configure SDK agent name, MCP client info, and query-event copy
   from the Electron composition root instead of reading WindieOS host-skin
   identity/query copy directly in IPC runtime. No migration required.
+- main/ipc: configure backend endpoint defaults and debug env names from the
+  Electron composition root instead of importing the WindieOS host skin inside
+  IPC runtime. No migration required.
 - docs/agents: require agents to redo required orientation after every
   compaction summary before continuing implementation or analysis.
 - docs/plans: add a shared image-resource materialization goal plan covering

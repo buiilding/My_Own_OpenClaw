@@ -156,7 +156,11 @@ describe('main host skin/config boundary', () => {
 
     expect(backendEndpointSource).toContain('configureBackendEndpointRuntime');
     expect(backendEndpointSource).not.toContain('mainHostSkin');
-    expect(fs.readFileSync(mainIpcPath, 'utf8')).toContain('configureBackendEndpointRuntime(mainHostSkin.hostedBackend)');
+    expect(fs.readFileSync(mainIpcPath, 'utf8')).not.toContain("require('./app/main_host_skin.cjs')");
+    expect(fs.readFileSync(mainIpcPath, 'utf8')).toContain('configureIpcHostRuntime(config = {})');
+    expect(indexSource).toContain('configureIpcHostRuntime({');
+    expect(indexSource).toContain('hostedBackend: mainHostSkin.hostedBackend');
+    expect(indexSource).toContain('debug: mainHostSkin.debug');
     expect(indexSource).toContain('runsApiKeyHeader: mainHostSkin.hostedBackend.runsApiKeyHeader');
     expect(indexSource).toContain('vmWorkerEnv: mainHostSkin.vmWorker.env');
     expect(indexSource).toContain('appIconFileName: mainHostSkin.assets.appIconFileName');
@@ -365,8 +369,10 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS'");
     expect(debugEnvSource).toContain("streamEvents: 'AGENT_DEBUG_STREAM_EVENTS'");
     expect(debugEnvSource).toContain('configureDebugEnvRuntime');
-    expect(indexSource).toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
-    expect(mainIpcSource).toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
+    expect(indexSource).toContain('configureIpcHostRuntime({');
+    expect(indexSource).toContain('debug: mainHostSkin.debug');
+    expect(mainIpcSource).toContain('configureDebugEnvRuntime(config.debug)');
+    expect(mainIpcSource).not.toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
     expect(genericDebugSources).not.toContain('WINDIE_DEBUG_');
     expect(genericDebugSources).not.toContain('WINDIE_DEV_UI');
   });
