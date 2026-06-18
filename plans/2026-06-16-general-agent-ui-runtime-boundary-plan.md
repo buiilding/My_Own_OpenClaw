@@ -4926,3 +4926,17 @@ Each completed slice should report:
 - Compatibility: no migration required. This is a sidecar-internal import-path
   cleanup; JSON-RPC methods, tool schemas, window-manager behavior, and
   platform-specific adapter implementations are unchanged.
+
+### 2026-06-17 backend string nested fallback helper
+
+- Finding: `backend/src/core/utils/string_normalization.py` still exposed
+  `resolve_top_level_or_nested_string(...)`, but exact-name scans showed no
+  source, test, or doc callers; the live helper is only
+  `normalize_non_empty_string(...)`.
+- Change: removed the unused nested fallback helper and its `Mapping` import,
+  and added direct unit coverage for `normalize_non_empty_string(...)`.
+- Validation: focused string-normalization py_compile and pytest, exact-name
+  stale scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This removes an unused backend-internal
+  utility only; the live string normalization behavior used by tool-call bridge
+  id normalization is unchanged.

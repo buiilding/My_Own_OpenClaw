@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused nested string fallback helper from
+  `string_normalization.py`; no migration is required because the live
+  `normalize_non_empty_string` behavior is unchanged.
 - sidecar/main: rename daemon launch source-identity env metadata from `WINDIE_SIDECAR_SOURCE_*` to `WINDIE_LOCAL_RUNTIME_SOURCE_*`; no migration is required because the keys are Electron-produced launch-context metadata and discovery-file location, daemon routes, JSON-RPC payloads, tool schemas, env controls, and stored settings are unchanged.
 
 - sidecar/main: rename daemon launch source-identity env metadata from `WINDIE_SIDECAR_SOURCE_*` to `WINDIE_LOCAL_RUNTIME_SOURCE_*`; no migration is required because the keys are Electron-produced launch-context metadata and discovery-file location, daemon routes, JSON-RPC payloads, tool schemas, env controls, and stored settings are unchanged.
