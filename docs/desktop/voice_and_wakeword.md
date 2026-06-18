@@ -17,7 +17,7 @@ WindieOS voice has three related paths: wakeword detection, transient voice dict
 - Voice utilities: `frontend/src/renderer/features/voice/utils/*`
 - Voice status UI: `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
 - Main wakeword bridge: `frontend/src/main/wakeword/wakeword_bridge*.cjs`
-- Sidecar wakeword service: `frontend/src/main/python/wakeword_service.py`
+- Local-runtime wakeword service implementation: `frontend/src/main/python/wakeword_service.py`
 - Backend transcription route/service: `backend/src/api/routes/transcription/*`, `backend/src/api/services/transcription/*`
 - Backend TTS: `backend/src/api/processing/tts/*`, `backend/src/api/services/tts_session.py`
 
