@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer new-chat event runtime naming
+
+- Finding: the dashboard-to-chat renderer-only new-chat event still used the
+  `desktop-agent:new-chat` event string and `DESKTOP_AGENT_NEW_CHAT_EVENT`
+  constant even though the event is local desktop-runtime UI coordination.
+- Change: renamed the event string to `desktop-runtime:new-chat`, renamed the
+  exported constant to `DESKTOP_RUNTIME_NEW_CHAT_EVENT`, and updated dashboard,
+  chat binding, docs, and focused wiring coverage.
+- Validation: focused ChatInterfaceWiring Jest test, dashboard new-chat docs
+  route lookup, and stale event-name scan.
+- Compatibility: no migration required. The event is in-process renderer state;
+  chat reset behavior, dashboard dispatch, IPC, storage, and runtime payloads are
+  unchanged.
+
 ### 2026-06-18 SDK MCP registration options alias removal
 
 - Finding: `AgentRegisterMcpOptions` only renamed the `{ replace?: boolean }`

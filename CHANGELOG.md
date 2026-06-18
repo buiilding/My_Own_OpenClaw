@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the renderer-only dashboard new-chat event from
+  `desktop-agent:new-chat` to `desktop-runtime:new-chat`; no migration is
+  required because the event is in-process renderer state only.
 - sdk/js: remove the unused exported `AgentRegisterMcpOptions` type alias
   so `Agent.registerMcps` uses the direct `{ replace?: boolean }` options
   shape; no runtime, storage, or wire-payload migration is required.

@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/audioChunkEvents';
 import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
-import { DESKTOP_AGENT_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
+import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
   useEffect(() => {
@@ -119,9 +119,9 @@ export function useChatInterfaceNewChatEvent(handleNewChat) {
     const handleDashboardNewChat = () => {
       handleNewChat();
     };
-    window.addEventListener(DESKTOP_AGENT_NEW_CHAT_EVENT, handleDashboardNewChat);
+    window.addEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, handleDashboardNewChat);
     return () => {
-      window.removeEventListener(DESKTOP_AGENT_NEW_CHAT_EVENT, handleDashboardNewChat);
+      window.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, handleDashboardNewChat);
     };
   }, [handleNewChat]);
 }

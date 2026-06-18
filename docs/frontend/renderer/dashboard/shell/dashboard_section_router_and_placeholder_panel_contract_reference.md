@@ -49,7 +49,7 @@ Global exclusivity guard:
 Sidebar navigation actions:
 
 - `New chat` dispatches the renderer-only `window` event
-  `desktop-agent:new-chat`.
+  `desktop-runtime:new-chat`.
 - `Search chats` opens modal and resets search runtime state.
 - `Memory` opens memory modal.
 - `Usage` opens usage modal.
