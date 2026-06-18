@@ -5,6 +5,12 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the dashboard startup model-list session guard
+  from a stale desktop-agent global key to a generic desktop-runtime key,
+  with focused tests guarding the retired key; no migration is required
+  because this is an in-memory renderer session guard and settings/model
+  command payloads are unchanged.
+
 
 - docs/frontend: remove stale legacy-disk-config wording from frontend config
   persistence docs and IPC coverage; no migration is required because

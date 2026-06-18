@@ -32,6 +32,17 @@ describe('DesktopSettingsRuntimeClient', () => {
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledTimes(1);
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('models.list');
+    expect(
+      (window as Window & {
+        __desktop_agent_models_list_requested__?: boolean;
+        __desktop_runtime_models_list_requested__?: boolean;
+      }).__desktop_agent_models_list_requested__,
+    ).toBeUndefined();
+    expect(
+      (window as Window & {
+        __desktop_runtime_models_list_requested__?: boolean;
+      }).__desktop_runtime_models_list_requested__,
+    ).toBe(true);
   });
 
   test('skips dashboard startup model list from secondary renderer views', () => {

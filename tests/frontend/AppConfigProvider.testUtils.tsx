@@ -94,8 +94,8 @@ export function registerAppConfigProviderSuiteLifecycle() {
     listeners.clear();
     window.history.pushState({}, '', '/');
     delete (window as Window & {
-      __desktop_agent_models_list_requested__?: boolean;
-    }).__desktop_agent_models_list_requested__;
+      __desktop_runtime_models_list_requested__?: boolean;
+    }).__desktop_runtime_models_list_requested__;
     removeIpcListener = jest.fn();
     loadFrontendConfigResponse = null;
     clientUserIdResponse = null;

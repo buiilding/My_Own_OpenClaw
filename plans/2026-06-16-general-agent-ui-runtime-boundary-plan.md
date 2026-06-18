@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer model-list guard key
+
+- Finding: the renderer settings runtime facade still used a stale
+  `__desktop_agent_models_list_requested__` window key to suppress repeated
+  dashboard startup model-list requests.
+- Change: renamed the in-memory guard to a generic desktop-runtime key and
+  added focused coverage that the retired key is no longer populated.
+- Validation: focused DesktopSettingsRuntimeClient and AppConfigProvider
+  storage/IPC Jest tests, docs listing, and stale-key scan.
+- Compatibility: no migration required. This is a renderer-process session
+  guard only; settings commands, model-list IPC, storage, persisted data, and
+  backend payloads are unchanged.
+
+
 ### 2026-06-18 frontend config disk redaction wording cleanup
 
 - Finding: frontend config docs and IPC coverage still called normal
