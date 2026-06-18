@@ -128,8 +128,8 @@ async def test_perform_handshake_returns_client_user_id() -> None:
 
     assert assigned_user_id == "client_user"
     assert safe_ws.closed == []
-    assert getattr(safe_ws, "frontend_operating_system", None) == "macOS"
-    assert getattr(safe_ws, "frontend_agent_capability_overrides", None) == {
+    assert getattr(safe_ws, "client_operating_system", None) == "macOS"
+    assert getattr(safe_ws, "agent_capability_overrides", None) == {
         "agent_available_tools": ["read_file", "mouse_control"],
         "agent_available_coordinate_methods": ["manual"],
         "agent_disabled_capabilities": ["ocr", "vision"],
@@ -214,14 +214,14 @@ async def test_perform_handshake_accepts_agent_definition() -> None:
     assigned_user_id = await perform_handshake(websocket, safe_ws)
 
     assert assigned_user_id == "client_user"
-    assert getattr(safe_ws, "frontend_operating_system", None) == "Linux"
-    assert getattr(safe_ws, "frontend_agent_capability_overrides", None) == {
+    assert getattr(safe_ws, "client_operating_system", None) == "Linux"
+    assert getattr(safe_ws, "agent_capability_overrides", None) == {
         "agent_available_tools": ["save_note", "web_search"],
         "agent_available_coordinate_methods": ["manual"],
     }
-    manifest_result = getattr(safe_ws, "frontend_client_tool_manifest_result", None)
+    manifest_result = getattr(safe_ws, "client_tool_manifest_result", None)
     assert manifest_result.accepted_tool_names == ["save_note"]
-    agent_definition = getattr(safe_ws, "frontend_agent_definition", None)
+    agent_definition = getattr(safe_ws, "client_agent_definition", None)
     assert agent_definition.system_prompt_override() == "Custom agent prompt."
     assert agent_definition.client_prompt_layers()[0]["id"] == "review"
 

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend: rename websocket handshake/session OS context and transient
+  agent-definition attributes from frontend-prefixed names to client
+  operating-system, client manifest, and agent-definition terminology without
+  changing handshake payloads or session behavior.
 - backend/docs: rename the load-settings handler coverage and config
   ownership prose from frontend config to client settings, renderer config,
   and desktop UI config terminology without changing websocket payloads.

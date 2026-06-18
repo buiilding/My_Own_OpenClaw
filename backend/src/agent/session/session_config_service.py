@@ -1,4 +1,4 @@
-"""Session config and frontend OS state helpers for SessionManager."""
+"""Session config and client OS state helpers for SessionManager."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class SessionConfigService:
-    """Own user overrides, frontend OS state, and effective-session config assembly."""
+    """Own user overrides, client OS state, and effective-session config assembly."""
 
     def __init__(
         self,
@@ -44,7 +44,7 @@ class SessionConfigService:
         self._render_system_prompt = render_system_prompt
         self._provider_health_resolver = provider_health_resolver
         self.user_config_overrides: dict[str, dict[str, Any]] = {}
-        self.frontend_operating_systems: dict[str, str] = {}
+        self.client_operating_systems: dict[str, str] = {}
         self.client_tool_manifests: dict[str, Any] = {}
         self.agent_definitions: dict[str, Any] = {}
 
@@ -77,7 +77,7 @@ class SessionConfigService:
         return self.build_effective_config(user_id)
 
     @staticmethod
-    def normalize_frontend_operating_system(
+    def normalize_client_operating_system(
         operating_system: Optional[str],
     ) -> Optional[str]:
         if not isinstance(operating_system, str):
@@ -85,7 +85,7 @@ class SessionConfigService:
         normalized = operating_system.strip()
         return normalized or None
 
-    def apply_frontend_operating_system_to_session(
+    def apply_client_operating_system_to_session(
         self,
         session: "AgentSession",
         operating_system: str,
@@ -309,19 +309,19 @@ class SessionConfigService:
             return self._render_system_prompt(operating_system)
         return self._render_system_prompt()
 
-    def set_frontend_operating_system(
+    def set_client_operating_system(
         self,
         user_id: str,
         operating_system: Optional[str],
     ) -> None:
-        normalized_operating_system = self.normalize_frontend_operating_system(
+        normalized_operating_system = self.normalize_client_operating_system(
             operating_system
         )
         if normalized_operating_system is None:
             return
-        self.frontend_operating_systems[user_id] = normalized_operating_system
+        self.client_operating_systems[user_id] = normalized_operating_system
         for _, session in self._registry.iter_user_sessions(user_id):
-            self.apply_frontend_operating_system_to_session(
+            self.apply_client_operating_system_to_session(
                 session,
                 normalized_operating_system,
             )
@@ -394,7 +394,7 @@ class SessionConfigService:
             logger.warning("Failed to update config for %s session(s)", len(errors))
 
     def clear_user_state(self, user_id: str) -> None:
-        self.frontend_operating_systems.pop(user_id, None)
+        self.client_operating_systems.pop(user_id, None)
         self.user_config_overrides.pop(user_id, None)
         self.agent_definitions.pop(user_id, None)
         self.client_tool_manifests.pop(user_id, None)

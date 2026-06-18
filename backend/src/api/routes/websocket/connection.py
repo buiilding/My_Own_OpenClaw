@@ -81,12 +81,12 @@ async def perform_handshake(
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         claimed_user_id = handshake_msg.user_id
         agent_definition = handshake_msg.agent_definition
-        frontend_operating_system = (
+        client_operating_system = (
             agent_definition.runtime.operating_system
             if agent_definition is not None
             else None
         )
-        setattr(safe_ws, "frontend_operating_system", frontend_operating_system)
+        setattr(safe_ws, "client_operating_system", client_operating_system)
         raw_client_tool_manifest = (
             agent_definition.client_tool_manifest()
             if agent_definition is not None
@@ -111,15 +111,15 @@ async def perform_handshake(
                 )
         setattr(
             safe_ws,
-            "frontend_agent_capability_overrides",
+            "agent_capability_overrides",
             capability_overrides,
         )
         setattr(
             safe_ws,
-            "frontend_client_tool_manifest_result",
+            "client_tool_manifest_result",
             client_tool_manifest_result,
         )
-        setattr(safe_ws, "frontend_agent_definition", agent_definition)
+        setattr(safe_ws, "client_agent_definition", agent_definition)
         if client_tool_manifest_result.rejected:
             logger.warning(
                 "Client tool manifest rejected %s entr%s for user %s",

@@ -31,7 +31,7 @@ class _AgentDefinitionWithPromptContext:
         return []
 
 
-def test_session_config_service_applies_frontend_operating_system_to_active_sessions():
+def test_session_config_service_applies_client_operating_system_to_active_sessions():
     registry = SessionRegistry()
     session = _DummySession()
     registry.store_session("user-1", session, conversation_ref="conv-a")
@@ -42,7 +42,7 @@ def test_session_config_service_applies_frontend_operating_system_to_active_sess
         render_system_prompt=lambda operating_system=None: f"prompt:{operating_system}",
     )
 
-    service.set_frontend_operating_system("user-1", "Windows")
+    service.set_client_operating_system("user-1", "Windows")
 
     assert session.prompt_builder.system_prompt == "prompt:Windows"
     assert session.history.system_prompt == "prompt:Windows"

@@ -120,6 +120,31 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend client operating-system context boundary
+
+- Finding: websocket handshake and session runtime internals still named
+  agent-definition runtime OS context and related transient attributes as
+  frontend-owned state (`frontend_operating_system`,
+  `frontend_agent_capability_overrides`,
+  `frontend_client_tool_manifest_result`, `frontend_agent_definition`) even
+  though the active owner is the SDK/client agent definition and backend
+  session config service.
+- Change: renamed those internal attributes and session/query APIs to client
+  operating-system, agent capability overrides, client tool manifest result,
+  and client agent definition terminology across backend websocket connection,
+  websocket router, session config service, session manager, query execution,
+  and backend tests.
+- Validation: changed backend source/tests passed `py_compile`; focused
+  `test_session_config_service.py -k client_operating_system` passed; stale
+  frontend-prefixed OS/agent-definition attribute scan and diff check passed.
+  Broader session manager/websocket pytest selections were attempted, but
+  collection was blocked because the `jarvis` conda env is unavailable and
+  fallback Python lacks `fastapi`.
+- Compatibility: no migration required. Websocket handshake payloads,
+  `agent_definition` shape, client manifest validation, session config
+  behavior, prompt rendering, credentials, permissions, and SDK projections are
+  unchanged.
+
 ### 2026-06-18 backend load-settings client settings wording boundary
 
 - Finding: backend `load-settings` coverage and several architecture/reference

@@ -31,7 +31,7 @@ def test_session_manager_is_no_longer_the_owner_of_transition_alias_state():
     assert "self.active_sessions =" not in manager_source
     assert "self._user_locks =" not in manager_source
     assert "self._active_query_tasks =" not in manager_source
-    assert "self._frontend_operating_systems =" not in manager_source
+    assert "self._client_operating_systems =" not in manager_source
     assert "self._latest_conversation_refs =" not in manager_source
     assert "self._user_config_overrides =" not in manager_source
 

@@ -150,7 +150,7 @@ async def test_get_or_create_session_applies_handshake_operating_system(
     )
 
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
-    manager.set_frontend_operating_system("user-1", "Windows")
+    manager.set_client_operating_system("user-1", "Windows")
 
     session = await manager.get_or_create_session("user-1")
 
@@ -159,7 +159,7 @@ async def test_get_or_create_session_applies_handshake_operating_system(
 
 
 @pytest.mark.asyncio
-async def test_set_frontend_operating_system_updates_active_session(
+async def test_set_client_operating_system_updates_active_session(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
@@ -173,7 +173,7 @@ async def test_set_frontend_operating_system_updates_active_session(
     session = DummySession("existing")
     _assign_active_session(manager, "user-1", session)
 
-    manager.set_frontend_operating_system("user-1", "macOS")
+    manager.set_client_operating_system("user-1", "macOS")
 
     assert session.prompt_builder.system_prompt == "prompt:macOS:None"
     assert session.history.system_prompt == "prompt:macOS:None"
@@ -189,7 +189,7 @@ async def test_set_session_workspace_path_updates_active_prompt(monkeypatch) -> 
     )
 
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
-    manager.set_frontend_operating_system("user-1", "Linux")
+    manager.set_client_operating_system("user-1", "Linux")
     session = await manager.get_or_create_session("user-1", conversation_ref="conv-1")
 
     manager.set_session_workspace_path("user-1", session, "/work/WindieOS")

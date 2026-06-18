@@ -26,13 +26,13 @@ class DummyConfig:
 class DummySessionManager:
     def __init__(self):
         self.config = DummyConfig()
-        self.frontend_operating_system_calls = []
+        self.client_operating_system_calls = []
         self.update_session_config_calls = []
 
-    def set_frontend_operating_system(
+    def set_client_operating_system(
         self, user_id: str, operating_system: str
     ) -> None:
-        self.frontend_operating_system_calls.append((user_id, operating_system))
+        self.client_operating_system_calls.append((user_id, operating_system))
 
     async def update_session_config(self, user_id: str, updates: dict) -> None:
         self.update_session_config_calls.append((user_id, updates))
@@ -244,7 +244,7 @@ async def test_websocket_endpoint_applies_handshake_operating_system_to_session_
     session_manager = DummySessionManager()
 
     async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
-        setattr(safe_ws, "frontend_operating_system", "Windows")
+        setattr(safe_ws, "client_operating_system", "Windows")
         return "user_os"
 
     async def forced_disconnect(awaitable, timeout):  # noqa: ARG001
@@ -266,7 +266,7 @@ async def test_websocket_endpoint_applies_handshake_operating_system_to_session_
         handler_registry=object(),
     )
 
-    assert session_manager.frontend_operating_system_calls == [("user_os", "Windows")]
+    assert session_manager.client_operating_system_calls == [("user_os", "Windows")]
 
 
 @pytest.mark.asyncio
@@ -278,7 +278,7 @@ async def test_websocket_endpoint_applies_handshake_agent_capabilities(
     async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         setattr(
             safe_ws,
-            "frontend_agent_capability_overrides",
+            "agent_capability_overrides",
             {
                 "agent_available_tools": ["read_file"],
                 "agent_tool_profile": "coding",

@@ -344,7 +344,7 @@ class DummySessionManager:
         self.clear_calls = []
         self.cancel_calls = []
         self.workspace_updates = []
-        self.frontend_operating_system = None
+        self.client_operating_system = None
         self.config = AppConfig()
         self.client_tool_manifests = {}
         self.agent_definitions = {}
@@ -547,9 +547,9 @@ class DummySessionManager:
     def set_agent_definition(self, user_id: str, agent_definition: Any) -> None:
         self.agent_definitions[user_id] = agent_definition
 
-    def get_frontend_operating_system(self, user_id: str):
+    def get_client_operating_system(self, user_id: str):
         _ = user_id
-        return self.frontend_operating_system
+        return self.client_operating_system
 
 
 class DummySession:
@@ -1322,7 +1322,7 @@ async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatc
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.session = DummyCaptureAgent()
-    session_manager.frontend_operating_system = "Linux"
+    session_manager.client_operating_system = "Linux"
     handler = QueryMessageHandler(
         session_manager, DummyTTSManager(), ResponseFormatter()
     )

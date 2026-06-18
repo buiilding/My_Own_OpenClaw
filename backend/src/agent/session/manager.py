@@ -96,33 +96,33 @@ class SessionManager(ConfigSubscriber):
         return normalize_optional_conversation_ref(conversation_ref)
 
     @staticmethod
-    def _normalize_frontend_operating_system(
+    def _normalize_client_operating_system(
         operating_system: Optional[str],
     ) -> Optional[str]:
-        return SessionConfigService.normalize_frontend_operating_system(
+        return SessionConfigService.normalize_client_operating_system(
             operating_system
         )
 
-    def set_frontend_operating_system(
+    def set_client_operating_system(
         self,
         user_id: str,
         operating_system: Optional[str],
     ) -> None:
-        normalized_operating_system = self._normalize_frontend_operating_system(
+        normalized_operating_system = self._normalize_client_operating_system(
             operating_system
         )
         if normalized_operating_system is None:
             return
-        self._config_service.set_frontend_operating_system(
+        self._config_service.set_client_operating_system(
             user_id,
             normalized_operating_system,
         )
 
-    def get_frontend_operating_system(
+    def get_client_operating_system(
         self,
         user_id: str,
     ) -> Optional[str]:
-        return self._config_service.frontend_operating_systems.get(user_id)
+        return self._config_service.client_operating_systems.get(user_id)
 
     def set_client_tool_manifest(
         self,
@@ -156,7 +156,7 @@ class SessionManager(ConfigSubscriber):
     ) -> None:
         self._config_service.apply_prompt_context_to_session(
             session,
-            operating_system=self._config_service.frontend_operating_systems.get(
+            operating_system=self._config_service.client_operating_systems.get(
                 user_id
             ),
             workspace_path=workspace_path,
@@ -349,11 +349,11 @@ class SessionManager(ConfigSubscriber):
                     runtime = getattr(session, "runtime", None)
                     if runtime is not None:
                         runtime.active_conversation_ref = normalized_conversation_ref
-                operating_system = self._config_service.frontend_operating_systems.get(
+                operating_system = self._config_service.client_operating_systems.get(
                     user_id
                 )
                 if operating_system:
-                    self._config_service.apply_frontend_operating_system_to_session(
+                    self._config_service.apply_client_operating_system_to_session(
                         session,
                         operating_system,
                     )

@@ -85,7 +85,7 @@ class QueryExecutionService:
             user_id,
             conversation_ref=message.payload.conversation_ref,
         )
-        frontend_operating_system = self._get_frontend_operating_system(user_id)
+        client_operating_system = self._get_client_operating_system(user_id)
         stream_context = build_stream_context(
             agent_instance=agent_instance,
             msg_id=msg_id,
@@ -199,7 +199,7 @@ class QueryExecutionService:
                     capture_meta=query_inputs.capture_meta,
                     message_content=query_inputs.message_content,
                     conversation_ref=query_inputs.conversation_ref,
-                    operating_system=frontend_operating_system,
+                    operating_system=client_operating_system,
                     workspace_path=query_inputs.workspace_path,
                     repo_instruction_messages=query_inputs.repo_instruction_messages,
                     client_prompt_layers=query_inputs.client_prompt_layers,
@@ -372,16 +372,16 @@ class QueryExecutionService:
         if callable(clearer):
             clearer(turn_ref=msg_id)
 
-    def _get_frontend_operating_system(self, user_id: str) -> Optional[str]:
-        get_frontend_operating_system = getattr(
+    def _get_client_operating_system(self, user_id: str) -> Optional[str]:
+        get_client_operating_system = getattr(
             self._session_manager,
-            "get_frontend_operating_system",
+            "get_client_operating_system",
             None,
         )
-        if not callable(get_frontend_operating_system):
+        if not callable(get_client_operating_system):
             return None
         try:
-            signature = inspect.signature(get_frontend_operating_system)
+            signature = inspect.signature(get_client_operating_system)
         except (TypeError, ValueError):
             signature = None
 
@@ -399,8 +399,8 @@ class QueryExecutionService:
             for parameter in (signature.parameters.values() if signature else [])
         )
         if signature is None or has_varargs or len(positional_params) >= 1:
-            operating_system = get_frontend_operating_system(user_id)
+            operating_system = get_client_operating_system(user_id)
         else:
-            operating_system = get_frontend_operating_system()
+            operating_system = get_client_operating_system()
         return operating_system if isinstance(operating_system, str) else None
 

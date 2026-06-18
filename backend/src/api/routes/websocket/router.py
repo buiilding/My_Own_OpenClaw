@@ -66,33 +66,33 @@ async def websocket_endpoint(
         if callable(increment_connection_count):
             increment_connection_count(user_id)
 
-        frontend_operating_system = getattr(safe_ws, "frontend_operating_system", None)
-        set_frontend_operating_system = getattr(
+        client_operating_system = getattr(safe_ws, "client_operating_system", None)
+        set_client_operating_system = getattr(
             session_manager,
-            "set_frontend_operating_system",
+            "set_client_operating_system",
             None,
         )
-        if callable(set_frontend_operating_system) and isinstance(
-            frontend_operating_system, str
+        if callable(set_client_operating_system) and isinstance(
+            client_operating_system, str
         ):
-            set_frontend_operating_system(user_id, frontend_operating_system)
+            set_client_operating_system(user_id, client_operating_system)
 
-        frontend_agent_capability_overrides = getattr(
+        agent_capability_overrides = getattr(
             safe_ws,
-            "frontend_agent_capability_overrides",
+            "agent_capability_overrides",
             None,
         )
         update_session_config = getattr(session_manager, "update_session_config", None)
         if (
             callable(update_session_config)
-            and isinstance(frontend_agent_capability_overrides, dict)
-            and frontend_agent_capability_overrides
+            and isinstance(agent_capability_overrides, dict)
+            and agent_capability_overrides
         ):
-            await update_session_config(user_id, frontend_agent_capability_overrides)
+            await update_session_config(user_id, agent_capability_overrides)
 
-        frontend_client_tool_manifest_result = getattr(
+        client_tool_manifest_result = getattr(
             safe_ws,
-            "frontend_client_tool_manifest_result",
+            "client_tool_manifest_result",
             None,
         )
         set_client_tool_manifest = getattr(
@@ -101,16 +101,16 @@ async def websocket_endpoint(
             None,
         )
         if callable(set_client_tool_manifest):
-            set_client_tool_manifest(user_id, frontend_client_tool_manifest_result)
-        frontend_agent_definition = getattr(safe_ws, "frontend_agent_definition", None)
+            set_client_tool_manifest(user_id, client_tool_manifest_result)
+        client_agent_definition = getattr(safe_ws, "client_agent_definition", None)
         set_agent_definition = getattr(session_manager, "set_agent_definition", None)
-        if callable(set_agent_definition) and frontend_agent_definition is not None:
-            set_agent_definition(user_id, frontend_agent_definition)
-        if frontend_client_tool_manifest_result is not None:
+        if callable(set_agent_definition) and client_agent_definition is not None:
+            set_agent_definition(user_id, client_agent_definition)
+        if client_tool_manifest_result is not None:
             await safe_ws.send_json(
                 {
                     "type": "client-tool-manifest",
-                    "payload": frontend_client_tool_manifest_result.to_public_dict(),
+                    "payload": client_tool_manifest_result.to_public_dict(),
                 }
             )
         get_effective_config = getattr(session_manager, "get_effective_config", None)
