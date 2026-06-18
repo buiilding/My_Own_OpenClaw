@@ -8701,3 +8701,20 @@ Each completed slice should report:
   their existing precedence and behavior; no public SDK API, daemon discovery
   file, tool routing, IPC, storage, credential, permission, hosted backend URL,
   or provider-policy contract changes.
+
+### 2026-06-18 Python SDK hosted helper wording boundary
+
+- Finding: private Python SDK backend endpoint, hosted HTTP, and install-auth
+  helpers still described themselves as sidecar clients even though their
+  current ownership is reusable Python SDK hosted access and local-runtime
+  endpoint injection.
+- Change: updated helper docstrings and focused source-copy guards to use
+  Python SDK hosted/local-runtime wording while leaving env precedence, auth
+  loading, URL normalization, and HTTP error behavior unchanged.
+- Validation: focused Python backend-config, auth, and remote-client pytest
+  coverage, Python compile checks, docs listing, source scans, and
+  `git diff --check`.
+- Compatibility: no migration required. Backend URL env names, install-auth
+  state path env names, bearer-token loading, hosted HTTP request behavior,
+  storage, credentials, permissions, IPC, local-runtime launch, and provider
+  policy are unchanged.

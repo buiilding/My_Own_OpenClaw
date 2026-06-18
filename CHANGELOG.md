@@ -72,6 +72,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/python: centralize Python SDK local-runtime daemon script, discovery
   file, and Python executable env fallback groups in a private runtime-env
   helper while preserving existing generic and WindieOS aliases.
+- sdk/python: describe private backend endpoint, hosted HTTP, and install-auth
+  helpers with Python SDK/local-runtime ownership instead of sidecar-client
+  wording.
 - sdk/local-runtime: treat daemon discovery launch contexts as compatibility
   supersets so generic Agent SDK and WindieOS launch keys do not force local
   runtime restart loops.

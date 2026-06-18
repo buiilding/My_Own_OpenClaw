@@ -14,6 +14,11 @@ ensure_frontend_python_path()
 from windie._remote_api_client_base import RemoteApiClientBase  # noqa: E402
 
 
+def _source_for(obj) -> str:
+    module = __import__(obj.__module__, fromlist=["__file__"])
+    return open(module.__file__, encoding="utf-8").read()
+
+
 class SequentialSession:
     def __init__(self, *, post_results=None):
         self.post_results = list(post_results or [])
@@ -54,6 +59,13 @@ def test_remote_api_client_requires_backend_url(monkeypatch):
         ),
     ):
         DemoClient()
+
+
+def test_remote_api_client_source_uses_sdk_hosted_wording():
+    source = _source_for(RemoteApiClientBase)
+
+    assert "Python SDK hosted HTTP clients" in source
+    assert "backend-backed sidecar HTTP clients" not in source
 
 
 @pytest.mark.asyncio

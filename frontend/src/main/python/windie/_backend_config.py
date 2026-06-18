@@ -1,5 +1,5 @@
 """
-Shared backend endpoint configuration for the Python sidecar.
+Shared backend endpoint configuration for Python SDK local-runtime clients.
 """
 
 import os
@@ -21,11 +21,11 @@ def _normalize_backend_http_url(value: str | None) -> str | None:
 
 def get_backend_http_url() -> str:
     """
-    Resolve backend HTTP URL used by sidecar memory clients.
+    Resolve backend HTTP URL used by Python SDK hosted clients.
 
     Electron main owns endpoint override precedence and passes the resolved
-    value to the sidecar through the configured local-runtime env key. Standalone
-    SDK callers may set ``AGENT_BACKEND_HTTP_URL`` directly.
+    value to the local runtime through the configured env key. Standalone SDK
+    callers may set ``AGENT_BACKEND_HTTP_URL`` directly.
     """
     for env_key in BACKEND_HTTP_URL_ENVS:
         resolved_url = _normalize_backend_http_url(os.getenv(env_key))

@@ -1,6 +1,7 @@
 """Covers Python SDK install-auth state helpers."""
 
 import json
+from pathlib import Path
 
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
@@ -26,3 +27,12 @@ def test_install_bearer_token_supports_legacy_windie_auth_env(monkeypatch, tmp_p
     monkeypatch.setenv("WINDIE_BACKEND_AUTH_STATE_PATH", str(auth_path))
 
     assert get_install_bearer_token() == "token-123"
+
+
+def test_auth_helper_source_uses_sdk_hosted_wording():
+    source = Path(get_install_auth_state_path.__code__.co_filename).read_text(
+        encoding="utf-8"
+    )
+
+    assert "Python SDK hosted clients" in source
+    assert "sidecar backend clients" not in source

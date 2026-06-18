@@ -85,6 +85,17 @@ def test_get_backend_http_url_strips_multiple_trailing_slashes(monkeypatch):
     assert get_backend_http_url() == "http://localhost:9001"
 
 
+def test_python_sdk_backend_config_source_uses_sdk_local_runtime_wording():
+    source = (
+        REPO_ROOT / "frontend/src/main/python/windie/_backend_config.py"
+    ).read_text(encoding="utf-8")
+
+    assert "Python SDK local-runtime clients" in source
+    assert "Python SDK hosted clients" in source
+    assert "sidecar memory clients" not in source
+    assert "Python sidecar" not in source
+
+
 def test_sidecar_architecture_docs_describe_required_injected_backend_url():
     docs = "\n".join(
         (REPO_ROOT / relative_path).read_text(encoding="utf-8")

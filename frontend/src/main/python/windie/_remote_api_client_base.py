@@ -1,4 +1,4 @@
-"""Shared base for backend-backed sidecar HTTP clients."""
+"""Shared base for Python SDK hosted HTTP clients."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Shared install-auth state helpers for sidecar backend clients."""
+"""Shared install-auth state helpers for Python SDK hosted clients."""
 
 from __future__ import annotations
 

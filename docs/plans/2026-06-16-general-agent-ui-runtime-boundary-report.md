@@ -2469,6 +2469,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   routing, IPC, storage, credential, permission, hosted backend URL, or
   provider-policy contract changes.
 
+### 2026-06-18 Python SDK Hosted Helper Wording Slice
+
+- Finding: private Python SDK backend endpoint, hosted HTTP, and install-auth
+  helpers still described themselves as sidecar backend clients, which blurred
+  the reusable Python SDK hosted-client boundary with the concrete sidecar
+  daemon process.
+- Decision: keep the helper module names and env names stable; this slice only
+  corrects ownership wording and source guards.
+- Change: reworded helper docstrings toward Python SDK hosted/local-runtime
+  ownership and added focused tests that prevent the retired sidecar-client
+  descriptions from returning.
+- Validation: focused Python backend-config, auth, and remote-client pytest
+  coverage, Python compile checks, docs listing, source scans, and
+  `git diff --check` passed.
+- Compatibility: no migration required. Backend URL env names, install-auth
+  state path env names, bearer-token loading, hosted HTTP request behavior,
+  storage, credentials, permissions, IPC, local-runtime launch, and provider
+  policy are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.
