@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tests/frontend: remove the retired `SidecarDaemon` log-prefix fixture from
+  local-runtime launch filtering coverage, keeping the generic noisy-prefix
+  assertion; no migration is required because runtime log filtering behavior is
+  unchanged.
 - frontend/sidecar: rename the Python daemon class from `SidecarDaemon`
   to `LocalRuntimeDaemon`, keeping the daemon process contract, discovery
   file, auth headers, routes, and log lines unchanged; no migration is

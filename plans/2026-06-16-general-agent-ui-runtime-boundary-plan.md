@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local-runtime launch retired-prefix fixture
+
+- Finding: LocalRuntimeLaunchOptions coverage still used a retired
+  `SidecarDaemon` log prefix as the sample rejected stderr line even though the
+  production allowlist only recognizes current local-runtime/tool/MCP prefixes.
+- Change: replaced that fixture with a neutral unknown runtime prefix so the
+  test continues to assert noisy stderr filtering without preserving the old
+  daemon name in launch coverage.
+- Validation: focused LocalRuntimeLaunchOptions Jest test, docs listing, and
+  stale `SidecarDaemon` scan.
+- Compatibility: no migration required. Runtime log filtering, launch options,
+  daemon discovery, IPC, storage, and tool execution payloads are unchanged.
+
 ### 2026-06-18 local-runtime daemon class naming
 
 - Finding: the Python sidecar daemon process already emitted local-runtime
