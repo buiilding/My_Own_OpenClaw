@@ -1,5 +1,5 @@
 ---
-summary: "Backend core validation docs sub-hub for shared input sanitization, frontend config patch gating, and API-layer error/validator integration."
+summary: "Backend core validation docs sub-hub for shared input sanitization, client settings patch gating, and API-layer error/validator integration."
 read_when:
   - When changing shared validation helpers used by API handlers/routes.
   - When debugging rejected settings/query/user-id payloads or error-message exposure policy.
@@ -10,7 +10,7 @@ title: "Backend Core Validation Docs Hub"
 
 ## Deep Pages
 
-- [Input Validation and Frontend Patch Guard Reference](input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](input_validation_and_frontend_patch_guard_reference.md)
 
 ## Code Scope
 

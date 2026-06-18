@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend client settings patch validator boundary
+
+- Finding: backend validation and settings handlers still named the live
+  `update-settings` allowlist as frontend config, even though it is the
+  backend-owned client settings patch contract for renderer/main/SDK clients.
+- Change: renamed the typed patch model, allowlist, validator, and settings
+  payload builder to client settings patch terminology; updated backend
+  handlers, tests, and docs while preserving websocket payload shape and
+  accepted keys.
+- Validation: changed backend modules passed `py_compile`; focused
+  validation/settings update tests passed; docs listing, stale symbol/prose
+  scan, and diff check passed. The broader focused settings payload/session
+  config batch was attempted, but this shell fell back from the unavailable
+  `jarvis` env to Python without `fastapi`, blocking settings handler test
+  collection; `test_session_config_service.py` also has an existing
+  agent-definition fixture failure unrelated to this rename.
+- Compatibility: no migration required. `update-settings` payload shape,
+  accepted keys, load-settings response shape, session config behavior, IPC,
+  renderer storage, credentials redaction, permissions, and provider policy are
+  unchanged.
+
 ### 2026-06-18 renderer model settings docs boundary
 
 - Finding: renderer model settings docs still described selected model/provider

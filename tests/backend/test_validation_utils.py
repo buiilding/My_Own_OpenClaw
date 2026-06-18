@@ -8,7 +8,7 @@ from backend.src.core.validation.validators import (
     sanitize_string,
     validate_dict,
     validate_field,
-    validate_frontend_config,
+    validate_client_settings_patch,
     validate_message,
     validate_query_text,
     validate_settings_update,
@@ -159,11 +159,11 @@ def test_validate_settings_update_rejects_booleans_for_numeric_settings():
     )
 
 
-def test_validate_frontend_config_allows_subset_and_validates_values():
-    assert validate_frontend_config(None) == {}
+def test_validate_client_settings_patch_allows_subset_and_validates_values():
+    assert validate_client_settings_patch(None) == {}
 
     with pytest.raises(ValidationError):
-        validate_frontend_config(["not", "a", "dict"])  # type: ignore[arg-type]
+        validate_client_settings_patch(["not", "a", "dict"])  # type: ignore[arg-type]
 
     payload = {
         "model_mode": "online",
@@ -185,7 +185,7 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
         },
         "not_allowed": "ignored",
     }
-    validated = validate_frontend_config(payload)
+    validated = validate_client_settings_patch(payload)
     assert "not_allowed" not in validated
     assert validated["model_mode"] == "online"
     assert validated["wakeword_stt_enabled"] is True
@@ -195,11 +195,11 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
     assert "provider_oauth" not in validated
 
     with pytest.raises(ValidationError):
-        validate_frontend_config({"model_mode": "invalid"})
+        validate_client_settings_patch({"model_mode": "invalid"})
 
 
-def test_validate_frontend_config_drops_blank_model_fields() -> None:
-    validated = validate_frontend_config(
+def test_validate_client_settings_patch_drops_blank_model_fields() -> None:
+    validated = validate_client_settings_patch(
         {
             "model_provider": "   ",
             "selected_model_id": "",
@@ -209,8 +209,8 @@ def test_validate_frontend_config_drops_blank_model_fields() -> None:
     assert "selected_model_id" not in validated
 
 
-def test_validate_frontend_config_trims_model_fields() -> None:
-    validated = validate_frontend_config(
+def test_validate_client_settings_patch_trims_model_fields() -> None:
+    validated = validate_client_settings_patch(
         {
             "model_provider": " gemini ",
             "selected_model_id": " gemini-3-flash-preview@@gemini-3-flash-thinking ",
@@ -223,8 +223,8 @@ def test_validate_frontend_config_trims_model_fields() -> None:
     )
 
 
-def test_validate_frontend_config_ignores_backend_owned_speech_provider() -> None:
-    validated = validate_frontend_config(
+def test_validate_client_settings_patch_ignores_backend_owned_speech_provider() -> None:
+    validated = validate_client_settings_patch(
         {
             "speech_provider": "local",
             "speech_mode_enabled": True,

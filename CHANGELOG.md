@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend: rename the `update-settings` allowlist validator from frontend
+  config to client settings patch terminology while preserving accepted fields
+  and payload shape.
 - renderer docs: align model settings persistence and protocol state references
   with renderer-managed config and `syncCurrentConfigToRuntime`.
 - sidecar: clarify that wait-tool post-action delay is coordinated by the SDK

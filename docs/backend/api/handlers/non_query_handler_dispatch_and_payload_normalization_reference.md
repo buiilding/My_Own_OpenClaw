@@ -103,17 +103,17 @@ Missing session behavior:
 
 - sources config from active session when available
 - falls back to global `session_manager.config`
-- returns only frontend-owned keys from `FRONTEND_CONFIG_FIELDS`
+- returns only client settings keys from `CLIENT_SETTINGS_PATCH_FIELDS`
 - payload key ordering is deterministic (`sorted(...)`) for stable tests
 
 ### `UpdateSettingsHandler`
 
-- validates payload via `validate_frontend_config(...)`
-- only frontend-owned fields allowed
+- validates payload via `validate_client_settings_patch(...)`
+- only client settings fields allowed
 - applies updates through `session_manager.update_session_config(user_id, updates)`
 - returns `settings-updated` with `updated_keys`
 
-Frontend-owned field set:
+Client settings field set:
 
 - `model_mode`
 - `model_provider`
@@ -182,7 +182,7 @@ This split keeps envelope strict while preserving per-tool extensibility.
 - bundle step outputs preserve nested/extra output fields
 - missing tool-result session is no-op
 - settings update rejects invalid values and emits `error`
-- load-settings returns frontend-owned key subset
+- load-settings returns client settings key subset
 - wakeword sends activation then greeting events
 - rehydrate rebuilds tool-call/tool-output linkage for resumed transcripts
 - shared context helper tests (`tests/backend/test_handler_context.py`) verify trimmed session/conversation refs and blank/non-string drop behavior
@@ -191,7 +191,7 @@ This split keeps envelope strict while preserving per-tool extensibility.
 
 1. changing tool-result serialization can break downstream session domain expectations (`dict` payload contract).
 2. removing stop-query unconditional completion can leave renderer stuck in active phase.
-3. loosening update-settings validation can bypass frontend-owned config boundary.
+3. loosening update-settings validation can bypass the client settings patch boundary.
 4. changing rehydrate tool-call synthesis rules can orphan tool outputs from tool_call ids.
 
 ## Related Pages

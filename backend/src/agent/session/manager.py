@@ -447,7 +447,7 @@ class SessionManager(ConfigSubscriber):
 
         Args:
             user_id: User identifier
-            updates: Validated config updates (frontend-owned fields)
+            updates: Validated client settings patch fields
         """
         if not updates:
             return

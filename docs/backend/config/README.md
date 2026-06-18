@@ -1,5 +1,5 @@
 ---
-summary: "Backend config docs sub-hub for canonical config fields, runtime normalization policy, and frontend-owned patch boundaries."
+summary: "Backend config docs sub-hub for canonical config fields, runtime normalization policy, and client settings patch boundaries."
 read_when:
   - When adding/changing backend config fields or defaults.
   - When debugging runtime config assembly or session-level config propagation.

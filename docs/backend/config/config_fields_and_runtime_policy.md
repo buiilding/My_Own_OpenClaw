@@ -1,5 +1,5 @@
 ---
-summary: "Canonical backend config reference: AppConfig fields, env var resolution, runtime policy normalization, and frontend-owned patch boundaries."
+summary: "Canonical backend config reference: AppConfig fields, env var resolution, runtime policy normalization, and client settings patch boundaries."
 read_when:
   - When adding/changing backend config fields or defaults.
   - When debugging provider API key resolution, TTS path behavior, or update-settings scope.
@@ -165,7 +165,7 @@ From `load_api_key_for_provider(...)`:
 
 ## Frontend-Owned Update Scope (`update-settings`)
 
-Validated by `FrontendConfigPatch` in `backend/src/core/validation/validators.py`.
+Validated by `ClientSettingsPatch` in `backend/src/core/validation/validators.py`.
 
 Deep validation reference:
 

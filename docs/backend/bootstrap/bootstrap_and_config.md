@@ -107,7 +107,7 @@ Session manager (`agent/session/manager.py`):
 - Holds global config plus active sessions map by `user_id`.
 - Uses per-user async locks to prevent duplicate concurrent session creation.
 - Builds per-session runtime config via shared runtime assembly policy.
-- Supports runtime updates for frontend-owned settings fields.
+- Supports runtime updates for client settings patch fields.
 
 Query task tracking:
 

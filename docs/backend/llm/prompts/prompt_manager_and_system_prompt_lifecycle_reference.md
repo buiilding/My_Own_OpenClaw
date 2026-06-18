@@ -25,7 +25,7 @@ Key rules:
 
 - prompt file template load is deferred to `initialize(...)` (no import-time read)
 - `system_prompt` property raises until initialized
-- callers render through `PromptManager.render_system_prompt(...)`, which uses the cached template and accepts optional frontend-provided operating-system/workspace overrides
+- callers render through `PromptManager.render_system_prompt(...)`, which uses the cached template and accepts optional client-provided operating-system/workspace overrides
 - module intentionally avoids a global `SYSTEM_PROMPT` constant
 
 Thread safety:

@@ -68,7 +68,7 @@ flowchart LR
 ## Change Sequence
 
 1. Classify the control.
-   - Config patch: persists in frontend config and may sync to backend.
+   - Config patch: persists in renderer config and may sync to backend.
    - Permission or authority action: calls permission store or Electron main.
    - Local data admin: calls main/sidecar memory actions.
    - Workspace/browser action: calls specialized runtime paths.
@@ -129,7 +129,7 @@ If a test stem is not available in the current checkout, search by the component
 ### Setting Reappears After Reload
 
 1. Confirm the control emits the intended config patch.
-2. Confirm the field is included in `FRONTEND_CONFIG_FIELDS`.
+2. Confirm the field is included in backend `CLIENT_SETTINGS_PATCH_FIELDS`.
 3. Confirm `configStorage` default and merge behavior preserve the value.
 4. Confirm `AppConfigProvider` applies the disk/local merge only when changed.
 5. Confirm Electron disk config is not writing an older value over renderer state.

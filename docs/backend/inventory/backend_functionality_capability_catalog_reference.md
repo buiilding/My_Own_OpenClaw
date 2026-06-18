@@ -83,7 +83,7 @@ Capabilities:
 - `query`: registers active task metadata, delegates full execution to `QueryExecutionService`.
 - `stop_query`: cancels current active task for user and emits cancellation semantics.
 - `tool_result`: normalizes `tool-result`/`tool-bundle-result` payloads and routes to session.
-- `settings`: frontend-owned config patch flow + model/provider list interactions.
+- `settings`: client settings patch flow + model/provider list interactions.
 - `rehydrate`: transcript replacement and active conversation reassociation.
 - `wakeword`: greeting/query wakeword entry path.
 - `compact_history`: manual compaction trigger with active-query guard and started/completed events.
@@ -197,7 +197,7 @@ Capabilities:
 - Config subscriptions drive live runtime rewiring for active sessions with update-lock safety.
 - Containerized dependency graph for API/agent/tools/services.
 - Event bus, cache layers, structured exception types, and security policy enforcement.
-- Input validation and frontend patch allowlist boundary.
+- Input validation and client settings patch allowlist boundary.
 - Trust-boundary metrics for parser/prompt/transport enforcement telemetry.
 
 ## 10) Runtime Services + Storage

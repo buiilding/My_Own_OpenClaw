@@ -24,7 +24,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 
 ## Renderer-Owned Config Allowlist (`configFilter`)
 
-`FRONTEND_CONFIG_FIELDS` currently allows:
+Backend `CLIENT_SETTINGS_PATCH_FIELDS` currently allows:
 
 - `model_mode`
 - `model_provider`
@@ -221,7 +221,7 @@ On `window.storage` for `windieos-config`:
 
 ## Drift Hotspots
 
-1. Adding renderer-owned fields in backend validator without updating `FRONTEND_CONFIG_FIELDS` or defaults causes silent drops.
+1. Adding renderer-managed runtime settings without updating backend `CLIENT_SETTINGS_PATCH_FIELDS` or renderer defaults causes silent drops.
 2. Removing change guards or storage-event write suppression can create write storms to localStorage/disk/backend.
 3. Returning `null` instead of default object from storage loader can break provider assumptions.
 4. Changing storage key names without migration intentionally starts from fresh

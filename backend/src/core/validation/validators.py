@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
-class FrontendConfigPatch(BaseModel):
+class ClientSettingsPatch(BaseModel):
     """
-    Typed frontend-owned runtime settings patch.
+    Typed client-provided runtime settings patch.
 
-    Extra keys are ignored after warning in validate_frontend_config.
+    Extra keys are ignored after warning in validate_client_settings_patch.
     """
 
     model_config = ConfigDict(
@@ -299,18 +299,18 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
     return validated
 
 
-# Frontend-owned config fields derived from FrontendConfigPatch schema.
-FRONTEND_CONFIG_FIELDS = set(FrontendConfigPatch.model_fields.keys())
+# Client settings fields derived from ClientSettingsPatch schema.
+CLIENT_SETTINGS_PATCH_FIELDS = set(ClientSettingsPatch.model_fields.keys())
 
 
-def validate_frontend_config(settings: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def validate_client_settings_patch(settings: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Validate and filter frontend-provided config overrides.
+    Validate and filter client-provided settings overrides.
 
-    Only allows the subset of fields that the frontend owns.
+    Only allows the subset of fields accepted from client settings patches.
 
     Args:
-        settings: Raw config dictionary from frontend
+        settings: Raw settings dictionary from the client
 
     Returns:
         Validated config dictionary containing only allowed keys
@@ -323,18 +323,18 @@ def validate_frontend_config(settings: Optional[Dict[str, Any]]) -> Dict[str, An
     if not isinstance(settings, dict):
         raise ValidationError("Config must be a dictionary")
 
-    unknown = sorted(set(settings.keys()) - FRONTEND_CONFIG_FIELDS)
+    unknown = sorted(set(settings.keys()) - CLIENT_SETTINGS_PATCH_FIELDS)
     for key in unknown:
-        logger.warning(f"Ignoring non-frontend config field: {key}")
+        logger.warning(f"Ignoring non-client settings field: {key}")
 
     try:
-        patch = FrontendConfigPatch.model_validate(settings)
+        patch = ClientSettingsPatch.model_validate(settings)
     except PydanticValidationError as e:
         error_details = "; ".join(
             f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}"
             for err in e.errors()
         )
-        raise ValidationError(f"Invalid frontend config patch: {error_details}") from e
+        raise ValidationError(f"Invalid client settings patch: {error_details}") from e
 
     validated = patch.model_dump(exclude_unset=True)
 
@@ -344,7 +344,7 @@ def validate_frontend_config(settings: Optional[Dict[str, Any]]) -> Dict[str, An
             continue
         trimmed = value.strip()
         if not trimmed:
-            logger.warning("Ignoring blank frontend config field: %s", key)
+            logger.warning("Ignoring blank client settings field: %s", key)
             validated.pop(key, None)
             continue
         validated[key] = trimmed

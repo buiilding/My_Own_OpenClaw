@@ -54,7 +54,7 @@ Runtime note:
 
 ### `update-settings` payload
 
-Optional frontend-owned fields:
+Optional client settings fields:
 
 - `model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`
 - `speech_mode_enabled`, `wakeword_enabled`, `wakeword_stt_enabled`

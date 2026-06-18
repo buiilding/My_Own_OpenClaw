@@ -23,9 +23,9 @@ from backend.src.api.schemas.incoming import (
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
 from backend.src.core.validation.validators import (
-    FRONTEND_CONFIG_FIELDS,
+    CLIENT_SETTINGS_PATCH_FIELDS,
     ValidationError,
-    validate_frontend_config,
+    validate_client_settings_patch,
 )
 from backend.src.llm.models.model_service import ModelService
 from backend.src.tools.client_manifest import validate_client_tool_manifest
@@ -49,16 +49,16 @@ def _redact_provider_api_keys(value: Any) -> Any:
     return redacted
 
 
-def _build_frontend_settings_payload(config: Any) -> Dict[str, Any]:
+def _build_client_settings_payload(config: Any) -> Dict[str, Any]:
     """
-    Extract frontend-owned config keys from an AppConfig-like object.
+    Extract client settings patch keys from an AppConfig-like object.
 
     Returns a stable key order for deterministic responses/tests.
     """
     if config is None:
         return {}
     payload: Dict[str, Any] = {}
-    for key in sorted(FRONTEND_CONFIG_FIELDS):
+    for key in sorted(CLIENT_SETTINGS_PATCH_FIELDS):
         if not hasattr(config, key):
             continue
         value = getattr(config, key)
@@ -94,7 +94,7 @@ class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):
         """
         Handle a load-settings message.
 
-        Returns frontend-owned settings from active session config if present,
+        Returns client settings from active session config if present,
         otherwise from global app config defaults.
         """
         try:
@@ -115,7 +115,7 @@ class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):
                 websocket,
                 message.id,
                 OutgoingMessageType.SETTINGS_LOADED,
-                {"config": _build_frontend_settings_payload(config_source)},
+                {"config": _build_client_settings_payload(config_source)},
             )
         except ValidationError as e:
             await send_error_response(
@@ -193,14 +193,14 @@ class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
         """
         Handle an update-settings message.
 
-        Applies frontend-owned config updates to the user's session.
+        Applies validated client settings updates to the user's session.
         """
         try:
             payload = message.payload.model_dump(exclude_none=True)
             tools_payload = payload.pop("tools", None)
             agent_definition = message.payload.agent_definition
             payload.pop("agent_definition", None)
-            updates = validate_frontend_config(payload)
+            updates = validate_client_settings_patch(payload)
 
             if updates:
                 await self.session_manager.update_session_config(user_id, updates)

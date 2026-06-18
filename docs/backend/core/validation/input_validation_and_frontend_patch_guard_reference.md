@@ -1,12 +1,12 @@
 ---
-summary: "Backend shared validation reference: query/message/user-id sanitization, frontend-owned config patch filtering, and API error-sanitization integration."
+summary: "Backend shared validation reference: query/message/user-id sanitization, client settings patch filtering, and API error-sanitization integration."
 read_when:
-  - When modifying `core/validation/validators.py` helpers or fields allowed from frontend settings patches.
+  - When modifying `core/validation/validators.py` helpers or fields allowed from client settings patches.
   - When debugging why API handlers emit validation errors versus generic internal errors.
-title: "Input Validation and Frontend Patch Guard Reference"
+title: "Input Validation and Client Settings Patch Guard Reference"
 ---
 
-# Input Validation and Frontend Patch Guard Reference
+# Input Validation and Client Settings Patch Guard Reference
 
 ## Canonical Modules
 
@@ -25,7 +25,7 @@ The validation layer centralizes:
 
 - shared input type/shape checks
 - string sanitization/truncation
-- frontend settings field allowlist enforcement
+- client settings patch allowlist enforcement
 - user id restrictions (`default_user` blocked)
 - structured `ValidationError` with field-level details
 
@@ -65,9 +65,9 @@ The validation layer centralizes:
 - rejects empty/whitespace-only values
 - explicitly rejects `"default_user"` to avoid security bypass/invalid session identity
 
-## Frontend Config Patch Guard
+## Client Settings Patch Guard
 
-`FrontendConfigPatch` is the typed frontend-owned runtime settings model.
+`ClientSettingsPatch` is the typed client-provided runtime settings model.
 
 Allowed fields (derived from model fields):
 
@@ -87,18 +87,18 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 - `speech_provider`
 - `stt_provider`
 
-`validate_frontend_config(settings)` behavior:
+`validate_client_settings_patch(settings)` behavior:
 
 - non-dict input -> `ValidationError`
 - unknown keys are ignored with warning
-- validates known keys via `FrontendConfigPatch.model_validate`
+- validates known keys via `ClientSettingsPatch.model_validate`
 - returns only explicitly provided valid keys (`exclude_unset=True`)
 
 Integration:
 
-- `UpdateSettingsHandler` applies only this validated frontend-owned subset to session config updates
+- `UpdateSettingsHandler` applies only this validated client settings subset to session config updates
 
-## `validate_settings_update` vs `validate_frontend_config`
+## `validate_settings_update` vs `validate_client_settings_patch`
 
 `validate_settings_update(...)`:
 
@@ -106,9 +106,9 @@ Integration:
 - table-driven lightweight type checks for select keys via `settings_update_rules.py`
 - unknown fields dropped with warning
 
-`validate_frontend_config(...)`:
+`validate_client_settings_patch(...)`:
 
-- strict frontend ownership boundary for websocket settings updates
+- strict client settings boundary for websocket settings updates
 - primary live path for update-settings handler
 
 ## API Schema and Handler Integration
@@ -124,8 +124,8 @@ Integration:
 
 `api/handlers/settings.py`:
 
-- `LoadSettingsHandler` returns only frontend-owned config keys
-- `UpdateSettingsHandler` validates patch via `validate_frontend_config`
+- `LoadSettingsHandler` returns only client settings patch keys
+- `UpdateSettingsHandler` validates patch via `validate_client_settings_patch`
 
 ## Error Sanitization Boundary
 
@@ -149,7 +149,7 @@ All helper sends (`send_error_response`, `send_success_response`) use canonical 
 - user-id invalid-value rejection (`default_user`, whitespace)
 - settings update filtering/type checks
 - settings update rejection of bool values for numeric AppConfig keys
-- frontend config subset enforcement and invalid value rejection
+- client settings patch subset enforcement and invalid value rejection
 
 `tests/backend/test_api_errors.py` verifies:
 
@@ -160,7 +160,7 @@ All helper sends (`send_error_response`, `send_success_response`) use canonical 
 
 ## Drift Hotspots
 
-1. Expanding frontend patch fields without reviewing ownership boundaries can let renderer mutate backend-only config.
+1. Expanding client settings patch fields without reviewing ownership boundaries can let clients mutate backend-only config.
 2. Relaxing `validate_user_id` can reintroduce shared/default identity collisions across sessions.
 3. Bypassing validation helpers in handlers creates inconsistent error shapes and sanitizer bypass risk.
 4. Changing sanitization keyword heuristics in `sanitize_error_message` can leak internal details or over-hide useful validation feedback.

@@ -145,9 +145,9 @@ System state:
 
 ## Config Updates on Active Sessions
 
-Per-session frontend update path:
+Per-session client settings update path:
 
-1. `UpdateSettingsHandler` validates frontend-owned keys only.
+1. `UpdateSettingsHandler` validates client settings patch keys only.
 2. `SessionManager.update_session_config(...)` merges updates into session config copy.
 3. `SessionConfigService` recomputes effective config for affected sessions.
 4. `SessionConfigRuntime.apply(...)` updates:

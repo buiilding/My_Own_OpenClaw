@@ -85,7 +85,7 @@ Functionality:
 - `query`: starts stream execution task and delegates to query execution service.
 - `stop_query`: cancels active query task by user and emits stop semantics.
 - `tool_result`: ingests SDK/local-runtime tool, synthetic, and bundle results.
-- `settings`: load/update frontend-owned settings and model list retrieval.
+- `settings`: load/update client settings and model list retrieval.
 - `rehydrate`: replaces conversation history from SDK-projected snapshot entries.
 - `wakeword`: handles wakeword-triggered entry flow.
 - `compact_history`: manual compaction trigger path.
@@ -326,7 +326,7 @@ High-change areas likely to require docs updates when code changes:
 - `tools/*` + `agent/tools/*` bundle/single execution and cleanup semantics.
 - `llm/providers/*` request/stream normalization behavior.
 - `api/processing/formatters/*` payload shape contracts consumed by renderer.
-- `core/config/models.py` frontend-owned config field changes.
+- `core/config/models.py` client settings patch field changes.
 
 ## 11) Recompute Snapshot Commands
 

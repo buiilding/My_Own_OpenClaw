@@ -29,7 +29,7 @@ Behavior:
 
 1. resolve session by `user_id`
 2. prefer session config (`session.cfg`); fallback to global config (`session_manager.config`)
-3. return frontend-owned settings subset only via `_build_frontend_settings_payload(...)`
+3. return client settings subset only via `_build_client_settings_payload(...)`
 
 Response type:
 
@@ -50,8 +50,8 @@ Response type:
 
 Behavior:
 
-1. validate payload through `validate_frontend_config(...)`
-2. ignore non-frontend-owned fields (warning only)
+1. validate payload through `validate_client_settings_patch(...)`
+2. ignore non-client-settings fields (warning only)
 3. apply validated patch via `SessionManager.update_session_config(user_id, updates)`
 4. return updated key list
 
@@ -59,7 +59,7 @@ Response type:
 
 - `settings-updated`
 
-Validation scope (`FrontendConfigPatch`):
+Validation scope (`ClientSettingsPatch`):
 
 - `model_mode`
 - `model_provider`
@@ -162,7 +162,7 @@ Normalization behavior highlights:
 
 If settings UI shows save success but config did not apply:
 
-1. verify payload keys are in frontend-owned field set
+1. verify payload keys are in the client settings patch field set
 2. inspect warnings for ignored unknown keys
 3. verify `SessionManager.update_session_config(...)` ran and session existed
 

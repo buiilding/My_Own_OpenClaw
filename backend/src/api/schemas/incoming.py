@@ -197,7 +197,7 @@ class ListModelsMessage(BaseMessage):
 
 
 class ProviderApiKeyEntry(BaseModel):
-    """One provider API key override entry in frontend settings payload."""
+    """One provider API key override entry in the client settings payload."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -206,7 +206,7 @@ class ProviderApiKeyEntry(BaseModel):
 
 
 class ProviderApiKeysPayload(BaseModel):
-    """Frontend-provided per-provider API key overrides."""
+    """Client-provided per-provider API key overrides."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -219,7 +219,7 @@ class ProviderApiKeysPayload(BaseModel):
 
 
 class ToolManifestSettingsPayload(BaseModel):
-    """Frontend-provided client tool manifest replacement."""
+    """Client-provided tool manifest replacement."""
 
     model_config = ConfigDict(extra="forbid")
 

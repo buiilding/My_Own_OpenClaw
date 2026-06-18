@@ -71,12 +71,12 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 
 ### `LoadSettingsHandler`
 
-- returns frontend-owned settings from session config if session exists
+- returns client settings from session config if session exists
 - falls back to global config defaults when session is absent
 
 ### `UpdateSettingsHandler`
 
-- validates frontend-owned settings fields
+- validates client settings patch fields
 - applies updates to user session config
 - returns updated-key list
 

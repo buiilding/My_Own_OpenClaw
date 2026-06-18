@@ -1,8 +1,8 @@
 ---
-summary: "Backend protocol validation sub-hub for websocket envelope field constraints, parse/discriminator enforcement, route-table alignment guards, contract-registry parity checks, and frontend config patch allowlist validation."
+summary: "Backend protocol validation sub-hub for websocket envelope field constraints, parse/discriminator enforcement, route-table alignment guards, contract-registry parity checks, and client settings patch allowlist validation."
 read_when:
   - When changing message id/user_id validation rules, parse/size validation flow, or schema strictness.
-  - When adding/removing incoming/outgoing message types, route declarations, or frontend config patch field allowlists.
+  - When adding/removing incoming/outgoing message types, route declarations, or client settings patch field allowlists.
 title: "Backend Protocol Validation Hub"
 ---
 

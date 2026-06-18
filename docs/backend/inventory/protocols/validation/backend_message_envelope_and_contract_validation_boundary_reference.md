@@ -12,7 +12,7 @@ title: "Backend Message Envelope and Contract Validation Boundary Reference"
 
 - Incoming message-type literals: `10`
 - Schema-validated outgoing message types: `19`
-- Allowed frontend config patch keys: `10`
+- Allowed client settings patch keys: `10`
 
 ## Scope and Sources
 
@@ -157,13 +157,13 @@ Purpose:
 - catches constant-list drift vs schema registry declarations.
 - protects formatter/schema parity tests and runtime assumptions.
 
-## Frontend Config Patch Validation Boundary
+## Client Settings Patch Validation Boundary
 
-`validate_frontend_config(...)` guardrails for `update-settings` payloads:
+`validate_client_settings_patch(...)` guardrails for `update-settings` payloads:
 
 - input must be dict
 - unknown keys logged and ignored
-- allowed keys validated through typed `FrontendConfigPatch`
+- allowed keys validated through typed `ClientSettingsPatch`
 - allowed keys are:
   - `model_mode`
   - `model_provider`
@@ -179,7 +179,7 @@ Purpose:
 
 Role in protocol surface:
 
-- frontend cannot patch arbitrary backend config fields through websocket settings updates.
+- clients cannot patch arbitrary backend config fields through websocket settings updates.
 
 ## Drift Checks
 
@@ -199,7 +199,7 @@ When editing validation logic, verify:
 | incoming discriminated-union validation | `backend/src/api/schemas/incoming.py`, `TypeAdapter(IncomingMessage)` | unknown message types and invalid payload shapes fail with structured validation errors |
 | route-table parity/startup guard | `backend/src/core/container/incoming_routing.py` | startup fails if incoming schema literals and route declarations diverge |
 | contract-registry parity guard | `backend/src/api/contracts/registry.py` | startup/tests fail when incoming/outgoing contract registries diverge from canonical type constants |
-| frontend config patch allowlist gate | `backend/src/core/validation/validators.py` | `update-settings` accepts only typed allowlisted frontend fields and drops unknown keys |
+| client settings patch allowlist gate | `backend/src/core/validation/validators.py` | `update-settings` accepts only typed allowlisted client settings fields and drops unknown keys |
 
 ## Recompute Validation Surface Commands
 
@@ -207,10 +207,10 @@ Use this command to recompute protocol validation cardinalities:
 
 - `python - <<'PY'`
 - `from backend.src.api.contracts.message_types import INCOMING_MESSAGE_TYPES, OUTGOING_SCHEMA_MESSAGE_TYPES`
-- `from backend.src.core.validation.validators import FRONTEND_CONFIG_FIELDS`
+- `from backend.src.core.validation.validators import CLIENT_SETTINGS_PATCH_FIELDS`
 - `print('incoming_types', len(INCOMING_MESSAGE_TYPES), sorted(INCOMING_MESSAGE_TYPES))`
 - `print('outgoing_schema_types', len(OUTGOING_SCHEMA_MESSAGE_TYPES))`
-- `print('frontend_config_fields', len(FRONTEND_CONFIG_FIELDS), sorted(FRONTEND_CONFIG_FIELDS))`
+- `print('client_settings_patch_fields', len(CLIENT_SETTINGS_PATCH_FIELDS), sorted(CLIENT_SETTINGS_PATCH_FIELDS))`
 - `PY`
 
 ## Related Pages

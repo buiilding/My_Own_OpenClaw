@@ -103,7 +103,7 @@ Payload keys (schema-level optional):
 - `include_query_screenshot`
 - `provider_api_keys`
 
-Schema forbids extras; handler-level validation further restricts to frontend-owned patch policy.
+Schema forbids extras; handler-level validation further restricts to the client settings patch policy.
 
 ### `wakeword-detected`
 

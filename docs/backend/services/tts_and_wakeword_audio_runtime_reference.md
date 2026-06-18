@@ -38,8 +38,8 @@ Key distinction:
 - `speech_mode_enabled` is the real per-session gate for whether TTS is used during query/wakeword flows
 - `speech_provider` selects which speech backend handles streamed text (`local` Piper or `elevenlabs`)
 
-Session creation/update path (`SessionManager`) always re-applies runtime policies, so frontend config patches can toggle `speech_mode_enabled`, but cannot disable backend TTS runtime capability globally.
-Frontend config patches also cannot choose the speech backend provider; `speech_provider` stays backend-owned.
+Session creation/update path (`SessionManager`) always re-applies runtime policies, so client settings patches can toggle `speech_mode_enabled`, but cannot disable backend TTS runtime capability globally.
+Client settings patches also cannot choose the speech backend provider; `speech_provider` stays backend-owned.
 
 Provider selection policy:
 

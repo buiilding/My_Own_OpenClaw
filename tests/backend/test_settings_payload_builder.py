@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from backend.src.api.handlers.settings import _build_frontend_settings_payload
+from backend.src.api.handlers.settings import _build_client_settings_payload
 
 
 class _DumpableValue:
@@ -15,11 +15,11 @@ class _DumpableValue:
         return self.payload
 
 
-def test_build_frontend_settings_payload_returns_empty_for_none() -> None:
-    assert _build_frontend_settings_payload(None) == {}
+def test_build_client_settings_payload_returns_empty_for_none() -> None:
+    assert _build_client_settings_payload(None) == {}
 
 
-def test_build_frontend_settings_payload_includes_only_frontend_owned_fields() -> None:
+def test_build_client_settings_payload_includes_only_client_settings_fields() -> None:
     config = SimpleNamespace(
         model_provider="openai",
         selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
@@ -28,7 +28,7 @@ def test_build_frontend_settings_payload_includes_only_frontend_owned_fields() -
         unrelated_internal_field="ignore-me",
     )
 
-    payload = _build_frontend_settings_payload(config)
+    payload = _build_client_settings_payload(config)
 
     assert payload == {
         "interaction_mode": "chat",
@@ -39,7 +39,7 @@ def test_build_frontend_settings_payload_includes_only_frontend_owned_fields() -
     assert "unrelated_internal_field" not in payload
 
 
-def test_build_frontend_settings_payload_redacts_raw_provider_api_keys() -> None:
+def test_build_client_settings_payload_redacts_raw_provider_api_keys() -> None:
     config = SimpleNamespace(
         provider_api_keys={
             "openai": {"enabled": True, "api_key": "sk-secret-openai"},
@@ -47,7 +47,7 @@ def test_build_frontend_settings_payload_redacts_raw_provider_api_keys() -> None
         },
     )
 
-    payload = _build_frontend_settings_payload(config)
+    payload = _build_client_settings_payload(config)
 
     assert payload["provider_api_keys"] == {
         "openai": {"enabled": True, "api_key": ""},
@@ -56,7 +56,7 @@ def test_build_frontend_settings_payload_redacts_raw_provider_api_keys() -> None
     assert "sk-secret" not in repr(payload)
 
 
-def test_build_frontend_settings_payload_is_stably_sorted_by_key() -> None:
+def test_build_client_settings_payload_is_stably_sorted_by_key() -> None:
     config = SimpleNamespace(
         wakeword_stt_enabled=True,
         model_mode="online",
@@ -64,6 +64,6 @@ def test_build_frontend_settings_payload_is_stably_sorted_by_key() -> None:
         model_provider="openai",
     )
 
-    payload = _build_frontend_settings_payload(config)
+    payload = _build_client_settings_payload(config)
 
     assert list(payload.keys()) == sorted(payload.keys())

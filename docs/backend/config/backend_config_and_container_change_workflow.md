@@ -1,7 +1,7 @@
 ---
 summary: "Workflow for changing backend AppConfig fields, runtime normalization, container DI wiring, provider rebinding, and live session config propagation."
 read_when:
-  - When adding, removing, renaming, or debugging backend AppConfig fields, provider defaults, env-var resolution, runtime config policies, or frontend update-settings keys.
+  - When adding, removing, renaming, or debugging backend AppConfig fields, provider defaults, env-var resolution, runtime config policies, or client update-settings keys.
   - When changing container initialization, DI providers, lazy session factory creation, model service rebinding, OCR/vision/embedding router rebinding, or API runtime overrides.
   - When a settings update appears to apply in the UI but new sessions, active sessions, model lists, prompts, tools, or inference providers still use stale config.
 title: "Backend Config and Container Change Workflow"
@@ -14,7 +14,7 @@ Use this workflow when a backend config change needs to survive startup, runtime
 Backend config has two shapes:
 
 - global runtime config loaded from `backend/src/core/config/app_config.py` through `ConfigManager`
-- session-scoped config assembled from frontend-owned `update-settings` patches and applied to `AgentSession`
+- session-scoped config assembled from client `update-settings` patches and applied to `AgentSession`
 
 Do not make renderer settings, sidecar env, or Electron endpoint code mutate backend internals directly. They should send allowed values through the documented config/update boundary and let backend config assembly rebuild the runtime objects.
 
@@ -24,7 +24,7 @@ Do not make renderer settings, sidecar env, or Electron endpoint code mutate bac
 | --- | --- | --- | --- | --- |
 | add an `AppConfig` field, default, type, or nested config model | backend config models | `backend/src/core/config/models.py`, `backend/src/core/config/app_config.py` | [Config Fields and Runtime Policy](config_fields_and_runtime_policy.md), [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md) | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py` |
 | add env-var lookup or provider API-key resolution | backend config loader | `backend/src/core/config/loader.py`, `backend/src/core/config/runtime.py`, provider config models | [Provider Credentials](../../providers/credentials.md), [Credentials and Tokens Matrix](../../security/credentials_and_tokens_matrix.md) | `tests/backend/test_config_loader.py`, provider-specific tests |
-| add a frontend-owned settings patch key | backend validation plus session config | `backend/src/core/validation/validators.py`, `backend/src/core/validation/settings_update_rules.py`, `backend/src/agent/session/session_config_service.py`, `backend/src/api/handlers/settings.py` | [Input Validation and Frontend Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md), [Settings Sync Change Workflow](../../frontend/runtime/settings_sync_change_workflow.md) | `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py`, `tests/backend/test_settings_payload_builder.py` |
+| add a client settings patch key | backend validation plus session config | `backend/src/core/validation/validators.py`, `backend/src/core/validation/settings_update_rules.py`, `backend/src/agent/session/session_config_service.py`, `backend/src/api/handlers/settings.py` | [Input Validation and Client Settings Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md), [Settings Sync Change Workflow](../../frontend/runtime/settings_sync_change_workflow.md) | `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py`, `tests/backend/test_settings_payload_builder.py` |
 | settings update applies but active session still uses old provider/model/tool policy | session runtime rewire | `backend/src/agent/session/config_runtime.py`, `backend/src/agent/session/session.py`, `backend/src/agent/session/manager.py` | [Session Runtime and Config Rewire Reference](../agent/session_runtime_and_config_rewire_reference.md) | `tests/backend/test_session_config_service.py`, `tests/backend/test_session_llm_factory.py` |
 | new sessions use stale config after container update | container config updater and lazy session factory | `backend/src/core/container/config_updater.py`, `backend/src/core/container/session_runtime.py`, `backend/src/core/container/session_factory.py` | [Container DI and Initialization Lifecycle Reference](../bootstrap/container_di_and_init_lifecycle_reference.md) | `tests/backend/test_container_config_updater.py`, `tests/backend/test_session_manager.py` |
 | model list, provider availability, or selected provider metadata is stale | model service/provider factory rebinding | `backend/src/core/container/config_updater.py`, `backend/src/llm/models`, `backend/src/llm/providers/factory.py` | [Provider Change Workflow](../../providers/provider_change_workflow.md), [Model Catalog Change Workflow](../../providers/model_catalog_change_workflow.md) | `tests/backend/test_models_config.py`, `tests/backend/test_inference_factory_selection.py`, provider tests |
@@ -38,8 +38,8 @@ Do not make renderer settings, sidecar env, or Electron endpoint code mutate bac
 - `backend/src/core/config/models.py` owns field types, nested config models, defaults, aliases, and strict value domains.
 - `backend/src/core/config/app_config.py` owns checked-in backend defaults. Do not put real credentials there.
 - `backend/src/core/config/loader.py` owns environment and frontend credential override resolution, including provider aliases and OAuth-derived OpenAI Codex tokens.
-- `backend/src/core/config/runtime.py` owns runtime normalization policies that should apply both at startup and after frontend settings patches.
-- `backend/src/core/validation/*` owns what the frontend is allowed to patch. Never widen `update-settings` just to make a UI control easy.
+- `backend/src/core/config/runtime.py` owns runtime normalization policies that should apply both at startup and after client settings patches.
+- `backend/src/core/validation/*` owns what clients are allowed to patch. Never widen `update-settings` just to make a UI control easy.
 - `ContainerConfigUpdater` owns global dependency rebinding after a backend config update.
 - `SessionConfigRuntime` owns active session dependency rewiring after a session-scoped config update.
 - Existing sessions do not automatically inherit every global container update. Update the session explicitly if the active query/session must move.
@@ -81,7 +81,7 @@ Use this path when backend-owned config changes at runtime.
 Use this path when the renderer sends a user-facing settings change.
 
 1. Renderer sends `update-settings` with only allowlisted keys.
-2. `FrontendConfigPatch` and settings update rules drop or reject unsafe fields.
+2. `ClientSettingsPatch` and settings update rules drop or reject unsafe fields.
 3. `UpdateSettingsHandler` forwards normalized patch data to `SessionManager.update_session_config(...)`.
 4. `SessionConfigService` merges the patch into session-scoped config and reassembles runtime policy.
 5. `SessionConfigRuntime.apply(...)` rebuilds the session LLM client, executor references, prompt constructor, and conversation context.
@@ -93,7 +93,7 @@ Use this path when the renderer sends a user-facing settings change.
 2. Add or update the checked-in default in `backend/src/core/config/app_config.py` only when the default belongs in source.
 3. If the value comes from env, add env-var lookup in `loader.py` or the domain-specific loader. Do not read env vars from random service code.
 4. If the value needs normalization, add it to `runtime.py` so startup and session updates share behavior.
-5. If a frontend setting controls it, add the allowlist and validation rule in `backend/src/core/validation/*`, then update frontend settings docs/tests separately.
+5. If a client-visible setting controls it, add the allowlist and validation rule in `backend/src/core/validation/*`, then update frontend settings docs/tests separately.
 6. If a service, provider, model list, or router stores the config at construction time, update `ContainerConfigUpdater` so runtime updates rebuild that dependency.
 7. If active sessions need to change immediately, update `SessionConfigRuntime` and focused session tests.
 8. Update config docs:
@@ -187,7 +187,7 @@ Container wiring changes are higher risk because they alter startup, API handler
 | --- | --- |
 | config model/default only | `./scripts/python-in-env backend pytest tests/backend/test_config_models.py tests/backend/test_config_loader.py` |
 | config manager/service/subscriptions | `./scripts/python-in-env backend pytest tests/backend/test_config_manager.py tests/backend/test_config_service.py tests/backend/test_config_subscriptions.py` |
-| frontend settings patch contract | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py tests/backend/test_settings_payload_builder.py` plus focused frontend settings tests |
+| client settings patch contract | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py tests/backend/test_settings_payload_builder.py` plus focused frontend settings tests |
 | container update/rebinding | `./scripts/python-in-env backend pytest tests/backend/test_container_config_updater.py tests/backend/test_api_container_source.py` |
 | provider/model config | provider-specific backend tests plus `tests/backend/test_models_config.py` and `tests/backend/test_provider_factory_helpers.py` |
 | OCR/vision/embedding config | focused provider/router tests and relevant service tests |
