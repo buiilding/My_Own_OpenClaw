@@ -8131,3 +8131,19 @@ Each completed slice should report:
   and `git diff --check`.
 - Compatibility: no migration required. The stable ref object behavior and
   render-time `.current` update semantics are unchanged.
+
+### 2026-06-18 renderer storage runtime facade boundary
+
+- Finding: permission onboarding storage still imported JSON localStorage
+  helpers directly from renderer infrastructure, which left one final renderer
+  feature module with an infrastructure import.
+- Change: added `desktopStorageRuntimeClient.js` as the renderer app runtime
+  facade for JSON localStorage helpers, routed permission onboarding storage
+  through it, and added a boundary guard that renderer feature modules do not
+  import infrastructure modules directly.
+- Validation: focused permission storage, JSON localStorage, renderer skin
+  config, and renderer boundary Jest coverage, direct feature import scans,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. The permission onboarding storage key,
+  persisted state shape, parse failure behavior, and best-effort write behavior
+  are unchanged.

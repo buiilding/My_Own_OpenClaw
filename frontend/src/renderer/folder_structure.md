@@ -36,6 +36,7 @@ frontend/src/renderer/
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopShortcutRuntimeClient.ts # Renderer shortcut label, predicate, option, and config-normalization facade
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
+│   │   ├── desktopStorageRuntimeClient.js # Renderer localStorage JSON helper facade for feature clients
 │   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │
 │   └── providers/                       # Context providers for global state

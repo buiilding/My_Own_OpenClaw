@@ -65,6 +65,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: expose the shared latest-ref React hook through a renderer
   app runtime facade instead of direct infrastructure hook imports from chat and
   voice feature code.
+- renderer/runtime: route permission onboarding storage through a renderer app
+  storage facade, leaving renderer feature modules without direct
+  infrastructure imports.
 - renderer/runtime: route dashboard local-runtime readiness subscriptions
   through a renderer app runtime client instead of importing the shared IPC
   status store directly.

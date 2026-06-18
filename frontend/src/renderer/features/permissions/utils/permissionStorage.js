@@ -5,7 +5,7 @@
 import {
   readJsonObjectFromLocalStorage,
   writeJsonObjectToLocalStorage,
-} from '../../../infrastructure/storage/jsonLocalStorage';
+} from '../../../app/runtime/desktopStorageRuntimeClient';
 import { RENDERER_STORAGE_KEYS } from '../../../app/skin/desktopRuntimeConfig';
 
 const PERMISSION_ONBOARDING_STORAGE_KEY = RENDERER_STORAGE_KEYS.permissionOnboarding;

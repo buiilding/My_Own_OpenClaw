@@ -44,6 +44,22 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('renderer feature modules do not import infrastructure modules directly', async () => {
+    const featureRoot = path.join(rendererRoot, 'features');
+    const files = await listSourceFiles(featureRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(featureRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('chat feature code reads SDK conversation contracts through app runtime facade', async () => {
     const files = await listSourceFiles(chatRoot);
     const offenders: string[] = [];
