@@ -2213,7 +2213,7 @@ async def test_update_settings_handler_rejects_invalid_values():
 
 
 @pytest.mark.asyncio
-async def test_load_settings_handler_returns_frontend_config():
+async def test_load_settings_handler_returns_client_settings_snapshot():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.session_instance = session_manager.session

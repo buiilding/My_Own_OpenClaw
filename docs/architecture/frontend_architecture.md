@@ -80,7 +80,7 @@ Current runtime behavior also relies on these explicit seams:
   Electron store adapters and feature code should not keep separate
   backend-event alias tables for `request_id`, `tool_call_id`,
   `correlation_id`, or `bundle_id`.
-- **Settings/model sync is facade-owned**: provider/config helpers build plain frontend config and model-selection data. Backend settings payload shaping and model command dispatch stay behind `app/runtime/desktopSettingsRuntimeClient.ts` and focused conversation runtime facades.
+- **Settings/model sync is facade-owned**: provider/config helpers build plain renderer config and model-selection data. Backend settings payload shaping and model command dispatch stay behind `app/runtime/desktopSettingsRuntimeClient.ts` and focused conversation runtime facades.
 - **Sidecar now has a matching hosted SDK transport client**: `frontend/src/main/python/windie/sdk.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
 - **Permission runtime is split by capability domain**: `permissions/permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.

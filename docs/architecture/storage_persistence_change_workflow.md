@@ -16,7 +16,7 @@ Use this workflow for storage shape, migration, retention, reset, and data-loss 
 
 | Tier | Owner | Examples | Restart behavior |
 | --- | --- | --- | --- |
-| Renderer browser storage | React renderer | frontend config subset, transcript session info, local snapshots | survives renderer reload when local/session storage survives |
+| Renderer browser storage | React renderer | renderer config subset, transcript session info, local snapshots | survives renderer reload when local/session storage survives |
 | Electron user-data files | Electron main | `frontend-config.json`, `install-auth.json`, permission state, endpoint-derived local config | survives app restart until user-data reset |
 | Sidecar local DB/index files | Python sidecar | transcript rows, episodic/semantic memories, conversation titles, FAISS indexes, semanticization watermark | survives app restart, must migrate defensively |
 | Backend disk stores | Hosted backend | artifacts, install-auth SQLite | survives backend process restart if path is persistent |
@@ -82,7 +82,7 @@ Validate:
 - `transcript-entry-stored` and `transcript-session-update` event behavior.
 - SDK rehydrate snapshot behavior if event shape changes.
 
-### Change frontend config persistence
+### Change renderer config persistence
 
 Read:
 

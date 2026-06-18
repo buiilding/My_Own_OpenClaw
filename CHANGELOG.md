@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/docs: rename the load-settings handler coverage and config
+  ownership prose from frontend config to client settings, renderer config,
+  and desktop UI config terminology without changing websocket payloads.
 - renderer/main tests/docs: rename desktop UI config test helpers and routing
   docs away from stale frontend config ownership while preserving the
   `load-frontend-config` / `save-frontend-config` IPC channels and

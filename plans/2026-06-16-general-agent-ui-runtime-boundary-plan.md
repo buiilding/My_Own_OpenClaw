@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend load-settings client settings wording boundary
+
+- Finding: backend `load-settings` coverage and several architecture/reference
+  docs still described returned settings or renderer/main config ownership as
+  frontend config, even though the backend owner is the client settings
+  snapshot/patch contract and Electron main owns desktop UI config persistence.
+- Change: renamed the focused backend test to client settings snapshot
+  terminology and reworded docs to renderer config or desktop UI config where
+  appropriate.
+- Validation: backend test file `py_compile`, docs listing, stale wording
+  scan, and diff check passed. The focused pytest selection for the renamed
+  load-settings handler test was attempted, but collection was blocked because
+  the `jarvis` conda env is unavailable and fallback Python lacks `fastapi`.
+- Compatibility: no migration required. This is test/docs naming only;
+  websocket message types, payload shapes, renderer storage, Electron disk
+  filename, IPC channels, credentials, permissions, and SDK projections are
+  unchanged.
+
 ### 2026-06-18 desktop UI config test/docs helper boundary
 
 - Finding: focused renderer/main tests still used frontend-config helper names
