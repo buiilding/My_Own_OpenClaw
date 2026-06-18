@@ -16,7 +16,7 @@ This index maps frontend functionality to file ownership.
 | --- | ---: |
 | Main process (`frontend/src/main`, `.cjs`/`.js`) | 58 |
 | Sidecar Python (`frontend/src/main/python`, `.py`) | 156 |
-| Renderer runtime (`frontend/src/renderer`, TS/JS) | 201 |
+| Renderer runtime (`frontend/src/renderer`, TS/JS) | 202 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
 
@@ -72,6 +72,8 @@ App + providers:
 
 - `frontend/src/renderer/app/*.jsx`
 - `frontend/src/renderer/app/providers/*`
+- `frontend/src/renderer/app/runtime/desktopChatMessageTypes.ts`
+- `frontend/src/renderer/app/runtime/desktopPresentationSourceChannels.js`
 - Includes view-routed app roots: `App`, `MinimalChatPillApp`, `MinimalResponseOverlayApp`, `ToolGhostDebugApp`
 
 Shared components:

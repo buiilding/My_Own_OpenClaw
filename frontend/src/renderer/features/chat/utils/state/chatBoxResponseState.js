@@ -9,7 +9,7 @@ import {
 } from '../../../../app/runtime/desktopChatMessageRuntimeClient';
 import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
 import { buildScreenshotAttachment } from '../chatStream/chatStreamEventUtils';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../message/sourceChannels';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null;

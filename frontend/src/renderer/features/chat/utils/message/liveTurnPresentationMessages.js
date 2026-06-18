@@ -8,7 +8,7 @@ import {
   buildToolCallMessageState,
 } from '../../../../app/runtime/desktopChatMessageRuntimeClient';
 import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './sourceChannels';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
 
 function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value)

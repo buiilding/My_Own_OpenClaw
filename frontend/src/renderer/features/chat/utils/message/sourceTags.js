@@ -6,7 +6,7 @@ import {
   SDK_CONVERSATION_EVENT_SOURCE_CHANNEL,
   SDK_CURRENT_TURN_SOURCE_CHANNEL,
   SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
-} from './sourceChannels';
+} from '../../../../app/runtime/desktopPresentationSourceChannels';
 
 const SOURCE_EVENT_LABELS = {
   'llm-thought': 'thinking token',

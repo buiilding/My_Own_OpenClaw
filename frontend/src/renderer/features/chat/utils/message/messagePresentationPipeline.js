@@ -3,7 +3,7 @@
  */
 
 import { buildCurrentTurnMessagesFromPresentation } from './liveTurnPresentationMessages';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './sourceChannels';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {

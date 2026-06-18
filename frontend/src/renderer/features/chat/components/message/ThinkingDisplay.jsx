@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../utils/devUiFlag';
-import { SDK_CONVERSATION_EVENT_SOURCE_CHANNEL } from '../../utils/message/sourceChannels';
+import { SDK_CONVERSATION_EVENT_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
 import { resolveSourceTag } from '../../utils/message/sourceTags';
 import '../../../../styles/ThinkingDisplay.css';
 

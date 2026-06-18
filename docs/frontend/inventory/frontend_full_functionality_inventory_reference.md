@@ -16,10 +16,10 @@ Source counts used in this inventory:
 
 - Main process (`frontend/src/main`, `.cjs|.js`): `58`
 - Sidecar runtime (`frontend/src/main/python`, `.py`): `156`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `201`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `202`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `429`
+- Total covered frontend files: `430`
 
 ## 1) Electron Main Process Inventory
 

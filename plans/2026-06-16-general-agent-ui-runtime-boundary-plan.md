@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Chat Presentation Contracts
+
+- Finding: SDK display-row projection still imported chat feature internals for
+  `ChatMessage` typing and `sdk:display-rows` source-channel labels, creating
+  an infrastructure-to-feature dependency for a shared presentation contract.
+- Change: moved `ChatMessage`/`TokenCounts` into
+  `desktopChatMessageTypes.ts`, moved presentation source channels into
+  `desktopPresentationSourceChannels.js`, re-exported chat-message types from
+  `chatStore.ts`, and deleted the feature-owned `sourceChannels.js` module.
+- Validation: focused SDK display projection and renderer chat boundary tests
+  plus frontend typecheck, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Message object shape, source-channel
+  string values, chat store state, SDK display rows, IPC channels, credentials,
+  permissions, local authority, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Transcript Session Info Runtime Client
 
 - Finding: transcript session info subscription lived in a dashboard feature

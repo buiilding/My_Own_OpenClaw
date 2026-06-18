@@ -14,10 +14,10 @@ This matrix maps frontend capabilities to implementation files.
 
 - Main process files: `58`
 - Sidecar python files: `156`
-- Renderer files: `201`
+- Renderer files: `202`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `429`
+- Total covered frontend files: `430`
 
 ## 1) Main Process Runtime
 
@@ -69,8 +69,8 @@ This matrix maps frontend capabilities to implementation files.
 | SDK conversation event handling | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStream*.ts` | Consumes SDK-normalized conversation events and current-turn projections; backend-wire stream normalization stays behind the SDK/main runtime. |
 | Tool call execution and stale-turn cancel | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` | Executes tool/tool-bundle through the sidecar SDK local-runtime client and sends explicit failure results for stale or failed waits. |
 | Tool display projection | `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/infrastructure/transcript/{toolCallMessageState.js,toolOutputChatMessageState.ts}` | Renders tool-call/tool-output cards from SDK/main fan-out without executing local tools in the renderer. |
-| Chat state store and selectors | `frontend/src/renderer/features/chat/stores/chatStore.ts`, `frontend/src/renderer/features/chat/utils/chatSelectors.js` | Message list, stream phase, token and turn tracking state. |
-| Transcript persistence and display projection | `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`, `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, `sessionInfo*.ts` | SDK-facing store/projection runtime owns session tracking, durable events, and display rows. |
+| Chat state store and selectors | `frontend/src/renderer/app/runtime/desktopChatMessageTypes.ts`, `frontend/src/renderer/features/chat/stores/chatStore.ts`, `frontend/src/renderer/features/chat/utils/chatSelectors.js` | Shared chat-message/token-count contract plus message list, stream phase, token, and turn tracking state. |
+| Transcript persistence and display projection | `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`, `frontend/src/renderer/app/runtime/desktopPresentationSourceChannels.js`, `desktopConversationStore.ts`, `sdkDisplayChatMessageProjection.ts`, `sessionInfo*.ts` | SDK-facing store/projection runtime owns session tracking, durable events, display rows, and presentation source-channel labels. |
 | IPC channel constants and typed bridge | `frontend/src/renderer/infrastructure/ipc/{channels,bridge}.ts` | Canonical channel names and runtime bridge wrappers. |
 
 ## 6) Renderer Dashboard, Settings, Permissions, Voice

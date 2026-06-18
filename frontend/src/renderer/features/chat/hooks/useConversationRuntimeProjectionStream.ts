@@ -17,7 +17,7 @@ import {
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { logRendererLiveSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../utils/message/sourceChannels';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../app/runtime/desktopPresentationSourceChannels';
 import {
   applyCurrentTurnProjectionSideEffects,
   buildProjectionCursorKey,

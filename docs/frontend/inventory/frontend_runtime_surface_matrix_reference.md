@@ -14,10 +14,10 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 - Main process files: `58`
 - Sidecar python files: `156`
-- Renderer files: `201`
+- Renderer files: `202`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `429`
+- Total covered frontend files: `430`
 
 ## Runtime Surface Ownership
 

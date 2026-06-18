@@ -2,7 +2,7 @@
  * Projects sdk display chat message state for the renderer UI.
  */
 
-import type { ChatMessage } from '../../features/chat/stores/chatStore';
+import type { ChatMessage } from '../../app/runtime/desktopChatMessageTypes';
 import {
   type SdkDisplayRow,
   type DisplayMessage,
@@ -14,7 +14,7 @@ import {
   buildRemoteScreenshotAttachments,
   resolveScreenshotAttachmentState,
 } from '../services/screenshotMessageState';
-import { SDK_DISPLAY_ROWS_SOURCE_CHANNEL } from '../../features/chat/utils/message/sourceChannels';
+import { SDK_DISPLAY_ROWS_SOURCE_CHANNEL } from '../../app/runtime/desktopPresentationSourceChannels';
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;

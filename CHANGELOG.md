@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: move shared chat-message/token-count types and presentation
+  source-channel labels into app-runtime contracts so SDK display projection no
+  longer imports chat feature internals. No migration required.
 - renderer/app: move transcript session-info subscription from the dashboard
   feature hook into `DesktopTranscriptSessionInfoRuntimeClient`, letting chat
   provider, chat session, and dashboard memory consumers share the app-runtime

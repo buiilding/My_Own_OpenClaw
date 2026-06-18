@@ -17,6 +17,8 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/ChatProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopChatMessageTypes.ts`
+- `frontend/src/renderer/app/runtime/desktopPresentationSourceChannels.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -54,6 +56,17 @@ Ownership boundaries:
 - `AppConfigProvider`: persisted config, model-list fetch trigger, runtime settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
 - `ChatProvider`: mounts `useChatStream` and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace. Local tool execution is owned by the Agent SDK runtime.
+
+## Chat Message and Store Contracts
+
+`desktopChatMessageTypes.ts` owns the shared `ChatMessage` and `TokenCounts`
+types used by SDK display-row projection and renderer chat state. `chatStore.ts`
+re-exports those types while owning only mutable Zustand state and actions.
+
+`desktopPresentationSourceChannels.js` owns renderer presentation source-channel
+labels (`sdk:conversation-event`, `sdk:current-turn`, `sdk:display-rows`) so
+projection infrastructure and chat UI tagging share the same app-runtime
+contract without importing each other.
 
 ## Chat Store Contract (`chatStore.ts`)
 

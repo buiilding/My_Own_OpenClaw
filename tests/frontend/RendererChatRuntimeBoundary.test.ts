@@ -1237,10 +1237,22 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts'),
       'utf8',
     );
+    const chatStoreSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStore.ts'),
+      'utf8',
+    );
+    const sourceChannelPath = path.join(chatRoot, 'utils/message/sourceChannels.js');
 
     expect(source).toContain('sourceEventType');
+    expect(source).toContain('desktopChatMessageTypes');
+    expect(source).toContain('desktopPresentationSourceChannels');
+    expect(source).not.toContain('features/chat');
     expect(source).not.toContain('rawEventType');
     expect(source).not.toContain('metadata.raw');
     expect(source).not.toContain('payload.raw');
+    expect(chatStoreSource).toContain('desktopChatMessageTypes');
+    expect(chatStoreSource).toContain('export type { ChatMessage, TokenCounts }');
+    expect(chatStoreSource).not.toContain('export interface ChatMessage');
+    await expect(fs.stat(sourceChannelPath)).rejects.toThrow();
   });
 });
