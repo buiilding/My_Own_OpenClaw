@@ -1,7 +1,7 @@
 ---
-summary: "Final AgentClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, Python sidecar daemon registration through the local runtime, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
+summary: "Final AgentClient runtime contract for SDK callers, Electron main, local hosted query routing, hosted backend websocket ownership, SDK WebSocketLike typing, Python local-runtime daemon registration through the local runtime, builtins wakeUp option selection, removed builtinTools wake guard behavior, AgentStreamEvents extractToolResultAttachments attachment projection, and tool-result routing."
 read_when:
-  - When changing `AgentClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or Python sidecar daemon integration through the local runtime.
+  - When changing `AgentClient.wakeUp`, builtins selection, local hosted query routing, backend websocket ownership, or Python local-runtime daemon integration.
   - When debugging whether a query should use the hosted backend websocket, the local runtime daemon, or both.
   - When changing SDK websocket implementation selection, `WebSocketLike`/`WebSocketConstructor` types, the `ws` package dependency, or stale references to the removed `src/types/ws.d.ts` ambient declaration.
   - When changing SDK `agent.stream(...)` tool-output attachment extraction, `AgentStreamEvents.ts`, or stale `extractToolResultAttachments` parent-parameter references.
@@ -85,7 +85,7 @@ Ownership rules:
   `AgentHostedBackendClient`, `AgentHostedBackendClientOptions`,
   `AgentSdkQueryOptions`, and `AgentInstallIdentityResponse` names for
   reusable SDK host code.
-- the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
+- the SDK local-runtime module owns daemon HTTP calls, daemon discovery,
   auto-start/reuse, local runtime event subscriptions, local-runtime-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and
   `moduleTool(...)` registration helpers.
@@ -110,7 +110,7 @@ Ownership rules:
   conversation listing/search/loading/deletion over a store adapter, memory
   commands, title commands, system prompt/tool-schema commands, and artifact
   helpers.
-- sidecar daemon owns local execution only.
+- local runtime daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
 
@@ -462,7 +462,7 @@ const status = await client.localStatus();
 ```
 
 When a local runtime supports events, callers can subscribe through the SDK
-runtime instead of connecting to the sidecar daemon directly:
+runtime instead of connecting to the local daemon directly:
 
 ```ts
 const unsubscribe = agent.subscribeLocalRuntimeEvents((event) => {
@@ -790,7 +790,7 @@ backend websocket event -> SDK session -> Electron/UI/SDK listeners
 For local tool calls:
 
 ```text
-backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backend tool-result
+backend tool-call -> SDK conversation runtime -> SDK local runtime /execute-tool -> backend tool-result
 ```
 
 `AgentSession` is now transport-only. It connects, handshakes, sends
@@ -811,8 +811,8 @@ handshake send fails, the managed session closes and clears that socket,
 rejects connection waiters, and requires a fresh connection attempt before any
 typed backend send can succeed.
 `agent.stream(...)` and `agent.conversation(...).stream(...)` both run through
-`SdkConversationRuntime`, which owns local tool execution when a sidecar/local
-runtime adapter is available.
+`SdkConversationRuntime`, which owns local tool execution when a local runtime
+adapter is available.
 SDK backend event normalization requires explicit `conversation_ref`; turn-only
 or session-only events remain raw debug events and are not appended to the
 conversation store.
@@ -945,7 +945,7 @@ The public examples intentionally exercise the modular runtime controls:
 - `examples/custom-ui` uses `InMemoryConversationStore`, renders SDK display
   projections, changes models through `conversation.setModel(...)`, and exposes
   Retry and Stop controls.
-- `examples/local-tool-extension` registers a module tool through the sidecar,
+- `examples/local-tool-extension` registers a module tool through the SDK local runtime,
   streams local tool execution with request/provider tool ids, returns the tool
   result to the backend, and stops through `agent.stop(...)`.
 - `examples/repo-agent-extension` loads a plugin package, registers the local
@@ -954,4 +954,4 @@ The public examples intentionally exercise the modular runtime controls:
 
 For the smallest local tool authoring path, see `examples/local-tool-extension`.
 It uses `moduleTool(...)` to register a Python `module:function` entrypoint with
-the sidecar daemon and lets the SDK return the tool result to the backend.
+the local runtime daemon and lets the SDK return the tool result to the backend.

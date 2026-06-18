@@ -55,7 +55,7 @@ function createMockBackend() {
         send(
           socket,
           'streaming-response',
-          { text: 'Mock backend is asking the sidecar to save a note.\n' },
+          { text: 'Mock backend is asking the SDK local runtime to save a note.\n' },
           { conversation_ref: conversationRef, turn_ref: turnRef },
         );
         send(
@@ -65,7 +65,7 @@ function createMockBackend() {
             tool_name: toolName,
             tool_call_id: 'local-tool-extension-provider-call',
             parameters: {
-              text: 'Windie local module tools execute through the sidecar.',
+              text: 'Windie local module tools execute through the SDK local runtime.',
               filename: 'windie-local-tool-extension.txt',
             },
             request_id: 'local-tool-extension-tool-call',
@@ -163,7 +163,7 @@ try {
     ],
   });
 
-  for await (const event of agent.stream('Save a local note through the sidecar.', {
+  for await (const event of agent.stream('Save a local note through the SDK local runtime.', {
     conversationRef: 'local-tool-extension-example',
   })) {
     if (event.type === 'start') {

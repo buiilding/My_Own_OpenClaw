@@ -132,14 +132,16 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('public local-runtime examples avoid sidecar-facing descriptions', async () => {
     const localToolReadme = await read('examples/local-tool-extension/README.md');
+    const localToolRun = await read('examples/local-tool-extension/run.mjs');
     const repoAgentReadme = await read('examples/repo-agent-extension/README.md');
     const repoAgentManifest = await read('examples/repo-agent-extension/plugin.json');
-    const publicExampleText = [localToolReadme, repoAgentReadme, repoAgentManifest].join('\n');
+    const publicExampleText = [localToolReadme, localToolRun, repoAgentReadme, repoAgentManifest].join('\n');
 
     expect(publicExampleText).toContain('local-runtime daemon discovery');
     expect(publicExampleText).toContain('local-runtime plugin example');
     expect(publicExampleText).toContain('local-runtime tool implementation');
     expect(publicExampleText).not.toContain('sidecar daemon discovery');
+    expect(publicExampleText).not.toContain('through the sidecar');
     expect(publicExampleText).not.toContain('Windie sidecar plugin');
     expect(publicExampleText).not.toContain('sidecar plugin manifest');
     expect(publicExampleText).not.toContain('local sidecar tool implementation');
@@ -162,6 +164,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).toContain('local runtime tool-result data');
     expect(sdkDocText).toContain('local-runtime-backed default conversation store');
     expect(sdkDocText).not.toContain('sidecar runtime client');
+    expect(sdkDocText).not.toContain('sidecar daemon');
     expect(sdkDocText).not.toContain('sidecar tool manifest');
     expect(sdkDocText).not.toContain('sidecar execution');
     expect(sdkDocText).not.toContain('sidecar-backed conversation');

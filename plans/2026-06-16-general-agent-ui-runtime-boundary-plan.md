@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 public SDK local-runtime wording
+
+- Finding: public SDK docs and the local-tool example still described local tool calls through the sidecar/sidecar daemon even though the SDK local runtime is the reusable contract for CLI, TUI, custom UI, and Electron hosts.
+- Change: rewrote those public surfaces to use SDK local-runtime wording, kept lower-level daemon details generic, and expanded modular boundary coverage so SDK docs and examples avoid sidecar-facing prose.
+- Validation: focused `ModularRefactorCompletionBoundary` Jest coverage, stale sidecar-facing public-SDK scan, and scoped diff check.
+- Compatibility: docs/example copy and boundary-test coverage only; runtime behavior, SDK APIs, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 SDK agent definition default name
 
 - Finding: the reusable SDK `buildAgentDefinition(...)` fallback display name was `Desktop Agent`, which avoided WindieOS product copy but still leaked a desktop-host assumption into CLI, TUI, and custom UI SDK callers.

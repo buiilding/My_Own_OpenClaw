@@ -28,7 +28,7 @@ Use it for direct backend access to:
 
 The normal TypeScript agent surface is `AgentClient.wakeUp(...)`. It builds the
 low-level `agent_definition`, owns the hosted backend websocket, and routes local
-tool calls through the sidecar daemon. Desktop-style clients use the same API and
+tool calls through the SDK local runtime. Desktop-style clients use the same API and
 subscribe to the returned conversation runtime:
 
 ```ts
@@ -111,7 +111,7 @@ Python implementation path: `frontend/src/main/python/windie/sdk.py`
 
 The distribution name is `windie-sdk`; the import package is `windie`.
 
-The Python client mirrors hosted backend route access for sidecar/developer
+The Python client mirrors hosted backend route access for local-runtime/developer
 tooling. Agent sessions use `AgentSdkClient.wake_up(...)`, which builds the
 low-level `agent_definition` from first-class arguments before connecting to the
 hosted backend websocket. The public package exports `AgentSdkClient` and
@@ -120,7 +120,7 @@ compatibility aliases have been removed.
 
 When local module tools, plugins, or MCP servers are supplied, the Python client
 uses the same local-runtime contract as the TypeScript runtime: discover or
-start the daemon, register local executable capabilities, include the daemon
+start the local runtime daemon, register local executable capabilities, include the daemon
 tool manifest in `agent_definition`, and route backend `tool-call` /
 `tool-bundle` events back through `/execute-tool`. Python SDK callers inject a
 custom executor with `local_runtime=...`, choose discovery through
@@ -151,5 +151,5 @@ Python websocket agent sessions normalize backend-bound payloads before send:
 
 The transport-only hosted clients do not execute local desktop tools. For
 screenshots, click/type, browser actions, files, and processes, use
-`AgentClient.wakeUp(...)` with a local runtime so the SDK coordinates sidecar
+`AgentClient.wakeUp(...)` with a local runtime so the SDK coordinates local-runtime
 execution and backend tool-result return.
