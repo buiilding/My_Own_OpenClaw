@@ -344,7 +344,7 @@ read_when:
    - If disabled, `/api/embeddings` returns 503 and memory search/store will fail
 
 2. **Check Database**:
-   - Verify the sidecar memory directory exists and is writable:
+   - Verify the local-runtime memory directory exists and is writable:
      `~/.config/windieos/memory/` (Linux),
      `~/Library/Application Support/windieos/memory/` (macOS),
      `%APPDATA%/windieos/memory/` (Windows)

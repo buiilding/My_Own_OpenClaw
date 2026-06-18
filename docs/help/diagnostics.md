@@ -20,7 +20,7 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 | Tool result reaches frontend but model does not continue | backend tool-result ingestion/waiting/processing modules |
 | Screenshot includes overlay | platform screenshot guard and overlay visibility docs |
 | Browser action fails | backend browser schema first, then sidecar browser runtime |
-| Memory/search/title issue | sidecar memory store, backend semantic/title routes, embedding provider health |
+| Memory/search/title issue | local-runtime memory store, backend semantic/title routes, embedding provider health |
 | Packaged app starts but tools fail | bundled Python runtime path, sidecar requirements, install auth, backend URL config |
 
 ## Useful Commands

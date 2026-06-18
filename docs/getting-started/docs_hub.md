@@ -50,8 +50,8 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [WebSocket Connection Change Workflow](../gateway/websocket_connection_change_workflow.md) for main `/ws` handshake auth, identity binding, message validation, task limits, receive timeouts, handler dispatch, transport sends, and cleanup.
 - [Runtime Nodes Hub](../nodes/README.md) for process/service ownership across hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes.
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
-- [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
-- [Memory Change Workflow](../memory/memory_change_workflow.md) for routing transcript, replay, sidecar memory, semanticization, backend history, and compaction edits.
+- [Memory Hub](../memory/README.md) for transcript, replay, local-runtime memory, backend history, and semantic route ownership.
+- [Memory Change Workflow](../memory/memory_change_workflow.md) for routing transcript, replay, local-runtime memory, semanticization, backend history, and compaction edits.
 - [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for changing conversation/session identity, active stream filtering, resume/rehydrate routing, and wrong-thread fixes.
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) for changing visible transcript persistence, pending queue retries, dashboard replay, and backend rehydrate flow.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
@@ -451,7 +451,7 @@ Likely code:
 - `backend/src/api/routes/memory/**`
 - `backend/src/services/embedding*`
 
-Validate renderer transcript tests, sidecar memory tests, and backend memory route tests. Keep transcript replay state and semantic memory state distinct.
+Validate renderer transcript tests, local-runtime memory tests, and backend memory route tests. Keep transcript replay state and semantic memory state distinct.
 
 ### Change VM Runs, Worker Polling, or Run Controls
 
@@ -631,7 +631,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
-- [Sidecar Local Memory](../memory/sidecar_local_memory.md)
+- [Local Runtime Memory](../memory/sidecar_local_memory.md)
 - [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)
 - [Memory Troubleshooting](../memory/memory_troubleshooting.md)
 

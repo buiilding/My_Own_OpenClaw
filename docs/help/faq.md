@@ -61,7 +61,7 @@ Read [Browser Troubleshooting](../browser/browser_troubleshooting.md).
 
 ## Why does memory or transcript state look stale?
 
-Visible transcript, renderer replay, sidecar local memory, backend history, and semantic memory routes are different layers. Identify which layer is stale first.
+Visible transcript, renderer replay, local-runtime memory, backend history, and semantic memory routes are different layers. Identify which layer is stale first.
 
 Read [Memory Troubleshooting](../memory/memory_troubleshooting.md) and [Session and Transcript Reference](../reference/session_and_transcript_reference.md).
 

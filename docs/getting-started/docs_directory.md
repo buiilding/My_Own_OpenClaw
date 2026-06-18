@@ -86,7 +86,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 - [Security Hub](../security/README.md) - hosted auth, IPC isolation, validation, credentials, tools, and sidecar boundaries.
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) - screen/input/microphone/browser/workspace/sudo authority changes.
-- [Memory Hub](../memory/README.md) - transcript, replay, sidecar memory, backend history, semantic routes, and compaction ownership.
+- [Memory Hub](../memory/README.md) - transcript, replay, local-runtime memory, backend history, semantic routes, and compaction ownership.
 - [Reference Hub](../reference/README.md) - stable API, websocket event, configuration, and identifier maps.
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md) - route-level hosted API map.
 - [WebSocket Event Reference](../reference/websocket_event_reference.md) - backend event families and renderer consumers.

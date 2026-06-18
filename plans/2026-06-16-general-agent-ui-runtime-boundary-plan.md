@@ -9355,3 +9355,18 @@ Each completed slice should report:
   sidecar process startup, local-runtime client behavior, IPC channels,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-18 help docs local-runtime memory ownership boundary
+
+- Finding: user-facing help, diagnostics, triage, getting-started,
+  troubleshooting, and frontend index docs still described memory issues or
+  reference labels as sidecar-memory store or sidecar-local-memory ownership.
+- Change: updated those docs to local-runtime memory terminology, kept the
+  current platform memory directory paths and implementation links, and added
+  exact stale-phrase guards.
+- Validation: focused modular-boundary guard, docs listing, help/getting-started
+  stale scan, and diff checks.
+- Compatibility: no migration required. Memory directory paths, docs links,
+  JSON-RPC methods, storage/search/list/title behavior, IPC channels,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.

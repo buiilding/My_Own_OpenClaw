@@ -51,7 +51,7 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 ## Memory or Transcript Issue
 
 - Check whether the issue is visible transcript, replay state, backend history, or semantic memory.
-- Check sidecar memory store and backend semantic/title route separately.
+- Check local-runtime memory store and backend semantic/title route separately.
 - Read [Context and Memory](../concepts/context_and_memory.md).
 
 ## Related Help
