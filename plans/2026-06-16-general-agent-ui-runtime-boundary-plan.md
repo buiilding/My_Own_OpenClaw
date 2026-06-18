@@ -9508,6 +9508,23 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 MCP Local-Runtime Owner Labels
+
+- Finding: the runtime trace playbook and MCP runtime guide still described MCP
+  discovery, registration, and execution as sidecar-owned or SDK/sidecar local
+  runtime work, which made the Python implementation read like the reusable MCP
+  boundary.
+- Change: reworded MCP trace and runtime guide ownership through the SDK/local
+  runtime, kept Python sidecar implementation details where the current process
+  matters, and extended the modular docs guard to reject retired sidecar-owned
+  MCP labels and sidecar-routes-tool-call flow text.
+- Validation: focused modular docs boundary test, docs listing, exact stale MCP
+  owner phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, MCP process startup,
+  discovery, registration, execution, raw result preservation, payloads,
+  storage, IPC, settings, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Wakeword Local-Runtime Helper Wording
 
 - Finding: voice/audio channel docs still routed wakeword audio directly to the

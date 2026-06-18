@@ -20,10 +20,10 @@ mcps/
 ```
 
 Electron main reads `mcp.json` for dashboard/config presentation and forwards
-enabled server specs to the SDK/sidecar local runtime. The sidecar starts
-configured stdio servers, discovers `tools/list`, registers discovered tools
-into the executable local tool registry, and executes `tools/call` when the model
-invokes an MCP-backed tool.
+enabled server specs to the SDK local runtime. The local runtime starts
+configured stdio servers through the Python sidecar implementation, discovers
+`tools/list`, registers discovered tools into the executable local tool
+registry, and executes `tools/call` when the model invokes an MCP-backed tool.
 
 The backend does not need MCP-specific tool code. It sees normal client-local
 tools with `execution_target: "local_runtime"` and `argument_resolution:
@@ -89,7 +89,7 @@ declare multiple server processes.
 | `tool_prefix` | no | Override generated model-visible tool prefix. |
 | `tools` | no | Fallback tool schemas if live `tools/list` discovery fails. |
 
-The sidecar registration boundary rejects removed camelCase fields such as
+The local-runtime registration boundary rejects removed camelCase fields such as
 `timeoutMs`, `toolPrefix`, `mcpId`, and `extensionId`; use the snake_case
 fields above.
 
@@ -127,16 +127,17 @@ That exposes `local_memory__search`.
    the allowlist change and immediately runs a discovery pass. The manual
    refresh action remains the retry path after installing binaries or granting
    permissions.
-5. Electron main sends enabled server specs to the SDK/sidecar local runtime.
-6. The sidecar starts each enabled MCP server over stdio.
-7. The sidecar sends MCP `initialize` and `notifications/initialized`.
-8. The sidecar calls `tools/list`.
-9. Discovered tools are registered as executable sidecar local tools and exposed
-   through the client tool manifest.
+5. Electron main sends enabled server specs to the SDK local runtime.
+6. The local runtime starts each enabled MCP server over stdio through the
+   Python sidecar implementation.
+7. The local runtime sends MCP `initialize` and `notifications/initialized`.
+8. The local runtime calls `tools/list`.
+9. Discovered tools are registered as executable local-runtime tools and
+   exposed through the client tool manifest.
 10. Backend validates and projects the schemas like any other client-local tool.
-11. When the backend emits an MCP tool call, the SDK routes it to the sidecar
-    like any other local tool.
-12. The sidecar sends MCP `tools/call`.
+11. When the backend emits an MCP tool call, the SDK routes it to the local
+    runtime like any other local tool.
+12. The local runtime sends MCP `tools/call`.
 13. The MCP result is wrapped into WindieOS tool result data.
 
 ## MCP Tool Result Contract
@@ -196,10 +197,11 @@ diagnostics:
 
 - `mcp.enablement`: dashboard toggle, desktop UI config persistence, and registry
   refresh/list after enablement changes.
-- `mcp.registration`: SDK/local-runtime registration through the sidecar
+- `mcp.registration`: SDK/local-runtime registration through the local runtime
   `/mcps/register` boundary, including replace/reconcile and registered tool
   counts.
-- `mcp.discovery`: sidecar subprocess startup, initialize, and `tools/list`.
+- `mcp.discovery`: local-runtime MCP subprocess startup, initialize, and
+  `tools/list`.
 - `mcp.execution`: MCP `tools/call` execution after tools are registered.
 
 Inspect recent discovery failures with:
@@ -228,8 +230,8 @@ tool schemas on the next message.
 
 The live manifest refresh has two observable checkpoints:
 
-- `mcp.registration` app diagnostics show sidecar registration and sidecar tool
-  counts before a conversation turn exists.
+- `mcp.registration` app diagnostics show local-runtime registration and
+  local-runtime MCP tool counts before a conversation turn exists.
 - `agent.definition` and `mcp.tool` conversation traces on the next turn show
   whether the SDK MCP client manifest survived the merge with Electron-provided
   workspace/prompt context. `agent.definition` includes SDK-vs-query manifest

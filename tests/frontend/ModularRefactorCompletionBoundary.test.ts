@@ -576,6 +576,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime executable args/result');
     expect(docText).toContain('executable local-runtime payload');
     expect(docText).toContain('local-runtime validation');
+    expect(docText).toContain('SDK local runtime');
+    expect(docText).toContain('local-runtime MCP discovery');
+    expect(docText).toContain('local-runtime MCP registration');
+    expect(docText).toContain('local-runtime MCP `tools/call` execution');
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
@@ -592,6 +596,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar plugins under `plugins/*/plugin.json`');
     expect(docText).not.toContain('local sidecar tools');
     expect(docText).not.toContain('local sidecar execution');
+    expect(docText).not.toContain('SDK/sidecar local runtime');
+    expect(docText).not.toContain('The sidecar starts each enabled MCP server');
+    expect(docText).not.toContain('The sidecar sends MCP');
+    expect(docText).not.toContain('The sidecar calls `tools/list`');
+    expect(docText).not.toContain('executable sidecar local tools');
+    expect(docText).not.toContain('routes it to the sidecar');
+    expect(docText).not.toContain('The sidecar sends MCP `tools/call`');
     expect(browserToolOverviewText).not.toContain('sidecar runtime execution');
     expect(browserToolOverviewText).not.toContain('sidecar runtime, CDP launch');
     expect(browserToolOverviewText).not.toContain('Update sidecar runtime argument handling');
@@ -1294,6 +1305,13 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar-owned MCP discovery',
         'sidecar-owned SDK/local-runtime MCP registration',
         'sidecar-owned MCP `tools/call` execution',
+        'SDK/sidecar local runtime',
+        'The sidecar starts each enabled MCP server',
+        'The sidecar sends MCP',
+        'The sidecar calls `tools/list`',
+        'executable sidecar local tools',
+        'routes it to the sidecar',
+        'The sidecar sends MCP `tools/call`',
         'backend bridge logic',
         'Tool runtime services',
         'Tool execution stack',
