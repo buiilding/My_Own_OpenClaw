@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar docs/comments: rename source-local frontend sidecar wording to
+  local-runtime Python sidecar ownership.
 - renderer tests/docs: rename local renderer config mocks and shortcut drift
   wording away from frontend-owned settings terminology.
 - renderer: rename private renderer config storage/provider helpers away from

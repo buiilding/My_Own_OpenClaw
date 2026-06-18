@@ -1,4 +1,4 @@
-# Frontend Python sidecar runtime dependencies (packaged app)
+# Local-runtime Python sidecar dependencies (packaged app)
 #
 # Full bundled runtime profile for the sidecar.
 

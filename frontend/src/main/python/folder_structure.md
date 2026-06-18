@@ -1,8 +1,8 @@
-# Frontend Python Sidecar Folder Structure
+# Local Runtime Python Sidecar Folder Structure
 
 ## Overview
 
-The frontend Python sidecar provides local tool execution, memory management, system state collection, and wakeword detection for the Electron desktop application. The SDK-owned local runtime starts `sidecar_daemon.py`, then sends JSON-RPC 2.0 envelopes to the daemon HTTP `/rpc` endpoint.
+The local-runtime Python sidecar provides local tool execution, memory management, system state collection, and wakeword detection for the Electron desktop application. The SDK-owned local runtime starts `sidecar_daemon.py`, then sends JSON-RPC 2.0 envelopes to the daemon HTTP `/rpc` endpoint.
 
 ---
 

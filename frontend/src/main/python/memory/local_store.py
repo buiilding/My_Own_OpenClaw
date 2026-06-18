@@ -1,5 +1,5 @@
 """
-Frontend Local Memory Store - SQLite + FAISS implementation for local memory storage.
+Local Runtime Memory Store - SQLite + FAISS implementation for local memory storage.
 
 The SDK owns backend embedding/title calls. This store only persists local rows,
 FAISS indexes, and caller-provided vectors.

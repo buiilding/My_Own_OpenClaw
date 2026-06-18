@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 sidecar source-local ownership wording boundary
+
+- Finding: source-local Python sidecar comments and the folder map still called
+  the sidecar a frontend-owned runtime even though current execution is routed
+  through the SDK local runtime and Electron main local-runtime bridge.
+- Change: reworded the Python sidecar folder map, runtime requirements
+  comments, and local memory store module docstring to local-runtime Python
+  sidecar ownership without changing the broader docs navigation taxonomy.
+- Validation: source-local stale wording scan, docs listing, and diff check.
+- Compatibility: no migration required. This is comments/docs only; sidecar
+  dependencies, launch behavior, JSON-RPC contracts, tool schemas, memory
+  storage, IPC, permissions, credentials, and backend wire metadata are
+  unchanged.
+
 ### 2026-06-18 renderer config mock naming boundary
 
 - Finding: renderer chat/replay tests used `mockFrontendConfig` for local
