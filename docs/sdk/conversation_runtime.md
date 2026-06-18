@@ -591,7 +591,8 @@ projected snapshots.
 Backend-wire websocket packets are not the normal authoring surface. Use
 `agent.subscribeRawBackendEvents(...)` only for debug traces or protocol tests;
 display, rehydrate, tool execution, and compaction behavior should consume
-normalized conversation events.
+normalized conversation events. The backend-wire normalizer remains an SDK
+transport implementation detail rather than a top-level package export.
 
 Startup surfaces should load metadata before full logs. Use
 `agent.listConversations({ limit?, cursor? })` for a conversation list,

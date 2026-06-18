@@ -62,6 +62,16 @@ describe('@windie/sdk private helper exports', () => {
     expect(replayModule.compactedReplayFromEvent).toBeUndefined();
   });
 
+  test('top-level package keeps backend-wire normalizer private', () => {
+    const rootModule = loadCjs('../../packages/windie-sdk-js/cjs/index.js');
+    const normalizerModule = loadCjs(
+      '../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js',
+    );
+
+    expect(normalizerModule.normalizeBackendEventToConversationEvent).toBeDefined();
+    expect(rootModule.normalizeBackendEventToConversationEvent).toBeUndefined();
+  });
+
   test('sidecar store compatibility module is removed', () => {
     const canonicalModule = loadCjs('../../packages/windie-sdk-js/cjs/stores/LocalRuntimeConversationStore.js');
     const removedModulePath = removedCjsPath('stores', retiredSidecarStoreName);

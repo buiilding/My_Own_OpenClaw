@@ -138,6 +138,22 @@ Each completed slice should report:
   probe/request/check behavior, onboarding storage, trust boundaries,
   credentials, and provider policy are unchanged.
 
+### 2026-06-18 SDK Backend-Wire Normalizer Package Boundary
+
+- Finding: `normalizeBackendEventToConversationEvent(...)` is still the SDK
+  transport owner for hosted backend-wire packets, but the root package
+  re-export made that internal normalizer look like the normal application
+  authoring surface next to conversation projections and chat streams.
+- Change: removed the backend-wire normalizer re-export from the TypeScript SDK
+  entrypoint and checked-in CJS parity while leaving the transport module in
+  place for SDK internals and focused protocol tests.
+- Validation: focused SDK private-export test, targeted root-export scan, docs
+  listing, and diff check.
+- Compatibility: intentional SDK public-surface narrowing. No runtime or
+  storage migration is required; backend websocket packets, SDK conversation
+  projection behavior, raw backend debug subscription, provider policy,
+  credentials, and local-runtime execution are unchanged.
+
 ### 2026-06-18 Renderer Agent Extension Runtime Client
 
 - Finding: `AgentSettingsTab` still imported agent extension metadata and

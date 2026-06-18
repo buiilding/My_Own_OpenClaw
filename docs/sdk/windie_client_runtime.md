@@ -863,7 +863,9 @@ projection and returns an unsubscribe function. Normal app authors should use
 `conversation.subscribe(...)`; backend-wire events are for trace tools, tests,
 and protocol debugging only. The listener uses the direct
 `(event: BackendEvent) => void` shape; there is no separate exported raw-named
-listener alias.
+listener alias. The backend-wire normalizer is also not re-exported from the
+top-level SDK package; application code should consume SDK projections and chat
+streams instead of normalizing hosted backend packets directly.
 
 `agent.setModel({ modelProvider, modelId, modelMode?, interactionMode? })` is
 the first-class SDK model-changing API for agent-level selection. Conversation

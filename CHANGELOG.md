@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: keep the backend-wire event normalizer out of the top-level SDK
+  package export while preserving the internal transport module for SDK runtime
+  and protocol-test use.
 - renderer/runtime: route dashboard shell main-window target and user snapshot
   IPC through renderer app runtime clients.
 - renderer/runtime: route app config/status provider IPC through renderer app
