@@ -529,6 +529,9 @@ describe('main_window_runtime createMainWindow', () => {
       initializeLocalRuntimeBridge: jest.fn(),
       getKnownLocalRuntime: jest.fn(),
       ensureLocalRuntime: jest.fn(),
+      localRuntimeCopy: {
+        browserWarmupExplanation: 'Open the desktop browser',
+      },
       initializeMainProcessIpc: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
       getMainWindowMode: jest.fn(() => 'dashboard'),
@@ -596,7 +599,7 @@ describe('main_window_runtime createMainWindow', () => {
       isPackaged: false,
       permissionStatePath: '/tmp/desktop-runtime-permission-state.json',
       authStatePath: expect.stringContaining(`${require('path').sep}desktop-runtime${require('path').sep}install-auth.json`),
-      localRuntimeCopy: deps.mainHostSkin?.localRuntime,
+      localRuntimeCopy: deps.localRuntimeCopy,
     }));
     expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
   });
@@ -637,11 +640,7 @@ describe('main_window_runtime createMainWindow', () => {
     try {
       nativeImage.createFromPath.mockReturnValueOnce(icon);
       const { deps, BrowserWindow } = createDeps({
-        mainHostSkin: {
-          assets: {
-            appIconFileName: 'brand.app.png',
-          },
-        },
+        appIconFileName: 'brand.app.png',
       });
 
       createMainWindow(deps);
@@ -809,11 +808,7 @@ describe('main_window_runtime createTray', () => {
     nativeImage.createFromPath.mockReturnValueOnce(icon);
 
     const { deps, tray } = createTrayDeps({
-      mainHostSkin: {
-        identity: {
-          trayTooltip: 'WindieOS',
-        },
-      },
+      trayTooltip: 'WindieOS',
     });
     createTray(deps);
 

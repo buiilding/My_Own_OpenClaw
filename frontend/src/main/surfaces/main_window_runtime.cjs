@@ -166,15 +166,15 @@ function hideMainWindowWithoutChatPill({
   mainWindow.hide();
 }
 
-function resolveHostSkinIconPathResolver({
-  mainHostSkin = {},
+function resolveAppIconPathResolver({
+  appIconFileName = null,
   resolveAppIconPath = null,
 } = {}) {
   if (typeof resolveAppIconPath === 'function') {
     return resolveAppIconPath;
   }
   return () => resolveAppIconPathRuntime({
-    iconFileName: mainHostSkin?.assets?.appIconFileName,
+    iconFileName: appIconFileName,
   });
 }
 
@@ -207,15 +207,21 @@ function createMainWindow({
   getMainWindowMode = () => 'dashboard',
   setMainWindow,
   syncWindowDisplayAffinity = () => {},
-  mainHostSkin = {},
+  appIconFileName = null,
+  rendererLogPrefix = null,
+  bundledRuntimeCopy = null,
+  runtimePaths = null,
+  wakewordEnv = null,
+  wakewordStderrLogMarkers = null,
+  localRuntimeCopy = null,
   resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
   warn = console.warn,
 }) {
   const allowDevTools = Boolean(enableDevTransparencyUi);
-  const appIconPathResolver = resolveHostSkinIconPathResolver({
-    mainHostSkin,
+  const appIconPathResolver = resolveAppIconPathResolver({
+    appIconFileName,
     resolveAppIconPath,
   });
   const appIcon = resolveAppIcon({
@@ -243,7 +249,7 @@ function createMainWindow({
   attachRendererConsoleLogging({
     targetWindow: mainWindow,
     view: 'main',
-    logPrefix: mainHostSkin?.identity?.logPrefix,
+    logPrefix: rendererLogPrefix,
   });
   loadRendererView({
     targetWindow: mainWindow,
@@ -273,10 +279,10 @@ function createMainWindow({
       emitWakewordSttTrigger();
     }
   }, {
-    bundledRuntimeCopy: mainHostSkin?.bundledRuntime,
-    runtimePaths: mainHostSkin?.runtimePaths,
-    wakewordEnv: mainHostSkin?.wakeword?.env,
-    wakewordStderrLogMarkers: mainHostSkin?.wakeword?.stderrLogMarkers,
+    bundledRuntimeCopy,
+    runtimePaths,
+    wakewordEnv,
+    wakewordStderrLogMarkers,
   });
   initializeLocalRuntimeBridge(getWindows, {
     getKnownLocalRuntime,
@@ -284,7 +290,7 @@ function createMainWindow({
     isPackaged: app.isPackaged,
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),
-    localRuntimeCopy: mainHostSkin?.localRuntime,
+    localRuntimeCopy,
   });
   initializeMainProcessIpc();
 
@@ -349,7 +355,8 @@ function createChatWindow({
   setChatWindow,
   applyOverlayWindowPolicy = null,
   syncWindowDisplayAffinity = () => {},
-  mainHostSkin = {},
+  appIconFileName = null,
+  rendererLogPrefix = null,
   resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
@@ -358,8 +365,8 @@ function createChatWindow({
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
     ? applyOverlayWindowPolicy
     : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
-  const appIconPathResolver = resolveHostSkinIconPathResolver({
-    mainHostSkin,
+  const appIconPathResolver = resolveAppIconPathResolver({
+    appIconFileName,
     resolveAppIconPath,
   });
   const appIcon = resolveAppIcon({
@@ -379,7 +386,7 @@ function createChatWindow({
   attachRendererConsoleLogging({
     targetWindow: chatWindow,
     view: 'chat-pill',
-    logPrefix: mainHostSkin?.identity?.logPrefix,
+    logPrefix: rendererLogPrefix,
   });
   applyOverlayPolicy({
     targetWindow: chatWindow,
@@ -447,7 +454,8 @@ function createResponseWindow({
   setResponseOverlayVisibilityState,
   setResponseWindow,
   applyOverlayWindowPolicy = null,
-  mainHostSkin = {},
+  appIconFileName = null,
+  rendererLogPrefix = null,
   resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
@@ -456,8 +464,8 @@ function createResponseWindow({
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
     ? applyOverlayWindowPolicy
     : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
-  const appIconPathResolver = resolveHostSkinIconPathResolver({
-    mainHostSkin,
+  const appIconPathResolver = resolveAppIconPathResolver({
+    appIconFileName,
     resolveAppIconPath,
   });
   const appIcon = resolveAppIcon({
@@ -478,7 +486,7 @@ function createResponseWindow({
   attachRendererConsoleLogging({
     targetWindow: responseWindow,
     view: enableOsToolGhostDebug ? responseWindowDebugView : 'response-overlay',
-    logPrefix: mainHostSkin?.identity?.logPrefix,
+    logPrefix: rendererLogPrefix,
   });
   applyOverlayPolicy({
     targetWindow: responseWindow,
@@ -535,10 +543,11 @@ function createTray({
   app,
   resolveTrayIconPath = null,
   warn = console.warn,
-  mainHostSkin = {},
+  appIconFileName = null,
+  trayTooltip = 'Desktop agent',
 }) {
-  const trayIconPathResolver = resolveHostSkinIconPathResolver({
-    mainHostSkin,
+  const trayIconPathResolver = resolveAppIconPathResolver({
+    appIconFileName,
     resolveAppIconPath: resolveTrayIconPath,
   });
   const icon = resolveTrayIconNativeImage({
@@ -563,7 +572,7 @@ function createTray({
     },
   ]);
 
-  tray.setToolTip(mainHostSkin?.identity?.trayTooltip || 'Desktop agent');
+  tray.setToolTip(trayTooltip || 'Desktop agent');
   tray.setContextMenu(contextMenu);
   tray.on('double-click', () => {
     showMainWindow({ focus: true, reason: 'tray-double-click' });

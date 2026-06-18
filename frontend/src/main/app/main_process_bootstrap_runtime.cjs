@@ -38,7 +38,13 @@ function createWindowBootstrapRuntime(deps) {
         ? deps.getPermissionStatePath()
         : null,
       initializeMainProcessIpc: deps.initializeMainProcessIpc,
-      mainHostSkin: deps.mainHostSkin,
+      appIconFileName: deps.appIconFileName,
+      rendererLogPrefix: deps.rendererLogPrefix,
+      bundledRuntimeCopy: deps.bundledRuntimeCopy,
+      runtimePaths: deps.runtimePaths,
+      wakewordEnv: deps.wakewordEnv,
+      wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
+      localRuntimeCopy: deps.localRuntimeCopy,
       getWindows: () => deps.getState().windows,
       getMainWindowMode: deps.getMainWindowMode,
       setMainWindow: deps.setMainWindow,
@@ -82,7 +88,8 @@ function createWindowBootstrapRuntime(deps) {
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
-      mainHostSkin: deps.mainHostSkin,
+      appIconFileName: deps.appIconFileName,
+      rendererLogPrefix: deps.rendererLogPrefix,
       log: (...args) => deps.log(...args),
       warn: (...args) => deps.warn(...args),
     });
@@ -111,7 +118,8 @@ function createWindowBootstrapRuntime(deps) {
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
-      mainHostSkin: deps.mainHostSkin,
+      appIconFileName: deps.appIconFileName,
+      rendererLogPrefix: deps.rendererLogPrefix,
       log: (...args) => deps.log(...args),
       warn: (...args) => deps.warn(...args),
     });
@@ -126,7 +134,8 @@ function createWindowBootstrapRuntime(deps) {
       Menu: deps.Menu,
       showMainWindow: deps.showMainWindow,
       app: deps.app,
-      mainHostSkin: deps.mainHostSkin,
+      appIconFileName: deps.appIconFileName,
+      trayTooltip: deps.trayTooltip,
     });
   }
 

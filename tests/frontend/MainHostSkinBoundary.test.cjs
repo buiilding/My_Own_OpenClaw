@@ -159,10 +159,19 @@ describe('main host skin/config boundary', () => {
     expect(fs.readFileSync(mainIpcPath, 'utf8')).toContain('configureBackendEndpointRuntime(mainHostSkin.hostedBackend)');
     expect(indexSource).toContain('runsApiKeyHeader: mainHostSkin.hostedBackend.runsApiKeyHeader');
     expect(indexSource).toContain('vmWorkerEnv: mainHostSkin.vmWorker.env');
+    expect(indexSource).toContain('appIconFileName: mainHostSkin.assets.appIconFileName');
+    expect(indexSource).toContain('rendererLogPrefix: mainHostSkin.identity.logPrefix');
+    expect(indexSource).toContain('trayTooltip: mainHostSkin.identity.trayTooltip');
+    expect(indexSource).toContain('bundledRuntimeCopy: mainHostSkin.bundledRuntime');
+    expect(indexSource).toContain('runtimePaths: mainHostSkin.runtimePaths');
+    expect(indexSource).toContain('wakewordEnv: mainHostSkin.wakeword.env');
+    expect(indexSource).toContain('wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers');
+    expect(indexSource).toContain('localRuntimeCopy: mainHostSkin.localRuntime');
     expect(bootstrapSource).toContain('runsApiKeyHeader: deps.runsApiKeyHeader');
     expect(bootstrapSource).toContain('vmWorkerEnv: deps.vmWorkerEnv');
     expect(bootstrapSource).not.toContain('deps.mainHostSkin?.hostedBackend');
     expect(bootstrapSource).not.toContain('deps.mainHostSkin?.vmWorker');
+    expect(bootstrapSource).not.toContain('deps.mainHostSkin');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
     expect(backendEndpointSource).not.toContain('WINDIE_DEFAULT_BACKEND_HTTP_URL');
@@ -185,7 +194,9 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("appIconFileName: 'windieos.app.png'");
     expect(iconSource).toContain("DEFAULT_APP_ICON_FILE_NAME = 'app.png'");
     expect(iconSource).not.toContain('windieos.app.png');
-    expect(windowRuntimeSource).toContain('mainHostSkin?.assets?.appIconFileName');
+    expect(windowRuntimeSource).toContain('appIconFileName = null');
+    expect(windowRuntimeSource).toContain('iconFileName: appIconFileName');
+    expect(windowRuntimeSource).not.toContain('mainHostSkin?.assets?.appIconFileName');
   });
 
   test('diagnostics app-data directory name lives in host skin config', () => {
@@ -370,7 +381,9 @@ describe('main host skin/config boundary', () => {
     expect(wakewordSource).toContain("packagedApp: 'AGENT_PACKAGED_APP'");
     expect(wakewordSource).toContain("allowRuntimeDownload: 'AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
     expect(wakewordSource).toContain('resolveWakewordEnvConfig');
-    expect(mainWindowSource).toContain('wakewordEnv: mainHostSkin?.wakeword?.env');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('wakewordEnv: mainHostSkin.wakeword.env');
+    expect(mainWindowSource).toContain('wakewordEnv,');
+    expect(mainWindowSource).not.toContain('mainHostSkin?.wakeword?.env');
     expect(wakewordSource).not.toContain('WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD');
     expect(wakewordSource).not.toContain('WINDIE_PACKAGED_APP');
   });
@@ -386,7 +399,9 @@ describe('main host skin/config boundary', () => {
     expect(wakewordRuntimeSource).toContain("'[Python]'");
     expect(wakewordRuntimeSource).toContain("'DETECTED'");
     expect(wakewordSource).toContain('wakewordStderrLogMarkers');
-    expect(mainWindowSource).toContain('wakewordStderrLogMarkers: mainHostSkin?.wakeword?.stderrLogMarkers');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers');
+    expect(mainWindowSource).toContain('wakewordStderrLogMarkers,');
+    expect(mainWindowSource).not.toContain('mainHostSkin?.wakeword?.stderrLogMarkers');
     expect(wakewordRuntimeSource).not.toContain('hey_jarvis');
     expect(wakewordSource).not.toContain('hey_jarvis');
   });
@@ -413,7 +428,9 @@ describe('main host skin/config boundary', () => {
     expect(runtimePathsSource).toContain('resolveRuntimePathConfig');
     expect(runtimePathsSource).not.toContain('WINDIE_PYTHON_PATH');
     expect(ipcSource).toContain('runtimePaths: mainHostSkin.runtimePaths');
-    expect(mainWindowSource).toContain('runtimePaths: mainHostSkin?.runtimePaths');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('runtimePaths: mainHostSkin.runtimePaths');
+    expect(mainWindowSource).toContain('runtimePaths,');
+    expect(mainWindowSource).not.toContain('mainHostSkin?.runtimePaths');
   });
 
   test('GPU software rendering env name lives in host skin config', () => {
@@ -461,7 +478,11 @@ describe('main host skin/config boundary', () => {
     expect(localRuntimeSource).toContain('options.localRuntimeCopy');
     expect(localRuntimeSource).not.toContain('options.mainHostSkin?.localRuntime');
     expect(fs.readFileSync(mainWindowRuntimePath, 'utf8'))
-      .toContain('localRuntimeCopy: mainHostSkin?.localRuntime');
+      .toContain('localRuntimeCopy,');
+    expect(fs.readFileSync(indexPath, 'utf8'))
+      .toContain('localRuntimeCopy: mainHostSkin.localRuntime');
+    expect(fs.readFileSync(mainWindowRuntimePath, 'utf8'))
+      .not.toContain('mainHostSkin?.localRuntime');
     expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
     expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
   });

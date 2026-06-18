@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Window Host-Skin Boundary
+
+- Finding: `main_window_runtime.cjs` and the window bootstrap still accepted the
+  full WindieOS `mainHostSkin` object for app icons, renderer log prefix, tray
+  tooltip, wakeword copy, runtime paths, bundled-runtime copy, and local-runtime
+  copy. That made a generic Electron window host understand the product skin
+  shape instead of receiving plain host configuration.
+- Change: kept host-skin reads in the Electron main composition root and passed
+  narrow values through `main_process_bootstrap_runtime.cjs` into the generic
+  main, chat, response, and tray window runtimes.
+- Validation: focused main-window runtime, main-process bootstrap, and
+  host-skin boundary Jest coverage plus CommonJS syntax checks.
+- Compatibility: no migration required. Window creation, tray tooltip, app
+  icon resolution, renderer console logging, wakeword startup, local-runtime
+  bridge initialization, IPC, storage, permissions, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Main VM Worker Bootstrap Config Boundary
 
 - Finding: `main_process_bootstrap_runtime.cjs` still reached into
