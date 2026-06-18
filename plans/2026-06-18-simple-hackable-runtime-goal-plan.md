@@ -1,0 +1,227 @@
+---
+summary: "General goal plan for making WindieOS simple, intuitive, hackable, and debuggable while continuing the current runtime ownership migration direction."
+title: "Simple Hackable Runtime Goal Plan"
+---
+
+# Simple Hackable Runtime Goal Plan
+
+Date: 2026-06-18
+
+## Goal
+
+Make WindieOS feel simple, intuitive, hackable, and debuggable without
+reversing the recent ownership cleanup work.
+
+The target is not fewer folders for their own sake. The target is that a
+developer can look at a behavior and quickly know which runtime owns it, which
+contract carries it, which diagnostic proves it, and which tests protect it.
+
+This plan should continue the direction of the recent commits: align public
+language around runtime ownership, route UI features through app-runtime/SDK
+facades, keep local machine authority behind the local runtime, and remove old
+sidecar/backend/renderer naming or fallback paths only after verified consumers
+have moved.
+
+## Current Mental Model
+
+WindieOS should read as this runtime chain:
+
+```text
+renderer UI intent and display
+  -> preload/main IPC allowlist and Electron shell policy
+  -> SDK agent/conversation/local-runtime contract
+  -> backend hosted model orchestration
+  -> local runtime for machine authority when tools execute locally
+```
+
+The Python sidecar is the current implementation of local runtime authority.
+It should stay visible as an implementation detail where process/debugging
+requires it, but reusable contracts should use local-runtime terminology.
+
+## Non-Goals
+
+- Do not undo recent `local_runtime`, SDK runtime, app-runtime, or endpoint
+  naming changes.
+- Do not reintroduce `local_backend` as a public concept.
+- Do not move tool execution, transcript replay, backend websocket loops, or
+  provider policy into renderer code.
+- Do not make Electron main a second agent runtime.
+- Do not add renderer/main compatibility aliases unless a verified external or
+  persisted dependency requires them.
+- Do not collapse all code into fewer files if ownership would become less
+  obvious.
+
+## Design Principles
+
+- One source of truth per behavior.
+- Names should describe the owner, not the historical implementation accident.
+- Renderer code should express user intent and render SDK/app-runtime state.
+- Electron main should adapt the desktop to the SDK and own OS-sensitive policy.
+- SDK code should own reusable agent, conversation, projection, local-runtime,
+  and tool-result coordination semantics.
+- Backend code should own model/provider/prompt policy and backend remote tools.
+- Local runtime code should own local machine authority and executable tools.
+- Compatibility paths should have a named reason to remain or a deletion path.
+- Debugging should follow one traceable route from user intent to visible UI.
+
+## Recent-Commit Alignment Guardrails
+
+Before changing a runtime boundary, check the related recent commits and ask:
+
+- Does this continue the same ownership direction?
+- Does this remove an old duplicate authority rather than creating a parallel
+  bridge?
+- Does this keep the public naming aligned with local runtime, SDK runtime,
+  app-runtime, or backend ownership?
+- Does this avoid restoring removed aliases, stale payload shapes, or old
+  sidecar/backend wording?
+- Does this preserve behavior unless the change intentionally fixes a verified
+  bug?
+
+If a proposed cleanup fails one of these checks, stop and document why the
+current direction is insufficient before editing.
+
+## Workstreams
+
+### 1. Runtime Ownership Inventory
+
+Create a lightweight inventory of confusing surfaces by owner:
+
+- renderer feature code importing app-provider or low-level transport internals
+- renderer facades that only rename and forward calls
+- main IPC helpers that still own SDK conversation semantics
+- main modules that know concrete sidecar implementation details unnecessarily
+- SDK code that still exposes WindieOS/product-specific names in reusable APIs
+- sidecar/local-runtime files whose public docs or errors imply backend or
+  renderer ownership
+
+The output should be a short candidate list with an owner, risk, and deletion
+condition for each item.
+
+### 2. Main As Thin SDK Host
+
+Continue making `frontend/src/main/ipc.cjs` a composition root:
+
+- keep install auth, endpoint selection, permissions, windows, shortcuts,
+  overlay policy, diagnostics, and native shell behavior in main
+- keep SDK wake-up and conversation runtime wiring explicit
+- move reusable conversation/tool/replay semantics into the SDK when still
+  duplicated in main
+- extract only when the extracted module has a clear owner and test target
+- avoid forwarding-only adapters that hide the actual command path
+
+Success means a developer can read main as "desktop shell plus SDK host," not
+"agent runtime plus UI bridge plus sidecar manager."
+
+### 3. Renderer As Replaceable UI
+
+Continue routing feature code through renderer app-runtime clients only where
+the facade owns a real UI/runtime boundary:
+
+- keep chat/dashboard/settings components focused on UI state and actions
+- consume SDK display rows, current-turn projections, and SDK-normalized
+  conversation events
+- avoid new backend-wire interpretation in renderer feature code
+- collapse or rename facades that only obscure direct SDK-shaped commands
+- keep config, session, memory, model, and conversation helpers owned by
+  app-runtime contracts rather than feature modules
+
+Success means another UI could render the same SDK state without copying
+WindieOS renderer internals.
+
+### 4. SDK As Reusable Agent Runtime
+
+Keep reusable semantics in the SDK:
+
+- agent startup and local-runtime startup/reuse
+- backend websocket lifecycle and typed command sends
+- conversation event normalization
+- display/current-turn/rehydrate projections
+- edit, retry, replay, compaction, title, memory invalidation, and store
+  continuity semantics
+- local tool claim/execution/result-return coordination
+
+Success means Electron, CLI, custom UI, plugin, and tests can share behavior
+instead of growing host-specific copies.
+
+### 5. Local Runtime Naming And Authority
+
+Continue the recent local-runtime wording cleanup without hiding concrete
+implementation facts:
+
+- public/reusable contracts should say local runtime
+- process-specific diagnostics may say Python daemon or sidecar when that is
+  the thing being debugged
+- local execution, memory/storage, browser, shell/filesystem, screenshots,
+  wakeword helpers, and MCP execution stay below the local-runtime boundary
+- backend URL injection into local runtime should remain explicit and
+  observable
+
+Success means "sidecar" describes the implementation process, not a competing
+runtime authority.
+
+### 6. Debuggable End-To-End Trace
+
+For common failures, provide one canonical route:
+
+```text
+renderer action
+  -> SDK-shaped command or IPC channel
+  -> main shell/permission/endpoint decision
+  -> SDK runtime command/session event
+  -> backend event or local-runtime tool execution
+  -> SDK projection
+  -> renderer display state
+```
+
+Prefer focused sanitized diagnostics over broad log volume. A useful diagnostic
+should identify the producer, consumer, correlation ids, runtime owner, and
+failure stage without leaking credentials, raw screenshots, file contents, or
+provider payloads.
+
+## Candidate First Slices
+
+1. Inventory renderer app-runtime clients and classify each as real boundary,
+   forwarding-only, or migration shim.
+2. Inventory `ipc.cjs` responsibilities and identify the next owner-correct
+   extraction or deletion that does not change behavior.
+3. Search for stale public `sidecar`/`local_backend` wording and separate
+   implementation-process references from reusable local-runtime contracts.
+4. Add or tighten boundary tests that prevent renderer feature modules from
+   importing app-provider internals or backend-wire event helpers.
+5. Document a single debug trace playbook for one user message through send,
+   backend stream, local tool execution, and renderer projection.
+
+## Validation Expectations
+
+Each implementation slice should include:
+
+- focused tests at the owning runtime
+- a source scan for removed stale names or imports when naming is part of the
+  cleanup
+- docs updates when a public contract or routing rule changes
+- `CHANGELOG.md` entry with migration/security note
+- explicit "no migration required" when payload, storage, settings, schema, and
+  API contracts are unchanged
+
+Security-sensitive slices must check permission, IPC, credential, tool
+execution, and machine-path boundaries.
+
+## Completion Note Template
+
+For each completed slice, record:
+
+- goal pursued
+- recent-commit direction preserved
+- ownership clarified
+- duplicate or compatibility path removed
+- behavior change, if any
+- validation performed
+- migration/security note
+
+## Progress Notes
+
+- 2026-06-18: plan created after reviewing `AGENTS.md`, runtime ownership docs,
+  the existing general runtime-boundary plan, and recent commits around
+  local-runtime naming, renderer app-runtime facades, SDK runtime helper
+  naming, and endpoint/config boundary cleanup.

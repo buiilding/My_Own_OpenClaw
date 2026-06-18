@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: add a simple hackable runtime goal plan that continues the
+  recent runtime ownership migration direction and sets guardrails against
+  reversing local-runtime, SDK-runtime, and renderer app-runtime cleanup. No
+  migration required.
 - renderer/app: expose deferred model-selection payload building through
   `DesktopRendererConfigRuntimeClient` so chat send, replay, and manual
   compaction paths no longer import app-provider runtime-sync internals. No
