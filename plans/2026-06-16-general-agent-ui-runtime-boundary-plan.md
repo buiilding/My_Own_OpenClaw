@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 local runtime execute-tool test wording
+
+- Finding: local runtime execute-tool tests still described plugin and MCP execution coverage as sidecar path coverage even though the tested module is the Electron main local-runtime execute-tool runtime.
+- Change: renamed the focused test descriptions to local-runtime path wording.
+- Validation: focused LocalRuntimeExecuteToolRuntime Jest coverage, stale test-description scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes test descriptions only; Electron main local-runtime execution, Python sidecar implementation, tool schemas, settings, and persisted data are unchanged.
+
 ### 2026-06-17 focused stop shortcut Esc key alias
 
 - Finding: the focused renderer stop shortcut accepted the older DOM `Esc` key

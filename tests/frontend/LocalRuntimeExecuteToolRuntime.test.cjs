@@ -31,7 +31,7 @@ describe('local_runtime_execute_tool_runtime', () => {
     expect(executeToolRuntimeModule[['createLocal', 'BackendExecuteToolRuntime'].join('')]).toBeUndefined();
   });
 
-  test('executes plugin tools through the sidecar path', async () => {
+  test('executes plugin tools through the local runtime path', async () => {
     const sendRequest = jest.fn(async (_method, payload) => ({
       success: true,
       data: {
@@ -70,7 +70,7 @@ describe('local_runtime_execute_tool_runtime', () => {
     });
   });
 
-  test('routes MCP tools through the sidecar execution path', async () => {
+  test('routes MCP tools through the local runtime execution path', async () => {
     const sendRequest = jest.fn(async (_method, payload) => ({
       success: true,
       data: {

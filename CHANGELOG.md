@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: describe local runtime execute-tool plugin and MCP coverage through the local-runtime path instead of sidecar-path wording; no migration is required because this changes test descriptions only.
 - frontend/renderer: remove the focused stop shortcut `Esc` key alias so the renderer stop handler accepts only canonical `KeyboardEvent.key === "Escape"`; no migration is required because this is focused-window keyboard handling only and the user-facing label/global accelerator catalog are unchanged.
 - frontend/main: rename private MCP refresh helper wording from sidecar to local runtime; no migration is required because this changes private labels and focused tests only.
 - docs/sdk: describe conversation persistence and store adapters as local-runtime-backed instead of sidecar-backed at the SDK boundary; no migration is required because this is documentation and guard coverage only.
