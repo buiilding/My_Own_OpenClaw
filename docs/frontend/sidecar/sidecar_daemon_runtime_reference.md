@@ -69,22 +69,26 @@ reusable discovery files before launching a replacement daemon.
 
 The daemon resolves diagnostics and local-runtime user-data paths through
 `core.user_data_paths.app_user_data_root(...)` instead of carrying its own
-platform path table. Default paths remain unchanged:
+platform path table. The reusable Python fallback defaults to neutral
+`desktop-runtime` paths:
 
-- Windows: `%APPDATA%/windieos`, or `~/AppData/Roaming/windieos` for daemon
+- Windows: `%APPDATA%/desktop-runtime`, or
+  `~/AppData/Roaming/desktop-runtime` for daemon
   fallback/test contexts when `%APPDATA%` is absent
-- macOS: `~/Library/Application Support/windieos`
-- Linux: `$XDG_CONFIG_HOME/windieos` for daemon contexts that opt into XDG, or
-  `~/.config/windieos` when no XDG root is provided
+- macOS: `~/Library/Application Support/desktop-runtime`
+- Linux: `$XDG_CONFIG_HOME/desktop-runtime` for daemon contexts that opt into
+  XDG, or `~/.config/desktop-runtime` when no XDG root is provided
 
 `AGENT_USER_DATA_DIR` overrides the daemon user-data root for generic hosts;
-WindieOS launches can still use `WINDIE_USER_DATA_DIR` for tests and special
-local runs. `AGENT_APP_DIAGNOSTICS_DB` similarly overrides the daemon
+Electron main passes the WindieOS host-skinned app-data root through
+`WINDIE_USER_DATA_DIR` and `AGENT_USER_DATA_DIR`, so normal WindieOS desktop
+launches continue to use the existing `windieos` storage directory. Standalone
+daemon callers that need the old path should set either user-data override
+explicitly. `AGENT_APP_DIAGNOSTICS_DB` similarly overrides the daemon
 diagnostics database path, with `WINDIE_APP_DIAGNOSTICS_DB` preserved as the
 WindieOS alias. Tests that need to force platform-specific path behavior should
 prefer `AGENT_TEST_PLATFORM`; `WINDIE_TEST_PLATFORM` remains a compatibility
-alias. Other Python local-runtime code uses the same helper while preserving its
-existing defaults unless it explicitly opts into daemon-style fallbacks.
+alias. Other Python local-runtime code uses the same helper.
 
 ## Endpoints
 

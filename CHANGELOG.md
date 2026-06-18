@@ -79,6 +79,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: default Browser Use sessions and browser-local files to
   generic `desktop-agent` locations while preserving WindieOS env aliases for
   intentionally reusing legacy local state.
+- sidecar/runtime: default standalone Python sidecar user-data paths to
+  generic `desktop-runtime` locations while Electron main injects the
+  WindieOS-skinned app-data root for desktop launches.
 - sidecar/daemon: accept generic `AGENT_USER_DATA_DIR` and
   `AGENT_APP_DIAGNOSTICS_DB` daemon data-path env aliases while preserving
   WindieOS aliases.

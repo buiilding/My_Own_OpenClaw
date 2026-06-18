@@ -155,15 +155,18 @@ describe('desktop local runtime launch options', () => {
       packagedApp: 'AGENT_PACKAGED_APP',
       sourcePath: 'AGENT_LOCAL_RUNTIME_SOURCE_PATH',
       sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
+      userDataDir: 'AGENT_USER_DATA_DIR',
     });
     const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      userDataRoot: '/tmp/agent-data',
     });
 
     expect(plan.ok).toBe(true);
     expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
     expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
+    expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/agent-data');
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_PATH)
       .toBe(plan.launchTarget.resolvedPath);
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP)
@@ -172,8 +175,10 @@ describe('desktop local runtime launch options', () => {
       .toContain('local_backend.py:');
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP)
       .toContain('local_backend_memory_handlers.py:');
+    expect(plan.options.launchContext.AGENT_USER_DATA_DIR).toBe('/tmp/agent-data');
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH).toBeUndefined();
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP).toBeUndefined();
+    expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBeUndefined();
     expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBeUndefined();
     expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toBeUndefined();
   });
@@ -190,6 +195,7 @@ describe('desktop local runtime launch options', () => {
         localRuntimeEnv: mainHostSkin.localRuntime.env,
         authStatePath: '/tmp/auth.json',
         permissionStatePath: '/tmp/permissions.json',
+        userDataRoot: '/tmp/windie-data',
       });
     } finally {
       if (typeof originalSemanticSummarizer === 'string') {
@@ -211,20 +217,24 @@ describe('desktop local runtime launch options', () => {
     expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
     expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.env.AGENT_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
+    expect(plan.options.env.AGENT_USER_DATA_DIR).toBe('/tmp/windie-data');
     expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
+    expect(plan.options.env.WINDIE_USER_DATA_DIR).toBe('/tmp/windie-data');
     expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
     expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.launchContext.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
+    expect(plan.options.launchContext.WINDIE_USER_DATA_DIR).toBe('/tmp/windie-data');
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH)
       .toBe(plan.launchTarget.resolvedPath);
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
       .toContain('sidecar_daemon.py:');
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_PATH).toBeUndefined();
     expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP).toBeUndefined();
+    expect(plan.options.launchContext.AGENT_USER_DATA_DIR).toBeUndefined();
   });
 
   test('desktop launch owns a fresh local runtime instead of reusing discovered daemons', () => {

@@ -37,6 +37,7 @@ const DEFAULT_LOCAL_RUNTIME_DAEMON_ENV = Object.freeze({
   sourcePath: 'AGENT_LOCAL_RUNTIME_SOURCE_PATH',
   sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
   permissionStatePath: 'AGENT_PERMISSION_STATE_PATH',
+  userDataDir: 'AGENT_USER_DATA_DIR',
 });
 
 const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
@@ -78,6 +79,7 @@ function resolveDaemonLaunchContextEnvKeys(localRuntimeEnv = {}) {
     envConfig.browserFeaturePackAutoinstall,
     envConfig.sourcePath,
     envConfig.sourceStamp,
+    envConfig.userDataDir,
   ];
 }
 
@@ -122,6 +124,7 @@ function buildLocalRuntimeDaemonEnv({
   localRuntimeEnv,
   permissionStatePath,
   authStatePath,
+  userDataRoot,
   launchTarget,
 } = {}) {
   const endpointConfig = backendEndpoints || resolveBackendEndpoints(process.env, {
@@ -170,6 +173,14 @@ function buildLocalRuntimeDaemonEnv({
           [envConfig.permissionStatePath]: permissionStatePath.trim(),
           ...(envConfig.permissionStatePath !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.permissionStatePath
             ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.permissionStatePath]: permissionStatePath.trim() }
+            : {}),
+        }
+      : {}),
+    ...(typeof userDataRoot === 'string' && userDataRoot.trim()
+      ? {
+          [envConfig.userDataDir]: userDataRoot.trim(),
+          ...(envConfig.userDataDir !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.userDataDir
+            ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.userDataDir]: userDataRoot.trim() }
             : {}),
         }
       : {}),
@@ -232,6 +243,7 @@ function createDesktopLocalRuntimeLaunchPlan({
   localRuntimeEnv,
   permissionStatePath,
   authStatePath,
+  userDataRoot,
   runtimePathEnv,
   WebSocketImpl,
   copy = {},
@@ -260,6 +272,7 @@ function createDesktopLocalRuntimeLaunchPlan({
     localRuntimeEnv,
     permissionStatePath,
     authStatePath,
+    userDataRoot,
     launchTarget,
   });
   return {

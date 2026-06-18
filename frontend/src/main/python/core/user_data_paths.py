@@ -7,7 +7,7 @@ import platform
 from pathlib import Path
 from typing import Mapping
 
-APP_DATA_DIR_NAME = "windieos"
+APP_DATA_DIR_NAME = "desktop-runtime"
 
 
 def _env_value(env: Mapping[str, str], key: str) -> str:

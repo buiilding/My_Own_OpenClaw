@@ -454,6 +454,7 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
         "AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL": "",
         "AGENT_LOCAL_RUNTIME_SOURCE_PATH": "",
         "AGENT_LOCAL_RUNTIME_SOURCE_STAMP": "",
+        "AGENT_USER_DATA_DIR": "",
         "WINDIE_BACKEND_HTTP_URL": "https://backend.example",
         "WINDIE_BACKEND_AUTH_STATE_PATH": "/tmp/auth.json",
         "WINDIE_ENABLE_SEMANTIC_SUMMARIZER": "0",
@@ -461,6 +462,7 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
         "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL": "",
         "WINDIE_LOCAL_RUNTIME_SOURCE_PATH": "",
         "WINDIE_LOCAL_RUNTIME_SOURCE_STAMP": "",
+        "WINDIE_USER_DATA_DIR": "",
     }
 
 

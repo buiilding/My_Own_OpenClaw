@@ -37,6 +37,9 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 - API keys must come from environment variables or secure local config paths, never committed docs/tests/fixtures.
 - Renderer persistence should contain only user-facing settings, not provider internals or secrets.
 - Sidecar receives the active backend URL from Electron main; do not make sidecar guess the app's endpoint policy.
+- Electron main passes the host-skinned user-data root to the Python sidecar;
+  standalone sidecar launches default to neutral `desktop-runtime` paths unless
+  `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR` is set.
 - VM worker variables configure the Electron main worker mode and `/api/runs/*` control plane; normal desktop chat still uses `/ws`.
 - Release signing variables are release-only. Local reinstall flows intentionally bypass Apple notarization.
 

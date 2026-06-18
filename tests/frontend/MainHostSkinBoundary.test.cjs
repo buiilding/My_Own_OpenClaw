@@ -456,12 +456,16 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("sourcePath: 'WINDIE_LOCAL_RUNTIME_SOURCE_PATH'");
     expect(skinSource).toContain("sourceStamp: 'WINDIE_LOCAL_RUNTIME_SOURCE_STAMP'");
     expect(skinSource).toContain("permissionStatePath: 'WINDIE_PERMISSION_STATE_PATH'");
+    expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
     expect(launchSource).toContain("backendHttpUrl: 'AGENT_BACKEND_HTTP_URL'");
+    expect(launchSource).toContain("userDataDir: 'AGENT_USER_DATA_DIR'");
     expect(launchSource).toContain('resolveLocalRuntimeDaemonEnvConfig');
     expect(ipcSource).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(ipcSource).toContain('userDataRoot: appUserDataRoot()');
     expect(launchSource).not.toContain('WINDIE_BACKEND_HTTP_URL');
     expect(launchSource).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
     expect(launchSource).not.toContain('WINDIE_PERMISSION_STATE_PATH');
+    expect(launchSource).not.toContain('WINDIE_USER_DATA_DIR');
   });
 
   test('host skin local readiness copy uses local-runtime wording', () => {

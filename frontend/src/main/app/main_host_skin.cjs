@@ -185,6 +185,7 @@ const localRuntime = Object.freeze({
     sourcePath: 'WINDIE_LOCAL_RUNTIME_SOURCE_PATH',
     sourceStamp: 'WINDIE_LOCAL_RUNTIME_SOURCE_STAMP',
     permissionStatePath: 'WINDIE_PERMISSION_STATE_PATH',
+    userDataDir: 'WINDIE_USER_DATA_DIR',
     verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR',
   }),
   browserWarmupExplanation: `Open the ${productName} browser for onboarding and profile setup.`,

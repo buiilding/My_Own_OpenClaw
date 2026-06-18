@@ -8403,3 +8403,23 @@ Each completed slice should report:
   `WINDIE_BROWSER_FILES_DIR=~/.windieos/browser`; dedicated Chrome profile
   paths, CDP port behavior, tool schemas, and browser action validation are
   unchanged.
+
+### 2026-06-18 Python sidecar user-data default boundary
+
+- Finding: the shared Python sidecar user-data helper still defaulted to
+  `windieos` app-data directories, so standalone/generic sidecar launches
+  carried WindieOS storage policy even after daemon override env aliases moved
+  to generic-first names.
+- Change: changed the Python helper fallback app-data directory name to
+  `desktop-runtime` and made Electron main pass its host-skinned WindieOS
+  app-data root into local-runtime daemon launch env as both the configured
+  host alias and the generic `AGENT_USER_DATA_DIR`.
+- Validation: focused sidecar user-data, sidecar daemon, local-runtime launch,
+  main host-skin boundary, and SDK daemon launch-context reuse coverage, docs
+  listing, source scans, and `git diff --check`.
+- Compatibility: no automatic migration for standalone Python sidecar launches.
+  Normal WindieOS desktop launches keep using the existing `windieos` storage
+  root because Electron main injects it. Standalone callers that relied on the
+  old implicit fallback can set `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR`;
+  schemas, diagnostics database format, memory store files, permissions,
+  credentials, IPC, and provider policy are unchanged.

@@ -28,12 +28,12 @@ def test_app_user_data_root_keeps_linux_default_unless_xdg_is_requested(
     assert user_data_paths.app_user_data_root(
         env={"XDG_CONFIG_HOME": str(tmp_path / "xdg")},
         platform_name="linux",
-    ) == home_dir / ".config" / "windieos"
+    ) == home_dir / ".config" / "desktop-runtime"
     assert user_data_paths.app_user_data_root(
         env={"XDG_CONFIG_HOME": str(tmp_path / "xdg")},
         platform_name="linux",
         honor_xdg_config_home=True,
-    ) == tmp_path / "xdg" / "windieos"
+    ) == tmp_path / "xdg" / "desktop-runtime"
 
 
 def test_app_user_data_root_windows_fallback_is_opt_in(monkeypatch, tmp_path: Path):
@@ -47,7 +47,7 @@ def test_app_user_data_root_windows_fallback_is_opt_in(monkeypatch, tmp_path: Pa
         env={},
         platform_name="win32",
         allow_windows_home_fallback=True,
-    ) == home_dir / "AppData" / "Roaming" / "windieos"
+    ) == home_dir / "AppData" / "Roaming" / "desktop-runtime"
 
 
 def test_app_user_data_root_unsupported_os_uses_generic_error(monkeypatch):

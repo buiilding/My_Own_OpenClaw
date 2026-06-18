@@ -54,6 +54,7 @@ const {
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
+  appUserDataRoot,
 } = require('./diagnostics/app_diagnostics_store.cjs');
 const {
   appendIpcBridgeDiagnostic,
@@ -739,6 +740,7 @@ function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
     copy: mainHostSkin.bundledRuntime,
     localRuntimeEnv: mainHostSkin.localRuntime.env,
     runtimePathEnv: mainHostSkin.runtimePaths.env,
+    userDataRoot: appUserDataRoot(),
     ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
   });
   if (plan.ok !== true) {
