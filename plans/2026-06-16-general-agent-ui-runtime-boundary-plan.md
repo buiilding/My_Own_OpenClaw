@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 architecture docs sidecar daemon boundary wording
+
+- Finding: architecture docs still presented `local_backend.py` as the sidecar
+  process under Electron main and described daemon HTTP/WebSocket as an optional
+  alternative to raw JSON-RPC after the standalone stdin/stdout loop was removed.
+- Change: updated the architecture diagram and Python sidecar page to describe
+  `sidecar_daemon.py` as the SDK-owned local-runtime boundary and
+  `local_backend.py` as the in-process `LocalRuntimeService` implementation.
+- Validation: docs listing, scoped diff check, and stale standalone sidecar
+  entrypoint wording scan.
+- Compatibility: no migration required. Documentation-only cleanup; daemon
+  launch, RPC payloads, credentials, permissions, storage, and event payloads
+  are unchanged.
+
 ### 2026-06-18 daemon-owned sidecar service lifecycle
 
 - Finding: `local_backend.py` still carried a standalone stdin/stdout run loop,

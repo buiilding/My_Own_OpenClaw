@@ -89,7 +89,7 @@ This is not the primary open-source SDK contract. The default client contract is
 │  │  - IPC Bridge (ipc.cjs)                              │  │
 │  │  - WebSocket Client                                  │  │
 │  │  - Wakeword Bridge                                    │  │
-│  │  - Python Sidecar (local_backend.py)                  │  │
+│  │  - Local Runtime Daemon (sidecar_daemon.py)            │  │
 │  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                           ↕ WebSocket / HTTP
@@ -131,10 +131,11 @@ This is not the primary open-source SDK contract. The default client contract is
 
 #### Main Process (Node.js)
 - **IPC Bridge**: Secure communication between renderer and main
-- **WebSocket Client**: Connection to Python backend
+- **WebSocket Client**: Connection to the hosted backend
 - **VM Worker Runtime**: Optional heartbeat/assignment relay loop for `/api/runs/*` when `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` are enabled
 - **Wakeword Bridge**: Python subprocess management for wakeword detection
-- **Python Sidecar**: Tool execution, system state capture, and local memory
+- **Local Runtime Daemon**: SDK-owned sidecar daemon for tool execution, system
+  state capture, and local memory
 
 ### Backend Architecture
 

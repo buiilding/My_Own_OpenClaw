@@ -80,12 +80,13 @@ Protocol output notes:
 - The active desktop path sends JSON-RPC envelopes over the daemon `/rpc` HTTP
   endpoint.
 - `core/stdout_json.py::write_json_line()` remains shared support for sidecar
-  service scripts that emit JSON lines, but Electron bridge helpers no longer
-  consume `local_backend.py` over stdin/stdout.
+  service scripts that emit JSON lines. Electron bridge helpers reach
+  `LocalRuntimeService` through the daemon, not through a direct stdin/stdout
+  `local_backend.py` process.
 
 ## Sidecar Daemon HTTP Runtime
 
-The SDK-owned local runtime can also talk to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints instead of raw JSON-RPC. This daemon is the sidecar boundary used by `AgentClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
+The SDK-owned local runtime talks to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints. This daemon is the sidecar boundary used by `AgentClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
 
 - `GET /health`: daemon liveness, generic `sidecar_daemon` service label, pid, and creation time.
 - `GET /status`: local runtime diagnostics, daemon metadata, registered tool names, and the executable sidecar tool manifest.
@@ -160,7 +161,8 @@ Wakeword detection runs as a separate Python subprocess:
 
 - If the sidecar doesn’t start, verify your Python path and dependencies in
   `frontend/src/main/python/requirements.txt`.
-- Check `local_backend.py` logs (stderr) for initialization errors.
+- Check `sidecar_daemon.py` stderr and `LocalRuntimeService` logs for
+  initialization errors.
 
 ## Testing
 
