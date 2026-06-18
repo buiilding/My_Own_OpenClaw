@@ -1,5 +1,5 @@
 /**
- * Provides the use browser session control module for the renderer UI.
+ * Coordinates renderer browser session controls for feature clients.
  */
 
 import { useEffect, useSyncExternalStore } from 'react';
@@ -10,9 +10,9 @@ import {
   getBrowserSessionSnapshot,
   subscribeBrowserSessionStore,
   switchBrowserSessionTab,
-} from '../runtime/browserSessionStore';
+} from '../../infrastructure/runtime/browserSessionStore';
 
-export function useBrowserSessionControl({ interactivePolling = false } = {}) {
+export function useDesktopBrowserSessionControl({ interactivePolling = false } = {}) {
   const snapshot = useSyncExternalStore(
     subscribeBrowserSessionStore,
     getBrowserSessionSnapshot,

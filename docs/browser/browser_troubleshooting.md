@@ -86,7 +86,7 @@ Focused tests:
 Inspect:
 
 - `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`
-- `frontend/src/renderer/infrastructure/hooks/useBrowserSessionControl.js`
+- `frontend/src/renderer/app/runtime/desktopBrowserSessionRuntimeClient.js`
 - `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
 - `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`
 

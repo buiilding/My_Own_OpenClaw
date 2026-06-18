@@ -260,7 +260,7 @@ Current ownership boundary:
 
 ### Browser Header Session Flow
 
-1. `ChatBrowserSessionControl` is intentionally UI-only. It delegates connect, disconnect, tab switching, and live tab refresh to `useBrowserSessionControl()`.
+1. `ChatBrowserSessionControl` is intentionally UI-only. It delegates connect, disconnect, tab switching, and live tab refresh to `useDesktopBrowserSessionControl()`.
 2. `browserSessionStore` subscribes to the shared local-runtime status store, blocks browser tool calls until readiness is confirmed, and exposes one snapshot to all renderer consumers.
 3. While connected, the browser-session store polls browser status/tab state every 2 seconds by default, and tightens to 1 second while the tab carousel is open.
 4. Tab switching from the header uses browser `switch` with `activate=false`, so WindieOS changes the internally controlled tab without bringing that tab to the foreground in the visible browser window.

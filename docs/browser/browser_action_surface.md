@@ -74,7 +74,7 @@ Tab state comes from Browser Use state/status results and renderer polling.
 Relevant renderer files:
 
 - `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`
-- `frontend/src/renderer/infrastructure/hooks/useBrowserSessionControl.js`
+- `frontend/src/renderer/app/runtime/desktopBrowserSessionRuntimeClient.js`
 - `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
 
 Renderer controls call the named `RUN_BROWSER_ACTION` IPC channel. Electron

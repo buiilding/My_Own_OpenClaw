@@ -1054,6 +1054,25 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY');
   });
 
+  test('chat browser session control routes browser session store through app runtime client', async () => {
+    const controlSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatBrowserSessionControl.jsx'),
+      'utf8',
+    );
+    const browserClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopBrowserSessionRuntimeClient.js'),
+      'utf8',
+    );
+
+    expect(controlSource).not.toContain('infrastructure/hooks/useBrowserSessionControl');
+    expect(controlSource).not.toContain('browserSessionStore');
+    expect(controlSource).toContain('useDesktopBrowserSessionControl');
+    expect(browserClientSource).toContain('browserSessionStore');
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../frontend/src/renderer/infrastructure/hooks/useBrowserSessionControl.js'),
+    )).rejects.toThrow();
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

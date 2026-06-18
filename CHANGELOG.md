@@ -47,6 +47,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: route chat audio player creation through the desktop audio
   runtime client instead of constructing the playback service from chat feature
   code.
+- renderer/runtime: route chat browser session controls through a renderer app
+  browser-session runtime hook instead of importing an infrastructure hook from
+  chat feature code.
 - renderer/runtime: route dashboard local-runtime readiness subscriptions
   through a renderer app runtime client instead of importing the shared IPC
   status store directly.

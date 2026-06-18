@@ -5,7 +5,7 @@
 import { Link2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
-import { useBrowserSessionControl } from '../../../infrastructure/hooks/useBrowserSessionControl';
+import { useDesktopBrowserSessionControl } from '../../../app/runtime/desktopBrowserSessionRuntimeClient';
 
 function ChatBrowserSessionControl() {
   const rootRef = useRef(null);
@@ -23,7 +23,7 @@ function ChatBrowserSessionControl() {
     connectBrowser,
     disconnectBrowser,
     switchBrowserTab,
-  } = useBrowserSessionControl({ interactivePolling: pickerOpen });
+  } = useDesktopBrowserSessionControl({ interactivePolling: pickerOpen });
 
   useEffect(() => {
     if (connected) {

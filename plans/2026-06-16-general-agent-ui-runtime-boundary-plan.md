@@ -8040,3 +8040,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Audio chunk payload validation,
   sequential playback, stop/new-query cleanup, and the `audio-chunk` renderer
   channel are unchanged.
+
+### 2026-06-18 renderer browser session runtime hook boundary
+
+- Finding: `ChatBrowserSessionControl` still imported
+  `useBrowserSessionControl.js` from renderer infrastructure, which left chat
+  feature code aware of the browser session store hook wrapper.
+- Change: added `desktopBrowserSessionRuntimeClient.js` as the renderer app
+  runtime hook facade over `browserSessionStore`, routed the chat browser
+  control through it, and deleted the redundant infrastructure hook alias.
+- Validation: focused browser session control/store and renderer chat boundary
+  Jest coverage, direct feature import scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Browser action IPC names, snapshot
+  fields, readiness gating, polling cadence, tab switching, connect, and
+  disconnect behavior are unchanged.
