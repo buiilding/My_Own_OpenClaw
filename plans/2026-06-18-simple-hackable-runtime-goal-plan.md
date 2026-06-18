@@ -275,6 +275,26 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a browser shared-contract wording slice by updating
+  `backend/src/tools/browser/shared_contract_loader.py`, backend/browser docs,
+  browser workflow docs, tool docs, and boundary tests so shared browser schema
+  validation is described as backend/local-runtime parity rather than a
+  backend-sidecar contract. Python sidecar Browser Use adapters remain named as
+  the concrete implementation. Validation: focused backend loader test,
+  modular docs boundary test, docs listing, stale wording scan, and diff
+  checks. No migration required; browser action names, schema exports, payload
+  shapes, tool execution, IPC, credentials, permissions, storage, hosted URLs,
+  and provider policy are unchanged.
+- 2026-06-18: completed a development-routing wording slice by updating
+  `docs/development/README.md`, `docs/development/test_failure_triage.md`, and
+  `docs/getting-started/docs_hub.md` to route schema drift guidance through
+  local-runtime executable args/results while keeping Python sidecar tests as
+  implementation parity evidence. This removes sidecar-runtime wording from
+  contributor-facing rules without hiding the concrete sidecar validation path.
+  Validation: focused modular docs boundary test, docs listing, source scan,
+  and diff checks. No migration required; no code path, payload, storage, IPC,
+  settings, tool schema, credential, permission, or provider-policy behavior
+  changed.
 - 2026-06-18: completed a data-flow ownership wording slice by updating
   `docs/architecture/data_flow_and_state_ownership.md` so the query flow says
   the SDK tool coordinator dispatches local tool calls to local-runtime

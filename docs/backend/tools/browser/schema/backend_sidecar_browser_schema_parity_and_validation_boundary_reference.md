@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and the strict shared browser validation boundary."
+summary: "Deep reference for backend/local-runtime browser schema parity checks, action-coverage guarantees, and the strict shared browser validation boundary."
 read_when:
-  - When adding/removing browser actions and verifying backend schema, Python sidecar validation, Browser Use engine dispatch, and runtime handler coverage stay aligned.
-  - When investigating payloads that parse in backend but fail in Python sidecar runtime enforcement.
-title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
+  - When adding/removing browser actions and verifying backend schema, local-runtime validation, Browser Use engine dispatch, and runtime handler coverage stay aligned.
+  - When investigating payloads that parse in backend but fail in local-runtime enforcement.
+title: "Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference"
 ---
 
-# Backend-Sidecar Browser Schema Parity and Validation Boundary Reference
+# Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference
 
 ## Canonical Modules and Tests
 
@@ -36,11 +36,11 @@ Backend model-facing declaration boundary is narrower:
 
 Backend runtime gate in `RemoteBrowserTool`:
 
-- payloads that pass backend validation are serialized directly to the sidecar tool path
+- payloads that pass backend validation are serialized directly to the local-runtime tool path
 
-### Sidecar boundary
+### Local-runtime boundary
 
-Sidecar enforcement is action-aware and runtime-focused:
+Local-runtime enforcement is action-aware and runtime-focused:
 
 - `browser_tool` validates grouped `BrowserControlArgs` before execution
 - `browser_use_engine.py` maps canonical actions to Browser Use CLI calls or dedicated-profile helpers
@@ -65,7 +65,7 @@ When changing browser actions, verify four layers:
 `tests/sidecar/tools/test_browser_schemas.py` and the Browser Use engine tests enforce:
 
 - `BrowserControlArgs` enforces the shared strict grouped action contract
-- backend remote-tool validation and Python sidecar validation stay aligned around the same action surface
+- backend remote-tool validation and local-runtime validation stay aligned around the same action surface
 - `BrowserUseEngineRuntime` covers the supported Browser Use action set
 
 `tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and strict payload projection behavior.
@@ -77,8 +77,8 @@ It now also checks model-facing action/property projection boundaries.
 
 Symptoms:
 
-- backend accepts action but sidecar rejects as unsupported
-- sidecar supports action but backend literal parse fails upstream
+- backend accepts action but local runtime rejects as unsupported
+- local runtime supports action but backend literal parse fails upstream
 
 ### Pattern 2: Runtime coverage drift
 
@@ -87,16 +87,16 @@ Symptoms:
 - action is schema-valid but has no Browser Use engine handler
 - action is implemented but missing from the schema contract
 
-### Pattern 3: Backend acceptance vs sidecar rejection
+### Pattern 3: Backend acceptance vs local-runtime rejection
 
 Symptoms:
 
 - payload parses in backend model
-- sidecar returns `INVALID_ARGUMENT` because shared wrappers drifted or executable args are malformed
+- local runtime returns `INVALID_ARGUMENT` because shared wrappers drifted or executable args are malformed
 
 ### Pattern 4: Default stripping side effects
 
-Backend transport strips defaults/`None`; sidecar receives sparse payload and may apply different defaults.
+Backend transport strips defaults/`None`; local runtime receives sparse payload and may apply different defaults.
 
 ## Debug Procedure
 

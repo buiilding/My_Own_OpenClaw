@@ -67,7 +67,7 @@ Parity tests should prove:
 - every accepted local tool expected by the sidecar exists in the sidecar registry
 - accepted client-local schemas remain model-facing when a client manifest supplies them
 - local results normalize into `ToolResult`
-- browser shared-contract schema stays aligned across backend and sidecar
+- browser shared-contract schema stays aligned across backend and local runtime
 
 ## Add-a-Tool Checklist
 

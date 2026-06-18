@@ -28,7 +28,7 @@ WindieOS browser automation is a first-class local tool path. The backend expose
 | Electron main | Tool execution bridge and browser automation permission/install IPC | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` |
 | Local runtime sidecar | Browser Use engine adapter, action dispatch, result normalization, browser-local file helpers | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `frontend/src/main/python/tools/browser/browser_tool.py` |
 | Browser Use | Browser daemon/session lifecycle, CDP/Playwright action mechanics, DOM state, element indexes, tab commands | installed `browser-use[cli]` package |
-| Shared contract | Browser action schema consumed directly by backend and Python sidecar validation | `frontend/src/main/python/windie_shared/browser_contract.py` |
+| Shared contract | Browser action schema consumed directly by backend and local-runtime validation | `frontend/src/main/python/windie_shared/browser_contract.py` |
 
 ## Development Rule
 

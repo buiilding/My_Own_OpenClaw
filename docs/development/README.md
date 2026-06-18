@@ -70,7 +70,7 @@ There is no current repo-root `scripts/check` or `scripts/check-loc.py` in this 
 
 1. Run `<windie> docs list` before editing and read the relevant `read_when` docs.
 2. Identify the owner boundary before changing consumers.
-3. Keep backend model-facing schemas and sidecar runtime argument handling aligned.
+3. Keep backend model-facing schemas and local-runtime executable args/results aligned; use Python sidecar tests for implementation parity.
 4. Add tests at the boundary that failed or changed.
 5. Update docs and changelog with behavior/API/contract changes.
 6. Commit completed work with `./scripts/committer`, including the required body sections for what changed, owning layer, previous behavior, new path, validation, and migration/security notes.

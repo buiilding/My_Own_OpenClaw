@@ -38,12 +38,12 @@ The shared contract module defines:
 - flat action model JSON schemas only; nullable `anyOf` cleanup is the sole
   schema normalization step before property merging, and non-nullable `anyOf`
   shapes fail schema generation instead of being passed through
-- implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar callers
+- implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and local-runtime callers
 
 Important boundary:
 
 - backend validation and model-facing schema emission derive from the same action catalog
-- Python sidecar validation imports the same shared contract module instead of importing backend code
+- local-runtime validation imports the same shared contract module instead of importing backend code
 
 ## RemoteBrowserTool Runtime Semantics
 
@@ -67,21 +67,21 @@ Model-facing declaration emission (`build_tool_spec(...)`):
 OpenAI transport compatibility:
 
 - the canonical backend browser schema now emits an OpenAI-safe root object directly, so both chat-completions and Responses transports can forward it without browser-specific schema projection
-- runtime browser validation still uses the canonical grouped discriminated union, so transport compatibility does not weaken backend/sidecar enforcement
+- runtime browser validation still uses the canonical grouped discriminated union, so transport compatibility does not weaken backend/local-runtime enforcement
 
 `execute_remote(...)` behavior:
 
 1. accepts only canonical grouped payloads that validate against `BrowserControlArgs`
-2. serializes `args.model_dump(exclude_defaults=True, exclude_none=True)` to the sidecar
+2. serializes `args.model_dump(exclude_defaults=True, exclude_none=True)` to local runtime
 3. preserves only canonical per-action fields in the remote payload
 
 ## Backend vs Runtime Enforcement Boundary
 
-Backend and sidecar now share the same grouped browser contract.
+Backend and local runtime now share the same grouped browser contract.
 
 Practical rule:
 
-1. if the backend accepts a browser payload, the sidecar schema layer accepts the same grouped action shape
+1. if the backend accepts a browser payload, the local-runtime schema layer accepts the same grouped action shape
 2. adapter/runtime errors are operational failures, not compatibility-cleanup failures
 
 ## Test-Backed Contracts
@@ -98,5 +98,5 @@ Practical rule:
 
 - [Browser Schema Docs Hub](schema/README.md)
 - [Browser Control Unified Schema Reference](schema/browser_control_unified_schema_reference.md)
-- [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 - [Sidecar Browser Action Runtime Reference](../../../frontend/sidecar/browser_action_runtime_reference.md)

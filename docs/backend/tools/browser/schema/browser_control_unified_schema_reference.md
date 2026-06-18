@@ -56,7 +56,7 @@ Key characteristics:
 
 ## Layer 4: Action Catalog
 
-`BROWSER_ACTION_CONTRACTS` is the single browser authority used by backend and sidecar.
+`BROWSER_ACTION_CONTRACTS` is the single browser authority used by backend and local runtime.
 
 Each catalog entry defines:
 
@@ -77,7 +77,7 @@ Derived schema projection uses:
 Consequences:
 
 - defaults/`None` values are omitted from transport payloads
-- sidecar receives only canonical per-action fields
+- local runtime receives only canonical per-action fields
 
 ## Model-Facing Projection Nuance
 
@@ -109,5 +109,5 @@ The root object includes no removed alias fields or compatibility-only fields.
 ## Related Pages
 
 - [Backend Browser Schema Docs Hub](README.md)
-- [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 - [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)

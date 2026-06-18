@@ -325,7 +325,7 @@ Likely code:
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `frontend/src/main/python/tools/**`
 
-Validate backend schema/parser/formatter tests, SDK/main tool-router tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar runtime argument handling aligned deliberately.
+Validate backend schema/parser/formatter tests, SDK/main tool-router tests, and Python sidecar registry/tool tests. Keep backend model-facing schemas and local-runtime executable args/results aligned deliberately.
 
 ### Change Desktop Computer Use, Screenshots, OCR, or Vision
 

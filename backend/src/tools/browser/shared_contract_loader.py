@@ -1,4 +1,4 @@
-"""Helpers for loading the sidecar-visible browser shared contract."""
+"""Helpers for loading the backend/local-runtime browser shared contract."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 from types import ModuleType
 
 
-def _load_windie_shared_package(package_dir: Path) -> ModuleType:
+def _load_shared_contract_package(package_dir: Path) -> ModuleType:
     package_name = "windie_shared"
     if not package_dir.is_dir():
         raise ImportError(f"Unable to load {package_name} package from {package_dir}")
@@ -48,6 +48,6 @@ def load_shared_browser_contract() -> ModuleType:
                 f"{package_root}"
             )
     else:
-        _load_windie_shared_package(package_dir)
+        _load_shared_contract_package(package_dir)
 
     return importlib.import_module("windie_shared.browser_contract")

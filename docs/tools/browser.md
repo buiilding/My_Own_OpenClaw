@@ -40,7 +40,7 @@ module precedence.
 ## Debugging Rules
 
 - Check whether the browser action parsed in backend before debugging local execution.
-- Check backend-sidecar schema parity when a backend-valid action fails locally.
+- Check backend/local-runtime schema parity when a backend-valid action fails locally.
 - Check the Browser Use daemon state under `AGENT_BROWSER_USE_HOME`
   (`WINDIE_BROWSER_USE_HOME` in WindieOS launches) or the default WindieOS
   Browser Use home when browser status polling reports a disconnected browser.
@@ -56,4 +56,4 @@ module precedence.
 - [Browser Troubleshooting](../browser/browser_troubleshooting.md)
 - [Local Runtime Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 - [Backend Browser Remote Schema Surface Reference](../backend/tools/browser/browser_remote_schema_surface_reference.md)
-- [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)

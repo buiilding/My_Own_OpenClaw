@@ -446,6 +446,8 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/development/agent_architecture_reference.md'),
       read('docs/development/agent_routing_quick_cards.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
+      read('docs/development/README.md'),
+      read('docs/development/test_failure_triage.md'),
       read('docs/development/mcp.md'),
       read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
@@ -568,8 +570,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local execution contracts');
     expect(docText).toContain('SDK/main local execution');
     expect(docText).toContain('local-runtime result');
+    expect(docText).toContain('local-runtime executable args/result');
     expect(docText).toContain('executable local-runtime payload');
     expect(docText).toContain('local-runtime validation');
+    expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
     expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('SDK desktop agent');
@@ -587,6 +591,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(browserToolOverviewText).not.toContain('sidecar runtime execution');
     expect(browserToolOverviewText).not.toContain('sidecar runtime, CDP launch');
     expect(browserToolOverviewText).not.toContain('Update sidecar runtime argument handling');
+    expect(docText).not.toContain('sidecar runtime argument handling');
+    expect(docText).not.toContain('sidecar runtime args/result');
     expect(browserRouteDocText).not.toContain('sidecar runtime, CDP launch');
     expect(browserRouteDocText).not.toContain('sidecar runtime action tests');
     expect(toolRoutingDocText).not.toContain('sidecar execution');
@@ -652,7 +658,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar tests cover executable behavior');
   });
 
-  test('browser contract docs qualify Python sidecar validation ownership', async () => {
+  test('browser contract docs route shared validation through the local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
       read('docs/backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md'),
@@ -664,12 +670,13 @@ describe('modular sdk refactor completion boundary', () => {
     ]);
     const docText = docs.join('\n');
 
-    expect(docText).toContain('Python sidecar validation');
-    expect(docText).toContain('Python sidecar runtime');
+    expect(docText).toContain('local-runtime validation');
+    expect(docText).toContain('local-runtime validation backed by Python sidecar');
     expect(docText).toContain('local-runtime browser execution');
     expect(docText).toContain('Python sidecar Browser Use adapters');
     expect(docText).toContain('Desktop client/local-runtime manifest');
     expect(docText).toContain('Python sidecar registry');
+    expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Sidecar registry:');
     expect(docText).not.toContain('Sidecar executable owner:');

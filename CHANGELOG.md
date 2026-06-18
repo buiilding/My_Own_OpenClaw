@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/browser: route the shared browser contract loader and schema docs
+  through backend/local-runtime validation wording, leaving Python sidecar
+  Browser Use adapters as the current concrete implementation. No migration
+  required.
+- docs/development: route contributor rule-of-thumb, getting-started, and
+  test-failure triage wording through local-runtime executable args/results
+  while keeping Python sidecar tests as implementation parity evidence. No
+  migration required.
 - docs/architecture: route the data-flow query step through local-runtime tool
   execution with the Python sidecar as the current implementation, instead of
   saying the SDK dispatches directly to the sidecar runtime. No migration
