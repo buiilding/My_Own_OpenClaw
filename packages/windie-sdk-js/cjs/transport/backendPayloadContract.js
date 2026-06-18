@@ -40,7 +40,6 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE = Object.freeze({
         'browser_automation_enabled',
         'include_query_screenshot',
         'provider_api_keys',
-        'provider_oauth',
         'tools',
         'agent_definition',
     ]),
@@ -67,14 +66,6 @@ const PROVIDER_API_KEY_KEYS = Object.freeze([
     'kimi_coding',
 ]);
 const PROVIDER_API_KEY_ENTRY_KEYS = Object.freeze(['enabled', 'api_key']);
-const PROVIDER_OAUTH_KEYS = Object.freeze(['openai_codex']);
-const PROVIDER_OAUTH_ENTRY_KEYS = Object.freeze([
-    'connected',
-    'access_token',
-    'refresh_token',
-    'expires_at',
-    'profile_id',
-]);
 const TOOL_SETTINGS_KEYS = Object.freeze(['mode', 'client_manifest']);
 const CAPTURE_META_KEYS = Object.freeze([
     'source_w',
@@ -170,13 +161,6 @@ function normalizeUpdateSettingsPayload(payload) {
     }
     else {
         delete nextPayload.provider_api_keys;
-    }
-    const providerOauth = filterNestedMap(nextPayload.provider_oauth, PROVIDER_OAUTH_KEYS, PROVIDER_OAUTH_ENTRY_KEYS);
-    if (providerOauth) {
-        nextPayload.provider_oauth = providerOauth;
-    }
-    else {
-        delete nextPayload.provider_oauth;
     }
     return nextPayload;
 }

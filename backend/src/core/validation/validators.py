@@ -39,7 +39,6 @@ class FrontendConfigPatch(BaseModel):
     browser_automation_enabled: Optional[bool] = None
     include_query_screenshot: Optional[bool] = None
     provider_api_keys: Optional[dict] = None
-    provider_oauth: Optional[dict] = None
 
 
 class ValidationError(Exception):

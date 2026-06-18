@@ -6,7 +6,6 @@ import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/s
 import {
   DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
-  DEFAULT_PROVIDER_OAUTH,
 } from '../app/skin/desktopRuntimeConfig';
 
 /**
@@ -58,7 +57,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
-  provider_oauth: DEFAULT_PROVIDER_OAUTH,
   appearance_mode: 'system',
   appearance_theme: DEFAULT_APPEARANCE_THEME,
 };
@@ -78,38 +76,6 @@ function normalizeProviderApiKeys(overrides = null) {
       api_key: typeof candidate.api_key === 'string' ? candidate.api_key : defaultEntry.api_key,
     };
   }
-  return normalized;
-}
-
-function normalizeProviderOAuth(overrides = null) {
-  const source = toPlainRecord(overrides);
-
-  const normalized = {};
-  for (const [provider, defaultEntry] of Object.entries(DEFAULT_PROVIDER_OAUTH)) {
-    const candidate = (
-      source[provider]
-      && typeof source[provider] === 'object'
-      && !Array.isArray(source[provider])
-    ) ? source[provider] : {};
-    const expiresAt = (
-      typeof candidate.expires_at === 'number'
-      && Number.isFinite(candidate.expires_at)
-    ) ? candidate.expires_at : defaultEntry.expires_at;
-    normalized[provider] = {
-      connected: candidate.connected === true,
-      access_token: typeof candidate.access_token === 'string'
-        ? candidate.access_token
-        : defaultEntry.access_token,
-      refresh_token: typeof candidate.refresh_token === 'string'
-        ? candidate.refresh_token
-        : defaultEntry.refresh_token,
-      expires_at: expiresAt,
-      profile_id: typeof candidate.profile_id === 'string'
-        ? candidate.profile_id
-        : defaultEntry.profile_id,
-    };
-  }
-
   return normalized;
 }
 
@@ -204,7 +170,6 @@ function buildFrontendConfig(overrides = {}) {
       ? filteredOverrides.agent_enabled_mcp_servers.filter((serverId) => typeof serverId === 'string')
       : DEFAULT_FRONTEND_CONFIG.agent_enabled_mcp_servers,
     provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
-    provider_oauth: normalizeProviderOAuth(filteredOverrides.provider_oauth),
     appearance_mode: normalizeAppearanceMode(filteredOverrides.appearance_mode),
     appearance_theme: normalizeAppearanceTheme(filteredOverrides.appearance_theme),
   };
@@ -220,19 +185,9 @@ function stripProviderSecretsForConfigPersistence(config) {
     };
   }
 
-  const providerOauth = {};
-  for (const [provider, entry] of Object.entries(normalized.provider_oauth)) {
-    providerOauth[provider] = {
-      ...entry,
-      access_token: '',
-      refresh_token: '',
-    };
-  }
-
   return {
     ...normalized,
     provider_api_keys: providerApiKeys,
-    provider_oauth: providerOauth,
   };
 }
 

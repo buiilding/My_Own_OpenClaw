@@ -51,42 +51,13 @@ function mergeProviderApiKeys(baseConfig, patchConfig) {
   return merged;
 }
 
-function mergeProviderOAuth(baseConfig, patchConfig) {
-  const baseOauth = isPlainObject(baseConfig?.provider_oauth)
-    ? baseConfig.provider_oauth
-    : {};
-  const patchOauth = isPlainObject(patchConfig?.provider_oauth)
-    ? patchConfig.provider_oauth
-    : {};
-
-  if (Object.keys(baseOauth).length === 0 && Object.keys(patchOauth).length === 0) {
-    return undefined;
-  }
-
-  const merged = { ...baseOauth };
-  for (const [provider, patchEntry] of Object.entries(patchOauth)) {
-    if (!isPlainObject(patchEntry)) {
-      if (patchEntry !== undefined) {
-        merged[provider] = patchEntry;
-      }
-      continue;
-    }
-    const baseEntry = isPlainObject(baseOauth[provider]) ? baseOauth[provider] : {};
-    merged[provider] = {
-      ...sanitizeObjectValues(baseEntry),
-      ...sanitizeObjectValues(patchEntry),
-    };
-  }
-
-  return merged;
-}
-
 export function sanitizeFrontendProviderConfig(config) {
   if (!isPlainObject(config)) {
     return {};
   }
 
   const sanitized = sanitizeObjectValues(config);
+  delete sanitized.provider_oauth;
   if (isPlainObject(sanitized.provider_api_keys)) {
     const providerApiKeys = {};
     for (const [provider, entry] of Object.entries(sanitized.provider_api_keys)) {
@@ -95,15 +66,6 @@ export function sanitizeFrontendProviderConfig(config) {
         : entry;
     }
     sanitized.provider_api_keys = providerApiKeys;
-  }
-  if (isPlainObject(sanitized.provider_oauth)) {
-    const providerOauth = {};
-    for (const [provider, entry] of Object.entries(sanitized.provider_oauth)) {
-      providerOauth[provider] = isPlainObject(entry)
-        ? sanitizeObjectValues(entry)
-        : entry;
-    }
-    sanitized.provider_oauth = providerOauth;
   }
   return sanitized;
 }
@@ -122,19 +84,6 @@ export function buildFrontendConfigPersistencePayload(config) {
     }
     sanitized.provider_api_keys = providerApiKeys;
   }
-  if (isPlainObject(sanitized.provider_oauth)) {
-    const providerOauth = {};
-    for (const [provider, entry] of Object.entries(sanitized.provider_oauth)) {
-      providerOauth[provider] = isPlainObject(entry)
-        ? {
-          ...entry,
-          access_token: '',
-          refresh_token: '',
-        }
-        : entry;
-    }
-    sanitized.provider_oauth = providerOauth;
-  }
   return sanitized;
 }
 
@@ -147,10 +96,6 @@ export function mergeFrontendProviderConfig(baseConfig, patchConfig) {
   const mergedProviderApiKeys = mergeProviderApiKeys(baseConfig, patchConfig);
   if (mergedProviderApiKeys !== undefined) {
     mergedConfig.provider_api_keys = mergedProviderApiKeys;
-  }
-  const mergedProviderOauth = mergeProviderOAuth(baseConfig, patchConfig);
-  if (mergedProviderOauth !== undefined) {
-    mergedConfig.provider_oauth = mergedProviderOauth;
   }
 
   return mergedConfig;

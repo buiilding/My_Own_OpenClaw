@@ -59,7 +59,7 @@ Optional frontend-owned fields:
 - `model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`
 - `speech_mode_enabled`, `wakeword_enabled`, `wakeword_stt_enabled`
 - `include_query_screenshot`
-- `provider_api_keys`, `provider_oauth`
+- `provider_api_keys`
 
 ### `compact-history` payload
 

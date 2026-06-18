@@ -116,13 +116,6 @@ Outbound config update on model select (`buildModelConfigUpdate`):
 
 Persistence/sync remains owned by AppConfig provider pipeline.
 
-## OAuth Contract
-
-`ModelsSection` does not expose provider OAuth controls. The renderer config
-storage/sync layer may still preserve `provider_oauth` values from older local
-state or non-UI sources, but the models settings surface no longer mutates
-OAuth state.
-
 ## Test-Backed Signals
 
 `tests/frontend/ModelSelectionUtils.test.js` verifies:

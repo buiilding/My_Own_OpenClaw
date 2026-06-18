@@ -269,24 +269,6 @@ MODEL_CAPABILITIES_BY_PROVIDER_RUNTIME_ID: Dict[Tuple[str, str], Dict[str, bool]
     ("gemini", "gemini-3.1-pro-preview"): {
         "supports_native_web_search": True,
     },
-    ("openai", "gpt-5.3-codex"): {
-        "supports_codex_oauth": True,
-    },
-    ("openai", "gpt-5.3-codex-spark"): {
-        "supports_codex_oauth": True,
-    },
-    ("openai", "gpt-5.2-codex"): {
-        "supports_codex_oauth": True,
-    },
-    ("openai", "gpt-5.1-codex"): {
-        "supports_codex_oauth": True,
-    },
-    ("openai", "gpt-5.1-codex-mini"): {
-        "supports_codex_oauth": True,
-    },
-    ("openai", "gpt-5.1-codex-max"): {
-        "supports_codex_oauth": True,
-    },
 }
 
 
@@ -330,7 +312,6 @@ def get_model_catalog_metadata(
             break
 
     capability_defaults = {
-        "supports_codex_oauth": False,
         "supports_native_web_search": False,
     }
     for candidate in candidates:
@@ -344,9 +325,6 @@ def get_model_catalog_metadata(
     metadata.setdefault("input_price", "Free")
     metadata.setdefault("output_price", "Free")
     metadata.setdefault("capabilities", dict(capability_defaults))
-    metadata.setdefault(
-        "supports_codex_oauth", bool(capability_defaults["supports_codex_oauth"])
-    )
     metadata.setdefault(
         "supports_native_web_search",
         bool(capability_defaults["supports_native_web_search"]),
@@ -885,7 +863,6 @@ def resolve_model_capabilities(
 ) -> Dict[str, bool]:
     if not isinstance(model_id, str) or not isinstance(provider_name, str):
         return {
-            "supports_codex_oauth": False,
             "supports_native_web_search": False,
         }
 
@@ -897,7 +874,6 @@ def resolve_model_capabilities(
             candidate_model_ids.insert(0, selected_model_id)
 
     resolved = {
-        "supports_codex_oauth": False,
         "supports_native_web_search": False,
     }
     for candidate_model_id in candidate_model_ids:
@@ -906,24 +882,16 @@ def resolve_model_capabilities(
         capabilities = metadata.get("capabilities")
         if isinstance(capabilities, dict):
             candidate_capabilities = {
-                "supports_codex_oauth": bool(
-                    capabilities.get("supports_codex_oauth")
-                ),
                 "supports_native_web_search": bool(
                     capabilities.get("supports_native_web_search")
                 ),
             }
         else:
             candidate_capabilities = {
-                "supports_codex_oauth": bool(metadata.get("supports_codex_oauth")),
                 "supports_native_web_search": bool(
                     metadata.get("supports_native_web_search")
                 ),
             }
-        resolved["supports_codex_oauth"] = (
-            resolved["supports_codex_oauth"]
-            or candidate_capabilities["supports_codex_oauth"]
-        )
         resolved["supports_native_web_search"] = (
             resolved["supports_native_web_search"]
             or candidate_capabilities["supports_native_web_search"]

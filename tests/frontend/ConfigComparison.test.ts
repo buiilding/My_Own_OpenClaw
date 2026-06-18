@@ -44,16 +44,10 @@ describe('hasShallowConfigChanges', () => {
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-current' },
       },
-      provider_oauth: {
-        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
-      },
     };
     const next = {
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-current' },
-      },
-      provider_oauth: {
-        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
       },
     };
 

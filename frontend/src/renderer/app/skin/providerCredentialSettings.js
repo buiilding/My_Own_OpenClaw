@@ -11,16 +11,6 @@ export const DEFAULT_PROVIDER_API_KEYS = Object.freeze({
   kimi_coding: Object.freeze({ enabled: false, api_key: '' }),
 });
 
-export const DEFAULT_PROVIDER_OAUTH = Object.freeze({
-  openai_codex: Object.freeze({
-    connected: false,
-    access_token: '',
-    refresh_token: '',
-    expires_at: null,
-    profile_id: '',
-  }),
-});
-
 export const PROVIDER_API_KEY_SPECS = Object.freeze([
   Object.freeze({
     id: 'openai',

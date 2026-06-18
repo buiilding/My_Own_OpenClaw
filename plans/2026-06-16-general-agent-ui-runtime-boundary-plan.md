@@ -133,6 +133,27 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+
+### 2026-06-18 provider OAuth config contract removal
+
+- Finding: after the desktop OpenAI Codex OAuth launcher was deleted, backend,
+  renderer, Electron main, SDK payload filters, and docs still carried
+  `provider_oauth.openai_codex` and `supports_codex_oauth` as current config/model
+  contracts with no live UI producer.
+- Change: removed provider OAuth models, update-settings schema fields, OpenAI OAuth
+  API-key preference logic, model OAuth capability metadata, renderer defaults and
+  persistence merging, Electron/TypeScript/Python SDK payload filters, and current docs.
+  Stale `provider_oauth` objects are dropped at storage/disk/persistence boundaries.
+- Validation: focused frontend Jest config/contract tests, focused backend pytest for
+  API-key loading/config/validation/model catalog, sidecar SDK pytest, `bin\windie.cmd
+  docs check`, `npm.cmd run audit:knip`, active-surface stale-reference scans, and
+  `git diff --check` passed. Broader backend pytest was attempted but fallback Python
+  lacks `fastapi`/`litellm` after the `jarvis` environment was unavailable, and older
+  path-separator assertions fail under the fallback Windows interpreter.
+- Compatibility: no migration required. The retired OAuth field is no longer accepted
+  or preserved as current config; provider API-key overrides and environment key
+  resolution remain the supported credential paths.
+
 ### 2026-06-18 frontend local-execution architecture docs
 
 - Finding: frontend architecture, main-process, renderer infrastructure, and inventory docs still described screenshot/computer-use prep as happening before `sidecar execution`, which made renderer/main documentation read as if the sidecar execution path was the public boundary.

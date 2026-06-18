@@ -42,7 +42,6 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `global_agent_stop_shortcut`
 - `include_query_screenshot`
 - `provider_api_keys`
-- `provider_oauth`
 - `appearance_mode`
 - `appearance_theme`
 
@@ -95,9 +94,6 @@ Default config surface:
 - `provider_api_keys`:
   - `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
   - localStorage stores `{ enabled: boolean, api_key: "" }`; raw API keys are scrubbed at this renderer persistence boundary
-- `provider_oauth`:
-  - `openai_codex` entry stores non-secret metadata `{ connected, access_token: "", refresh_token: "", expires_at, profile_id }`
-  - raw OAuth access and refresh tokens are scrubbed from localStorage
 
 Load semantics (`loadConfigFromStorage`):
 
@@ -111,6 +107,7 @@ Load semantics (`loadConfigFromStorage`):
 - the old hardcoded OpenAI selected-model migration map
   (`LEGACY_MODEL_ID_MIGRATIONS`) was removed; config storage does not rewrite
   stale `gpt-5` ids to newer catalog ids during localStorage load
+- stale `provider_oauth` values from the removed desktop OAuth path are dropped
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
 - stored localStorage provider secrets are normalized to empty strings on read
 
@@ -118,7 +115,7 @@ Save semantics (`saveConfigToStorage`):
 
 - rejects non-object/array payloads
 - writes only `windieos-config`
-- strips provider `api_key`, OAuth `access_token`, and OAuth `refresh_token` before serializing to localStorage
+- strips provider `api_key` before serializing to localStorage
 - returns boolean success/failure
 
 Disk persistence uses the same redaction rule. `AppConfigProvider` builds a
@@ -187,7 +184,7 @@ On `window.storage` for `windieos-config`:
 
 - reload from localStorage
 - merge/filter
-- apply only when changed; `provider_api_keys` and `provider_oauth` use content-aware comparison so equivalent nested objects from another window are treated as no-ops
+- apply only when changed; `provider_api_keys` uses content-aware comparison so equivalent nested objects from another window are treated as no-ops
 - do not write the applied snapshot back to localStorage, disk, or settings runtime; the storage event is already the persistence broadcast from another renderer
 
 ## Event Router Boundary (`appConfigEvents`)

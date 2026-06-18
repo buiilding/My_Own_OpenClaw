@@ -200,20 +200,17 @@ def _enrich_catalog_with_family_metadata(
         capabilities = entry.get("capabilities")
         if not isinstance(capabilities, dict):
             capabilities = {
-                "supports_codex_oauth": bool(entry.get("supports_codex_oauth")),
                 "supports_native_web_search": bool(
                     entry.get("supports_native_web_search")
                 ),
             }
         else:
             capabilities = {
-                "supports_codex_oauth": bool(capabilities.get("supports_codex_oauth")),
                 "supports_native_web_search": bool(
                     capabilities.get("supports_native_web_search")
                 ),
             }
         entry["capabilities"] = capabilities
-        entry["supports_codex_oauth"] = bool(capabilities["supports_codex_oauth"])
         entry["supports_native_web_search"] = bool(
             capabilities["supports_native_web_search"]
         )

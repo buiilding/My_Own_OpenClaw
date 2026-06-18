@@ -221,26 +221,6 @@ class ProviderApiKeysPayload(BaseModel):
     kimi_coding: Optional[ProviderApiKeyEntry] = None
 
 
-class ProviderOAuthEntryPayload(BaseModel):
-    """One provider OAuth entry in frontend settings payload."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    connected: Optional[bool] = None
-    access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
-    expires_at: Optional[int] = None
-    profile_id: Optional[str] = None
-
-
-class ProviderOAuthPayload(BaseModel):
-    """Frontend-provided per-provider OAuth data."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    openai_codex: Optional[ProviderOAuthEntryPayload] = None
-
-
 class ToolManifestSettingsPayload(BaseModel):
     """Frontend-provided client tool manifest replacement."""
 
@@ -268,7 +248,6 @@ class UpdateSettingsPayload(BaseModel):
     browser_automation_enabled: Optional[bool] = None
     include_query_screenshot: Optional[bool] = None
     provider_api_keys: Optional[ProviderApiKeysPayload] = None
-    provider_oauth: Optional[ProviderOAuthPayload] = None
     tools: Optional[ToolManifestSettingsPayload] = None
     agent_definition: Optional[AgentDefinition] = None
 

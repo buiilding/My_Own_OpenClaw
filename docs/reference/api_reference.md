@@ -1246,8 +1246,7 @@ Update application configuration.
   "wakeword_stt_enabled": true | false,
   "browser_automation_enabled": true | false,
   "include_query_screenshot": true | false,
-  "provider_api_keys": { ... },
-  "provider_oauth": { ... }
+  "provider_api_keys": { ... }
 }
 ```
 
@@ -1273,15 +1272,6 @@ Payload shape is validated at message-parse time; value semantics are validated 
     "include_query_screenshot": true,
     "provider_api_keys": {
       "openai": { "enabled": true, "api_key": "sk-..." }
-    },
-    "provider_oauth": {
-      "openai_codex": {
-        "connected": false,
-        "access_token": "",
-        "refresh_token": "",
-        "expires_at": null,
-        "profile_id": ""
-      }
     }
   },
   "timestamp": "2025-01-20T10:00:00Z"
@@ -1742,10 +1732,8 @@ Response to list-models request.
       "default_reasoning_mode": "none",
       "default_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
       "supports_native_web_search": true,
-      "supports_codex_oauth": false,
       "capabilities": {
-        "supports_native_web_search": true,
-        "supports_codex_oauth": false
+        "supports_native_web_search": true
       },
       "context_window": 400000,
       "description": "OpenAI's GPT-5.4 reasoning model with configurable effort from none through xhigh.",
@@ -1804,10 +1792,8 @@ Response to list-models request.
         "default_reasoning_mode": "none",
         "default_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
         "supports_native_web_search": true,
-        "supports_codex_oauth": false,
         "capabilities": {
-          "supports_native_web_search": true,
-          "supports_codex_oauth": false
+          "supports_native_web_search": true
         },
         "context_window": 400000,
         "description": "OpenAI's GPT-5.4 reasoning model with configurable effort from none through xhigh.",

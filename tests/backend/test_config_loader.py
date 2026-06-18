@@ -55,30 +55,11 @@ def test_load_api_key_uses_user_override_when_enabled(monkeypatch):
     assert result.api_key == "sk-user-openai"
 
 
-def test_load_api_key_prefers_codex_oauth_for_supported_openai_model(monkeypatch):
+def test_load_api_key_ignores_stale_provider_oauth_payload(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "env-openai-key")
     cfg = AppConfig(
         model_provider="openai",
         selected_model_id="gpt-5.3-codex@@gpt-5-3-codex-thinking",
-        provider_oauth={
-            "openai_codex": {
-                "connected": True,
-                "access_token": "codex-access-token",
-                "refresh_token": "codex-refresh-token",
-                "expires_at": 4102444800000,  # Jan 1, 2100 UTC
-                "profile_id": "openai-codex:default",
-            },
-        },
-    )
-    result = load_api_key_for_provider(cfg)
-    assert result.api_key == "codex-access-token"
-
-
-def test_load_api_key_falls_back_to_env_for_non_codex_openai_model(monkeypatch):
-    monkeypatch.setenv("OPENAI_API_KEY", "env-openai-key")
-    cfg = AppConfig(
-        model_provider="openai",
-        selected_model_id="gpt-4.1@@gpt-4-1-nonthinking",
         provider_oauth={
             "openai_codex": {
                 "connected": True,

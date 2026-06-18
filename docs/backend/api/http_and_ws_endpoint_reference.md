@@ -338,7 +338,7 @@ The route table is validated against incoming schema literals at startup.
 - `update-settings`: only frontend-owned patch keys are applied to per-session config
   (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`,
   `speech_mode_enabled`, `wakeword_enabled`, `wakeword_stt_enabled`,
-  `include_query_screenshot`, `provider_api_keys`, `provider_oauth`).
+  `include_query_screenshot`, `provider_api_keys`).
 - `compact-history`: runs manual conversation-history compaction when no active query is running,
   emits `context-compaction-started` (if a run starts) and `context-compaction-completed`
   (applied or skipped with `skipped_reason`).

@@ -71,7 +71,6 @@ Validation scope (`FrontendConfigPatch`):
 - `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
-- `provider_oauth`
 
 ## Manual Compaction Control Path
 

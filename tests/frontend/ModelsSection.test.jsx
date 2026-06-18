@@ -22,15 +22,6 @@ describe('ModelsSection', () => {
       openrouter: { enabled: false, api_key: '' },
       mistral: { enabled: false, api_key: '' },
     },
-    provider_oauth: {
-      openai_codex: {
-        connected: false,
-        access_token: '',
-        refresh_token: '',
-        expires_at: null,
-        profile_id: '',
-      },
-    },
   };
 
   const availableModels = {

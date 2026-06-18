@@ -149,21 +149,6 @@ function samplePayloadValue(type, key) {
       },
     };
   }
-  if (key === 'provider_oauth') {
-    return {
-      openai_codex: {
-        connected: true,
-        access_token: 'access',
-        refresh_token: 'refresh',
-        expires_at: 123,
-        profile_id: 'profile-1',
-        renderer_only: true,
-      },
-      future_oauth: {
-        connected: true,
-      },
-    };
-  }
   if (key === 'capture_meta') {
     return {
       source_w: 100,
@@ -328,7 +313,7 @@ describe('frontend/backend websocket incoming contract', () => {
     const { session, socket } = await createOpenSession();
 
     try {
-      await session.stopQuery({ conversation_ref: 'conv-1' });
+      await session.stopQuery({ conversationRef: 'conv-1' });
       await session.rehydrateConversation({
         conversation_ref: 'conv-1',
         messages: [{ role: 'user', content: 'hello' }],
@@ -368,8 +353,8 @@ describe('frontend/backend websocket incoming contract', () => {
 
     try {
       await session.stopQuery({
-        conversation_ref: 'conv-1',
-        turn_ref: 'payload-extra',
+        conversationRef: 'conv-1',
+        turnRef: 'payload-extra',
       });
       await session.rehydrateConversation({
         conversation_ref: 'conv-1',
@@ -393,17 +378,6 @@ describe('frontend/backend websocket incoming contract', () => {
           future_provider: {
             enabled: true,
             api_key: 'future',
-          },
-        },
-        provider_oauth: {
-          openai_codex: {
-            connected: true,
-            access_token: 'access',
-            refresh_token: 'refresh',
-            renderer_only: true,
-          },
-          future_oauth: {
-            connected: true,
           },
         },
         global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
@@ -442,13 +416,6 @@ describe('frontend/backend websocket incoming contract', () => {
           openai: {
             enabled: true,
             api_key: 'sk-test',
-          },
-        },
-        provider_oauth: {
-          openai_codex: {
-            connected: true,
-            access_token: 'access',
-            refresh_token: 'refresh',
           },
         },
       });

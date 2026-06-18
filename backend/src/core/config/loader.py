@@ -8,12 +8,10 @@ Configuration is loaded from backend.src.core.config.app_config module.
 import importlib
 import logging
 import os
-import time
 from pathlib import Path
 import platform
 
 from backend.src.core.config.models import AppConfig
-from backend.src.llm.models.models_config import supports_model_capability
 from backend.src.core.config.runtime import (
     assemble_runtime_config,
 )
@@ -32,30 +30,6 @@ def _default_user_data_root() -> Path:
     if os.name == "posix" and platform.system() == "Darwin":
         return home_dir / "Library" / "Application Support" / APP_DATA_DIR_NAME
     return home_dir / ".config" / APP_DATA_DIR_NAME
-
-
-def _openai_model_supports_codex_oauth(selected_model_id: str) -> bool:
-    return supports_model_capability(
-        model_id=selected_model_id,
-        provider_name="openai",
-        capability_name="supports_codex_oauth",
-    )
-
-
-def _resolve_openai_codex_oauth_access_token(cfg: AppConfig) -> str | None:
-    oauth = getattr(cfg, "provider_oauth", None)
-    codex = getattr(oauth, "openai_codex", None)
-    if codex is None or getattr(codex, "connected", False) is not True:
-        return None
-    token = str(getattr(codex, "access_token", "") or "").strip()
-    if not token:
-        return None
-    expires_at = getattr(codex, "expires_at", None)
-    if isinstance(expires_at, (int, float)) and expires_at <= 0:
-        return None
-    if isinstance(expires_at, (int, float)) and expires_at <= int(time.time() * 1000):
-        return None
-    return token
 
 
 def get_default_tts_model_path() -> str:
@@ -95,14 +69,6 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
     api_key_env_var = None
 
     provider_override = cfg.provider_api_keys.get_provider_override(provider_name)
-    if normalized_provider == "openai" and _openai_model_supports_codex_oauth(cfg.selected_model_id):
-        oauth_token = _resolve_openai_codex_oauth_access_token(cfg)
-        if oauth_token:
-            logger.info(
-                "[API Key Load] Routing OpenAI model '%s' via Codex OAuth token.",
-                cfg.selected_model_id,
-            )
-            return cfg.model_copy(update={"api_key": oauth_token})
     if provider_override and provider_override.enabled:
         user_api_key = provider_override.api_key.strip()
         if user_api_key:

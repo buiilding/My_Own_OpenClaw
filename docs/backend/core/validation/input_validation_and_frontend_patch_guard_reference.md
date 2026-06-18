@@ -81,7 +81,6 @@ Allowed fields (derived from model fields):
 - `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
-- `provider_oauth`
 
 Intentionally excluded backend-owned speech/transcription runtime policy:
 

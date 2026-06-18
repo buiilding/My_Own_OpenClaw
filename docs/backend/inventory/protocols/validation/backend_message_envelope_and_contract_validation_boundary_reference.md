@@ -175,7 +175,6 @@ Purpose:
   - `browser_automation_enabled`
   - `include_query_screenshot`
   - `provider_api_keys`
-  - `provider_oauth`
 - output only includes explicitly-set keys (`exclude_unset=True`)
 
 Role in protocol surface:

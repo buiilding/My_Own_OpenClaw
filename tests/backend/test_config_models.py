@@ -208,8 +208,7 @@ class TestAppConfig:
         assert config.provider_api_keys.openai.enabled is False
         assert config.provider_api_keys.openai.api_key == ""
         assert config.provider_api_keys.kimi_coding.enabled is False
-        assert config.provider_oauth.openai_codex.connected is False
-        assert config.provider_oauth.openai_codex.access_token == ""
+        assert not hasattr(config, "provider_oauth")
         assert config.brave_search.api_key_env == "BRAVE_SEARCH_API_KEY"
         assert config.stt_provider == "openai"
         assert config.openai_realtime_transcription_model == "gpt-4o-transcribe"

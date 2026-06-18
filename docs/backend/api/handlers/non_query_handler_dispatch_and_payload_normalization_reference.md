@@ -122,7 +122,6 @@ Frontend-owned field set:
 - `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
-- `provider_oauth`
 
 ### `ListModelsHandler`
 

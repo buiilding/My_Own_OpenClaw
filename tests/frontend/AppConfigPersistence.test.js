@@ -141,7 +141,7 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('mergeFrontendProviderConfig deep-merges provider_oauth entries', () => {
+  test('mergeFrontendProviderConfig drops stale provider_oauth entries', () => {
     expect(
       mergeFrontendProviderConfig(
         {
@@ -155,14 +155,10 @@ describe('appConfigPersistence', () => {
           },
         },
       ),
-    ).toEqual({
-      provider_oauth: {
-        openai_codex: { connected: false, access_token: '', profile_id: 'openai-codex:default' },
-      },
-    });
+    ).toEqual({});
   });
 
-  test('buildFrontendConfigPersistencePayload redacts provider secrets', () => {
+  test('buildFrontendConfigPersistencePayload redacts provider secrets and drops stale OAuth', () => {
     expect(
       buildFrontendConfigPersistencePayload({
         provider_api_keys: {
@@ -181,15 +177,6 @@ describe('appConfigPersistence', () => {
     ).toEqual({
       provider_api_keys: {
         openai: { enabled: true, api_key: '' },
-      },
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: '',
-          refresh_token: '',
-          expires_at: 12345,
-          profile_id: 'openai-codex:default',
-        },
       },
     });
   });

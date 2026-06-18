@@ -32,15 +32,6 @@ const DEFAULT_FRONTEND_CONFIG = {
     mistral: { enabled: false, api_key: '' },
     kimi_coding: { enabled: false, api_key: '' },
   },
-  provider_oauth: {
-    openai_codex: {
-      connected: false,
-      access_token: '',
-      refresh_token: '',
-      expires_at: null,
-      profile_id: '',
-    },
-  },
   appearance_mode: 'system',
   appearance_theme: {
     light: {
@@ -222,7 +213,7 @@ describe('configStorage', () => {
     });
   });
 
-  test('loadConfigFromStorage normalizes provider_oauth with defaults', () => {
+  test('loadConfigFromStorage drops stale provider_oauth values', () => {
     localStorage.setItem(
       CONFIG_KEY,
       JSON.stringify({
@@ -239,19 +230,11 @@ describe('configStorage', () => {
     );
 
     const result = loadConfigFromStorage();
-    expect(result.provider_oauth).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG.provider_oauth,
-      openai_codex: {
-        connected: true,
-        access_token: '',
-        refresh_token: '',
-        expires_at: 12345,
-        profile_id: 'openai-codex:default',
-      },
-    });
+    expect(result.provider_oauth).toBeUndefined();
+    expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
   });
 
-  test('saveConfigToStorage strips provider secrets from localStorage', () => {
+  test('saveConfigToStorage strips provider secrets and drops stale OAuth from localStorage', () => {
     const ok = saveConfigToStorage({
       ...DEFAULT_FRONTEND_CONFIG,
       provider_api_keys: {
@@ -259,7 +242,6 @@ describe('configStorage', () => {
         openai: { enabled: true, api_key: 'sk-openai' },
       },
       provider_oauth: {
-        ...DEFAULT_FRONTEND_CONFIG.provider_oauth,
         openai_codex: {
           connected: true,
           access_token: 'codex-access',
@@ -276,13 +258,7 @@ describe('configStorage', () => {
       enabled: true,
       api_key: '',
     });
-    expect(stored.provider_oauth.openai_codex).toEqual({
-      connected: true,
-      access_token: '',
-      refresh_token: '',
-      expires_at: 12345,
-      profile_id: 'openai-codex:default',
-    });
+    expect(stored.provider_oauth).toBeUndefined();
     expect(JSON.stringify(stored)).not.toContain('sk-openai');
     expect(JSON.stringify(stored)).not.toContain('codex-access');
     expect(JSON.stringify(stored)).not.toContain('codex-refresh');

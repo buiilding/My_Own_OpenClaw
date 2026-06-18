@@ -35,7 +35,6 @@ Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
 - `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
-- `provider_oauth`
 
 Backend-owned speech/transcription runtime policy is intentionally excluded from this surface:
 

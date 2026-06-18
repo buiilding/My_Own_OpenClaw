@@ -652,13 +652,6 @@ async def test_python_agent_update_settings_filters_backend_payload():
                 "api_key": "sk-test",
             }
         },
-        "provider_oauth": {
-            "openai_codex": {
-                "connected": True,
-                "access_token": "access",
-                "refresh_token": "refresh",
-            }
-        },
     }
 
 

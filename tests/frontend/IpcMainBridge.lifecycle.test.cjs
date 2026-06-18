@@ -772,7 +772,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(result).toEqual({ model_mode: 'offline' });
   });
 
-  test('load-frontend-config redacts provider secrets from disk config', async () => {
+  test('load-frontend-config redacts provider secrets and drops stale OAuth from disk config', async () => {
     const { handlers, fs } = initIpc();
     mockFrontendConfigFile(fs, JSON.stringify({
       provider_api_keys: {
@@ -793,14 +793,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(result).toEqual({
       provider_api_keys: {
         openai: { enabled: true, api_key: '' },
-      },
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: '',
-          refresh_token: '',
-          profile_id: 'openai-codex:default',
-        },
       },
     });
   });
@@ -915,7 +907,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     ]);
   });
 
-  test('save-frontend-config redacts provider secrets before writing disk config', async () => {
+  test('save-frontend-config redacts provider secrets and drops stale OAuth before writing disk config', async () => {
     const { handlers, fs } = initIpc();
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');
     const configPath = path.join(appDataPath, 'frontend-config.json');
@@ -939,14 +931,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(written).toBe(JSON.stringify({
       provider_api_keys: {
         openai: { enabled: true, api_key: '' },
-      },
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: '',
-          refresh_token: '',
-          profile_id: 'openai-codex:default',
-        },
       },
     }, null, 2));
     expect(written).not.toContain('sk-write-openai');

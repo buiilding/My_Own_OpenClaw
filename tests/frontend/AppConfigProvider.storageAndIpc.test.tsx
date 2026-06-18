@@ -164,9 +164,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-local-openai' },
       },
-      provider_oauth: {
-        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
-      },
     });
     const { result } = renderAppConfigContext();
     const currentConfig = result.current.config;
@@ -175,9 +172,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     mockLoadConfigFromStorage.mockReturnValue({
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-local-openai' },
-      },
-      provider_oauth: {
-        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
       },
     });
 
@@ -207,33 +201,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
           openai: expect.objectContaining({
             enabled: true,
             api_key: 'sk-local-openai',
-          }),
-        }),
-      }),
-    );
-  });
-
-  test('loads provider_oauth from storage on startup', () => {
-    mockLoadConfigFromStorage.mockReturnValue({
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: 'codex-access',
-          refresh_token: 'codex-refresh',
-          expires_at: 12345,
-          profile_id: 'openai-codex:default',
-        },
-      },
-    });
-
-    const { result } = renderAppConfigContext();
-
-    expect(result.current.config).toEqual(
-      expect.objectContaining({
-        provider_oauth: expect.objectContaining({
-          openai_codex: expect.objectContaining({
-            connected: true,
-            access_token: 'codex-access',
           }),
         }),
       }),

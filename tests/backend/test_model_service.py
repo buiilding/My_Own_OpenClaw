@@ -399,9 +399,7 @@ def test_get_all_online_models_marks_openai_gpt_5_4_as_thinking_text_stream_capa
     assert gpt_5_4.get("default_reasoning_mode") == "none"
     assert gpt_5_4.get("reasoning_modes") == ["none", "low", "medium", "high", "xhigh"]
     assert gpt_5_4.get("supports_native_web_search") is True
-    assert gpt_5_4.get("supports_codex_oauth") is False
     assert gpt_5_4.get("capabilities") == {
-        "supports_codex_oauth": False,
         "supports_native_web_search": True,
     }
 
@@ -439,9 +437,7 @@ def test_get_all_online_models_includes_openai_gpt_5_5_reasoning_family():
         "xhigh",
     ]
     assert first_variant.get("supports_native_web_search") is True
-    assert first_variant.get("supports_codex_oauth") is False
     assert first_variant.get("capabilities") == {
-        "supports_codex_oauth": False,
         "supports_native_web_search": True,
     }
 

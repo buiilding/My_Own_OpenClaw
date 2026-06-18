@@ -105,7 +105,6 @@ _BACKEND_UPDATE_SETTINGS_KEYS = {
     "browser_automation_enabled",
     "include_query_screenshot",
     "provider_api_keys",
-    "provider_oauth",
 }
 
 _PROVIDER_API_KEY_KEYS = {
@@ -118,14 +117,6 @@ _PROVIDER_API_KEY_KEYS = {
 }
 
 _PROVIDER_API_KEY_ENTRY_KEYS = {"enabled", "api_key"}
-_PROVIDER_OAUTH_KEYS = {"openai_codex"}
-_PROVIDER_OAUTH_ENTRY_KEYS = {
-    "connected",
-    "access_token",
-    "refresh_token",
-    "expires_at",
-    "profile_id",
-}
 
 _CAPTURE_META_REQUIRED_NUMBER_KEYS = {
     "source_w",
@@ -182,15 +173,6 @@ def _normalize_backend_settings_payload(config: dict[str, Any]) -> dict[str, Any
         payload["provider_api_keys"] = provider_api_keys
     else:
         payload.pop("provider_api_keys", None)
-    provider_oauth = _filter_nested_map(
-        payload.get("provider_oauth"),
-        _PROVIDER_OAUTH_KEYS,
-        _PROVIDER_OAUTH_ENTRY_KEYS,
-    )
-    if provider_oauth:
-        payload["provider_oauth"] = provider_oauth
-    else:
-        payload.pop("provider_oauth", None)
     return payload
 
 

@@ -4,7 +4,6 @@
 
 const CONTENT_AWARE_CONFIG_KEYS = new Set([
   'provider_api_keys',
-  'provider_oauth',
 ]);
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

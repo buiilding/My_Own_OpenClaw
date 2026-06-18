@@ -160,7 +160,7 @@ From `load_api_key_for_provider(...)`:
 
 - In `model_mode="local"`, backend sets `api_key=None`.
 - For online mode, provider config drives env var lookup.
-- For `model_provider="openai"` with Codex-capable model ids, backend can use frontend-managed `provider_oauth.openai_codex.access_token` when connected and non-expired.
+- Frontend-managed provider API-key overrides are resolved before environment variables when enabled and non-empty.
 - Kimi Coding reads the configured `KIMI_API_KEY` env var only.
 
 ## Frontend-Owned Update Scope (`update-settings`)
@@ -183,7 +183,6 @@ Allowed patch keys only:
 - `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
-- `provider_oauth` (currently `openai_codex`)
 
 Backend-owned config remains outside this patch surface, including `speech_provider` and `stt_provider`.
 

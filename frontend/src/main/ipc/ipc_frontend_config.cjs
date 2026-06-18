@@ -29,16 +29,7 @@ function redactProviderSecretsFromFrontendConfig(config) {
       ]),
     );
   }
-  if (isPlainObject(redacted.provider_oauth)) {
-    redacted.provider_oauth = Object.fromEntries(
-      Object.entries(redacted.provider_oauth).map(([provider, entry]) => [
-        provider,
-        isPlainObject(entry)
-          ? { ...entry, access_token: '', refresh_token: '' }
-          : entry,
-      ]),
-    );
-  }
+  delete redacted.provider_oauth;
 
   return redacted;
 }

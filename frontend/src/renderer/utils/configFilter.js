@@ -23,7 +23,6 @@ const FRONTEND_CONFIG_FIELDS = [
   'global_agent_stop_shortcut',
   'include_query_screenshot',
   'provider_api_keys',
-  'provider_oauth',
   'appearance_mode',
   'appearance_theme',
 ];

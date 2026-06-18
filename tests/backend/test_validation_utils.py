@@ -192,7 +192,7 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
     assert validated["browser_automation_enabled"] is False
     assert validated["include_query_screenshot"] is True
     assert validated["provider_api_keys"]["openai"]["enabled"] is True
-    assert validated["provider_oauth"]["openai_codex"]["connected"] is True
+    assert "provider_oauth" not in validated
 
     with pytest.raises(ValidationError):
         validate_frontend_config({"model_mode": "invalid"})
