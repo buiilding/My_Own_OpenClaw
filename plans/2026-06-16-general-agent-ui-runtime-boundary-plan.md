@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 CLI desktop log alias removal
+
+- Finding: the first-class Windie CLI still accepted `windie logs desktop` as a compatibility alias for the main-process log stream after explicit log layers existed.
+- Change: removed the alias from help text, target normalization, and log dispatch so callers must use `logs frontend`, `logs main`, `logs renderer`, `logs vite`, or `logs sidecar` directly.
+- Validation: focused Windie CLI Jest coverage for help/log-target behavior, direct CLI rejection for `logs desktop`, `bin\\windie.cmd docs check`, and `git diff --check`.
+- Compatibility: no migration required. The explicit `logs main` and `logs frontend` commands remain supported; only the removed compatibility alias now fails fast.
+
 ### 2026-06-18 main layer log root boundary
 
 - Finding: Electron main and CLI log helpers still defaulted repo-local layer logs to `.desktop-agent/logs`, keeping a retired desktop-agent development path on the generic main host boundary.

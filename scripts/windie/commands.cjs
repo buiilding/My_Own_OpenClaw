@@ -66,7 +66,6 @@ Lifecycle and logs:
   windie logs main [--tail <lines>] [--follow] [--no-follow]
   windie logs renderer [--verbose] [--tail <lines>] [--follow] [--no-follow]
   windie logs sidecar [--tail <lines>] [--follow] [--no-follow]
-  windie logs desktop [--tail <lines>] [--follow] [--no-follow]
 
 Tests and docs:
   windie test backend [args...]
@@ -458,13 +457,10 @@ function resolveFrontendLogFile(env = process.env) {
 
 function normalizeWindieLogTarget(target) {
   const normalized = String(target || '').trim().toLowerCase();
-  if (normalized === 'desktop') {
-    return 'main';
-  }
   if (['frontend', 'vite', 'main', 'renderer', 'sidecar'].includes(normalized)) {
     return normalized;
   }
-  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar|desktop');
+  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
 }
 
 function resolveWindieLogFile(target, env = process.env, { verbose = false } = {}) {
@@ -1195,13 +1191,13 @@ function runLogs(args) {
     }
     return runForeground(script('scripts/dev/backend-logs.sh'), forwarded, { cwd: REPO_ROOT });
   }
-  if (['frontend', 'vite', 'main', 'renderer', 'sidecar', 'desktop'].includes(target)) {
+  if (['frontend', 'vite', 'main', 'renderer', 'sidecar'].includes(target)) {
     const verbose = normalizeWindieLogTarget(target) === 'renderer' && hasFlag(args.slice(1), '--verbose');
     const { logFile, tailArgs } = buildLayerLogTailArgs(target, args.slice(1));
     ensureWindieLayerLogFile(target, logFile, { verbose });
     return runForeground('tail', tailArgs, { cwd: REPO_ROOT });
   }
-  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar|desktop');
+  throw new Error('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
 }
 
 function runTest(args) {

@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- cli: remove the `windie logs desktop` compatibility alias so log targets are only the explicit `frontend`, `vite`, `main`, `renderer`, and `sidecar` layers; no migration is required because `windie logs main` and `windie logs frontend` remain the direct supported commands.
 - frontend/main: move the default repo-local Electron layer log directory from `.desktop-agent/logs` to `.windie/logs`; no persisted runtime migration is required because this only changes scratch developer log defaults and existing `WINDIE_*_LOG_FILE` overrides still work.
 - frontend/renderer: rename the permission onboarding localStorage key from the retired `desktop-agent-permission-onboarding` namespace to the WindieOS skin-owned `windieos-permission-onboarding`; old-key-only installs may see onboarding again because the retired key is intentionally ignored rather than migrated.
 - frontend/renderer: move persisted config, memory retrieval, and permission onboarding storage key ownership into the renderer skin/config facade while preserving the existing localStorage key values; no migration is required because stored keys and payload shapes are unchanged.
