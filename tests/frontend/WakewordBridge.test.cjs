@@ -26,6 +26,7 @@ jest.mock('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs', () 
 }));
 
 describe('wakeword_bridge', () => {
+  const originalPlatform = process.platform;
   let spawn;
   let ipcMain;
   let handlers;
@@ -439,14 +440,21 @@ describe('wakeword_bridge', () => {
   test('packaged mode disables wakeword runtime model downloads', () => {
     const originalResourcesPath = process.resourcesPath;
     process.resourcesPath = '/opt/WindieOS/resources';
+    Object.defineProperty(process, 'platform', {
+      value: 'linux',
+      configurable: true,
+    });
 
     try {
       initBridge({
         isPackaged: true,
-        mockExistsSync: (candidate) => (
-          candidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
-          || candidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
-        ),
+        mockExistsSync: (candidate) => {
+          const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
+          return (
+            normalizedCandidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
+            || normalizedCandidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
+          );
+        },
       });
       handlers['wakeword-enable']();
 
@@ -455,12 +463,17 @@ describe('wakeword_bridge', () => {
         WINDIE_PACKAGED_APP: '1',
         WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
         PYTHONDONTWRITEBYTECODE: '1',
-        PYTHONHOME: '/opt/WindieOS/resources/python-runtime',
         PYTHONNOUSERSITE: '1',
       }));
+      expect(String(spawnOptions.env.PYTHONHOME).replace(/\\/g, '/'))
+        .toMatch(/\/opt\/WindieOS\/resources\/python-runtime$/);
       expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
     } finally {
       process.resourcesPath = originalResourcesPath;
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        configurable: true,
+      });
     }
   });
 

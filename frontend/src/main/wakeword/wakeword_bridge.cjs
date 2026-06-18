@@ -270,7 +270,6 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
       error: resolveWakewordProcessErrorMessage({
         launchTarget,
         error,
-        copy: options.bundledRuntimeCopy,
       }),
     });
     stderrBuffer = '';

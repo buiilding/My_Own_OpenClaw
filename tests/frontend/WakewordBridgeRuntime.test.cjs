@@ -138,23 +138,10 @@ describe('wakeword_bridge_runtime', () => {
     );
   });
 
-  test('resolves ENOENT process errors with executable-specific guidance', () => {
-    expect(resolveWakewordProcessErrorMessage({
-      launchTarget: { kind: 'binary', command: 'wakeword-bin' },
-      error: { code: 'ENOENT', message: 'spawn ENOENT' },
-      copy: mainHostSkin.bundledRuntime,
-    })).toContain("Bundled wakeword executable 'wakeword-bin' not found");
-
+  test('resolves ENOENT process errors with Python executable guidance', () => {
     expect(resolveWakewordProcessErrorMessage({
       launchTarget: { kind: 'python', command: 'python3' },
       error: { code: 'ENOENT', message: 'spawn ENOENT' },
     })).toContain("Python executable 'python3' not found");
-  });
-
-  test('uses generic bundled executable fallback without host skin copy', () => {
-    expect(resolveWakewordProcessErrorMessage({
-      launchTarget: { kind: 'binary', command: 'wakeword-bin' },
-      error: { code: 'ENOENT', message: 'spawn ENOENT' },
-    })).toContain('Reinstall this app');
   });
 });

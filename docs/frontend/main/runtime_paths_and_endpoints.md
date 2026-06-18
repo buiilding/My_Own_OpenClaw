@@ -120,20 +120,16 @@ This is the canonical local runtime launch resolver used by both:
 
 Resolution behavior:
 
-1. packaged binary-first lookup:
-  - `<resources>/sidecar-bin/<service>[.exe]`
-  - `<resources>/sidecar-bin/<service>/<service>[.exe]`
-2. fallback python launch target:
-  - command: internal Python executable resolution
-  - script path:
-    - packaged: `<resources>/python-runtime/sidecar/<script>.pyc`
-      (`local_backend`, `local_backend.py`, and `local_backend.pyc` all resolve
-      to the packaged bytecode path)
-    - dev: `frontend/src/main/python/<script>.py`
+- input must be a concrete Python entrypoint name such as `sidecar_daemon.py`
+  or `wakeword_service.py`
+- command: internal Python executable resolution
+- script path:
+  - packaged: `<resources>/python-runtime/sidecar/<entrypoint>.pyc`
+  - dev: `frontend/src/main/python/<entrypoint>.py`
 
 Returned launch target object:
 
-- `kind`: `binary` or `python`
+- `kind`: `python`
 - `command`, `args`, `cwd`, `resolvedPath`
 
 ## Frontend Config Persistence Path
@@ -174,10 +170,9 @@ If backend relay fails:
 
 If sidecar fails to start in packaged builds:
 
-1. verify bundled sidecar binary exists under `resources/sidecar-bin` (if using binary launch path)
-2. if python launch path is used, verify bundled `.pyc` exists under `resources/python-runtime/sidecar`
-3. verify bundled python executable exists under `resources/python-runtime` or `resources/python`
-4. check `WINDIE_PYTHON_PATH` overrides and file existence in dev mode
+1. verify bundled `.pyc` exists under `resources/python-runtime/sidecar`
+2. verify bundled python executable exists under `resources/python-runtime` or `resources/python`
+3. check `WINDIE_PYTHON_PATH` overrides and file existence in dev mode
 
 If settings persistence fails:
 

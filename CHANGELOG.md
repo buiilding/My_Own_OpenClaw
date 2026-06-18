@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: remove unused packaged `sidecar-bin` and extensionless/`.pyc`
+  local-runtime launch target compatibility so desktop and wakeword services
+  launch only concrete Python entrypoints through the bundled Python runtime;
+  no migration is required because current packaging ships
+  `python-runtime/sidecar/*.pyc` and production callers already pass `.py`
+  entrypoint names.
+
 - docs/memory: describe transcript replay and conversation identity storage as
   SDK local-runtime event-log ownership instead of canonical sidecar events; no
   migration is required because this changes docs and boundary guards only,

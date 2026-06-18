@@ -100,9 +100,6 @@ const queryEvents = Object.freeze({
 
 const bundledRuntime = Object.freeze({
   missingPythonRuntime: `Bundled Python runtime not found in app resources. Please reinstall ${productName}.`,
-  missingWakewordExecutable: command => (
-    `Bundled wakeword executable '${command}' not found. Reinstall ${productName}.`
-  ),
 });
 
 const localRuntime = Object.freeze({

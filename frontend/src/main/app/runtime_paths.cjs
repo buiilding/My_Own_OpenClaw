@@ -51,35 +51,29 @@ function firstExistingPath(paths) {
   return null;
 }
 
+function normalizePythonEntrypointName(scriptName) {
+  const rawScriptName = String(scriptName || '').trim();
+  const scriptBaseName = path.basename(rawScriptName);
+  if (scriptBaseName !== rawScriptName || !scriptBaseName.toLowerCase().endsWith('.py')) {
+    throw new Error(`Local runtime launch target must be a Python entrypoint: ${scriptName}`);
+  }
+  return scriptBaseName;
+}
+
 function resolvePythonScriptPath(scriptName) {
-  const scriptBaseName = String(scriptName || '').trim();
-  const candidates = [];
+  const scriptBaseName = normalizePythonEntrypointName(scriptName);
 
   if (isPackagedApp()) {
     const resourcesRoot = getResourcesRoot();
-    if (scriptBaseName.toLowerCase().endsWith('.py')) {
-      candidates.push(
-        path.join(
-          resourcesRoot,
-          'python-runtime',
-          'sidecar',
-          `${scriptBaseName.slice(0, -3)}.pyc`,
-        ),
-      );
-    } else if (scriptBaseName.toLowerCase().endsWith('.pyc')) {
-      candidates.push(
-        path.join(resourcesRoot, 'python-runtime', 'sidecar', scriptBaseName),
-      );
-    } else if (scriptBaseName) {
-      candidates.push(
-        path.join(resourcesRoot, 'python-runtime', 'sidecar', `${scriptBaseName}.pyc`),
-      );
-    }
-    return firstExistingPath(candidates) || candidates[0];
+    return path.join(
+      resourcesRoot,
+      'python-runtime',
+      'sidecar',
+      `${scriptBaseName.slice(0, -3)}.pyc`,
+    );
   }
 
-  candidates.push(path.join(__dirname, '..', 'python', scriptBaseName));
-
+  const candidates = [path.join(__dirname, '..', 'python', scriptBaseName)];
   return firstExistingPath(candidates) || candidates[0];
 }
 
@@ -157,35 +151,8 @@ function resolveBundledRuntimeRootFromExecutable(executablePath) {
   return executableDir;
 }
 
-function resolveLocalRuntimeBinaryPath(serviceName) {
-  const normalizedServiceName = String(serviceName || '').trim().replace(/\.py$/i, '');
-  if (!normalizedServiceName || !isPackagedApp()) {
-    return null;
-  }
-
-  const extension = process.platform === 'win32' ? '.exe' : '';
-  const resourcesRoot = getResourcesRoot();
-  const candidates = [
-    path.join(resourcesRoot, 'sidecar-bin', `${normalizedServiceName}${extension}`),
-    path.join(resourcesRoot, 'sidecar-bin', normalizedServiceName, `${normalizedServiceName}${extension}`),
-  ];
-  return firstExistingPath(candidates);
-}
-
 function resolveLocalRuntimeLaunchTarget(scriptName) {
   const normalizedScript = String(scriptName || '').trim();
-  const serviceName = normalizedScript.replace(/\.py$/i, '');
-  const binaryPath = resolveLocalRuntimeBinaryPath(serviceName);
-  if (binaryPath) {
-    return {
-      kind: 'binary',
-      command: binaryPath,
-      args: [],
-      cwd: path.dirname(binaryPath),
-      resolvedPath: binaryPath,
-    };
-  }
-
   const scriptPath = resolvePythonScriptPath(normalizedScript);
   const pythonCommand = resolvePythonExecutablePath();
   return {

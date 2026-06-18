@@ -74,9 +74,7 @@ Behavior:
 
 ### `resolveWakewordProcessErrorMessage(...)`
 
-- maps process startup `ENOENT` to executable-specific guidance:
-  - binary launch target: missing bundled wakeword executable
-  - python launch target: missing Python executable
+- maps process startup `ENOENT` to missing Python executable guidance
 - falls back to raw process error message for non-`ENOENT` failures
 
 ### `normalizeAudioChunk(audioData)`

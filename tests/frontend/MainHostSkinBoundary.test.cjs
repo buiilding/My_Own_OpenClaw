@@ -84,7 +84,6 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('queryEvents');
     expect(skinSource).toContain('bundledRuntime');
     expect(skinSource).toContain('missingPythonRuntime');
-    expect(skinSource).toContain('missingWakewordExecutable');
     expect(skinSource).toContain('localRuntime');
     expect(skinSource).toContain('browserWarmupExplanation');
   });

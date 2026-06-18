@@ -58,23 +58,6 @@ describe('runtime_paths local runtime launch target resolution', () => {
     }
   });
 
-  test('prefers packaged sidecar binary when present', () => {
-    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
-      app.isPackaged = true;
-      const binaryPath = process.platform === 'win32'
-        ? '/opt/WindieOS/resources/sidecar-bin/local_backend.exe'
-        : '/opt/WindieOS/resources/sidecar-bin/local_backend';
-      fs.existsSync.mockImplementation((candidate) => samePath(candidate, binaryPath));
-
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend.py');
-
-      expect(target.kind).toBe('binary');
-      expectPath(target.command, binaryPath);
-      expect(target.args).toEqual([]);
-      expectPath(target.resolvedPath, binaryPath);
-    });
-  });
-
   test('does not export the retired sidecar-named launch resolver', () => {
     withIsolatedRuntimePaths(({ runtimePaths }) => {
       expect(runtimePaths.resolveSidecarLaunchTarget).toBeUndefined();
@@ -82,10 +65,10 @@ describe('runtime_paths local runtime launch target resolution', () => {
     });
   });
 
-  test('falls back to runtime sidecar bytecode when binary is unavailable', () => {
+  test('resolves packaged daemon bytecode through bundled Python', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = true;
-      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
+      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc';
       const runtimePython = process.platform === 'win32'
         ? '/opt/WindieOS/resources/python-runtime/python.exe'
         : '/opt/WindieOS/resources/python-runtime/bin/python3';
@@ -94,7 +77,7 @@ describe('runtime_paths local runtime launch target resolution', () => {
         || samePath(candidate, runtimePython)
       ));
 
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend.py');
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
 
       expect(target.kind).toBe('python');
       expectPath(target.command, runtimePython);
@@ -111,33 +94,22 @@ describe('runtime_paths local runtime launch target resolution', () => {
         : '/opt/WindieOS/resources/python-runtime/bin/python3';
       fs.existsSync.mockImplementation((candidate) => samePath(candidate, runtimePython));
 
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend.py');
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
 
       expect(target.kind).toBe('python');
-      expectPath(target.resolvedPath, '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc');
-      expectPathArray(target.args, ['/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc']);
+      expectPath(target.resolvedPath, '/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc');
+      expectPathArray(target.args, ['/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc']);
     });
   });
 
-  test('packaged mode resolves extensionless service names to sidecar bytecode', () => {
-    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+  test('rejects extensionless local runtime service names', () => {
+    withIsolatedRuntimePaths(({ app, runtimePaths }) => {
       app.isPackaged = true;
-      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
-      const runtimePython = process.platform === 'win32'
-        ? '/opt/WindieOS/resources/python-runtime/python.exe'
-        : '/opt/WindieOS/resources/python-runtime/bin/python3';
-      fs.existsSync.mockImplementation((candidate) => (
-        samePath(candidate, sidecarPyc)
-        || samePath(candidate, runtimePython)
-      ));
 
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend');
-
-      expect(target.kind).toBe('python');
-      expectPath(target.command, runtimePython);
-      expectPathArray(target.args, [sidecarPyc]);
-      expectPath(target.cwd, '/opt/WindieOS/resources/python-runtime/sidecar');
-      expectPath(target.resolvedPath, sidecarPyc);
+      expect(() => runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon'))
+        .toThrow('Local runtime launch target must be a Python entrypoint');
+      expect(() => runtimePaths.resolveLocalRuntimeLaunchTarget('../sidecar_daemon.py'))
+        .toThrow('Local runtime launch target must be a Python entrypoint');
     });
   });
 
@@ -150,14 +122,14 @@ describe('runtime_paths local runtime launch target resolution', () => {
     try {
       withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
         app.isPackaged = true;
-        const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
+        const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/sidecar_daemon.pyc';
         const runtimePython = '/opt/WindieOS/resources/python-runtime/Scripts/python.exe';
         fs.existsSync.mockImplementation((candidate) => (
           samePath(candidate, sidecarPyc)
           || samePath(candidate, runtimePython)
         ));
 
-        const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend.py');
+        const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
 
         expect(target.kind).toBe('python');
         expectPath(target.command, runtimePython);
@@ -176,7 +148,7 @@ describe('runtime_paths local runtime launch target resolution', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = true;
       process.env.CONDA_PREFIX = '/opt/conda/envs/windie';
-      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
+      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc';
       const condaPython = process.platform === 'win32'
         ? '/opt/conda/envs/windie/python.exe'
         : '/opt/conda/envs/windie/bin/python3';
@@ -185,7 +157,7 @@ describe('runtime_paths local runtime launch target resolution', () => {
         || samePath(candidate, condaPython)
       ));
 
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend.py');
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('wakeword_service.py');
 
       expect(target.kind).toBe('python');
       expect(target.command).toBe(null);
@@ -197,16 +169,16 @@ describe('runtime_paths local runtime launch target resolution', () => {
   test('uses development source path when app is not packaged', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = false;
-      const devScriptPath = '/repo/frontend/src/main/python/local_backend.py';
+      const devScriptPath = '/repo/frontend/src/main/python/sidecar_daemon.py';
       fs.existsSync.mockImplementation((candidate) => (
-        toPosixPath(candidate).endsWith('/src/main/python/local_backend.py')
+        toPosixPath(candidate).endsWith('/src/main/python/sidecar_daemon.py')
         || samePath(candidate, devScriptPath)
       ));
 
-      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('local_backend.py');
+      const target = runtimePaths.resolveLocalRuntimeLaunchTarget('sidecar_daemon.py');
 
       expect(target.kind).toBe('python');
-      expect(toPosixPath(target.resolvedPath).endsWith('/src/main/python/local_backend.py')).toBe(true);
+      expect(toPosixPath(target.resolvedPath).endsWith('/src/main/python/sidecar_daemon.py')).toBe(true);
     });
   });
 });

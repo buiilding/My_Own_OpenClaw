@@ -108,13 +108,9 @@ function resolveWakewordStartErrorMessage({ launchTarget, packagedApp, copy = {}
   return null;
 }
 
-function resolveWakewordProcessErrorMessage({ launchTarget, error, copy = {} }) {
+function resolveWakewordProcessErrorMessage({ launchTarget, error }) {
   if (error.code === 'ENOENT') {
-    return launchTarget.kind === 'binary'
-      ? typeof copy.missingWakewordExecutable === 'function'
-        ? copy.missingWakewordExecutable(launchTarget.command)
-        : `Bundled wakeword executable '${launchTarget.command}' not found. Reinstall this app.`
-      : `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
+    return `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
   }
   return error.message;
 }
