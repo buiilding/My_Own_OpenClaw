@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs/architecture: replace remaining general sidecar-execution boundary wording with local-execution wording in tool-system, failure-domain, data-flow, sidecar lifecycle, renderer workflow, and focused frontend test labels; no migration is required because this changes docs/test wording only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.
 - backend/frontend/sdk: remove the retired OpenAI Codex OAuth provider config
   contract from AppConfig, update-settings schemas, model capabilities, renderer
   storage, Electron/SDK payload filters, docs, and tests; stale `provider_oauth`

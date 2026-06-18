@@ -10,7 +10,7 @@ title: "Data Flow and State Ownership"
 
 Most WindieOS bugs come from duplicated ownership. This page maps where state should be produced, normalized, stored, and consumed.
 
-For model-visible prompt/tool data, websocket payloads, IPC envelopes, JSON-RPC mapper shapes, sidecar results, transcript rows, and backend history as one end-to-end trace, use [Agent-Visible Data Pipeline](agent_visible_data_pipeline.md).
+For model-visible prompt/tool data, websocket payloads, IPC envelopes, JSON-RPC mapper shapes, local results, transcript rows, and backend history as one end-to-end trace, use [Agent-Visible Data Pipeline](agent_visible_data_pipeline.md).
 
 For durable or semi-durable storage changes, migrations, reset behavior, and data-loss debugging, use [Storage and Persistence Change Workflow](storage_persistence_change_workflow.md).
 

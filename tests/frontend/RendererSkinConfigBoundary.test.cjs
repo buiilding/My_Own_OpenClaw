@@ -140,7 +140,7 @@ describe('renderer skin/config boundary', () => {
     }
   });
 
-  test('settings components do not expose sidecar execution targets as user-facing labels', () => {
+  test('settings components do not expose local execution targets as user-facing labels', () => {
     const source = read('AgentSettingsTab.jsx');
 
     expect(source).toContain('formatToolAcceptanceRuntimeSummary');

@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 general local-execution architecture wording
+
+- Finding: general architecture docs and focused frontend test labels still used sidecar-execution wording for local tool validation, failure routing, result flow, and stale-route behavior after the SDK/main local execution boundary had become the public route.
+- Change: rewrote those general docs and test labels to use local-execution wording, leaving concrete Python sidecar implementation docs intact where they describe the executor itself.
+- Validation: focused `ModularRefactorCompletionBoundary`, `RendererSkinConfigBoundary`, and `WindieSdkConversationRuntime` Jest coverage, exact stale-phrase scan for the selected docs/tests, and scoped diff check.
+- Compatibility: docs/test wording and boundary coverage only; runtime behavior, SDK APIs, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 
 ### 2026-06-18 provider OAuth config contract removal
 

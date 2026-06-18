@@ -2945,7 +2945,7 @@ describe('Agent SDK conversation runtime core', () => {
     ]);
   });
 
-  test('tool coordinator fails stale local routes before sidecar execution', async () => {
+  test('tool coordinator fails stale local routes before local execution', async () => {
     const store = new InMemoryConversationStore();
     const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
     const sendToolResult = jest.fn(async () => undefined);

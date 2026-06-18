@@ -39,7 +39,7 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 | Symptom | Misroute | Better route |
 | --- | --- | --- |
 | UI shows no output | edit renderer first | check backend event emission and main relay first |
-| tool action fails | change backend tool description | check renderer/main/sidecar execution path |
+| tool action fails | change backend tool description | check renderer/main/local execution path |
 | macOS permission stuck | change onboarding UI | check OS probe/request and TCC registration |
 | hosted route 502 | change route handler | check Cloudflare/origin process first |
 | packaged app sidecar fails | change source launcher | check bundled runtime path and package contents |

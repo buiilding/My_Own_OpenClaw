@@ -54,7 +54,7 @@ The goal is to fix the state owner, not the nearest component. If a malformed ba
 | State lifetime | Owner | Examples | Do not store here |
 | --- | --- | --- | --- |
 | Per-render interaction state | Component or local hook | open menus, draft UI affordances, hover/focus state | backend event history, durable transcript rows |
-| Active chat workspace state | `chatStore.ts` and chat workspace helpers | messages, `isSending`, thinking status, token counts, stream tracking, active conversation ref | raw sidecar results before normalization, app-wide config |
+| Active chat workspace state | `chatStore.ts` and chat workspace helpers | messages, `isSending`, thinking status, token counts, stream tracking, active conversation ref | raw local results before normalization, app-wide config |
 | Current-turn presentation projection | chat state utilities and overlay hooks | busy/awaiting/active response state, visible assistant reply, stop affordance state | durable conversation identity or backend cancellation semantics |
 | App config and settings state | `AppConfigProvider` and settings hooks | selected model, wakeword toggles, local setting persistence, backend config sync payloads | per-message stream data or tool results |
 | Permission gate state | `permissionStore.js` | onboarding completion, required permission status, recheck state | platform permission implementation logic |

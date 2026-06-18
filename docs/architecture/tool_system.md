@@ -185,7 +185,7 @@ LLM returns structured tool calls from the API response object (native tool-call
 
 Pre-dispatch model-shape validation notes:
 - backend argument validation applies to backend-executed tools only
-- sidecar-executed payload shape is validated by the frontend/sidecar execution path
+- local-executed payload shape is validated by the frontend/local execution path
 - backend preparation may still strip backend-only grounded fields before local dispatch
 
 Schema pairing rule:
@@ -202,7 +202,7 @@ Direct tool contract before execution:
 
 - model-facing tool names are already the execution-facing tool names
 - no wrapper-envelope normalization happens in parser, registry, or sidecar routing
-- each backend-executed direct tool validates through its backend schema; each sidecar-executed direct tool validates in the frontend/sidecar runtime
+- each backend-executed direct tool validates through its backend schema; each local-executed direct tool validates in the frontend/local runtime
 - unified `computer_use` and `system_use` wrapper names remain repo-local reference artifacts, not registered runtime tool names
 
 ### 3. Tool Execution
@@ -475,9 +475,9 @@ No dual-shape fallback is supported in provider transport.
 
 ### Computer Control Tools
 
-- **mouse_control**: Mouse actions (click, drag, move). Source grounding supports `manual`, `ocr`, or `prediction` using `source_description` for prediction. Drag destinations support the same modes via `drag_to_find_coordinates_by` plus destination-specific fields (`drag_to_x/drag_to_y`, `drag_to_ocr_text`/`drag_to_candidate_id`, `destination_description`). Backend resolves both source and drag destination against the same current screenshot frame, then normalizes both into desktop coordinates before sidecar execution.
+- **mouse_control**: Mouse actions (click, drag, move). Source grounding supports `manual`, `ocr`, or `prediction` using `source_description` for prediction. Drag destinations support the same modes via `drag_to_find_coordinates_by` plus destination-specific fields (`drag_to_x/drag_to_y`, `drag_to_ocr_text`/`drag_to_candidate_id`, `destination_description`). Backend resolves both source and drag destination against the same current screenshot frame, then normalizes both into desktop coordinates before local execution.
 - **keyboard_control**: Keyboard input
-- **scroll_control**: Scroll actions. Supports `manual`, `ocr`, and `prediction` grounding at the backend preparation layer, then rewrites to concrete `x/y` before sidecar execution. Sidecar scroll execution still consumes manual coordinates only after preparation resolves the target region.
+- **scroll_control**: Scroll actions. Supports `manual`, `ocr`, and `prediction` grounding at the backend preparation layer, then rewrites to concrete `x/y` before local execution. The local executor still consumes manual coordinates only after preparation resolves the target region.
 - **screenshot**: Capture screenshot
 - **switch_window**: Switch between windows
 - **wait**: Pause for a specified duration
@@ -531,7 +531,7 @@ top-level `explanation` field when required by that tool's schema.
 
 ### Tool Execution Security
 
-- **Permission Model**: `SecurityPolicy` defines permissions, but sidecar execution does not enforce them yet
+- **Permission Model**: `SecurityPolicy` defines permissions, but local execution does not enforce them yet
 - **Sandboxing**: No executor abstraction is exposed; add a concrete isolated execution boundary only with an implemented strategy
 - **Resource Limits**: Limits are defined in `SecurityPolicy`, not enforced in sidecar by default
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
