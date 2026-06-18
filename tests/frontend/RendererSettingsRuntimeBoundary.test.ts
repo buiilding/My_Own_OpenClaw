@@ -77,6 +77,26 @@ describe('renderer settings runtime boundary', () => {
     expect(voiceClientSource).toContain('ON_CHANNELS.WAKEWORD_TOGGLE');
   });
 
+  test('workspace settings routes workspace update fan-out through app runtime client', async () => {
+    const source = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx',
+      ),
+      'utf8',
+    );
+    const workspaceClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('IpcBridge');
+    expect(source).not.toContain('ON_CHANNELS');
+    expect(source).not.toContain('WORKSPACE_ACCESS_UPDATED');
+    expect(source).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
+    expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
+  });
+
   test('settings runtime facade describes SDK command IPC rather than backend IPC', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts'),

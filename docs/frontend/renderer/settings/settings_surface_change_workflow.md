@@ -49,7 +49,7 @@ flowchart LR
 | Wakeword STT toggle is wrong | Renderer config patch path | `GeneralSettingsTab.jsx`, config filter/storage, settings sync | `GeneralSettingsTab.test.jsx`, config tests |
 | View tool logs changes execution instead of presentation | Renderer transcript/display settings | `GeneralSettingsTab.jsx`, chat message rendering, transcript display filtering | chat/message display tests |
 | Global stop shortcut fails to register, falls back, or syncs to backend | Renderer config plus Electron main shortcut runtime | `GeneralSettingsTab.jsx`, `agentStopShortcut.js`, `agent_stop_shortcut_runtime.cjs`, `AppConfigProvider.jsx` | [Global Stop Shortcut Runtime Reference](../../main/global_stop_shortcut_runtime_reference.md), settings/config/IPC tests |
-| Workspace settings uses wrong folder | Workspace permission/runtime path | `WorkspaceSettingsTab.jsx`, `workspaceAccess`, Electron workspace permission service | [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md), file/shell workflow |
+| Workspace settings uses wrong folder | Workspace permission/runtime path | `WorkspaceSettingsTab.jsx`, `DesktopWorkspaceRuntimeClient`, `workspaceAccess`, Electron workspace permission service | [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md), file/shell workflow |
 | Browser settings opens wrong browser or status is stale | Permission store plus browser permission service | `BrowserSettingsTab.jsx`, `permissionStore.js`, browser permission service, browser runtime docs | permission/browser tests |
 | Memory tab nukes wrong data | Memory settings actions and sidecar admin path | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js`, main memory IPC, sidecar memory admin/store | memory reset/delete tests |
 | Onboarding tab shows wrong permission state | Permission onboarding surface | `OnboardingSettingsTab.jsx`, permission store, onboarding permission docs | onboarding/permission tests |
@@ -60,7 +60,7 @@ flowchart LR
 | Tab | Renderer component | Primary behavior | Owner boundary |
 | --- | --- | --- | --- |
 | General | `GeneralSettingsTab.jsx` | wakeword listening, wakeword STT, tool log visibility, global stop shortcut | mixed: context setters and config patches |
-| Workspace | `WorkspaceSettingsTab.jsx` | active workspace display and folder selection | Electron workspace permission/runtime path |
+| Workspace | `WorkspaceSettingsTab.jsx` | active workspace display and folder selection | `DesktopWorkspaceRuntimeClient` update fan-out plus Electron workspace permission/runtime path |
 | Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/sidecar browser runtime |
 | Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, sidecar memory admin |
 | Onboarding | `OnboardingSettingsTab.jsx` | permission/onboarding reset or status controls | renderer permission/onboarding store |
@@ -90,7 +90,7 @@ flowchart LR
 4. For authority controls, update the authority path.
    - Permission controls should go through `permissionStore` and permission services.
    - Browser controls should apply permission grant effects and update browser automation config only through the established permission path.
-   - Workspace controls should go through workspace access helpers and Electron workspace permission/runtime services.
+   - Workspace controls should go through `DesktopWorkspaceRuntimeClient`, workspace access helpers, and Electron workspace permission/runtime services.
 
 5. For destructive local data controls, update all reset effects.
    - The renderer hook should call the correct IPC channel.

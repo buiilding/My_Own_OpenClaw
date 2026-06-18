@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Workspace Settings Runtime Client
+
+- Finding: `WorkspaceSettingsTab` used workspace access helpers for commands
+  but still subscribed to workspace-update IPC directly.
+- Change: routed workspace-update fan-out through
+  `DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated` while leaving active
+  workspace display, duplicate-state suppression, and folder selection policy in
+  the settings tab.
+- Validation: focused settings section test, renderer settings boundary test,
+  targeted workspace settings direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Workspace update payloads, permission
+  request/check behavior, settings UI state, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Renderer App Config Provider Runtime Clients
 
 - Finding: `AppConfigProvider` and `AppStatusProvider` still imported settings,

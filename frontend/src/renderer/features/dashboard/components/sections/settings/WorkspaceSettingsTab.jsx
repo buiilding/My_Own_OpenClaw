@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
-import { IpcBridge, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
+import { DesktopWorkspaceRuntimeClient } from '../../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
   fetchActiveWorkspaceSelection,
   requestActiveWorkspaceSelection,
@@ -58,15 +58,12 @@ function WorkspaceSettingsTab() {
 
     void refreshWorkspace();
 
-    const removeWorkspaceListener = IpcBridge.on(
-      ON_CHANNELS.WORKSPACE_ACCESS_UPDATED,
-      (payload = {}) => {
-        applyWorkspace({
-          activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',
-          activeWorkspacePath: typeof payload?.workspacePath === 'string' ? payload.workspacePath : '',
-        });
-      },
-    );
+    const removeWorkspaceListener = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated((payload = {}) => {
+      applyWorkspace({
+        activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',
+        activeWorkspacePath: typeof payload?.workspacePath === 'string' ? payload.workspacePath : '',
+      });
+    });
 
     return () => {
       cancelled = true;

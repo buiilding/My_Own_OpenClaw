@@ -173,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Renderer Workspace Settings Runtime Client Slice
+
+- Worktree was clean after `7a8fd3d0a`, with `main` ahead of `origin/main` by
+  852 commits.
+- Recent related commits were inspected before touching the workspace settings
+  path.
+- Finding: `WorkspaceSettingsTab` used workspace access helpers for commands
+  but still subscribed to workspace-update IPC directly.
+- Change: routed workspace-update fan-out through
+  `DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated` while leaving active
+  workspace display, duplicate-state suppression, and folder selection policy in
+  the settings tab.
+- Validation: focused settings section test, renderer settings boundary test,
+  targeted workspace settings direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Workspace update payloads, permission
+  request/check behavior, settings UI state, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Renderer App Config Provider Runtime Clients Slice
 
 - Worktree was clean after `df90a36e7`, with `main` ahead of `origin/main` by

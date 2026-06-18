@@ -120,6 +120,12 @@ fallback call this runtime client instead of importing `get-client-user-id` or
 `ipc-status` channel constants directly. App config runtime snapshot handling
 also calls this client for startup and connection-status user context.
 
+`desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out for chat
+and settings surfaces. Chat owns active-workspace refresh and conversation
+binding policy; workspace settings owns active workspace display and folder
+selection while delegating the desktop event subscription to this runtime
+client.
+
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,
 current-turn projections, and display rows. `useChatStream`,

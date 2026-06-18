@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   IPC through renderer app runtime clients.
 - renderer/runtime: route app config/status provider IPC through renderer app
   runtime clients.
+- renderer/runtime: route workspace settings workspace-update fan-out through
+  the renderer app workspace runtime client.
 - renderer/runtime: route minimal response overlay size, hit-test, dismiss, and
   visibility re-report IPC through a renderer app response overlay runtime client.
 - renderer/runtime: route minimal chatbox overlay focus, drag, hit-test,
