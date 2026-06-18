@@ -2296,7 +2296,7 @@ describe('Agent SDK client behavior', () => {
     expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
   });
 
-  test('wakeUp can expose desktop builtin tools from the sidecar manifest', async () => {
+  test('wakeUp can expose desktop builtin tools from the local runtime manifest', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
@@ -2338,7 +2338,7 @@ describe('Agent SDK client behavior', () => {
     });
   });
 
-  test('wakeUp can expose selected builtin groups from the sidecar manifest', async () => {
+  test('wakeUp can expose selected builtin groups from the local runtime manifest', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
@@ -2386,7 +2386,7 @@ describe('Agent SDK client behavior', () => {
       .not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'screenshot' })]));
   });
 
-  test('wakeUp can expose computer builtin tools from the sidecar manifest', async () => {
+  test('wakeUp can expose computer builtin tools from the local runtime manifest', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
@@ -2634,7 +2634,7 @@ describe('Agent SDK client behavior', () => {
     });
   });
 
-  test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
+  test('wakeUp ensures a local runtime when module tools need local runtime execution', async () => {
     const localRuntime: AgentLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),

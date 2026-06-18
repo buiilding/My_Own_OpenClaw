@@ -137,7 +137,7 @@ Python websocket agent sessions normalize backend-bound payloads before send:
   not sent to the backend websocket query payload
 - `update_settings(...)` filters patches to backend-owned `update-settings`
   keys, including the supported provider API-key and OAuth nested shapes
-- sidecar tool-result data keeps complete screenshot `capture_meta` only; partial
+- local runtime tool-result data keeps complete screenshot `capture_meta` only; partial
   or malformed capture metadata is dropped before the result is returned to the
   backend
 

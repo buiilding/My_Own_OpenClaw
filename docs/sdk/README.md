@@ -60,10 +60,10 @@ standalone SDK package instead of depending on Electron's `frontend/node_modules
 - `examples/custom-ui`: minimal browser UI that renders SDK display projections
   against a mock backend:
   `node examples/custom-ui/run.mjs`
-- `examples/local-tool-extension`: minimal sidecar module-tool SDK example using
+- `examples/local-tool-extension`: minimal local-runtime module-tool SDK example using
   `moduleTool(...)` and a Python `module:function` entrypoint:
   `node examples/local-tool-extension/run.mjs`
-- `examples/repo-agent-extension`: runnable sidecar plugin SDK example with
+- `examples/repo-agent-extension`: runnable local-runtime plugin SDK example with
   one Python plugin tool and one command:
   `node examples/repo-agent-extension/run.mjs`
 
@@ -84,7 +84,8 @@ checks, settings sync, model-list requests, rehydrate, manual compaction,
 wakeword notification, stop, and local runtime status. The SDK runtime owns the
 hosted backend websocket, managed reconnect/fallback/idle lifecycle,
 conversation runtime state, normalized projections, and local tool result
-return. It delegates local execution to the sidecar daemon. Host-specific
+return. It delegates local execution through the SDK local runtime, backed by
+the Python sidecar daemon. Host-specific
 desktop policy, such as Electron window click-through or screenshot protection,
 belongs in a `localToolLifecycle` callback supplied to `wakeUp(...)`. The
 backend remains the owner of model lists, provider policy, OCR/vision

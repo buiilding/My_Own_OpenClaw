@@ -45,7 +45,7 @@ Query routing boundary:
   hosted backend conversation session, starts or reuses the local runtime when
   needed, contributes the client tool manifest, and returns local tool results
   to the backend agent loop.
-- `AgentClient.localRuntime(...)` is local-only. It can execute sidecar tools
+- `AgentClient.localRuntime(...)` is local-only. It can execute local runtime tools
   and inspect status without creating a hosted backend websocket, agent
   conversation, or model turn.
 
@@ -422,25 +422,25 @@ user-message ordinal fallbacks.
    default endpoint and no caller-provided user identity is configured, the SDK
    registers a temporary install identity automatically.
 3. Normalize feature flags. `memory` and `persistence` both default to enabled.
-4. Ensure a sidecar runtime client is available when memory, persistence,
+4. Ensure a local runtime client is available when memory, persistence,
    builtins, module tools, plugins, or MCPs need local runtime support.
 5. Select the default conversation store: `LocalRuntimeConversationStore` when
    persistence is enabled, otherwise `InMemoryConversationStore`.
-6. Register module/plugin/MCP tools with the sidecar daemon.
-7. Read the sidecar tool manifest.
+6. Register module/plugin/MCP tools with the local runtime.
+7. Read the local runtime tool manifest.
 8. Build the low-level backend `agent_definition`.
 9. Connect to the backend websocket.
 10. Send the websocket handshake with `agent_definition`; SDK transports put
     detected OS facts under `agent_definition.runtime.operating_system` and do
     not emit removed top-level handshake capability fields.
 11. Normalize backend events into SDK conversation events.
-12. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
+12. Route backend events to callers and route local `tool-call` events to the local runtime.
 13. Project display transcript and rehydrate snapshots from normalized events.
 
 Set both `memory: false` and `persistence: false` when a client wants a
 stateless backend-only session and does not request local builtins, module
 tools, plugins, or MCPs. In that case `wakeUp` does not require or start a
-sidecar runtime.
+local runtime.
 
 Standalone local tool callers should use the root client instead of creating an
 agent solely to reach the sidecar:
@@ -637,12 +637,12 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
   `correlationId`, `toolCallId`, or `bundleId` are not local-execution inputs.
   When canonical fields are present, the Python session forwards request,
   provider, correlation, and bundle identities into local runtime
-  `execute_tool(...)` calls so sidecar execution can preserve SDK-owned tool
+  `execute_tool(...)` calls so local runtime execution can preserve SDK-owned tool
   routing state.
 - the Python SDK websocket session renders attachment bodies into the required
   backend `query.payload.content`, keeps attachment filenames out of backend
   query payloads, filters `update-settings` patches to backend-accepted keys, and
-  drops incomplete screenshot `capture_meta` from sidecar tool results before
+  drops incomplete screenshot `capture_meta` from local runtime tool results before
   returning them to backend history.
 - direct TypeScript SDK websocket sessions use the same backend payload
   normalization before `query`, `update-settings`, `rehydrate-conversation`,

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: describe public AgentClient local execution, builtin manifests, tool-result cleanup, and SDK examples through the local-runtime contract instead of sidecar-facing public wording; no migration is required because this changes SDK docs and guard coverage only.
 - frontend/landing: describe public tool execution and footer identity through the local runtime/desktop-runtime contract instead of sidecar or desktop-assistant wording; no migration is required because this changes landing copy and focused tests only.
 - backend/core: remove the unused config-domain view module so backend config ownership stays on AppConfig plus focused runtime owners; no migration is required because no live code imported the domain projections and config payloads/settings are unchanged.
 - backend/llm: remove the dedicated Kimi removed-provider-name branch so unsupported Kimi spellings use the normal unavailable-provider path; no migration is required because current accepted provider keys, config fields, credentials, API payloads, and provider routing are unchanged.

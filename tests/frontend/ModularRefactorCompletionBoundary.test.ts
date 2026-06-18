@@ -145,6 +145,28 @@ describe('modular sdk refactor completion boundary', () => {
     expect(publicExampleText).not.toContain('local sidecar tool implementation');
   });
 
+  test('sdk docs describe local runtime contracts without sidecar-facing public wording', async () => {
+    const sdkDocs = await Promise.all([
+      read('docs/sdk/README.md'),
+      read('docs/sdk/windie_client_runtime.md'),
+      read('docs/sdk/hosted_backend_clients.md'),
+      read('docs/sdk/tool_authoring.md'),
+    ]);
+    const sdkDocText = sdkDocs.join('\n');
+
+    expect(sdkDocText).toContain('local-runtime module-tool SDK example');
+    expect(sdkDocText).toContain('local-runtime plugin SDK example');
+    expect(sdkDocText).toContain('local runtime tool manifest');
+    expect(sdkDocText).toContain('local runtime tool-result data');
+    expect(sdkDocText).not.toContain('sidecar runtime client');
+    expect(sdkDocText).not.toContain('sidecar tool manifest');
+    expect(sdkDocText).not.toContain('sidecar execution');
+    expect(sdkDocText).not.toContain('minimal sidecar module-tool');
+    expect(sdkDocText).not.toContain('runnable sidecar plugin');
+    expect(sdkDocText).not.toContain('sidecar local tool implementation');
+    expect(sdkDocText).not.toContain('Use sidecar tools for local machine control');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

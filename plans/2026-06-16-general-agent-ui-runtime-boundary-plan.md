@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK docs local-runtime public contract wording
+
+- Finding: SDK-facing docs and wakeUp test names still described local execution through sidecar runtime clients, sidecar manifests, or sidecar execution, putting the concrete Python daemon in the public AgentClient contract slot.
+- Change: reworded AgentClient runtime, SDK hub, hosted-client, and tool-authoring docs to describe local execution, manifests, examples, and tool-result cleanup through the local runtime contract, while retaining Python sidecar wording only where it names the concrete daemon implementation.
+- Validation: focused ModularRefactorCompletionBoundary and WindieSdkClient Jest coverage, stale SDK-doc wording scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes SDK documentation and test descriptions/guards only; AgentClient APIs, local-runtime daemon behavior, sidecar headers, tool schemas, settings, and persisted data are unchanged.
+
 ### 2026-06-17 landing local-runtime public copy boundary
 
 - Finding: the public landing page still described local tool execution through sidecar/desktop-assistant wording, exposing implementation details above the SDK local-runtime and desktop-runtime product boundary.
