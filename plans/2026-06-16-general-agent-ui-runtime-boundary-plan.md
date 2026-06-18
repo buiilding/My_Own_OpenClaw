@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config helper boundary
+
+- Finding: Electron main config disk helpers still used frontend-named helper
+  APIs even though the owning runtime is the desktop host persisting desktop UI
+  config.
+- Change: promoted `loadDesktopUiConfigFromDisk`,
+  `loadDesktopUiConfigFromDiskSync`,
+  `redactDesktopUiConfigProviderSecrets`, and `saveDesktopUiConfigToDisk` as
+  the active helper names, switched main-process callers and focused tests to
+  them, and kept legacy helper aliases for direct-import compatibility.
+- Validation: main config syntax checks, focused IPC persistence concurrency,
+  IPC bridge lifecycle, startup state, and settings-sync Jest coverage, docs
+  listing, stale active-helper scan, and diff check. Frontend typecheck was
+  attempted and still fails on pre-existing `chatStore.ts` errors unrelated to
+  this main-process slice.
+- Compatibility: no migration required. The persisted filename remains
+  `frontend-config.json`, the renderer IPC wire channels remain
+  `load-frontend-config` / `save-frontend-config`, and payload shape,
+  redaction, credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 SDK tool-call recovery display boundary
 
 - Finding: renderer tool-call display helpers still interpreted backend-shaped

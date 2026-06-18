@@ -4,49 +4,53 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-jest.mock('electron', () => ({
-  app: {
-    getPath: jest.fn(),
-  },
-}));
-
-const { app } = require('electron');
-
-const {
-  loadFrontendConfigFromDisk,
-  saveFrontendConfigToDisk,
-} = require('../../frontend/src/main/ipc/ipc_frontend_config.cjs');
-const {
-  getInstallAuthStatePath,
-  loadInstallAuthStateFromDisk,
-  saveInstallAuthStateToDisk,
-} = require('../../frontend/src/main/ipc/ipc_install_auth_state.cjs');
-
 describe('IPC persistence concurrency', () => {
   let userDataPath;
+  let app;
+  let loadDesktopUiConfigFromDisk;
+  let saveDesktopUiConfigToDisk;
+  let getInstallAuthStatePath;
+  let loadInstallAuthStateFromDisk;
+  let saveInstallAuthStateToDisk;
 
   beforeEach(async () => {
+    jest.resetModules();
     userDataPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'windieos-ipc-persist-'));
-    app.getPath.mockReturnValue(userDataPath);
+    jest.doMock('electron', () => ({
+      app: {
+        getPath: jest.fn(() => userDataPath),
+      },
+    }), { virtual: true });
+    ({ app } = require('electron'));
+    ({
+      loadDesktopUiConfigFromDisk,
+      saveDesktopUiConfigToDisk,
+    } = require('../../frontend/src/main/ipc/ipc_frontend_config.cjs'));
+    ({
+      getInstallAuthStatePath,
+      loadInstallAuthStateFromDisk,
+      saveInstallAuthStateToDisk,
+    } = require('../../frontend/src/main/ipc/ipc_install_auth_state.cjs'));
   });
 
   afterEach(async () => {
     await fs.promises.rm(userDataPath, { recursive: true, force: true });
     app.getPath.mockReset();
+    jest.dontMock('electron');
   });
 
-  test('frontend config saves are serialized with last writer winning', async () => {
+  test('desktop UI config saves are serialized with last writer winning', async () => {
     const log = jest.fn();
     const first = { model_mode: 'local', sequence: 1 };
     const second = { model_mode: 'cloud', sequence: 2 };
 
     const results = await Promise.all([
-      saveFrontendConfigToDisk(first, log),
-      saveFrontendConfigToDisk(second, log),
+      saveDesktopUiConfigToDisk(first, log),
+      saveDesktopUiConfigToDisk(second, log),
     ]);
 
     expect(results).toEqual([{ success: true }, { success: true }]);
-    await expect(loadFrontendConfigFromDisk(log)).resolves.toEqual(second);
+    await expect(loadDesktopUiConfigFromDisk(log)).resolves.toEqual(second);
     await expect(fs.promises.readdir(userDataPath)).resolves.toEqual(['frontend-config.json']);
   });
 

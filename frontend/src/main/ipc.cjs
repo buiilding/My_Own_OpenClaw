@@ -21,10 +21,10 @@ const {
   createBackendEndpointState,
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
 const {
-  loadFrontendConfigFromDisk,
-  loadFrontendConfigFromDiskSync,
-  redactProviderSecretsFromFrontendConfig,
-  saveFrontendConfigToDisk,
+  loadDesktopUiConfigFromDisk,
+  loadDesktopUiConfigFromDiskSync,
+  redactDesktopUiConfigProviderSecrets,
+  saveDesktopUiConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
 const {
   registerFrontendConfigHandlers,
@@ -439,7 +439,7 @@ function notifyBackendMessageObservers(data) {
 }
 
 async function loadCachedFrontendConfigFromDisk() {
-  return loadFrontendConfigFromDisk(log);
+  return loadDesktopUiConfigFromDisk(log);
 }
 
 function preserveMainOwnedFrontendConfigFields(config, options = {}) {
@@ -454,7 +454,7 @@ function preserveMainOwnedFrontendConfigFields(config, options = {}) {
   }
   const diskConfig = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
     ? null
-    : loadFrontendConfigFromDiskSync(log);
+    : loadDesktopUiConfigFromDiskSync(log);
   const enabledMcpServers = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
     ? latestFrontendConfig[MCP_ENABLED_CONFIG_KEY]
     : diskConfig?.[MCP_ENABLED_CONFIG_KEY];
@@ -484,7 +484,7 @@ function resolveMcpEnablementPreserveSource(config, options = {}) {
   if (Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])) {
     return 'latest';
   }
-  const diskConfig = loadFrontendConfigFromDiskSync(log);
+  const diskConfig = loadDesktopUiConfigFromDiskSync(log);
   if (Array.isArray(diskConfig?.[MCP_ENABLED_CONFIG_KEY])) {
     return 'disk';
   }
@@ -507,10 +507,10 @@ function recordMcpEnablementDiagnostic(input = {}) {
 async function persistFrontendConfigToDisk(config, options = {}) {
   const preserveSource = resolveMcpEnablementPreserveSource(config, options);
   const payloadHasEnabledKey = Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY]);
-  const persistableConfig = redactProviderSecretsFromFrontendConfig(
+  const persistableConfig = redactDesktopUiConfigProviderSecrets(
     preserveMainOwnedFrontendConfigFields(config, options),
   );
-  const result = await saveFrontendConfigToDisk(persistableConfig, log);
+  const result = await saveDesktopUiConfigToDisk(persistableConfig, log);
   recordMcpEnablementDiagnostic({
     stage: result?.success === false ? 'config_save_failed' : 'config_saved',
     status: result?.success === false ? 'failed' : 'succeeded',

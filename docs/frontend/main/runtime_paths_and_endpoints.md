@@ -1,8 +1,8 @@
 ---
-summary: "Electron main runtime path and endpoint resolution: backend ws/http URL derivation, removed packaged endpoint alias behavior, packaged-sidecar python path lookup, and frontend config persistence location."
+summary: "Electron main runtime path and endpoint resolution: backend ws/http URL derivation, removed packaged endpoint alias behavior, packaged-sidecar python path lookup, and desktop UI config persistence location."
 read_when:
   - When changing backend endpoint env vars, removed packaged endpoint aliases, or ws/http URL derivation.
-  - When debugging packaged-build Python script/runtime resolution or frontend config disk location.
+  - When debugging packaged-build Python script/runtime resolution or desktop UI config disk location.
 title: "Runtime Paths and Endpoints"
 ---
 
@@ -132,20 +132,20 @@ Returned launch target object:
 - `kind`: `python`
 - `command`, `args`, `cwd`, `resolvedPath`
 
-## Frontend Config Persistence Path
+## Desktop UI Config Persistence Path
 
-`ipc_frontend_config.cjs` stores renderer config at:
+`ipc_frontend_config.cjs` stores desktop UI config at:
 
 - `path.join(app.getPath('userData'), 'frontend-config.json')`
 
-Write behavior (`saveFrontendConfigToDisk`):
+Write behavior (`saveDesktopUiConfigToDisk`):
 
 - validates config is object
 - redacts provider API keys and OAuth access/refresh tokens before writing
 - ensures parent directory exists
 - writes temp file (`.tmp`) then renames atomically
 
-Read behavior (`loadFrontendConfigFromDisk`):
+Read behavior (`loadDesktopUiConfigFromDisk`):
 
 - returns `null` when file missing or invalid/non-object JSON
 - redacts provider API keys and OAuth access/refresh tokens from disk config before returning it
@@ -156,7 +156,8 @@ Read behavior (`loadFrontendConfigFromDisk`):
 - `ipc.cjs` initializes:
 - `BACKEND_URL` for SDK runtime websocket transport
 - `BACKEND_HTTP_URL` for artifact upload route
-- `load-frontend-config` / `save-frontend-config` invoke handlers
+- `load-frontend-config` / `save-frontend-config` invoke handlers preserve
+  their legacy wire names
 - VM worker HTTP calls to `/api/runs/*` consume resolved `backendHttpUrl`
 - local-runtime and wakeword bridges consume `resolveLocalRuntimeLaunchTarget(...)`
 

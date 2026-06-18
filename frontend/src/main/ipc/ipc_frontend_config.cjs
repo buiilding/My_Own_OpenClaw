@@ -1,11 +1,11 @@
 /**
- * Defines ipc frontend config configuration for the Electron main process.
+ * Defines desktop UI config disk persistence for the Electron main process.
  */
 
-const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { enqueueAtomicWrite } = require('./queued_atomic_write.cjs');
+const { app } = require('electron');
 
 const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
 
@@ -13,7 +13,7 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function redactProviderSecretsFromFrontendConfig(config) {
+function redactProviderSecretsFromDesktopUiConfig(config) {
   if (!isPlainObject(config)) {
     return config;
   }
@@ -34,66 +34,70 @@ function redactProviderSecretsFromFrontendConfig(config) {
   return redacted;
 }
 
-function getFrontendConfigPath() {
+function getDesktopUiConfigPath() {
   return path.join(app.getPath('userData'), FRONTEND_CONFIG_FILENAME);
 }
 
-async function loadFrontendConfigFromDisk(log) {
+async function loadDesktopUiConfigFromDisk(log) {
   try {
-    const filePath = getFrontendConfigPath();
+    const filePath = getDesktopUiConfigPath();
     if (!fs.existsSync(filePath)) {
       return null;
     }
     const raw = await fs.promises.readFile(filePath, 'utf-8');
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      log('Frontend config on disk is invalid; ignoring');
+      log('Desktop UI config on disk is invalid; ignoring');
       return null;
     }
-    return redactProviderSecretsFromFrontendConfig(parsed);
+    return redactProviderSecretsFromDesktopUiConfig(parsed);
   } catch (error) {
-    log(`Failed to load frontend config from disk: ${error.message}`);
+    log(`Failed to load desktop UI config from disk: ${error.message}`);
     return null;
   }
 }
 
-function loadFrontendConfigFromDiskSync(log) {
+function loadDesktopUiConfigFromDiskSync(log) {
   try {
-    const filePath = getFrontendConfigPath();
+    const filePath = getDesktopUiConfigPath();
     if (!fs.existsSync(filePath)) {
       return null;
     }
     const raw = fs.readFileSync(filePath, 'utf-8');
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      log('Frontend config on disk is invalid; ignoring');
+      log('Desktop UI config on disk is invalid; ignoring');
       return null;
     }
-    return redactProviderSecretsFromFrontendConfig(parsed);
+    return redactProviderSecretsFromDesktopUiConfig(parsed);
   } catch (error) {
-    log(`Failed to synchronously load frontend config from disk: ${error.message}`);
+    log(`Failed to synchronously load desktop UI config from disk: ${error.message}`);
     return null;
   }
 }
 
-async function saveFrontendConfigToDisk(config, log) {
+async function saveDesktopUiConfigToDisk(config, log) {
   try {
     if (!config || typeof config !== 'object' || Array.isArray(config)) {
       return { success: false, error: 'Invalid config payload' };
     }
-    const redactedConfig = redactProviderSecretsFromFrontendConfig(config);
-    const filePath = getFrontendConfigPath();
+    const redactedConfig = redactProviderSecretsFromDesktopUiConfig(config);
+    const filePath = getDesktopUiConfigPath();
     await enqueueAtomicWrite(filePath, JSON.stringify(redactedConfig, null, 2), 'utf-8');
     return { success: true };
   } catch (error) {
-    log(`Failed to save frontend config to disk: ${error.message}`);
+    log(`Failed to save desktop UI config to disk: ${error.message}`);
     return { success: false, error: error.message };
   }
 }
 
 module.exports = {
-  loadFrontendConfigFromDisk,
-  loadFrontendConfigFromDiskSync,
-  redactProviderSecretsFromFrontendConfig,
-  saveFrontendConfigToDisk,
+  loadDesktopUiConfigFromDisk,
+  loadDesktopUiConfigFromDiskSync,
+  loadFrontendConfigFromDisk: loadDesktopUiConfigFromDisk,
+  loadFrontendConfigFromDiskSync: loadDesktopUiConfigFromDiskSync,
+  redactDesktopUiConfigProviderSecrets: redactProviderSecretsFromDesktopUiConfig,
+  redactProviderSecretsFromFrontendConfig: redactProviderSecretsFromDesktopUiConfig,
+  saveDesktopUiConfigToDisk,
+  saveFrontendConfigToDisk: saveDesktopUiConfigToDisk,
 };

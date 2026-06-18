@@ -82,7 +82,7 @@ Owns VM automated-query dispatch orchestration:
 Owns IPC startup state hydration:
 
 - loads cached install auth and applies it to main-process install/user state
-- loads cached frontend config and applies shortcut fallback defaults
+- loads cached desktop UI config and applies shortcut fallback defaults
 - updates the global agent stop shortcut accelerator from cached config
 - initializes global stop-shortcut enabled state from the current response-overlay phase
 - treats disk-hydration failures as fail-open startup conditions
@@ -191,14 +191,16 @@ Owns settings-sync state and command orchestration:
 
 ### `ipc_frontend_config.cjs`
 
-Owns persisted frontend-config disk I/O:
+Owns persisted desktop UI config disk I/O:
 
-- `loadFrontendConfigFromDisk`
-- `saveFrontendConfigToDisk` with tmp-write + rename replacement
+- `loadDesktopUiConfigFromDisk`
+- `saveDesktopUiConfigToDisk` with tmp-write + rename replacement
+- the persisted filename remains `frontend-config.json` for compatibility
 
 ### `ipc_frontend_config_handlers.cjs`
 
-Owns frontend-config IPC handler registration:
+Owns desktop UI config IPC handler registration while preserving the legacy
+renderer wire channel names:
 
 - `load-frontend-config`
 - `save-frontend-config`
@@ -277,7 +279,7 @@ generic `to-backend` router or direct chat query IPC handlers.
 10. settings ACK, initial sync, and queued list-models state delegate to
    `ipc_settings_sync_runtime.cjs`.
 11. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-12. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+12. desktop UI config load/save handlers delegate to `ipc_frontend_config.cjs`.
 13. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit SDK agent/conversation methods.
 14. artifact upload/fetch handler registration delegates to

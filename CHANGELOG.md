@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: promote desktop UI config disk helpers as the canonical Electron-main
+  API while preserving `frontend-config.json` plus the existing
+  `load-frontend-config` / `save-frontend-config` IPC wire channels; no
+  migration is required because persisted filename, payloads, redaction,
+  permissions, and credentials behavior are unchanged.
 - sdk/renderer: expose tool-call recovery display fields, display-safe
   metadata, and normalized bundled tool calls on current-turn tool events and
   live presentation entries so renderer tool-call message helpers no longer
