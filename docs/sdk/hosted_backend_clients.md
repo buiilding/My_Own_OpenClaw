@@ -129,7 +129,8 @@ custom executor with `local_runtime=...`, choose discovery through
 `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`. The Python SDK also honors generic
 `AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` and `AGENT_LOCAL_RUNTIME_PYTHON`
 env aliases before the legacy `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` and
-`WINDIE_PYTHON` fallbacks.
+`WINDIE_PYTHON` fallbacks through the private `windie._runtime_env` fallback
+groups.
 
 The Python runtime also exposes `status()`, `list_tools()`, and
 `shutdown_local_runtime()` for the resolved local runtime.

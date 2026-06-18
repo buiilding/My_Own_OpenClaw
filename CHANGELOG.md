@@ -69,6 +69,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/runtime: centralize TypeScript SDK `AGENT_*` and legacy `WINDIE_*` env
   fallbacks in the runtime env contract instead of spelling product-specific
   aliases inside AgentClient and local-runtime orchestration methods.
+- sdk/python: centralize Python SDK local-runtime daemon script, discovery
+  file, and Python executable env fallback groups in a private runtime-env
+  helper while preserving existing generic and WindieOS aliases.
 - sdk/local-runtime: treat daemon discovery launch contexts as compatibility
   supersets so generic Agent SDK and WindieOS launch keys do not force local
   runtime restart loops.

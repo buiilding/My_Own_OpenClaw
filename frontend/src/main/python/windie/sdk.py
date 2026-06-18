@@ -7,7 +7,6 @@ from __future__ import annotations
 import asyncio
 import html
 import json
-import os
 import platform
 import tempfile
 import time
@@ -20,6 +19,12 @@ import aiohttp
 
 from windie._auth import get_authenticated_user_id
 from windie._remote_api_client_base import RemoteApiClientBase
+from windie._runtime_env import (
+    LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS,
+    LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS,
+    LOCAL_RUNTIME_PYTHON_ENV_KEYS,
+    first_env_value,
+)
 from windie._unicode_sanitizer import sanitize_surrogates
 
 DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE = (
@@ -642,10 +647,7 @@ def _read_daemon_discovery(path: Path) -> Optional[dict[str, str]]:
 def _resolve_daemon_script(explicit: Optional[str] = None) -> Path:
     if _clean_string(explicit):
         return Path(str(explicit)).expanduser().resolve()
-    env_value = _clean_string(
-        os.environ.get("AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT")
-        or os.environ.get("WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT")
-    )
+    env_value = first_env_value(LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS)
     if env_value:
         return Path(env_value).expanduser().resolve()
     return Path(__file__).resolve().parents[1] / "sidecar_daemon.py"
@@ -654,10 +656,7 @@ def _resolve_daemon_script(explicit: Optional[str] = None) -> Path:
 def _resolve_local_runtime_discovery_file(explicit: Optional[str] = None) -> Path:
     if _clean_string(explicit):
         return Path(str(explicit)).expanduser()
-    env_value = _clean_string(
-        os.environ.get("AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE")
-        or os.environ.get("WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE")
-    )
+    env_value = first_env_value(LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS)
     if env_value:
         return Path(env_value).expanduser()
     return DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE
@@ -1098,8 +1097,7 @@ class AgentSdkClient(RemoteApiClientBase):
         self.local_runtime_daemon_script = local_runtime_daemon_script
         self.python_command = (
             _clean_string(python_command)
-            or _clean_string(os.environ.get("AGENT_LOCAL_RUNTIME_PYTHON"))
-            or _clean_string(os.environ.get("WINDIE_PYTHON"))
+            or first_env_value(LOCAL_RUNTIME_PYTHON_ENV_KEYS)
             or "python3"
         )
         self._owned_local_runtime_process: asyncio.subprocess.Process | None = None

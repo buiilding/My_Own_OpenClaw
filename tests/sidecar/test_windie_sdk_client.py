@@ -692,6 +692,9 @@ async def test_wake_up_reports_generic_local_runtime_auto_start_failure(tmp_path
 
 def test_python_sdk_local_runtime_errors_use_generic_boundary_wording():
     source = Path(windie_sdk_module.__file__).read_text(encoding="utf-8")
+    runtime_env_source = (
+        Path(windie_sdk_module.__file__).resolve().parent / "_runtime_env.py"
+    ).read_text(encoding="utf-8")
 
     assert "Timed out waiting for local runtime discovery" in source
     assert "Timed out waiting for local sidecar daemon discovery" not in source
@@ -701,13 +704,17 @@ def test_python_sdk_local_runtime_errors_use_generic_boundary_wording():
     assert "sidecar: Any = None" not in source
     assert "sidecar_discovery_file" not in source
     assert "sidecar_daemon_script" not in source
-    assert "AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT" in source
-    assert "WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT" in source
-    assert "AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE" in source
-    assert "WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE" in source
-    assert "AGENT_LOCAL_RUNTIME_PYTHON" in source
-    assert "WINDIE_PYTHON" in source
+    assert "LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS" in source
+    assert "LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS" in source
+    assert "LOCAL_RUNTIME_PYTHON_ENV_KEYS" in source
+    assert "AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT" in runtime_env_source
+    assert "WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT" in runtime_env_source
+    assert "AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE" in runtime_env_source
+    assert "WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE" in runtime_env_source
+    assert "AGENT_LOCAL_RUNTIME_PYTHON" in runtime_env_source
+    assert "WINDIE_PYTHON" in runtime_env_source
     assert "WINDIE_SIDECAR_DAEMON_SCRIPT" not in source
+    assert "WINDIE_SIDECAR_DAEMON_SCRIPT" not in runtime_env_source
 
 
 def test_python_sdk_daemon_script_prefers_generic_env(monkeypatch, tmp_path):

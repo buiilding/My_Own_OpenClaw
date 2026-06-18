@@ -11,6 +11,7 @@ ensure_frontend_python_path()
 import windie  # noqa: E402
 from windie import AgentSdkClient  # noqa: E402
 from windie.sdk import AgentSdkClient as SdkAgentSdkClient  # noqa: E402
+from windie._runtime_env import first_env_value  # noqa: E402
 
 
 def test_windie_package_exports_public_client():
@@ -25,3 +26,9 @@ def test_windie_package_exports_public_client():
 
     assert client.backend_url == "https://api.windieos.com"
     assert client.default_user_id == "dev-user"
+
+
+def test_runtime_env_helper_stays_private_to_sdk_package():
+    assert callable(first_env_value)
+    assert not hasattr(windie, "RuntimeEnv")
+    assert not hasattr(windie, "first_env_value")

@@ -2448,6 +2448,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   credentials, IPC, hosted backend URL handling, and provider policy are
   unchanged.
 
+### 2026-06-18 Python SDK Runtime Env Fallback Slice
+
+- Finding: the TypeScript SDK now centralizes generic Agent SDK and legacy
+  Windie env fallback groups, but the Python SDK still spelled local-runtime
+  daemon script, discovery file, and Python executable fallback names inline in
+  `windie.sdk`.
+- Decision: keep this private to the Python SDK package instead of adding a
+  new public export; external callers should keep using constructor arguments
+  or the documented env names.
+- Change: added private `windie._runtime_env` key groups and first-value
+  fallback helper, routed Python SDK local-runtime fallback resolution through
+  it, and added package-boundary coverage that the helper is not exported from
+  `windie`.
+- Validation: focused Python SDK client and package-boundary pytest coverage,
+  Python compile checks, docs listing, source scans, and `git diff --check`
+  passed.
+- Compatibility: no migration required. Existing generic and WindieOS env
+  aliases keep their precedence; no public SDK API, daemon discovery file, tool
+  routing, IPC, storage, credential, permission, hosted backend URL, or
+  provider-policy contract changes.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

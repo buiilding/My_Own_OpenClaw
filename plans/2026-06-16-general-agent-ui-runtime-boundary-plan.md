@@ -8681,3 +8681,23 @@ Each completed slice should report:
   launches keep using the host-skin key, and logging destinations, stderr
   filtering, JSON-RPC stdout behavior, storage, permissions, credentials, IPC,
   hosted backend URL handling, and provider policy are unchanged.
+
+### 2026-06-18 Python SDK runtime env fallback boundary
+
+- Finding: after the TypeScript SDK env fallback groups moved behind a runtime
+  env contract, the Python SDK still spelled local-runtime daemon script,
+  discovery file, and Python executable env fallbacks inline inside
+  `windie.sdk`.
+- Change: added the private `windie._runtime_env` helper with named
+  local-runtime env key groups and first-value fallback resolution, then routed
+  Python SDK local-runtime script, discovery, and Python command selection
+  through it while keeping the public Python package exports unchanged.
+- Validation: focused Python SDK client and package-boundary pytest coverage,
+  Python compile checks, docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`,
+  `AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE`, `AGENT_LOCAL_RUNTIME_PYTHON`,
+  `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`,
+  `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE`, and `WINDIE_PYTHON` preserve
+  their existing precedence and behavior; no public SDK API, daemon discovery
+  file, tool routing, IPC, storage, credential, permission, hosted backend URL,
+  or provider-policy contract changes.
