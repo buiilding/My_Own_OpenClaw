@@ -81,7 +81,8 @@ Lifecycle and logs:
   <windie> logs vite [--tail <lines>] [--follow] [--no-follow]
   <windie> logs main [--tail <lines>] [--follow] [--no-follow]
   <windie> logs renderer [--verbose] [--tail <lines>] [--follow] [--no-follow]
-  <windie> logs sidecar [--tail <lines>] [--follow] [--no-follow]
+  <windie> logs local-runtime [--tail <lines>] [--follow] [--no-follow]
+  <windie> logs sidecar [--tail <lines>] [--follow] [--no-follow]  # alias
 
 Tests and docs:
   <windie> test backend [args...]
@@ -481,10 +482,10 @@ function resolveFrontendLogFile(env = process.env) {
 
 function normalizeWindieLogTarget(target) {
   const normalized = String(target || '').trim().toLowerCase();
-  if (['frontend', 'vite', 'main', 'renderer', 'sidecar'].includes(normalized)) {
+  if (['frontend', 'vite', 'main', 'renderer', 'local-runtime', 'sidecar'].includes(normalized)) {
     return normalized;
   }
-  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|sidecar');
+  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime|sidecar');
 }
 
 function resolveWindieLogFile(target, env = process.env, { verbose = false } = {}) {
@@ -1215,13 +1216,13 @@ function runLogs(args) {
     }
     return runForeground(script('scripts/dev/backend-logs.sh'), forwarded, { cwd: REPO_ROOT });
   }
-  if (['frontend', 'vite', 'main', 'renderer', 'sidecar'].includes(target)) {
+  if (['frontend', 'vite', 'main', 'renderer', 'local-runtime', 'sidecar'].includes(target)) {
     const verbose = normalizeWindieLogTarget(target) === 'renderer' && hasFlag(args.slice(1), '--verbose');
     const { logFile, tailArgs } = buildLayerLogTailArgs(target, args.slice(1));
     ensureWindieLayerLogFile(target, logFile, { verbose });
     return runForeground('tail', tailArgs, { cwd: REPO_ROOT });
   }
-  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|sidecar');
+  throw new Error('Usage: <windie> logs backend|frontend|vite|main|renderer|local-runtime|sidecar');
 }
 
 function runTest(args) {

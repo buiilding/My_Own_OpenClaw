@@ -43,7 +43,8 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> logs vite` | Tail the captured Vite dev-server log stream. |
 | `<windie> logs main` | Tail Electron main-process logs. |
 | `<windie> logs renderer --verbose` | Tail renderer logs, optionally including verbose renderer entries. |
-| `<windie> logs sidecar` | Tail or print sidecar-log collection guidance. |
+| `<windie> logs local-runtime` | Tail local-runtime daemon logs. |
+| `<windie> logs sidecar` | Compatibility alias for local-runtime daemon logs. |
 | `<windie> logs backend --remote --host windie-prod` | Tail remote backend logs through the guarded backend log command. |
 | `<windie> test backend` | Run backend tests. |
 | `<windie> test sidecar` | Run sidecar tests. |

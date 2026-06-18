@@ -270,10 +270,16 @@ describe('main host skin/config boundary', () => {
     expect(source).toContain("DEFAULT_LOG_DIR_SEGMENTS = Object.freeze(['.desktop-runtime', 'logs'])");
     expect(source).toContain("layerLogFilePrefix: 'AGENT'");
     expect(source).toContain("rendererVerboseLogFile: 'AGENT_RENDERER_VERBOSE_LOG_FILE'");
+    expect(source).toContain("'local-runtime'");
+    expect(source).toContain('LOCAL_RUNTIME');
     expect(source).toContain('configureLayerLogSink');
     expect(skinSource).toContain("layerLogFilePrefix: 'WINDIE'");
     expect(skinSource).toContain("rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE'");
+    expect(skinSource).toContain("aliases: Object.freeze(['sidecar'])");
+    expect(skinSource).toContain("fileName: 'sidecar.log'");
+    expect(skinSource).toContain('SIDECAR');
     expect(source).not.toContain(".windie");
+    expect(source).not.toContain('sidecar');
     expect(source).not.toContain('WINDIE_RENDERER_VERBOSE_LOG_FILE');
     expect(source).not.toContain('WINDIE_');
     expect(source).not.toContain('Unknown Windie log layer');

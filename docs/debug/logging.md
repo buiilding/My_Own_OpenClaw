@@ -1,5 +1,5 @@
 ---
-summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, layer log sink helpers such as ensureLogFile and resolveRendererVerboseLogFile, renderer interaction logger diagnostics and renderer interaction redaction, sidecar stderr, renderer console traces, and packaged app log controls."
+summary: "WindieOS desktop logs and logging guide covering backend LOG_LEVEL profiles, Electron stdout/stderr, layer log sink helpers such as ensureLogFile and resolveRendererVerboseLogFile, renderer interaction logger diagnostics and renderer interaction redaction, local-runtime stderr, renderer console traces, and packaged app log controls."
 read_when:
   - When desktop logs, layer logs, or runtime logs are missing, too noisy, or needed to isolate a bug.
   - When changing logging setup, launch scripts, renderer interaction logger behavior, renderer interaction diagnostics redaction, sidecar stderr handling, or debug trace output.
@@ -9,7 +9,7 @@ title: "Logging"
 
 # Logging
 
-WindieOS has four practical log streams: backend Python logs, Electron main stdout/stderr, renderer DevTools console output, and sidecar Python stderr. Keep protocol stdout clean for sidecar JSON-RPC.
+WindieOS has four practical log streams: backend Python logs, Electron main stdout/stderr, renderer DevTools console output, and local-runtime Python stderr. Keep protocol stdout clean for the local-runtime JSON-RPC path.
 
 ## Backend Logs
 
@@ -46,7 +46,7 @@ Treat `.windie/logs/frontend.log` as an aggregate launcher stream, not as the
 owner for every frontend-layer event. Prefer the layer-owned files and app
 diagnostic paths when proving what a runtime emitted; the aggregate stream is
 useful for quick startup context, but it should not be parsed to reassign events
-to renderer, main, sidecar, or SDK owners.
+to renderer, main, local-runtime, or SDK owners.
 
 `frontend/src/main/logging/layer_log_sink.cjs` owns generic layer log path
 resolution, file initialization, append APIs, renderer verbose log writes, and
@@ -77,7 +77,10 @@ The default `.windie/logs/*` directory and WindieOS log override env names are
 provided by the host skin. Set the `WINDIE_<LAYER>_LOG_FILE` or
 `WINDIE_RENDERER_VERBOSE_LOG_FILE` overrides when a WindieOS run must keep
 writing to a legacy or externally managed path. The reusable sink's generic
-fallback env prefix is `AGENT_`.
+fallback env prefix is `AGENT_`. Generic hosts use the `local-runtime` layer
+and `AGENT_LOCAL_RUNTIME_LOG_FILE`; the WindieOS skin maps that layer to
+`.windie/logs/sidecar.log` and also honors `WINDIE_SIDECAR_LOG_FILE` for
+compatibility.
 
 Important main-process flags:
 
@@ -179,9 +182,9 @@ the renderer sends the `renderer-interaction` payload through `renderer-log`.
 
 Main injects these params through `frontend/src/main/surfaces/main_window_overlay_runtime.cjs` when the matching environment flags are set.
 
-## Sidecar Logs
+## Local Runtime Logs
 
-The Python sidecar logs to stderr in `frontend/src/main/python/local_backend.py`; stdout is reserved for JSON-RPC messages. Do not move sidecar logs to stdout.
+The Python local runtime logs to stderr in `frontend/src/main/python/local_backend.py`; stdout is reserved for JSON-RPC messages. Do not move local-runtime logs to stdout.
 
 | Control | Behavior |
 | --- | --- |
@@ -194,8 +197,12 @@ Useful command:
 
 ```bash
 cd frontend
+<windie> logs local-runtime
 WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
 ```
+
+`<windie> logs sidecar` remains a compatibility alias for the same WindieOS log
+file.
 
 ## Packaged App Logs
 

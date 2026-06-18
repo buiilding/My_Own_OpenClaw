@@ -260,16 +260,16 @@ describe('desktop local runtime launch options', () => {
     );
   });
 
-  test('local runtime daemon lines write to sidecar log layer and stderr stream', () => {
+  test('local runtime daemon lines write to local-runtime log layer and stderr stream', () => {
     const originalEnv = process.env;
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-sidecar-log-'));
-    const logFile = path.join(tempDir, 'sidecar.log');
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-local-runtime-log-'));
+    const logFile = path.join(tempDir, 'local-runtime.log');
     const stderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
     try {
       process.env = {
         ...originalEnv,
-        AGENT_SIDECAR_LOG_FILE: logFile,
+        AGENT_LOCAL_RUNTIME_LOG_FILE: logFile,
       };
       const plan = createDesktopLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },

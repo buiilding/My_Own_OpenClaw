@@ -79,6 +79,13 @@ const mcp = Object.freeze({
 
 const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
+  layerOverrides: Object.freeze({
+    'local-runtime': Object.freeze({
+      aliases: Object.freeze(['sidecar']),
+      envTokens: Object.freeze(['LOCAL_RUNTIME', 'SIDECAR']),
+      fileName: 'sidecar.log',
+    }),
+  }),
   env: Object.freeze({
     layerLogFilePrefix: 'WINDIE',
     rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE',

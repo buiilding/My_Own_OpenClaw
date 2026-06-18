@@ -8,7 +8,6 @@ const util = require('util');
 
 const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const DEFAULT_LOG_DIR_SEGMENTS = Object.freeze(['.desktop-runtime', 'logs']);
-const VALID_LOG_LAYERS = new Set(['frontend', 'vite', 'main', 'renderer', 'sidecar']);
 const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
 const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopRuntimeConsoleStreamErrorGuardInstalled';
 const CONSOLE_LAYER_LOG_INSTALLED = '__desktopRuntimeLayerLogInstalled';
@@ -18,12 +17,40 @@ const DEFAULT_LOG_ENV = Object.freeze({
   layerLogFilePrefix: 'AGENT',
   rendererVerboseLogFile: 'AGENT_RENDERER_VERBOSE_LOG_FILE',
 });
+const DEFAULT_LOG_LAYER_DEFINITIONS = Object.freeze({
+  frontend: Object.freeze({
+    fileName: 'frontend.log',
+    envTokens: Object.freeze(['FRONTEND']),
+  }),
+  vite: Object.freeze({
+    fileName: 'vite.log',
+    envTokens: Object.freeze(['VITE']),
+  }),
+  main: Object.freeze({
+    fileName: 'main.log',
+    envTokens: Object.freeze(['MAIN']),
+  }),
+  renderer: Object.freeze({
+    fileName: 'renderer.log',
+    envTokens: Object.freeze(['RENDERER']),
+  }),
+  'local-runtime': Object.freeze({
+    fileName: 'local-runtime.log',
+    envTokens: Object.freeze(['LOCAL_RUNTIME']),
+  }),
+});
 let configuredLogDir = path.join(REPO_ROOT, ...DEFAULT_LOG_DIR_SEGMENTS);
 let configuredLogEnv = DEFAULT_LOG_ENV;
+let configuredLogLayers = resolveLogLayerConfig();
+
+function normalizeLayerName(value) {
+  return String(value || '').trim().toLowerCase();
+}
 
 function normalizeLayer(layer) {
-  const normalized = String(layer || '').trim().toLowerCase();
-  if (!VALID_LOG_LAYERS.has(normalized)) {
+  const requested = normalizeLayerName(layer);
+  const normalized = configuredLogLayers.aliases[requested] || requested;
+  if (!configuredLogLayers.layers[normalized]) {
     throw new Error(`Unknown desktop log layer: ${layer}`);
   }
   return normalized;
@@ -38,6 +65,14 @@ function normalizeEnvKey(value, fallback) {
 }
 
 function normalizeEnvPrefix(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim().replace(/[^a-zA-Z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+  return normalized.length > 0 ? normalized.toUpperCase() : fallback;
+}
+
+function normalizeEnvToken(value, fallback) {
   if (typeof value !== 'string') {
     return fallback;
   }
@@ -61,8 +96,60 @@ function resolveLogEnvConfig(config = {}) {
   });
 }
 
+function resolveLogLayerConfig(config = {}) {
+  const overrides = config?.layerOverrides && typeof config.layerOverrides === 'object'
+    ? config.layerOverrides
+    : {};
+  const layers = {};
+  const aliases = {};
+  for (const [name, defaults] of Object.entries(DEFAULT_LOG_LAYER_DEFINITIONS)) {
+    const override = overrides[name] && typeof overrides[name] === 'object'
+      ? overrides[name]
+      : {};
+    const defaultTokens = Array.isArray(defaults.envTokens) && defaults.envTokens.length > 0
+      ? defaults.envTokens
+      : [name];
+    const overrideTokens = Array.isArray(override.envTokens)
+      ? override.envTokens
+      : [];
+    const envTokens = [
+      ...overrideTokens,
+      ...defaultTokens,
+    ]
+      .map((token) => normalizeEnvToken(token, defaultTokens[0]))
+      .filter((token, index, collection) => token && collection.indexOf(token) === index);
+    const fileName = typeof override.fileName === 'string' && override.fileName.trim()
+      ? override.fileName.trim()
+      : defaults.fileName;
+    layers[name] = Object.freeze({
+      fileName,
+      envTokens: Object.freeze(envTokens),
+    });
+    if (Array.isArray(override.aliases)) {
+      for (const alias of override.aliases) {
+        const normalizedAlias = normalizeLayerName(alias);
+        if (normalizedAlias && normalizedAlias !== name) {
+          aliases[normalizedAlias] = name;
+        }
+      }
+    }
+  }
+  return Object.freeze({
+    layers: Object.freeze(layers),
+    aliases: Object.freeze(aliases),
+  });
+}
+
 function resolveLayerLogEnvKey(layer) {
-  return `${configuredLogEnv.layerLogFilePrefix}_${normalizeLayer(layer).toUpperCase()}_LOG_FILE`;
+  return resolveLayerLogEnvKeys(layer)[0];
+}
+
+function resolveLayerLogEnvKeys(layer) {
+  const normalizedLayer = normalizeLayer(layer);
+  const layerConfig = configuredLogLayers.layers[normalizedLayer];
+  return layerConfig.envTokens.map((token) => (
+    `${configuredLogEnv.layerLogFilePrefix}_${token}_LOG_FILE`
+  ));
 }
 
 function resolveRendererVerboseLogEnvKey() {
@@ -87,6 +174,7 @@ function resolveLogDirConfig(config = {}) {
 function configureLayerLogSink(config = {}) {
   configuredLogDir = resolveLogDirConfig(config);
   configuredLogEnv = resolveLogEnvConfig(config);
+  configuredLogLayers = resolveLogLayerConfig(config);
   return configuredLogDir;
 }
 
@@ -96,7 +184,9 @@ function getLayerLogDirectory() {
 
 function resolveLayerLogFile(layer, env = process.env, options = {}) {
   const normalizedLayer = normalizeLayer(layer);
-  const configured = env[resolveLayerLogEnvKey(normalizedLayer)];
+  const envKeys = resolveLayerLogEnvKeys(normalizedLayer);
+  const configuredKey = envKeys.find((key) => typeof env[key] === 'string');
+  const configured = configuredKey ? env[configuredKey] : undefined;
   if (configured === '0' || configured === 'false') {
     return null;
   }
@@ -105,7 +195,7 @@ function resolveLayerLogFile(layer, env = process.env, options = {}) {
     return path.isAbsolute(value) ? value : path.join(REPO_ROOT, value);
   }
   const logDir = resolveLogDirConfig({ logDir: options.logDir || getLayerLogDirectory() });
-  return path.join(logDir, `${normalizedLayer}.log`);
+  return path.join(logDir, configuredLogLayers.layers[normalizedLayer].fileName);
 }
 
 function resolveRendererVerboseLogFile(env = process.env, options = {}) {
@@ -367,7 +457,9 @@ module.exports = {
   installConsoleLayerLog,
   resolveLayerLogFile,
   resolveLayerLogEnvKey,
+  resolveLayerLogEnvKeys,
   resolveLogEnvConfig,
+  resolveLogLayerConfig,
   resolveRendererVerboseLogEnvKey,
   resolveRendererVerboseLogFile,
 };

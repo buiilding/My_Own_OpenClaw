@@ -231,7 +231,7 @@ function writeLocalRuntimeDaemonLogLine(line, {
     return false;
   }
   const formatted = text.startsWith('[') ? text : `[LocalRuntimeDaemon] ${text}`;
-  writeLayerLogLine('sidecar', formatted);
+  writeLayerLogLine('local-runtime', formatted);
   stream?.write?.(`${formatted}\n`);
   return true;
 }

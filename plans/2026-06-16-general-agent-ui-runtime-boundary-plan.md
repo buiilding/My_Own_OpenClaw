@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Local Runtime Log Layer Boundary
+
+- Finding: the reusable layer log sink still treated `sidecar` as a built-in
+  generic Electron host layer, and the local-runtime daemon launch path wrote
+  machine-runtime stderr through that historical layer name.
+- Change: added configurable layer metadata to the generic sink, made
+  `local-runtime` the canonical generic machine-runtime log layer, moved the
+  WindieOS `sidecar` alias/file/env compatibility into `mainHostSkin.logging`,
+  and added `<windie> logs local-runtime` while preserving `<windie> logs
+  sidecar`.
+- Validation: focused layer log sink, local runtime launch, Windie CLI, docs
+  index, source scan, and diff-check validation.
+- Compatibility: no migration required. WindieOS still tails
+  `.windie/logs/sidecar.log` by default, still honors `WINDIE_SIDECAR_LOG_FILE`,
+  and still accepts `<windie> logs sidecar`; generic hosts can use
+  `local-runtime`, `local-runtime.log`, and `AGENT_LOCAL_RUNTIME_LOG_FILE`.
+
 ### 2026-06-18 Main Layer Log Env Skin Boundary
 
 - Finding: `layer_log_sink.cjs` had a configurable WindieOS log directory but

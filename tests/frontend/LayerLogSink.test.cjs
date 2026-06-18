@@ -13,8 +13,10 @@ const {
   getLayerLogDirectory,
   installConsoleLayerLog,
   resolveLayerLogEnvKey,
+  resolveLayerLogEnvKeys,
   resolveLayerLogFile,
   resolveLogEnvConfig,
+  resolveLogLayerConfig,
   resolveRendererVerboseLogEnvKey,
   resolveRendererVerboseLogFile,
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
@@ -56,12 +58,22 @@ describe('layer_log_sink', () => {
       .toBe('/tmp/renderer.log');
     expect(resolveLayerLogFile('vite', { AGENT_VITE_LOG_FILE: 'logs/vite.log' }))
       .toBe(path.join(repoRoot, 'logs', 'vite.log'));
-    expect(resolveLayerLogFile('sidecar', { AGENT_SIDECAR_LOG_FILE: '0' })).toBeNull();
+    expect(resolveLayerLogFile('local-runtime', { AGENT_LOCAL_RUNTIME_LOG_FILE: '0' })).toBeNull();
+    expect(resolveLayerLogFile('local-runtime', {})).toBe(
+      path.join(repoRoot, '.desktop-runtime', 'logs', 'local-runtime.log'),
+    );
+    expect(() => resolveLayerLogFile('sidecar', { AGENT_SIDECAR_LOG_FILE: '0' }))
+      .toThrow('Unknown desktop log layer: sidecar');
     expect(resolveLayerLogEnvKey('main')).toBe('AGENT_MAIN_LOG_FILE');
+    expect(resolveLayerLogEnvKey('local-runtime')).toBe('AGENT_LOCAL_RUNTIME_LOG_FILE');
     expect(resolveRendererVerboseLogEnvKey()).toBe('AGENT_RENDERER_VERBOSE_LOG_FILE');
     expect(resolveLogEnvConfig()).toEqual({
       layerLogFilePrefix: 'AGENT',
       rendererVerboseLogFile: 'AGENT_RENDERER_VERBOSE_LOG_FILE',
+    });
+    expect(resolveLogLayerConfig().layers['local-runtime']).toEqual({
+      fileName: 'local-runtime.log',
+      envTokens: ['LOCAL_RUNTIME'],
     });
   });
 
@@ -83,9 +95,21 @@ describe('layer_log_sink', () => {
     configureLayerLogSink(mainHostSkin.logging);
 
     expect(resolveLayerLogEnvKey('main')).toBe('WINDIE_MAIN_LOG_FILE');
+    expect(resolveLayerLogEnvKey('local-runtime')).toBe('WINDIE_LOCAL_RUNTIME_LOG_FILE');
+    expect(resolveLayerLogEnvKeys('local-runtime')).toEqual([
+      'WINDIE_LOCAL_RUNTIME_LOG_FILE',
+      'WINDIE_SIDECAR_LOG_FILE',
+    ]);
     expect(resolveRendererVerboseLogEnvKey()).toBe('WINDIE_RENDERER_VERBOSE_LOG_FILE');
     expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
       .toBe('/tmp/renderer.log');
+    expect(resolveLayerLogFile('local-runtime', {})).toBe(
+      path.join(path.resolve(__dirname, '../..'), '.windie', 'logs', 'sidecar.log'),
+    );
+    expect(resolveLayerLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '/tmp/sidecar.log' }))
+      .toBe('/tmp/sidecar.log');
+    expect(resolveLayerLogFile('sidecar', { WINDIE_LOCAL_RUNTIME_LOG_FILE: '0' }))
+      .toBeNull();
     expect(resolveRendererVerboseLogFile({ WINDIE_RENDERER_VERBOSE_LOG_FILE: '0' }))
       .toBeNull();
   });
