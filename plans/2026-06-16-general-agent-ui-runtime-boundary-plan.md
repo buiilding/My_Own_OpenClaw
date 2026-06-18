@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 channel local-tool runtime wording
+
+- Finding: channel hub, sidecar/tool channel, and channel routing matrix docs
+  still used "SDK desktop runtime" or "SDK agent runtime" labels for local tool
+  execution, and one intro sentence still said frontend/sidecar executed local
+  machine actions as a broad pair.
+- Change: reworded channel docs to SDK/main local-runtime routing plus Python
+  sidecar executor ownership and expanded the modular boundary guard for the
+  retired channel labels.
+- Validation: focused modular boundary test, targeted channel wording scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; SDK
+  local execution, Electron local adapter behavior, sidecar daemon endpoints,
+  renderer display projections, backend tool-result ingress, permissions,
+  credentials, provider policy, and storage are unchanged.
+
 ### 2026-06-18 backend-to-SDK websocket contract test naming
 
 - Finding: the websocket incoming contract test description was already

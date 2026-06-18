@@ -81,9 +81,34 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   architecture, inventory, IPC, and query-relay docs now use backend-wire event
   wording for SDK/main-normalized renderer paths. The websocket incoming
   contract test and current references now use the `BackendSdkWebsocketContract`
-  name instead of the stale frontend/backend boundary label.
+  name instead of the stale frontend/backend boundary label. Channel local-tool
+  docs now describe SDK/main local-runtime routing plus Python sidecar executor
+  ownership instead of SDK desktop/agent runtime labels.
 
 ## Inspection Log
+
+### 2026-06-18 Channel Local-Tool Runtime Wording Slice
+
+- Worktree was clean after `21de44601` before this slice, with `main` ahead of
+  `origin/main` by 814 commits.
+- Recent commits showed channel docs already moving local tools toward SDK
+  runtime ownership, while current channel maps still used "SDK desktop
+  runtime" and "SDK agent runtime" labels for local tool routes.
+- Finding: those labels blurred the requested split: SDK/main owns local-tool
+  routing and result return, Python sidecar owns executable machine actions,
+  and renderer remains a display consumer.
+- Change: reworded `docs/channels/README.md`,
+  `docs/channels/sidecar_and_tool_channels.md`, and
+  `docs/channels/channel_routing_matrix.md` to SDK/main local-runtime routing
+  and Python sidecar executor wording.
+- Change: expanded the modular boundary guard so channel docs cannot reintroduce
+  `SDK desktop runtime` or `SDK agent runtime` local-tool labels.
+- Validation: focused modular boundary test, targeted channel wording scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; SDK
+  local execution, Electron local adapter behavior, sidecar daemon endpoints,
+  renderer display projections, backend tool-result ingress, permissions,
+  credentials, provider policy, and storage are unchanged.
 
 ### 2026-06-18 Backend-to-SDK Websocket Contract Test Naming Slice
 

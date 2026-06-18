@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: align local tool channel maps with SDK/main local-runtime
+  routing and Python sidecar executor wording.
 - tests/docs: rename the websocket incoming contract test and references from
   frontend/backend wording to the backend-to-SDK contract boundary.
 - docs/frontend: align active streaming, IPC, architecture, and query relay

@@ -312,6 +312,9 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('renderer runtime docs describe local tool execution through SDK local runtime', async () => {
     const docs = await Promise.all([
+      read('docs/channels/README.md'),
+      read('docs/channels/sidecar_and_tool_channels.md'),
+      read('docs/channels/channel_routing_matrix.md'),
       read('docs/frontend/README.md'),
       read('docs/frontend/runtime/tool_execution_and_streaming.md'),
       read('docs/frontend/renderer/chat_stream_and_tool_execution_reference.md'),
@@ -320,7 +323,10 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
 
     expect(docText).toContain('SDK local runtime');
+    expect(docText).toContain('SDK/main local runtime');
     expect(docText).toContain('local runtime daemon startup/reuse');
+    expect(docText).not.toContain('SDK desktop runtime');
+    expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('routes tool events to the sidecar daemon');
     expect(docText).not.toContain('through Electron main and the sidecar daemon');
     expect(docText).not.toContain('before sidecar execution');
