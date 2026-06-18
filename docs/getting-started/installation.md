@@ -136,7 +136,7 @@ export BACKEND_WS_URL="ws://192.168.1.50:8765/ws"
 Default fallback behavior:
 
 - Dev/source runs and packaged app runs both use hosted-first endpoint candidates: `https://api.windieos.com` and `wss://api.windieos.com/ws`.
-- If the hosted backend is unreachable before the socket opens, the app falls back to local backend candidates `http://127.0.0.1:8765` and `ws://127.0.0.1:8765/ws`.
+- If the hosted backend is unreachable before the socket opens, the app reports the connection failure and does not silently switch to local backend candidates.
 - Setting explicit `BACKEND_*` or `BACKEND_HOST`/`BACKEND_PORT` overrides this hosted-first candidate list.
 
 #### Configuration Locations

@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/gateway: align active security, endpoint, websocket, and formatter
   workflow docs with SDK/Electron websocket transport and renderer contract
   ownership instead of stale frontend websocket/client contract wording.
+- docs/install: align first-read endpoint fallback guidance with the current
+  explicit local-backend contract instead of claiming hosted failures silently
+  switch to local backend candidates.
 - tests/main: extend the host-skin boundary guard so the hosted runs API auth
   header remains skin-owned instead of moving back into the generic VM worker
   runtime.

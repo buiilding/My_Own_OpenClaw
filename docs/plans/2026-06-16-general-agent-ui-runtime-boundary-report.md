@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Installation Endpoint Fallback Contract
+
+- Worktree was clean after `7b5f1767a`, with `main` ahead of `origin/main` by
+  864 commits.
+- Recent commits and stale endpoint/fallback wording scans were inspected
+  before editing docs.
+- Finding: the first-read installation guide still claimed that hosted backend
+  connection failure before websocket open silently falls back to local backend
+  candidates, conflicting with the current explicit local-backend endpoint
+  contract and main-process lifecycle tests.
+- Change: updated the installation guide to say hosted connection failure is
+  reported unless the user configures explicit local endpoint overrides, and
+  added a modular boundary guard for the obsolete fallback sentence.
+- Validation: focused modular boundary Jest coverage, targeted stale fallback
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  endpoint resolution, websocket connection behavior, local-backend override
+  variables, and packaged defaults are unchanged.
+
 ### 2026-06-18 Websocket Workflow Docs Client Boundary Wording
 
 - Worktree was clean after `2d8f61c4a`, with `main` ahead of `origin/main` by

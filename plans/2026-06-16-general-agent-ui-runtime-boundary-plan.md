@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Installation Endpoint Fallback Contract
+
+- Finding: the first-read installation guide still claimed that hosted backend
+  connection failure before websocket open silently falls back to local backend
+  candidates, conflicting with the current explicit local-backend endpoint
+  contract and main-process lifecycle tests.
+- Change: updated the installation guide to say hosted connection failure is
+  reported unless the user configures explicit local endpoint overrides, and
+  added a modular boundary guard for the obsolete fallback sentence.
+- Validation: focused modular boundary Jest coverage, targeted stale fallback
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  endpoint resolution, websocket connection behavior, local-backend override
+  variables, and packaged defaults are unchanged.
+
 ### 2026-06-18 Websocket Workflow Docs Client Boundary Wording
 
 - Finding: active security, operations, gateway, and formatter workflow docs

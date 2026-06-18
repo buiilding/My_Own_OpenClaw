@@ -269,6 +269,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar-facing');
     expect(docText).not.toContain('Electron app + local Python sidecar + local backend');
     expect(docText).not.toContain('bundling the sidecar does not imply bundling a local backend');
+    expect(docText).not.toContain('falls back to local backend candidates');
     expect(docText).not.toContain('client-local sidecar imports');
   });
 
