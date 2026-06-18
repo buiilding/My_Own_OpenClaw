@@ -32,6 +32,11 @@ describe('main_process_bootstrap_runtime', () => {
         enableDebugToolScreenshot: false,
         vmMode: false,
         vmWorkerMode: false,
+        mainHostSkin: {
+          hostedBackend: {
+            runsApiKeyHeader: 'x-windie-runs-key',
+          },
+        },
         enableOsToolGhostDebug: false,
         responseWindowDebugView: 'tool-ghost-debug',
         initializeIpc: jest.fn(),
@@ -121,6 +126,7 @@ describe('main_process_bootstrap_runtime', () => {
     expect(deps.createVmWorkerRuntime).toHaveBeenCalledWith(expect.objectContaining({
       sendAutomatedQuery: deps.sendAutomatedQuery,
       stopQueryThroughAgentSdkRuntime: deps.stopQueryThroughAgentSdkRuntime,
+      runsApiKeyHeader: 'x-windie-runs-key',
     }));
     expect(vmWorkerRuntime.start).toHaveBeenCalledTimes(1);
     expect(state.vmWorkerRuntime).toBe(vmWorkerRuntime);

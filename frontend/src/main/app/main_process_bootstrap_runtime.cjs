@@ -57,6 +57,7 @@ function createWindowBootstrapRuntime(deps) {
         sendAutomatedQuery: deps.sendAutomatedQuery,
         stopQueryThroughAgentSdkRuntime: deps.stopQueryThroughAgentSdkRuntime,
         registerBackendMessageObserver: deps.registerBackendMessageObserver,
+        runsApiKeyHeader: deps.mainHostSkin?.hostedBackend?.runsApiKeyHeader,
         log: (...args) => deps.log(...args),
         warn: (...args) => deps.warn(...args),
       });

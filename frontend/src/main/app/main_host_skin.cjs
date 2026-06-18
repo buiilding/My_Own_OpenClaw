@@ -18,6 +18,7 @@ const identity = Object.freeze({
 const hostedBackend = Object.freeze({
   httpUrl: 'https://api.windieos.com',
   wsUrl: 'wss://api.windieos.com/ws',
+  runsApiKeyHeader: 'x-windie-runs-key',
 });
 
 const assets = Object.freeze({

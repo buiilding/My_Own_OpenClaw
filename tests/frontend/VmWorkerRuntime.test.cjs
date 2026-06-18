@@ -137,6 +137,7 @@ describe('vm_worker_runtime', () => {
           observer = null;
         };
       },
+      runsApiKeyHeader: 'x-windie-runs-key',
       setIntervalFn: () => 1,
       clearIntervalFn: jest.fn(),
       log: jest.fn(),
@@ -166,6 +167,49 @@ describe('vm_worker_runtime', () => {
       expect.objectContaining({ method: 'POST' }),
     );
     expect(typeof observer).toBe('function');
+    runtime.stop();
+  });
+
+  test('does not bake hosted runs auth header into generic worker runtime', async () => {
+    const fetchFn = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        worker: { worker_id: 'worker-auth' },
+        assigned_run: null,
+        control_commands: [],
+      }),
+    }));
+    const runtime = createVmWorkerRuntime({
+      env: {
+        WINDIE_VM_RUNS_API_KEY: 'worker-runs-key',
+        WINDIE_VM_WORKER_HEARTBEAT_MS: '9999',
+      },
+      fetchFn,
+      getBackendConnectionState: () => ({
+        isConnected: true,
+        userId: 'vm-user-auth',
+        backendHttpUrl: 'http://localhost:8000',
+      }),
+      sendAutomatedQuery: jest.fn(),
+      stopQueryThroughAgentSdkRuntime: jest.fn(),
+      registerBackendMessageObserver: () => () => {},
+      setIntervalFn: () => 1,
+      clearIntervalFn: jest.fn(),
+      log: jest.fn(),
+      warn: jest.fn(),
+    });
+
+    runtime.start();
+    await flushPromises();
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/runs/workers/heartbeat',
+      expect.objectContaining({
+        headers: expect.not.objectContaining({
+          'x-windie-runs-key': 'worker-runs-key',
+        }),
+      }),
+    );
     runtime.stop();
   });
 

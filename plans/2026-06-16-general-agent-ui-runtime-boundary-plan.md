@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main VM Worker Runs Auth Boundary
+
+- Finding: the generic Electron VM worker runtime still constructed the hosted
+  runs API auth header as `x-windie-runs-key`, coupling the reusable worker loop
+  to the WindieOS backend contract instead of host configuration.
+- Change: moved the header name into the WindieOS main host skin and injected it
+  when bootstrap creates the VM worker runtime; the runtime now only sends a
+  runs auth header when the host supplies a header name.
+- Validation: focused VM worker and bootstrap Jest coverage, docs listing,
+  exact source scan for the header in main runtime code, and diff checks.
+- Compatibility: no migration required. WindieOS still sends
+  `x-windie-runs-key` through the host skin, and existing
+  `WINDIE_VM_RUNS_API_KEY` / `WINDIE_RUNS_API_KEY` env lookup order is
+  unchanged.
+
 ### 2026-06-18 Renderer Permission Runtime Client
 
 - Finding: `permissionStore` owned gate derivation and onboarding persistence

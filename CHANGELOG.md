@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: inject the hosted runs API auth header from the WindieOS host
+  skin instead of baking the WindieOS header name into the generic VM worker
+  runtime.
 - sidecar/runtime: rename source-run Python path bootstrap locals from
   frontend-oriented wording to sidecar runtime wording without changing import
   path behavior.

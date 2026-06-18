@@ -91,6 +91,7 @@ function createVmWorkerRuntime(options = {}) {
     clearIntervalFn = clearInterval,
     log = (...args) => console.log(...args),
     warn = (...args) => console.warn(...args),
+    runsApiKeyHeader,
   } = options;
 
   if (typeof getBackendConnectionState !== 'function') {
@@ -114,8 +115,9 @@ function createVmWorkerRuntime(options = {}) {
   const runsApiKey = normalizeOptionalString(
     env.WINDIE_VM_RUNS_API_KEY || env.WINDIE_RUNS_API_KEY,
   );
-  const runsApiHeaders = runsApiKey
-    ? { 'x-windie-runs-key': runsApiKey }
+  const normalizedRunsApiKeyHeader = normalizeOptionalString(runsApiKeyHeader);
+  const runsApiHeaders = runsApiKey && normalizedRunsApiKeyHeader
+    ? { [normalizedRunsApiKeyHeader]: runsApiKey }
     : null;
 
   let active = false;

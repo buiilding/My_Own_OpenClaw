@@ -51,7 +51,9 @@ Optional env inputs:
   - `WINDIE_VM_RUNS_API_KEY`
   - `WINDIE_RUNS_API_KEY`
 
-If key resolves, worker includes `x-windie-runs-key` on all `/api/runs/*` HTTP calls.
+If a key resolves and the host skin supplies a runs API key header, the worker
+includes that header on all `/api/runs/*` HTTP calls. The WindieOS host skin
+uses `x-windie-runs-key` for the hosted runs API.
 
 Heartbeat interval parsing:
 

@@ -173,6 +173,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main VM Worker Runs Auth Boundary
+
+- Worktree was clean after `03100ed7a`, with `main` ahead of `origin/main` by
+  860 commits.
+- Recent main VM worker commits, runs API docs, and relevant uncommitted
+  changes were inspected before touching hosted runs auth wiring.
+- Finding: the generic Electron VM worker runtime still constructed the hosted
+  runs API auth header as `x-windie-runs-key`, coupling the reusable worker loop
+  to the WindieOS backend contract instead of the host configuration that owns
+  hosted endpoint details.
+- Change: moved the runs API header name into the WindieOS main host skin and
+  injected it when bootstrap creates the VM worker runtime. The worker runtime
+  now only emits a runs auth header when the host supplies a header name.
+- Validation: focused VM worker and bootstrap Jest coverage, targeted source
+  scan proving the WindieOS header string only remains in the main host skin
+  under `frontend/src/main`, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still sends
+  `x-windie-runs-key` through host skin configuration, and existing
+  `WINDIE_VM_RUNS_API_KEY` / `WINDIE_RUNS_API_KEY` env lookup order is
+  unchanged.
+
 ### 2026-06-18 Python Sidecar Bootstrap Path Naming
 
 - Worktree was clean after `182dcf439`, with `main` ahead of `origin/main` by
