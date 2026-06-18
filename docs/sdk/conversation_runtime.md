@@ -409,6 +409,9 @@ Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
 `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
+Completed-turn model metadata is normalized onto `payload.modelId` and
+`payload.modelProvider` before runtime title generation, so runtime code does
+not unwrap raw backend payloads to recover model identity.
 Active desktop completion and error phase tracking consumes
 `snapshot.currentTurn.phase` and `snapshot.currentTurn.lastError`; renderer raw
 terminal handlers should only materialize/persist transcript rows for

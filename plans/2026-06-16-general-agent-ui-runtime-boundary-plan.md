@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK completed-turn model metadata boundary
+
+- Finding: SDK completed-turn title generation still recovered model/provider
+  metadata by unwrapping `payload.rawEvent` from normalized backend events when
+  `streaming-complete` carried model fields only in the raw backend payload.
+- Change: normalized completed-turn `modelId` and `modelProvider` in
+  `backendEventNormalizer` and removed the runtime `rawBackendPayload(...)`
+  fallback from `ConversationRuntime`; updated checked-in CJS parity.
+- Validation: focused SDK conversation-runtime Jest coverage, source stale
+  raw-backend-payload scan, docs listing, and diff check.
+- Compatibility: no migration required. The existing `turn_completed` event
+  remains the same event type and now carries already-used camelCase model
+  fields directly; backend websocket events, transcript storage, title RPC
+  payloads, credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 renderer live-turn payload fallback boundary
 
 - Finding: the renderer live current-turn presentation adapter still used raw

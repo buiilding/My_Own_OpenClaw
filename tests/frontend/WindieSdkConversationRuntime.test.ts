@@ -2348,7 +2348,11 @@ describe('Agent SDK conversation runtime core', () => {
       conversation_ref: 'conv-sdk-runtime',
       user_id: 'user-sdk-runtime',
       turn_ref: 'turn-1',
-      payload: { final_response: 'final assistant answer' },
+      payload: {
+        final_response: 'final assistant answer',
+        model_id: 'gpt-normalized',
+        model_provider: 'openai',
+      },
     });
 
     expect(assistant).toMatchObject({
@@ -2362,6 +2366,8 @@ describe('Agent SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         finalResponse: 'final assistant answer',
         userId: 'user-sdk-runtime',
+        modelId: 'gpt-normalized',
+        modelProvider: 'openai',
       }),
     });
     expect(buildDisplayConversation([

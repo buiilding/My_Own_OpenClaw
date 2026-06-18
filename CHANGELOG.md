@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: normalize completed-turn model metadata onto `turn_completed` events so
+  title generation consumes SDK event fields instead of unwrapping
+  `payload.rawEvent`.
 - renderer: build live current-turn tool rows only from explicit SDK
   presentation/tool-event fields instead of raw `payload` or
   `structuredPayload` fallbacks, keeping backend-shaped tool details inside

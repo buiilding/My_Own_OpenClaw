@@ -185,10 +185,6 @@ function titleStateAllowsGeneratedTitle(response) {
 function titleGenerationKey(input) {
     return `${input.userId}:${input.conversationRef}`;
 }
-function rawBackendPayload(event) {
-    const rawEvent = isJsonRecord(event.payload.rawEvent) ? event.payload.rawEvent : {};
-    return isJsonRecord(rawEvent.payload) ? rawEvent.payload : {};
-}
 class SdkConversationRuntime {
     constructor(options) {
         this.options = options;
@@ -1601,16 +1597,12 @@ class SdkConversationRuntime {
         }
     }
     completedTurnModelId(event) {
-        const rawPayload = rawBackendPayload(event);
         return stringPayloadField(this.state.settings, 'selected_model_id', 'modelId', 'model_id')
-            ?? stringPayloadField(event.payload, 'modelId', 'model_id', 'selected_model_id')
-            ?? stringPayloadField(rawPayload, 'model_id', 'modelId', 'selected_model_id');
+            ?? stringPayloadField(event.payload, 'modelId', 'model_id', 'selected_model_id');
     }
     completedTurnModelProvider(event) {
-        const rawPayload = rawBackendPayload(event);
         return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider')
-            ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider')
-            ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider');
+            ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider');
     }
     nextLocalEventId(turnRef, type) {
         const scope = turnRef && turnRef.trim() ? turnRef.trim() : this.options.conversationRef;

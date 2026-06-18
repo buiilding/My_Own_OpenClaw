@@ -358,11 +358,6 @@ function titleGenerationKey(input: CompletedTurnTitleInput): string {
   return `${input.userId}:${input.conversationRef}`;
 }
 
-function rawBackendPayload(event: ConversationEvent): JsonRecord {
-  const rawEvent = isJsonRecord(event.payload.rawEvent) ? event.payload.rawEvent : {};
-  return isJsonRecord(rawEvent.payload) ? rawEvent.payload : {};
-}
-
 export class SdkConversationRuntime {
   private state: ConversationRuntimeState;
   private events: ConversationEvent[] = [];
@@ -1849,17 +1844,13 @@ export class SdkConversationRuntime {
   }
 
   private completedTurnModelId(event: ConversationEvent): string | undefined {
-    const rawPayload = rawBackendPayload(event);
     return stringPayloadField(this.state.settings, 'selected_model_id', 'modelId', 'model_id')
-      ?? stringPayloadField(event.payload, 'modelId', 'model_id', 'selected_model_id')
-      ?? stringPayloadField(rawPayload, 'model_id', 'modelId', 'selected_model_id');
+      ?? stringPayloadField(event.payload, 'modelId', 'model_id', 'selected_model_id');
   }
 
   private completedTurnModelProvider(event: ConversationEvent): string | undefined {
-    const rawPayload = rawBackendPayload(event);
     return stringPayloadField(this.state.settings, 'model_provider', 'modelProvider')
-      ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider')
-      ?? stringPayloadField(rawPayload, 'model_provider', 'modelProvider');
+      ?? stringPayloadField(event.payload, 'modelProvider', 'model_provider');
   }
 
   private nextLocalEventId(turnRef: string | null | undefined, type: string): string {

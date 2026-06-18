@@ -353,6 +353,8 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 finalResponse: typeof payload.final_response === 'string' ? payload.final_response : null,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
+                modelId: stringField(payload, 'model_id', 'modelId', 'selected_model_id'),
+                modelProvider: stringField(payload, 'model_provider', 'modelProvider'),
                 ...backendMetadata,
             },
         });
