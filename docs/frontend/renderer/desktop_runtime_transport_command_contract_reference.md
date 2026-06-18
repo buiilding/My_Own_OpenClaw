@@ -136,8 +136,8 @@ enablement commands. The MCP dashboard section owns registry normalization,
 toggle presentation, and error display while delegating desktop IPC commands to
 this client.
 
-`desktopAgentExtensionRuntimeClient.ts` owns agent extension metadata loading and
-agent capability event fan-out. Agent settings owns extension/tool presentation,
+`desktopExtensionRuntimeClient.ts` owns extension metadata loading and agent
+capability event fan-out. Agent settings owns extension/tool presentation,
 tool toggle config patches, and manifest/catalog state projection while
 delegating the desktop event and metadata channels to this client.
 

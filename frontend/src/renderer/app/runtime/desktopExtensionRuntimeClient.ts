@@ -1,5 +1,5 @@
 /**
- * Coordinates desktop agent extension metadata and capability events.
+ * Coordinates desktop extension metadata and capability events.
  */
 
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
@@ -11,7 +11,7 @@ export type AgentCapabilityEvent = {
 
 export type AgentCapabilityEventListener = (event?: AgentCapabilityEvent) => void;
 
-export const DesktopAgentExtensionRuntimeClient = {
+export const DesktopExtensionRuntimeClient = {
   listAgentExtensions(): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS);
   },

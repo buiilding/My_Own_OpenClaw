@@ -15,7 +15,7 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/settings/AgentSettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js`
-- `frontend/src/renderer/app/runtime/desktopAgentExtensionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppConfigContext.jsx`
 - `tests/frontend/SettingsSection.test.jsx`
 
@@ -128,8 +128,8 @@ the app root applies the effective theme to shared dashboard/settings tokens.
 
 Runtime inputs:
 
-- `DesktopAgentExtensionRuntimeClient.listAgentExtensions()`
-- `DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent(...)`
+- `DesktopExtensionRuntimeClient.listAgentExtensions()`
+- `DesktopExtensionRuntimeClient.onAgentCapabilityEvent(...)`
 
 The tab should not import desktop IPC channels directly. It consumes extension
 metadata and capability events through the runtime client, then keeps all UI

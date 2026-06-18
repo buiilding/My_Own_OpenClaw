@@ -27,6 +27,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/settings: rename the extension metadata/capability event runtime
+  facade from `DesktopAgentExtensionRuntimeClient` to
+  `DesktopExtensionRuntimeClient`, keeping agent settings on a generic desktop
+  runtime client instead of the retired desktop-agent label. No migration
+  required.
 - sidecar/memory: stamp new Python local-runtime memory diagnostics and search
   traces with `runtime: "local-runtime"` instead of the retired `sidecar`
   runtime label. No migration required for historical trace rows.

@@ -8,7 +8,7 @@ import {
   formatToolAcceptanceRuntimeSummary,
   desktopRuntimeSkin,
 } from '../../../../../app/skin/desktopRuntimeSkin';
-import { DesktopAgentExtensionRuntimeClient } from '../../../../../app/runtime/desktopAgentExtensionRuntimeClient';
+import { DesktopExtensionRuntimeClient } from '../../../../../app/runtime/desktopExtensionRuntimeClient';
 import { CloneToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
@@ -47,7 +47,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
     : [];
 
   useEffect(() => {
-    DesktopAgentExtensionRuntimeClient.listAgentExtensions()
+    DesktopExtensionRuntimeClient.listAgentExtensions()
       .then((payload) => {
         setExtensionRuntime({
           plugins: Array.isArray(payload?.plugins) ? payload.plugins : [],
@@ -60,7 +60,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
         setExtensionRuntime({ plugins: [], skills: [], mcps: [], errors: [] });
       });
 
-    const removeListener = DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent((event) => {
+    const removeListener = DesktopExtensionRuntimeClient.onAgentCapabilityEvent((event) => {
       if (event?.type === 'client-tool-manifest') {
         setManifestStatus({
           accepted: Array.isArray(event.payload?.accepted) ? event.payload.accepted : [],

@@ -755,7 +755,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   path.
 - Finding: `AgentSettingsTab` still imported agent extension metadata and
   capability event IPC channels directly.
-- Change: added `DesktopAgentExtensionRuntimeClient` for extension metadata and
+- Change: added `DesktopExtensionRuntimeClient` for extension metadata and
   agent capability fan-out, then routed `AgentSettingsTab` through it while
   leaving extension/tool presentation, accepted/rejected manifest state, remote
   catalog state, and config toggles in the tab.

@@ -875,7 +875,7 @@ Each completed slice should report:
 
 - Finding: `AgentSettingsTab` still imported agent extension metadata and
   capability event IPC channels directly.
-- Change: added `DesktopAgentExtensionRuntimeClient` for extension metadata and
+- Change: added `DesktopExtensionRuntimeClient` for extension metadata and
   agent capability fan-out, then routed `AgentSettingsTab` through it while
   leaving extension/tool presentation, accepted/rejected manifest state, remote
   catalog state, and config toggles in the tab.
@@ -884,6 +884,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Extension metadata payloads,
   `client-tool-manifest` and `remote-tool-catalog` events, tool toggles,
   storage, credentials, and provider policy are unchanged.
+
+### 2026-06-18 Renderer Extension Runtime Client Naming Boundary
+
+- Finding: the renderer extension runtime facade still used the
+  `DesktopAgentExtensionRuntimeClient` name even though the surrounding
+  renderer app-runtime clients are generic desktop runtime transport facades.
+- Change: renamed the facade and module to `DesktopExtensionRuntimeClient` /
+  `desktopExtensionRuntimeClient.ts`, keeping `AgentSettingsTab` responsible
+  only for extension/tool presentation and config patches.
+- Validation: focused renderer settings boundary and agent settings Jest
+  coverage, targeted retired-name source scan, docs listing, and diff check.
+- Compatibility: no migration required. IPC channel names, extension metadata
+  payloads, capability events, settings storage, credentials, provider policy,
+  and local-runtime execution are unchanged.
 
 ### 2026-06-18 Renderer MCP Runtime Client
 

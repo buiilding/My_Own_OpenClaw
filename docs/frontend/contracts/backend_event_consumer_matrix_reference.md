@@ -119,7 +119,7 @@ Effects:
 ### Agent capability consumer (`AgentSettingsTab`)
 
 Consumes `agent-capability-event` payloads through
-`DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent(...)`:
+`DesktopExtensionRuntimeClient.onAgentCapabilityEvent(...)`:
 
 - `client-tool-manifest`
 - `remote-tool-catalog`

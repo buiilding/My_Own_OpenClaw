@@ -161,7 +161,7 @@ describe('renderer settings runtime boundary', () => {
       'utf8',
     );
     const clientSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAgentExtensionRuntimeClient.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient.ts'),
       'utf8',
     );
 
@@ -170,10 +170,12 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('ON_CHANNELS');
     expect(source).not.toContain('LIST_AGENT_EXTENSIONS');
     expect(source).not.toContain('AGENT_CAPABILITY_EVENT');
-    expect(source).toContain('DesktopAgentExtensionRuntimeClient.listAgentExtensions');
-    expect(source).toContain('DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent');
+    expect(source).toContain('DesktopExtensionRuntimeClient.listAgentExtensions');
+    expect(source).toContain('DesktopExtensionRuntimeClient.onAgentCapabilityEvent');
+    expect(source).not.toContain('DesktopAgentExtensionRuntimeClient');
     expect(clientSource).toContain('INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS');
     expect(clientSource).toContain('ON_CHANNELS.AGENT_CAPABILITY_EVENT');
+    expect(clientSource).not.toContain('DesktopAgentExtensionRuntimeClient');
   });
 
   test('settings runtime facade describes SDK command IPC rather than backend IPC', async () => {
