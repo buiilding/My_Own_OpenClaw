@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - sidecar/main: rename daemon launch source-identity env metadata from `WINDIE_SIDECAR_SOURCE_*` to `WINDIE_LOCAL_RUNTIME_SOURCE_*`; no migration is required because the keys are Electron-produced launch-context metadata and discovery-file location, daemon routes, JSON-RPC payloads, tool schemas, env controls, and stored settings are unchanged.
 
+- sidecar/main: rename daemon launch source-identity env metadata from `WINDIE_SIDECAR_SOURCE_*` to `WINDIE_LOCAL_RUNTIME_SOURCE_*`; no migration is required because the keys are Electron-produced launch-context metadata and discovery-file location, daemon routes, JSON-RPC payloads, tool schemas, env controls, and stored settings are unchanged.
+
 - frontend/main: rename the runtime path launch helper to `resolveLocalRuntimeLaunchTarget` and remove the sidecar-named export while preserving packaged sidecar resource paths and Python service filenames; no migration is required because packaged resources, env vars, daemon discovery, JSON-RPC payloads, tool schemas, and stored settings are unchanged.
 
 - sidecar: move platform WindowManager selection from the `core.platform` package root to `core.platform.window_manager` and remove `core/platform/__init__.py`; no migration is required because JSON-RPC methods, tool schemas, window-manager behavior, and platform adapters are unchanged.

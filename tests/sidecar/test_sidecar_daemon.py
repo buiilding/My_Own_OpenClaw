@@ -33,6 +33,8 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
     assert '"[LocalRuntimeDaemon] stopping' in source
     assert "WindieOS sidecar" not in source
     assert "Run the WindieOS sidecar daemon." not in source
+    assert "WINDIE_SIDECAR_SOURCE_PATH" not in source
+    assert "WINDIE_SIDECAR_SOURCE_STAMP" not in source
     assert f'emit_sidecar_layer_log("{retired_local_sidecar_prefix}", "status requested")' not in source
     assert 'emit_sidecar_layer_log("[LocalBackend]", "status requested")' not in source
     assert '"[SidecarDaemon] listening' not in source
@@ -355,8 +357,8 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
         "WINDIE_ENABLE_SEMANTIC_SUMMARIZER": "0",
         "WINDIE_PACKAGED_APP": "",
         "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL": "",
-        "WINDIE_SIDECAR_SOURCE_PATH": "",
-        "WINDIE_SIDECAR_SOURCE_STAMP": "",
+        "WINDIE_LOCAL_RUNTIME_SOURCE_PATH": "",
+        "WINDIE_LOCAL_RUNTIME_SOURCE_STAMP": "",
     }
 
 

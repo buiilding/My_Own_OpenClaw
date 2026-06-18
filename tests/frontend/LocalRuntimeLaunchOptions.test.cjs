@@ -34,9 +34,13 @@ describe('desktop local runtime launch options', () => {
     expect(source).toContain('LOCAL_RUNTIME_SOURCE_STAMP_FILES');
     expect(source).toContain('resolveLocalRuntimeSourceStamp');
     expect(source).toContain('buildLocalRuntimeLaunchContextFromEnv');
+    expect(source).toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
+    expect(source).toContain('WINDIE_LOCAL_RUNTIME_SOURCE_STAMP');
     expect(source).not.toContain('buildSidecarDaemonEnv');
     expect(source).not.toContain('writeSidecarDaemonLogLine');
     expect(source).not.toContain(['SIDECAR', 'SOURCE', 'STAMP', 'FILES'].join('_'));
+    expect(source).not.toContain('WINDIE_SIDECAR_SOURCE_PATH');
+    expect(source).not.toContain('WINDIE_SIDECAR_SOURCE_STAMP');
     expect(source).not.toContain(['resolveSidecar', 'SourceStamp'].join(''));
     expect(source).not.toContain(['buildSidecar', 'LaunchContextFromEnv'].join(''));
   });
@@ -85,11 +89,16 @@ describe('desktop local runtime launch options', () => {
     });
 
     expect(plan.ok).toBe(true);
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBe(plan.launchTarget.resolvedPath);
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toContain('sidecar_daemon.py:');
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toContain('local_backend.py:');
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP)
+    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH)
+      .toBe(plan.launchTarget.resolvedPath);
+    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
+      .toContain('sidecar_daemon.py:');
+    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
+      .toContain('local_backend.py:');
+    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
       .toContain('local_backend_memory_handlers.py:');
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBeUndefined();
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toBeUndefined();
   });
 
   test('desktop launch owns a fresh sidecar instead of reusing discovered daemons', () => {

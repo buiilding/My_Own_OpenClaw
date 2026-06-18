@@ -33,8 +33,8 @@ const DAEMON_LAUNCH_CONTEXT_ENV_KEYS = [
   'WINDIE_ENABLE_SEMANTIC_SUMMARIZER',
   'WINDIE_PACKAGED_APP',
   'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
-  'WINDIE_SIDECAR_SOURCE_PATH',
-  'WINDIE_SIDECAR_SOURCE_STAMP',
+  'WINDIE_LOCAL_RUNTIME_SOURCE_PATH',
+  'WINDIE_LOCAL_RUNTIME_SOURCE_STAMP',
 ];
 
 const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
@@ -100,8 +100,8 @@ function buildLocalRuntimeDaemonEnv({
     WINDIE_BACKEND_HTTP_URL: endpointConfig.httpUrl,
     WINDIE_PACKAGED_APP: isPackaged ? '1' : '0',
     WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: isPackaged ? '0' : '1',
-    WINDIE_SIDECAR_SOURCE_PATH: sourceIdentity.sourcePath,
-    WINDIE_SIDECAR_SOURCE_STAMP: sourceIdentity.sourceStamp,
+    WINDIE_LOCAL_RUNTIME_SOURCE_PATH: sourceIdentity.sourcePath,
+    WINDIE_LOCAL_RUNTIME_SOURCE_STAMP: sourceIdentity.sourceStamp,
     ...(typeof authStatePath === 'string' && authStatePath.trim()
       ? { WINDIE_BACKEND_AUTH_STATE_PATH: authStatePath.trim() }
       : {}),

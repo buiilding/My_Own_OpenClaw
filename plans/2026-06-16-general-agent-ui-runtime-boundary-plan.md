@@ -138,6 +138,24 @@ Each completed slice should report:
   discovery-file location, daemon routes, JSON-RPC payloads, tool schemas,
   env controls, and stored settings are unchanged.
 
+### 2026-06-17 local runtime source identity env boundary
+
+- Finding: Electron main still stamped daemon launch source identity into
+  `WINDIE_SIDECAR_SOURCE_PATH` and `WINDIE_SIDECAR_SOURCE_STAMP`, and the
+  daemon recorded those sidecar-named keys into discovery launch metadata even
+  though this metadata describes the SDK local-runtime launch context.
+- Change: renamed the source-identity launch-context keys to
+  `WINDIE_LOCAL_RUNTIME_SOURCE_PATH` and
+  `WINDIE_LOCAL_RUNTIME_SOURCE_STAMP`, updated the daemon discovery metadata,
+  and locked main/sidecar tests so the old keys are absent.
+- Validation: focused local-runtime launch-option Jest coverage, focused
+  sidecar daemon pytest coverage, docs listing, stale env-key scans, and diff
+  checks.
+- Compatibility: no migration required. The keys are process launch-context
+  metadata written by Electron main and consumed by the daemon at startup;
+  discovery-file location, daemon routes, JSON-RPC payloads, tool schemas,
+  env controls, and stored settings are unchanged.
+
 ### 2026-06-17 main local runtime launch resolver boundary
 
 - Finding: `runtime_paths.cjs` still exported the canonical launch helper as
