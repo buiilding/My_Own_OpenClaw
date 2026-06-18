@@ -255,6 +255,7 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
 
     expect(docText).toContain('SDK local runtime');
+    expect(docText).toContain('local-runtime hosted helper services');
     expect(docText).toContain('local runtime-backed tool');
     expect(docText).toContain('local-runtime executed');
     expect(docText).toContain('local-runtime browser execution, Python sidecar adapters');
@@ -269,6 +270,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('local sidecar-backed tool');
     expect(docText).not.toContain('local sidecar execution');
     expect(docText).not.toContain('sidecar-facing');
+    expect(docText).not.toContain('sidecar-owned hosted helper services');
     expect(docText).not.toContain('Electron app + local Python sidecar + local backend');
     expect(docText).not.toContain('bundling the sidecar does not imply bundling a local backend');
     expect(docText).not.toContain('falls back to local backend candidates');
@@ -1288,6 +1290,7 @@ describe('modular sdk refactor completion boundary', () => {
         'ipc.cjs keeps backend transport and frontend session state',
         'sidecar owns local execution + memory/runtime dependency bootstrap',
         'sidecar owns execution',
+        'sidecar-owned hosted helper services',
         'backend bridge logic',
         'Tool runtime services',
         'Tool execution stack',
@@ -1317,7 +1320,10 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('Renderer Voice Capture');
     expect(docText).toContain('Electron Wakeword Bridge');
+    expect(docText).toContain('local-runtime wakeword helper');
     expect(docText).not.toContain('Frontend Voice Capture');
     expect(docText).not.toContain('Frontend Wakeword Bridge');
+    expect(docText).not.toContain('Python sidecar owns wakeword model bootstrap');
+    expect(docText).not.toContain('Electron bridge to the sidecar wakeword service');
   });
 });

@@ -9508,6 +9508,21 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 Hosted Helper Client Local-Runtime Wording
+
+- Finding: provider and Python sidecar architecture docs still described
+  semantic summarization/backend helper calls as `sidecar-owned hosted helper
+  services`, which blurred the current local-runtime hosted-client boundary.
+- Change: reworded those docs to local-runtime hosted helper services consumed
+  by local-runtime remote clients, and extended the modular docs guard to reject
+  the retired sidecar-owned helper phrase.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, hosted helper clients,
+  semantic summarization behavior, endpoint/auth config, payloads, storage, IPC,
+  settings, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-18 Channel Routing Local-Runtime Labels
 
 - Finding: `docs/channels/channel_routing_matrix.md` still labeled the

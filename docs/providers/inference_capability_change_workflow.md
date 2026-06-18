@@ -34,9 +34,8 @@ deployment choices instead of cross-runtime rewrites.
 - SDK routes expose OCR/vision developer APIs, but do not own provider
   selection.
 - SDK clients consume hosted embedding/title services for memory and naming.
-  Sidecar remote clients may consume sidecar-owned hosted helper services such
-  as semantic summarization, but must not import backend provider or router
-  code.
+  Local-runtime remote clients may consume hosted helper services such as
+  semantic summarization, but must not import backend provider or router code.
 - Frontend settings can update allowed config fields, but must not duplicate
   provider factory rules.
 

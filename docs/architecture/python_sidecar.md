@@ -17,7 +17,7 @@ The sidecar is the local execution runtime, not a replacement backend. Its role 
 
 - execute actions that must happen on the user's machine
 - expose local tool APIs to the UI and SDK
-- call the hosted backend only for sidecar-owned hosted helper services such as semantic summarization
+- call the hosted backend only for local-runtime hosted helper services such as semantic summarization
 - call the hosted backend through transport-only clients instead of importing backend Python packages
 
 The intended open-source distribution is UI + sidecar + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.

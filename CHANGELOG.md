@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/providers: route hosted semantic/helper client wording through
+  local-runtime hosted helper services instead of sidecar-owned hosted helper
+  services. No migration required.
 - docs/channels: align the channel routing matrix with local-runtime tool and
   payload ownership labels while preserving Python sidecar daemon
   implementation details. No migration required.

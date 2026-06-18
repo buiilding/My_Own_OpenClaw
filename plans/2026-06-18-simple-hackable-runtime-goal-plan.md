@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a hosted helper client wording slice by updating
+  `docs/architecture/python_sidecar.md` and
+  `docs/providers/inference_capability_change_workflow.md` so semantic/helper
+  backend calls are described as local-runtime hosted helper services consumed
+  by local-runtime remote clients, not sidecar-owned hosted helper services.
+  The modular docs guard now rejects the retired sidecar-owned helper wording.
+  Validation: focused modular docs boundary test, docs listing, exact stale
+  phrase scan, and diff checks. No migration required; no code path, payload,
+  storage, IPC, settings, tool schema, credential, permission, hosted URL, or
+  provider-policy behavior changed.
 - 2026-06-18: completed a channel routing matrix ownership label slice by
   updating `docs/channels/channel_routing_matrix.md` so local tool channels and
   payload groups use local-runtime tool and local-runtime implementation labels
