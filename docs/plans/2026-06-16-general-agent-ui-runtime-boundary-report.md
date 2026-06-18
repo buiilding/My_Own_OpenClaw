@@ -115,9 +115,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   routing matrix now names desktop/local owners and desktop client/Python
   sidecar payload ownership instead of frontend/sidecar labels. Local tool
   registry, path-resolution, wait, and PDF dependency diagnostics now qualify
-  Python sidecar runtime/tool ownership.
+  Python sidecar runtime/tool ownership. Tool authoring, extension, and sidecar
+  daemon docs now qualify built-in Python sidecar tool ownership.
 
 ## Inspection Log
+
+### 2026-06-18 Built-In Python Sidecar Tool Docs Wording Slice
+
+- Worktree was clean after `60679a0c5`, with `main` ahead of `origin/main` by
+  829 commits.
+- Finding: tool authoring, extension, and sidecar daemon docs still used
+  unqualified built-in sidecar tool wording.
+- Change: qualified those references as built-in Python sidecar tools and
+  added a modular docs guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; tool
+  manifests, registry behavior, plugin/MCP loading, JSON-RPC, IPC, storage,
+  credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Python Sidecar Tool Diagnostic Wording Slice
 

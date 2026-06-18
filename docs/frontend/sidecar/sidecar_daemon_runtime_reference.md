@@ -23,7 +23,7 @@ The daemon:
 - is started/reused by the SDK auto-local-runtime provider from desktop launch options
   supplied by Electron main
 - owns the app-session `LocalRuntimeService` instance and its `LocalMemoryStore`
-- exposes built-in sidecar tools through the existing `ToolRegistry`
+- exposes built-in Python sidecar tools through the existing `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
 
 The daemon is the single local memory owner. Electron should route legacy local JSON-RPC calls through daemon `POST /rpc` instead of spawning standalone `local_backend.py` beside it. A second `LocalRuntimeService` process can race SQLite writes while embedding backfill is running.

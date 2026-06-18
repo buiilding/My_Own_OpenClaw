@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Built-In Python Sidecar Tool Docs Wording
+
+- Finding: tool authoring, extension, and sidecar daemon docs still used
+  unqualified built-in sidecar tool wording.
+- Change: qualified those references as built-in Python sidecar tools and
+  added a modular docs guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; tool
+  manifests, registry behavior, plugin/MCP loading, JSON-RPC, IPC, storage,
+  credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Python Sidecar Tool Diagnostic Wording
 
 - Finding: local tool registry, path-resolution, wait, and PDF dependency

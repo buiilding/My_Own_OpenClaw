@@ -558,6 +558,7 @@ describe('modular sdk refactor completion boundary', () => {
       'frontend/sidecar owns built-in local tool schemas',
     );
     expect(docText).not.toContain('client-local sidecar tool');
+    expect(docText).not.toContain('built-in sidecar tools');
     expect(docText).not.toContain('sidecar plugins under `plugins/*/plugin.json`');
     expect(docText).not.toContain('local sidecar tools');
     expect(docText).not.toContain('local sidecar execution');

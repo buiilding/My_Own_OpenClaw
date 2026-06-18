@@ -266,7 +266,7 @@ If you add backend-only tools, document the wiring point in the same PR.
 1. For backend-owned tools, confirm backend stub is present in
    `backend/src/tools/tool_catalog.py` and the concrete
    `backend/src/tools/remote_tools/<domain>.py` module.
-2. For built-in sidecar tools, confirm the tool is listed in
+2. For built-in Python sidecar tools, confirm the tool is listed in
    `frontend/src/main/python/tools/manifest.py`.
 3. For local-runtime plugin tools, confirm `plugin.json` has `schema` and
    `entrypoint`.

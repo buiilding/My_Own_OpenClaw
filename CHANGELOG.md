@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: qualify built-in sidecar tool references as Python sidecar tool
+  ownership in authoring and daemon docs.
 - sidecar: qualify Python sidecar runtime/tool ownership in local tool registry,
   path-resolution, wait, and PDF dependency diagnostics.
 - docs/channels: name channel routing owners as desktop/local and desktop
