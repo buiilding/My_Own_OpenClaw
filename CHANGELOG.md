@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: remove the unused response extractor helper and self-test so sub-agent result handling stays owned by the runtime consuming AgentSession.process_query; no migration is required because no live code imported the helper and SDK route/tool/context contracts are unchanged.
 - docs/runtime-boundary: align first-read and public web/API docs on the SDK local-runtime contract instead of local-sidecar topology wording; no migration is required because this is documentation and guard coverage only.
 - docs/frontend-landing: align landing reference docs with the desktop-runtime/local-runtime public copy and real footer links; no migration is required because this updates documentation and guard coverage only.
 - backend/core: remove unused configuration, tooling, memory, and session exception modules so the core error hierarchy only carries live LLM and trust-boundary errors; no migration is required because runtime code did not import the deleted wrappers and API/error payload contracts are unchanged.

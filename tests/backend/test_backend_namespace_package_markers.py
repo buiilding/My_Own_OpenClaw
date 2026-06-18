@@ -154,6 +154,7 @@ CONCRETE_MODULES = [
 ]
 
 REMOVED_MODULE_FACADES = [
+    "backend/src/sdk/agents/response_extractor.py",
     "backend/src/core/config/domains.py",
     "backend/src/core/infrastructure/error_types/configuration.py",
     "backend/src/core/infrastructure/error_types/memory.py",

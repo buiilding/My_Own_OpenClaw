@@ -32,7 +32,7 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 | Backend providers/models | `bin/windie test backend -- tests/backend/test_model_service.py tests/backend/test_models_config.py tests/backend/test_provider_factory_helpers.py -q` |
 | Backend tool schemas | `bin/windie test backend -- tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q` |
 | Backend OCR/vision | `bin/windie test backend -- tests/backend/test_ocr_service.py tests/backend/test_vision_service.py tests/backend/test_coordinate_scaling.py -q` |
-| Backend SDK routes | `bin/windie test backend -- tests/backend/test_sdk_routes.py tests/backend/test_sdk_helpers.py -q` |
+| Backend SDK routes | `bin/windie test backend -- tests/backend/test_sdk_routes.py -q` |
 | Electron main IPC | `bin/windie test frontend -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
 | Electron main SDK query controls and VM worker | `bin/windie test frontend -- IpcAutomatedQueryDispatcher.test.cjs IpcMainConversationRuntimeRegistry.test.cjs IpcMainSdkRuntimeBoundary.test.cjs MainProcessBootstrapRuntime.test.cjs VmWorkerRuntime.test.cjs` |
 | Frontend CLI and layer logs | `bin/windie test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |

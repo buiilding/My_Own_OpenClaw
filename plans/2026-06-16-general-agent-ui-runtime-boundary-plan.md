@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend SDK response extractor helper
+
+- Finding: `backend/src/sdk/agents/response_extractor.py` had no runtime imports;
+  exact scans showed only docs and `tests/backend/test_sdk_helpers.py` exercised
+  the wrapper around `AgentSession.process_query(...)`.
+- Change: deleted the helper and self-test, added a deletion guard, and updated
+  backend SDK/inventory/test-selection docs so sub-agent result handling belongs
+  to the runtime consuming the typed stream or history directly.
+- Validation: py_compile for live backend SDK modules and deletion-guard test,
+  focused deletion-guard pytest, docs search routing, exact stale-reference
+  scan, and diff checks.
+- Compatibility: no migration required. No live code imported the helper; SDK
+  route, tool, context, `AgentFactory`, streaming-event, and history contracts
+  are unchanged.
+
 ### 2026-06-17 first-read docs SDK local-runtime topology boundary
 
 - Finding: README, architecture, API, web, install, help, and ownership-routing docs still described the default client topology as a local sidecar, which obscured the SDK local-runtime public boundary and made the Python sidecar look like the reusable contract.

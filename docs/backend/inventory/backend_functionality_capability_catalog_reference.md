@@ -227,14 +227,13 @@ Primary files:
 
 - `backend/src/simulation/*`
 - `backend/src/sdk/{tool,context}.py`
-- `backend/src/sdk/agents/response_extractor.py`
 - `backend/src/core/services/agent_factory.py`
 
 Capabilities:
 
 - Simulation app and mock LLM clients for deterministic backend/runtime testing.
 - SDK `Tool` and `ToolContext` contracts for custom tool implementations.
-- Sub-agent helpers for constrained session build/response extraction flows.
+- Sub-agent helpers for constrained session creation flows.
 
 ## 12) End-to-End Contract Checkpoints
 

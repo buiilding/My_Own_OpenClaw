@@ -136,7 +136,6 @@ SDK:
 
 - `backend/src/sdk/tool.py`
 - `backend/src/sdk/context.py`
-- `backend/src/sdk/agents/response_extractor.py`
 
 Simulation:
 
