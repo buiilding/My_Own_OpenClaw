@@ -70,7 +70,7 @@ export type ManagedAgentSessionOptions = {
     opened: boolean;
     closeReason: string | null;
     shouldReconnect: boolean;
-    fallbackScheduled: boolean;
+    reconnectScheduled: boolean;
   }) => void;
   onError?: (payload: { error: unknown; opened: boolean; socket: WebSocketLike }) => void;
   onHandshakeError?: (error: unknown) => void;

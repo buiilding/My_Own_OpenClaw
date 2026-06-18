@@ -125,7 +125,7 @@ describe('ManagedBackendSession', () => {
       expect(onClose).toHaveBeenCalledWith(expect.objectContaining({
         closeReason: null,
         shouldReconnect: true,
-        fallbackScheduled: false,
+        reconnectScheduled: false,
       }));
 
       jest.advanceTimersByTime(25);

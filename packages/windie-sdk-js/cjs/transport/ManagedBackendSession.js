@@ -137,18 +137,18 @@ class ManagedBackendSession {
             const closeReason = this.intentionalCloseReason;
             this.intentionalCloseReason = null;
             const shouldReconnect = this.shouldMaintainConnection && !closeReason;
-            let fallbackScheduled = false;
+            let reconnectScheduled = false;
             if (!opened && shouldReconnect && this.options.advanceEndpoint?.()) {
                 this.options.onFallback?.();
                 this.scheduleReconnect(0);
-                fallbackScheduled = true;
+                reconnectScheduled = true;
             }
-            this.options.onClose?.({ opened, closeReason, shouldReconnect, fallbackScheduled });
+            this.options.onClose?.({ opened, closeReason, shouldReconnect, reconnectScheduled });
             if (!shouldReconnect && !opened) {
                 this.rejectConnectWaiters(new Error(`Backend websocket closed before connecting (${closeReason || 'not-demanded'}).`));
                 return;
             }
-            if (shouldReconnect && !fallbackScheduled) {
+            if (shouldReconnect && !reconnectScheduled) {
                 this.scheduleReconnect(this.reconnectIntervalMs);
             }
         }));

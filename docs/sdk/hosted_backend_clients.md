@@ -56,8 +56,8 @@ await conversation.send({ text: 'Inspect this workspace and summarize it' });
 ```
 
 That app-builder contract is: send user intent, receive SDK display rows/current
-turns, and let the SDK own websocket normalization, reconnect/fallback/idle
-lifecycle, local tool execution, tool-result return, and projection state.
+turns, and let the SDK own websocket normalization, reconnect/idle lifecycle,
+local tool execution, tool-result return, and projection state.
 
 Desktop hosts should use the same agent/conversation methods for the control commands that the
 WindieOS app needs during normal operation:
@@ -85,8 +85,8 @@ prefer the generic names because the hosted websocket transport is an SDK agent
 runtime concern rather than WindieOS renderer skin state.
 
 `AgentClient.wakeUp(...)` can run on the SDK managed backend session. A host may
-pass backend endpoints and lifecycle hooks to the client when it needs fallback,
-connection status, or idle-close policy:
+pass backend endpoints and lifecycle hooks to the client when it needs endpoint
+fallback, connection status, or idle-close policy:
 
 ```ts
 const client = new AgentClient({

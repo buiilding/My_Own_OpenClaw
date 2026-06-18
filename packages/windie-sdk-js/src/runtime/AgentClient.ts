@@ -106,7 +106,7 @@ export type AgentClientOptions = {
     opened: boolean;
     closeReason: string | null;
     shouldReconnect: boolean;
-    fallbackScheduled: boolean;
+    reconnectScheduled: boolean;
   }) => void;
   onBackendError?: (payload: { error: unknown; opened: boolean; socket: WebSocketLike }) => void;
   onBackendHandshakeError?: (error: unknown) => void;

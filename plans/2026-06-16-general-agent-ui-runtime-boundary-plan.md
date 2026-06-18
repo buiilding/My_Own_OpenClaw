@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 SDK backend close reconnect metadata
+
+- Finding: the SDK managed backend transport exposed close metadata named `fallbackScheduled`, even though the value described whether the session had already scheduled a reconnect after endpoint advance. That blurred reconnect lifecycle state with endpoint fallback notifications.
+- Change: renamed the close metadata to `reconnectScheduled` across the TypeScript SDK types, checked-in CommonJS transport, focused tests, and SDK docs while leaving explicit endpoint fallback hooks as `onBackendFallback`/`onFallback`.
+- Validation: focused managed backend session Jest coverage, SDK TypeScript no-emit check, stale `fallbackScheduled` scan, and scoped diff check.
+- Compatibility: this is a public SDK callback payload rename for managed backend close hooks. Endpoint fallback behavior, socket lifecycle, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 sidecar conversation store helper-name alignment
 
 - Finding: after the sidecar JSON-RPC and private handler names converged on `conversation.*`, lower memory-store helpers still exported direct chat-history names such as `list_chat_conversations`, `get_chat_events`, and `replace_chat_conversation`.

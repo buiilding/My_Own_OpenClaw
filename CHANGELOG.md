@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- Renamed SDK managed backend close metadata from `fallbackScheduled` to `reconnectScheduled`, keeping endpoint fallback reporting on the explicit fallback hooks.
 - sidecar/memory: rename chat-event store helper APIs to generic
   conversation store names after the sidecar RPC surface converged on
   `conversation.*`; no migration is required because storage tables, rows,

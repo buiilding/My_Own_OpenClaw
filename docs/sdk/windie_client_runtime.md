@@ -796,10 +796,13 @@ backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backen
 `AgentSession` is now transport-only. It connects, handshakes, sends
 queries/results, and emits raw backend events. It does not execute local tools.
 `ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
-that need connection waiters, reconnect scheduling, endpoint fallback, idle
+that need connection waiters, reconnect scheduling, endpoint advance, idle
 disconnect, typed backend sends, and raw event parsing. Electron main consumes
 that SDK package transport and only supplies host-specific socket construction,
 headers, handshake data, local tool execution, and renderer fan-out.
+Close metadata reports whether a reconnect was already scheduled as
+`reconnectScheduled`; endpoint fallback notifications remain on the explicit
+`onBackendFallback`/`onFallback` hooks.
 `ManagedBackendSessionOptions.createSocket` uses a direct `() => WebSocketLike`
 function type; there is no separate `ManagedBackendSocketFactory` alias.
 An opened socket is not considered a connected managed session until handshake
