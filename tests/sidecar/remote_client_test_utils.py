@@ -32,12 +32,12 @@ def ensure_aiohttp_with_stubs():
 
 
 def ensure_frontend_python_path() -> None:
-    sidecar_python_dir = (
+    local_runtime_python_dir = (
         Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
     )
-    sidecar_python_dir_str = str(sidecar_python_dir)
-    if sidecar_python_dir_str not in sys.path:
-        sys.path.insert(0, sidecar_python_dir_str)
+    local_runtime_python_dir_str = str(local_runtime_python_dir)
+    if local_runtime_python_dir_str not in sys.path:
+        sys.path.insert(0, local_runtime_python_dir_str)
 
 
 class DummyResponse:

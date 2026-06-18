@@ -18,13 +18,13 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, Optional
 
-sidecar_python_dir = str(Path(__file__).resolve().parent)
-if sidecar_python_dir not in sys.path:
-    sys.path.insert(0, sidecar_python_dir)
+local_runtime_python_dir = str(Path(__file__).resolve().parent)
+if local_runtime_python_dir not in sys.path:
+    sys.path.insert(0, local_runtime_python_dir)
 
-from core.bootstrap_paths import ensure_sidecar_python_path
+from core.bootstrap_paths import ensure_local_runtime_python_path
 
-sidecar_python_dir = ensure_sidecar_python_path(__file__)
+local_runtime_python_dir = ensure_local_runtime_python_path(__file__)
 
 from core.ipc_protocol import JSONRPCProtocol
 from core.feature_pack_installer import (

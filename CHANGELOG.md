@@ -71,6 +71,8 @@ All notable changes to WindieOS will be documented in this file.
   WindieOS sidecar alias.
 - sidecar/runtime: accept generic `AGENT_SIDECAR_LOG_LEVEL` Python sidecar log
   level configuration while preserving the WindieOS sidecar alias.
+- sidecar/runtime: rename source-run Python bootstrap helper names from
+  sidecar path terms to local-runtime path terms.
 - sidecar/extensions: accept generic `AGENT_CONTRIBUTIONS_DIR` local-runtime
   plugin contribution-root configuration while preserving the WindieOS alias.
 - sidecar/daemon: name the daemon-owned `LocalRuntimeService` dependency as

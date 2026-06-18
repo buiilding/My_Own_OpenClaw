@@ -8487,3 +8487,20 @@ Each completed slice should report:
   discovery files, auth headers, tool/MCP registration, permissions, storage,
   credentials, provider policy, and hosted backend URL handling are unchanged;
   only Python-internal daemon dependency names changed.
+
+### 2026-06-18 Python local-runtime bootstrap helper naming boundary
+
+- Finding: the source-run Python path bootstrap helper still exported
+  `ensure_sidecar_python_path(...)` even though the helper belongs to the
+  reusable local-runtime import bootstrap path, not a model-facing sidecar
+  contract.
+- Change: renamed the helper, local variables, bootstrap smoke test, and shared
+  sidecar test path helper to local-runtime path terms, with a guard preventing
+  the old helper/local variable names from returning.
+- Validation: focused bootstrap and local-runtime service pytest coverage,
+  source scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Source/dev `sys.path` promotion,
+  packaged paths, sidecar daemon startup, JSON-RPC methods, tool registry
+  initialization, storage, credentials, permissions, hosted backend URL
+  handling, and provider policy are unchanged; only Python-internal helper
+  names changed.
