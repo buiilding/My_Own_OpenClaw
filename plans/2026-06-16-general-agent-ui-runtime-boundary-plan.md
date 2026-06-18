@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend/SDK skipped local execution metadata boundary
+
+- Finding: backend synthetic/display-only tool events still used
+  `skip_frontend_execution` metadata even though the actual owner is SDK
+  local-runtime dispatch, and renderer surfaces only consume projected
+  `executionSkipped` state.
+- Change: renamed the metadata key to `skip_local_execution` across backend
+  emitters, TypeScript SDK event types/coordination/projections, checked-in CJS
+  parity, Python SDK local execution, tests, and docs; removed the stale
+  frontend-prefixed wire key instead of keeping a compatibility alias.
+- Validation: focused backend tool-sender and interaction-loop coverage,
+  focused SDK/frontend conversation/runtime IPC coverage, Python SDK syntax
+  check, docs listing, stale key scan, and diff check.
+- Compatibility: event payload metadata changed intentionally. No migration is
+  required for active runtime paths because backend and SDK/Python clients now
+  agree on `skip_local_execution`; older persisted diagnostic metadata may
+  retain the retired key but is not used for new local-runtime dispatch.
+
 ### 2026-06-18 SDK completed-turn model metadata boundary
 
 - Finding: SDK completed-turn title generation still recovered model/provider

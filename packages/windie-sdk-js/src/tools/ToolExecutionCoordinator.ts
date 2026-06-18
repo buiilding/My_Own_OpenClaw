@@ -300,7 +300,7 @@ function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null 
 
 function shouldSkipLocalToolExecution(event: ConversationEvent): boolean {
   const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
-  return metadata?.skip_frontend_execution === true;
+  return metadata?.skip_local_execution === true;
 }
 
 function activeClientToolNames(agentDefinition: JsonRecord | null | undefined): Set<string> | null {

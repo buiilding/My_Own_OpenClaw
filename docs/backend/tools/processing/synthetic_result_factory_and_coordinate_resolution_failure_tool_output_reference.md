@@ -45,7 +45,7 @@ No side effects:
 Failure metadata fields:
 
 - `coordinate_resolution_failed: true`
-- `skip_frontend_execution: true`
+- `skip_local_execution: true`
 - `request_id`
 
 Protocol guarantee:
@@ -89,7 +89,7 @@ Result:
 `tests/backend/test_tool_sender.py` verifies:
 
 - synthetic single-call failures emit exactly two events in protocol order
-- both events carry `coordinate_resolution_failed` and `skip_frontend_execution`
+- both events carry `coordinate_resolution_failed` and `skip_local_execution`
 - synthetic result is present in pending result storage under request id
 - bundle preparation failure path stores synthetic bundle result without dispatching SDK/main local-runtime events
 

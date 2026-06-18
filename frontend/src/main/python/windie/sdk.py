@@ -937,7 +937,7 @@ class AgentSdkAgentSession:
         metadata = (
             payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
         )
-        if metadata.get("skip_frontend_execution") is True:
+        if metadata.get("skip_local_execution") is True:
             return
         tool_name = _clean_string(payload.get("tool_name"))
         request_id = (
@@ -985,7 +985,7 @@ class AgentSdkAgentSession:
         metadata = (
             payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
         )
-        if metadata.get("skip_frontend_execution") is True:
+        if metadata.get("skip_local_execution") is True:
             return
         bundle_id = _clean_string(payload.get("bundle_id"))
         steps = payload.get("tools") if isinstance(payload.get("tools"), list) else []

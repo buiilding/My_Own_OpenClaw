@@ -98,7 +98,7 @@ Tool events are both UI state and SDK runtime execution requests.
 
 1. Update backend tool event dataclass/formatter/schema.
 2. Preserve `tool_name`, executable parameters, request id/correlation id, and metadata.
-3. Preserve `skip_frontend_execution` semantics for recovery/synthetic paths.
+3. Preserve `skip_local_execution` semantics for recovery/synthetic paths.
 4. Update SDK runtime normalization/router behavior and renderer tool message rendering.
 5. Update transcript persistence for tool-call/tool-output rows.
 6. Update backend tool-result ingress/history tests if result payloads change.

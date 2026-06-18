@@ -36,7 +36,7 @@ When a tool call fails before SDK/main local-runtime dispatch:
 3. sender emits `ToolCallEvent` then `ToolOutputEvent`
 4. both events include failure metadata:
 - `coordinate_resolution_failed: true`
-- `skip_frontend_execution: true`
+- `skip_local_execution: true`
 - `request_id`
 
 Ordering (`ToolCallEvent` before `ToolOutputEvent`) preserves frontend request/response state machine assumptions.

@@ -2,7 +2,7 @@
 summary: "Deep reference for interaction-loop recovery from malformed model tool-call payloads: recoverable error classification, synthetic tool-call/tool-output emission order, history replay injection, and cleanup semantics."
 read_when:
   - When changing recoverable error marker matching, structured tool-call recovery metadata extraction, or synthetic ToolCallEvent/ToolOutputEvent payload shape.
-  - When debugging loops that unexpectedly abort after stream errors, or SDK/renderer behavior for `skip_frontend_execution` metadata.
+  - When debugging loops that unexpectedly abort after stream errors, or SDK/renderer behavior for `skip_local_execution` metadata.
 title: "Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference"
 ---
 
@@ -65,7 +65,7 @@ Synthetic payload metadata:
 
 - `request_id`: extracted tool call id or generated fallback (`llm_tool_call_error_<12hex>`)
 - `llm_tool_call_validation_failed = True`
-- `skip_frontend_execution = True`
+- `skip_local_execution = True`
 - optional parse diagnostics:
   - `llm_tool_call_raw_tool_call_preview`
   - `llm_tool_call_raw_arguments_preview`
@@ -160,10 +160,10 @@ Formatter propagation guarantees:
 - `ToolCallEventFormatter` forwards `request_id` and `metadata` when present
 - `ToolOutputEventFormatter` forwards `metadata` (and output/error fields)
 
-This allows frontend to:
+This allows SDK/local-runtime consumers to:
 
 - correlate synthetic tool output via metadata/request id
-- skip local execution using metadata gate (`skip_frontend_execution`)
+- skip local execution using metadata gate (`skip_local_execution`)
 
 ## Test-Backed Contracts
 
@@ -178,7 +178,7 @@ This allows frontend to:
 ## Drift Risks
 
 1. Changing event order (`ToolOutputEvent` before `ToolCallEvent`) can desynchronize SDK/main and renderer tool state.
-2. Removing `skip_frontend_execution` metadata causes frontend to execute nonexistent synthetic tools.
+2. Removing `skip_local_execution` metadata causes SDK local-runtime dispatch to execute nonexistent synthetic tools.
 3. Weakening recoverable marker matching can convert recoverable parse failures into hard aborts.
 4. Dropping history replay injection removes corrective context for next-turn model retry.
 

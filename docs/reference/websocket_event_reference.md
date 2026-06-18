@@ -64,7 +64,7 @@ SDK runtime adapters treat non-empty `replacement_history_entries` as the signal
 | --- | --- |
 | backend produces event but websocket sends nothing | formatter spec, required fields, outgoing schema |
 | DevTools shows event but UI ignores it | renderer typed event guard or dedicated parser |
-| tool card renders but tool does not execute | SDK main-runtime tool router, `skip_frontend_execution` metadata, local-runtime bridge |
+| tool card renders but tool does not execute | SDK main-runtime tool router, `skip_local_execution` metadata, local-runtime bridge |
 | event updates the wrong chat | `conversation_ref` and active transcript session state |
 | token display absent | backend `token-count` event and renderer token-count handler |
 | audio chunk ignored | `audio-chunk` parser, not `backendEvents.ts` typed union |

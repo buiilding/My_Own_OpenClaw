@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Covers Agent SDK conversation runtime behavior in the frontend test suite.
  */
 
@@ -880,7 +880,7 @@ describe('Agent SDK conversation runtime core', () => {
         requestId: 'req-read',
         correlationId: 'corr-read',
         metadata: {
-          skip_frontend_execution: true,
+          skip_local_execution: true,
           model_facing_tool_call: { id: 'call-read', name: 'read_file' },
           llm_tool_call_validation_failed: true,
           llm_tool_call_raw_tool_call_preview: '{"name":"read_file"}',
@@ -2475,7 +2475,7 @@ describe('Agent SDK conversation runtime core', () => {
         tool_name: 'browser',
         request_id: 'req-invalid-browser',
         parameters: { action: 'click', text: 'Sign in' },
-        metadata: { skip_frontend_execution: true },
+        metadata: { skip_local_execution: true },
       },
     });
 
@@ -2484,7 +2484,7 @@ describe('Agent SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         toolName: 'browser',
         requestId: 'req-invalid-browser',
-        metadata: { skip_frontend_execution: true },
+        metadata: { skip_local_execution: true },
       }),
     });
   });
@@ -3119,7 +3119,7 @@ describe('Agent SDK conversation runtime core', () => {
       toolName: 'browser',
       requestId: 'req-invalid-browser',
       args: { action: 'click', text: 'Sign in' },
-      metadata: { skip_frontend_execution: true },
+      metadata: { skip_local_execution: true },
     }));
 
     expect(claim).toEqual({ claimed: true, reason: 'backend-skipped-local-execution' });

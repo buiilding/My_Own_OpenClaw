@@ -67,7 +67,7 @@ The SDK tool coordinator treats a tool event as display-only when backend wire
 metadata indicates skipped local execution:
 
 - metadata is object-like
-- `metadata.skip_frontend_execution === true`
+- `metadata.skip_local_execution === true`
 
 When true:
 
@@ -83,7 +83,7 @@ This is critical for backend recovery path that emits synthetic tool protocol ev
 
 Backend malformed-tool-call recovery emits synthetic events with metadata:
 
-- `skip_frontend_execution = true`
+- `skip_local_execution = true`
 - `llm_tool_call_validation_failed = true`
 - `request_id = <synthetic_or_extracted_id>`
 - optional preview fields:
@@ -183,7 +183,7 @@ So synthetic recovery events still produce consistent UI/transcript breadcrumbs.
 
 If synthetic tool events execute unexpectedly:
 
-1. verify backend `metadata.skip_frontend_execution` survives formatter/output contract
+1. verify backend `metadata.skip_local_execution` survives formatter/output contract
 2. verify SDK backend event normalization receives metadata object (not array/non-object)
 3. verify no local mutation strips metadata before handler
 

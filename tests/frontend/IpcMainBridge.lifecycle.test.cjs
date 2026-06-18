@@ -386,7 +386,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(backendBridge.executeToolForBackend).not.toHaveBeenCalled();
   });
 
-  test('does not execute backend-owned tool-call events already marked skip_frontend_execution', async () => {
+  test('does not execute backend-owned tool-call events already marked skip_local_execution', async () => {
     const { ws, backendBridge } = await setupOpenedIpc();
     backendBridge.executeToolForBackend.mockClear();
 
@@ -397,7 +397,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
         tool_name: 'backend_only_tool',
         request_id: 'req-backend-owned',
         parameters: {},
-        metadata: { skip_frontend_execution: true },
+        metadata: { skip_local_execution: true },
       },
     });
     await Promise.resolve();

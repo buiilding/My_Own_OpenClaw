@@ -150,7 +150,7 @@ Recovery helper behavior:
 
 - recoverable errors emit synthetic `ToolCallEvent` + `ToolOutputEvent`
 - recovery path keeps loop alive for next turn
-- synthetic metadata includes skip-frontend-execution marker
+- synthetic metadata includes skip-local-execution marker
 
 ## Drift Hotspots
 

@@ -779,7 +779,7 @@ function toolDisplayMetadataFromMetadata(metadata: JsonRecord | null): JsonRecor
 }
 
 function toolExecutionSkippedFromMetadata(metadata: JsonRecord | null): boolean {
-  return metadata?.skip_frontend_execution === true;
+  return metadata?.skip_local_execution === true;
 }
 
 function toolRecoveryFieldsFromMetadata(metadata: JsonRecord | null): Pick<

@@ -662,7 +662,7 @@ function toolDisplayMetadataFromMetadata(metadata) {
     return Object.keys(displayMetadata).length > 0 ? displayMetadata : null;
 }
 function toolExecutionSkippedFromMetadata(metadata) {
-    return metadata?.skip_frontend_execution === true;
+    return metadata?.skip_local_execution === true;
 }
 function toolRecoveryFieldsFromMetadata(metadata) {
     return {

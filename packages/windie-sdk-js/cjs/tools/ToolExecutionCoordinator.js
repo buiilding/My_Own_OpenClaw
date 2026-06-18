@@ -210,7 +210,7 @@ function localToolCallFromEvent(event) {
 }
 function shouldSkipLocalToolExecution(event) {
     const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
-    return metadata?.skip_frontend_execution === true;
+    return metadata?.skip_local_execution === true;
 }
 function activeClientToolNames(agentDefinition) {
     if (!agentDefinition || !isJsonRecord(agentDefinition.tools)) {

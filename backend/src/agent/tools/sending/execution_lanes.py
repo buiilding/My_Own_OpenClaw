@@ -84,7 +84,7 @@ def build_preparation_failure_metadata(
     error_msg: str,
 ) -> Dict[str, Any]:
     metadata: Dict[str, Any] = {
-        "skip_frontend_execution": True,
+        "skip_local_execution": True,
         "request_id": request_id,
     }
     if _BACKEND_VALIDATION_FAILURE_MARKER in error_msg:
@@ -156,7 +156,7 @@ def build_unsupported_backend_bundle_failure_lane(
         {
             "backend_tool_bundle_unsupported": True,
             "request_id": request_id,
-            "skip_frontend_execution": True,
+            "skip_local_execution": True,
         }
     )
     envelope = ToolExecutionEnvelope(
@@ -177,7 +177,7 @@ def build_backend_execution_lane(
     result: ToolResult,
 ) -> ToolExecutionEnvelope:
     backend_metadata = dict(tool_metadata)
-    backend_metadata["skip_frontend_execution"] = True
+    backend_metadata["skip_local_execution"] = True
     backend_metadata["request_id"] = request_id
     return ToolExecutionEnvelope(
         tool_name=resolved_call.tool_name,

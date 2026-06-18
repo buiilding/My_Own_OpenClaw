@@ -170,7 +170,7 @@ After preparation:
 On preparation error:
 
 - emits synthetic `ToolCallEvent` + `ToolOutputEvent` pair for failed single calls
-- marks metadata `coordinate_resolution_failed` and `skip_frontend_execution`
+- marks metadata `coordinate_resolution_failed` and `skip_local_execution`
 - stores synthetic pending result so orchestration loop can proceed without a local-runtime round trip
 - validation-backed failures include backend-generated guidance when the model-facing wrapper shape is wrong (for example missing top-level `system_use.explanation` or malformed `computer_use` metadata), so the synthetic tool output tells the model how to re-emit the call
 

@@ -730,7 +730,7 @@ class InteractionLoop:
         metadata = {
             "request_id": tool_call_id,
             "llm_tool_call_validation_failed": True,
-            "skip_frontend_execution": True,
+            "skip_local_execution": True,
         }
         if raw_arguments_preview:
             metadata["llm_tool_call_raw_arguments_preview"] = raw_arguments_preview

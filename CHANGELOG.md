@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: rename backend synthetic/display-only tool metadata from
+  `skip_frontend_execution` to `skip_local_execution` across backend emitters,
+  SDK coordination/projections, Python SDK local execution, tests, and docs.
 - sdk: normalize completed-turn model metadata onto `turn_completed` events so
   title generation consumes SDK event fields instead of unwrapping
   `payload.rawEvent`.

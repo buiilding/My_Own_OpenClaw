@@ -134,7 +134,7 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
     assert len(emitted) == 2
     assert isinstance(emitted[0], ToolCallEvent)
     assert emitted[0].metadata["coordinate_resolution_failed"] is True
-    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["skip_local_execution"] is True
     assert emitted[0].metadata["request_id"] == request_id
     assert emitted[0].metadata["model_facing_tool_call"] == {
         "name": "mouse_control",
@@ -143,7 +143,7 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
 
     assert isinstance(emitted[1], ToolOutputEvent)
     assert emitted[1].metadata["coordinate_resolution_failed"] is True
-    assert emitted[1].metadata["skip_frontend_execution"] is True
+    assert emitted[1].metadata["skip_local_execution"] is True
 
     assert request_id in session.pending_results
     assert session.pending_results[request_id].error == "OCR could not find target text"
@@ -180,7 +180,7 @@ async def test_send_tools_marks_invalid_backend_tool_preparation_failure_as_vali
 
     assert len(emitted) == 2
     assert isinstance(emitted[0], ToolCallEvent)
-    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["skip_local_execution"] is True
     assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[0].metadata
     assert emitted[0].metadata["model_facing_tool_call"] == {
@@ -190,7 +190,7 @@ async def test_send_tools_marks_invalid_backend_tool_preparation_failure_as_vali
     }
 
     assert isinstance(emitted[1], ToolOutputEvent)
-    assert emitted[1].metadata["skip_frontend_execution"] is True
+    assert emitted[1].metadata["skip_local_execution"] is True
     assert emitted[1].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[1].metadata
 
@@ -229,7 +229,7 @@ async def test_send_tools_marks_invalid_grounded_backend_preparation_failure_as_
 
     assert len(emitted) == 2
     assert isinstance(emitted[0], ToolCallEvent)
-    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["skip_local_execution"] is True
     assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[0].metadata
     assert emitted[0].metadata["model_facing_tool_call"] == {
@@ -239,7 +239,7 @@ async def test_send_tools_marks_invalid_grounded_backend_preparation_failure_as_
     }
 
     assert isinstance(emitted[1], ToolOutputEvent)
-    assert emitted[1].metadata["skip_frontend_execution"] is True
+    assert emitted[1].metadata["skip_local_execution"] is True
     assert emitted[1].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[1].metadata
 
@@ -528,7 +528,7 @@ async def test_send_tools_executes_backend_tool_with_standard_tool_call_and_outp
         "ToolOutputEvent",
     ]
     assert isinstance(emitted[0], ToolCallEvent)
-    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["skip_local_execution"] is True
     assert isinstance(emitted[1], ToolOutputEvent)
     assert emitted[1].output == "search results"
     assert request_id in session.pending_results
@@ -632,7 +632,7 @@ async def test_send_tools_rejects_bundles_that_include_backend_tools():
         "ToolOutputEvent",
     ]
     assert emitted[0].metadata["backend_tool_bundle_unsupported"] is True
-    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["skip_local_execution"] is True
     assert emitted[0].metadata["request_id"] == "req-backend-bundle-1"
     assert emitted[1].success is False
     assert "backend-executed tools" in (emitted[1].error or "")

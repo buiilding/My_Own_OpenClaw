@@ -347,7 +347,7 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     fallback_call = tool_call_events[0]
     assert fallback_call.metadata is not None
     assert fallback_call.metadata["llm_tool_call_validation_failed"] is True
-    assert fallback_call.metadata["skip_frontend_execution"] is True
+    assert fallback_call.metadata["skip_local_execution"] is True
     assert fallback_call.metadata["llm_tool_call_raw_tool_call_preview"].startswith(
         '{"id":"tool_bad","name":"replace","arguments":"'
     )

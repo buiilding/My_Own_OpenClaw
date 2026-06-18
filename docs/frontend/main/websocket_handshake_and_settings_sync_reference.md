@@ -1,4 +1,4 @@
-﻿---
+---
 summary: "Electron main SDK websocket relay reference for handshake, typed renderer fan-out, per-connection settings ACK gating, and query send-failure synthesis."
 read_when:
   - When changing `ipc.cjs` websocket lifecycle, handshake identity handling, or reconnection behavior.
@@ -145,7 +145,7 @@ Backend local execution events are handled by the SDK runtime before renderer fa
 Display-only backend events retain normal chat/transcript/overlay behavior after
 SDK projection. Their backend wire metadata includes:
 
-- `metadata.skip_frontend_execution = true`
+- `metadata.skip_local_execution = true`
 - `metadata.execution_owner = "sdk-runtime"`
 
 The SDK converts that into display-safe projection fields such as

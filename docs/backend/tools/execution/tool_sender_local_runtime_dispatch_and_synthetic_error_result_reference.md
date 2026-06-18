@@ -55,8 +55,8 @@ Protocol invariant:
 Failure metadata contract (both events):
 
 - `coordinate_resolution_failed: true`
-- `skip_frontend_execution: true` (wire metadata name retained for backend
-  synthetic failures that must not be sent to the SDK/main local-runtime lane)
+- `skip_local_execution: true` (backend synthetic failures must not be sent to
+  the SDK/main local-runtime lane)
 - `request_id`
 
 Failure message contract:
@@ -106,7 +106,7 @@ This prevents partial SDK/main local-runtime dispatch for atomic bundles.
 `tests/backend/test_tool_sender.py` verifies:
 
 - failed coordinate-resolution path emits `ToolCallEvent` then `ToolOutputEvent`
-- failure metadata includes `skip_frontend_execution` and `coordinate_resolution_failed`
+- failure metadata includes `skip_local_execution` and `coordinate_resolution_failed`
 - failed bundle preparation does not dispatch bundle or per-tool call events
 - synthetic bundle failure is stored with `status == "failure"`
 - `model_facing_tool_call` preserves original tool-call id/name/arguments

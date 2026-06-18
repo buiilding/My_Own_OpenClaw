@@ -85,7 +85,7 @@ export type BackendEvent =
     request_id?: string;
     tool_call_id?: string;
     metadata?: Record<string, unknown> & {
-      skip_frontend_execution?: boolean;
+      skip_local_execution?: boolean;
       execution_owner?: string;
       model_facing_tool_call?: Record<string, unknown>;
     };
