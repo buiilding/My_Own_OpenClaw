@@ -7861,3 +7861,19 @@ Each completed slice should report:
   `AGENT_DEBUG_COMPACTION_STDOUT` instead of
   `WINDIE_DEBUG_COMPACTION_STDOUT`. No persisted data, API, tool, or
   conversation-event behavior changes.
+
+### 2026-06-18 SDK runtime env alias boundary
+
+- Finding: SDK hosted-client and local-runtime fallback paths still read
+  WindieOS-specific env names first for backend URL, install token, daemon
+  script, Python command, and daemon discovery file.
+- Change: added generic `AGENT_*` env aliases as the primary SDK runtime
+  fallback names while keeping the existing `WINDIE_*` variables as legacy
+  compatibility.
+- Validation: focused SDK client Jest coverage, modular boundary Jest guard,
+  SDK env-name scans, CJS require syntax check, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Existing `WINDIE_BACKEND_URL`,
+  `WINDIE_API_KEY`, `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`, `WINDIE_PYTHON`, and
+  `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` callers continue to work;
+  reusable SDK hosts can use the `AGENT_*` names.

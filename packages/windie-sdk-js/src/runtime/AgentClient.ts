@@ -310,11 +310,13 @@ export class AgentClient {
     const resolvedBackendUrl = backendUrl
       ?? this.defaultOptions.backendUrl
       ?? this.defaultOptions.httpBaseUrl
-      ?? readRuntimeEnv('WINDIE_BACKEND_URL');
+      ?? readFirstRuntimeEnv(['AGENT_BACKEND_URL', 'WINDIE_BACKEND_URL']);
     if (resolvedBackendUrl) {
       return resolvedBackendUrl;
     }
-    throw new Error('Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set WINDIE_BACKEND_URL.');
+    throw new Error(
+      'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set AGENT_BACKEND_URL (legacy WINDIE_BACKEND_URL is also supported).',
+    );
   }
 
   private createSdkClient(backendUrl: string, authToken?: string): AgentHostedBackendClient {
@@ -387,7 +389,7 @@ export class AgentClient {
       options.installToken
       ?? configured.installToken
       ?? this.defaultOptions.installToken
-      ?? readRuntimeEnv('WINDIE_API_KEY')
+      ?? readFirstRuntimeEnv(['AGENT_INSTALL_TOKEN', 'WINDIE_API_KEY'])
     )?.trim();
     const configuredUserId = options.userId ?? configured.userId ?? this.defaultOptions.defaultUserId;
     if (installToken) {
@@ -756,6 +758,16 @@ function readRuntimeEnv(key: string): string | undefined {
     };
   }).process?.env?.[key];
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function readFirstRuntimeEnv(keys: readonly string[]): string | undefined {
+  for (const key of keys) {
+    const value = readRuntimeEnv(key);
+    if (value) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 function detectWorkspacePath(): string | undefined {

@@ -56,7 +56,7 @@ standalone SDK package instead of depending on Electron's `frontend/node_modules
   `node examples/cli-agent/run.mjs`
 - `examples/simple-chat-cli`: interactive CLI chat against the remote backend
   using `agent.chat(...)`:
-  `WINDIE_BACKEND_URL=https://api.windieos.com node examples/simple-chat-cli/run.mjs`
+  `AGENT_BACKEND_URL=https://api.windieos.com node examples/simple-chat-cli/run.mjs`
 - `examples/custom-ui`: minimal browser UI that renders SDK display projections
   against a mock backend:
   `node examples/custom-ui/run.mjs`

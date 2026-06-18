@@ -785,7 +785,9 @@ describe('Agent SDK client behavior', () => {
   });
 
   test('AgentClient requires an explicit backend URL for hosted runtime calls', async () => {
+    const previousAgentBackendUrl = process.env.AGENT_BACKEND_URL;
     const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
+    delete process.env.AGENT_BACKEND_URL;
     delete process.env.WINDIE_BACKEND_URL;
     try {
       const client = new AgentClient({
@@ -794,14 +796,19 @@ describe('Agent SDK client behavior', () => {
       });
 
       await expect(client.wakeUp({ agentId: 'missing-backend-agent' })).rejects.toThrow(
-        'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set WINDIE_BACKEND_URL.',
+        'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set AGENT_BACKEND_URL',
       );
       await expect(client.listModels()).rejects.toThrow(
-        'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set WINDIE_BACKEND_URL.',
+        'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set AGENT_BACKEND_URL',
       );
       expect(mockFetch).not.toHaveBeenCalled();
       expect(FakeWebSocket.instances).toHaveLength(0);
     } finally {
+      if (previousAgentBackendUrl === undefined) {
+        delete process.env.AGENT_BACKEND_URL;
+      } else {
+        process.env.AGENT_BACKEND_URL = previousAgentBackendUrl;
+      }
       if (previousBackendUrl === undefined) {
         delete process.env.WINDIE_BACKEND_URL;
       } else {
@@ -856,19 +863,25 @@ describe('Agent SDK client behavior', () => {
     expect(sdkCjsSource).not.toContain('this.defaultOptions.autoSidecar');
     expect(localRuntimeSource).toContain('AgentAutoLocalRuntimeOptions');
     expect(localRuntimeSource).not.toContain('AgentAutoSidecarOptions');
+    expect(localRuntimeSource).toContain('AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT');
     expect(localRuntimeSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
     expect(localRuntimeSource).not.toContain('WINDIE_SIDECAR_DAEMON_SCRIPT');
     expect(localRuntimeCjsSource).toContain('autoLocalRuntime.daemonScript');
     expect(localRuntimeCjsSource).not.toContain('autoSidecar.daemonScript');
+    expect(localRuntimeCjsSource).toContain('AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT');
     expect(localRuntimeCjsSource).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT');
     expect(localRuntimeCjsSource).not.toContain('WINDIE_SIDECAR_DAEMON_SCRIPT');
   });
 
-  test('AgentClient uses env backend URL and install token when constructor options omit them', async () => {
+  test('AgentClient uses generic env backend URL and install token when constructor options omit them', async () => {
+    const previousAgentBackendUrl = process.env.AGENT_BACKEND_URL;
+    const previousAgentInstallToken = process.env.AGENT_INSTALL_TOKEN;
     const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
     const previousApiKey = process.env.WINDIE_API_KEY;
-    process.env.WINDIE_BACKEND_URL = 'https://env.windie.test';
-    process.env.WINDIE_API_KEY = 'env-install-token';
+    process.env.AGENT_BACKEND_URL = 'https://env.agent.test';
+    process.env.AGENT_INSTALL_TOKEN = 'env-install-token';
+    process.env.WINDIE_BACKEND_URL = 'https://legacy.windie.test';
+    process.env.WINDIE_API_KEY = 'legacy-install-token';
     try {
       mockFetch.mockResolvedValueOnce(jsonResponse({
         user_id: 'env-user',
@@ -882,7 +895,7 @@ describe('Agent SDK client behavior', () => {
       const wakePromise = client.wakeUp({ agentId: 'env-agent' });
       await new Promise(resolve => setTimeout(resolve, 0));
       const socket = FakeWebSocket.instances[0];
-      expect(socket.url).toBe('wss://env.windie.test/ws');
+      expect(socket.url).toBe('wss://env.agent.test/ws');
       expect(socket.options).toMatchObject({
         headers: {
           Authorization: 'Bearer env-install-token',
@@ -892,7 +905,7 @@ describe('Agent SDK client behavior', () => {
       await wakePromise;
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://env.windie.test/api/install/me',
+        'https://env.agent.test/api/install/me',
         expect.objectContaining({ method: 'GET' }),
       );
       expect(JSON.parse(socket.sent[0])).toMatchObject({
@@ -900,6 +913,16 @@ describe('Agent SDK client behavior', () => {
         user_id: 'env-user',
       });
     } finally {
+      if (previousAgentBackendUrl === undefined) {
+        delete process.env.AGENT_BACKEND_URL;
+      } else {
+        process.env.AGENT_BACKEND_URL = previousAgentBackendUrl;
+      }
+      if (previousAgentInstallToken === undefined) {
+        delete process.env.AGENT_INSTALL_TOKEN;
+      } else {
+        process.env.AGENT_INSTALL_TOKEN = previousAgentInstallToken;
+      }
       if (previousBackendUrl === undefined) {
         delete process.env.WINDIE_BACKEND_URL;
       } else {
@@ -2953,7 +2976,9 @@ describe('Agent SDK client behavior', () => {
   test('createAgentLocalRuntimeProvider requires host-supplied launch command or daemon script', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-no-launch-'));
     const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
+    const originalAgentDaemonScriptEnv = process.env.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT;
     const originalDaemonScriptEnv = process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
+    delete process.env.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT;
     delete process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
 
     try {
@@ -2968,9 +2993,14 @@ describe('Agent SDK client behavior', () => {
         wakeUp: { tools: [] },
         needsLocalRuntime: true,
       })).rejects.toThrow(
-        'Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT.',
+        'Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT',
       );
     } finally {
+      if (typeof originalAgentDaemonScriptEnv === 'string') {
+        process.env.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT = originalAgentDaemonScriptEnv;
+      } else {
+        delete process.env.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT;
+      }
       if (typeof originalDaemonScriptEnv === 'string') {
         process.env.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT = originalDaemonScriptEnv;
       } else {
@@ -2993,6 +3023,7 @@ describe('Agent SDK client behavior', () => {
       expect(source).toContain("path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json')");
       expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'local-runtime-daemon.json')");
       expect(source).not.toContain('WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE');
+      expect(source).toContain('AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
       expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');
       expect(source).not.toContain('frontend/src/main/python/sidecar_daemon.py');
       expect(source).not.toContain('src/main/python/sidecar_daemon.py');

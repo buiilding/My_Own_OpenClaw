@@ -425,9 +425,9 @@ user-message ordinal fallbacks.
 
 `wakeUp` performs this sequence:
 
-1. Resolve the hosted backend URL from `backendUrl`, `httpBaseUrl`, or
-   `WINDIE_BACKEND_URL`; hosted operations fail fast when no backend URL is
-   configured.
+1. Resolve the hosted backend URL from `backendUrl`, `httpBaseUrl`,
+   `AGENT_BACKEND_URL`, or the legacy `WINDIE_BACKEND_URL`; hosted operations
+   fail fast when no backend URL is configured.
 2. Resolve install auth from `installToken`; callers that want the hosted
    install-registration route set `installAuth.autoRegister = true` explicitly
    so backend auth policy stays outside endpoint-name inference.
@@ -738,11 +738,12 @@ Non-Electron SDK hosts can override that behavior with:
   Repo-local examples use this to run `scripts/python-in-env sidecar python`
   while leaving daemon discovery, registration, JSON-RPC unwrapping, and
   shutdown with `AgentClient`. Node and Python SDK hosts that rely on an
-  environment override use `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`; the older
+  environment override use `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`; legacy
+  `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT` remains supported, while the older
   sidecar-named env override is not part of the SDK local-runtime contract.
   The SDK does not guess WindieOS repository paths for the daemon. Hosts must
   pass `autoLocalRuntime.command`, pass `autoLocalRuntime.daemonScript`, or set
-  `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`.
+  `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   an `AgentLocalRuntimeClient` when `localRuntime()` or `wakeUp()` needs local
   execution.

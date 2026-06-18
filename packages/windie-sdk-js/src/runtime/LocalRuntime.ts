@@ -601,12 +601,13 @@ function resolveDaemonScript(options: AgentAutoLocalRuntimeOptions, path: NodePa
     process?: { env?: Record<string, string | undefined> };
   }).process;
   const explicit = options.daemonScript
+    ?? processLike?.env?.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT
     ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
   if (explicit) {
     return path.resolve(explicit);
   }
   throw new Error(
-    'Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT.',
+    'Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT (legacy WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT is also supported).',
   );
 }
 
@@ -646,6 +647,7 @@ function resolveDaemonLaunchCommand(
   const processEnv = resolveProcessEnv();
   const daemonScript = resolveDaemonScript(options, path);
   const pythonCommand = options.pythonCommand
+    ?? processEnv.AGENT_LOCAL_RUNTIME_PYTHON
     ?? processEnv.WINDIE_PYTHON
     ?? 'python3';
   return {
@@ -682,6 +684,7 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     const processEnv = resolveProcessEnv();
     const discoveryFile = path.resolve(
       options.discoveryFile
+        ?? processEnv.AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
         ?? processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
         ?? path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json'),
     );

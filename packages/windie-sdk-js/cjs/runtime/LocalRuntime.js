@@ -423,11 +423,12 @@ async function shutdownDiscoveredDaemon(discovery, fetchImpl, WebSocketImpl, tim
 function resolveDaemonScript(options, path) {
     const processLike = globalThis.process;
     const explicit = options.daemonScript
+        ?? processLike?.env?.AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT
         ?? processLike?.env?.WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT;
     if (explicit) {
         return path.resolve(explicit);
     }
-    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT.');
+    throw new Error('Agent SDK client could not locate the local runtime daemon script. Set autoLocalRuntime.command, autoLocalRuntime.daemonScript, or AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT (legacy WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT is also supported).');
 }
 function resolveProcessEnv() {
     const processLike = globalThis.process;
@@ -456,6 +457,7 @@ function resolveDaemonLaunchCommand(options, fs, path, discoveryFile) {
     const processEnv = resolveProcessEnv();
     const daemonScript = resolveDaemonScript(options, path);
     const pythonCommand = options.pythonCommand
+        ?? processEnv.AGENT_LOCAL_RUNTIME_PYTHON
         ?? processEnv.WINDIE_PYTHON
         ?? 'python3';
     return {
@@ -486,6 +488,7 @@ function createAgentLocalRuntimeProvider(options = {}) {
         const { fs, os, path, childProcess } = modules;
         const processEnv = resolveProcessEnv();
         const discoveryFile = path.resolve(options.discoveryFile
+            ?? processEnv.AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
             ?? processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
             ?? path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json'));
         const fetchImpl = options.fetchImpl;
