@@ -159,6 +159,10 @@ handlers should not build duplicate live assistant/tool rows or own chat stream
 normalization. Raw backend events may remain as compatibility traffic for
 non-chat consumers, diagnostics, or legacy hosts that do not emit the SDK
 projection.
+Renderer live-turn presentation adapters should render explicit SDK
+presentation-entry fields such as `toolCallDetails`, `toolOutputDetails`,
+`toolArguments`, `toolCalls`, and identity refs; they should not recover tool
+display details from raw `payload` or `structuredPayload` fallbacks.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 

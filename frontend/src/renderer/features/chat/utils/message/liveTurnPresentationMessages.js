@@ -84,17 +84,14 @@ function buildErrorMessage(entry, currentTurnProjection) {
 }
 
 function buildToolCallMessage(entry, currentTurnProjection) {
-  const payload = asRecord(entry.payload) || {};
-  const toolName = normalizeOptionalText(entry.toolName)
-    || normalizeOptionalText(payload.toolName);
+  const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
-  const toolDetails = asRecord(entry.toolCallDetails) || asRecord(entry.structuredPayload) || payload;
-  if (toolName === 'tool_bundle' || Array.isArray(payload.tools) || Array.isArray(toolDetails.tools)) {
+  const toolDetails = asRecord(entry.toolCallDetails);
+  if (toolName === 'tool_bundle' || Array.isArray(entry.toolCalls) || Array.isArray(toolDetails?.tools)) {
     const bundlePayload = {
-      ...toolDetails,
-      ...payload,
+      ...(toolDetails || {}),
       toolCalls: Array.isArray(entry.toolCalls) ? entry.toolCalls : null,
-      tools: Array.isArray(payload.tools) ? payload.tools : toolDetails.tools,
+      tools: Array.isArray(toolDetails?.tools) ? toolDetails.tools : null,
     };
     const bundleState = buildToolBundleMessageState(bundlePayload);
     return buildToolCallChatMessageState({
@@ -145,15 +142,13 @@ function buildToolProgressMessage(entry, currentTurnProjection) {
     sender: 'assistant',
     type: 'search-source',
     toolName: entry.toolName || undefined,
-    toolMetadata: entry.toolMetadata || entry.payload || null,
+    toolMetadata: entry.toolMetadata || null,
   };
 }
 
 function buildToolOutputMessage(entry, currentTurnProjection) {
-  const payload = asRecord(entry.payload) || {};
-  const toolDetails = asRecord(entry.toolOutputDetails) || asRecord(entry.structuredPayload) || payload;
-  const toolName = normalizeOptionalText(entry.toolName)
-    || normalizeOptionalText(payload.toolName);
+  const toolDetails = asRecord(entry.toolOutputDetails);
+  const toolName = normalizeOptionalText(entry.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
   return {
     ...buildToolOutputEnvelopeMessage({

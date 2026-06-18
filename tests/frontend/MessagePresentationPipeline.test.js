@@ -221,6 +221,71 @@ describe('messagePresentationPipeline', () => {
     expect(rendered[1].correlationId).not.toBe('wrong-correlation');
   });
 
+  test('buildThreadPresentationMessages ignores raw payload details for live tool rows', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:tool:tool-1',
+          type: 'tool-call',
+          text: '',
+          sourceEventType: 'tool_call',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+          toolName: 'read_file',
+          requestId: 'req-read',
+          correlationId: 'corr-read',
+          modelFacingToolCall: {
+            id: 'call-read',
+            name: 'read_file',
+            arguments: { path: 'README.md' },
+          },
+          toolArguments: { path: 'README.md' },
+          structuredPayload: {
+            tool_name: 'wrong_backend_tool',
+            parameters: { path: 'wrong.md' },
+          },
+          payload: {
+            toolName: 'wrong_backend_tool',
+            args: { path: 'wrong.md' },
+            structuredPayload: {
+              parameters: { path: 'also-wrong.md' },
+            },
+          },
+        }],
+      },
+    };
+
+    const rendered = buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    });
+
+    expect(rendered[1]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'tool-call',
+      text: expect.stringContaining('"name": "read_file"'),
+      correlationId: 'corr-read',
+      modelFacingToolCall: expect.objectContaining({
+        id: 'call-read',
+        name: 'read_file',
+        arguments: { path: 'README.md' },
+      }),
+    }));
+    expect(rendered[1].text).not.toContain('wrong_backend_tool');
+    expect(rendered[1].text).not.toContain('wrong.md');
+    expect(rendered[1]).not.toHaveProperty('toolCallDetails');
+  });
+
   test('buildThreadPresentationMessages ignores current-turn entries for another conversation', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

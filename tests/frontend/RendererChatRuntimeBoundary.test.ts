@@ -577,4 +577,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('normalizeBackendStreamEvent');
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
   });
+
+  test('live current-turn presentation does not read raw backend-shaped payload details', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'utils/message/liveTurnPresentationMessages.js'),
+      'utf8',
+    );
+
+    expect(source).toContain('toolCallDetails');
+    expect(source).toContain('toolOutputDetails');
+    expect(source).not.toContain('entry.structuredPayload');
+    expect(source).not.toContain('entry.payload');
+  });
 });
