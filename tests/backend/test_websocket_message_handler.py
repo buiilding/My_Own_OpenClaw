@@ -463,6 +463,7 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
             "payload": {
                 "text": "hello",
                 "conversation_ref": "conv_test",
+                "content": "<user_query>hello</user_query>",
                 "screenshot_url": "http://127.0.0.1:8765/api/artifacts/shot.jpg",
             },
         },
@@ -472,7 +473,40 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
             "payload": {
                 "text": "hello",
                 "conversation_ref": "conv_test",
+                "content": "<user_query>hello</user_query>",
                 "screenshot": "inline-base64",
+            },
+        },
+        {
+            "id": "msg_rehydrate_inline_screenshot",
+            "type": "rehydrate-conversation",
+            "payload": {
+                "conversation_ref": "conv_test",
+                "rehydrate_mode": "replace",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "hello",
+                        "message_type": "user_query",
+                        "screenshot": "inline-base64",
+                    }
+                ],
+            },
+        },
+        {
+            "id": "msg_rehydrate_image_data",
+            "type": "rehydrate-conversation",
+            "payload": {
+                "conversation_ref": "conv_test",
+                "rehydrate_mode": "replace",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "hello",
+                        "message_type": "user_query",
+                        "image_data": "inline-base64",
+                    }
+                ],
             },
         },
         {
@@ -486,7 +520,13 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
             },
         },
     ],
-    ids=["query-screenshot-url", "query-inline-screenshot", "tool-bundle-result"],
+    ids=[
+        "query-screenshot-url",
+        "query-inline-screenshot",
+        "rehydrate-inline-screenshot",
+        "rehydrate-image-data",
+        "tool-bundle-result",
+    ],
 )
 async def test_parse_and_validate_message_rejects_removed_screenshot_fields(payload: dict) -> None:
     message, error = await mh.parse_and_validate_message(
@@ -497,7 +537,7 @@ async def test_parse_and_validate_message_rejects_removed_screenshot_fields(payl
 
     assert message is None
     assert error is not None
-    assert "screenshot" in error
+    assert "screenshot" in error or "image_data" in error
 
 
 @pytest.mark.asyncio

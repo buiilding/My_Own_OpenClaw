@@ -227,9 +227,9 @@ def process_message(
  * Processes a user message and sends it to the backend.
  * 
  * @param {string} text - The message text
- * @param {string|null} screenshot - Optional screenshot data
+ * @param {string|null} screenshotRef - Optional uploaded screenshot artifact id
  */
-const sendMessage = async (text, screenshot = null) => {
+const sendMessage = async (text, screenshotRef = null) => {
   ...
 };
 ```

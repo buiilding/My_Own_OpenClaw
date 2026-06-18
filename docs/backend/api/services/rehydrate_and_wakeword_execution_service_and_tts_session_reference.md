@@ -41,7 +41,7 @@ Per-entry fields normalized:
   (`user_query`, `assistant_response`, `tool_output`, or
   `context_compaction`) when present; missing values may fall back from role
 - tool name / correlation / tool_call_id string normalization
-- screenshot resolution via inline `screenshot` or `screenshot_ref`
+- screenshot resolution via `screenshot_ref`
 - internal bundle trace rows are recognized from explicit bundle tool-name
   metadata, not by stale message-type aliases or JSON-looking message content
 
@@ -80,9 +80,8 @@ of relying on backend rehydrate to invent missing rows or ids.
 
 `_resolve_image_data(...)` order:
 
-1. inline `screenshot`
-2. `screenshot_ref` load via artifact store
-3. no screenshot
+1. `screenshot_ref` load via artifact store
+2. no screenshot
 
 Failure handling:
 
@@ -144,7 +143,7 @@ This provides consistent setup/teardown for both query and wakeword service flow
    `tool-output`, or `tool-call` can hide projection drift at the SDK/backend
    boundary.
 5. accepting unknown tool-output ids can orphan tool rows.
-6. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
+6. accepting direct `screenshot` or `image_data` rehydrate fields can reintroduce large inline replay payloads.
 7. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
 
 ## Related Pages

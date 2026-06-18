@@ -118,8 +118,7 @@ Call sites use `build_stream_context(...)`,
 
 1. Reintroducing extraction-helper wrappers in service class can fork behavior from
    `query_event_extraction.py`.
-2. Changing screenshot ref trimming/fallback order can break compatibility with legacy single-ref
-   payloads.
+2. Changing screenshot ref trimming/fallback order can break single-ref payloads.
 3. Bypassing `QueryExecutionStreamState.completion_kwargs(...)` can desync resolver call shape
    and fallback behavior.
 4. Moving cancellation reconciliation out of helper without equivalent log/context fields reduces

@@ -18,7 +18,6 @@
         "text",
         "conversation_ref",
         "content",
-        "screenshot",
         "screenshot_ref",
         "screenshot_refs",
         "capture_meta",

@@ -124,8 +124,7 @@ Purpose:
 
 `RehydrateExecutionService` supports transcript screenshot restoration:
 
-- uses inline `screenshot` if present
-- else resolves `screenshot_ref` via artifact store
+- resolves `screenshot_ref` via artifact store
 - logs and continues without screenshot on ref resolution failure
 
 This preserves rehydrate robustness even when artifact files are missing.

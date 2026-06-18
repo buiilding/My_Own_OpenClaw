@@ -1149,7 +1149,6 @@ Used when switching or resuming conversations from episodic memory.
 - `correlation_id`: optional call correlation id
 - `timestamp`: optional timestamp
 - `screenshot_ref`: optional artifact id
-- `screenshot`: optional inline base64 screenshot fallback
 - `workspace_path`: optional workspace binding for resumed conversation context
 - `repo_instruction_messages`: optional contextual repo-instruction messages
 

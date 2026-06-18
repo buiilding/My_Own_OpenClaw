@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend: remove direct `screenshot`/`image_data` rehydrate compatibility so
+  resumed transcript images restore only from artifact-backed `screenshot_ref`;
+  no storage migration is required, but external rehydrate clients must upload
+  screenshots as artifacts before sending resume payloads.
 - backend/sdk: remove inline query screenshot compatibility so query payloads
   use artifact-backed `screenshot_ref`/`screenshot_refs` only; no migration is
   included because first-party screenshot capture already uploads artifacts

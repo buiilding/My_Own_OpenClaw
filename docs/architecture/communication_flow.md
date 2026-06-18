@@ -248,7 +248,7 @@ assigns `message_index` as local append order for display and replay.
 
 **`query`**
 - Purpose: User query with optional screenshot
-- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot?: string, screenshot_ref?: string, screenshot_refs?: string[], system_state_internal?: object }`
+- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot_ref?: string, screenshot_refs?: string[], system_state_internal?: object }`
 - Response: Streaming response
 
 **`list-models`**
@@ -296,7 +296,7 @@ assigns `message_index` as local append order for display and replay.
 
 **`rehydrate-conversation`**
 - Purpose: Restore a transcript snapshot into backend session history when a renderer action needs prior conversation history in memory.
-- Payload: `{ conversation_ref, rehydrate_mode: "replace", messages: [{ role, content, message_type?, tool_name?, correlation_id?, tool_call_id?, tool_calls?, timestamp?, screenshot_ref?, screenshot? }] }`
+- Payload: `{ conversation_ref, rehydrate_mode: "replace", messages: [{ role, content, message_type?, tool_name?, correlation_id?, tool_call_id?, tool_calls?, timestamp?, screenshot_ref? }] }`
 - Notes:
   - Selecting a chat in `Your workspace` is renderer-only browsing; it does not eagerly send `rehydrate-conversation`.
   - Renderer sends this lazily before the first backend-dependent action on an existing chat, such as send, replay/edit, or manual compaction.

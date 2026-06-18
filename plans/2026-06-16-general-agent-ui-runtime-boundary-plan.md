@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend rehydrate artifact screenshot contract
+
+- Finding: the backend rehydrate schema and service still accepted direct
+  `screenshot`/`image_data` fields even after query screenshot transport moved
+  to artifact-backed refs, leaving a large inline replay compatibility path at
+  the hosted API boundary.
+- Change: removed direct rehydrate screenshot/image-data fields from incoming
+  schemas and the generated contract, resolved resumed transcript images only
+  from `screenshot_ref`, and aligned backend/API docs and rejection coverage.
+- Validation: backend py_compile for changed schema/service modules, incoming
+  contract pytest coverage, frontend websocket contract coverage, stale
+  rehydrate inline-field scans, `npm run audit:knip`, and diff check. Broader
+  focused backend pytest collection was attempted but could not run because the
+  `jarvis` conda env is unavailable and fallback Python lacks `fastapi`.
+- Compatibility: external rehydrate clients must upload screenshots as
+  artifacts and send `screenshot_ref`; no storage migration is required for
+  existing WindieOS transcripts because first-party resume paths preserve
+  artifact refs.
+
 ### 2026-06-18 sidecar daemon user-data path resolver
 
 - Finding: `sidecar_daemon.py` duplicated platform app-data path logic already

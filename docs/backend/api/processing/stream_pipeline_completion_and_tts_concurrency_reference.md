@@ -42,7 +42,7 @@ High-level order inside `execute(...)`:
 4. prebuild per-turn stream context (`user_id`, `session_id`, `conversation_ref`, `turn_ref`)
 5. open `TTSSession` context
 6. build `StreamPipeline(tts_processor, formatter, sender)`
-7. resolve screenshot from inline payload or artifact reference
+7. resolve screenshot artifact references
 8. consume `agent_instance.process_query(...)` stream
 9. process every non-terminal event through pipeline
 

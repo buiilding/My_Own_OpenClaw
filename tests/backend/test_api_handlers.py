@@ -2559,7 +2559,7 @@ async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
                     "role": "user",
                     "content": "See screenshot",
                     "message_type": "user_query",
-                    "screenshot": "data:image/png;base64,user-inline",
+                    "screenshot_ref": "user-inline-artifact.jpg",
                     "timestamp": "2026-02-12T10:00:00Z",
                 },
                 {
@@ -2586,7 +2586,7 @@ async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
                     "content": "done",
                     "message_type": "tool_output",
                     "tool_call_id": "call_1",
-                    "screenshot": "data:image/png;base64,tool-inline",
+                    "screenshot_ref": "tool-inline-artifact.jpg",
                     "timestamp": "2026-02-12T10:00:03Z",
                 },
             ],
@@ -2600,7 +2600,7 @@ async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
     assert session_manager.session.rehydrate_calls
     entries = session_manager.session.rehydrate_calls[0]["entries"]
     assert entries[0]["content"] == "See screenshot"
-    assert entries[0]["image_data"] == "data:image/png;base64,user-inline"
+    assert entries[0]["image_data"] is None
     assert entries[1]["content"] == "Visible answer."
     assert entries[1]["image_data"] is None
     assert entries[2]["role"] == "assistant"
@@ -2609,7 +2609,7 @@ async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
     assert entries[3]["role"] == "tool"
     assert entries[3]["content"] == "done"
     assert entries[3]["tool_call_id"] == "call_1"
-    assert entries[3]["image_data"] == "data:image/png;base64,tool-inline"
+    assert entries[3]["image_data"] is None
 
 
 @pytest.mark.asyncio

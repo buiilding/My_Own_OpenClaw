@@ -38,7 +38,7 @@ Fields:
 - `text`
 - `conversation_ref`
 - `content`
-- optional: `screenshot`, `screenshot_ref`, `screenshot_refs`, `capture_meta`,
+- optional: `screenshot_ref`, `screenshot_refs`, `capture_meta`,
   `system_state_internal`, `workspace_path`, `repo_instruction_messages`,
   `client_prompt_layers`, `agent_definition`
 

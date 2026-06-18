@@ -46,7 +46,6 @@ Payload (`QueryPayload`):
   correlation belongs in the websocket envelope `id`, which becomes the
   canonical `turn_ref` echoed on backend stream events.
 - `content: str` (SDK/client-prepared model-facing query content)
-- `screenshot: Optional[str]`
 - `screenshot_ref: Optional[str]`
 - `screenshot_refs: Optional[List[str]]`
 - `capture_meta: Optional[Dict[str, Any]]`
@@ -83,7 +82,7 @@ Payload:
 Entry fields:
 
 - required: `role` (`user|assistant|tool`), `content`
-- optional: `message_type`, `tool_name`, `correlation_id`, `tool_call_id`, `tool_calls`, `timestamp`, `screenshot_ref`, `screenshot`
+- optional: `message_type`, `tool_name`, `correlation_id`, `tool_call_id`, `tool_calls`, `timestamp`, `screenshot_ref`
 
 ### `load-settings`
 

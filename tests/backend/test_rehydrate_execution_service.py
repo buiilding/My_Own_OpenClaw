@@ -172,29 +172,6 @@ async def test_execute_forwards_workspace_repo_instructions_to_session_manager()
 
 
 @pytest.mark.asyncio
-async def test_execute_prefers_inline_screenshot_over_artifact_ref():
-    manager = _FakeSessionManager()
-    service = RehydrateExecutionService(manager)
-    message = _build_message(
-        [
-            {
-                "role": "assistant",
-                "content": "reply",
-                "message_type": "assistant_response",
-                "screenshot": "inline-b64",
-                "screenshot_ref": "unused-ref",
-            }
-        ]
-    )
-
-    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
-
-    _, entries = manager.session.calls[0]
-    assert entries[0]["image_data"] == "inline-b64"
-    assert _TrackingArtifactStore.last_instance.loaded_refs == []
-
-
-@pytest.mark.asyncio
 async def test_execute_raises_when_artifact_store_unavailable_for_screenshot_ref():
     manager = _FakeSessionManager()
     service = RehydrateExecutionService(manager)

@@ -136,7 +136,7 @@ Frontend-owned field set:
 
 `RehydrateExecutionService` owns transcript normalization:
 
-- resolves image data from inline screenshot or `screenshot_ref`
+- resolves image data from `screenshot_ref`
 - converts tool-call style rows into assistant tool-call entries
 - ensures subsequent tool-output rows have `tool_call_id`
 - rejects missing or unknown tool-call linkage instead of synthesizing ids

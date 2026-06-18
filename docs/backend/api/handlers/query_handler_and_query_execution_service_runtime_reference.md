@@ -98,7 +98,7 @@ Cancellation behavior:
 - `text` -> validated prompt text
 - `conversation_ref` -> stream context + session routing
 - `content` -> model-facing structured content forwarded to `process_query(...)`
-- `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
+- `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
 - `capture_meta` -> frame metadata forwarded to session/executor screenshot ingestion
 - `system_state_internal` -> backend-only runtime state seed
 

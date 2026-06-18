@@ -70,7 +70,6 @@ class RehydrateExecutionService:
                 artifact_store=artifact_store,
                 user_id=user_id,
                 entry=entry,
-                screenshot=entry.screenshot,
                 screenshot_ref=entry.screenshot_ref,
                 index=index,
             )
@@ -123,21 +122,9 @@ class RehydrateExecutionService:
         artifact_store: Optional[ArtifactStore],
         user_id: str,
         entry: Any,
-        screenshot: Optional[str],
         screenshot_ref: Optional[str],
         index: int,
     ) -> Optional[Union[str, List[str]]]:
-        direct_image_data = getattr(entry, "image_data", None)
-        if isinstance(direct_image_data, str) and direct_image_data:
-            return direct_image_data
-        if isinstance(direct_image_data, list):
-            normalized_images = [
-                image for image in direct_image_data if isinstance(image, str) and image
-            ]
-            if normalized_images:
-                return normalized_images
-        if screenshot:
-            return screenshot
         if not screenshot_ref:
             return None
         if artifact_store is None:

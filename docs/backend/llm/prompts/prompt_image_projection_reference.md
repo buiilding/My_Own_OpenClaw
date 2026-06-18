@@ -13,7 +13,6 @@ title: "Prompt Image Projection Reference"
 Query transport and stored history keep artifact-backed user images as refs:
 
 - `screenshot_ref` / `screenshot_refs` are normalized during query input shaping.
-- Inline `screenshot` remains `image_data` for legacy/direct payloads.
 - Artifact refs are stored on the user history row as `image_refs` plus owner metadata.
 
 Provider prompt construction owns image hydration:
