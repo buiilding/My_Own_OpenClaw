@@ -128,6 +128,8 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('windieos-capture-processor');
       expect(source).not.toContain('WindieOSCaptureProcessor');
+      expect(source).not.toContain('desktop-agent-capture-processor');
+      expect(source).not.toContain('DesktopAgentCaptureProcessor');
       expect(source).not.toContain('__windieWakewordCaptureGuard');
     }
   });

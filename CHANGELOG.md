@@ -5,6 +5,12 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the voice AudioWorklet processor and test blob
+  fixture from desktop-agent to desktop-runtime capture terminology, with
+  renderer boundary coverage guarding the retired worklet names; no
+  migration is required because capture behavior and public voice APIs are
+  unchanged.
+
 - frontend/tooling: update the deprecation audit script to pass ESLint's current
   object-shaped `--rule` option and cover the command shape in package-script
   tests; no migration is required because runtime code and package dependencies

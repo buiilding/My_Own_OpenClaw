@@ -2,11 +2,11 @@
  * Provides the audio processor node module for the renderer UI.
  */
 
-const CAPTURE_WORKLET_NAME = 'desktop-agent-capture-processor';
+const CAPTURE_WORKLET_NAME = 'desktop-runtime-capture-processor';
 const workletLoadedContexts = new WeakSet<AudioContext>();
 
 const WORKLET_SOURCE = `
-class DesktopAgentCaptureProcessor extends AudioWorkletProcessor {
+class DesktopRuntimeCaptureProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     const requestedChunkSize = Number(options?.processorOptions?.chunkSize);
@@ -37,7 +37,7 @@ class DesktopAgentCaptureProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('${CAPTURE_WORKLET_NAME}', DesktopAgentCaptureProcessor);
+registerProcessor('${CAPTURE_WORKLET_NAME}', DesktopRuntimeCaptureProcessor);
 `;
 
 let workletSourceUrl: string | null = null;

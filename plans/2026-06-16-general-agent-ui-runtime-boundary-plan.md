@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer voice worklet desktop-runtime naming
+
+- Finding: renderer voice capture had already moved to generic capture
+  helper naming, but the injected AudioWorklet processor still registered
+  `desktop-agent-capture-processor` and declared
+  `DesktopAgentCaptureProcessor`.
+- Change: renamed the processor registration and class to desktop-runtime
+  capture terminology, refreshed test blob fixtures, and expanded renderer
+  skin/config boundary coverage to reject the retired worklet identifiers.
+- Validation: focused VoiceAudioProcessorNode and RendererSkinConfigBoundary
+  Jest tests, docs listing, and stale processor-name scan.
+- Compatibility: no migration required. The audio capture pipeline, chunk
+  size handling, wakeword/voice hooks, IPC, settings, and public voice APIs
+  are unchanged.
+
+
 ### 2026-06-18 frontend deprecation audit command
 
 - Finding: the frontend deprecation audit script still passed ESLint a retired
