@@ -86,4 +86,4 @@ jobs:
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             "$SSH_USER@$SSH_HOST" \
-            "bash -s -- $quoted_args" < scripts/deploy/update-remote-backend
+            "bash -s -- $quoted_args" < scripts/deploy/update-remote-backend.sh

@@ -57,6 +57,18 @@ describe('windie CLI', () => {
     expect(fs.existsSync(path.join(repoRoot, 'scripts/python-in-env.sh'))).toBe(true);
   });
 
+  test('deploy workflow streams the platform-explicit backend update script', () => {
+    const workflow = fs.readFileSync(
+      path.join(repoRoot, '.github/workflows/deploy-remote-backend.yml'),
+      'utf8',
+    );
+
+    expect(fs.existsSync(path.join(repoRoot, 'scripts/deploy/update-remote-backend'))).toBe(false);
+    expect(fs.existsSync(path.join(repoRoot, 'scripts/deploy/update-remote-backend.sh'))).toBe(true);
+    expect(workflow).toContain('< scripts/deploy/update-remote-backend.sh');
+    expect(workflow).not.toContain('< scripts/deploy/update-remote-backend\n');
+  });
+
   test('prints grouped help', () => {
     const result = runCli(['--help']);
 

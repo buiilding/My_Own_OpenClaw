@@ -4,6 +4,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- ops/deploy: stream the `.sh` remote backend update script from the GitHub
+  Actions deploy workflow so pushes to `main` can update and restart the
+  hosted backend after extensionless script shims were removed.
+
 ### Changed
 
 - main/diagnostics: inject WindieOS app diagnostics database and user-data env
