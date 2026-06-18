@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/runtime: rename source-run Python path bootstrap locals from
+  frontend-oriented wording to sidecar runtime wording without changing import
+  path behavior.
 - sdk/runtime: rename normalized backend packet diagnostics from `rawEvent` to
   `sourceEvent` so conversation events expose SDK source metadata rather than
   raw-backend terminology.

@@ -12,7 +12,7 @@ ensure_frontend_python_path()
 from core.bootstrap_paths import ensure_sidecar_python_path
 
 
-def test_ensure_sidecar_python_path_promotes_frontend_python_dir(monkeypatch):
+def test_ensure_sidecar_python_path_promotes_sidecar_python_dir(monkeypatch):
     entry_file = (
         Path(__file__).resolve().parents[2]
         / "frontend"
@@ -21,14 +21,14 @@ def test_ensure_sidecar_python_path_promotes_frontend_python_dir(monkeypatch):
         / "python"
         / "local_backend.py"
     )
-    frontend_python_dir = str(entry_file.parent)
-    monkeypatch.setattr(sys, "path", ["site-packages", frontend_python_dir, "other"])
+    sidecar_python_dir = str(entry_file.parent)
+    monkeypatch.setattr(sys, "path", ["site-packages", sidecar_python_dir, "other"])
 
-    returned_frontend_python_dir = ensure_sidecar_python_path(entry_file)
+    returned_sidecar_python_dir = ensure_sidecar_python_path(entry_file)
 
-    assert returned_frontend_python_dir == frontend_python_dir
-    assert sys.path[0] == frontend_python_dir
-    assert sys.path.count(frontend_python_dir) == 1
+    assert returned_sidecar_python_dir == sidecar_python_dir
+    assert sys.path[0] == sidecar_python_dir
+    assert sys.path.count(sidecar_python_dir) == 1
 
 
 def test_local_backend_bootstrap_supports_client_local_tool_registry_from_sidecar_cwd():

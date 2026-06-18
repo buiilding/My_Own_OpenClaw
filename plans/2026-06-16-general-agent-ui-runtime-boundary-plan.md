@@ -173,6 +173,22 @@ Each completed slice should report:
   projections, raw backend debug subscription, provider policy, credentials,
   and local-runtime execution are unchanged.
 
+### 2026-06-18 Python Sidecar Bootstrap Path Naming
+
+- Finding: Python sidecar source-run bootstrap code still named the sidecar
+  entrypoint directory `frontend_python_dir`, even though the owner is the
+  Python sidecar runtime and the frontend directory is only the repository
+  location.
+- Change: renamed the bootstrap locals and focused test names to
+  `sidecar_python_dir` while preserving `ensure_sidecar_python_path(...)` and
+  the existing source/dev import-path behavior.
+- Validation: focused sidecar bootstrap pytest, Python compile checks for the
+  touched sidecar files, targeted stale `frontend_python_dir` source scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. Source/dev `sys.path` promotion,
+  packaged paths, JSON-RPC methods, sidecar daemon startup, storage, provider
+  policy, credentials, and local-runtime execution are unchanged.
+
 ### 2026-06-18 Renderer Agent Extension Runtime Client
 
 - Finding: `AgentSettingsTab` still imported agent extension metadata and

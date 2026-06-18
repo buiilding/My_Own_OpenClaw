@@ -18,13 +18,13 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, Optional
 
-frontend_python_dir = str(Path(__file__).resolve().parent)
-if frontend_python_dir not in sys.path:
-    sys.path.insert(0, frontend_python_dir)
+sidecar_python_dir = str(Path(__file__).resolve().parent)
+if sidecar_python_dir not in sys.path:
+    sys.path.insert(0, sidecar_python_dir)
 
 from core.bootstrap_paths import ensure_sidecar_python_path
 
-frontend_python_dir = ensure_sidecar_python_path(__file__)
+sidecar_python_dir = ensure_sidecar_python_path(__file__)
 
 from core.ipc_protocol import JSONRPCProtocol
 from core.feature_pack_installer import (
