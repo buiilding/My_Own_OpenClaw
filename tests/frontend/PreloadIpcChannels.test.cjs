@@ -104,15 +104,16 @@ describe('preload IPC channel registry', () => {
     expect(global.windie).toBeUndefined();
   });
 
-  test('desktop agent bridge uses the generic invoke channel alias internally', () => {
+  test('desktop agent bridge uses the desktop-runtime invoke channel group internally', () => {
     const source = fs.readFileSync(
       path.join(__dirname, '../../frontend/src/preload.js'),
       'utf8',
     );
     const bridgeSource = source.slice(source.indexOf('const desktopAgentBridge'));
 
-    expect(source).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
-    expect(bridgeSource).toContain('DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
+    expect(source).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
+    expect(source).not.toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(bridgeSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
     expect(bridgeSource).not.toContain('INVOKE_CHANNELS.WINDIE_INVOKE');
   });
 

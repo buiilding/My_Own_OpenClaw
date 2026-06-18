@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/preload: rename the private Agent SDK invoke-channel constant from
+  desktop-agent to desktop-runtime wording; no migration is required because
+  `window.desktopAgent`, the `windie:invoke` channel, and command payloads are
+  unchanged.
 - frontend/main: rename the private Electron-main SDK channel group module
   and exports from desktop-agent to desktop-runtime wording; no migration is
   required because the `windie:*` IPC wire channel names, preload bridge, and

@@ -27,7 +27,7 @@ const VALID_SEND_CHANNELS = new Set(Object.values(SEND_CHANNELS));
 const VALID_INVOKE_CHANNELS = new Set(Object.values(INVOKE_CHANNELS));
 const VALID_ON_CHANNELS = new Set(Object.values(ON_CHANNELS));
 
-const DESKTOP_AGENT_INVOKE_CHANNELS = Object.freeze({
+const DESKTOP_RUNTIME_INVOKE_CHANNELS = Object.freeze({
   INVOKE: INVOKE_CHANNELS.DESKTOP_AGENT_INVOKE,
 });
 
@@ -76,10 +76,10 @@ const desktopAgentBridge = {
     if (typeof command !== 'string' || !command.trim()) {
       return Promise.reject(new Error('Invalid Agent SDK command'));
     }
-    if (!VALID_INVOKE_CHANNELS.has(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE)) {
+    if (!VALID_INVOKE_CHANNELS.has(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE)) {
       return Promise.reject(new Error('Agent SDK invoke channel is not available'));
     }
-    return ipcRenderer.invoke(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE, {
+    return ipcRenderer.invoke(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE, {
       command,
       payload: payload && typeof payload === 'object' && !Array.isArray(payload)
         ? payload

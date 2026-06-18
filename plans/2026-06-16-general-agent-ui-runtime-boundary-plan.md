@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 preload invoke channel constant rename
+
+- Finding: preload still used a private `DESKTOP_AGENT_INVOKE_CHANNELS`
+  constant after the host/preload channel grouping moved to desktop-runtime
+  terminology.
+- Change: renamed the private constant to `DESKTOP_RUNTIME_INVOKE_CHANNELS`
+  and tightened preload coverage so the removed desktop-agent constant stays
+  absent while the public `window.desktopAgent` bridge remains unchanged.
+- Validation: focused PreloadIpcChannels Jest test, docs route lookup, recent
+  history review, stale private-constant scan, and diff check.
+- Compatibility: no migration required because `window.desktopAgent`, the
+  `windie:invoke` IPC channel, preload allowlist behavior, and SDK command
+  payloads are unchanged.
+
 ### 2026-06-18 main SDK channel group module rename
 
 - Finding: Electron main still routed SDK conversation/current-turn IPC through
