@@ -1325,5 +1325,6 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Frontend Wakeword Bridge');
     expect(docText).not.toContain('Python sidecar owns wakeword model bootstrap');
     expect(docText).not.toContain('Electron bridge to the sidecar wakeword service');
+    expect(docText).not.toContain('renderer microphone chunks -> Electron main -> Python sidecar wakeword service');
   });
 });

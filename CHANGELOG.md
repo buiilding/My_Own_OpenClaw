@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: extend the voice routing docs guard to reject the old direct
+  Python sidecar wakeword service route wording. No migration required.
 - docs/channels: route wakeword service ownership through the local-runtime
   wakeword helper while keeping the Python sidecar wakeword service visible as
   the concrete implementation. No migration required.
