@@ -7895,3 +7895,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Workspace permission ids, IPC payloads,
   active workspace normalization, conversation workspace binding, and query
   `workspace_path` forwarding are unchanged.
+
+### 2026-06-18 renderer local-runtime status facade boundary
+
+- Finding: the dashboard conversation hook still imported the shared
+  `localRuntimeStatusStore` directly to reload recent conversations when the
+  local runtime became ready.
+- Change: added `DesktopLocalRuntimeStatusRuntimeClient` as the renderer app
+  runtime facade over the shared status store and routed dashboard conversation
+  readiness subscriptions through it.
+- Validation: focused dashboard conversation and renderer chat boundary Jest
+  coverage, direct feature-import scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. The shared status store, IPC bootstrap,
+  event subscription ordering, browser-session readiness behavior, and recent
+  conversation reload semantics are unchanged.

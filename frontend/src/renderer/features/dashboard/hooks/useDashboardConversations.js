@@ -5,12 +5,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildChatMessagesFromSdkDisplayRows } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
+import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/desktopLocalRuntimeStatusRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
-import {
-  getLocalRuntimeStatusSnapshot,
-  subscribeLocalRuntimeStatusStore,
-} from '../../../infrastructure/runtime/localRuntimeStatusStore';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
   clearConversationWorkspaceBinding,
@@ -377,13 +374,13 @@ function useDashboardConversations({
 
   useEffect(() => {
     const reloadWhenLocalRuntimeReady = () => {
-      const snapshot = getLocalRuntimeStatusSnapshot();
+      const snapshot = DesktopLocalRuntimeStatusRuntimeClient.getSnapshot();
       if (snapshot.ready === true) {
         void loadRecentConversations('local-runtime-ready');
       }
     };
 
-    const unsubscribe = subscribeLocalRuntimeStatusStore(reloadWhenLocalRuntimeReady);
+    const unsubscribe = DesktopLocalRuntimeStatusRuntimeClient.subscribe(reloadWhenLocalRuntimeReady);
     reloadWhenLocalRuntimeReady();
     return unsubscribe;
   }, [loadRecentConversations]);

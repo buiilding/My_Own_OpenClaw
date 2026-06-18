@@ -357,11 +357,20 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts'),
       'utf8',
     );
+    const localRuntimeStatusClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient.ts'),
+      'utf8',
+    );
 
     expect(dashboardHookSource).toContain('DesktopConversationRuntimeEventClient.onConversationEvent');
+    expect(dashboardHookSource).toContain('DesktopLocalRuntimeStatusRuntimeClient.subscribe');
+    expect(dashboardHookSource).toContain('DesktopLocalRuntimeStatusRuntimeClient.getSnapshot');
     expect(dashboardHookSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+    expect(dashboardHookSource).not.toContain('infrastructure/runtime/localRuntimeStatusStore');
     expect(dashboardHookSource).not.toContain('IpcBridge.on');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+    expect(localRuntimeStatusClientSource).toContain('subscribeLocalRuntimeStatusStore');
+    expect(localRuntimeStatusClientSource).toContain('getLocalRuntimeStatusSnapshot');
   });
 
   test('conversation runtime projections subscribe through app runtime client', async () => {
