@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: make the legacy current-turn fallback consume SDK tool-event fields
+  for tool calls, outputs, screenshots, status, and metadata instead of
+  decoding raw payload internals; no migration is required because this only
+  changes renderer projection fallback behavior.
 - sdk/renderer: expose live current-turn tool display details on SDK
   presentation entries so renderer overlay rows consume explicit SDK fields for
   model-facing calls, arguments, screenshots, status, and metadata instead of

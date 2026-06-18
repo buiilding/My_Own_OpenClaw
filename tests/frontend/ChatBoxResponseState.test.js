@@ -36,9 +36,16 @@ describe('chatBoxResponseState', () => {
         toolName: 'read_file',
         text: 'Reading README.md',
         status: null,
+        modelFacingToolCall: {
+          name: 'read_file',
+          arguments: { explanation: 'Reading README.md' },
+        },
+        toolArguments: { explanation: 'Reading README.md' },
+        toolCallDetails: {
+          toolName: 'read_file',
+        },
         payload: {
           toolName: 'read_file',
-          args: { explanation: 'Reading README.md' },
         },
       }],
     });
@@ -64,7 +71,7 @@ describe('chatBoxResponseState', () => {
         kind: 'tool_output',
         toolName: 'tool_bundle',
         status: 'success',
-        payload: {
+        toolOutputDetails: {
           bundleId: 'bundle-read',
           stepResults: [{
             tool: 'read_file',
@@ -73,6 +80,9 @@ describe('chatBoxResponseState', () => {
               output: 'README contents',
             },
           }],
+        },
+        payload: {
+          bundleId: 'bundle-read',
         },
       }],
     });

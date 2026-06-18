@@ -117,6 +117,16 @@ function buildToolEventsFromMessages(messages) {
           toolName: message.toolName || 'tool',
           status: message.status || 'success',
           text: message.text || '',
+          toolOutputDetails: message.toolOutputDetails || {
+            output: message.text || '',
+          },
+          toolMetadata: message.toolMetadata || null,
+          screenshot: message.screenshot || null,
+          screenshotRef: message.screenshotRef || null,
+          screenshotUrl: message.screenshotUrl || null,
+          screenshotContentType: message.screenshotContentType || null,
+          executionTime: message.executionTime ?? null,
+          success: message.success ?? (message.status === 'error' ? false : true),
           payload: {
             output: message.text || '',
           },
@@ -143,15 +153,17 @@ function buildToolEventsFromMessages(messages) {
           kind: 'tool_call',
           toolName: message.modelFacingToolCall?.name || message.toolCallDetails?.tool_name || message.toolName || 'tool',
           text: message.text || '',
+          modelFacingToolCall: message.modelFacingToolCall || {
+            name: message.toolCallDetails?.tool_name || message.toolName || 'tool',
+            arguments: args,
+          },
+          toolArguments: args,
+          toolCallDetails: message.toolCallDetails || {
+            toolName: message.modelFacingToolCall?.name || message.toolName || 'tool',
+          },
+          toolMetadata: message.toolMetadata || null,
           payload: {
             toolName: message.modelFacingToolCall?.name || message.toolCallDetails?.tool_name || message.toolName || 'tool',
-            args,
-            metadata: {
-              model_facing_tool_call: message.modelFacingToolCall || {
-                name: message.toolCallDetails?.tool_name || message.toolName || 'tool',
-                arguments: args,
-              },
-            },
           },
         };
       }

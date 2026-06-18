@@ -33,16 +33,12 @@ function buildProjectedToolCallMessage({
   toolEvent,
   payload,
 }) {
-  const structuredPayload = asObject(payload.structuredPayload);
-  const toolCallDetails = structuredPayload || payload;
-  const metadata = asObject(toolCallDetails.metadata);
-  const args = asObject(payload.args) || asObject(payload.parameters) || asObject(toolCallDetails.parameters);
-  const toolName = readString(toolEvent.toolName) || readString(payload.toolName) || '';
-  const requestId = readString(toolEvent.requestId) || readString(payload.requestId);
-  const correlationId = (
-    readString(toolEvent.correlationId)
-    || readString(payload.correlationId)
-  );
+  const toolCallDetails = asObject(toolEvent.toolCallDetails) || payload;
+  const metadata = asObject(toolEvent.toolMetadata);
+  const args = asObject(toolEvent.toolArguments);
+  const toolName = readString(toolEvent.toolName) || '';
+  const requestId = readString(toolEvent.requestId);
+  const correlationId = readString(toolEvent.correlationId);
 
   if (toolName === 'tool_bundle' || readArray(payload.tools) || readArray(toolCallDetails.tools)) {
     const bundlePayload = {
@@ -64,7 +60,7 @@ function buildProjectedToolCallMessage({
   }
 
   const toolCallState = buildToolCallMessageState({
-    rawToolCall: asObject(metadata?.model_facing_tool_call),
+    rawToolCall: asObject(toolEvent.modelFacingToolCall),
     fallbackToolName: toolName || null,
     fallbackToolCallId: requestId,
     fallbackArguments: args,
@@ -127,15 +123,15 @@ function buildProjectedToolOutputMessage({
   toolEvent,
   payload,
 }) {
-  const structuredPayload = asObject(payload.structuredPayload);
-  const toolOutputDetails = structuredPayload || payload;
-  const screenshot = readString(payload.screenshot) || readString(toolOutputDetails.screenshot);
-  const screenshotRefValue = readString(payload.screenshotRef) || readString(toolOutputDetails.screenshot_ref);
-  const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(screenshotRefValue);
-  const requestId = readString(toolEvent.requestId) || readString(payload.requestId);
+  const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || payload;
+  const screenshot = readString(toolEvent.screenshot);
+  const screenshotRefValue = readString(toolEvent.screenshotRef);
+  const screenshotAttachment = buildScreenshotAttachment(screenshotRefValue);
+  const screenshotRef = screenshotAttachment.screenshotRef;
+  const screenshotUrl = readString(toolEvent.screenshotUrl) || screenshotAttachment.screenshotUrl;
+  const requestId = readString(toolEvent.requestId);
   const correlationId = (
     readString(toolEvent.correlationId)
-    || readString(payload.correlationId)
     || requestId
     || undefined
   );
@@ -147,10 +143,11 @@ function buildProjectedToolOutputMessage({
       screenshot: screenshotRef ? null : screenshot,
       screenshotRef,
       screenshotUrl,
-      toolMetadata: asObject(toolOutputDetails.metadata),
-      toolName: readString(toolEvent.toolName) || readString(payload.toolName),
-      executionTime: typeof toolOutputDetails.execution_time === 'number' ? toolOutputDetails.execution_time : null,
-      success: typeof toolOutputDetails.success === 'boolean' ? toolOutputDetails.success : null,
+      screenshotContentType: readString(toolEvent.screenshotContentType),
+      toolMetadata: asObject(toolEvent.toolMetadata),
+      toolName: readString(toolEvent.toolName),
+      executionTime: typeof toolEvent.executionTime === 'number' ? toolEvent.executionTime : null,
+      success: typeof toolEvent.success === 'boolean' ? toolEvent.success : null,
       correlationId,
       toolOutputDetails,
       turnRef: turnRef || null,
@@ -181,7 +178,7 @@ function buildProjectedToolProgressMessage({
     turnRef: turnRef || undefined,
     toolName: toolEvent.toolName || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
-    toolMetadata: toolEvent.payload || null,
+    toolMetadata: toolEvent.toolMetadata || toolEvent.payload || null,
   };
 }
 

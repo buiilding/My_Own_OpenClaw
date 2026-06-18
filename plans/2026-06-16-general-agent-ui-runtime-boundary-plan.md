@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer current-turn fallback tool-event fields
+
+- Finding: after SDK live presentation entries carried explicit tool display
+  details, the older renderer fallback path for `currentTurn.toolEvents` still
+  decoded arguments, model-facing calls, screenshots, status, execution time,
+  and metadata from raw payload internals.
+- Change: made `chatBoxResponseState` consume SDK tool-event fields for the
+  fallback path and updated focused test helpers/fixtures to synthesize
+  SDK-shaped tool events instead of backend-shaped metadata blobs.
+- Validation: focused ChatBoxResponse fallback, overlay, and metadata Jest
+  coverage; exact stale fallback field scan; docs listing; and diff check.
+- Compatibility: no migration required. This is renderer projection fallback
+  behavior only; backend websocket events, stored conversation events, IPC
+  channels, SDK contracts, artifact URLs, local execution, and provider policy
+  are unchanged.
+
 ### 2026-06-18 SDK live presentation tool details boundary
 
 - Finding: renderer live current-turn presentation still decoded tool-call

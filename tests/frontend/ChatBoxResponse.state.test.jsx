@@ -221,6 +221,15 @@ describe('ChatBoxResponse state behavior', () => {
         toolName: 'read_file',
         requestId: 'req-read',
         correlationId: 'corr-read',
+        modelFacingToolCall: {
+          id: 'call-read',
+          name: 'read_file',
+          arguments: { path: 'README.md' },
+        },
+        toolArguments: { path: 'README.md' },
+        toolCallDetails: {
+          displaySource: 'sdk-tool-event',
+        },
         payload: {
           toolName: 'read_file',
           requestId: 'req-read',
@@ -240,12 +249,14 @@ describe('ChatBoxResponse state behavior', () => {
     expect(toolMessage).toEqual(expect.objectContaining({
       correlationId: 'corr-read',
       modelFacingToolCall: expect.objectContaining({
-        id: 'req-read',
+        id: 'call-read',
         name: 'read_file',
+        arguments: { path: 'README.md' },
       }),
     }));
     expect(toolMessage.text).toContain('"name": "read_file"');
     expect(toolMessage.text).not.toContain('wrong_backend_tool');
+    expect(toolMessage.text).not.toContain('wrong.md');
   });
 
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {

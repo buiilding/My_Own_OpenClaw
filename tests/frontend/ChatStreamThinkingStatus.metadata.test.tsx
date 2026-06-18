@@ -235,16 +235,19 @@ describe('useChatStream message metadata handling', () => {
         id: 'tool-bad',
         kind: 'tool_call',
         toolName: 'run_shell_command',
+        toolArguments: {},
+        toolMetadata: {
+          llm_tool_call_validation_failed: true,
+          skip_frontend_execution: true,
+          llm_tool_call_raw_tool_call_preview: '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
+          llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
+          llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
+        },
+        toolCallDetails: {
+          toolName: 'run_shell_command',
+        },
         payload: {
           tool_name: 'run_shell_command',
-          parameters: {},
-          metadata: {
-            llm_tool_call_validation_failed: true,
-            skip_frontend_execution: true,
-            llm_tool_call_raw_tool_call_preview: '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
-            llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
-            llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
-          },
         },
       }],
     });
@@ -278,21 +281,27 @@ describe('useChatStream message metadata handling', () => {
         id: 'tool-raw-2',
         kind: 'tool_call',
         toolName: 'run_shell_command',
+        modelFacingToolCall: {
+          id: 'tool_raw_2',
+          name: 'run_shell_command',
+          arguments: {
+            explanation: 'Create a temporary test file to test the replace tool',
+            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+          },
+        },
+        toolArguments: {
+          explanation: 'Create a temporary test file to test the replace tool',
+          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+        },
+        toolMetadata: {
+          llm_tool_call_validation_failed: true,
+          skip_frontend_execution: true,
+        },
+        toolCallDetails: {
+          toolName: 'run_shell_command',
+        },
         payload: {
           tool_name: 'run_shell_command',
-          parameters: {},
-          metadata: {
-            llm_tool_call_validation_failed: true,
-            skip_frontend_execution: true,
-            model_facing_tool_call: {
-              id: 'tool_raw_2',
-              name: 'run_shell_command',
-              arguments: {
-                explanation: 'Create a temporary test file to test the replace tool',
-                command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-              },
-            },
-          },
         },
       }],
     });
@@ -339,17 +348,20 @@ describe('useChatStream message metadata handling', () => {
         id: 'tool-validation',
         kind: 'tool_call',
         toolName: 'mouse_control',
+        toolArguments: {
+          action: 'click',
+          x: 100,
+          y: 200,
+        },
+        toolMetadata: {
+          llm_tool_call_validation_failed: true,
+          skip_frontend_execution: true,
+        },
+        toolCallDetails: {
+          toolName: 'mouse_control',
+        },
         payload: {
           tool_name: 'mouse_control',
-          parameters: {
-            action: 'click',
-            x: 100,
-            y: 200,
-          },
-          metadata: {
-            llm_tool_call_validation_failed: true,
-            skip_frontend_execution: true,
-          },
         },
       }],
     });
