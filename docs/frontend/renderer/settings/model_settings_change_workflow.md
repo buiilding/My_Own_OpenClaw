@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for changing WindieOS settings model selection and provider settings across dashboard model cards, chat header selectors, frontend config persistence, list-models events, provider credentials, and backend catalog routing."
+summary: "Workflow for changing WindieOS settings model selection and provider settings across dashboard model cards, chat header selectors, renderer config persistence, list-models events, provider credentials, and backend catalog routing."
 read_when:
   - When changing settings model selection, the dashboard Models section, chat header model/provider selectors, model defaults, provider API-key controls, or selected_model_id/model_provider persistence.
   - When debugging a model that appears in one UI but not another, a selected model that resets, stale list-models data, provider API keys that do not route, or reasoning controls that do not match catalog metadata.
-  - When deciding whether a model/provider change belongs in renderer UI, frontend config storage, Electron settings sync, backend model catalog, backend provider routing, or credentials handling.
+  - When deciding whether a model/provider change belongs in renderer UI, renderer config storage, Electron settings sync, backend model catalog, backend provider routing, or credentials handling.
 title: "Model Settings Change Workflow"
 ---
 
@@ -22,7 +22,7 @@ header controls, and persisted selected model config.
 - Renderer model UI consumes `availableModels` and must not invent provider
   capabilities that are not present in backend metadata.
 - `selected_model_id`, `model_provider`, `model_mode`, and `provider_api_keys`
-  are frontend-managed config fields that are persisted locally and sent through
+  are renderer-managed config fields that are persisted locally and sent through
   `update-settings`.
 - Deferred query-time model updates must use the SDK model-selection contract
   for the canonical `model_provider`/`selected_model_id` patch instead of
@@ -167,7 +167,7 @@ Read:
 
 Persistence rules:
 
-- Add new frontend-managed model/provider fields to both frontend filtering and
+- Add new renderer-managed model/provider fields to both renderer filtering and
   backend validation only when the backend is meant to accept the field.
 - Do not persist unknown provider-key shapes; normalize provider entries to
   `{ enabled, api_key }`.

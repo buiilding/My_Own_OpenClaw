@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer docs: align model settings persistence and protocol state references
+  with renderer-managed config and `syncCurrentConfigToRuntime`.
 - sidecar: clarify that wait-tool post-action delay is coordinated by the SDK
   local runtime rather than the renderer/frontend.
 - sidecar docs/comments: rename source-local frontend sidecar wording to

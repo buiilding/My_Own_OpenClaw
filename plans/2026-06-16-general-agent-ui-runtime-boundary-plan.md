@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer model settings docs boundary
+
+- Finding: renderer model settings docs still described selected model/provider
+  fields as frontend-managed config, and the protocol state reference still
+  named the retired `syncCurrentConfigToBackend` helper.
+- Change: reworded the model settings workflow to renderer-managed config
+  persistence/filtering and updated the protocol state reference to
+  `syncCurrentConfigToRuntime`.
+- Validation: docs listing, stale model-settings ownership/helper scan, and
+  diff check.
+- Compatibility: no migration required. This is docs-only; renderer config
+  storage, IPC names, settings payloads, SDK model-selection behavior,
+  credentials, permissions, and backend validation are unchanged.
+
 ### 2026-06-18 sidecar wait delay ownership wording boundary
 
 - Finding: the Python wait tool and sidecar folder map said the frontend handled

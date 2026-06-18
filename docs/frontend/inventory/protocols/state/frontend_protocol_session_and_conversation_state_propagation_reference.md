@@ -103,7 +103,7 @@ Snapshot fields:
 
 - `updateTranscriptSession(undefined, userId)` when user id resolves
 - `setRuntimeEndpointHttpUrl(backendHttpUrl)` for artifact URL routing
-- `syncCurrentConfigToBackend()` when already connected
+- `syncCurrentConfigToRuntime()` when already connected
 
 Locked by:
 
