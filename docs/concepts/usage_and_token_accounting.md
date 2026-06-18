@@ -73,7 +73,7 @@ Future subscription/usage metering belongs in planning or hosted operations unti
 - Do not rename token-count fields without updating backend schemas, formatter tests, renderer event guards, and token display consumers.
 - Do not treat local estimates as billable provider cost.
 - Do not hide provider missing-usage cases; keep `usage_source="estimated"` visible for diagnostics.
-- Treat provider usage capture as request-local during streaming; shared provider "last usage" values are diagnostics fallback only.
+- Treat provider usage capture as request-local during streaming; missing request-local usage must stay visible as unavailable/estimated diagnostics.
 - Do not add billing language to current docs unless the billing system exists or the page is explicitly marked planned.
 
 ## Debug Routing

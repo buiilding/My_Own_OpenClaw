@@ -62,9 +62,6 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout
-        self._last_stream_usage: Optional[Dict[str, Any]] = None
-        self._last_usage: Optional[Dict[str, Any]] = None
-        self._last_stream_response_payload: Optional[NormalizedLLMResponse] = None
         self._request_stream_usage: contextvars.ContextVar[Any] = (
             contextvars.ContextVar(
                 f"{self.__class__.__name__}.{id(self)}.stream_usage",
@@ -329,9 +326,6 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
 
     def clear_last_stream_usage(self) -> None:
         """Reset stored usage payload for the next streaming request."""
-        self._last_stream_usage = None
-        self._last_usage = None
-        self._last_stream_response_payload = None
         self._request_stream_usage.set(None)
         self._request_usage.set(None)
         self._request_stream_response_payload.set(None)
@@ -343,20 +337,16 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
             if request_usage is None:
                 return None
             return copy.deepcopy(request_usage)
-        if self._last_stream_usage is None:
-            return None
-        return copy.deepcopy(self._last_stream_usage)
+        return None
 
     def get_last_usage(self) -> Optional[Dict[str, Any]]:
-        """Return the current request's usage payload, falling back to diagnostics."""
+        """Return a copy of the current request's usage payload."""
         request_usage = self._request_usage.get()
         if request_usage is not _NO_REQUEST_VALUE:
             if request_usage is None:
                 return None
             return copy.deepcopy(request_usage)
-        if self._last_usage is None:
-            return None
-        return copy.deepcopy(self._last_usage)
+        return None
 
     def get_last_stream_response_payload(self) -> Optional[NormalizedLLMResponse]:
         """Return normalized payload captured for the current streaming request."""
@@ -365,14 +355,11 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
             if request_payload is None:
                 return None
             return copy.deepcopy(request_payload)
-        if self._last_stream_response_payload is None:
-            return None
-        return copy.deepcopy(self._last_stream_response_payload)
+        return None
 
     def _set_last_stream_response_payload(self, payload: NormalizedLLMResponse) -> None:
         """Store normalized stream payload for downstream tool-call handling."""
         payload_copy = copy.deepcopy(payload)
-        self._last_stream_response_payload = payload_copy
         self._request_stream_response_payload.set(copy.deepcopy(payload_copy))
 
     def supports_streaming_tool_turns(self, model: str) -> bool:
@@ -403,7 +390,6 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         """
         captured = self._record_usage_from_payload_container(chunk)
         if captured:
-            self._last_stream_usage = captured
             self._request_stream_usage.set(copy.deepcopy(captured))
         return captured
 
@@ -414,7 +400,6 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         """Capture usage payloads from stream chunks or non-stream responses."""
         captured_usage = collect_usage_payload(payload_container)
         if captured_usage:
-            self._last_usage = captured_usage
             self._request_usage.set(copy.deepcopy(captured_usage))
             return captured_usage
         return None

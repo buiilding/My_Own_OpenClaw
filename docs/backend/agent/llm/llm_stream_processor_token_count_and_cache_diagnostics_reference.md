@@ -161,7 +161,7 @@ Two diagnostics channels are logged each turn:
 - `prefix_mutated`
 2. provider-reported cache diagnostics (`[Provider Cache]`) from client metadata
 
-Provider stream usage and normalized response payloads are captured in request-local provider context. Legacy provider last-value accessors remain diagnostics fallback outside an active request and must not drive turn-critical routing for overlapping streams.
+Provider stream usage and normalized response payloads are captured in request-local provider context. Missing request-local usage is reported as unavailable instead of reading stale cross-request provider state.
 
 Fingerprint behavior:
 

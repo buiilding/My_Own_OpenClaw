@@ -91,7 +91,7 @@ If counting fails:
 `LLMProvider.get_stream_cache_diagnostics(model)`:
 
 - reads the active async request's captured usage payload from stream/non-stream responses
-- legacy provider last-value accessors remain diagnostics fallback outside an active request and are not a turn-critical ownership boundary
+- returns `provider_usage_unavailable` when no request-local provider usage was captured
 - extracts tokens across multiple provider key conventions
 - computes cache status:
   - cached tokens > 0 -> `hit`
