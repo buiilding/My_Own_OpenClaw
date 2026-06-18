@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename internal desktop UI config cache, preservation, and persistence
+  helpers in `ipc.cjs` so active main-process config plumbing no longer uses
+  frontend-named helper functions; no migration is required because disk
+  persistence, IPC handlers, MCP enablement preservation, and payloads are
+  unchanged.
 - main: rename the MCP registry config accessor to
   `getDesktopUiConfigForMcpRegistry` so MCP manifest refreshes read from the
   desktop UI config boundary; no migration is required because MCP enablement

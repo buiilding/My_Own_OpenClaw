@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config internal helper boundary
+
+- Finding: after the public helper, handler, startup, and settings-sync
+  boundary names moved, `ipc.cjs` still used frontend-named internal helper
+  functions for cached desktop UI config loading, main-owned field
+  preservation, and disk persistence.
+- Change: renamed the active internal helpers to
+  `loadCachedDesktopUiConfigFromDisk`,
+  `preserveMainOwnedDesktopUiConfigFields`, and
+  `persistDesktopUiConfigToDisk`, then rewired startup, handler, settings-sync,
+  shortcut fallback, and MCP toggle call sites to those names.
+- Validation: focused IPC persistence, handler, startup, settings-sync, main
+  SDK boundary, and IPC bridge lifecycle Jest coverage; main syntax check;
+  stale active-helper scan; docs listing; and diff check.
+- Compatibility: no migration required. Disk persistence, IPC handler channels,
+  shortcut fallback, MCP enablement preservation, payload shape, redaction,
+  credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config MCP registry boundary
 
 - Finding: MCP registry and SDK wake-up paths still read config through

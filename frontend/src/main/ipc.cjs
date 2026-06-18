@@ -210,7 +210,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   setLatestDesktopUiConfig: (config) => {
     latestFrontendConfig = config;
   },
-  loadCachedDesktopUiConfig: () => loadCachedFrontendConfigFromDisk(),
+  loadCachedDesktopUiConfig: () => loadCachedDesktopUiConfigFromDisk(),
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
@@ -438,11 +438,11 @@ function notifyBackendMessageObservers(data) {
   }
 }
 
-async function loadCachedFrontendConfigFromDisk() {
+async function loadCachedDesktopUiConfigFromDisk() {
   return loadDesktopUiConfigFromDisk(log);
 }
 
-function preserveMainOwnedFrontendConfigFields(config, options = {}) {
+function preserveMainOwnedDesktopUiConfigFields(config, options = {}) {
   const {
     preserveMcpEnablement = true,
   } = options;
@@ -468,7 +468,7 @@ function preserveMainOwnedFrontendConfigFields(config, options = {}) {
 }
 
 function getDesktopUiConfigForMcpRegistry() {
-  return preserveMainOwnedFrontendConfigFields(latestFrontendConfig || {});
+  return preserveMainOwnedDesktopUiConfigFields(latestFrontendConfig || {});
 }
 
 function countMcpEnabledServersInConfig(config) {
@@ -504,11 +504,11 @@ function recordMcpEnablementDiagnostic(input = {}) {
   }
 }
 
-async function persistFrontendConfigToDisk(config, options = {}) {
+async function persistDesktopUiConfigToDisk(config, options = {}) {
   const preserveSource = resolveMcpEnablementPreserveSource(config, options);
   const payloadHasEnabledKey = Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY]);
   const persistableConfig = redactDesktopUiConfigProviderSecrets(
-    preserveMainOwnedFrontendConfigFields(config, options),
+    preserveMainOwnedDesktopUiConfigFields(config, options),
   );
   const result = await saveDesktopUiConfigToDisk(persistableConfig, log);
   recordMcpEnablementDiagnostic({
@@ -542,7 +542,7 @@ function updateGlobalAgentStopShortcutStatus(status) {
   if (isValidConfigPayload(latestFrontendConfig)) {
     const nextConfig = applyShortcutStatusFallbackToConfig(latestFrontendConfig);
     if (nextConfig !== latestFrontendConfig) {
-      void persistFrontendConfigToDisk(nextConfig);
+      void persistDesktopUiConfigToDisk(nextConfig);
     }
   }
 
@@ -1565,7 +1565,7 @@ function initializeIpc(win, options = {}) {
   initializeIpcStartupState({
     loadInstallAuthStateFromDisk,
     applyInstallAuthState,
-    loadCachedDesktopUiConfigFromDisk: loadCachedFrontendConfigFromDisk,
+    loadCachedDesktopUiConfigFromDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
     setLatestDesktopUiConfig: (config) => {
@@ -1581,8 +1581,8 @@ function initializeIpc(win, options = {}) {
 
   registerDesktopUiConfigHandlers({
     ipcMain,
-    loadCachedDesktopUiConfigFromDisk: loadCachedFrontendConfigFromDisk,
-    persistDesktopUiConfigToDisk: persistFrontendConfigToDisk,
+    loadCachedDesktopUiConfigFromDisk,
+    persistDesktopUiConfigToDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
     getLatestDesktopUiConfig: () => latestFrontendConfig,
@@ -1617,7 +1617,7 @@ function initializeIpc(win, options = {}) {
       config: getDesktopUiConfigForMcpRegistry(),
       serverId,
       enabled: payload.enabled === true,
-      persistConfig: (nextConfig) => persistFrontendConfigToDisk(nextConfig, {
+      persistConfig: (nextConfig) => persistDesktopUiConfigToDisk(nextConfig, {
         preserveMcpEnablement: false,
       }),
       resolveLocalRuntime: process.env.NODE_ENV === 'test'
