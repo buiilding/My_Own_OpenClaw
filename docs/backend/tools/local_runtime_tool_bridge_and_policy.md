@@ -1,7 +1,7 @@
 ---
 summary: "Backend tool surface that is schema-driven and dispatched through SDK/main local-runtime execution, including policy filtering and local-runtime parity constraints."
 read_when:
-  - When adding/removing tools across backend and sidecar.
+  - When adding/removing tools across backend, SDK/main local-runtime dispatch, and Python sidecar adapters.
   - When changing tool allowlist or agent capability behavior.
 title: "Local-Runtime Tool Bridge and Policy"
 ---
@@ -41,17 +41,18 @@ Backend exports remote tool classes for schemas/capabilities such as:
 - read_file, replace
 - browser
 
-These map to sidecar runtime implementations in `frontend/src/main/python/tools/*`.
+These map through SDK/main local-runtime dispatch to Python sidecar adapter
+implementations in `frontend/src/main/python/tools/*`.
 
 Current runtime note:
 
-- this remote bridge is direct-name based; the live backend catalog and live sidecar exposed-tool set both use concrete tool names such as `mouse_control` and `run_shell_command`
+- this remote bridge is direct-name based; the live backend catalog and Python sidecar exposed-tool set both use concrete tool names such as `mouse_control` and `run_shell_command`
 - wrapper envelopes are not registered remote tool names in the current bridge
-- backend-owned `web_search` is outside this local-runtime bridge because it never dispatches to the sidecar
+- backend-owned `web_search` is outside this local-runtime bridge because it never dispatches through SDK/main local-runtime execution
 - backend-owned grounded helper tools such as `grounded_mouse_action` and
   `grounded_scroll_action` may be model-visible, but they are not
-  sidecar-executable manifest entries; backend preparation rewrites them to the
-  executable sidecar tools before dispatch
+  local-runtime executable manifest entries; backend preparation rewrites them
+  to the executable Python sidecar tools before dispatch
 
 ## Policy and Filtering
 
@@ -74,7 +75,8 @@ Policy is applied to:
 
 ## Cross-Layer Contract Rule
 
-Tool names expected by backend schemas and sidecar runtime must remain synchronized.
+Tool names expected by backend schemas, SDK/main local-runtime dispatch, and
+Python sidecar adapters must remain synchronized.
 
 The local runtime explicitly tracks backend client-executable built-in tool names in:
 
@@ -82,8 +84,8 @@ The local runtime explicitly tracks backend client-executable built-in tool name
 
 Mismatch symptoms:
 
-- backend emits tool call that sidecar cannot execute
-- sidecar warns: built-in local-runtime tools are unavailable
+- backend emits tool call that the local runtime cannot execute
+- Python sidecar warns: built-in local-runtime tools are unavailable
 - query loop waits/fails until timeout/error path
 
 ## Change Workflow
@@ -91,9 +93,9 @@ Mismatch symptoms:
 When adding a tool:
 
 1. Add remote tool schema/stub on backend.
-2. Add sidecar implementation + arg schema.
+2. Add Python sidecar implementation + arg schema.
 3. Add renderer/tool execution handling if required.
-4. Update docs for backend + sidecar tool catalogs.
+4. Update docs for backend, SDK/main dispatch, and Python sidecar tool catalogs.
 5. Add/adjust tests for contract parity.
 
 ## Deep References

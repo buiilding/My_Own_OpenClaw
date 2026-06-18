@@ -9525,6 +9525,24 @@ Each completed slice should report:
   helper behavior, and existing TypeScript callers that import
   `BackendTransport` are unchanged.
 
+### 2026-06-18 SDK/backend local-runtime wording
+
+- Finding: the SDK conversation runtime continuity responsibility split still
+  said the sidecar owns durable rows, list/search/title/delete queries, and
+  SQLite/FAISS mechanics, which made the SDK doc read as if the sidecar were the
+  reusable persistence owner. The backend local-runtime tool bridge doc also
+  had remaining sidecar-runtime/tool wording where the reusable boundary is
+  SDK/main local-runtime dispatch.
+- Change: reworded that split to local-runtime persistence ownership while
+  preserving the fact that the current desktop implementation is backed by the
+  Python sidecar, routed backend bridge wording through SDK/main dispatch plus
+  Python sidecar adapters, and added focused docs boundary guards.
+- Validation: focused modular docs boundary test, docs listing, source scan,
+  and diff checks.
+- Compatibility: no migration required. Runtime code, store payloads, IPC
+  channels, settings, storage files, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-18 browser tool local-runtime wording
 
 - Finding: public browser-tool docs still described the reusable execution

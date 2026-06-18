@@ -483,8 +483,9 @@ Responsibility split:
 - SDK owns conversation semantics, display projection, rehydrate projection, and
   continuity orchestration.
 - Electron owns local IPC, local-runtime-backed persistence, and renderer wiring.
-- Sidecar owns durable rows, ordering, list/search/title/delete queries, and
-  SQLite/FAISS mechanics.
+- Local runtime owns durable rows, ordering, list/search/title/delete queries,
+  and SQLite/FAISS mechanics; the current desktop implementation is backed by
+  the Python sidecar.
 - SDK local-runtime clients own the raw local-runtime event subscription surface.
   Electron hosts classify local events such as `conversation-title-updated` at
   the main-process boundary and broadcast public invalidations such as

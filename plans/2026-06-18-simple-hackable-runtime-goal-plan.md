@@ -313,6 +313,14 @@ For each completed slice, record:
   payloads, storage, or public runtime commands. Validation: focused SDK
   package-boundary and conversation-runtime Jest coverage plus docs listing
   and source scans. No runtime or storage migration required.
+- 2026-06-18: completed an SDK/backend local-runtime wording slice by replacing
+  the remaining "Sidecar owns durable rows" SDK continuity split with
+  local-runtime persistence ownership plus an explicit Python sidecar backing
+  implementation note, and by routing backend local-runtime tool bridge wording
+  through SDK/main dispatch plus Python sidecar adapters. Validation: focused
+  modular docs boundary test, docs listing, source scan, and diff checks. No
+  migration required; no code path, payload, storage, IPC, settings, tool
+  schema, credential, permission, or provider-policy behavior changed.
 - 2026-06-18: completed a browser-tool public wording slice by routing
   `docs/tools/browser.md` and the tools hub through local-runtime execution and
   Python sidecar adapter/executor terminology instead of unqualified

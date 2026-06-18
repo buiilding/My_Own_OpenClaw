@@ -194,6 +194,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('sidecar daemon');
     expect(sdkDocText).not.toContain('sidecar tool manifest');
     expect(sdkDocText).not.toContain('sidecar execution');
+    expect(sdkDocText).not.toContain('Sidecar owns durable rows');
     expect(sdkDocText).not.toContain('sidecar-backed conversation');
     expect(sdkDocText).not.toContain('sidecar-backed default conversation store');
     expect(sdkDocText).not.toContain('Electron sidecar-backed stores');
@@ -589,6 +590,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar results');
     expect(toolRoutingDocText).not.toContain('sidecar result');
     expect(toolRoutingDocText).not.toContain('what the sidecar executed');
+    expect(toolRoutingDocText).toContain('SDK/main local-runtime dispatch');
+    expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
+    expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
+    expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
+    expect(toolRoutingDocText).not.toContain('dispatches to the sidecar');
+    expect(toolRoutingDocText).not.toContain('sidecar-executable manifest entries');
+    expect(toolRoutingDocText).not.toContain('executable sidecar tools');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');
