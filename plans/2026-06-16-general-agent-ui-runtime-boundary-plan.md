@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 conceptual sidecar-facing wording cleanup
+
+- Finding: session/conversation and backend embedding runtime docs still used
+  sidecar-facing prose for replay and health-probe concepts that should route
+  readers through renderer/local-runtime or local-runtime consumer boundaries.
+- Change: rewrote those concepts to renderer/local-runtime-facing and
+  local-runtime consumer wording, then expanded the first-read boundary guard
+  to cover both docs and reject sidecar-facing prose in that set.
+- Validation: focused first-read modular boundary test, docs listing, stale
+  sidecar-facing phrase scan for the touched docs, and `git diff --check`.
+- Compatibility: no migration required. Conversation identity, transcript
+  replay, backend rehydrate, embedding health probes, APIs, settings, and
+  persisted data are unchanged.
+
 ### 2026-06-18 public local-sidecar wording cleanup
 
 - Finding: credential, hosted-deployment, and synthetic tool-event recovery

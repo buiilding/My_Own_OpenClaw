@@ -35,7 +35,7 @@ The backend session map is conversation-scoped. The renderer transcript runtime 
 
 Replay displays stored transcript rows in the UI. Rehydrate converts stored transcript rows into backend-compatible model history.
 
-- Replay is renderer/sidecar-facing.
+- Replay is renderer/local-runtime-facing.
 - Rehydrate is backend-facing.
 - Tool-call and tool-output pairs must be repaired or pruned before they enter strict provider history.
 - Screenshot and artifact refs must survive both display replay and backend context reconstruction.

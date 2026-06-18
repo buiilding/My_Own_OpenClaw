@@ -38,7 +38,7 @@ Memory-related config fields in `AppConfig`:
 DI ownership:
 
 - `MemoryContainer.embedder` is a singleton created by `_create_embedder(...)`
-- `ApplicationContainer.embedding_router` exposes the embedding capability boundary used by routes and sidecar-facing health probes
+- `ApplicationContainer.embedding_router` exposes the embedding capability boundary used by routes and local-runtime consumer health probes
 - if `memory_enabled` is false, factory returns `None`
 - if `embedding_backend == "vendor"`, the backend creates an OpenAI embedding provider using `embedding_api_key_env`
 - if `embedding_backend == "remote-http"`, the backend calls `embedding_remote_service_url`

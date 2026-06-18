@@ -201,6 +201,8 @@ describe('modular sdk refactor completion boundary', () => {
     const docs = await Promise.all([
       read('README.md'),
       read('docs/architecture/architecture.md'),
+      read('docs/backend/services/embedding_and_semantic_memory_runtime_reference.md'),
+      read('docs/concepts/sessions_and_conversations.md'),
       read('docs/reference/api_reference.md'),
       read('docs/web/web_client_integration.md'),
       read('docs/web/web_surface_matrix.md'),
@@ -229,6 +231,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('hosted backend with a local sidecar');
     expect(docText).not.toContain('local sidecar-backed tool');
     expect(docText).not.toContain('local sidecar execution');
+    expect(docText).not.toContain('sidecar-facing');
   });
 
   test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {
