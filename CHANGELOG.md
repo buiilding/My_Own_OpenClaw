@@ -34,6 +34,10 @@ All notable changes to WindieOS will be documented in this file.
 - docs/search: align docs-index routing guards for current memory IPC,
   main-process RPC mapper, backend tool-security registry, and stale
   sidecar-memory query owners. No migration required.
+- docs/renderer: classify renderer app-runtime clients as SDK-command
+  boundaries, desktop-host adapters, state/rule facades, presentation helpers,
+  forwarding helpers, or removed migration shims before future cleanup slices.
+  No migration required.
 - docs/plans: clarify the long-running scope for the simple hackable runtime
   goal around structural clarity, diagnostics, deletion, docs, contract tests,
   and explicit stop conditions for unstated product-judgment changes. No

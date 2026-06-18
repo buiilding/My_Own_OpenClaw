@@ -59,6 +59,25 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain(`active desktop-${'agent'} skin`);
   });
 
+  test('renderer transport docs classify app-runtime clients before cleanup', async () => {
+    const source = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../docs/frontend/renderer/desktop_runtime_transport_command_contract_reference.md',
+      ),
+      'utf8',
+    );
+
+    expect(source).toContain('## Renderer App-Runtime Client Inventory');
+    expect(source).toContain('Real SDK-command boundary');
+    expect(source).toContain('Real desktop-host adapter boundary');
+    expect(source).toContain('State/rule facade');
+    expect(source).toContain('Presentation contract/helper facade');
+    expect(source).toContain('Forwarding/helper facade with current boundary value');
+    expect(source).toContain('Removed migration shims');
+    expect(source).toContain('Do not delete a helper merely because it forwards');
+  });
+
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),

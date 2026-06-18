@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed the renderer app-runtime inventory slice by adding a
+  classification table to
+  `docs/frontend/renderer/desktop_runtime_transport_command_contract_reference.md`.
+  The inventory separates real SDK-command boundaries, desktop-host adapters,
+  state/rule facades, presentation helpers, forwarding helpers with current
+  boundary value, and removed migration shims so future cleanup can delete only
+  one proven obsolete path at a time. Validation: focused renderer
+  app-runtime boundary test, docs listing, diff checks, and docs-search probe.
+  No migration required; renderer behavior, IPC channels, SDK command names,
+  settings, storage, credentials, permissions, and provider policy are
+  unchanged.
 - 2026-06-18: completed the first debuggable trace slice by adding a
   one-message runtime trace playbook to `docs/debug/runtime_traces.md`. The
   playbook preserves the recent ownership direction by routing renderer action,

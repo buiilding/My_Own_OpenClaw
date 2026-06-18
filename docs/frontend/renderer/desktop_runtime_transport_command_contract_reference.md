@@ -1,8 +1,9 @@
 ---
-summary: "Renderer and Electron main desktop runtime transport command contract for DesktopRuntimeTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case command contract fields, camelCase query payload alias rejection, and removed query-payload aliases."
+summary: "Renderer and Electron main desktop runtime transport command contract for DesktopRuntimeTransport, SDK_RUNTIME_COMMANDS, renderer app-runtime client inventory classification, windie:invoke conversation commands, canonical snake_case command contract fields, camelCase query payload alias rejection, and removed query-payload aliases."
 read_when:
   - When changing `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
   - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeAgentSdkCommand`, Electron main `handleAgentSdkInvoke`, its internal `buildAgentSdkCommandHandlers` table, or shared SDK-shaped command names.
+  - When inventorying renderer app-runtime clients as real transport boundaries, state/rule facades, presentation/helper facades, forwarding-only adapters, or migration shims before deleting or widening one.
   - When resolving stale references to the removed renderer `windieCommandInvokeClient.ts` file or `invokeWindieCommand(...)` helper; the current generic renderer helper is `agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`.
   - When resolving stale references to the removed `handleWindieSdkInvoke` or `buildWindieSdkCommandHandlers` helper names; the current generic Electron-host helper names are `handleAgentSdkInvoke` and `buildAgentSdkCommandHandlers`.
   - When searching for main ipc buildWindieSdkCommandHandlers SDK_RUNTIME_COMMANDS conversation.send command-shape routing; this transport contract is the current owner.
@@ -78,6 +79,25 @@ members as computed handler keys. The string values remain the wire contract on
 such as `ensureAgent`; the source of truth for adding or renaming a supported
 SDK-shaped command is
 `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`.
+
+## Renderer App-Runtime Client Inventory
+
+Use this inventory before deleting or widening a renderer app-runtime client.
+The label describes why the file exists today, not a permanent promise that it
+must stay forever.
+
+| File(s) | Classification | Why it remains | Cleanup signal |
+| --- | --- | --- | --- |
+| `agentSdkCommandInvokeClient.ts`, `desktopRuntimeTransport.ts`, `desktopLiveTurnRuntimeClient.ts`, `desktopSettingsRuntimeClient.ts`, `desktopMemoryRuntimeClient.ts`, `desktopConversationLibraryClient.js` | Real SDK-command boundary | These are renderer adapters into `windie:invoke` / SDK-shaped commands. They hide bridge lookup, command names, and result shape from feature code. | Delete only after the generic SDK UI package receives an injected `AgentRuntimeTransport` that callers use directly without importing Electron bridge details. |
+| `desktopPendingTurnRuntimeClient.ts`, `desktopLiveSurfaceTraceRuntimeClient.ts`, `desktopConversationRuntimeEventClient.ts`, `desktopClientSessionRuntimeClient.ts`, `desktopAppConfigRuntimeClient.ts`, `desktopTranscriptSessionInfoRuntimeClient.js`, `desktopWindowRuntimeClient.ts`, `desktopResponseOverlayRuntimeClient.ts`, `desktopArtifactRuntimeClient.ts`, `desktopAudioRuntimeClient.ts`, `desktopVoiceRuntimeClient.ts`, `desktopWorkspaceRuntimeClient.ts`, `desktopPermissionRuntimeClient.ts`, `desktopMcpRuntimeClient.ts`, `desktopExtensionRuntimeClient.ts` | Real desktop-host adapter boundary | These clients own renderer access to Electron main channels, desktop host events, native windows, local runtime status, artifacts, permissions, MCPs, extensions, audio, and voice. Feature code keeps UI policy and should not import channel constants directly. | Widen or split only when one client mixes unrelated host capabilities; delete only when the capability moves behind a generic injected host adapter with equivalent tests. |
+| `desktopConversationSessionRuntime.ts`, `desktopConversationSessionRuntimeClient.ts`, `desktopTranscriptSessionRuntime.ts`, `desktopTranscriptSessionRuntimeClient.ts`, `desktopChatStreamIngressRuntime.ts`, `desktopChatStreamEventRuntime.ts`, `desktopChatStreamTurnGuardRuntime.ts`, `desktopChatStreamTrackingRuntime.ts`, `desktopChatStreamTerminalHandoffRuntime.ts`, `desktopConversationContinuityService.ts`, `desktopConversationDisplayProjection.ts`, `desktopConversationRuntimeContracts.ts` | State/rule facade | These files centralize conversation identity, transcript binding, stream ingress, stale-turn guards, terminal handoff, continuity, display projection, and shared contracts that would otherwise be duplicated across chat, dashboard, and provider surfaces. | Delete only after the rule is owned by the SDK projection or a generic chat package and all renderer consumers stop carrying duplicate session logic. |
+| `desktopChatEvents.js`, `desktopChatMessageTypes.ts`, `desktopChatMessageRuntimeClient.ts`, `desktopPresentationSourceChannels.js`, `desktopMarkdownRuntimeClient.ts` | Presentation contract/helper facade | These keep message kinds, markdown/output normalization, and presentation-source strings out of individual components while the renderer UI is still being separated from the WindieOS skin. | Delete only when the generic chat desktop UI package owns the presentation contract and WindieOS skin/config imports it as a stable package API. |
+| `desktopRendererConfigRuntimeClient.js`, `desktopRendererHooksRuntimeClient.ts`, `desktopStorageRuntimeClient.js`, `desktopShortcutRuntimeClient.ts`, `desktopStartupRuntimeClient.ts`, `desktopRuntimeEndpointClient.ts`, `desktopLocalRuntimeStatusRuntimeClient.ts`, `desktopBrowserSessionRuntimeClient.js`, `desktopInteractionRuntimeClient.ts` | Forwarding/helper facade with current boundary value | These are thin on purpose: they keep feature modules from importing app providers, renderer infrastructure, global env, localStorage helpers, browser/session stores, or diagnostics installers directly. | Treat as deletion candidates only after the caller receives dependency injection from the generic UI package or app shell. Do not delete a helper merely because it forwards. |
+| Historical `DesktopAgent*`, `windieCommandInvokeClient.ts`, `invokeWindieCommand(...)`, `DesktopBackendCommandRuntimeClient`, renderer `BackendTransport` aliases | Removed migration shims | These names described historical product/backend ownership rather than the current generic agent SDK host and desktop runtime boundary. | Do not reintroduce. Stale searches should route here or to the specific runtime client above. |
+
+No current app-runtime client is a verified deletion target just because it is
+thin. A cleanup slice should first name the consumer, prove the replacement
+owner, update tests, and remove exactly one obsolete path.
 
 `desktopPendingTurnRuntimeClient.ts` owns the renderer adapter for the desktop
 pending-turn IPC send channel. Chat hooks and message-send utilities update

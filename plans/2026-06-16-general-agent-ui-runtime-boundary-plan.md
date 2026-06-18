@@ -9464,3 +9464,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime behavior, persisted payloads,
   storage schemas, IPC channels, tool schemas, credentials, permissions, hosted
   backend URLs, and provider policy are unchanged.
+
+### 2026-06-18 renderer app-runtime client inventory boundary
+
+- Finding: renderer app-runtime clients had many individual ownership notes, but
+  there was no single classification that separated real SDK-command
+  boundaries, desktop-host adapters, state/rule facades, presentation helpers,
+  forwarding helpers, and removed migration shims before cleanup.
+- Change: added the app-runtime client inventory to the desktop runtime
+  transport contract and a focused boundary test so future cleanup slices can
+  name one obsolete path instead of deleting thin-but-useful facades by
+  accident.
+- Validation: focused renderer app-runtime boundary test, docs listing, docs
+  search probe, and diff checks.
+- Compatibility: no migration required. Renderer behavior, IPC channels, SDK
+  command names, settings, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
