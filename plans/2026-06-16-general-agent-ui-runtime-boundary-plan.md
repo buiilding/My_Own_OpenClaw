@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Transcript Session Info Runtime Client
+
+- Finding: transcript session info subscription lived in a dashboard feature
+  hook even though `ChatProvider`, chat session helpers, and dashboard memory
+  settings all consumed the same app-level runtime identity snapshot.
+- Change: moved the `useSyncExternalStore` subscription into
+  `DesktopTranscriptSessionInfoRuntimeClient`, deleted the dashboard-owned
+  `useTranscriptSessionInfo` hook, and routed chat/provider/dashboard callers
+  through the app-runtime facade.
+- Validation: focused transcript session-info client, chat provider,
+  chat-interface wiring, settings section, and renderer app/dashboard boundary
+  tests plus frontend typecheck, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Transcript session storage keys,
+  browser events, IPC sync, conversation refs, user ids, credentials,
+  permissions, local authority, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Settings Event Runtime Client
 
 - Finding: `AppConfigProvider` still imported a settings feature hook to handle

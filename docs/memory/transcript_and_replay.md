@@ -18,13 +18,13 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | --- | --- |
 | Conversation continuity and replay commands | `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts` |
 | Conversation list/load/delete/search commands | `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js` |
-| Transcript session facade | `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`, `desktopTranscriptSessionRuntime.ts` |
+| Transcript session facade | `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`, `desktopTranscriptSessionRuntime.ts` |
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts` |
 | SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
 | Local snapshots/replay | SDK conversation store/projection and backend rehydrate services |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
-| Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js` |
+| Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js` |
 
 ## Write Flow
 

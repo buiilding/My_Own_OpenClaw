@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
-import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
+import { useDesktopTranscriptSessionInfo } from '../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { resolveRendererConversationSessionSnapshot } from './conversationSessionRuntime';
 
 const EMPTY_RENDERER_SESSION_INFO = Object.freeze({
@@ -13,7 +13,7 @@ const EMPTY_RENDERER_SESSION_INFO = Object.freeze({
 });
 
 export function useRendererConversationSessionInfo() {
-  const transcriptSessionInfo = useTranscriptSessionInfo();
+  const transcriptSessionInfo = useDesktopTranscriptSessionInfo();
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
 
   return useMemo(() => {

@@ -127,4 +127,35 @@ describe('renderer dashboard runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('dashboard feature code consumes transcript session info through app runtime client', async () => {
+    const removedDashboardHookPath = path.join(
+      dashboardRoot,
+      'hooks/useTranscriptSessionInfo.js',
+    );
+    await expect(fs.stat(removedDashboardHookPath)).rejects.toThrow();
+
+    const files = await listSourceFiles(dashboardRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(dashboardRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (
+        source.includes('hooks/useTranscriptSessionInfo')
+        || source.includes('useTranscriptSessionInfo')
+      ) {
+        offenders.push(relativePath);
+      }
+    }
+
+    const memoryActionsSource = await fs.readFile(
+      path.join(dashboardRoot, 'components/sections/settings/useMemorySettingsActions.js'),
+      'utf8',
+    );
+
+    expect(offenders).toEqual([]);
+    expect(memoryActionsSource).toContain('useDesktopTranscriptSessionInfo');
+    expect(memoryActionsSource).toContain('app/runtime/desktopTranscriptSessionInfoRuntimeClient');
+  });
 });

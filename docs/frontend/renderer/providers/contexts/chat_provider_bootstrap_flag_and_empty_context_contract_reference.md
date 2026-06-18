@@ -37,7 +37,7 @@ Effect:
 `ChatProvider({ enableTranscript = true })`:
 
 1. calls `useChatStream(enableTranscript)`
-2. projects transcript-session `conversationRef` into chat-store `activeConversationRef` (`useTranscriptSessionInfo`) only when conversation ref is non-empty
+2. projects transcript-session `conversationRef` into chat-store `activeConversationRef` (`useDesktopTranscriptSessionInfo`) only when conversation ref is non-empty
 3. returns `ChatContext.Provider` with frozen empty object value
 
 Ownership model:

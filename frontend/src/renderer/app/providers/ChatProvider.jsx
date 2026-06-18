@@ -7,7 +7,7 @@ import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useConversationRuntimeProjectionStream } from '../../features/chat/hooks/useConversationRuntimeProjectionStream';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
-import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
+import { useDesktopTranscriptSessionInfo } from '../runtime/desktopTranscriptSessionInfoRuntimeClient';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 /**
@@ -15,7 +15,7 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
  * No business logic - just composition.
  */
 export function ChatProvider({ children, enableTranscript = true }) {
-  const transcriptSessionInfo = useTranscriptSessionInfo();
+  const transcriptSessionInfo = useDesktopTranscriptSessionInfo();
   const bootstrapSession = useChatSessionBootstrap();
 
   useEffect(() => {

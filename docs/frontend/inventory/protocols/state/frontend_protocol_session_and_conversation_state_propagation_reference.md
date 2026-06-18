@@ -26,7 +26,8 @@ Primary runtime sources:
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
-- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 
@@ -52,7 +53,7 @@ Primary test sources:
 | `currentServerUserId` | `ipc.cjs` | inbound backend events with `user_id` | synthetic local query context fields |
 | `currentConversationRef` | `ipc.cjs` | inbound backend events with `conversation_ref`; reset on reconnect close | query payload fallback when renderer omits conversation ref |
 | runtime endpoint snapshot (`BACKEND_URL`, `BACKEND_HTTP_URL`) | `ipc.cjs` | backend endpoint resolution during init | `get-client-user-id` payload, `ipc-status`, renderer artifact URL base sync |
-| transcript session `{conversationRef,userId}` | SDK transcript session runtime (`desktopTranscriptSessionRuntime.ts`, `sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | SDK projection/store routing, pending flush eligibility, dashboard memory views |
+| transcript session `{conversationRef,userId}` | SDK transcript session runtime (`desktopTranscriptSessionRuntimeClient.ts`, `desktopTranscriptSessionInfoRuntimeClient.js`, `sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | SDK projection/store routing, pending flush eligibility, dashboard memory views |
 
 ## Main-Process Bridge State Flow (`ipc.cjs`)
 
@@ -154,7 +155,9 @@ Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
   - `updateTranscriptSession(null, resolvedUserId)`
   - clear chat messages + active send/thinking flags
 
-`DashboardShell` consumes `useTranscriptSessionInfo()` for active-row highlighting and user-id fallback flow.
+Dashboard consumers read active-row and user-id fallback state through
+`useDesktopTranscriptSessionInfo()`, keeping the subscription in the renderer
+app-runtime boundary rather than dashboard feature ownership.
 
 Locked by:
 

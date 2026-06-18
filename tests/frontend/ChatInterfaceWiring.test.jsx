@@ -191,8 +191,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
-  useTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
+  useDesktopTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
 }));
 
 const mockExtractAudioChunkPayload = jest.fn(() => null);

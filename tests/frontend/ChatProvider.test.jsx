@@ -38,8 +38,8 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatStream', () =>
   useChatStream: (...args) => mockUseChatStream(...args),
 }));
 
-jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
-  useTranscriptSessionInfo: () => mockUseTranscriptSessionInfo(),
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
+  useDesktopTranscriptSessionInfo: () => mockUseTranscriptSessionInfo(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap', () => ({

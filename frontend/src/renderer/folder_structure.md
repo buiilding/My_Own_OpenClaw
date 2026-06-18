@@ -38,6 +38,7 @@ frontend/src/renderer/
 │   │   ├── desktopSettingsEventRuntimeClient.ts # Renderer settings-event handler facade for providers
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 │   │   ├── desktopStorageRuntimeClient.js # Renderer localStorage JSON helper facade for feature clients
+│   │   ├── desktopTranscriptSessionInfoRuntimeClient.js # Renderer transcript session info subscription facade
 │   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │
 │   └── providers/                       # Context providers for global state
@@ -146,8 +147,7 @@ frontend/src/renderer/
 │   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   ├── hooks/                       # Dashboard business logic hooks
-│   │   │   ├── useDashboardConversations.js # useDashboardConversations - Recent/search conversation load/search/open/rename/pin/delete runtime
-│   │   │   └── useTranscriptSessionInfo.js # useTranscriptSessionInfo - External-store transcript session subscription
+│   │   │   └── useDashboardConversations.js # useDashboardConversations - Recent/search conversation load/search/open/rename/pin/delete runtime
 │   │   │
 │   │   └── components/                  # Dashboard UI components
 │   │       ├── DashboardShell.jsx       # DashboardShell - Conversation-first shell + memory/models/settings modals

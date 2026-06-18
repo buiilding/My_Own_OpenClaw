@@ -65,8 +65,8 @@ jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => mockAppConfigContext,
 }));
 
-jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
-  useTranscriptSessionInfo: () => mockTranscriptSessionInfo,
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient', () => ({
+  useDesktopTranscriptSessionInfo: () => mockTranscriptSessionInfo,
 }));
 
 jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionStore', () => ({

@@ -15,7 +15,7 @@ The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but 
 - Shell: `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - Sidebar: `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - Search: `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
-- Conversation hooks: `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js`
+- Conversation hooks: `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - Section utilities: `frontend/src/renderer/features/dashboard/utils/*`
 - Settings sections: `frontend/src/renderer/features/dashboard/components/sections/*`
 - Chat surface: `frontend/src/renderer/features/chat/components/ChatInterface.jsx`

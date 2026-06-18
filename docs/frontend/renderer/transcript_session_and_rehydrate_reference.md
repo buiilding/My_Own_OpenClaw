@@ -15,6 +15,7 @@ title: "Transcript Session and Rehydrate Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
@@ -34,7 +35,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
-- `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 
 ## Session Identity Model
@@ -79,7 +79,9 @@ Responsibility split:
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
-Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
+Renderer consumers subscribe through `useDesktopTranscriptSessionInfo()` for
+stable transcript identity snapshots without making dashboard the owner of
+app-level session state.
 
 Transcript conversation pagination helper:
 

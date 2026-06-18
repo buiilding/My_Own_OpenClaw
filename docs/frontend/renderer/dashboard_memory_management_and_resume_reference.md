@@ -19,10 +19,10 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
-- `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 
 ## Runtime Surfaces
@@ -86,10 +86,11 @@ IPC methods used by this surface:
 
 ## Shared Session Identity Contract
 
-`useTranscriptSessionInfo()` provides runtime user id and active conversation
-ref for dashboard conversation surfaces. Memory list/delete commands go through
-`DesktopMemoryRuntimeClient`, which delegates active user resolution to the
-command runtime instead of a renderer-owned default user constant.
+`useDesktopTranscriptSessionInfo()` provides runtime user id and active
+conversation ref through the renderer app-runtime facade. Memory list/delete
+commands go through `DesktopMemoryRuntimeClient`, which delegates active user
+resolution to the command runtime instead of a renderer-owned default user
+constant.
 
 Identity is used by:
 

@@ -13,8 +13,8 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
-- `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - `tests/frontend/MemorySection.test.jsx`
 
 ## MemorySection Runtime Ownership
@@ -38,7 +38,7 @@ State buckets:
 
 User id for memory calls is resolved by the command runtime:
 
-- conversation surfaces read `sessionInfo.userId` from `useTranscriptSessionInfo()`
+- conversation surfaces read `sessionInfo.userId` from `useDesktopTranscriptSessionInfo()`
 - memory list/delete calls go through `DesktopMemoryRuntimeClient` without a
   renderer-owned default user id
 

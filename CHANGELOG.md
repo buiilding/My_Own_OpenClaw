@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: move transcript session-info subscription from the dashboard
+  feature hook into `DesktopTranscriptSessionInfoRuntimeClient`, letting chat
+  provider, chat session, and dashboard memory consumers share the app-runtime
+  session boundary. No migration required.
 - renderer/app: move model-list settings event handling from the settings
   feature hook into `DesktopSettingsEventRuntimeClient`, keeping
   `AppConfigProvider` on app-runtime owned event handlers. No migration

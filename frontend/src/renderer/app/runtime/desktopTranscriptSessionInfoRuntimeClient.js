@@ -1,9 +1,9 @@
 /**
- * Provides the use transcript session info module for the renderer UI.
+ * Coordinates transcript session info subscriptions for renderer runtime clients.
  */
 
 import { useSyncExternalStore } from 'react';
-import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 
 const EMPTY_SESSION_INFO = Object.freeze({
   conversationRef: null,
@@ -44,7 +44,7 @@ function subscribeToSessionChanges(onStoreChange) {
   return () => window.removeEventListener('transcript-session-update', handleSessionUpdate);
 }
 
-export function useTranscriptSessionInfo() {
+export function useDesktopTranscriptSessionInfo() {
   return useSyncExternalStore(
     subscribeToSessionChanges,
     readSessionSnapshot,

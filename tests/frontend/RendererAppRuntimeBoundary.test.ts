@@ -220,6 +220,25 @@ describe('renderer app runtime boundary', () => {
     expect(sessionClientSource).toContain('applyTranscriptSessionUserBinding');
   });
 
+  test('chat provider reads transcript session info through app runtime client', async () => {
+    const providerSource = await fs.readFile(
+      path.join(appRoot, 'providers/ChatProvider.jsx'),
+      'utf8',
+    );
+    const sessionInfoClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopTranscriptSessionInfoRuntimeClient.js'),
+      'utf8',
+    );
+
+    expect(providerSource).toContain('useDesktopTranscriptSessionInfo');
+    expect(providerSource).toContain('runtime/desktopTranscriptSessionInfoRuntimeClient');
+    expect(providerSource).not.toContain('features/dashboard/hooks/useTranscriptSessionInfo');
+    expect(sessionInfoClientSource).toContain('useSyncExternalStore');
+    expect(sessionInfoClientSource).toContain(
+      'DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo',
+    );
+  });
+
   test('chat stream ingress projects conversation sessions through runtime client', async () => {
     const ingressSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatStreamIngressRuntime.ts'),
