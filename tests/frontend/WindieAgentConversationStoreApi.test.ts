@@ -377,7 +377,7 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
       expect.objectContaining({
         stage: 'history_db_checked',
         status: 'succeeded',
-        runtime: 'sidecar',
+        runtime: 'local-runtime',
         data: {
           canonicalHistoryDbExists: true,
         },

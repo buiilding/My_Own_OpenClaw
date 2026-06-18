@@ -114,6 +114,20 @@ def test_trace_event_formatter_output_matches_schema_and_sanitizes_data() -> Non
     assert parsed.payload.error.message == "short failure"
 
 
+def test_trace_event_schema_accepts_local_runtime_and_rejects_retired_runtime() -> None:
+    payload = {
+        "schemaVersion": 1,
+        "path": "local_runtime.lifecycle",
+        "stage": "status",
+        "status": "succeeded",
+        "runtime": "local-runtime",
+    }
+
+    assert TraceEventPayload.model_validate(payload).runtime == "local-runtime"
+    with pytest.raises(ValueError):
+        TraceEventPayload.model_validate({**payload, "runtime": "sidecar"})
+
+
 def test_settings_and_model_events_match_outgoing_schema_contracts() -> None:
     loaded = SettingsLoadedMessage.model_validate(
         {

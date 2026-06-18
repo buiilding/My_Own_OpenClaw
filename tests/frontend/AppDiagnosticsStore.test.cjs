@@ -154,7 +154,7 @@ describe('app diagnostics store', () => {
       path: APP_DIAGNOSTICS_PATH,
       stage: 'store_list',
       status: 'failed',
-      runtime: 'sidecar',
+      runtime: 'local-runtime',
       requestId: 'req-test',
       durationMs: 12,
       data: {
@@ -179,7 +179,7 @@ describe('app diagnostics store', () => {
       traceId: 'diag-test',
       stage: 'store_list',
       status: 'failed',
-      runtime: 'sidecar',
+      runtime: 'local-runtime',
       requestId: 'req-test',
       durationMs: 12,
       data: expect.objectContaining({
@@ -571,7 +571,7 @@ describe('app diagnostics store', () => {
       path: MCP_EXECUTION_DIAGNOSTICS_PATH,
       stage: 'tool_call_succeeded',
       status: 'succeeded',
-      runtime: 'sidecar',
+      runtime: 'local-runtime',
       requestId: 'req-1',
       conversationRef: 'conv-1',
       durationMs: 9,
@@ -674,7 +674,7 @@ describe('app diagnostics store', () => {
       path: MCP_REGISTRATION_DIAGNOSTICS_PATH,
       stage: 'registration_completed',
       status: 'succeeded',
-      runtime: 'sidecar',
+      runtime: 'local-runtime',
       durationMs: 21,
       data: {
         phase: 'registration',

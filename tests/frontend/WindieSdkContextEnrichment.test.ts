@@ -69,7 +69,7 @@ describe('SDK context enrichment pipeline', () => {
             semantic: ['stable fact'],
           },
           trace: {
-            runtime: 'sidecar',
+            runtime: 'local-runtime',
             method: 'search_memory_by_embedding',
             episodicResultCount: 1,
             semanticResultCount: 1,
@@ -208,7 +208,7 @@ describe('SDK context enrichment pipeline', () => {
           semantic: [],
         },
         trace: {
-          runtime: 'sidecar',
+          runtime: 'local-runtime',
           method: 'search_memory_by_embedding',
           searchedMemoryTypes: ['episodic', 'semantic'],
           durationMs: 4,

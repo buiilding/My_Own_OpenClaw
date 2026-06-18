@@ -406,9 +406,9 @@ export class LocalRuntimeConversationStore implements ConversationStore {
           continue;
         }
         await emitAppDiagnostic(options, {
-          stage: normalizeString(draft.stage) ?? 'sidecar',
+          stage: normalizeString(draft.stage) ?? 'local_runtime',
           status: (normalizeString(draft.status) ?? 'succeeded') as AppDiagnosticEventDraft['status'],
-          runtime: 'sidecar',
+          runtime: 'local-runtime',
           durationMs: typeof draft.durationMs === 'number' ? draft.durationMs : null,
           data: normalizeRecord(draft.data) ?? {},
           error: draft.error,
@@ -519,6 +519,7 @@ export class LocalRuntimeConversationStore implements ConversationStore {
     event: ConversationEvent,
     messageIndex?: number,
   ): JsonRecord {
+    const producerSource = String(event.source);
     const defaultParams: JsonRecord = {
       user_id: this.options.userId,
       conversation_id: event.conversationRef,
@@ -528,11 +529,11 @@ export class LocalRuntimeConversationStore implements ConversationStore {
       timestamp: event.timestamp,
       revision_id: event.revisionId,
       turn_ref: event.turnRef ?? null,
-      producer: event.source === 'backend'
+      producer: producerSource === 'backend'
         ? 'backend'
-        : (event.source === 'sidecar' ? 'sidecar' : 'sdk'),
-      producer_event_id: event.source === 'backend' ? event.eventId : null,
-      producer_sequence: event.source === 'backend' && typeof event.payload.backendSequence === 'number'
+        : (producerSource === 'sidecar' ? 'sidecar' : 'sdk'),
+      producer_event_id: producerSource === 'backend' ? event.eventId : null,
+      producer_sequence: producerSource === 'backend' && typeof event.payload.backendSequence === 'number'
         ? event.payload.backendSequence
         : null,
       event_payload: event,

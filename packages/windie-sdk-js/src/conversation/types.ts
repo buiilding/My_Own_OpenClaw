@@ -4,7 +4,7 @@
 
 export type JsonRecord = Record<string, unknown>;
 
-export type ConversationEventSource = 'backend' | 'sdk' | 'sidecar' | 'ui';
+export type ConversationEventSource = 'backend' | 'sdk' | 'ui';
 
 export type ConversationEventType =
   | 'conversation_created'
@@ -50,7 +50,6 @@ export type TraceRuntime =
   | 'electron-main'
   | 'renderer'
   | 'local-runtime'
-  | 'sidecar'
   | 'backend'
   | 'provider';
 
@@ -178,7 +177,7 @@ export type ConversationMetadata = {
 export type AppDiagnosticEventDraft = JsonRecord & {
   stage: string;
   status: 'started' | 'succeeded' | 'failed' | 'skipped';
-  runtime: 'renderer' | 'electron-main' | 'sdk' | 'sidecar' | 'backend' | 'provider';
+  runtime: 'renderer' | 'electron-main' | 'sdk' | 'local-runtime' | 'backend' | 'provider';
   durationMs?: number | null;
   data?: JsonRecord | null;
   error?: unknown;

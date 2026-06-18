@@ -350,7 +350,12 @@ class TraceEventPayload(BaseModel):
     stage: str
     status: Literal["started", "succeeded", "failed", "skipped"]
     runtime: Literal[
-        "sdk", "electron-main", "renderer", "sidecar", "backend", "provider"
+        "sdk",
+        "electron-main",
+        "renderer",
+        "local-runtime",
+        "backend",
+        "provider",
     ]
     traceId: Optional[str] = None
     spanId: Optional[str] = None

@@ -184,7 +184,6 @@ const TRACE_RUNTIMES = new Set<TraceRuntime>([
   'electron-main',
   'renderer',
   'local-runtime',
-  'sidecar',
   'backend',
   'provider',
 ]);

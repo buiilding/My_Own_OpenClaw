@@ -444,7 +444,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'list_tools',
                 status: 'skipped',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 data: {
                     reason: 'local_runtime_unavailable',
                 },
@@ -455,7 +455,7 @@ class Agent {
             path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
             stage: 'list_tools',
             status: 'started',
-            runtime: 'sidecar',
+            runtime: 'local-runtime',
         }, options);
         try {
             const response = await localRuntime.listTools();
@@ -463,7 +463,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'list_tools',
                 status: 'succeeded',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 durationMs: Date.now() - startedAtMs,
                 data: {
                     toolCount: Array.isArray(response?.tools) ? response.tools.length : 0,
@@ -477,7 +477,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'list_tools',
                 status: 'failed',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 durationMs: Date.now() - startedAtMs,
                 error,
             }, options);
@@ -492,7 +492,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'status',
                 status: 'skipped',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 data: {
                     reason: 'local_runtime_unavailable',
                 },
@@ -503,7 +503,7 @@ class Agent {
             path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
             stage: 'status',
             status: 'started',
-            runtime: 'sidecar',
+            runtime: 'local-runtime',
         }, options);
         try {
             const response = await localRuntime.status();
@@ -511,7 +511,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'status',
                 status: 'succeeded',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 durationMs: Date.now() - startedAtMs,
                 data: {
                     responseKeyCount: response ? Object.keys(response).length : 0,
@@ -526,7 +526,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'status',
                 status: 'failed',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 durationMs: Date.now() - startedAtMs,
                 error,
             }, options);
@@ -543,7 +543,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'shutdown',
                 status: 'skipped',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 data: {
                     reason: 'shutdown_unavailable',
                 },
@@ -554,7 +554,7 @@ class Agent {
             path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
             stage: 'shutdown',
             status: 'started',
-            runtime: 'sidecar',
+            runtime: 'local-runtime',
             data: {
                 ownerShutdown,
                 localShutdown,
@@ -571,7 +571,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'shutdown',
                 status: 'succeeded',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 durationMs: Date.now() - startedAtMs,
                 data: {
                     ownerShutdown,
@@ -584,7 +584,7 @@ class Agent {
                 path: LOCAL_RUNTIME_LIFECYCLE_TRACE_PATH,
                 stage: 'shutdown',
                 status: 'failed',
-                runtime: 'sidecar',
+                runtime: 'local-runtime',
                 durationMs: Date.now() - startedAtMs,
                 error,
                 data: {

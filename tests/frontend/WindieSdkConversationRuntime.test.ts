@@ -1217,7 +1217,7 @@ describe('Agent SDK conversation runtime core', () => {
         conversationRef: 'conv-sdk-runtime',
         revisionId: 'rev-1',
         turnRef: 'turn-1',
-        source: 'sidecar',
+        source: 'sdk',
         payload: {
           requestId: 'req-read',
           toolCallId: 'call-read',
@@ -6401,8 +6401,8 @@ describe('Agent SDK conversation runtime core', () => {
       path: 'browser.runtime',
     });
     expect(timeline.map(entry => `${entry.runtime}:${entry.stage}:${entry.status}`)).toEqual([
-      'sidecar:action:started',
-      'sidecar:action:succeeded',
+      'local-runtime:action:started',
+      'local-runtime:action:succeeded',
     ]);
     expect(timeline[0].data).toEqual(expect.objectContaining({
       action: 'connect',
@@ -6623,7 +6623,7 @@ describe('Agent SDK conversation runtime core', () => {
     expect((await runtime.load()).state.phase).toBe('error');
   });
 
-  test('conversation runtime records malformed bundle events without invoking sidecar', async () => {
+  test('conversation runtime records malformed bundle events without invoking local runtime', async () => {
     let backendListener: ((event: unknown) => void) | null = null;
     const store = new InMemoryConversationStore();
     const executeTool = jest.fn(async () => ({

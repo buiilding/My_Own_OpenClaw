@@ -43,7 +43,14 @@ _REDACTED_KEYS = {
 }
 
 _TRACE_STATUSES = {"started", "succeeded", "failed", "skipped"}
-_TRACE_RUNTIMES = {"sdk", "electron-main", "renderer", "sidecar", "backend", "provider"}
+_TRACE_RUNTIMES = {
+    "sdk",
+    "electron-main",
+    "renderer",
+    "local-runtime",
+    "backend",
+    "provider",
+}
 _MAX_ERROR_MESSAGE_LENGTH = 240
 
 

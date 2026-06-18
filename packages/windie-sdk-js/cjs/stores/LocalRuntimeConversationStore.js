@@ -320,16 +320,16 @@ class LocalRuntimeConversationStore {
             });
             const data = normalizeRecord(result.data) ?? {};
             const diagnostics = normalizeRecord(data.diagnostics);
-            const sidecarEvents = Array.isArray(diagnostics?.events) ? diagnostics.events : [];
-            for (const event of sidecarEvents) {
+            const localRuntimeEvents = Array.isArray(diagnostics?.events) ? diagnostics.events : [];
+            for (const event of localRuntimeEvents) {
                 const draft = normalizeRecord(event);
                 if (!draft) {
                     continue;
                 }
                 await emitAppDiagnostic(options, {
-                    stage: normalizeString(draft.stage) ?? 'sidecar',
+                    stage: normalizeString(draft.stage) ?? 'local_runtime',
                     status: (normalizeString(draft.status) ?? 'succeeded'),
-                    runtime: 'sidecar',
+                    runtime: 'local-runtime',
                     durationMs: typeof draft.durationMs === 'number' ? draft.durationMs : null,
                     data: normalizeRecord(draft.data) ?? {},
                     error: draft.error,
@@ -431,6 +431,7 @@ class LocalRuntimeConversationStore {
         return response;
     }
     buildEventWriteParams(event, messageIndex) {
+        const producerSource = String(event.source);
         const defaultParams = {
             user_id: this.options.userId,
             conversation_id: event.conversationRef,
@@ -440,11 +441,11 @@ class LocalRuntimeConversationStore {
             timestamp: event.timestamp,
             revision_id: event.revisionId,
             turn_ref: event.turnRef ?? null,
-            producer: event.source === 'backend'
+            producer: producerSource === 'backend'
                 ? 'backend'
-                : (event.source === 'sidecar' ? 'sidecar' : 'sdk'),
-            producer_event_id: event.source === 'backend' ? event.eventId : null,
-            producer_sequence: event.source === 'backend' && typeof event.payload.backendSequence === 'number'
+                : (producerSource === 'sidecar' ? 'sidecar' : 'sdk'),
+            producer_event_id: producerSource === 'backend' ? event.eventId : null,
+            producer_sequence: producerSource === 'backend' && typeof event.payload.backendSequence === 'number'
                 ? event.payload.backendSequence
                 : null,
             event_payload: event,

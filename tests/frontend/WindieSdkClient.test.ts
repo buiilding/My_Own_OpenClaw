@@ -4734,7 +4734,7 @@ describe('Agent SDK client behavior', () => {
               semantic: [],
             },
             trace: {
-              runtime: 'sidecar',
+              runtime: 'local-runtime',
               method: 'search_memory_by_embedding',
               episodicResultCount: 1,
               semanticResultCount: 0,

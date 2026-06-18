@@ -658,7 +658,7 @@ export class ToolExecutionCoordinator {
         path: 'browser.runtime',
         stage: 'action',
         status: 'started',
-        runtime: 'sidecar',
+        runtime: 'local-runtime',
         requestId: call.requestId,
         data: {
           action: browserActionFromArgs(call.args),
@@ -701,7 +701,7 @@ export class ToolExecutionCoordinator {
         conversationRef: event.conversationRef,
         revisionId: event.revisionId,
         turnRef: event.turnRef,
-        source: 'sidecar',
+        source: 'sdk',
         payload: {
           requestId: call.requestId,
           toolCallId: call.toolCallId ?? null,
@@ -735,7 +735,7 @@ export class ToolExecutionCoordinator {
           path: 'browser.runtime',
           stage: 'action',
           status: deliveryError || !success ? 'failed' : 'succeeded',
-          runtime: 'sidecar',
+          runtime: 'local-runtime',
           requestId: call.requestId,
           durationMs: durationSince(startedAt),
           data: {
@@ -852,7 +852,7 @@ export class ToolExecutionCoordinator {
         conversationRef: event.conversationRef,
         revisionId: event.revisionId,
         turnRef: event.turnRef,
-        source: 'sidecar',
+        source: 'sdk',
         payload: {
           bundleId,
           status: deliveryError ? 'failure' : status,
