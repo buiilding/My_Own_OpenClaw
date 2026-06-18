@@ -93,9 +93,6 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
 
     if (hasIncompleteCatalogMetadata) {
       requestedCatalogMetadataRefreshRef.current = true;
-      if (typeof window === 'undefined' || !window.ipc) {
-        return;
-      }
       try {
         DesktopSettingsRuntimeClient.listModels();
       } catch (error) {

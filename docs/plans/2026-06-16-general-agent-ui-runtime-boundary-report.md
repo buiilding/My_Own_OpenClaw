@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Renderer Models Metadata Refresh Runtime Client
+
+- Worktree was clean after `1f112251a`, with `main` ahead of `origin/main` by
+  866 commits.
+- Direct IPC scans showed `ModelsSection` already used
+  `DesktopSettingsRuntimeClient` for model-catalog metadata refresh, but still
+  checked `window.ipc` directly before calling the facade.
+- Finding: that left a renderer feature component aware of the low-level IPC
+  transport instead of relying on the desktop settings runtime client boundary.
+- Change: removed the direct `window.ipc` availability gate, let the desktop
+  settings runtime client own transport availability/errors, simplified the
+  model-section test fixture, and expanded the renderer settings boundary guard
+  to reject direct `window.ipc` access in settings/model callers.
+- Validation: focused model-section and renderer settings boundary Jest
+  coverage, targeted direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Model-list command routing,
+  `DesktopSettingsRuntimeClient.listModels()`, backend `models.list`
+  transport, settings state, and renderer UI behavior are unchanged.
+
 ### 2026-06-18 Agent SDK Runtime Wording In Active Docs
 
 - Worktree was clean after `2bc5e0186`, with `main` ahead of `origin/main` by

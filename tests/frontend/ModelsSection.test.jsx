@@ -33,6 +33,14 @@ describe('ModelsSection', () => {
     ],
   };
 
+  beforeEach(() => {
+    jest.spyOn(DesktopSettingsRuntimeClient, 'listModels').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test('left close button calls onClose', () => {
     const onClose = jest.fn();
     render(
@@ -171,14 +179,6 @@ describe('ModelsSection', () => {
   });
 
   test('requests a fresh model catalog when mounted with incomplete model metadata', () => {
-    window.ipc = {
-      send: jest.fn(),
-      invoke: jest.fn(),
-      on: jest.fn(() => jest.fn()),
-      once: jest.fn(),
-    };
-    jest.spyOn(DesktopSettingsRuntimeClient, 'listModels').mockImplementation(() => undefined);
-
     render(
       <ModelsSection
         config={config}

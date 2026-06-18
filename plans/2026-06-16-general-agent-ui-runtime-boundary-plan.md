@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Models Metadata Refresh Runtime Client
+
+- Finding: `ModelsSection` already used `DesktopSettingsRuntimeClient` for
+  model-catalog metadata refresh, but still checked `window.ipc` directly
+  before calling the facade, leaving a renderer feature component aware of the
+  low-level IPC transport.
+- Change: removed the direct `window.ipc` availability gate, let the desktop
+  settings runtime client own transport availability/errors, simplified the
+  model-section test fixture, and expanded the renderer settings boundary guard
+  to reject direct `window.ipc` access in settings/model callers.
+- Validation: focused model-section and renderer settings boundary Jest
+  coverage, targeted direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Model-list command routing,
+  `DesktopSettingsRuntimeClient.listModels()`, backend `models.list`
+  transport, settings state, and renderer UI behavior are unchanged.
+
 ### 2026-06-18 Agent SDK Runtime Wording In Active Docs
 
 - Finding: active hosted-client, frontend architecture, development, and

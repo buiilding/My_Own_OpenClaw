@@ -23,6 +23,9 @@ describe('renderer settings runtime boundary', () => {
       if (source.includes('infrastructure/api/agentSdkClient')) {
         offenders.push(path.relative(path.resolve(__dirname, '../../frontend/src/renderer'), file));
       }
+      if (source.includes('window.ipc')) {
+        offenders.push(path.relative(path.resolve(__dirname, '../../frontend/src/renderer'), file));
+      }
     }
 
     expect(offenders).toEqual([]);

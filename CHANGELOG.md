@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/runtime: align hosted client, frontend architecture, development, and
   node-matrix docs with Agent SDK runtime/startup/connection wording instead
   of stale SDK-agent runtime labels.
+- renderer/models: route model-catalog metadata refresh availability through
+  the desktop settings runtime facade instead of checking `window.ipc` inside
+  `ModelsSection`.
 - tests/main: extend the host-skin boundary guard so the hosted runs API auth
   header remains skin-owned instead of moving back into the generic VM worker
   runtime.
