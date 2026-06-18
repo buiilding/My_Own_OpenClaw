@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a tool-execution ownership wording slice by updating
+  `docs/tools/tool_execution_lifecycle.md`, `docs/tools/computer.md`, and
+  `docs/channels/sidecar_and_tool_channels.md` so public tool routing says the
+  local runtime owns executable desktop/local machine action authority while
+  the Python sidecar remains the concrete executor implementation. The modular
+  docs boundary guard now covers the new owner wording and the retired
+  sidecar-as-owner phrases. Validation: focused modular docs boundary test,
+  docs listing, exact stale-owner phrase scan, and diff checks. No migration
+  required; no code path, payload, storage, IPC, settings, tool schema,
+  credential, permission, hosted URL, or provider-policy behavior changed.
 - 2026-06-18: completed a browser docs guard follow-up by extending the modular
   boundary test to read top-level docs, backend tools hubs, the getting-started
   hub, and the tools hub when checking browser schema parity labels. This keeps

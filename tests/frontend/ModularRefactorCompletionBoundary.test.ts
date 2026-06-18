@@ -601,12 +601,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar result');
     expect(toolRoutingDocText).not.toContain('what the sidecar executed');
     expect(toolRoutingDocText).toContain('SDK/main local-runtime dispatch');
+    expect(toolRoutingDocText).toContain('local runtime owns executable desktop actions');
+    expect(toolRoutingDocText).toContain('local runtime owns actual mouse');
+    expect(toolRoutingDocText).toContain('concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
     expect(toolRoutingDocText).not.toContain('dispatches to the sidecar');
     expect(toolRoutingDocText).not.toContain('sidecar-executable manifest entries');
     expect(toolRoutingDocText).not.toContain('executable sidecar tools');
+    expect(toolRoutingDocText).not.toContain('the sidecar owns executable desktop actions');
+    expect(toolRoutingDocText).not.toContain('the sidecar owns actual mouse');
+    expect(toolRoutingDocText).not.toContain('Python sidecar owns executable local machine actions');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

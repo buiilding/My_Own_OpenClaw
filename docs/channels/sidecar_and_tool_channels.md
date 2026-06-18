@@ -8,7 +8,7 @@ title: "Sidecar and Tool Channels"
 
 # Sidecar and Tool Channels
 
-Local tools cross every WindieOS runtime boundary. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing, and the Python sidecar owns executable local machine actions.
+Local tools cross every WindieOS runtime boundary. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing and executable local machine action authority, and the Python sidecar provides the current concrete executors.
 
 ## End-to-End Tool Channel
 
@@ -36,7 +36,7 @@ sequenceDiagram
 | SDK/main local runtime | backend websocket ownership, local runtime startup/reuse, local tool-call routing, display-row projection, `tool-result` / `tool-bundle-result` return | `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Renderer | projected tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`, `frontend/src/renderer/infrastructure/transcript/*` |
 | Electron main | renderer IPC, direct `AgentClient.wakeUp(...)` customer wiring, desktop local-runtime launch option assembly, screenshot artifact upload, system-state bridge, SDK event fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
-| Python sidecar daemon | executable tool implementations and dynamic tool registry | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
+| Python sidecar daemon | concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
 
 ## Main IPC Channels
 

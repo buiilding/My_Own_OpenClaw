@@ -10,7 +10,7 @@ title: "Tool Execution Lifecycle"
 
 # Tool Execution Lifecycle
 
-WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the sidecar owns executable desktop actions.
+WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the local runtime owns executable desktop actions through the Python sidecar implementation.
 
 The SDK tool execution source of truth is
 `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, called from the
@@ -52,7 +52,7 @@ event router.
 | Local-runtime dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
 | SDK runtime execution | SDK runtime | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Electron host bridge | Electron main | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
-| Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
+| Local execution | Local runtime, currently implemented by Python sidecar tools | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
 | Result formatting/history | Backend agent | `backend/src/agent/tools/processing/**`, `backend/src/agent/history/**` |
 
