@@ -16,6 +16,7 @@ const { mainHostSkin } = require('../../frontend/src/main/app/main_host_skin.cjs
 const {
   APP_DIAGNOSTICS_PATH,
   appUserDataRoot,
+  configureAppDiagnosticsStore,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
   listDiagnosticPathDefinitions,
@@ -31,6 +32,7 @@ const {
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 configureLayerLogSink(mainHostSkin.logging);
+configureAppDiagnosticsStore(mainHostSkin.dataPaths);
 
 let DatabaseSync = null;
 try {

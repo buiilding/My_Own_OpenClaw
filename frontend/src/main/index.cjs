@@ -95,6 +95,9 @@ const {
   appendSurfaceVisibilityDiagnostic,
 } = require('./diagnostics/app_diagnostics_runtime.cjs');
 const {
+  configureAppDiagnosticsStore,
+} = require('./diagnostics/app_diagnostics_store.cjs');
+const {
   createElectronToolSurfaceLifecycle,
 } = require('./surfaces/tool_surface_lifecycle.cjs');
 const {
@@ -117,6 +120,7 @@ const {
 } = require('./app/debug_env.cjs');
 
 configureDebugEnvRuntime(mainHostSkin.debug);
+configureAppDiagnosticsStore(mainHostSkin.dataPaths);
 configureLayerLogSink(mainHostSkin.logging);
 configureExtensionManifestRuntime(mainHostSkin.extensions);
 configureMcpRuntime(mainHostSkin.mcp);

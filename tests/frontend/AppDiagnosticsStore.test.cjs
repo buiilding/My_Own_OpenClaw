@@ -18,8 +18,12 @@ const {
   SURFACE_VISIBILITY_DIAGNOSTICS_PATH,
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
+  configureAppDiagnosticsStore,
   listDiagnosticPathDefinitions,
 } = require('../../frontend/src/main/diagnostics/app_diagnostics_store.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 const MCP_EXECUTION_DIAGNOSTICS_PATH = 'mcp.execution';
 const MCP_REGISTRATION_DIAGNOSTICS_PATH = 'mcp.registration';
@@ -103,12 +107,14 @@ describe('app diagnostics store', () => {
   let tempDir;
 
   beforeEach(() => {
+    configureAppDiagnosticsStore(mainHostSkin.dataPaths);
     previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-diagnostics-'));
     process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
   });
 
   afterEach(() => {
+    configureAppDiagnosticsStore(mainHostSkin.dataPaths);
     if (previousDbPath === undefined) {
       delete process.env.WINDIE_APP_DIAGNOSTICS_DB;
     } else {

@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { mainHostSkin } = require('../app/main_host_skin.cjs');
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH = 'conversation.metadata.list';
 const BROWSER_SESSION_CONTROL_DIAGNOSTICS_PATH = 'browser.session_control';
@@ -28,6 +27,7 @@ const DEFAULT_DATA_PATH_ENV = Object.freeze({
   diagnosticsDb: 'AGENT_APP_DIAGNOSTICS_DB',
   userDataDir: 'AGENT_USER_DATA_DIR',
 });
+let configuredDataPaths = resolveDiagnosticsDataPathConfig();
 
 const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
@@ -237,8 +237,7 @@ function normalizeEnvKey(value, fallback) {
   return normalized.length > 0 ? normalized : fallback;
 }
 
-function dataPathConfig() {
-  const dataPaths = mainHostSkin?.dataPaths || {};
+function resolveDiagnosticsDataPathConfig(dataPaths = {}) {
   const envConfig = dataPaths.env && typeof dataPaths.env === 'object'
     ? dataPaths.env
     : {};
@@ -255,6 +254,15 @@ function dataPathConfig() {
       ),
     },
   };
+}
+
+function configureAppDiagnosticsStore(dataPaths = {}) {
+  configuredDataPaths = resolveDiagnosticsDataPathConfig(dataPaths);
+  return configuredDataPaths;
+}
+
+function dataPathConfig() {
+  return configuredDataPaths;
 }
 
 function diagnosticsDatabasePath() {
@@ -601,6 +609,7 @@ module.exports = {
   WAKEWORD_LIFECYCLE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
   appUserDataRoot,
+  configureAppDiagnosticsStore,
   diagnosticsDatabasePath,
   inspectDiagnosticTrace,
   listDiagnosticPathDefinitions,

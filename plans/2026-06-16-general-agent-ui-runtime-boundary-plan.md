@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Diagnostics Store Config Boundary
+
+- Finding: `app_diagnostics_store.cjs` used generic fallback path/env names but
+  still imported `mainHostSkin` directly, so a reusable diagnostics store
+  depended on WindieOS product configuration.
+- Change: added explicit diagnostics-store configuration, removed the host-skin
+  import from the store, and configured WindieOS data-path settings from the
+  Electron main and CLI composition roots.
+- Validation: focused diagnostics store, main host skin boundary, Windie CLI,
+  docs listing, source scan, and diff-check validation.
+- Compatibility: no migration required. WindieOS still uses the same
+  `windieos` app-data root, `WINDIE_APP_DIAGNOSTICS_DB`, and
+  `WINDIE_USER_DATA_DIR` through composition-root configuration; diagnostics
+  schema, paths, sanitization, and query behavior are unchanged.
+
 ### 2026-06-18 Main Packaged Runtime Path Skin Boundary
 
 - Finding: `runtime_paths.cjs` still baked

@@ -188,7 +188,9 @@ describe('main host skin/config boundary', () => {
     expect(diagnosticsSource).toContain("DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime'");
     expect(diagnosticsSource).toContain('dataPathConfig');
     expect(diagnosticsSource).toContain('dataPaths.appDataDirName');
-    expect(diagnosticsSource).toContain('mainHostSkin?.dataPaths');
+    expect(diagnosticsSource).toContain('configureAppDiagnosticsStore');
+    expect(diagnosticsSource).not.toContain('mainHostSkin');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('configureAppDiagnosticsStore(mainHostSkin.dataPaths)');
     expect(diagnosticsSource).not.toContain('windieos');
     expect(diagnosticsSource).not.toContain('WINDIE_APP_DIAGNOSTICS_DB');
     expect(diagnosticsSource).not.toContain('WINDIE_USER_DATA_DIR');
