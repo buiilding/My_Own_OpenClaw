@@ -37,7 +37,7 @@ Start with these files when local orchestration changes:
 - `frontend/src/main/app/main_process_lifecycle_runtime.cjs`: Electron lifecycle policy.
 - `frontend/src/main/surfaces/surface_runtime.cjs`: shared window/surface owner.
 - `frontend/src/main/ipc.cjs`: SDK-runtime adaptation, query dispatch, renderer fanout, session/config state.
-- `packages/windie-sdk-js/src/runtime/Agent.ts` and `packages/windie-sdk-js/src/runtime/AgentClient.ts`: start the SDK agent runtime and supply Electron's SDK local-runtime client.
+- `packages/windie-sdk-js/src/runtime/Agent.ts` and `packages/windie-sdk-js/src/runtime/AgentClient.ts`: start the Agent SDK runtime and supply Electron's SDK local-runtime client.
 - `frontend/src/main/ipc/**`: narrower IPC modules.
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`: SDK local-runtime host/status bridge.
 - `frontend/src/main/sidecar/local_runtime_*`: local-runtime request mapping, timeout, screenshot, bounds, and tool-argument helpers.

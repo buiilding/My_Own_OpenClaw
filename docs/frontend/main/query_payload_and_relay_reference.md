@@ -1,7 +1,7 @@
 ---
-summary: "Electron main query relay reference: windie renderer IPC handling, SDK agent runtime sends, initial settings ACK gating, query payload normalization, SDK memory-context enrichment, and query failure event synthesis."
+summary: "Electron main query relay reference: windie renderer IPC handling, Agent SDK runtime sends, initial settings ACK gating, query payload normalization, SDK memory-context enrichment, and query failure event synthesis."
 read_when:
-  - When changing query transport from renderer to the SDK agent runtime/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
+  - When changing query transport from renderer to the Agent SDK runtime/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
   - When debugging first-query payload normalization, settings-sync gate timing, SDK memory-context enrichment, SDK user-message projection, or send-failure error behavior.
 title: "Query Payload and Relay Reference"
 ---
@@ -55,8 +55,8 @@ Endpoint context for SDK agent calls:
 
 Special `windie:invoke` command paths:
 
-- `conversation.send`: prepares the renderer query, runs the initial settings gate, and sends the backend websocket `query` through the SDK agent runtime
-- `conversation.stop`: sends backend websocket `stop-query` through the SDK agent runtime
+- `conversation.send`: prepares the renderer query, runs the initial settings gate, and sends the backend websocket `query` through the Agent SDK runtime
+- `conversation.stop`: sends backend websocket `stop-query` through the Agent SDK runtime
 - `settings.update`: delegates to the settings ACK pipeline through the SDK agent
 - `models.list`: requests model list through the SDK agent once connected
 - `conversation.rehydrate`: rehydrates backend inference history through the SDK agent
@@ -87,7 +87,7 @@ Goal:
 
 ## Query-Specific SDK Agent Pipeline
 
-When the `conversation.send` command is invoked, main performs extra steps before sending through the SDK agent runtime.
+When the `conversation.send` command is invoked, main performs extra steps before sending through the Agent SDK runtime.
 
 ### 1) Overlay pre-capture hook
 
@@ -127,7 +127,7 @@ The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with 
 
 ### 5) SDK agent send + failure fallback
 
-- sends the backend websocket message through the SDK agent runtime with stable message id
+- sends the backend websocket message through the Agent SDK runtime with stable message id
 - on send failure, emits a normalized SDK conversation error event via `buildQuerySendFailure(...)`
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 

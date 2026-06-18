@@ -77,10 +77,10 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 2. Backend parser validates the call against the registered tool `args_model` only when the backend owns execution.
 3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots; passthrough executable payload shape is left to SDK local-runtime validation.
 4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
-5. SDK main runtime dispatches local execution through Electron main.
+5. Agent SDK runtime dispatches local execution through Electron main.
 6. Electron main forwards the executable request to the SDK local runtime daemon/JSON-RPC bridge.
 7. Sidecar registry executes the local tool implementation and returns a normalized result.
-8. SDK main runtime submits `tool-result` or `tool-bundle-result` back to the backend.
+8. Agent SDK runtime submits `tool-result` or `tool-bundle-result` back to the backend.
 9. Backend transforms the result into model-facing history and resumes the loop.
 
 ## Add a New Local Runtime Tool

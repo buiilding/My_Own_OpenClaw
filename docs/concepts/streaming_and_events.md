@@ -32,7 +32,7 @@ must not emit a synthetic `streaming-complete`.
 1. Backend agent/services emit typed internal events.
 2. Backend formatter layer maps events to outgoing websocket payloads.
 3. Outgoing schema validation checks payload shape.
-4. The SDK agent runtime receives backend websocket messages, normalizes them into conversation events, updates display rows/current-turn state, and coordinates any local tool execution.
+4. The Agent SDK runtime receives backend websocket messages, normalizes them into conversation events, updates display rows/current-turn state, and coordinates any local tool execution.
 5. Electron main forwards SDK events to renderer windows on `windie:conversation-event`, `windie:rows`, `windie:current-turn`, and `windie:status`.
 6. Renderer consumers accept or ignore SDK events by conversation/turn identity and update UI, transcript queues, overlay phase, and token/usage display.
 

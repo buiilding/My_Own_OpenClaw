@@ -333,6 +333,41 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar daemon startup/reuse');
   });
 
+  test('runtime routing docs use Agent SDK boundary wording', async () => {
+    const runtimeBoundaryDocs = [
+      'docs/architecture/frontend_architecture.md',
+      'docs/concepts/streaming_and_events.md',
+      'docs/debug/README.md',
+      'docs/debug/symptom_playbooks.md',
+      'docs/development/agent_architecture_reference.md',
+      'docs/frontend/contracts/ipc_channel_and_handler_reference.md',
+      'docs/frontend/inventory/frontend_functionality_capability_catalog_reference.md',
+      'docs/frontend/main/electron_main_and_ipc.md',
+      'docs/frontend/main/query_payload_and_relay_reference.md',
+      'docs/frontend/renderer/chat_stream_and_tool_execution_reference.md',
+      'docs/frontend/renderer/renderer_runtime.md',
+      'docs/frontend/renderer/renderer_state_change_workflow.md',
+      'docs/frontend/sidecar/browser_automation_stack.md',
+      'docs/nodes/desktop_and_sidecar_node.md',
+      'docs/nodes/runtime_node_matrix.md',
+      'docs/reference/code_change_surface_index.md',
+      'docs/reference/session_and_transcript_reference.md',
+      'docs/reference/websocket_event_reference.md',
+      'docs/tools/filesystem_shell_change_workflow.md',
+      'docs/tools/tool_execution_lifecycle.md',
+      'docs/tools/tool_schema_policy_change_workflow.md',
+      'docs/tools/tool_troubleshooting.md',
+      'frontend/src/renderer/folder_structure.md',
+    ];
+    const docText = (await Promise.all(runtimeBoundaryDocs.map((path) => read(path)))).join('\n');
+
+    expect(docText).toContain('Agent SDK runtime');
+    expect(docText).toContain('Agent SDK tool');
+    expect(docText).not.toContain('SDK agent runtime');
+    expect(docText).not.toContain('SDK agent-runtime');
+    expect(docText).not.toContain('SDK main runtime');
+  });
+
   test('frontend architecture docs route tool prep through local execution wording', async () => {
     const docs = await Promise.all([
       read('docs/architecture/frontend_architecture.md'),

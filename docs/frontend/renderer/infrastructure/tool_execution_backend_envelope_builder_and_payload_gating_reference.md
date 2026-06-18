@@ -1,5 +1,5 @@
 ---
-summary: "Retired renderer tool-result envelope reference explaining that tool-result payload construction now belongs to the SDK main runtime and backend/sidecar contracts."
+summary: "Retired renderer tool-result envelope reference explaining that tool-result payload construction now belongs to the Agent SDK runtime and backend/sidecar contracts."
 read_when:
   - When you find old references to renderer tool-result envelope builders or renderer backend payload gating.
   - When debugging `tool-result` or `tool-bundle-result` payload shape after the SDK main-runtime migration.
@@ -14,7 +14,7 @@ tool runner. Renderer code no longer constructs or sends backend
 
 Current ownership:
 
-- SDK main runtime preserves `request_id`, `bundle_id`, `tool_call_id`, and
+- Agent SDK runtime preserves `request_id`, `bundle_id`, `tool_call_id`, and
   correlation metadata while coordinating local execution.
 - Electron main and the local-runtime bridge normalize local executor output into the
   SDK local-runtime contract.

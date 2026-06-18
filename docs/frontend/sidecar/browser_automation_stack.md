@@ -2,7 +2,7 @@
 summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, shared browser contract validation, Browser Use engine dispatch, and browser file/snapshot boundaries."
 read_when:
   - When changing sidecar browser tool behavior, action routing, or CDP launch policy.
-  - When debugging browser connect/snapshot/action failures across SDK main runtime, Electron main, and Python sidecar.
+  - When debugging browser connect/snapshot/action failures across Agent SDK runtime, Electron main, and Python sidecar.
 title: "Browser Automation Stack"
 ---
 
@@ -17,7 +17,7 @@ add new browser behavior to those retired paths.
 
 Request path for browser actions:
 
-1. SDK main runtime routes a local browser tool call through the SDK local-runtime client.
+1. Agent SDK runtime routes a local browser tool call through the SDK local-runtime client.
 2. Electron main `local_runtime_bridge.cjs` sends JSON-RPC `execute_tool`.
 3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
 4. `tools/browser/browser_tool.py:execute_browser(...)` validates `BrowserControlArgs`.

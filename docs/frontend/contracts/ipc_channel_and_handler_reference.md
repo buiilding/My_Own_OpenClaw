@@ -177,7 +177,7 @@ Local tool runtime nuances:
 ### Backend relay/events
 
 - `windie:rows`: SDK display rows for renderer chat UI
-- `windie:status`: SDK agent runtime status snapshots
+- `windie:status`: Agent SDK runtime status snapshots
 - `windie:conversation-event`: SDK-normalized conversation events for transcript/session side effects
 - `windie:memory-store-changed`: memory-store invalidation events
 - `windie:conversation-metadata-invalidated`: sidebar/list metadata invalidation
@@ -226,7 +226,7 @@ Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `i
 5. normalizes backend query fields and conversation identity (`ipc_query_runtime.cjs`); SDK context enrichment later renders model-facing memory/attachment content.
 6. stores active sender display affinity in main process for follow-on screenshot tool fallback routing.
 7. injects runtime-only `system_state_internal` (screen resolution) when available.
-8. calls the SDK agent runtime to send the normalized backend message over websocket.
+8. calls the Agent SDK runtime to send the normalized backend message over websocket.
 
 ## Backend Relay Normalization
 
@@ -236,7 +236,7 @@ Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `i
   strips display-only `screenshot_url` for `query` and `tool-bundle-result`.
 - backend message envelope always includes `{id,type,payload,user_id,timestamp}`.
 
-Incoming websocket messages are owned by the SDK agent runtime. Electron main forwards SDK-normalized rows, status, conversation events, and current-turn projections to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.
+Incoming websocket messages are owned by the Agent SDK runtime. Electron main forwards SDK-normalized rows, status, conversation events, and current-turn projections to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.
 
 ## Drift Hotspots
 

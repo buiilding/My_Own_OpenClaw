@@ -52,7 +52,7 @@ Ownership boundaries:
 
 - `AppConfigProvider`: persisted config, model-list fetch trigger, runtime settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
-- `ChatProvider`: mounts `useChatStream` and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace. Local tool execution is owned by the SDK main runtime.
+- `ChatProvider`: mounts `useChatStream` and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace. Local tool execution is owned by the Agent SDK runtime.
 
 ## Chat Store Contract (`chatStore.ts`)
 
@@ -388,7 +388,7 @@ projects live tool-call/tool-output/tool-progress state into
 the dashboard consumes SDK display rows. OpenAI-native web-search progress is
 retained as dashboard display transparency, while SDK rehydrate normalizes
 progress-only native search into a synthetic paired Windie `web_search` history
-entry. The SDK main runtime routes executable local tools through Electron main
+entry. The Agent SDK runtime routes executable local tools through Electron main
 and the SDK local runtime.
 
 Renderer display contract:
@@ -401,16 +401,16 @@ Renderer display contract:
 
 Execution contract:
 
-- SDK main runtime receives backend tool events and owns local execution state
+- Agent SDK runtime receives backend tool events and owns local execution state
 - SDK local runtime starts/reuses the local runtime daemon and unwraps daemon JSON-RPC
   responses before callers see them
 - Electron main supplies desktop launch options and host-only window, screenshot,
   display-bounds, and artifact behavior
 - the local executor runs filesystem, shell, browser, computer-use, MCP, plugin,
   and extension tools
-- SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
+- Agent SDK runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
 
-For execution bugs, start with the SDK main runtime and local-runtime bridge. For
+For execution bugs, start with the Agent SDK runtime and local-runtime bridge. For
 active visual bugs, start with the SDK current-turn projection and
 `useConversationRuntimeProjectionStream`; for replay bugs, start with renderer
 chat-stream transcript handlers and transcript projection.

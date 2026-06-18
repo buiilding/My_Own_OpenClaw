@@ -318,7 +318,7 @@ frontend/src/renderer/
 ```
 1. TOOL CALL EVENT
    └─> Backend sends tool-call or tool-bundle event
-       └─> SDK main runtime receives event
+       └─> Agent SDK runtime receives event
            ↓
 2. SDK LOCAL EXECUTION
    └─> packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts

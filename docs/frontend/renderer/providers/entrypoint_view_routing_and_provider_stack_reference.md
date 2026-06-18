@@ -112,6 +112,6 @@ If overlay surface unexpectedly writes transcripts:
 
 If tool-call display updates appear twice:
 
-1. verify no renderer route is mounting duplicate stream/display projection hooks; normal desktop local execution belongs to the SDK main runtime
+1. verify no renderer route is mounting duplicate stream/display projection hooks; normal desktop local execution belongs to the Agent SDK runtime
 2. verify extra renderer window is not loading default `App` route
 3. inspect window URL `view` query parameter set by main process

@@ -86,7 +86,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant Backend
-  participant SDK as SDK main runtime
+  participant SDK as Agent SDK runtime
   participant Main as Electron main
   participant Sidecar
   Backend->>SDK: tool-call with request_id/correlation key or tool-bundle with bundle_id

@@ -12,7 +12,7 @@ Use these playbooks to avoid editing the wrong layer.
 
 ## No Backend Response
 
-Likely boundary: SDK agent runtime, Electron main query preparation, or hosted backend websocket.
+Likely boundary: Agent SDK runtime, Electron main query preparation, or hosted backend websocket.
 
 Inspect:
 
@@ -63,7 +63,7 @@ bin/windie test frontend -- ModelSelectionUtils.test.js ModelsSection.test.jsx
 
 ## Tool Call Appears But Does Not Execute
 
-Likely boundary: backend tool event, SDK agent runtime, Electron main bridge, or sidecar registry.
+Likely boundary: backend tool event, Agent SDK tool routing, Electron main bridge, or sidecar registry.
 
 Inspect:
 

@@ -11,7 +11,7 @@ title: "Filesystem and Shell Change Workflow"
 
 This workflow routes changes to WindieOS local file and terminal tools. Use it when the symptom is an agent-visible tool problem rather than a general backend, renderer, or platform issue.
 
-The key boundary is simple: the backend owns model-facing tool names, descriptions, JSON schemas, tool policy, and tool-result ingestion. The SDK main runtime and Electron main relay requests and add frontend-local execution context. The renderer displays tool projections. The Python sidecar owns local execution, path resolution, atomic file mutation, process sessions, shell output formatting, and executable result payloads.
+The key boundary is simple: the backend owns model-facing tool names, descriptions, JSON schemas, tool policy, and tool-result ingestion. The Agent SDK runtime and Electron main relay requests and add host-local execution context. The renderer displays tool projections. The Python sidecar owns local execution, path resolution, atomic file mutation, process sessions, shell output formatting, and executable result payloads.
 
 ## Runtime Path
 
@@ -19,7 +19,7 @@ The key boundary is simple: the backend owns model-facing tool names, descriptio
 flowchart LR
     A["Backend tool catalog and policy"] --> B["Model emits tool call"]
     B --> C["Backend streams tool-call event"]
-    C --> D["SDK main runtime tool router"]
+    C --> D["Agent SDK tool router"]
     D --> E["Electron main local-runtime bridge"]
     E --> F["local_runtime_execute_tool_runtime.cjs"]
     F --> G["local_runtime_tool_args.cjs"]
@@ -71,7 +71,7 @@ flowchart LR
    - If the tool name, description, argument schema, visibility, policy gate, provider projection, or prompt-facing guidance changes, start in backend tool schema and policy docs.
    - If only local execution behavior changes while the model-facing contract stays stable, start in the sidecar implementation and update parity/behavior tests.
 
-3. Trace the request through SDK main runtime and Electron.
+3. Trace the request through the Agent SDK runtime and Electron.
    - SDK conversation runtime: `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`.
    - SDK tool coordinator: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
    - Electron internal adapter: `frontend/src/main/sidecar/local_runtime_bridge.cjs`

@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `afe1d4f4b` (`docs(tools): align client manifest host wording`)
+- Latest inspected plan checkpoint: `11d0fe9e6` (`docs(channels): align local tool runtime routing`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -83,9 +83,37 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   contract test and current references now use the `BackendSdkWebsocketContract`
   name instead of the stale frontend/backend boundary label. Channel local-tool
   docs now describe SDK/main local-runtime routing plus Python sidecar executor
-  ownership instead of SDK desktop/agent runtime labels.
+  ownership instead of SDK desktop/agent runtime labels. Active routing, IPC,
+  stream, tool, debug, node, and reference docs now use Agent SDK
+  runtime/tool-router wording instead of SDK agent/main runtime labels.
 
 ## Inspection Log
+
+### 2026-06-18 Agent SDK Runtime Routing Wording Slice
+
+- Worktree was clean after `11d0fe9e6` before this slice, with `main` ahead of
+  `origin/main` by 815 commits.
+- Recent commits showed the codebase already moving docs away from SDK desktop
+  and frontend/backend labels, while live routing docs still used "SDK agent
+  runtime" and "SDK main runtime" for Agent SDK projection, websocket send, and
+  local tool routing paths.
+- Finding: those labels blurred the requested split because the reusable Agent
+  SDK owns event normalization/projection and tool coordination, while Electron
+  main is the desktop host/local-runtime adapter and the Python sidecar is the
+  executable local authority.
+- Change: reworded active architecture, concepts, IPC, query-relay, renderer,
+  tool, node, debug, and reference docs to Agent SDK runtime/tool-router
+  wording, with host-local context where Electron main supplies desktop
+  context.
+- Change: added a modular boundary guard across the touched active docs so
+  `SDK agent runtime`, `SDK agent-runtime`, and `SDK main runtime` do not return
+  outside historical report notes.
+- Validation: focused modular boundary test, targeted retired-label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; SDK
+  event normalization, local tool coordination, Electron host adapters, sidecar
+  execution, backend tool-result ingress, IPC channels, storage, credentials,
+  permissions, and provider policy are unchanged.
 
 ### 2026-06-18 Channel Local-Tool Runtime Wording Slice
 

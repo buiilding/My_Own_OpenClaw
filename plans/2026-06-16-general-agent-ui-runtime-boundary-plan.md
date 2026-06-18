@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Agent SDK runtime routing wording
+
+- Finding: active routing, IPC, stream, tool, debug, node, and reference docs
+  still used "SDK agent runtime" or "SDK main runtime" labels for normal
+  Agent SDK projection, websocket send, and local tool routing paths.
+- Change: reworded those live docs to Agent SDK runtime/tool-router wording,
+  used desktop host/local-runtime wording where Electron main supplies host
+  context, and added a modular boundary guard for the retired labels.
+- Validation: focused modular boundary test, targeted retired-label scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; SDK
+  event normalization, local tool coordination, Electron host adapters, sidecar
+  execution, backend tool-result ingress, IPC channels, storage, credentials,
+  permissions, and provider policy are unchanged.
+
 ### 2026-06-18 channel local-tool runtime wording
 
 - Finding: channel hub, sidecar/tool channel, and channel routing matrix docs

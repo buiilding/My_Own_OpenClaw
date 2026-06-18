@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: align active routing docs with Agent SDK runtime/tool-router
+  wording instead of stale SDK agent/main runtime labels.
 - docs/channels: align local tool channel maps with SDK/main local-runtime
   routing and Python sidecar executor wording.
 - tests/docs: rename the websocket incoming contract test and references from

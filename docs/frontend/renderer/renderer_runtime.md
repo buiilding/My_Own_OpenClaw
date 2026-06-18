@@ -40,7 +40,7 @@ Provider responsibilities:
 - `ChatProvider`:
   - initializes `useChatStream`
   - mirrors transcript-session conversation identity into chat store
-  - leaves local tool execution to the SDK main runtime
+  - leaves local tool execution to the Agent SDK runtime
 
 Startup surface routing in `AppContent`:
 

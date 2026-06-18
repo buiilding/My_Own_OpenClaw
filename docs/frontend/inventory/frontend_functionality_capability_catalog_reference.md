@@ -152,7 +152,7 @@ Capabilities:
 - Mounts provider stack (`AppProvider` + `ChatProvider`) with shared status/config hooks.
 - Provider-level config comparison/persistence guards avoid redundant writes and stale-config merges.
 - Enforces permission-onboarding gate before dashboard/chat runtime.
-- Boots wakeword controller and chat stream display runtime at app scope; local tool execution is owned by the SDK main runtime.
+- Boots wakeword controller and chat stream display runtime at app scope; local tool execution is owned by the Agent SDK runtime.
 
 ## 6) Renderer Chat + Stream + Tool Execution
 

@@ -62,7 +62,7 @@ Single-tool path:
 
 - backend assigns or preserves a `request_id`
 - SDK runtime returns `tool-result` with the same `request_id`
-- The SDK agent runtime must not synthesize a backend wait id from
+- The Agent SDK tool coordinator must not synthesize a backend wait id from
   `correlation_id`, `tool_call_id`, or the websocket event id. If `request_id`
   is missing, the event is malformed for result delivery and local execution is
   not claimed.

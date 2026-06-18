@@ -63,7 +63,7 @@ Main modules:
 
 Responsibilities:
 
-- Adapts renderer IPC to the SDK main runtime.
+- Adapts renderer IPC to the Agent SDK runtime.
 - Starts `AgentClient.wakeUp(...)` directly, uses the returned
   `agent.conversation(...)` runtime, and delegates backend websocket
   construction, SDK local-runtime bootstrap, envelope sends, close,

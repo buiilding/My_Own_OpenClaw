@@ -56,7 +56,7 @@ Entrypoint wrappers use different flags:
 Contract outcome:
 
 - overlays still participate in shared chat state display
-- renderer surfaces do not mount local tool execution; SDK main runtime owns local
+- renderer surfaces do not mount local tool execution; Agent SDK runtime owns local
   tool execution and sends display-only tool events to renderer
 - overlays avoid transcript write side effects
 

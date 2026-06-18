@@ -62,7 +62,7 @@ Read:
 Questions to answer:
 
 1. Did backend send a `tool-call` or `tool-bundle` event?
-2. Did the SDK main runtime receive the matching event type?
+2. Did the Agent SDK runtime receive the matching event type?
 3. Did SDK/main construct the executable local-runtime payload with the expected args?
 4. Did Electron main route JSON-RPC to the sidecar?
 5. Did sidecar registry import the tool module lazily without import error?
