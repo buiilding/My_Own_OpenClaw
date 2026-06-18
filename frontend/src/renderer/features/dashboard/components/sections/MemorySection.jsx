@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
 import { desktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
-import { DESKTOP_AGENT_ON_CHANNELS } from '../../../../infrastructure/ipc/channels';
+import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../../../infrastructure/ipc/channels';
 import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
@@ -76,7 +76,7 @@ function MemorySection({ onClose = () => {} }) {
       return undefined;
     }
 
-    return window.ipc.on(DESKTOP_AGENT_ON_CHANNELS.MEMORY_STORE_CHANGED, () => {
+    return window.ipc.on(DESKTOP_RUNTIME_ON_CHANNELS.MEMORY_STORE_CHANGED, () => {
       void loadMemories();
     });
   }, [loadMemories]);

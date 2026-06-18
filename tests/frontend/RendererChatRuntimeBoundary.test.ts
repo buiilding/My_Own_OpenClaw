@@ -301,7 +301,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(streamSource).toContain('DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT');
+    expect(streamSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
     expect(streamSource).not.toContain('ON_CHANNELS.WINDIE_CONVERSATION_EVENT');
     expect(streamSource).not.toContain('ON_CHANNELS.FROM_BACKEND');
     expect(streamSource).not.toContain('handleBackendStreamIngress');

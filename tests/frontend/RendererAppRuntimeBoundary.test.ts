@@ -129,7 +129,7 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('type AgentSdkCommandBridge');
     expect(source).toContain('window.desktopAgent ?? null');
     expect(source).not.toContain('window.windie');
-    expect(source).toContain('DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
+    expect(source).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
     expect(source).not.toContain('INVOKE_CHANNELS.WINDIE_INVOKE');
     expect(source).not.toContain('getDesktopAgentCommandBridge');
     expect(source).not.toContain('DesktopAgentCommandBridge');

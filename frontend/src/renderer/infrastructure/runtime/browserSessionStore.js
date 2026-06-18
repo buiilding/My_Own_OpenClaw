@@ -1,9 +1,9 @@
-﻿/**
+/**
  * Stores and retrieves browser session state for the renderer UI.
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import { DESKTOP_AGENT_INVOKE_CHANNELS } from '../ipc/channels';
+import { DESKTOP_RUNTIME_INVOKE_CHANNELS } from '../ipc/channels';
 import { SDK_RUNTIME_COMMANDS } from '../api/agentSdkClient';
 import {
   getLocalRuntimeStatusSnapshot,
@@ -144,7 +144,7 @@ function emitBrowserSessionDiagnostic({
     ...(error ? { error } : {}),
   };
   void Promise.resolve(
-    IpcBridge.invoke(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE, {
+    IpcBridge.invoke(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE, {
       command: SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND,
       payload,
     }),

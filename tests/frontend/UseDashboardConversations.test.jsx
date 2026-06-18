@@ -10,7 +10,7 @@ import {
   subscribeLocalRuntimeStatusStore,
 } from '../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { DESKTOP_AGENT_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
+import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
@@ -210,7 +210,7 @@ describe('useDashboardConversations', () => {
   test('reloads recent conversations through SDK conversation events', async () => {
     let sdkConversationEventListener = null;
     IpcBridge.on.mockImplementation((channel, listener) => {
-      if (channel === DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT) {
+      if (channel === DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT) {
         sdkConversationEventListener = listener;
       }
       return jest.fn();

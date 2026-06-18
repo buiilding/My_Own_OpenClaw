@@ -11,7 +11,7 @@ import {
   subscribeLocalRuntimeStatusStore,
 } from '../../../infrastructure/runtime/localRuntimeStatusStore';
 import { IpcBridge } from '../../../infrastructure/ipc/bridge';
-import { DESKTOP_AGENT_ON_CHANNELS } from '../../../infrastructure/ipc/channels';
+import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../../infrastructure/ipc/channels';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
@@ -417,7 +417,7 @@ function useDashboardConversations({
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, (event) => {
+    const removeListener = IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, (event) => {
       const eventType = typeof event?.type === 'string' ? event.type : '';
       const conversationRef = typeof event?.conversationRef === 'string'
         ? event.conversationRef

@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename private renderer IPC facade channel groups from
+  `DESKTOP_AGENT_*_CHANNELS` to `DESKTOP_RUNTIME_*_CHANNELS`; no
+  migration is required because shared IPC JSON keys, `windie:*` wire channel
+  names, preload bridge behavior, and runtime payloads are unchanged.
 - frontend/preload: rename the private Agent SDK invoke-channel constant from
   desktop-agent to desktop-runtime wording; no migration is required because
   `window.desktopAgent`, the `windie:invoke` channel, and command payloads are

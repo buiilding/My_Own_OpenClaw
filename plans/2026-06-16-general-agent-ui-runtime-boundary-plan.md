@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer IPC facade desktop-runtime channel naming
+
+- Finding: renderer runtime and feature code still imported private IPC facade
+  channel groups named `DESKTOP_AGENT_*_CHANNELS`, even though these facades
+  now represent generic desktop-runtime UI wiring over stable `windie:*` wire
+  channels.
+- Change: renamed the renderer facade exports to `DESKTOP_RUNTIME_*_CHANNELS`,
+  updated chat, dashboard, memory, browser-session, continuity, SDK command
+  invoke, and focused test imports, and kept shared IPC registry keys unchanged.
+- Validation: focused IpcChannels, RendererAppRuntimeBoundary,
+  RendererChatRuntimeBoundary, UseDashboardConversations, PreloadIpcChannels,
+  and ChatStreamThinkingStatus Jest tests, docs route lookup, recent history
+  review, and stale renderer/preload facade-name scan.
+- Compatibility: no migration required because shared IPC JSON keys, `windie:*`
+  wire channel names, preload bridge behavior, storage, and runtime payloads are
+  unchanged.
+
 ### 2026-06-18 preload invoke channel constant rename
 
 - Finding: preload still used a private `DESKTOP_AGENT_INVOKE_CHANNELS`

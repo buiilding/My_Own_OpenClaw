@@ -24,7 +24,7 @@ import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
-import { DESKTOP_AGENT_ON_CHANNELS } from '../../infrastructure/ipc/channels';
+import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
 type RewriteAndResendInput = {
   conversationRef: string;
@@ -199,7 +199,7 @@ export const DesktopConversationContinuityService = {
   },
 
   subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {
-    return IpcBridge.on(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED, (event) => {
+    return IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED, (event) => {
       if (!event || typeof event !== 'object' || Array.isArray(event)) {
         return;
       }

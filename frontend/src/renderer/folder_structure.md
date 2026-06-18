@@ -289,8 +289,8 @@ frontend/src/renderer/
 1. BACKEND EVENT
    └─> Main process receives WebSocket event
        ├─> SDK runtime reduces event into currentTurn projection
-       ├─> IPC to renderer: DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN
-       └─> IPC to renderer: DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT
+       ├─> IPC to renderer: DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN
+       └─> IPC to renderer: DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT
            ↓
 2. CURRENT-TURN PROJECTION HOOK
    └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts

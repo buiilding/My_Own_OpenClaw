@@ -3,7 +3,7 @@
  */
 
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
-import { DESKTOP_AGENT_INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
+import { DESKTOP_RUNTIME_INVOKE_CHANNELS } from '../../infrastructure/ipc/channels';
 
 type AgentSdkCommandResult<T = unknown> = {
   ok?: boolean;
@@ -39,7 +39,7 @@ export async function invokeAgentSdkCommand<T = unknown>(
   const result = bridge
     ? await bridge.invoke(command, payload)
     : await IpcBridge.invoke<AgentSdkCommandResult<T>>(
-      DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE,
+      DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE,
       { command, payload },
     );
 
