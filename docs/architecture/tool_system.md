@@ -50,9 +50,9 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 │  │  Main Process (IPC)                       │  │
 │  │  - Tool Request Routing                   │  │
 │  └───────────────────────────────────────────┘  │
-│              ↕ stdin/stdout                      │
+│              ↕ HTTP /rpc                         │
 │  ┌───────────────────────────────────────────┐  │
-│  │  Python Sidecar                           │  │
+│  │  Python Sidecar Daemon                    │  │
 │  │  - Tool Execution                         │  │
 │  │  - System State Capture                    │  │
 │  └───────────────────────────────────────────┘  │

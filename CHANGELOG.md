@@ -6,10 +6,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: label the local tool execution lane as the Python sidecar
+  daemon in the tool-system diagram; no migration is required because this
+  changes docs only.
 - docs/architecture: describe the sidecar runtime as the SDK-owned
   `sidecar_daemon.py` boundary with `local_backend.py` as an in-process
-  `LocalRuntimeService` implementation; no migration is required because this
-  changes docs only.
+  `LocalRuntimeService` implementation and remove stale stdin/stdout JSON-RPC
+  transport wording from the protocol docs; no migration is required because
+  this changes docs and comments only.
 - frontend/sidecar: remove the retired standalone `local_backend.py`
   stdin/stdout run loop and its `core/runtime_shutdown.py` helper so
   `LocalRuntimeService` is only owned by `sidecar_daemon.py`; no migration is

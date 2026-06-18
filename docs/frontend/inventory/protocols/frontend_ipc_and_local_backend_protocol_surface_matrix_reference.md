@@ -171,8 +171,10 @@ Protocol behaviors:
 
 Transport:
 
-- JSON-RPC 2.0 over `stdin/stdout`, one JSON object per line.
-- Request correlation by UUID `id` in `pendingRequests` map.
+- SDK local-runtime HTTP `POST /rpc` sends JSON-RPC 2.0 envelopes to the
+  sidecar daemon, which dispatches them in-process through `LocalRuntimeService`.
+- Request correlation is owned by the SDK local-runtime HTTP client and the
+  daemon JSON-RPC `id` envelope.
 - Default timeout `60000ms`; local browser tool execution uses `120000ms`.
 
 ### SDK Local-Runtime JSON-RPC Method Map

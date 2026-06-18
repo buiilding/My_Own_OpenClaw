@@ -1,8 +1,7 @@
 """
 JSON-RPC protocol handler for the Python sidecar runtime.
 
-Handles JSON-RPC 2.0 protocol over stdin/stdout for communication
-with Electron main process.
+Handles JSON-RPC 2.0 request validation and dispatch for the sidecar daemon.
 """
 
 import json
@@ -40,8 +39,8 @@ class JSONRPCError(Exception):
 class JSONRPCProtocol:
     """
     JSON-RPC 2.0 protocol handler.
-    
-    Handles request/response protocol over stdin/stdout.
+
+    Handles transport-independent request/response payloads.
     """
     
     # Standard JSON-RPC error codes
