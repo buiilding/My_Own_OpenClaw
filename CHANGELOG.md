@@ -64,6 +64,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/storage: route storage, session identity, and context docs through
   local-runtime memory ownership instead of sidecar-memory ownership. No
   migration required.
+- docs/reference: align memory hub and reference routing labels with
+  local-runtime memory ownership while preserving concrete Python sidecar
+  implementation paths. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

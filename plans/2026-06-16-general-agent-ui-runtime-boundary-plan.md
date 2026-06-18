@@ -9323,3 +9323,19 @@ Each completed slice should report:
   methods, SQLite/FAISS schemas, transcript rows, memory search/list/title
   behavior, IPC channels, hosted backend URLs, credentials, permissions, and
   provider policy are unchanged.
+
+### 2026-06-18 reference docs local-runtime memory routing boundary
+
+- Finding: top-level docs navigation, code-change routing, docs-structure, and
+  session/transcript reference tables still advertised memory ownership as
+  sidecar-local or sidecar-memory ownership rather than the current
+  local-runtime memory boundary.
+- Change: updated the hub and reference labels to local-runtime memory, kept
+  concrete `frontend/src/main/python/memory` implementation paths intact, and
+  added exact stale-phrase guards to the modular boundary test.
+- Validation: focused modular-boundary guard, docs listing, stale reference
+  scan, and diff checks.
+- Compatibility: no migration required. Markdown paths, doc link targets,
+  Python module paths, JSON-RPC methods, memory rows, search/list/title
+  behavior, IPC channels, hosted backend URLs, credentials, permissions, and
+  provider policy are unchanged.
