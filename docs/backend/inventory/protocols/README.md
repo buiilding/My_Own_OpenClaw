@@ -2,7 +2,7 @@
 summary: "Backend inventory protocol sub-hub for websocket handshake, incoming/outgoing message contracts, route bindings, formatter alignment, and lifecycle/state control-path ownership."
 read_when:
   - When changing backend websocket message types, payload schemas, or route bindings.
-  - When debugging frontend/backend contract drift in query, settings, wakeword, tool-result, or context propagation flows.
+  - When debugging backend/client contract drift in query, settings, wakeword, tool-result, or context propagation flows.
 title: "Backend Inventory Protocols Hub"
 ---
 

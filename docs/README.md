@@ -463,7 +463,7 @@ contracts.
 ### Development Guides
 - [**Development Hub**](development/README.md) - Agent-facing contributor workflow, validation, environment, and change routing hub
 - [**Agent Development Workflow**](development/agent_development_workflow.md) - Step-by-step workflow for docs-first implementation, scoped edits, validation, and commits
-- [**Validation Matrix**](development/validation_matrix.md) - Current backend/frontend/sidecar/docs/package validation commands by change type
+- [**Validation Matrix**](development/validation_matrix.md) - Current backend, renderer, sidecar, docs, and package validation commands by change type
 - [**Docs Update Workflow**](development/docs_update_workflow.md) - Docs-list, front matter, hub wiring, changelog, link, and whitespace workflow
 - [**Review and Risk Checklist**](development/review_and_risk_checklist.md) - Ownership, contracts, security, validation, and residual-risk review questions
 - [**Test Failure Triage**](development/test_failure_triage.md) - Route failed backend, sidecar, frontend, docs, packaging, and contract checks

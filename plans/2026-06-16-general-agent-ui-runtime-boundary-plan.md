@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 cross-runtime contract wording boundary
+
+- Finding: architecture, backend inventory, tool-contract, debug, security,
+  install, incident, evidence, validation, sidecar-browser, landing, and
+  reference docs still used retired three-runtime shorthand for runtime
+  drift, contract touchpoints, trust boundaries, validation routing, and
+  incident ownership even though the current boundary is backend, SDK/main,
+  renderer, desktop host, sidecar, and client contracts.
+- Change: reworded those references to backend/client contracts, SDK/renderer
+  consumers, SDK/main local-runtime dispatch, renderer display/state, desktop
+  host boundaries, and sidecar execution where appropriate; expanded the
+  modular boundary test to guard the retired cross-runtime shorthand and stale
+  renderer tool-runner ownership labels.
+- Validation: targeted stale wording scan over docs/tests confirmed the
+  retired phrases are limited to the boundary guard or intentional
+  removed-helper filename references.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  websocket schemas, SDK projections, renderer display, desktop host IPC,
+  local-runtime dispatch, sidecar JSON-RPC, tool schemas, credentials,
+  permissions, provider policy, and storage are unchanged.
+
 ### 2026-06-18 desktop client/local-runtime tool manifest wording boundary
 
 - Finding: docs hubs, ADR labels, tool-development guidance, extension/plugin

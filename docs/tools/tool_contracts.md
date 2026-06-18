@@ -2,7 +2,7 @@
 summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, Electron client manifest builder ownership, local-runtime executable tools, bundles, request ids, and validation."
 read_when:
   - When changing tool schemas or tool result payloads.
-  - When debugging backend/frontend/sidecar tool drift.
+  - When debugging backend, SDK/main, renderer, or sidecar tool-contract drift.
   - When changing `frontend/src/main/extensions/tool_manifest.cjs`, the client manifest builder export, or stale tool manifest name-list helper references.
 title: "Tool Contracts"
 ---

@@ -15,7 +15,7 @@ Use this when the issue affects a real user path, hosted endpoint, packaged inst
 | Severity | Meaning | First action |
 | --- | --- | --- |
 | S0 | Hosted backend unavailable for all clients, packaged app cannot connect at all, or data/security risk is active | Stop risky rollout, collect hosted/tunnel/backend evidence, identify mitigation. |
-| S1 | Core query loop or local tool execution broken for a broad class of users | Route to backend/frontend/sidecar owner, run focused regression tests, prepare patch. |
+| S1 | Core query loop or local tool execution broken for a broad class of users | Route to the backend, SDK/main, renderer, or sidecar owner; run focused regression tests; prepare patch. |
 | S2 | Provider/model, permission, package, or OS-specific path broken with workaround | Document workaround, patch owner surface, add focused regression. |
 | S3 | Docs, diagnostics, non-core UI, or narrow edge case | Fix in normal development flow with docs/tests. |
 
@@ -27,7 +27,7 @@ Use this when the issue affects a real user path, hosted endpoint, packaged inst
 | REST `401` after install registration | Install auth/token propagation | Verify token cache and backend auth DB; avoid disabling auth as a first fix. |
 | Websocket `1008` at connect | Backend handshake/auth/schema or Electron headers | Fix handshake/token/schema; collect backend close reason. |
 | Query stream starts then errors provider-side | Provider runtime/config | Fail over model/provider if available; patch provider request/stream handling. |
-| Tool event appears but no local action | Renderer tool runner, Electron bridge, or sidecar | Validate tool result path and sidecar JSON-RPC before changing backend schema. |
+| Tool event appears but no local action | SDK/main local-runtime dispatch, Electron bridge, or sidecar | Validate tool result path and sidecar JSON-RPC before changing backend schema. |
 | Packaged app only | Packaging/runtime/env | Use local reinstall and packaged smoke run; source app evidence is not enough. |
 | One OS only | Platform adapter or permission | Use platform-specific docs and tests; do not generalize behavior across OSes. |
 | VM run stuck | Runs API/worker control plane | Inspect run timeline, worker heartbeat, runs key, and active run cap. |

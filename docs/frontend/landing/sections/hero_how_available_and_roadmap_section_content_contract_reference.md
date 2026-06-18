@@ -116,7 +116,7 @@ Any section id or CTA href change requires parity check across hero/footer/avail
 
 ## Drift Hotspots
 
-1. Capability list changes in `AvailableTodaySection` can drift from actual backend/frontend functionality if not updated with releases.
+1. Capability list changes in `AvailableTodaySection` can drift from actual backend and web/desktop frontend functionality if not updated with releases.
 2. Roadmap phase status flags (`available/planned`) can become stale and misrepresent product maturity.
 3. Changing anchor IDs in section roots without CTA updates breaks smooth-scroll navigation and external deep links.
 

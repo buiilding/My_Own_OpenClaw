@@ -1,14 +1,14 @@
 ---
-summary: "Backend-focused cross-layer contract map covering API schemas, stream event formatters, tool-result envelopes, and sidecar/renderer boundary touchpoints."
+summary: "Backend-focused cross-layer contract map covering API schemas, stream event formatters, tool-result envelopes, and SDK/renderer/sidecar boundary touchpoints."
 read_when:
-  - When changing backend message/tool schema contracts that affect frontend or sidecar behavior.
-  - When debugging backend/frontend drift in stream events, tool payloads, or browser/schema compatibility.
+  - When changing backend message/tool schema contracts that affect SDK, renderer, or sidecar behavior.
+  - When debugging backend/client drift in stream events, tool payloads, or browser/schema compatibility.
 title: "Backend Cross-Layer Contract Touchpoints Reference"
 ---
 
 # Backend Cross-Layer Contract Touchpoints Reference
 
-This reference lists backend-owned contracts that have direct frontend or sidecar impact.
+This reference lists backend-owned contracts that have direct SDK, renderer, or sidecar impact.
 
 ## WebSocket Message Contract Touchpoints
 
@@ -21,22 +21,22 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 
 ## Stream Event -> Formatter Touchpoints
 
-| Backend event source | Formatter owner | Frontend consumer | Contract note |
+| Backend event source | Formatter owner | SDK/renderer consumer | Contract note |
 | --- | --- | --- | --- |
-| `ChunkEvent` / `ThinkingEvent` | `api/processing/formatters/{chunk,thinking}.py` | `useChatStream.ts` | `payload.text` vs `payload.status` must stay stable |
+| `ChunkEvent` / `ThinkingEvent` | `api/processing/formatters/{chunk,thinking}.py` | SDK projection plus renderer `useChatStream.ts` | `payload.text` vs `payload.status` must stay stable |
 | `ToolCallEvent` / `ToolBundleEvent` | `api/processing/formatters/{tool_call,tool_bundle}.py` | SDK/main tool router, tool-ghost UI | Correlation IDs + payload action fields required |
-| `ToolOutputEvent` | `api/processing/formatters/tool_output.py` | `useChatStream.ts` + transcript/tool runtime | `success`, `output`, `metadata`, `request_id` semantics |
-| `TokenCountEvent` | `api/processing/formatters/token_count.py` | Token count display + store | Numeric field naming/type stability |
-| Prompt transparency events | `api/processing/formatters/{system_prompt,user_message,assistant_message,tool_schemas}.py` | Message transparency sections | Payload shape controls collapsible rendering |
+| `ToolOutputEvent` | `api/processing/formatters/tool_output.py` | SDK projection plus renderer transcript display | `success`, `output`, `metadata`, `request_id` semantics |
+| `TokenCountEvent` | `api/processing/formatters/token_count.py` | Renderer token count display + store | Numeric field naming/type stability |
+| Prompt transparency events | `api/processing/formatters/{system_prompt,user_message,assistant_message,tool_schemas}.py` | Renderer message transparency sections | Payload shape controls collapsible rendering |
 
 ## Tool Execution Contract Touchpoints
 
-| Backend owner | Contract files | Frontend/sidecar owners | Contract note |
+| Backend owner | Contract files | SDK/main, renderer, and sidecar owners | Contract note |
 | --- | --- | --- | --- |
-| Backend tool arg schemas | `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contract loader + remote tool | Sidecar tool arg schemas (`frontend/src/main/python/tools/schemas.py`) and shared browser contract (`frontend/src/main/python/windie_shared/browser_contract*.py`) | Must maintain field/literal parity for runtime execution |
-| Unified tool schema registry | `backend/src/tools/registry.py`, `schema_registry.py` | Renderer tool runner + backend parser | Exposed schemas define model-call surface |
-| Tool-result ingress schema | `incoming.py` (`ToolResultMessage`, `ToolBundleResultMessage`) | Renderer `ToolExecutionPayloads.ts` + main IPC relay | Single/bundle result field names must match |
-| Pending result resolution | `agent/tools/waiting/storage/result_storage.py` | Renderer correlation IDs from tool runner | Request/bundle IDs must be stable across turn |
+| Backend tool arg schemas | `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contract loader + remote tool | Local-runtime sidecar tool arg schemas (`frontend/src/main/python/tools/schemas.py`) and shared browser contract (`frontend/src/main/python/windie_shared/browser_contract*.py`) | Must maintain field/literal parity for runtime execution |
+| Unified tool schema registry | `backend/src/tools/registry.py`, `schema_registry.py` | Backend parser plus SDK/main local-runtime dispatch metadata | Exposed schemas define model-call surface |
+| Tool-result ingress schema | `incoming.py` (`ToolResultMessage`, `ToolBundleResultMessage`) | SDK/main local-runtime result relay | Single/bundle result field names must match |
+| Pending result resolution | `agent/tools/waiting/storage/result_storage.py` | SDK/main local-runtime request and bundle IDs | Request/bundle IDs must be stable across turn |
 
 ## Browser Contract Touchpoints
 
@@ -47,7 +47,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 
 ## Memory + Artifact Contract Touchpoints
 
-| Backend owner | Contract files | Frontend/sidecar consumers | Contract note |
+| Backend owner | Contract files | SDK/renderer/sidecar consumers | Contract note |
 | --- | --- | --- | --- |
 | `/api/embeddings` route | `api/routes/memory/embeddings/router.py` | SDK context enrichment and memory persistence pipeline | Request/response schema stability for SDK-provided vectors |
 | `/api/semantic/summarize` route | `api/routes/memory/semantic/router.py` | Sidecar `remote_semantic_client.py`, summarizer | Summary/facts parser fallback behavior impacts store |
@@ -55,7 +55,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 
 ## TTS + Wakeword Contract Touchpoints
 
-| Backend owner | Contract files | Frontend consumers | Contract note |
+| Backend owner | Contract files | Renderer consumers | Contract note |
 | --- | --- | --- | --- |
 | Audio chunk streaming | `api/processing/tts/manager.py` + outgoing schemas | Renderer `PlayerService.ts` | `audio-chunk` payload fields and encoding type |
 | Wakeword activated/greeting events | `api/handlers/wakeword.py`, `services/wakeword_execution.py` | Renderer wakeword controllers + chat surfaces | Greeting/activation event type continuity |
@@ -63,8 +63,8 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 ## Change Checklist (Cross-Layer Safe)
 
 1. Update backend schema/formatter/tool code.
-2. Update paired frontend/sidecar contracts and validators.
-3. Update docs in both backend and frontend inventory/runtime hubs.
+2. Update paired SDK/main, renderer, and sidecar contracts and validators.
+3. Update docs in backend, SDK, renderer, and local-runtime inventory/runtime hubs.
 4. Run contract-focused tests (`tests/backend/*contract*`, SDK/renderer stream and tool tests, sidecar schema tests).
 
 ## Related Docs

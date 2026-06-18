@@ -2,7 +2,7 @@
 summary: "Evidence packet template for WindieOS debugging reports, including runtime boundary, reproduction, logs, endpoint, permission, provider, tool, and validation evidence."
 read_when:
   - When preparing a bug report, handoff, PR note, or agent investigation summary for a WindieOS failure.
-  - When a failure is intermittent, platform-specific, hosted-only, packaged-only, or crosses backend/frontend/sidecar boundaries.
+  - When a failure is intermittent, platform-specific, hosted-only, packaged-only, or crosses backend, desktop host, renderer, sidecar, or SDK boundaries.
 title: "Evidence Packet"
 ---
 

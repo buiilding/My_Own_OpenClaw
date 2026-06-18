@@ -149,4 +149,4 @@ Added/expanded in WindieOS:
 - Update `docs/docs.json` when adding pages that belong in canonical navigation.
 - Update `getting-started/docs_directory.md` when adding pages that should be easy to discover from the compact directory.
 - Update hub/index pages when adding subsystem docs.
-- Keep behavior docs synchronized with backend/frontend runtime changes.
+- Keep behavior docs synchronized with backend, desktop host, renderer, sidecar, and SDK runtime changes.

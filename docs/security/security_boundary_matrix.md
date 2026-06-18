@@ -1,7 +1,7 @@
 ---
 summary: "Matrix of WindieOS trust boundaries with security jobs, owning code, failure signals, and validation targets."
 read_when:
-  - When a change crosses backend/frontend/sidecar trust boundaries or touches auth, validation, credentials, permissions, or local tool execution.
+  - When a change crosses backend, desktop host, renderer, sidecar, or SDK trust boundaries or touches auth, validation, credentials, permissions, or local tool execution.
   - When debugging security-sensitive failures such as 401/1008, invalid IPC channels, hidden tools, permission denial, or local execution errors.
 title: "Security Boundary Matrix"
 ---

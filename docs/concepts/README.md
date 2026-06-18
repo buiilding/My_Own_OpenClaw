@@ -8,7 +8,7 @@ title: "Concepts Hub"
 
 # Concepts Hub
 
-WindieOS concepts are product and system explanations that sit above implementation references. Use this section when you need the mental model first, then jump into backend/frontend deep docs for exact files.
+WindieOS concepts are product and system explanations that sit above implementation references. Use this section when you need the mental model first, then jump into backend, renderer, or sidecar deep docs for exact files.
 
 ## Core Concepts
 

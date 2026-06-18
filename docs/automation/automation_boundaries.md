@@ -115,7 +115,7 @@ When adding or changing any of these, update:
 - [Runs API Runbook](runs_api_runbook.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Operational Troubleshooting](../operations/operational_troubleshooting.md)
-- focused backend/frontend tests
+- focused backend and renderer tests
 
 ## Validation Expectations
 

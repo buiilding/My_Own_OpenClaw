@@ -135,7 +135,7 @@ Year contract:
 ## Drift Hotspots
 
 1. Changing section ids in Why/Privacy/Download without syncing anchor emitters breaks in-page navigation.
-2. Landing capability/privacy claims are static arrays and can drift from actual backend/frontend behavior if not updated with releases.
+2. Landing capability/privacy claims are static arrays and can drift from actual backend and web/desktop frontend behavior if not updated with releases.
 3. CTA/footer links should stay real targets; do not reintroduce placeholder `href="#"` entries.
 4. Changes to `ProviderStackIcon` impact multiple sections and can unintentionally alter visual consistency.
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: align cross-runtime contract, debug, security, install, and
+  incident guidance with backend, SDK/main, renderer, desktop host, and sidecar
+  ownership instead of stale three-runtime shorthand.
 - docs/tools: align remaining tool manifest, registry, and local execution
   wording with desktop client/local-runtime ownership instead of stale frontend
   manifest and sidecar-executor labels.

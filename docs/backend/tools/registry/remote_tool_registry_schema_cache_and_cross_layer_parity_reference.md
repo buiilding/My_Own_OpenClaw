@@ -1,5 +1,5 @@
 ---
-summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: catalog-driven remote tool registration, canonical schema caching rules, direct model-facing declaration assembly, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
+summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: catalog-driven remote tool registration, canonical schema caching rules, direct model-facing declaration assembly, capability extraction fallbacks, and backend/client-local exposed-tool parity tests."
 read_when:
   - When changing backend tool declaration generation, schema cache behavior, or remote-tool registration paths.
   - When debugging missing/invalid tool schemas, catalog-driven declaration drift, request-id correlation, or sidecar contract drift.

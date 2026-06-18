@@ -34,7 +34,7 @@ Current literals:
 
 ## Stability Expectations
 
-- domain enum values are part of backend/frontend contract surface
+- domain enum values are part of the backend/client contract surface
 - string literal changes are breaking for persisted configs, tests, and tool declaration consumers
 - adding new values should preserve existing literals and avoid repurposing old names
 

@@ -1,7 +1,7 @@
 ---
 summary: "Architecture hub for WindieOS runtime boundaries, data flow, state ownership, failure domains, and subsystem-specific architecture pages."
 read_when:
-  - When making cross-cutting backend/frontend/sidecar changes or deciding which runtime owns a behavior.
+  - When making cross-cutting backend, desktop host, renderer, sidecar, or SDK changes or deciding which runtime owns a behavior.
   - When adding architecture docs or routing a feature through backend, Electron main, renderer, preload, sidecar, hosted APIs, or VM worker surfaces.
 title: "Architecture Hub"
 ---

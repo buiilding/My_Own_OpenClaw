@@ -57,8 +57,41 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   client/local-runtime manifests, backend/client-local parity, desktop
   local-runtime execution, renderer settings, and desktop UI config persistence
   instead of stale frontend manifest, sidecar-executor, and config labels.
+  Cross-runtime contract, debug, security, install, incident, evidence,
+  validation, sidecar-browser, landing, and reference docs now describe
+  backend/client contracts, SDK/renderer consumers, SDK/main local-runtime
+  dispatch, desktop host boundaries, and sidecar execution instead of stale
+  three-runtime shorthand.
 
 ## Inspection Log
+
+### 2026-06-18 Cross-Runtime Contract Wording Slice
+
+- Worktree was clean after `4b001585e` before this slice, with `main` ahead of
+  `origin/main` by 805 commits.
+- Recent commits showed manifest, backend event, renderer config, and provider
+  settings wording already aligned, while architecture, backend inventory,
+  tool-contract, debug, security, install, incident, evidence, validation,
+  sidecar-browser, landing, and reference docs still used retired
+  three-runtime shorthand for ownership and drift.
+- Finding: those docs flattened SDK/main, renderer, desktop host, sidecar, and
+  backend responsibilities into broad client/server labels, including stale
+  renderer tool-runner language in incident routing and backend inventory
+  contract tables.
+- Change: reworded the affected docs to backend/client contracts,
+  SDK/renderer consumers, SDK/main local-runtime dispatch, renderer
+  display/state, desktop host boundaries, and sidecar execution while
+  preserving real source paths and removed-helper filename references.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to scan the
+  touched docs and guard the retired cross-runtime shorthand and renderer
+  tool-runner ownership labels.
+- Validation: targeted stale wording scan over docs/tests confirmed the retired
+  phrases are limited to the boundary guard or intentional removed-helper
+  filename references.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  websocket schemas, SDK projections, renderer display, desktop host IPC,
+  local-runtime dispatch, sidecar JSON-RPC, tool schemas, credentials,
+  permissions, provider policy, and storage are unchanged.
 
 ### 2026-06-18 Desktop Client/Local-Runtime Tool Manifest Wording Slice
 
@@ -194,7 +227,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ### 2026-06-16 Renderer Skin/Config Slice
 
 - Worktree was clean on `main` at `de7713f72`.
-- Recent commits show active frontend/backend boundary cleanup, including narrowed SDK exports and current-turn side-effect isolation.
+- Recent commits show active renderer/backend boundary cleanup, including narrowed SDK exports and current-turn side-effect isolation.
 - `docs/architecture/frontend_architecture.md` says renderer should consume app runtime facades and SDK projections, while renderer feature code should remain UI/display oriented.
 - Finding: settings feature components embed WindieOS product copy and runtime wording directly, including browser, workspace, tool-log, and tool catalog descriptions. This works today, but it keeps the renderer from reading as a generic chat desktop UI plus a WindieOS skin/config.
 - Decision: introduce a renderer skin module and route settings copy through it without changing behavior.

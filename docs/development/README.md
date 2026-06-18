@@ -1,5 +1,5 @@
 ---
-summary: "Development hub for WindieOS contributor workflow, environment setup, validation, tool development, and backend/frontend/sidecar change routing."
+summary: "Development hub for WindieOS contributor workflow, environment setup, validation, tool development, and backend/renderer/sidecar change routing."
 read_when:
   - When starting implementation work in WindieOS.
   - When deciding which development workflow, tests, docs, and validation commands apply to a change.

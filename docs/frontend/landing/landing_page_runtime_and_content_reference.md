@@ -146,7 +146,7 @@ When real endpoints are introduced, replace placeholders to avoid dead links.
 If landing copy or roadmap changes, verify:
 
 1. anchors still resolve to existing IDs
-2. capability claims match backend/frontend implementation status
+2. capability claims match backend and web/desktop frontend implementation status
 3. placeholder links are still intentional
 4. section arrays preserve valid `key` stability (index-based map still safe for static order)
 

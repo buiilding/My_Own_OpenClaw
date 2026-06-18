@@ -75,7 +75,7 @@ Use this classification before adding another helper, mapper, envelope, or fallb
 
 | Layer type | Keep it when | Remove or collapse it when |
 | --- | --- | --- |
-| Runtime boundary adapter | It crosses backend/frontend/sidecar, trusted/untrusted, or JS/Python boundaries. | It only moves fields between two helpers in the same runtime without validation or ownership change. |
+| Runtime boundary adapter | It crosses backend, SDK/main, renderer, sidecar, trusted/untrusted, or JS/Python boundaries. | It only moves fields between two helpers in the same runtime without validation or ownership change. |
 | Provider projection | A model provider requires a different schema/message dialect. | It rewrites canonical tool semantics to work around a local bug. |
 | Diagnostic transparency copy | It proves what the backend actually sent to the model. | It reconstructs prompt/tool data from renderer state and can disagree with backend truth. |
 | Display projection | It intentionally turns structured data into UI rows. | It becomes the only source for later model/context reconstruction. |

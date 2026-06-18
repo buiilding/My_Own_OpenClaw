@@ -10,7 +10,7 @@ title: "Install Hub"
 
 WindieOS install docs cover source-mode development, packaged desktop validation, backend endpoint selection, and OS-specific reinstall loops.
 
-- source development, where backend/frontend/sidecar run from the checkout
+- source development, where backend, renderer, and sidecar runtimes run from the checkout
 - packaged desktop builds, where Electron bundles the frontend and a Python sidecar runtime
 - endpoint setup, where the app targets Peter-hosted, local, staging, or self-hosted backend routes
 - reinstall/reset loops, where installed app state and packaged resource paths matter

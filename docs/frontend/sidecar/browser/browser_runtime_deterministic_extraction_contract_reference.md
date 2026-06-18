@@ -19,7 +19,7 @@ Deterministic extraction keeps sidecar browser actions lightweight and removes s
 
 - `extract` and `read_long_content` execute in `BrowserUseEngineRuntime`
 - sidecar reads page HTML through Browser Use CLI and uses WindieOS markdown/focused-excerpt helpers
-- runtime returns stable payload/metadata fields for frontend/backend consumers
+- runtime returns stable payload/metadata fields for backend and client consumers
 
 ## Deterministic Execution Flow
 

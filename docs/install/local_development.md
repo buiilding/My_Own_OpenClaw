@@ -15,7 +15,7 @@ conda environments or invoking lower-level launch scripts directly.
 environment adapters for
 focused Python commands.
 
-Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend/frontend/sidecar implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.
+Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend, renderer, and sidecar implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.
 
 ## Prerequisites
 

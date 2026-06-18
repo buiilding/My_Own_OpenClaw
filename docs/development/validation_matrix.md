@@ -22,7 +22,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | frontend typecheck | `cd frontend && npm run typecheck` |
 | frontend lint | `cd frontend && npm run lint` |
 | frontend React/deprecation audit | `cd frontend && npm run lint:audit` |
-| frontend/backend duplication audit | `cd frontend && npm run audit:jscpd` |
+| frontend and backend duplication audit | `cd frontend && npm run audit:jscpd` |
 | frontend dead-code/dependency audit | `cd frontend && npm run audit:knip` |
 | whitespace check | `git diff --check` |
 
@@ -41,7 +41,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | browser runtime | backend browser schema tests plus sidecar browser tests | include browser UI/session tests when renderer controls change |
 | docs-only | `bin/windie docs list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
 | packaging/reinstall | `bin/windie docs list` plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
-| runtime config/env vars | focused backend/frontend/sidecar config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
+| runtime config/env vars | focused backend, renderer, and sidecar config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
 
 ## Common Focused Test Paths
 

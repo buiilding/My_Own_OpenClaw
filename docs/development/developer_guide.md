@@ -145,7 +145,7 @@ frontend/src/
 - `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
 - `cd frontend && npm run lint`: Lints `js/jsx/cjs/ts/tsx`.
 - `cd frontend && npm run lint:audit`: Runs React compiler + deprecation audits.
-- `cd frontend && npm run audit:jscpd`: Runs duplication scan across backend/frontend/tests.
+- `cd frontend && npm run audit:jscpd`: Runs duplication scan across backend, frontend, and tests.
 - `cd frontend && npm run audit:knip`: Runs dead-code audit.
 
 There is no current repo-root `scripts/check` or `scripts/check-loc.py` in this

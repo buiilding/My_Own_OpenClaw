@@ -102,7 +102,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Help Hub](../help/README.md) for diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes.
 - [Triage Routes](../help/triage_routes.md) for mapping user-visible symptoms to the first likely runtime owner.
 - [Doctor Checklist](../help/doctor_checklist.md) for collecting environment, endpoint, sidecar, permission, packaging, and hosted evidence.
-- [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend/frontend/sidecar boundaries.
+- [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend, desktop host, renderer, sidecar, and SDK boundaries.
 - [FAQ](../help/faq.md) for recurring source, packaged, endpoint, provider, tool, browser, permission, and memory questions.
 - [Web Surfaces](../web/README.md) for landing, hosted API/auth, SDK/client, artifact, websocket, and dashboard-adjacent web boundaries.
 - [Web Surface Matrix](../web/web_surface_matrix.md) for mapping web/API changes to owners and public contracts.
