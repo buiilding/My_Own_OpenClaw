@@ -27,9 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/debug: route MCP discovery, registration, execution trace, and runtime
-  guide owner wording through the local runtime instead of sidecar-owned
-  diagnostics. No migration required.
+- docs/development: align the MCP runtime guide with SDK local-runtime
+  registration, discovery, and execution wording while keeping Python sidecar
+  implementation details explicit. No migration required.
+- docs/debug: route MCP discovery, registration, and execution trace owner
+  wording through the local runtime instead of sidecar-owned diagnostics. No
+  migration required.
 - tests/frontend: extend the voice routing docs guard to reject the old direct
   Python sidecar wakeword service route wording. No migration required.
 - docs/channels: route wakeword service ownership through the local-runtime
