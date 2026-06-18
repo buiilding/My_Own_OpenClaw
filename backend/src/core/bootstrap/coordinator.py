@@ -198,7 +198,7 @@ class InitializationCoordinator:
 
         # Initialize PromptManager (required for PromptConstructor)
         # This belongs in services phase since it's used by service components
-        from backend.src.llm.prompts import PromptManager
+        from backend.src.llm.prompts.prompts import PromptManager
 
         PromptManager().initialize()
 

@@ -4,6 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
+import backend.src.core.bootstrap.coordinator as coordinator_module
+from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.core.bootstrap.coordinator import (
     InitializationCoordinator,
     InitializationError,
@@ -54,3 +56,45 @@ async def test_initialize_reports_actual_failing_phase(
         f"Initialization failed at phase '{failing_phase}': "
         f"{failing_phase} exploded"
     )
+
+
+@pytest.mark.asyncio
+async def test_services_phase_initializes_prompt_manager_from_owner_module(
+    monkeypatch,
+) -> None:
+    coordinator = InitializationCoordinator()
+    session_manager = SimpleNamespace()
+    subscribed = []
+    handler_calls = []
+    prompt_initialized = []
+
+    class FakeConfigService:
+        def subscribe(self, listener):
+            subscribed.append(listener)
+
+    class FakeHandlerInitializer:
+        async def initialize(self, container):
+            handler_calls.append(container)
+
+    def initialize_prompt_manager(self):
+        assert isinstance(self, PromptManager)
+        prompt_initialized.append(True)
+
+    container = SimpleNamespace(
+        session_manager=session_manager,
+        config_service=FakeConfigService(),
+    )
+    coordinator.container = container
+
+    monkeypatch.setattr(PromptManager, "initialize", initialize_prompt_manager)
+    monkeypatch.setattr(
+        coordinator_module,
+        "HandlerInitializer",
+        FakeHandlerInitializer,
+    )
+
+    await coordinator._initialize_services()
+
+    assert prompt_initialized == [True]
+    assert subscribed == [session_manager]
+    assert handler_calls == [container]

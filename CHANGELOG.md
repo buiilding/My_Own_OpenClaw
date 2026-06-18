@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - ops/deploy: stream the `.sh` remote backend update script from the GitHub
   Actions deploy workflow so pushes to `main` can update and restart the
   hosted backend after extensionless script shims were removed.
+- backend/bootstrap: import `PromptManager` from its concrete owner module
+  during service initialization so namespace-package export cleanup does not
+  break hosted backend startup.
 
 ### Changed
 
