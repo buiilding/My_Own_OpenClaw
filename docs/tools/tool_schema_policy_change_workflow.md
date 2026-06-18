@@ -17,7 +17,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 | Change or symptom | First owner | Code roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| add or change a client-local sidecar tool schema | Windie Agent manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
+| add or change a client-local runtime tool schema | Windie Agent manifest, then backend manifest envelope/policy checks | public `frontend/src/main/extensions/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
 | add, remove, or rename a model-visible remote tool | backend tool catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/*` | [Tool Catalog Matrix](tool_catalog_matrix.md), [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) | `tests/backend/test_remote_tool_contract.py`, `tests/backend/test_tool_registry_schema.py` |
 | change a tool argument schema or description | backend schema model and remote stub | `backend/src/tools/{computer,system,filesystem}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/remote_tools/*`, `backend/src/tools/schema_fields.py` | [Tool Contracts](tool_contracts.md), [Backend Tools Contracts Hub](../backend/tools/contracts/README.md) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
 | hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), [Tool Policy and Agent Capability Runtime Reference](../backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
@@ -62,7 +62,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 ## Client Manifest Change Path
 
-1. Decide whether the tool is a client-local sidecar tool, an override of an allowed built-in, or a backend remote tool.
+1. Decide whether the tool is a client-local runtime tool, an override of an allowed built-in, or a backend remote tool.
 2. For client-local tools, define `name`, `description`, `schema`, `execution_target`, and `argument_resolution`.
 3. Keep the developer-authored extension field named `schema`; let backend validation normalize it into the flat function schema.
 4. Use `execution_target=sidecar` unless the tool name is a reserved backend tool that the backend already knows how to execute.

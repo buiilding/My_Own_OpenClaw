@@ -12,7 +12,7 @@ title: "Tool Contracts"
 WindieOS uses two tool-schema contracts:
 
 - **Backend-owned remote schema**: backend tools such as `web_search`.
-- **Client-owned local schema**: what the LLM can call for local sidecar tools.
+- **Client-owned local schema**: what the LLM can call for local-runtime tools.
 
 The public client sends local tool schemas through
 `agent_definition.tools.client_manifest` during websocket handshake; the hosted

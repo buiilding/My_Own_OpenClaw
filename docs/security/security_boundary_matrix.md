@@ -60,7 +60,7 @@ Escalate review and tests when a change:
 - adds a new IPC channel.
 - changes auth headers, token storage, or websocket identity.
 - changes allowed frontend settings fields.
-- changes tool visibility, tool policies, or local sidecar execution.
+- changes tool visibility, tool policies, or local-runtime execution.
 - changes filesystem/shell/browser/computer controls.
 - stores or transmits user files, screenshots, transcript rows, provider keys, or install tokens.
 - changes multi-user session cleanup or per-user config lookup.

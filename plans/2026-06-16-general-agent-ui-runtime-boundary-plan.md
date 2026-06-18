@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 tool docs local-runtime wording
+
+- Finding: tool schema, tool contract, tool catalog, filesystem/shell, and
+  security boundary docs still described public local tool schemas or execution
+  as local sidecar behavior, which leaked the implementation process into the
+  SDK/local-runtime tool contract.
+- Change: rewrote public tool-schema and execution wording to use local-runtime
+  terminology while preserving concrete sidecar owner rows, and added focused
+  boundary coverage for the touched docs.
+- Validation: focused `ModularRefactorCompletionBoundary.test.ts` coverage,
+  docs listing, stale local-sidecar phrase scan for the touched docs, and diff
+  checks.
+- Compatibility: no migration required. This is docs/test terminology cleanup;
+  tool schemas, execution targets, sidecar implementation modules, IPC channels,
+  and backend policy are unchanged.
 ### 2026-06-18 public sidecar-backed docs cleanup
 
 - Finding: routing, IPC, JSON-RPC, platform, and packaging docs still used

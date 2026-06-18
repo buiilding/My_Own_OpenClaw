@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: describe public local tool schema and execution flows through the
+  SDK local-runtime boundary instead of local sidecar wording, with focused
+  docs-boundary coverage; no migration is required because this is docs/test
+  terminology cleanup.
 - docs/runtime: finish replacing public `sidecar-backed` workflow wording with
   local-runtime-backed terminology across routing, IPC, JSON-RPC, platform, and
   packaging docs; no migration is required because this is docs/test-only
@@ -2300,6 +2304,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: describe public local tool schema and execution flows through the
+  SDK local-runtime boundary instead of local sidecar wording, with focused
+  docs-boundary coverage; no migration is required because this is docs/test
+  terminology cleanup.
 - docs/runtime: finish replacing public `sidecar-backed` workflow wording with
   local-runtime-backed terminology across routing, IPC, JSON-RPC, platform, and
   packaging docs; no migration is required because this is docs/test-only
@@ -4091,6 +4099,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: describe public local tool schema and execution flows through the
+  SDK local-runtime boundary instead of local sidecar wording, with focused
+  docs-boundary coverage; no migration is required because this is docs/test
+  terminology cleanup.
 - docs/runtime: finish replacing public `sidecar-backed` workflow wording with
   local-runtime-backed terminology across routing, IPC, JSON-RPC, platform, and
   packaging docs; no migration is required because this is docs/test-only
@@ -4537,6 +4549,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: describe public local tool schema and execution flows through the
+  SDK local-runtime boundary instead of local sidecar wording, with focused
+  docs-boundary coverage; no migration is required because this is docs/test
+  terminology cleanup.
 - docs/runtime: finish replacing public `sidecar-backed` workflow wording with
   local-runtime-backed terminology across routing, IPC, JSON-RPC, platform, and
   packaging docs; no migration is required because this is docs/test-only
@@ -5013,6 +5029,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: describe public local tool schema and execution flows through the
+  SDK local-runtime boundary instead of local sidecar wording, with focused
+  docs-boundary coverage; no migration is required because this is docs/test
+  terminology cleanup.
 - docs/runtime: finish replacing public `sidecar-backed` workflow wording with
   local-runtime-backed terminology across routing, IPC, JSON-RPC, platform, and
   packaging docs; no migration is required because this is docs/test-only
@@ -7445,6 +7465,10 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- docs/tools: describe public local tool schema and execution flows through the
+  SDK local-runtime boundary instead of local sidecar wording, with focused
+  docs-boundary coverage; no migration is required because this is docs/test
+  terminology cleanup.
 - docs/runtime: finish replacing public `sidecar-backed` workflow wording with
   local-runtime-backed terminology across routing, IPC, JSON-RPC, platform, and
   packaging docs; no migration is required because this is docs/test-only

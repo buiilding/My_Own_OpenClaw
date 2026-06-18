@@ -253,6 +253,24 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar-backed');
   });
 
+  test('tool and security docs describe local tools through local runtime boundary', async () => {
+    const docs = await Promise.all([
+      read('docs/tools/tool_schema_policy_change_workflow.md'),
+      read('docs/tools/tool_contracts.md'),
+      read('docs/tools/tool_catalog_matrix.md'),
+      read('docs/tools/filesystem_shell.md'),
+      read('docs/security/security_boundary_matrix.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('client-local runtime tool');
+    expect(docText).toContain('local-runtime executable tool');
+    expect(docText).toContain('execute through the SDK local runtime');
+    expect(docText).not.toContain('client-local sidecar tool');
+    expect(docText).not.toContain('local sidecar tools');
+    expect(docText).not.toContain('local sidecar execution');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',
