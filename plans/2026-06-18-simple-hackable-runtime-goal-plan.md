@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a filesystem/shell tool docs owner-label slice by
+  routing shell execution, path utilities, shell formatter/session registry,
+  and filesystem reader workflow labels through local-runtime tool
+  implementation wording instead of sidecar shell/filesystem owner labels. The
+  modular tool-routing guard now rejects the retired sidecar tool, shell, and
+  filesystem labels. Validation: focused modular docs boundary test, docs
+  listing, exact stale filesystem/shell owner-label scan, and diff checks. No
+  migration required; no code path, payload, storage, IPC, settings, tool
+  schema, credential, permission, hosted URL, provider-policy, shell process,
+  path resolution, sudo prompt, file read, or replace behavior changed.
 - 2026-06-18: completed a local-runtime JSON-RPC boundary-rule owner-label
   slice by changing the JSON-RPC workflow to name local runtime as the owner of
   method registration, handler signatures, validation, tool dispatch, memory,

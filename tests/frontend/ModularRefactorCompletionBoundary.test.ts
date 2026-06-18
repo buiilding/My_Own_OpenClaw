@@ -640,6 +640,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('Python sidecar owns local executable tool registry entries');
     expect(toolRoutingDocText).not.toContain('Python sidecar-owned payloads');
     expect(toolRoutingDocText).not.toContain('Local sidecar tool');
+    expect(toolRoutingDocText).not.toContain('Sidecar owner');
+    expect(toolRoutingDocText).not.toContain('filesystem/system sidecar tool');
+    expect(toolRoutingDocText).not.toContain('sidecar shell execution');
+    expect(toolRoutingDocText).not.toContain('Sidecar shell runtime');
+    expect(toolRoutingDocText).not.toContain('Sidecar filesystem reader');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

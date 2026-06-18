@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route filesystem and shell implementation labels through
+  local-runtime tool wording instead of sidecar shell/filesystem owner labels.
+  No migration required.
 - docs/jsonrpc: route local-runtime JSON-RPC boundary-rule ownership through
   local runtime while preserving Python sidecar handler implementation detail.
   No migration required.

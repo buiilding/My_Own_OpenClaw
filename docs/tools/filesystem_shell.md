@@ -27,7 +27,8 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
 
 ## Implementation Rules
 
-- Resolve paths through sidecar path utilities instead of ad hoc string joins.
+- Resolve paths through local-runtime path utilities instead of ad hoc string
+  joins.
 - Preserve atomic writes for replace operations.
 - `replace` accepts exactly one edit mode per call: `replacements` or
   `patch_chunks`. Use a one-item `replacements` list for a single edit.
@@ -51,14 +52,14 @@ The old Electron sudo auth-mode bridge was deleted. There is no
 `system_use_shell_auth_mode` message field, renderer sudo auth mode setting, or
 local-runtime bridge argument that selects a separate shell authentication mode.
 The exact stale query `agent_sudo_access_handler removed` belongs here because
-the replacement runtime behavior is sidecar shell execution with Linux `pkexec`
-prompt routing.
+the replacement runtime behavior is local-runtime shell execution with Linux
+`pkexec` prompt routing.
 
-Current behavior is simpler: local `run_shell_command` executes in the sidecar,
-and on Linux a leading `sudo ...` command is rewritten to `pkexec bash -lc ...`
-so the OS owns the authentication prompt. Searches for removed sudo auth mode
-behavior should route to this page and the sidecar shell runtime reference
-below.
+Current behavior is simpler: local `run_shell_command` executes through the
+local runtime's Python sidecar implementation, and on Linux a leading
+`sudo ...` command is rewritten to `pkexec bash -lc ...` so the OS owns the
+authentication prompt. Searches for removed sudo auth mode behavior should
+route to this page and the local-runtime sidecar shell reference below.
 
 ## Deep Docs
 
