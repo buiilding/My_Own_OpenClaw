@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing workspace folder permission, active workspace selection, renderer workspaceAccess public API, private workspace helper exports such as normalizeWorkspaceAccessPayload/normalizeActiveWorkspace, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
+summary: "Workflow for changing workspace folder permission, active workspace selection, DesktopWorkspaceRuntimeClient public API, private workspace helper exports such as normalizeWorkspaceAccessPayload/normalizeActiveWorkspace, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
 read_when:
   - When changing workspace folder permission, active workspace selection, workspace access permission, conversation workspace binding, workspace_path query payloads, or repo instruction injection.
   - When debugging missing AGENTS.md instructions, wrong workspace on resumed conversations, file/shell tools using the wrong folder, or backend prompts not reflecting the active workspace.
@@ -36,7 +36,7 @@ execution, and backend prompt construction.
 
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
-| Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`, `frontend/src/main/permissions/permission_service_workspace.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
+| Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`, `frontend/src/main/permissions/permission_service_workspace.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
 | Per-conversation workspace binding is missing or stale | `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
 | Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/IpcQueryRuntime.test.cjs` |
 | Electron main AGENTS.md injection changes | `frontend/src/main/app/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
@@ -86,7 +86,6 @@ backend tests in the same batch.
 Read these files for active workspace selection:
 
 - `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`
-- `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`
 - `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/main/permissions/permission_service_workspace.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
@@ -95,21 +94,27 @@ Read these files for active workspace selection:
 Selection rules:
 
 - `filesystem_workspace_access` is the permission id used by renderer helpers.
-- `fetchActiveWorkspaceSelection()` reads permission status through main IPC.
-- `requestActiveWorkspaceSelection()` asks main to open the selection flow.
-- `setActiveWorkspaceSelection(workspacePath)` updates the selected workspace
+- `DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection()` reads
+  permission status through the renderer app runtime boundary.
+- `DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection()` asks main to
+  open the selection flow through the renderer app runtime boundary.
+- `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspacePath)`
+  updates the selected workspace
   without re-opening the picker only when that path is already present in the
   stored permission entry from the workspace selection flow. It must not grant
   access to a renderer-supplied path.
 - The displayed workspace name is derived from the final path segment.
 
-`workspaceAccess.js` keeps the permission id and payload-shaping helpers private.
-Renderer callers should use only the public async selection API:
-`fetchActiveWorkspaceSelection()`, `requestActiveWorkspaceSelection()`, and
-`setActiveWorkspaceSelection(workspacePath)`. Stale searches for exported helper
-names such as `normalizeWorkspaceAccessPayload`, `normalizeActiveWorkspace`,
-`extractWorkspaceStatus`, or `WORKSPACE_ACCESS_PERMISSION_ID` should route to
-this workflow and not to generic package export docs.
+`desktopWorkspaceRuntimeClient.ts` keeps the permission id, IPC invokes, and
+payload-shaping helpers private. Renderer callers should use only
+`DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection()`,
+`DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection()`,
+`DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspacePath)`, and
+`DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)`. Stale searches
+for exported helper names such as `normalizeWorkspaceAccessPayload`,
+`normalizeActiveWorkspace`, `extractWorkspaceStatus`, or
+`WORKSPACE_ACCESS_PERMISSION_ID` should route to this workflow and not to
+generic package export docs.
 
 Workspace update subscriptions should go through
 `DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)` so feature code
@@ -211,8 +216,8 @@ Prompt rules:
 | Symptom | First checks | Likely owner |
 | --- | --- | --- |
 | Workspace settings shows no workspace after choosing one | Check permission result payload, `workspace-access-updated`, selected paths, and `normalizeActiveWorkspace`. | Permission IPC and workspace settings |
-| New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `DesktopLiveTurnRuntimeClient.sendQuery` args. | Renderer send path |
-| Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `setActiveWorkspaceSelection`. | Dashboard conversation handoff |
+| New query omits `workspace_path` | Check conversation binding, `DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection`, and `DesktopLiveTurnRuntimeClient.sendQuery` args. | Renderer send path |
+| Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection`. | Dashboard conversation handoff |
 | AGENTS.md works locally but not with hosted backend | Check Electron-injected `agent_definition.agents_md`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
 | Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |
 | File tools run in wrong folder | Check workspace permission status, sidecar/backend config propagation, and tool execution cwd defaults. | Workspace permission and sidecar tool runtime |

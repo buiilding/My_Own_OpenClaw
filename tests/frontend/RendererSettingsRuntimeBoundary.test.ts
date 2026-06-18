@@ -96,8 +96,14 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('IpcBridge');
     expect(source).not.toContain('ON_CHANNELS');
     expect(source).not.toContain('WORKSPACE_ACCESS_UPDATED');
+    expect(source).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
+    expect(source).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
+    expect(source).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
+    expect(workspaceClientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSION');
+    expect(workspaceClientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');
+    expect(workspaceClientSource).toContain('INVOKE_CHANNELS.SET_ACTIVE_WORKSPACE');
   });
 
   test('agent settings routes extension and capability IPC through app runtime client', async () => {

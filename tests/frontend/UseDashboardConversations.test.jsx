@@ -37,8 +37,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEve
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/workspace/workspaceAccess', () => ({
-  setActiveWorkspaceSelection: jest.fn(),
+jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
+  DesktopWorkspaceRuntimeClient: {
+    setActiveWorkspaceSelection: jest.fn(),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({

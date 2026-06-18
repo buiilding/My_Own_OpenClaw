@@ -5,10 +5,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import { DesktopWorkspaceRuntimeClient } from '../../../../../app/runtime/desktopWorkspaceRuntimeClient';
-import {
-  fetchActiveWorkspaceSelection,
-  requestActiveWorkspaceSelection,
-} from '../../../../../infrastructure/workspace/workspaceAccess';
 
 const workspaceSettingsSkin = desktopRuntimeSkin.settings.workspace;
 
@@ -42,7 +38,7 @@ function WorkspaceSettingsTab() {
 
     const refreshWorkspace = async () => {
       try {
-        const result = await fetchActiveWorkspaceSelection();
+        const result = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
         if (!cancelled) {
           applyWorkspace(result.workspace);
         }
@@ -75,7 +71,7 @@ function WorkspaceSettingsTab() {
     setIsSelectingWorkspace(true);
     setStatusMessage('');
     try {
-      const result = await requestActiveWorkspaceSelection();
+      const result = await DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection();
       if (result?.status?.granted === true) {
         activeWorkspaceRef.current = result.workspace;
         setActiveWorkspace(result.workspace);

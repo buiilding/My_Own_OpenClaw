@@ -785,6 +785,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/ChatInterface.jsx'),
       'utf8',
     );
+    const sendPreparationSource = await fs.readFile(
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+      'utf8',
+    );
     const bindingsSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatInterfaceBindings.js'),
       'utf8',
@@ -800,12 +804,19 @@ describe('renderer chat runtime boundary', () => {
 
     expect(chatInterfaceSource).not.toContain('WORKSPACE_ACCESS_UPDATED');
     expect(chatInterfaceSource).not.toContain('IpcBridge.on');
+    expect(chatInterfaceSource).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
+    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
+    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
+    expect(sendPreparationSource).not.toContain('infrastructure/workspace/workspaceAccess');
+    expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
     expect(bindingsSource).not.toContain('IpcBridge.on');
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
+    expect(workspaceClientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSION');
+    expect(workspaceClientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');
   });
 
   test('renderer app startup and main window controls route window IPC through app runtime client', async () => {

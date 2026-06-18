@@ -6,12 +6,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildChatMessagesFromSdkDisplayRows } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
   getLocalRuntimeStatusSnapshot,
   subscribeLocalRuntimeStatusStore,
 } from '../../../infrastructure/runtime/localRuntimeStatusStore';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
   resolveConversationWorkspaceBinding,
@@ -231,7 +231,7 @@ function useDashboardConversations({
       }
       const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
       try {
-        await setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
+        await DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
       } catch (workspaceError) {
         console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
       }

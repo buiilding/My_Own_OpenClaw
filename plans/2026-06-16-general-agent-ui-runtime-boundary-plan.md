@@ -7878,3 +7878,20 @@ Each completed slice should report:
   `WINDIE_API_KEY`, `WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`, `WINDIE_PYTHON`, and
   `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` callers continue to work;
   reusable SDK hosts can use the `AGENT_*` names.
+
+### 2026-06-18 renderer workspace selection runtime client boundary
+
+- Finding: chat send preparation, chat workspace selection, dashboard
+  conversation restore, and workspace settings still imported an
+  IPC-backed `workspaceAccess.js` helper for active workspace fetch/request/set
+  commands instead of using the renderer app runtime boundary.
+- Change: moved workspace selection payload shaping and permission IPC invokes
+  into `DesktopWorkspaceRuntimeClient`, routed chat/dashboard/settings callers
+  through that client, and removed the retired workspace helper.
+- Validation: focused renderer chat/settings boundary Jest coverage, chat
+  wiring/settings UI Jest coverage, pending-turn send prep and dashboard
+  conversation Jest coverage, docs index/list checks, stale helper scans, and
+  `git diff --check`.
+- Compatibility: no migration required. Workspace permission ids, IPC payloads,
+  active workspace normalization, conversation workspace binding, and query
+  `workspace_path` forwarding are unchanged.

@@ -7,9 +7,9 @@ import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiv
 import { DesktopPendingTurnRuntimeClient } from '../../../../app/runtime/desktopPendingTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from '../../../../app/runtime/desktopWindowRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
-import { fetchActiveWorkspaceSelection } from '../../../../infrastructure/workspace/workspaceAccess';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
@@ -131,7 +131,7 @@ async function ensureConversationWorkspaceBinding(conversationRef: string): Prom
   }
 
   try {
-    const selection = await fetchActiveWorkspaceSelection();
+    const selection = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
     return setConversationWorkspaceBinding(
       conversationRef,
       workspaceSelectionToBinding(selection.workspace),

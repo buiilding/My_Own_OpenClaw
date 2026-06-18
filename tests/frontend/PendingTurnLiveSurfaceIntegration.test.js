@@ -38,10 +38,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/workspace/workspaceAccess', () => ({
-  fetchActiveWorkspaceSelection: jest.fn(() => new Promise((resolve) => {
-    resolveWorkspaceSelection = resolve;
-  })),
+jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
+  DesktopWorkspaceRuntimeClient: {
+    fetchActiveWorkspaceSelection: jest.fn(() => new Promise((resolve) => {
+      resolveWorkspaceSelection = resolve;
+    })),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => {

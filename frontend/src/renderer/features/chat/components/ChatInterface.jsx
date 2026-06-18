@@ -41,10 +41,6 @@ import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
-  fetchActiveWorkspaceSelection,
-  requestActiveWorkspaceSelection,
-} from '../../../infrastructure/workspace/workspaceAccess';
-import {
   areWorkspaceBindingsEqual,
   getConversationWorkspaceBinding,
   workspaceSelectionToBinding,
@@ -149,7 +145,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       workspaceRefreshRequestIdRef.current = requestId;
       const selectionVersionAtRequestStart = workspaceSelectionVersionRef.current;
       try {
-        const result = await fetchActiveWorkspaceSelection();
+        const result = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
         if (
           cancelled
           || requestId !== workspaceRefreshRequestIdRef.current
@@ -405,7 +401,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
   const handleChangeWorkspace = useCallback(async () => {
     try {
-      const result = await requestActiveWorkspaceSelection();
+      const result = await DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection();
       if (result?.status?.granted === true) {
         activeWorkspaceRef.current = result.workspace;
         setActiveWorkspace(result.workspace);

@@ -816,7 +816,7 @@ describe('windie docs index', () => {
     expect(findDocs('normalizeWorkspaceAccessPayload removed export')[0].path).toBe(
       expectedPath,
     );
-    expect(findDocs('WORKSPACE_ACCESS_PERMISSION_ID private workspaceAccess helper')[0].path).toBe(
+    expect(findDocs('WORKSPACE_ACCESS_PERMISSION_ID private workspace runtime helper')[0].path).toBe(
       expectedPath,
     );
   });
