@@ -36,7 +36,7 @@ renderer channels:
 
 Historical note: raw renderer `to-backend` sends and generic `from-backend`
 listeners are removed from the preload allowlist. Renderer sends enter main
-through `window.desktopAgent.invoke(...)`.
+through `window.agentSdk.invoke(...)`.
 
 ## Typed Event Union (`backendEvents.ts`)
 

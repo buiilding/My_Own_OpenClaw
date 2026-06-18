@@ -102,7 +102,7 @@ Removed direct chat/memory IPC mappings:
   `replace-chat-conversation`, `rewrite-chat-conversation-after-event`, or
   `get-chat-conversation-revision` IPC handlers.
 - Renderer-visible chat and memory actions use SDK-shaped
-  `window.desktopAgent.invoke(...)` commands. The SDK local runtime store calls
+  `window.agentSdk.invoke(...)` commands. The SDK local runtime store calls
   sidecar JSON-RPC methods directly behind that public command boundary.
 - The deleted mapper module must not be reintroduced for compatibility aliases;
   add a typed SDK command or a main-only helper at the owning boundary instead.

@@ -88,4 +88,4 @@ const agentSdkCommandBridge = {
   },
 };
 
-contextBridge.exposeInMainWorld('desktopAgent', agentSdkCommandBridge);
+contextBridge.exposeInMainWorld('agentSdk', agentSdkCommandBridge);

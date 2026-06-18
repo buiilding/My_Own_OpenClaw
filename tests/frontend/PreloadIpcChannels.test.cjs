@@ -8,6 +8,7 @@ const retiredDesktopAgentChannelGroupName = (group) => `DESKTOP_${'AGENT'}_${gro
 describe('preload IPC channel registry', () => {
   let exposedIpc;
   let exposedAgentSdkBridge;
+  let exposedDesktopAgentBridge;
   let ipcRendererMock;
   let originalArgv;
 
@@ -15,6 +16,7 @@ describe('preload IPC channel registry', () => {
     jest.resetModules();
     exposedIpc = null;
     exposedAgentSdkBridge = null;
+    exposedDesktopAgentBridge = null;
     originalArgv = process.argv;
     ipcRendererMock = {
       send: jest.fn(),
@@ -30,8 +32,11 @@ describe('preload IPC channel registry', () => {
           if (key === 'ipc') {
             exposedIpc = value;
           }
-          if (key === 'desktopAgent') {
+          if (key === 'agentSdk') {
             exposedAgentSdkBridge = value;
+          }
+          if (key === 'desktopAgent') {
+            exposedDesktopAgentBridge = value;
           }
         }),
       },
@@ -101,8 +106,9 @@ describe('preload IPC channel registry', () => {
     expect(ipcRendererMock.invoke).not.toHaveBeenCalledWith('windie:invoke', expect.anything());
   });
 
-  test('does not expose the removed Windie browser-global command alias', () => {
+  test('does not expose removed browser-global command aliases', () => {
     expect(exposedAgentSdkBridge).toBeDefined();
+    expect(exposedDesktopAgentBridge).toBeNull();
     expect(global.windie).toBeUndefined();
   });
 

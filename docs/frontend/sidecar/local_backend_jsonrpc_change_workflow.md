@@ -19,7 +19,7 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 
 ## Boundary Rules
 
-- Renderer code must call SDK-shaped `window.desktopAgent.invoke(...)` commands or typed host IPC channels; it must not talk to the Python sidecar directly.
+- Renderer code must call SDK-shaped `window.agentSdk.invoke(...)` commands or typed host IPC channels; it must not talk to the Python sidecar directly.
 - Electron main owns scoped host channel registration, request correlation, process readiness, timeouts, and screenshot/artifact wrappers.
 - Python sidecar owns method registration, handler signatures, local validation, tool dispatch, memory storage, system-state collection, and local utility calls.
 - Backend owns model-facing tool schemas and prompt policy. Do not import backend code into the sidecar to reuse those schemas.

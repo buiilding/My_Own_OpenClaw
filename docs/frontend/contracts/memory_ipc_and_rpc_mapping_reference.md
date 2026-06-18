@@ -23,7 +23,7 @@ title: "Memory IPC and RPC Mapping Reference"
 ## Active Local-Runtime Command Path
 
 Renderer feature code enters through SDK-shaped
-`window.desktopAgent.invoke(...)` commands. Electron main no longer registers
+`window.agentSdk.invoke(...)` commands. Electron main no longer registers
 direct sidecar-named chat or memory IPC handlers for conversation and memory
 storage.
 
@@ -31,7 +31,7 @@ Memory storage and retrieval:
 
 - Renderer-facing memory UI uses SDK-shaped `memories.list`,
   `memories.delete`, and `memories.clearAll` commands over
-  `window.desktopAgent.invoke`.
+  `window.agentSdk.invoke`.
 - Electron main maps those commands to public SDK agent APIs.
 - Sidecar memory RPC names remain implementation details behind the SDK local
   runtime.

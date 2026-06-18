@@ -120,6 +120,36 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 preload Agent SDK browser global cleanup
+
+- Finding: preload still exposed SDK-shaped renderer commands through the
+  historical `window.desktopAgent` browser global even though the active
+  implementation and renderer facade are Agent SDK command bridge concepts.
+- Change: exposed the bridge as `window.agentSdk`, removed the renderer
+  `window.desktopAgent` lookup, updated preload/runtime boundary coverage, and
+  aligned docs with the new browser-global contract.
+- Validation: focused preload, renderer runtime boundary, and modular docs
+  boundary Jest coverage; docs listing; exact `window.desktopAgent` scan; and
+  scoped diff check.
+- Compatibility: no persisted-data migration required. The `windie:invoke` IPC
+  channel, SDK command names, command payloads, settings, credentials,
+  permissions, storage, and event payloads are unchanged.
+
+### 2026-06-18 generic docs local-runtime payload wording
+
+- Finding: generic tool, IPC, storage, security, and agent-turn workflow docs
+  still described executable payload and validation ownership as sidecar payload
+  or sidecar validation, which exposed the Python implementation where the
+  public workflow boundary is SDK/main local-runtime execution.
+- Change: reworded those docs to local-runtime payload/validation ownership and
+  extended the modular docs boundary guard to keep the retired generic
+  sidecar-payload phrasing out of the public workflow set.
+- Validation: focused modular refactor boundary Jest coverage, docs listing,
+  stale generic sidecar-payload phrase scan, and scoped diff check.
+- Compatibility: no migration required. This changes docs/tests only; tool
+  schemas, IPC channels, local-runtime JSON-RPC payloads, permissions, storage,
+  credentials, and persisted data are unchanged.
+
 ### 2026-06-18 backend prepared-tool local-runtime test wording
 
 - Finding: backend coordinate-scaling and tool-preparer tests still described

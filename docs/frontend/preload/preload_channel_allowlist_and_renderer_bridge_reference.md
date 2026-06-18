@@ -48,7 +48,7 @@ Allowed channels (from shared `SEND_CHANNELS` registry):
 - `wakeword-disable`
 
 Historical note: `to-backend` is not a current preload send channel. Renderer
-backend commands enter Electron main through `window.desktopAgent.invoke(...)`, which
+backend commands enter Electron main through `window.agentSdk.invoke(...)`, which
 uses the `windie:invoke` invoke channel.
 
 For invalid channels:
@@ -104,8 +104,8 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 - `get-local-runtime-status`
 
 Memory list/delete/clear and chat clear are not direct preload invoke channels.
-Renderer memory UI uses SDK-shaped `window.desktopAgent.invoke("memories.*", payload)`
-and `window.desktopAgent.invoke("conversations.clearAll", payload)` commands, and
+Renderer memory UI uses SDK-shaped `window.agentSdk.invoke("memories.*", payload)`
+and `window.agentSdk.invoke("conversations.clearAll", payload)` commands, and
 Electron main maps those commands to public SDK agent APIs.
 
 For invalid channels:

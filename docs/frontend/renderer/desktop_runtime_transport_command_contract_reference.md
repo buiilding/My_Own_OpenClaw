@@ -74,7 +74,7 @@ The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`. Inside that
 renderer helper, the private bridge type/helper use `AgentSdkCommandBridge` and
 `getAgentSdkCommandBridge(...)`. The preload bridge is still exposed as
-`window.desktopAgent`; the IPC channel string remains `windie:invoke` as the
+`window.agentSdk`; the IPC channel string remains `windie:invoke` as the
 existing wire contract.
 
 The previous internal helper names `handleWindieSdkInvoke(...)` and

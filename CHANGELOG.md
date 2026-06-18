@@ -6,6 +6,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/preload: remove the `window.desktopAgent` browser-global command
+  bridge and expose SDK-shaped renderer commands only through
+  `window.agentSdk`; no persisted-data migration is required because the
+  underlying `windie:invoke` IPC channel, command payloads, settings, storage,
+  credentials, and event payloads are unchanged.
+- docs/tools: replace generic sidecar-payload and sidecar-validation wording in
+  tool, IPC, storage, security, and agent-turn workflow docs with
+  local-runtime payload/validation wording; no migration is required because
+  this changes docs and boundary guards only, leaving tool schemas, IPC,
+  execution behavior, permissions, and persisted data unchanged.
 - backend/tests: rename focused prepared-tool payload assertions from sidecar
   input/validation wording to local-runtime input/validation wording; no
   migration is required because this changes test names, request ids, and local

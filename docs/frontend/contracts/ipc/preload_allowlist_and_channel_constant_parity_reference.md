@@ -55,7 +55,7 @@ Shared names from `ipcChannels.json`, consumed by preload + `SEND_CHANNELS`:
 - `wakeword-disable`
 
 Historical note: `to-backend` is not a current send channel. Renderer backend
-commands use `window.desktopAgent.invoke(...)`, which enters main through
+commands use `window.agentSdk.invoke(...)`, which enters main through
 `windie:invoke`.
 
 Invalid behavior:
@@ -109,8 +109,8 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 
 Memory list/delete/clear and chat clear are intentionally absent from direct
 `window.ipc.invoke` preload channels. Renderer memory UI uses SDK-shaped
-`window.desktopAgent.invoke("memories.*", payload)` and
-`window.desktopAgent.invoke("conversations.clearAll", payload)` commands.
+`window.agentSdk.invoke("memories.*", payload)` and
+`window.agentSdk.invoke("conversations.clearAll", payload)` commands.
 
 Invalid behavior:
 

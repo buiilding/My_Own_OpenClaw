@@ -44,7 +44,7 @@ Current channel constants:
 - `ON_CHANNELS.AUDIO_CHUNK = "audio-chunk"`
 
 Historical note: `from-backend` and raw renderer `to-backend` are removed from
-the preload allowlist. Renderer sends should use `window.desktopAgent.invoke(...)`;
+the preload allowlist. Renderer sends should use `window.agentSdk.invoke(...)`;
 renderer receives should use the typed channels above.
 
 ## Typed Event Guard Boundary
