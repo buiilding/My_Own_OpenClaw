@@ -1,7 +1,7 @@
 """
 Embeddings API Routes.
 
-REST endpoints for embedding operations used by the frontend memory system.
+REST endpoints for embedding operations used by local memory clients.
 """
 
 import logging
@@ -117,7 +117,7 @@ async def generate_embedding(
     """
     Generate embeddings for the given text.
 
-    This endpoint is used by the frontend memory system to generate
+    This endpoint is used by local memory clients to generate
     embeddings for text before storing in the local FAISS index.
 
     Args:

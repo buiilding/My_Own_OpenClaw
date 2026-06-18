@@ -228,7 +228,7 @@ class ToolManifestSettingsPayload(BaseModel):
 
 
 class UpdateSettingsPayload(BaseModel):
-    """Frontend-owned config update payload."""
+    """Client settings update payload."""
 
     model_config = ConfigDict(
         extra="forbid",
@@ -324,7 +324,7 @@ class ToolCaptureMeta(BaseModel):
 
 
 class ToolResultData(BaseModel):
-    """Tool-result data emitted by frontend and consumed by backend."""
+    """Tool-result data emitted by the SDK/local runtime and consumed by backend."""
 
     # Keep open for tool-specific data fields while freezing shared contract keys.
     model_config = ConfigDict(extra="allow")

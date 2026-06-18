@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend comments client/local-runtime wording boundary
+
+- Finding: backend comments and docstrings still called stream chunks,
+  UI events, settings patches, tool-result ingress, memory embeddings, and
+  coordinate helpers frontend-owned, even though the active contracts are
+  client/UI, backend client settings patch, and SDK/local-runtime ingress.
+- Change: reworded those source comments/docstrings to client/UI and
+  SDK/local-runtime terminology without changing executable behavior.
+- Validation: changed backend modules passed `py_compile`; stale comment/docstring
+  wording scan and diff check passed.
+- Compatibility: no migration required. This is comments/docstrings only;
+  websocket payloads, API schemas, tool-result data shape, memory routes,
+  coordinate preparation, credentials, permissions, and SDK projections are
+  unchanged.
+
 ### 2026-06-18 backend client operating-system context boundary
 
 - Finding: websocket handshake and session runtime internals still named

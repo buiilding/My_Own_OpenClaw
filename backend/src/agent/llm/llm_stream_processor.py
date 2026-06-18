@@ -169,7 +169,7 @@ class LLMStreamProcessor:
 
                     if full_text:
                         output_emitted = True
-                        # Preserve frontend chunk contract for non-stream path.
+                        # Preserve client chunk contract for non-stream path.
                         yield ChunkEvent(content=full_text)
 
                     self._log_provider_cache_diagnostics(model_id, turn)

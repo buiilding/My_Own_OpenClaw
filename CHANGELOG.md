@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend comments/docs-in-code: reword stale frontend-owned comments and
+  docstrings around stream chunks, UI events, settings patches, tool-result
+  ingress, local memory clients, and click-coordinate helpers to client/UI and
+  SDK/local-runtime terminology.
 - backend: rename websocket handshake/session OS context and transient
   agent-definition attributes from frontend-prefixed names to client
   operating-system, client manifest, and agent-definition terminology without

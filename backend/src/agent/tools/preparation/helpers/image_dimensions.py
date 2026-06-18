@@ -3,7 +3,7 @@ Image dimension helpers.
 
 We need to map coordinates produced in screenshot pixel space to the OS mouse
 coordinate space. On Linux with HiDPI scaling, `pyautogui.size()` (used by the
-frontend for clicks) often returns a logical resolution like 1920x1080, while
+local runtime for clicks) often returns a logical resolution like 1920x1080, while
 captured screenshots can be physical pixels like 3840x2160.
 """
 

@@ -1,7 +1,7 @@
 """
 Event Presenter.
 
-Formats and emits all frontend/UI events for the agent interaction loop.
+Formats and emits all client/UI events for the agent interaction loop.
 """
 
 import logging
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class EventPresenter:
     """
-    Presents all frontend/UI events.
+    Presents all client/UI events.
 
     Responsibility: Event formatting and emission only.
     Does NOT make business decisions or control flow.

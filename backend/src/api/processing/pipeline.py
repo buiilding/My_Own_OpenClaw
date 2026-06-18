@@ -85,7 +85,7 @@ class StreamPipeline:
         Process a single event through the pipeline stages.
 
         LATENCY OPTIMIZATION: TTS processing is decoupled from text response.
-        Text is sent immediately to the frontend, while TTS processing runs
+        Text is sent immediately to the client UI, while TTS processing runs
         concurrently. This prevents TTS buffering/lag from blocking text display.
 
         IMPORTANT: This method must be awaited serially per query.
