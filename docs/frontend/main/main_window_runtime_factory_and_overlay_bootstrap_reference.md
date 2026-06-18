@@ -1,9 +1,9 @@
 ---
-summary: "Deep reference for `main_window_runtime.cjs`: main/chat/response/tray bootstrap orchestration, close/hide lifecycle contracts, removed getLatestFrontendConfig createMainWindow dependency behavior, and delegation into icon/overlay helper runtimes."
+summary: "Deep reference for `main_window_runtime.cjs`: main/chat/response/tray bootstrap orchestration, close/hide lifecycle contracts, removed config getter createMainWindow dependency behavior, and delegation into icon/overlay helper runtimes."
 read_when:
   - When changing main/chat/response window creation defaults or startup bootstrap delegation into icon/overlay helper runtimes.
   - When changing startup bootstrap wiring between `index.cjs` and `main_window_runtime.cjs`.
-  - When stale code, tests, or docs mention `getLatestFrontendConfig` as a `createMainWindow(...)` dependency; frontend config reads stay in IPC/settings owners, not main-window creation.
+  - When stale code, tests, or docs mention `getLatestFrontendConfig` or `getLatestDesktopUiConfig` as a `createMainWindow(...)` dependency; desktop UI config reads stay in IPC/settings owners, not main-window creation.
 title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 ---
 
@@ -67,9 +67,10 @@ Important ownership note:
 - Overlay creation applies topmost/workspace policy through
   `createWindowPlatformPolicy(...)`; screenshot content protection is toggled
   by the surface runtime during capture leases.
-- `createMainWindow(...)` no longer accepts `getLatestFrontendConfig`; frontend
-  config reads are owned by IPC/settings/runtime callers, while the window
-  factory only receives the concrete bootstrap dependencies it invokes.
+- `createMainWindow(...)` no longer accepts config getters such as
+  `getLatestFrontendConfig` or `getLatestDesktopUiConfig`; desktop UI config
+  reads are owned by IPC/settings/runtime callers, while the window factory
+  only receives the concrete bootstrap dependencies it invokes.
 
 Close behavior:
 

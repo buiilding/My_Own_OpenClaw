@@ -183,7 +183,7 @@ let currentSessionId = null;
 let currentServerUserId = null;
 let currentConversationRef = null;
 let activeQueryContext = null;
-let latestFrontendConfig = null;
+let latestDesktopUiConfig = null;
 const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
@@ -206,9 +206,9 @@ const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
-  getLatestDesktopUiConfig: () => latestFrontendConfig,
+  getLatestDesktopUiConfig: () => latestDesktopUiConfig,
   setLatestDesktopUiConfig: (config) => {
-    latestFrontendConfig = config;
+    latestDesktopUiConfig = config;
   },
   loadCachedDesktopUiConfig: () => loadCachedDesktopUiConfigFromDisk(),
   isConnected: () => isConnected,
@@ -452,11 +452,11 @@ function preserveMainOwnedDesktopUiConfigFields(config, options = {}) {
   if (!preserveMcpEnablement) {
     return config;
   }
-  const diskConfig = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
+  const diskConfig = Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY])
     ? null
     : loadDesktopUiConfigFromDiskSync(log);
-  const enabledMcpServers = Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])
-    ? latestFrontendConfig[MCP_ENABLED_CONFIG_KEY]
+  const enabledMcpServers = Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY])
+    ? latestDesktopUiConfig[MCP_ENABLED_CONFIG_KEY]
     : diskConfig?.[MCP_ENABLED_CONFIG_KEY];
   if (!Array.isArray(enabledMcpServers)) {
     return config;
@@ -468,7 +468,7 @@ function preserveMainOwnedDesktopUiConfigFields(config, options = {}) {
 }
 
 function getDesktopUiConfigForMcpRegistry() {
-  return preserveMainOwnedDesktopUiConfigFields(latestFrontendConfig || {});
+  return preserveMainOwnedDesktopUiConfigFields(latestDesktopUiConfig || {});
 }
 
 function countMcpEnabledServersInConfig(config) {
@@ -481,7 +481,7 @@ function resolveMcpEnablementPreserveSource(config, options = {}) {
   if (!isValidConfigPayload(config) || options.preserveMcpEnablement === false) {
     return 'none';
   }
-  if (Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY])) {
+  if (Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY])) {
     return 'latest';
   }
   const diskConfig = loadDesktopUiConfigFromDiskSync(log);
@@ -519,7 +519,7 @@ async function persistDesktopUiConfigToDisk(config, options = {}) {
       preserveMcpEnablement: options.preserveMcpEnablement !== false,
       preserveSource,
       payloadHasEnabledKey,
-      latestHasEnabledKey: Array.isArray(latestFrontendConfig?.[MCP_ENABLED_CONFIG_KEY]),
+      latestHasEnabledKey: Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY]),
       persistedEnabledServerCount: countMcpEnabledServersInConfig(persistableConfig),
       payloadEnabledServerCount: countMcpEnabledServersInConfig(config),
     },
@@ -531,7 +531,7 @@ async function persistDesktopUiConfigToDisk(config, options = {}) {
     && typeof persistableConfig === 'object'
     && !Array.isArray(persistableConfig)
   ) {
-    latestFrontendConfig = { ...persistableConfig };
+    latestDesktopUiConfig = { ...persistableConfig };
   }
   return result;
 }
@@ -539,9 +539,9 @@ async function persistDesktopUiConfigToDisk(config, options = {}) {
 function updateGlobalAgentStopShortcutStatus(status) {
   currentGlobalAgentStopShortcutStatus = normalizeGlobalAgentStopShortcutStatus(status);
 
-  if (isValidConfigPayload(latestFrontendConfig)) {
-    const nextConfig = applyShortcutStatusFallbackToConfig(latestFrontendConfig);
-    if (nextConfig !== latestFrontendConfig) {
+  if (isValidConfigPayload(latestDesktopUiConfig)) {
+    const nextConfig = applyShortcutStatusFallbackToConfig(latestDesktopUiConfig);
+    if (nextConfig !== latestDesktopUiConfig) {
       void persistDesktopUiConfigToDisk(nextConfig);
     }
   }
@@ -573,7 +573,7 @@ function resetIpcProcessStateForTests() {
   currentServerUserId = null;
   currentConversationRef = null;
   activeQueryContext = null;
-  latestFrontendConfig = null;
+  latestDesktopUiConfig = null;
   currentGlobalAgentStopShortcutStatus = null;
   pendingInstallAuthStatePromise = null;
   pendingStartupMcpRefreshPromise = null;
@@ -592,8 +592,8 @@ function resolveWorkspacePathForAgent(payload = {}) {
   return (
     normalizeOptionalString(payload?.workspace_path)
     || normalizeOptionalString(payload?.workspacePath)
-    || normalizeOptionalString(latestFrontendConfig?.workspace_path)
-    || normalizeOptionalString(latestFrontendConfig?.workspacePath)
+    || normalizeOptionalString(latestDesktopUiConfig?.workspace_path)
+    || normalizeOptionalString(latestDesktopUiConfig?.workspacePath)
   );
 }
 
@@ -1569,7 +1569,7 @@ function initializeIpc(win, options = {}) {
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
     setLatestDesktopUiConfig: (config) => {
-      latestFrontendConfig = config;
+      latestDesktopUiConfig = config;
     },
     setGlobalAgentStopShortcutAccelerator,
     setAgentLoopStopShortcutEnabled,
@@ -1585,9 +1585,9 @@ function initializeIpc(win, options = {}) {
     persistDesktopUiConfigToDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
-    getLatestDesktopUiConfig: () => latestFrontendConfig,
+    getLatestDesktopUiConfig: () => latestDesktopUiConfig,
     setLatestDesktopUiConfig: (config) => {
-      latestFrontendConfig = config;
+      latestDesktopUiConfig = config;
     },
     setGlobalAgentStopShortcutAccelerator,
   });
@@ -2014,12 +2014,14 @@ function registerRendererWindow(win) {
   trackRendererWindow(win);
 }
 
-function getLatestFrontendConfig() {
-  if (!isValidConfigPayload(latestFrontendConfig)) {
+function getLatestDesktopUiConfig() {
+  if (!isValidConfigPayload(latestDesktopUiConfig)) {
     return null;
   }
-  return { ...latestFrontendConfig };
+  return { ...latestDesktopUiConfig };
 }
+
+const getLatestFrontendConfig = getLatestDesktopUiConfig;
 
 function registerBackendMessageObserver(observer) {
   if (typeof observer !== 'function') {
@@ -2115,8 +2117,8 @@ function attachAgentDefinitionContext(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return payload;
   }
-  const customInstructions = typeof latestFrontendConfig?.agent_custom_instructions === 'string'
-    ? latestFrontendConfig.agent_custom_instructions.trim()
+  const customInstructions = typeof latestDesktopUiConfig?.agent_custom_instructions === 'string'
+    ? latestDesktopUiConfig.agent_custom_instructions.trim()
     : '';
   const workspacePath = typeof payload.workspace_path === 'string'
     ? payload.workspace_path.trim()
@@ -2183,6 +2185,7 @@ module.exports = {
   getBackendConnectionState,
   getKnownAgentLocalRuntime,
   ensureAgentLocalRuntime,
+  getLatestDesktopUiConfig,
   getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,

@@ -29,7 +29,7 @@ const {
   getBackendConnectionState,
   getKnownAgentLocalRuntime,
   ensureAgentLocalRuntime,
-  getLatestFrontendConfig,
+  getLatestDesktopUiConfig,
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,
@@ -287,7 +287,6 @@ const {
   localToolLifecycle: electronToolSurfaceLifecycle,
   syncSdkLiveTurnSurfaceIntent,
   emitWakewordSttTrigger: surfaceRuntime.emitWakewordSttTrigger,
-  getLatestFrontendConfig,
   positionChatWindow,
   positionResponseWindow,
   showResponseWindowInactive: surfaceRuntime.overlayHelpers.showResponseWindowInactive,
@@ -482,7 +481,7 @@ function initializeMainProcessIpc() {
         }
       },
       getBrowserAutomationPreference: () => (
-        getLatestFrontendConfig()?.browser_automation_enabled === true
+        getLatestDesktopUiConfig()?.browser_automation_enabled === true
       ),
       verifyBrowserAutomationCapability: async () => {
         const localRuntimeStatus = await getLocalRuntimeStatus();

@@ -38,7 +38,6 @@ function createWindowBootstrapRuntime(deps) {
         ? deps.getPermissionStatePath()
         : null,
       initializeMainProcessIpc: deps.initializeMainProcessIpc,
-      getLatestFrontendConfig: deps.getLatestFrontendConfig,
       mainHostSkin: deps.mainHostSkin,
       getWindows: () => deps.getState().windows,
       getMainWindowMode: deps.getMainWindowMode,

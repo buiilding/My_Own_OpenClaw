@@ -609,6 +609,14 @@ describe('windie docs index', () => {
         'main_window_runtime_factory_and_overlay_bootstrap_reference.md',
       ),
     );
+    expect(findDocs('getLatestDesktopUiConfig createMainWindow removed')[0].path).toBe(
+      path.join(
+        'docs',
+        'frontend',
+        'main',
+        'main_window_runtime_factory_and_overlay_bootstrap_reference.md',
+      ),
+    );
     expect(findDocs('createConversationEvent desktopConversationStore removed')[0].path).toBe(
       path.join('docs', 'frontend', 'renderer', 'transcript_session_and_rehydrate_reference.md'),
     );

@@ -530,7 +530,6 @@ describe('main_window_runtime createMainWindow', () => {
       getKnownLocalRuntime: jest.fn(),
       ensureLocalRuntime: jest.fn(),
       initializeMainProcessIpc: jest.fn(),
-      getLatestFrontendConfig: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
       getMainWindowMode: jest.fn(() => 'dashboard'),
       setMainWindow: jest.fn(),

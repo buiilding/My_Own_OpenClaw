@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: promote `getLatestDesktopUiConfig` and `latestDesktopUiConfig` as the
+  active Electron-main config cache/getter names, and remove config getter
+  forwarding from main-window bootstrap; no migration is required because the
+  old getter remains an export alias and runtime payloads are unchanged.
 - main: rename internal desktop UI config cache, preservation, and persistence
   helpers in `ipc.cjs` so active main-process config plumbing no longer uses
   frontend-named helper functions; no migration is required because disk

@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config cache getter boundary
+
+- Finding: Electron main still named its in-memory desktop UI config cache and
+  exported getter `latestFrontendConfig` / `getLatestFrontendConfig`, and
+  bootstrap still forwarded the getter to main-window creation even though
+  window runtime docs state config reads belong to IPC/settings/runtime owners.
+- Change: promoted `latestDesktopUiConfig` and `getLatestDesktopUiConfig` as
+  the active cache/getter names, kept `getLatestFrontendConfig` as a direct
+  export alias, switched index/browser-permission preference reads to the
+  canonical getter, and removed config getter forwarding from main-window
+  bootstrap.
+- Validation: focused IPC bridge lifecycle, main-process bootstrap, main-window
+  runtime, and targeted docs-index Jest coverage; main/bootstrap/index syntax
+  checks; active stale-name scan; docs listing; and diff check.
+- Compatibility: no migration required. Runtime config payloads, IPC channels,
+  persisted filename, browser automation preference behavior, shortcut
+  fallback, MCP enablement preservation, redaction, credentials, permissions,
+  and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config internal helper boundary
 
 - Finding: after the public helper, handler, startup, and settings-sync

@@ -57,7 +57,6 @@ describe('main_process_bootstrap_runtime', () => {
         hideChatWindow: jest.fn(),
         showMainWindow: jest.fn(),
         emitWakewordSttTrigger: jest.fn(),
-        getLatestFrontendConfig: jest.fn(),
         positionChatWindow: jest.fn(),
         positionResponseWindow: jest.fn(),
         showResponseWindowInactive: jest.fn(),
@@ -98,6 +97,12 @@ describe('main_process_bootstrap_runtime', () => {
       getKnownLocalRuntime: deps.getKnownLocalRuntime,
       ensureLocalRuntime: deps.ensureLocalRuntime,
     }));
+    expect(deps.createMainWindowRuntime.mock.calls[0][0]).not.toHaveProperty(
+      'getLatestDesktopUiConfig',
+    );
+    expect(deps.createMainWindowRuntime.mock.calls[0][0]).not.toHaveProperty(
+      'getLatestFrontendConfig',
+    );
     expect(state.windows.mainWindow).toEqual({ id: 'main-window' });
   });
 
