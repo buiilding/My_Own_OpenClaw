@@ -11,6 +11,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/App.jsx`
+- `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/startupSurface.js`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
@@ -53,18 +54,18 @@ Routing behavior:
   - render `DashboardShell` immediately
   - pass `vmModeEnabled={true}`
   - bypass desktop onboarding slideshow
-  - request `show-main-window({ focus: true })` from the renderer startup-surface controller
+  - request `show-main-window({ focus: true })` through `DesktopWindowRuntimeClient`
 - VM mode disabled + onboarding incomplete:
   - do not mount `WakewordController`
   - render `DesktopOnboardingSlideshow`
   - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
-  - request `show-main-window({ focus: true, open: 'onboarding' })` from the renderer startup-surface controller
+  - request `show-main-window({ focus: true, open: 'onboarding' })` through `DesktopWindowRuntimeClient`
   - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
 - VM mode disabled + onboarding complete:
   - mount `WakewordController`
   - render `DashboardShell`
   - pass `vmModeEnabled={false}`
-  - request `show-chatbox({ focus: true, reason: "startup" })` from the renderer startup-surface controller so cold start lands on the minimal chat pill unless Electron main has persisted user-hidden chat-pill intent
+  - request `show-chatbox({ focus: true, reason: "startup" })` through `DesktopWindowRuntimeClient` so cold start lands on the minimal chat pill unless Electron main has persisted user-hidden chat-pill intent
 
 Pre-bootstrap startup behavior:
 

@@ -15,6 +15,7 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 - `frontend/src/renderer/features/chat/utils/chatModelOptions.js`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
@@ -99,7 +100,7 @@ Reasoning mode dropdown (conditional):
 
 Window controls:
 
-- minimize/maximize/close invoke `IpcBridge.invoke(...)` channels
+- minimize/maximize/close invoke `DesktopWindowRuntimeClient`
 - hidden entirely when VM mode query flag is enabled (`vm_mode=1`)
 
 Utility controls:

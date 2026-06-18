@@ -8,9 +8,9 @@ import DashboardShell from '../features/dashboard/components/DashboardShell';
 import DesktopOnboardingSlideshow from '../features/onboarding/components/DesktopOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
-import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import { selectStartupSurface } from './startupSurface';
+import { DesktopWindowRuntimeClient } from './runtime/desktopWindowRuntimeClient';
 import { AppProvider } from './providers/AppProvider';
 import { useAppConfigContext } from './providers/AppConfigContext';
 import { ChatProvider } from './providers/ChatProvider';
@@ -72,7 +72,7 @@ function AppContent() {
     async function applyStartupSurface() {
       try {
         if (startupSurface === 'dashboard-vm') {
-          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+          await DesktopWindowRuntimeClient.showMainWindow({
             focus: true,
             reason: 'startup-vm',
           });
@@ -80,7 +80,7 @@ function AppContent() {
         }
 
         if (startupSurface === 'onboarding') {
-          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+          await DesktopWindowRuntimeClient.showMainWindow({
             focus: true,
             open: 'onboarding',
             reason: 'startup-onboarding',
@@ -88,7 +88,7 @@ function AppContent() {
           return;
         }
 
-        const showChatboxResult = await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, {
+        const showChatboxResult = await DesktopWindowRuntimeClient.showChatbox({
           focus: true,
           reason: previousStartupSurface === 'onboarding'
             ? 'onboarding-complete'
@@ -99,7 +99,7 @@ function AppContent() {
           && showChatboxResult?.suppressed === true
           && showChatboxResult?.reason === CHAT_PILL_USER_HIDDEN_REASON
         ) {
-          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+          await DesktopWindowRuntimeClient.showMainWindow({
             focus: true,
             reason: STARTUP_DASHBOARD_FALLBACK_REASON,
           });

@@ -16,6 +16,9 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('infrastructure/api/client');
     expect(source).not.toContain('ApiClient.');
     expect(source).toContain('DesktopVoiceRuntimeClient.wakewordDetected');
+    expect(source).toContain('DesktopWindowRuntimeClient.showChatbox');
+    expect(source).not.toContain('SHOW_CHATBOX');
+    expect(source).not.toContain('IpcBridge.invoke');
   });
 
   test('voice mode hook delegates transcription protocol details to the desktop voice runtime', async () => {

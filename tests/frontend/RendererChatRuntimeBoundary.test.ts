@@ -732,6 +732,38 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
   });
 
+  test('renderer app startup and main window controls route window IPC through app runtime client', async () => {
+    const appSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/App.jsx'),
+      'utf8',
+    );
+    const controlsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/hooks/useMainWindowControls.js'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(appSource).not.toContain('SHOW_MAIN_WINDOW');
+    expect(appSource).not.toContain('SHOW_CHATBOX');
+    expect(appSource).not.toContain('IpcBridge.invoke');
+    expect(appSource).toContain('DesktopWindowRuntimeClient.showMainWindow');
+    expect(appSource).toContain('DesktopWindowRuntimeClient.showChatbox');
+    expect(controlsSource).not.toContain('INVOKE_CHANNELS');
+    expect(controlsSource).not.toContain('IpcBridge.invoke');
+    expect(controlsSource).toContain('DesktopWindowRuntimeClient.minimizeWindow');
+    expect(controlsSource).toContain('DesktopWindowRuntimeClient.toggleMaximizeWindow');
+    expect(controlsSource).toContain('DesktopWindowRuntimeClient.closeWindow');
+    expect(controlsSource).toContain('DesktopWindowRuntimeClient.showMainWindow');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_MAIN_WINDOW');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_CHATBOX');
+    expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_MINIMIZE');
+    expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE');
+    expect(clientSource).toContain('INVOKE_CHANNELS.WINDOW_CLOSE');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

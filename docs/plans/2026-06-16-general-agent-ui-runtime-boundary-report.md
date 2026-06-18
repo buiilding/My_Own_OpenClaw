@@ -156,8 +156,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   subscriptions through a renderer app runtime conversation event client.
   Renderer chat audio chunk and workspace access update subscriptions now route
   through renderer app runtime clients.
+  Renderer app startup, wakeword chatbox restore, and main-window controls now
+  route through the renderer app runtime window client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Window Runtime Client Expansion Slice
+
+- Worktree was clean after `3ff4ef4a7`, with `main` ahead of `origin/main` by
+  845 commits.
+- Finding: app startup, wakeword detection, and shared main-window controls
+  still imported desktop window IPC channels directly.
+- Change: widened `DesktopWindowRuntimeClient` to cover main-window show,
+  minimize, maximize toggle, and close commands, then routed startup,
+  wakeword-chatbox, and `useMainWindowControls` call sites through it.
+- Validation: focused renderer chat/voice boundary tests, app permission/VM
+  startup tests, chat interface wiring test, targeted direct IPC scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Window channel strings, payload shapes,
+  startup surface policy, wakeword behavior, main-window controls, Electron main
+  handlers, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Chat Side-Channel Runtime Clients Slice
 

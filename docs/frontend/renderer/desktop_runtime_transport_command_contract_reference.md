@@ -88,8 +88,9 @@ to emit diagnostics and build redacted payloads, then call this runtime client
 instead of importing desktop IPC channel constants directly.
 
 `desktopWindowRuntimeClient.ts` owns renderer adapter calls for desktop window
-commands used by generic chat runtime flows, such as restoring the chatbox after
-overlay-origin sends. Chat send preparation applies the UI policy and calls this
+commands used by generic runtime flows, such as restoring the chatbox after
+overlay-origin sends, applying startup surface visibility, handling wakeword
+chatbox restore, and main-window controls. Callers keep UI policy and call this
 runtime client instead of importing window IPC channel constants directly.
 
 `desktopArtifactRuntimeClient.ts` owns renderer adapter calls for desktop

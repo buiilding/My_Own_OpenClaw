@@ -3,12 +3,12 @@
  */
 
 import { useCallback } from 'react';
-import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
+import { DesktopWindowRuntimeClient } from '../app/runtime/desktopWindowRuntimeClient';
 
 export function useMainWindowControls({ warningPrefix = 'MainWindowControls' } = {}) {
-  const invokeWindowAction = useCallback(async (channel, actionLabel, payload) => {
+  const invokeWindowAction = useCallback(async (action, actionLabel) => {
     try {
-      return await IpcBridge.invoke(channel, payload);
+      return await action();
     } catch (error) {
       console.warn(`[${warningPrefix}] Failed to ${actionLabel}:`, error);
       return null;
@@ -16,19 +16,19 @@ export function useMainWindowControls({ warningPrefix = 'MainWindowControls' } =
   }, [warningPrefix]);
 
   const handleWindowMinimize = useCallback(() => {
-    void invokeWindowAction(INVOKE_CHANNELS.WINDOW_MINIMIZE, 'minimize window');
+    void invokeWindowAction(() => DesktopWindowRuntimeClient.minimizeWindow(), 'minimize window');
   }, [invokeWindowAction]);
 
   const handleWindowToggleMaximize = useCallback(() => {
-    void invokeWindowAction(INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE, 'toggle maximize window');
+    void invokeWindowAction(() => DesktopWindowRuntimeClient.toggleMaximizeWindow(), 'toggle maximize window');
   }, [invokeWindowAction]);
 
   const handleWindowClose = useCallback(() => {
-    void invokeWindowAction(INVOKE_CHANNELS.WINDOW_CLOSE, 'close window');
+    void invokeWindowAction(() => DesktopWindowRuntimeClient.closeWindow(), 'close window');
   }, [invokeWindowAction]);
 
   const showMainWindow = useCallback((options = {}) => {
-    return invokeWindowAction(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, 'show main window', options);
+    return invokeWindowAction(() => DesktopWindowRuntimeClient.showMainWindow(options), 'show main window');
   }, [invokeWindowAction]);
 
   return {

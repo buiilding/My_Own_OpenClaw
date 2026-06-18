@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Window Runtime Client Expansion
+
+- Finding: app startup, wakeword detection, and shared main-window controls
+  still imported desktop window IPC channels directly.
+- Change: widened `DesktopWindowRuntimeClient` to cover main-window show,
+  minimize, maximize toggle, and close commands, then routed startup,
+  wakeword-chatbox, and `useMainWindowControls` call sites through it.
+- Validation: focused renderer chat/voice boundary tests, app permission/VM
+  startup tests, chat interface wiring test, targeted direct IPC scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. Window channel strings, payload shapes,
+  startup surface policy, wakeword behavior, main-window controls, Electron main
+  handlers, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Chat Side-Channel Runtime Clients
 
 - Finding: chat UI code still imported direct IPC subscriptions for the untyped

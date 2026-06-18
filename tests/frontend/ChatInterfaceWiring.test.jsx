@@ -712,9 +712,9 @@ describe('ChatInterface wiring', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
 
-    expect(mockIpcInvoke).toHaveBeenCalledWith('window-minimize', undefined);
-    expect(mockIpcInvoke).toHaveBeenCalledWith('window-toggle-maximize', undefined);
-    expect(mockIpcInvoke).toHaveBeenCalledWith('window-close', undefined);
+    expect(mockIpcInvoke).toHaveBeenCalledWith('window-minimize');
+    expect(mockIpcInvoke).toHaveBeenCalledWith('window-toggle-maximize');
+    expect(mockIpcInvoke).toHaveBeenCalledWith('window-close');
   });
 
   test('hides native window controls when vm_mode query flag is enabled', () => {

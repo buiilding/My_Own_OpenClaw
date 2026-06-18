@@ -12,6 +12,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
+- `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
@@ -153,7 +154,7 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 `WakewordController` callback on detection:
 
 1. `DesktopVoiceRuntimeClient.wakewordDetected()` -> send backend `wakeword-detected` message
-2. `IpcBridge.invoke('show-chatbox')` -> reveal chat UI
+2. `DesktopWindowRuntimeClient.showChatbox(...)` -> reveal chat UI
 
 Hook startup:
 

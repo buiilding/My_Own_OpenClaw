@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route app startup, wakeword chatbox restore, and main-window
+  controls through the renderer app runtime window client instead of importing
+  window IPC channels at those call sites.
 - renderer/runtime: route chat audio chunk and workspace access update
   subscriptions through renderer app runtime clients instead of importing those
   IPC event channels from chat UI code.
