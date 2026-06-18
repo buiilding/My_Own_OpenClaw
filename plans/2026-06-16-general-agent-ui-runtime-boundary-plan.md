@@ -8180,3 +8180,20 @@ Each completed slice should report:
   `WINDIE_BACKEND_HTTP_URL` / `WINDIE_BACKEND_AUTH_STATE_PATH` callers continue
   to work, while standalone Python SDK callers may use the generic Agent SDK
   env names. Hosted URL fallback remains intentionally absent.
+
+### 2026-06-18 SDK local-runtime launch context compatibility boundary
+
+- Finding: generic Electron local-runtime launch plans used `AGENT_*` launch
+  context keys, but the Python daemon discovery file recorded only WindieOS
+  keys and the SDK daemon reuse check required exact key equality. A generic
+  host could therefore reject a freshly started daemon discovery file as stale.
+- Change: made the Python daemon record both generic Agent SDK and WindieOS
+  compatibility launch keys, and made SDK daemon reuse compare the expected
+  launch context as a required subset of the discovered context.
+- Validation: focused sidecar daemon discovery pytest, focused SDK
+  launch-context Jest coverage, source scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Existing discovery files with exact
+  WindieOS launch keys still compare correctly; new discovery files may include
+  extra compatibility keys without changing daemon auth, endpoint, or tool
+  execution behavior.

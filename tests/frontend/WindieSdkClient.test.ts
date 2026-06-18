@@ -3377,6 +3377,58 @@ describe('Agent SDK client behavior', () => {
     await runtime?.shutdown?.();
   });
 
+  test('createAgentLocalRuntimeProvider accepts discovery launch context supersets', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-launch-superset-'));
+    const discoveryFile = path.join(tempDir, 'local-runtime-daemon.json');
+    await fsPromises.writeFile(
+      discoveryFile,
+      JSON.stringify({
+        base_url: 'http://127.0.0.1:43132',
+        token: 'runtime-token',
+        launch: {
+          AGENT_BACKEND_HTTP_URL: 'https://api.example',
+          WINDIE_TEST_MODE: 'desktop',
+        },
+      }),
+      'utf8',
+    );
+    mockFetch.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === 'http://127.0.0.1:43132/status') {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      if (url === 'http://127.0.0.1:43132/shutdown') {
+        return jsonResponse({ success: true }) as any;
+      }
+      return jsonResponse({ ok: true }) as any;
+    });
+
+    const provider = createAgentLocalRuntimeProvider({
+      discoveryFile,
+      launchContext: { WINDIE_TEST_MODE: 'desktop' },
+      reuseExisting: true,
+      pollIntervalMs: 1,
+      startTimeoutMs: 2000,
+      fetchImpl: mockFetch,
+    });
+    const runtime = await provider({
+      wakeUp: { tools: [] },
+      needsLocalRuntime: true,
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43132/status',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      'http://127.0.0.1:43132/shutdown',
+      expect.any(Object),
+    );
+    await runtime?.shutdown?.();
+  });
+
   test('AgentLocalRuntimeHttpClient subscribes to local runtime events', async () => {
     const events: unknown[] = [];
     const client = new AgentLocalRuntimeHttpClient({

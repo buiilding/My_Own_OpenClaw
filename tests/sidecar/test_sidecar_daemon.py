@@ -366,6 +366,13 @@ async def test_sidecar_daemon_discovery_file_records_launch_context(
     payload = json.loads(discovery_path.read_text(encoding="utf-8"))
 
     assert payload["launch"] == {
+        "AGENT_BACKEND_HTTP_URL": "",
+        "AGENT_BACKEND_AUTH_STATE_PATH": "",
+        "AGENT_ENABLE_SEMANTIC_SUMMARIZER": "",
+        "AGENT_PACKAGED_APP": "",
+        "AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL": "",
+        "AGENT_LOCAL_RUNTIME_SOURCE_PATH": "",
+        "AGENT_LOCAL_RUNTIME_SOURCE_STAMP": "",
         "WINDIE_BACKEND_HTTP_URL": "https://backend.example",
         "WINDIE_BACKEND_AUTH_STATE_PATH": "/tmp/auth.json",
         "WINDIE_ENABLE_SEMANTIC_SUMMARIZER": "0",

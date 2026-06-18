@@ -335,12 +335,7 @@ function launchContextsEqual(left, right) {
     if (!left || !right) {
         return false;
     }
-    const leftKeys = Object.keys(left).sort();
-    const rightKeys = Object.keys(right).sort();
-    if (leftKeys.length !== rightKeys.length) {
-        return false;
-    }
-    return leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+    return Object.entries(right).every(([key, value]) => (left[key] ?? '') === value);
 }
 function normalizeDiscovery(raw) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
