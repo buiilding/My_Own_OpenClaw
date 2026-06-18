@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename private layer-log console guard markers from
+  desktop-agent to desktop-runtime names; no migration is required because log
+  paths, environment overrides, console mirroring, and runtime behavior are
+  unchanged.
 - sdk/js: remove exported `AgentChatSendInput`, `AgentChatEditInput`, and
   `AgentChatRetryInput` aliases so `AgentChatSession` methods use the direct
   runtime input types. SDK callers using the removed aliases should import

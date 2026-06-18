@@ -10,9 +10,9 @@ const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const LOG_DIR = path.join(REPO_ROOT, '.desktop-agent', 'logs');
 const VALID_LOG_LAYERS = new Set(['frontend', 'vite', 'main', 'renderer', 'sidecar']);
 const RENDERER_VERBOSE_LOG_FILE_NAME = 'renderer.verbose.log';
-const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopAgentConsoleStreamErrorGuardInstalled';
-const CONSOLE_LAYER_LOG_INSTALLED = '__desktopAgentLayerLogInstalled';
-const CONSOLE_LAYER_LOG_ORIGINALS = '__desktopAgentLayerLogOriginals';
+const CONSOLE_STREAM_ERROR_GUARD_INSTALLED = '__desktopRuntimeConsoleStreamErrorGuardInstalled';
+const CONSOLE_LAYER_LOG_INSTALLED = '__desktopRuntimeLayerLogInstalled';
+const CONSOLE_LAYER_LOG_ORIGINALS = '__desktopRuntimeLayerLogOriginals';
 const DEFAULT_LOG_PREFIX = '[Desktop Agent]';
 
 function normalizeLayer(layer) {

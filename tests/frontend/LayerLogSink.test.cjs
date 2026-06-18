@@ -14,6 +14,20 @@ const {
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 describe('layer_log_sink', () => {
+  test('uses desktop-runtime private console guard markers', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/logging/layer_log_sink.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('__desktopRuntimeConsoleStreamErrorGuardInstalled');
+    expect(source).toContain('__desktopRuntimeLayerLogInstalled');
+    expect(source).toContain('__desktopRuntimeLayerLogOriginals');
+    expect(source).not.toContain('__desktopAgentConsoleStreamErrorGuardInstalled');
+    expect(source).not.toContain('__desktopAgentLayerLogInstalled');
+    expect(source).not.toContain('__desktopAgentLayerLogOriginals');
+  });
+
   test('resolves layer log files and environment overrides', () => {
     const repoRoot = path.resolve(__dirname, '../..');
 

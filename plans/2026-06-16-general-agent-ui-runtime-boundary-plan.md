@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main layer log private guard markers
+
+- Finding: Electron main layer logging still installed console/stream guards on
+  private `__desktopAgent*` marker properties even though this path is main
+  desktop-runtime infrastructure.
+- Change: renamed those private guard markers to `__desktopRuntime*` names and
+  added focused LayerLogSink coverage that the retired desktop-agent markers do
+  not return.
+- Validation: focused LayerLogSink Jest test, docs listing/search, recent commit
+  history review, and stale log-guard marker scan.
+- Compatibility: no migration required. The markers are process-local private
+  properties; log paths, environment overrides, console mirroring, stream error
+  handling, and persisted diagnostics are unchanged.
+
 ### 2026-06-18 SDK chat session input alias removal
 
 - Finding: `AgentChatSession` still exported `AgentChatSendInput`,
