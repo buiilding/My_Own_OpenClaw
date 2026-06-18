@@ -37,7 +37,7 @@ execution, and backend prompt construction.
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
 | Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`, `frontend/src/main/permissions/permission_service_workspace.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
-| Per-conversation workspace binding is missing or stale | `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
+| Per-conversation workspace binding is missing or stale | `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`, `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
 | Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/IpcQueryRuntime.test.cjs` |
 | Electron main AGENTS.md injection changes | `frontend/src/main/app/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
 | Backend query execution does not pass workspace into agent session | `backend/src/api/services/query_execution_support/query_execution_inputs.py`, `backend/src/api/services/query_execution.py`, `backend/src/agent/session/manager.py` | `tests/backend/test_query_execution_inputs.py`, `tests/backend/test_api_handlers.py`, `tests/backend/test_session_manager.py` |
@@ -124,6 +124,7 @@ does not import the `workspace-access-updated` IPC channel directly.
 
 Read these files when a resumed conversation uses the wrong workspace:
 
+- `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
@@ -217,7 +218,7 @@ Prompt rules:
 | --- | --- | --- |
 | Workspace settings shows no workspace after choosing one | Check permission result payload, `workspace-access-updated`, selected paths, and `normalizeActiveWorkspace`. | Permission IPC and workspace settings |
 | New query omits `workspace_path` | Check conversation binding, `DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection`, and `DesktopLiveTurnRuntimeClient.sendQuery` args. | Renderer send path |
-| Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection`. | Dashboard conversation handoff |
+| Resumed chat uses another workspace | Check snapshot workspace metadata, `DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding`, and `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection`. | Dashboard conversation handoff |
 | AGENTS.md works locally but not with hosted backend | Check Electron-injected `agent_definition.agents_md`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
 | Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |
 | File tools run in wrong folder | Check workspace permission status, sidecar/backend config propagation, and tool execution cwd defaults. | Workspace permission and sidecar tool runtime |

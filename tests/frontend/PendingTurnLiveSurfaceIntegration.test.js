@@ -43,6 +43,18 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient
     fetchActiveWorkspaceSelection: jest.fn(() => new Promise((resolve) => {
       resolveWorkspaceSelection = resolve;
     })),
+    getConversationWorkspaceBinding: jest.fn(() => ({
+      workspacePath: '',
+      workspaceName: '',
+    })),
+    setConversationWorkspaceBinding: jest.fn((_conversationRef, binding) => ({
+      workspacePath: binding?.workspacePath || '',
+      workspaceName: binding?.workspaceName || '',
+    })),
+    workspaceSelectionToBinding: jest.fn((workspace) => ({
+      workspacePath: workspace?.activeWorkspacePath || '',
+      workspaceName: workspace?.activeWorkspaceName || '',
+    })),
   },
 }));
 

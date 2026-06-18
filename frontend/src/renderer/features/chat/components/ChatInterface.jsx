@@ -41,11 +41,6 @@ import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
-  areWorkspaceBindingsEqual,
-  getConversationWorkspaceBinding,
-  workspaceSelectionToBinding,
-} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
-import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
 import {
@@ -182,9 +177,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
           return;
         }
 
-        const currentBinding = getConversationWorkspaceBinding(sessionInfo.conversationRef || null);
-        const nextBinding = workspaceSelectionToBinding(nextWorkspace);
-        if (areWorkspaceBindingsEqual(currentBinding, nextBinding)) {
+        const currentBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(
+          sessionInfo.conversationRef || null,
+        );
+        const nextBinding = DesktopWorkspaceRuntimeClient.workspaceSelectionToBinding(nextWorkspace);
+        if (DesktopWorkspaceRuntimeClient.areWorkspaceBindingsEqual(currentBinding, nextBinding)) {
           return;
         }
         startWorkspaceBoundNewChat(nextWorkspace);

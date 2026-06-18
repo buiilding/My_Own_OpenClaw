@@ -7955,3 +7955,21 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime endpoint normalization,
   artifact URL shape, transcription websocket URL shape, IPC status endpoint
   propagation, artifact fetch IPC, and voice websocket creation are unchanged.
+
+### 2026-06-18 renderer workspace binding runtime client boundary
+
+- Finding: chat send preparation, replay, new-session, chat-interface, and
+  dashboard conversation flows still imported the per-conversation workspace
+  binding store directly, even though workspace selection and permission
+  commands already route through `DesktopWorkspaceRuntimeClient`.
+- Change: exposed conversation workspace binding helpers through
+  `DesktopWorkspaceRuntimeClient` and routed chat/dashboard feature callers
+  through that app runtime client while keeping the storage implementation in
+  `conversationWorkspaceBinding.js`.
+- Validation: focused chat/dashboard workspace Jest coverage, renderer chat
+  boundary coverage, direct feature import scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. The sessionStorage key, binding
+  normalization, active workspace selection IPC, query `workspace_path`
+  forwarding, replay workspace context, and dashboard handoff behavior are
+  unchanged.

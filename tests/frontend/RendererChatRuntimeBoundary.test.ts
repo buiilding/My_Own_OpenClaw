@@ -830,8 +830,24 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/ChatInterface.jsx'),
       'utf8',
     );
+    const replayActionsSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
+      'utf8',
+    );
+    const newChatSessionSource = await fs.readFile(
+      path.join(chatRoot, 'utils/session/newChatSession.ts'),
+      'utf8',
+    );
     const sendPreparationSource = await fs.readFile(
       path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+      'utf8',
+    );
+    const dashboardHookSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+    const dashboardShellSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/components/DashboardShell.jsx'),
       'utf8',
     );
     const bindingsSource = await fs.readFile(
@@ -850,11 +866,22 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).not.toContain('WORKSPACE_ACCESS_UPDATED');
     expect(chatInterfaceSource).not.toContain('IpcBridge.on');
     expect(chatInterfaceSource).not.toContain('infrastructure/workspace/workspaceAccess');
+    expect(chatInterfaceSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
+    expect(replayActionsSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
+    expect(newChatSessionSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
+    expect(sendPreparationSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
+    expect(dashboardHookSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
+    expect(dashboardShellSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
+    expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
+    expect(replayActionsSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
+    expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
+    expect(dashboardHookSource).toContain('DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding');
+    expect(dashboardShellSource).toContain('DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings');
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
     expect(bindingsSource).not.toContain('IpcBridge.on');
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');

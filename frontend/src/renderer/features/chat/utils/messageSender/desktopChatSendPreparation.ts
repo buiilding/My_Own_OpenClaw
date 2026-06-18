@@ -10,11 +10,6 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/d
 import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from '../../../../app/runtime/desktopWindowRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
-import {
-  getConversationWorkspaceBinding,
-  setConversationWorkspaceBinding,
-  workspaceSelectionToBinding,
-} from '../../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { logUserSentMessage } from '../../../../infrastructure/interaction/rendererInteractionLogger';
 import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
@@ -125,19 +120,19 @@ function buildTurnInputResources({
 }
 
 async function ensureConversationWorkspaceBinding(conversationRef: string): Promise<WorkspaceBinding> {
-  const existingBinding = getConversationWorkspaceBinding(conversationRef);
+  const existingBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
   if (existingBinding.workspacePath) {
     return existingBinding;
   }
 
   try {
     const selection = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
-    return setConversationWorkspaceBinding(
+    return DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding(
       conversationRef,
-      workspaceSelectionToBinding(selection.workspace),
+      DesktopWorkspaceRuntimeClient.workspaceSelectionToBinding(selection.workspace),
     );
   } catch (_error) {
-    return setConversationWorkspaceBinding(conversationRef, null);
+    return DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding(conversationRef, null);
   }
 }
 

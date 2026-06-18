@@ -39,16 +39,13 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEve
 jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => ({
   DesktopWorkspaceRuntimeClient: {
     setActiveWorkspaceSelection: jest.fn(),
+    clearConversationWorkspaceBinding: jest.fn(),
+    resolveConversationWorkspaceBinding: jest.fn(({ conversation }) => ({
+      workspacePath: conversation?.workspace_path || '',
+      workspaceName: conversation?.workspace_name || '',
+    })),
+    setConversationWorkspaceBinding: jest.fn(),
   },
-}));
-
-jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
-  clearConversationWorkspaceBinding: jest.fn(),
-  resolveConversationWorkspaceBinding: jest.fn(({ conversation }) => ({
-    workspacePath: conversation?.workspace_path || '',
-    workspaceName: conversation?.workspace_name || '',
-  })),
-  setConversationWorkspaceBinding: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationSessionRuntime', () => ({

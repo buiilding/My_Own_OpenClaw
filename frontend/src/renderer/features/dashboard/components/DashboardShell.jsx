@@ -18,7 +18,7 @@ import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
-import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
@@ -220,7 +220,7 @@ function DashboardShell({
       setTokenCounts: setChatTokenCounts,
       setChatActiveConversationRef,
     });
-    clearAllConversationWorkspaceBindings();
+    DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [
     clearChatMessages,

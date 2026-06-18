@@ -7,10 +7,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 
 import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import {
-  clearAllConversationWorkspaceBindings,
-  clearConversationWorkspaceBinding,
-} from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
+import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
 var mockListeners = new Map();
 const LOCAL_SNAPSHOT_USER_ID = 'local-user';
@@ -178,17 +175,25 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => {
-  const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding');
+jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient', () => {
+  const actual = jest.requireActual('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient');
   return {
-    ...actual,
-    clearAllConversationWorkspaceBindings: jest.fn(),
-    clearConversationWorkspaceBinding: jest.fn(),
+    DesktopWorkspaceRuntimeClient: {
+      ...actual.DesktopWorkspaceRuntimeClient,
+      clearAllConversationWorkspaceBindings: jest.fn(),
+      clearConversationWorkspaceBinding: jest.fn(),
+      resolveConversationWorkspaceBinding: jest.fn(({ conversation }) => ({
+        workspacePath: conversation?.workspace_path || '',
+        workspaceName: conversation?.workspace_name || '',
+      })),
+      setActiveWorkspaceSelection: jest.fn(),
+      setConversationWorkspaceBinding: jest.fn(),
+    },
   };
 });
 
-const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
-const mockClearConversationWorkspaceBinding = clearConversationWorkspaceBinding;
+const mockClearAllConversationWorkspaceBindings = DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings;
+const mockClearConversationWorkspaceBinding = DesktopWorkspaceRuntimeClient.clearConversationWorkspaceBinding;
 
 describe('DashboardShell', () => {
   const flushMicrotasks = async () => {

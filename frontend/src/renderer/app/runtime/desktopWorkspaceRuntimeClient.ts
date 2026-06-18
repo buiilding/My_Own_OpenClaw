@@ -3,6 +3,15 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import {
+  areWorkspaceBindingsEqual,
+  clearAllConversationWorkspaceBindings,
+  clearConversationWorkspaceBinding,
+  getConversationWorkspaceBinding,
+  resolveConversationWorkspaceBinding,
+  setConversationWorkspaceBinding,
+  workspaceSelectionToBinding,
+} from '../../infrastructure/workspace/conversationWorkspaceBinding';
 
 export type DesktopWorkspaceAccessUpdatedPayload = {
   granted?: boolean;
@@ -112,4 +121,18 @@ export const DesktopWorkspaceRuntimeClient = {
     }
     return IpcBridge.on(ON_CHANNELS.WORKSPACE_ACCESS_UPDATED, listener);
   },
+
+  workspaceSelectionToBinding,
+
+  areWorkspaceBindingsEqual,
+
+  getConversationWorkspaceBinding,
+
+  setConversationWorkspaceBinding,
+
+  clearConversationWorkspaceBinding,
+
+  clearAllConversationWorkspaceBindings,
+
+  resolveConversationWorkspaceBinding,
 };

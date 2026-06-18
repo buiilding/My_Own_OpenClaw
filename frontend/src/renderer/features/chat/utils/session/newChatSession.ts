@@ -4,14 +4,11 @@
 
 import type { TokenCounts } from '../../stores/chatStore';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
 } from '../../session/conversationSessionRuntime';
-import {
-  setConversationWorkspaceBinding,
-  workspaceSelectionToBinding,
-} from '../../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { createConversationRef } from './conversationRef';
 import { resetActiveChatSession } from './resetActiveChatSession';
 
@@ -53,7 +50,10 @@ export const startNewChatSession = ({
       });
     },
     onConversationCreated: (conversationRef) => {
-      setConversationWorkspaceBinding(conversationRef, workspaceSelectionToBinding(workspace));
+      DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding(
+        conversationRef,
+        DesktopWorkspaceRuntimeClient.workspaceSelectionToBinding(workspace),
+      );
     },
   });
 };

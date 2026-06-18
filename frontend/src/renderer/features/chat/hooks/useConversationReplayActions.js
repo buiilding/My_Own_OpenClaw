@@ -10,12 +10,9 @@ import {
 } from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigRuntimeSync';
-import {
-  getConversationWorkspaceBinding,
-  setConversationWorkspaceBinding,
-} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
@@ -42,7 +39,7 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
         });
       },
       onConversationCreated: (nextConversationRef) => {
-        setConversationWorkspaceBinding(nextConversationRef, null);
+        DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding(nextConversationRef, null);
       },
     });
   }
@@ -142,7 +139,7 @@ async function executeReplayAction({
     sessionInfo.conversationRef,
     activeConversationRef,
   );
-  const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
+  const workspaceBinding = DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding(conversationRef);
   applyRendererConversationSelection({
     conversationRef,
     userId: sessionInfo.userId || undefined,

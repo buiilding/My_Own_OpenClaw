@@ -9,11 +9,6 @@ import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/des
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import {
-  clearConversationWorkspaceBinding,
-  resolveConversationWorkspaceBinding,
-  setConversationWorkspaceBinding,
-} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { applyRendererConversationSelection } from '../../chat/session/conversationSessionRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
@@ -201,11 +196,11 @@ function useDashboardConversations({
         : null;
       const hasCachedMessages = Array.isArray(cachedWorkspace?.messages)
         && cachedWorkspace.messages.length > 0;
-      const workspaceBinding = resolveConversationWorkspaceBinding({
+      const workspaceBinding = DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding({
         conversation,
         memories: [],
       });
-      setConversationWorkspaceBinding(conversationRef, workspaceBinding);
+      DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding(conversationRef, workspaceBinding);
       applyRendererConversationSelection({
         conversationRef,
         userId: resolvedUserId,
@@ -315,7 +310,7 @@ function useDashboardConversations({
       setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
-      clearConversationWorkspaceBinding(conversationRef);
+      DesktopWorkspaceRuntimeClient.clearConversationWorkspaceBinding(conversationRef);
       if (sessionConversationRef === conversationRef) {
         resetActiveChatSession({
           conversationRef,
