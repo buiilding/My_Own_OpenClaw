@@ -21,6 +21,20 @@ const hostedBackend = Object.freeze({
   runsApiKeyHeader: 'x-windie-runs-key',
 });
 
+const vmWorker = Object.freeze({
+  env: Object.freeze({
+    workspaceId: 'WINDIE_VM_WORKSPACE_ID',
+    workerId: 'WINDIE_VM_WORKER_ID',
+    vmId: 'WINDIE_VM_ID',
+    agentId: 'WINDIE_VM_AGENT_ID',
+    heartbeatMs: 'WINDIE_VM_WORKER_HEARTBEAT_MS',
+    runsApiKeys: Object.freeze([
+      'WINDIE_VM_RUNS_API_KEY',
+      'WINDIE_RUNS_API_KEY',
+    ]),
+  }),
+});
+
 const assets = Object.freeze({
   appIconFileName: 'windieos.app.png',
 });
@@ -118,6 +132,7 @@ const mainHostSkin = Object.freeze({
   dataPaths,
   logging,
   hostedBackend,
+  vmWorker,
   queryEvents,
   bundledRuntime,
   localRuntime,

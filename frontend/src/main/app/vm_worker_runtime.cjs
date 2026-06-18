@@ -3,6 +3,17 @@
  */
 
 const DEFAULT_HEARTBEAT_MS = 5000;
+const DEFAULT_VM_WORKER_ENV = Object.freeze({
+  workspaceId: 'AGENT_VM_WORKSPACE_ID',
+  workerId: 'AGENT_VM_WORKER_ID',
+  vmId: 'AGENT_VM_ID',
+  agentId: 'AGENT_VM_AGENT_ID',
+  heartbeatMs: 'AGENT_VM_WORKER_HEARTBEAT_MS',
+  runsApiKeys: Object.freeze([
+    'AGENT_VM_RUNS_API_KEY',
+    'AGENT_RUNS_API_KEY',
+  ]),
+});
 
 function normalizeOptionalString(value) {
   if (typeof value !== 'string') {
@@ -19,6 +30,53 @@ function parseHeartbeatMs(rawValue) {
     return DEFAULT_HEARTBEAT_MS;
   }
   return parsed;
+}
+
+function normalizeEnvKey(value, fallback) {
+  return normalizeOptionalString(value) || fallback;
+}
+
+function normalizeEnvKeyList(value, fallback) {
+  const keys = Array.isArray(value) ? value : [value];
+  const normalizedKeys = keys
+    .map((item) => normalizeOptionalString(item))
+    .filter(Boolean);
+  return normalizedKeys.length > 0 ? normalizedKeys : fallback;
+}
+
+function normalizeVmWorkerEnvConfig(config = {}) {
+  const rawConfig = config && typeof config === 'object' ? config : {};
+  return {
+    workspaceId: normalizeEnvKey(
+      rawConfig.workspaceId,
+      DEFAULT_VM_WORKER_ENV.workspaceId,
+    ),
+    workerId: normalizeEnvKey(rawConfig.workerId, DEFAULT_VM_WORKER_ENV.workerId),
+    vmId: normalizeEnvKey(rawConfig.vmId, DEFAULT_VM_WORKER_ENV.vmId),
+    agentId: normalizeEnvKey(rawConfig.agentId, DEFAULT_VM_WORKER_ENV.agentId),
+    heartbeatMs: normalizeEnvKey(
+      rawConfig.heartbeatMs,
+      DEFAULT_VM_WORKER_ENV.heartbeatMs,
+    ),
+    runsApiKeys: normalizeEnvKeyList(
+      rawConfig.runsApiKeys,
+      DEFAULT_VM_WORKER_ENV.runsApiKeys,
+    ),
+  };
+}
+
+function readEnvString(env, key) {
+  return normalizeOptionalString(env?.[key]);
+}
+
+function readFirstEnvString(env, keys) {
+  for (const key of keys) {
+    const value = readEnvString(env, key);
+    if (value) {
+      return value;
+    }
+  }
+  return null;
 }
 
 function normalizeRunFiles(files) {
@@ -92,6 +150,7 @@ function createVmWorkerRuntime(options = {}) {
     log = (...args) => console.log(...args),
     warn = (...args) => console.warn(...args),
     runsApiKeyHeader,
+    vmWorkerEnv,
   } = options;
 
   if (typeof getBackendConnectionState !== 'function') {
@@ -107,14 +166,13 @@ function createVmWorkerRuntime(options = {}) {
     throw new Error('createVmWorkerRuntime requires fetch support');
   }
 
-  const workspaceId = normalizeOptionalString(env.WINDIE_VM_WORKSPACE_ID) || 'default-workspace';
-  const configuredWorkerId = normalizeOptionalString(env.WINDIE_VM_WORKER_ID);
-  const configuredVmId = normalizeOptionalString(env.WINDIE_VM_ID);
-  const configuredAgentId = normalizeOptionalString(env.WINDIE_VM_AGENT_ID);
-  const heartbeatMs = parseHeartbeatMs(env.WINDIE_VM_WORKER_HEARTBEAT_MS);
-  const runsApiKey = normalizeOptionalString(
-    env.WINDIE_VM_RUNS_API_KEY || env.WINDIE_RUNS_API_KEY,
-  );
+  const envKeys = normalizeVmWorkerEnvConfig(vmWorkerEnv);
+  const workspaceId = readEnvString(env, envKeys.workspaceId) || 'default-workspace';
+  const configuredWorkerId = readEnvString(env, envKeys.workerId);
+  const configuredVmId = readEnvString(env, envKeys.vmId);
+  const configuredAgentId = readEnvString(env, envKeys.agentId);
+  const heartbeatMs = parseHeartbeatMs(readEnvString(env, envKeys.heartbeatMs));
+  const runsApiKey = readFirstEnvString(env, envKeys.runsApiKeys);
   const normalizedRunsApiKeyHeader = normalizeOptionalString(runsApiKeyHeader);
   const runsApiHeaders = runsApiKey && normalizedRunsApiKeyHeader
     ? { [normalizedRunsApiKeyHeader]: runsApiKey }

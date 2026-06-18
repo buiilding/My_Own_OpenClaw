@@ -73,6 +73,10 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('https://api.windieos.com');
     expect(skinSource).toContain('wss://api.windieos.com/ws');
     expect(skinSource).toContain("runsApiKeyHeader: 'x-windie-runs-key'");
+    expect(skinSource).toContain('vmWorker');
+    expect(skinSource).toContain("workspaceId: 'WINDIE_VM_WORKSPACE_ID'");
+    expect(skinSource).toContain("'WINDIE_VM_RUNS_API_KEY'");
+    expect(skinSource).toContain("'WINDIE_RUNS_API_KEY'");
     expect(skinSource).toContain('browserAutomation');
     expect(skinSource).toContain('macAutomation');
     expect(skinSource).toContain('localRuntimeNotReady');
@@ -116,7 +120,10 @@ describe('main host skin/config boundary', () => {
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
     expect(vmWorkerRuntimeSource).toContain('runsApiKeyHeader');
+    expect(vmWorkerRuntimeSource).toContain('vmWorkerEnv');
     expect(vmWorkerRuntimeSource).not.toContain('x-windie-runs-key');
+    expect(vmWorkerRuntimeSource).not.toContain('WINDIE_VM_');
+    expect(vmWorkerRuntimeSource).not.toContain('WINDIE_RUNS_API_KEY');
   });
 
   test('main window icon asset filename lives in host skin config', () => {

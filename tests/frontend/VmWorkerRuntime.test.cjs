@@ -3,6 +3,11 @@
 const {
   createVmWorkerRuntime,
 } = require('../../frontend/src/main/app/vm_worker_runtime.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
+
+const windieVmWorkerEnv = mainHostSkin.vmWorker.env;
 
 function flushPromises() {
   return new Promise((resolve) => setImmediate(resolve));
@@ -23,6 +28,7 @@ describe('vm_worker_runtime', () => {
       env: {
         WINDIE_VM_WORKER_HEARTBEAT_MS: heartbeatValue,
       },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
@@ -55,6 +61,7 @@ describe('vm_worker_runtime', () => {
       env: {
         WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
       },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
@@ -122,6 +129,7 @@ describe('vm_worker_runtime', () => {
         WINDIE_VM_WORKER_HEARTBEAT_MS: '9999',
         WINDIE_VM_RUNS_API_KEY: 'worker-runs-key',
       },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -184,6 +192,7 @@ describe('vm_worker_runtime', () => {
         WINDIE_VM_RUNS_API_KEY: 'worker-runs-key',
         WINDIE_VM_WORKER_HEARTBEAT_MS: '9999',
       },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -253,6 +262,7 @@ describe('vm_worker_runtime', () => {
         WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
         WINDIE_VM_WORKER_MODE: '1',
       },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -354,6 +364,7 @@ describe('vm_worker_runtime', () => {
         WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
         WINDIE_VM_WORKER_MODE: '1',
       },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,
@@ -397,6 +408,7 @@ describe('vm_worker_runtime', () => {
     }));
     const runtime = createVmWorkerRuntime({
       env: { WINDIE_VM_WORKSPACE_ID: 'workspace-demo' },
+      vmWorkerEnv: windieVmWorkerEnv,
       fetchFn,
       getBackendConnectionState: () => ({
         isConnected: true,

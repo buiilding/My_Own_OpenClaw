@@ -36,6 +36,11 @@ describe('main_process_bootstrap_runtime', () => {
           hostedBackend: {
             runsApiKeyHeader: 'x-windie-runs-key',
           },
+          vmWorker: {
+            env: {
+              workspaceId: 'WINDIE_VM_WORKSPACE_ID',
+            },
+          },
         },
         enableOsToolGhostDebug: false,
         responseWindowDebugView: 'tool-ghost-debug',
@@ -127,6 +132,9 @@ describe('main_process_bootstrap_runtime', () => {
       sendAutomatedQuery: deps.sendAutomatedQuery,
       stopQueryThroughAgentSdkRuntime: deps.stopQueryThroughAgentSdkRuntime,
       runsApiKeyHeader: 'x-windie-runs-key',
+      vmWorkerEnv: expect.objectContaining({
+        workspaceId: 'WINDIE_VM_WORKSPACE_ID',
+      }),
     }));
     expect(vmWorkerRuntime.start).toHaveBeenCalledTimes(1);
     expect(state.vmWorkerRuntime).toBe(vmWorkerRuntime);

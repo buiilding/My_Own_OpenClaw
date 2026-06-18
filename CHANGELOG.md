@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: inject WindieOS VM worker environment variable names from the
+  main host skin instead of hardcoding them inside the generic VM worker
+  runtime.
 - tests/sidecar: keep shared tool schema parity coverage on sidecar-owned
   executable schemas, shared browser contracts, and client manifest metadata
   instead of importing backend schema Python into the sidecar test suite.

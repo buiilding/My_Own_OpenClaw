@@ -173,6 +173,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main VM Worker Env Skin Boundary
+
+- Worktree was clean after `885435c97`, with `main` ahead of `origin/main` by
+  870 commits.
+- Recent commits, direct renderer IPC scans, sidecar/backend import scans, and
+  main-runtime WindieOS coupling scans were inspected before editing.
+- Finding: the generic Electron VM worker runtime still read
+  `WINDIE_VM_*` and `WINDIE_RUNS_API_KEY` environment variables directly,
+  leaving hosted WindieOS worker configuration names inside the reusable worker
+  loop even after the runs auth header name moved into the host skin.
+- Change: added `mainHostSkin.vmWorker.env`, injected that map through main
+  bootstrap into `createVmWorkerRuntime`, and gave the generic worker runtime
+  product-neutral default env-key names for non-Windie hosts; expanded boundary
+  tests to keep WindieOS env names in the skin and out of the generic worker
+  runtime source.
+- Validation: focused VM worker, main bootstrap, and main host skin Jest
+  coverage plus a targeted source scan for hosted header/env names.
+- Compatibility: no migration required. WindieOS still reads the same
+  `WINDIE_VM_*`, `WINDIE_VM_RUNS_API_KEY`, and `WINDIE_RUNS_API_KEY`
+  variables through the injected host skin config; worker heartbeat, dispatch,
+  stop-control, and event relay behavior are unchanged.
+
 ### 2026-06-18 Sidecar Shared Tool Schema Boundary
 
 - Worktree was clean after `43c1e4c5b`, with `main` ahead of `origin/main` by
