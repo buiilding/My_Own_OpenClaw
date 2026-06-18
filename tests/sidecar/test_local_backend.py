@@ -32,7 +32,7 @@ RETIRED_DIRECT_CHAT_METHODS = {
 }
 
 
-def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
+def test_local_backend_runtime_copy_uses_local_runtime_terms():
     sources = "\n".join(
         Path(module_path).read_text(encoding="utf-8")
         for module_path in [
@@ -42,7 +42,10 @@ def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
         ]
     )
 
-    assert "Python sidecar runtime" in sources
+    retired_runtime_label = "Python " + "sidecar runtime"
+
+    assert "Python local runtime" in sources
+    assert retired_runtime_label not in sources
     assert "Local backend service for WindieOS" not in sources
     assert "Main local backend service" not in sources
     assert "Initializing local backend" not in sources

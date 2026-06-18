@@ -8504,3 +8504,20 @@ Each completed slice should report:
   initialization, storage, credentials, permissions, hosted backend URL
   handling, and provider policy are unchanged; only Python-internal helper
   names changed.
+
+### 2026-06-18 Python local-runtime service/tool copy boundary
+
+- Finding: reusable Python `LocalRuntimeService`, JSON-RPC/core helpers, and
+  executable tool modules still described themselves as the Python sidecar
+  runtime/tool layer even though the sidecar daemon is the concrete process and
+  the service/tool contracts are local-runtime-owned.
+- Change: reworded active service logs, module docstrings, tool registry
+  warnings, dynamic-tool override errors, and source-copy guards to Python
+  local runtime/local-runtime tool terms.
+- Validation: focused local backend, tool registry, browser registry, and
+  compile coverage, source scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. JSON-RPC method names, HTTP endpoints,
+  daemon process/discovery contracts, tool names, schemas, execution behavior,
+  plugin/MCP registration, storage, permissions, credentials, hosted backend
+  URL handling, and provider policy are unchanged; only copy and Python error
+  strings changed.

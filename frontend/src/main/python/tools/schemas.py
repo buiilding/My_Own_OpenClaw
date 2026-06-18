@@ -1,5 +1,5 @@
 """
-Pydantic schemas for Python sidecar runtime tools.
+Pydantic schemas for Python local-runtime tools.
 
 Provides type-safe argument validation for all tools.
 """

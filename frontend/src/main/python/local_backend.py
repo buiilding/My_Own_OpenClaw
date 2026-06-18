@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Python sidecar runtime service.
+Python local runtime service.
 
 Handles tool execution, system state collection, memory operations,
 and wake-word detection for the sidecar daemon.
@@ -125,7 +125,7 @@ logger = logging.getLogger(__name__)
 
 class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
     """
-    Main Python sidecar runtime service.
+    Main Python local runtime service.
 
     Handles tool execution, system state, memory, and wake-word operations.
     """
@@ -259,8 +259,8 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
         )
 
     async def initialize(self) -> None:
-        """Initialize the sidecar runtime services."""
-        logger.info("Initializing Python sidecar runtime...")
+        """Initialize the Python local runtime services."""
+        logger.info("Initializing Python local runtime...")
 
         try:
             configure_event_loop_default_executor(asyncio.get_running_loop())
@@ -273,10 +273,10 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
             # Note: Wake-word detection is kept as separate subprocess for now
             # due to binary protocol requirements. Can be integrated later.
 
-            logger.info("Python sidecar runtime initialized successfully")
+            logger.info("Python local runtime initialized successfully")
         except Exception as e:
             logger.error(
-                f"Failed to initialize Python sidecar runtime: {e}",
+                f"Failed to initialize Python local runtime: {e}",
                 exc_info=True,
             )
             raise
@@ -732,7 +732,7 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
 
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
-        logger.info("Shutting down Python sidecar runtime...")
+        logger.info("Shutting down Python local runtime...")
         self.running = False
 
         if self._summarizer:
@@ -753,4 +753,4 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
 
         shutdown_all_executors(wait=True)
 
-        logger.info("Python sidecar runtime shutdown complete")
+        logger.info("Python local runtime shutdown complete")

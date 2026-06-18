@@ -1,5 +1,5 @@
 """
-Tool registry for the Python sidecar runtime.
+Tool registry for the Python local runtime.
 
 Registers and executes all available tools.
 """
@@ -90,7 +90,7 @@ class ToolRegistry:
         missing_builtin_tools = LOCAL_RUNTIME_BUILTIN_TOOL_NAMES - set(self.tools.keys())
         if missing_builtin_tools:
             logger.warning(
-                "Built-in local-runtime tools are unavailable in Python sidecar runtime: %s",
+                "Built-in local-runtime tools are unavailable in Python local runtime: %s",
                 ", ".join(sorted(missing_builtin_tools)),
             )
 
@@ -133,14 +133,16 @@ class ToolRegistry:
         description: str | None = None,
         workspace_path: str | None = None,
     ) -> dict[str, Any]:
-        """Register a module-path tool without restarting the Python sidecar runtime."""
+        """Register a module-path tool without restarting the Python local runtime."""
         self._validate_dynamic_tool_name(name)
         if not isinstance(module, str) or ":" not in module:
             raise ValueError("module must use the module:function format")
         if not isinstance(schema, dict):
             raise ValueError("schema must be an object")
         if name in LOCAL_RUNTIME_BUILTIN_TOOL_NAMES:
-            raise ValueError(f"cannot override built-in Python sidecar tool: {name}")
+            raise ValueError(
+                f"cannot override built-in Python local-runtime tool: {name}"
+            )
 
         module_name, attr_name = module.split(":", 1)
         module_name = module_name.strip()
@@ -190,7 +192,9 @@ class ToolRegistry:
         for tool_name, loaded_tool in loaded_plugins.tools.items():
             self._validate_dynamic_tool_name(tool_name)
             if tool_name in LOCAL_RUNTIME_BUILTIN_TOOL_NAMES:
-                raise ValueError(f"cannot override built-in Python sidecar tool: {tool_name}")
+                raise ValueError(
+                    f"cannot override built-in Python local-runtime tool: {tool_name}"
+                )
             self.tools[tool_name] = loaded_tool.handler
             self.dynamic_tool_schemas[tool_name] = copy.deepcopy(loaded_tool.schema)
             if loaded_tool.description:
@@ -220,7 +224,9 @@ class ToolRegistry:
         if not isinstance(schema, dict):
             raise ValueError("schema must be an object")
         if name in LOCAL_RUNTIME_BUILTIN_TOOL_NAMES:
-            raise ValueError(f"cannot override built-in Python sidecar tool: {name}")
+            raise ValueError(
+                f"cannot override built-in Python local-runtime tool: {name}"
+            )
         self.tools[name] = handler
         self.dynamic_tool_schemas[name] = copy.deepcopy(schema)
         if description:
@@ -262,7 +268,7 @@ class ToolRegistry:
         return set(LOCAL_RUNTIME_BUILTIN_TOOL_NAMES)
 
     def get_tool_manifest(self) -> dict[str, Any]:
-        """Return diagnostic schemas for exposed built-in Python sidecar tools."""
+        """Return diagnostic schemas for exposed built-in Python local-runtime tools."""
         exposed_registered_tools = LOCAL_RUNTIME_BUILTIN_TOOL_NAMES & set(
             self.tools.keys()
         )

@@ -16,7 +16,7 @@ GENERATED_MANIFEST_PATH = (
 )
 
 
-def test_tool_registry_copy_qualifies_python_sidecar_owner():
+def test_tool_registry_copy_qualifies_python_local_runtime_owner():
     source_paths = [
         REPO_ROOT / "frontend" / "src" / "main" / "python" / "tools" / "registry.py",
         REPO_ROOT
@@ -45,16 +45,24 @@ def test_tool_registry_copy_qualifies_python_sidecar_owner():
     ]
     sources = "\n".join(path.read_text(encoding="utf-8") for path in source_paths)
 
-    assert "Python sidecar runtime" in sources
-    assert "Python sidecar tool" in sources
-    assert "unavailable in sidecar runtime" not in sources
-    assert "without restarting the sidecar runtime" not in sources
-    assert "built-in sidecar tool" not in sources
-    assert "Return sidecar tools" not in sources
-    assert "built-in sidecar tools" not in sources
-    assert "dependency in the sidecar runtime" not in sources
-    assert "helpers for sidecar tools" not in sources
-    assert "the sidecar tool doesn't" not in sources
+    retired_runtime_label = "Python " + "sidecar runtime"
+    retired_tool_label = "Python " + "sidecar tool"
+    retired_sidecar_runtime_fragment = "sidecar " + "runtime"
+    retired_builtin_tool_label = "built-in " + "sidecar tool"
+    retired_sidecar_tools_label = "sidecar " + "tools"
+
+    assert "Python local runtime" in sources
+    assert "Python local-runtime tool" in sources
+    assert retired_runtime_label not in sources
+    assert retired_tool_label not in sources
+    assert f"unavailable in {retired_sidecar_runtime_fragment}" not in sources
+    assert f"without restarting the {retired_sidecar_runtime_fragment}" not in sources
+    assert retired_builtin_tool_label not in sources
+    assert f"Return {retired_sidecar_tools_label}" not in sources
+    assert f"built-in {retired_sidecar_tools_label}" not in sources
+    assert f"dependency in the {retired_sidecar_runtime_fragment}" not in sources
+    assert f"helpers for {retired_sidecar_tools_label}" not in sources
+    assert "the " + "sidecar tool doesn't" not in sources
 
 
 def test_registered_tools_match_exposed_tool_set():

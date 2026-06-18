@@ -16,7 +16,7 @@ async def wait(args: Dict[str, Any]) -> ToolResult:
     
     The actual wait delay is handled by the SDK local-runtime coordinator, which
     delays post-action screenshot/system-state capture by the specified seconds.
-    This ensures the Python sidecar tool doesn't block other operations.
+    This ensures the Python local-runtime tool doesn't block other operations.
     
     Args:
         args: Dictionary with required 'seconds' parameter

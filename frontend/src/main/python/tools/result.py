@@ -1,4 +1,4 @@
-"""Standardized tool result types for Python sidecar runtime tools."""
+"""Standardized tool result types for Python local-runtime tools."""
 
 from typing import Any, Dict, Optional
 from dataclasses import dataclass

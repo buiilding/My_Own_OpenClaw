@@ -120,12 +120,15 @@ def test_browser_import_guard_only_skips_missing_playwright():
     ) is False
 
 
-def test_sidecar_tool_helper_copy_is_runtime_neutral():
+def test_sidecar_tool_helper_copy_uses_local_runtime_terms():
     sources = "\n".join(
         path.read_text(encoding="utf-8") for path in SIDECAR_TOOL_HELPER_PATHS
     )
 
-    assert "Python sidecar runtime" in sources
+    retired_runtime_label = "Python " + "sidecar runtime"
+
+    assert "Python local-runtime tool" in sources
+    assert retired_runtime_label not in sources
     assert "Windie-owned" not in sources
     assert "DEFAULT_WINDIE_CDP" not in sources
     assert "terminate_windie_chrome" not in sources

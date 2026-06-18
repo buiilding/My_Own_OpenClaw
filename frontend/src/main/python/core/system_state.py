@@ -1,5 +1,5 @@
 """
-System state collection for the Python sidecar runtime.
+System state collection for the Python local runtime.
 
 Collects system state including active window, mouse position,
 clipboard, screen resolution, and system stats.

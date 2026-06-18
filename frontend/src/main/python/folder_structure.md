@@ -222,7 +222,7 @@ frontend/src/main/python/
 ## Key Design Principles
 
 1. **Protocol Separation**: Two distinct sidecar services with different protocols:
-   - Python sidecar runtime: JSON-RPC 2.0 (full-featured)
+   - Python local runtime: JSON-RPC 2.0 (full-featured)
    - Wakeword Service: Binary protocol (audio chunks)
 
 2. **Cross-Platform Support**: Platform abstraction layer for OS-specific operations (window management, system state)
