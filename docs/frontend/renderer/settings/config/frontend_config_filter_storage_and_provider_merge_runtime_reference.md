@@ -112,7 +112,7 @@ Load semantics (`loadConfigFromStorage`):
   (`LEGACY_MODEL_ID_MIGRATIONS`) was removed; config storage does not rewrite
   stale `gpt-5` ids to newer catalog ids during localStorage load
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
-- legacy localStorage provider secrets are normalized to empty strings on read
+- stored localStorage provider secrets are normalized to empty strings on read
 
 Save semantics (`saveConfigToStorage`):
 
@@ -124,7 +124,7 @@ Save semantics (`saveConfigToStorage`):
 Disk persistence uses the same redaction rule. `AppConfigProvider` builds a
 redacted persistence payload before invoking `SAVE_FRONTEND_CONFIG`, and
 Electron main defensively redacts provider secrets again on both
-`save-frontend-config` and legacy disk `load-frontend-config` paths.
+`save-frontend-config` and disk `load-frontend-config` paths.
 
 Live provider credential edits still flow to backend settings through
 `DesktopSettingsRuntimeClient.updateSettings(...)`; only renderer-local and

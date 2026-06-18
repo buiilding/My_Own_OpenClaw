@@ -152,7 +152,7 @@ Write behavior (`saveFrontendConfigToDisk`):
 Read behavior (`loadFrontendConfigFromDisk`):
 
 - returns `null` when file missing or invalid/non-object JSON
-- redacts provider API keys and OAuth access/refresh tokens from legacy disk config before returning it
+- redacts provider API keys and OAuth access/refresh tokens from disk config before returning it
 - logs load failures but does not crash startup
 
 ## Where These Values Are Used

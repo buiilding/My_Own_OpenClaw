@@ -772,7 +772,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(result).toEqual({ model_mode: 'offline' });
   });
 
-  test('load-frontend-config redacts provider secrets from legacy disk config', async () => {
+  test('load-frontend-config redacts provider secrets from disk config', async () => {
     const { handlers, fs } = initIpc();
     mockFrontendConfigFile(fs, JSON.stringify({
       provider_api_keys: {

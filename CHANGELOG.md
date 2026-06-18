@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: remove stale legacy-disk-config wording from frontend config
+  persistence docs and IPC coverage; no migration is required because
+  localStorage and disk redaction behavior is unchanged.
 - tests/frontend: guard that the removed desktop-named Electron
   agent-definition collector file stays deleted; no migration is required.
 

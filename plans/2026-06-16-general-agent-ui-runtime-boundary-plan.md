@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 frontend config disk redaction wording cleanup
+
+- Finding: frontend config docs and IPC coverage still called normal
+  `frontend-config.json` load redaction a legacy disk-config path, even though
+  Electron main defensively redacts secrets on the current disk persistence
+  boundary.
+- Change: updated docs and test names to describe current disk/localStorage
+  provider-secret redaction without the legacy label.
+- Validation: focused IPC frontend-config Jest coverage, stale legacy disk
+  wording scan, docs search, and `git diff --check`.
+- Compatibility: no migration required. Disk config filename, localStorage key,
+  redaction behavior, IPC handlers, settings sync, APIs, and persisted data
+  are unchanged.
 ### 2026-06-18 Electron collector removed-file guard
 
 - Finding: after the Electron agent-definition collector rename, the focused
