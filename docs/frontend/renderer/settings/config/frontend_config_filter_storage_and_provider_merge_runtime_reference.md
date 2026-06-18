@@ -157,7 +157,7 @@ This is the central dedupe guard preventing redundant writes and settings runtim
 
 ### Update path (`updateConfig`)
 
-1. `buildMergedFrontendConfig(newConfig)` filters + merges with current config
+1. `buildMergedRendererConfig(newConfig)` filters + merges with current config
 2. `applyConfigIfChanged` gate
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)

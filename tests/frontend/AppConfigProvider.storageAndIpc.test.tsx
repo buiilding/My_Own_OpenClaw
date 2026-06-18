@@ -230,7 +230,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
-  test('derives wakewordEnabled from persisted frontend config', () => {
+  test('derives wakewordEnabled from persisted renderer config', () => {
     mockLoadConfigFromStorage.mockReturnValue({
       wakeword_enabled: false,
     });

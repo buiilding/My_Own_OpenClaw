@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer private config helper boundary
+
+- Finding: private renderer config defaults, storage helpers, and
+  AppConfigProvider callbacks still used `FrontendConfig` names even though
+  exported compatibility helpers and IPC/file contracts are the only remaining
+  frontend-named surfaces.
+- Change: renamed private config storage helpers and AppConfigProvider callbacks
+  to renderer config names, updated the settings-management comment and docs
+  references, and preserved exported compatibility names such as
+  `filterFrontendConfig`, `sanitizeFrontendProviderConfig`,
+  `buildFrontendConfigPersistencePayload`, `load-frontend-config`, and
+  `save-frontend-config`.
+- Validation: focused config storage/AppConfigProvider/settings hook Jest
+  coverage, stale private helper-name scan, docs listing, and diff check.
+- Compatibility: no migration required. Renderer localStorage/disk config shape,
+  IPC names, exported helper names, SDK projections, transcript storage,
+  permissions, credentials, and backend wire metadata are unchanged.
+
 ### 2026-06-18 renderer settings ownership docs boundary
 
 - Finding: renderer/runtime docs still described local config and settings sync

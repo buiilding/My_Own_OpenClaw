@@ -27,7 +27,8 @@ function isListedModelsPayload(payload: unknown): payload is ListedModelsPayload
 
 /**
  * Custom hook for managing settings-runtime events.
- * Currently only handles model listing (config is frontend-only now).
+ * Currently only handles model listing; renderer config changes flow through
+ * AppConfigProvider and the desktop settings runtime.
  *
  * @param {Function} setAvailableModels - Function to update available models state
  * @returns {Object} - Object containing settings handlers

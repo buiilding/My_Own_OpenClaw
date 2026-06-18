@@ -96,7 +96,7 @@ One-time model-list request guard:
 
 ## Config Merge/Persistence Guards
 
-`buildMergedFrontendConfig(incoming)`:
+`buildMergedRendererConfig(incoming)`:
 
 - filters to renderer-managed settings keys
 - merges with current config
@@ -183,8 +183,8 @@ If settings button shows perpetual saving:
 If updates appear in UI but not backend:
 
 1. verify `DesktopSettingsRuntimeClient.updateSettings` call after `updateConfig` for non-model settings; model selection should wait for `DesktopSettingsRuntimeClient.setModel(...)`
-2. inspect `buildMergedFrontendConfig` filtering for dropped keys
-3. verify connection snapshot path triggers `syncCurrentConfigToBackend` when connected
+2. inspect `buildMergedRendererConfig` filtering for dropped keys
+3. verify connection snapshot path triggers `syncCurrentConfigToRuntime` when connected
 
 If model list fetch fires repeatedly:
 

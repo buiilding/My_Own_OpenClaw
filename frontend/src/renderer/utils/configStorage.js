@@ -41,7 +41,7 @@ export const DEFAULT_APPEARANCE_THEME = Object.freeze({
   }),
 });
 
-const DEFAULT_FRONTEND_CONFIG = {
+const DEFAULT_RENDERER_CONFIG = {
   model_mode: DEFAULT_MODEL_SELECTION.mode,
   model_provider: DEFAULT_MODEL_SELECTION.provider,
   selected_model_id: DEFAULT_MODEL_SELECTION.modelId,
@@ -121,14 +121,14 @@ function normalizeAppearanceTheme(overrides = null) {
 }
 
 function normalizeAppearanceMode(value) {
-  return ['light', 'dark', 'system'].includes(value) ? value : DEFAULT_FRONTEND_CONFIG.appearance_mode;
+  return ['light', 'dark', 'system'].includes(value) ? value : DEFAULT_RENDERER_CONFIG.appearance_mode;
 }
 
-function filterKnownFrontendConfigFields(overrides = null) {
+function filterKnownRendererConfigFields(overrides = null) {
   const source = toPlainRecord(overrides);
   const filtered = {};
 
-  for (const key of Object.keys(DEFAULT_FRONTEND_CONFIG)) {
+  for (const key of Object.keys(DEFAULT_RENDERER_CONFIG)) {
     if (Object.prototype.hasOwnProperty.call(source, key)) {
       filtered[key] = source[key];
     }
@@ -142,17 +142,17 @@ function normalizeSelectedModelId(overrides = {}) {
     ? overrides.selected_model_id.trim()
     : '';
   if (!selectedModelId) {
-    return DEFAULT_FRONTEND_CONFIG.selected_model_id;
+    return DEFAULT_RENDERER_CONFIG.selected_model_id;
   }
 
   return selectedModelId;
 }
 
-function buildFrontendConfig(overrides = {}) {
-  const filteredOverrides = filterKnownFrontendConfigFields(overrides);
+function buildRendererConfig(overrides = {}) {
+  const filteredOverrides = filterKnownRendererConfigFields(overrides);
   const normalizedSelectedModelId = normalizeSelectedModelId(filteredOverrides);
   return {
-    ...DEFAULT_FRONTEND_CONFIG,
+    ...DEFAULT_RENDERER_CONFIG,
     ...filteredOverrides,
     selected_model_id: normalizedSelectedModelId,
     global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(
@@ -160,16 +160,16 @@ function buildFrontendConfig(overrides = {}) {
     ),
     agent_custom_instructions: typeof filteredOverrides.agent_custom_instructions === 'string'
       ? filteredOverrides.agent_custom_instructions
-      : DEFAULT_FRONTEND_CONFIG.agent_custom_instructions,
+      : DEFAULT_RENDERER_CONFIG.agent_custom_instructions,
     agent_disabled_local_tools: Array.isArray(filteredOverrides.agent_disabled_local_tools)
       ? filteredOverrides.agent_disabled_local_tools.filter((tool) => typeof tool === 'string')
-      : DEFAULT_FRONTEND_CONFIG.agent_disabled_local_tools,
+      : DEFAULT_RENDERER_CONFIG.agent_disabled_local_tools,
     agent_disabled_remote_tools: Array.isArray(filteredOverrides.agent_disabled_remote_tools)
       ? filteredOverrides.agent_disabled_remote_tools.filter((tool) => typeof tool === 'string')
-      : DEFAULT_FRONTEND_CONFIG.agent_disabled_remote_tools,
+      : DEFAULT_RENDERER_CONFIG.agent_disabled_remote_tools,
     agent_enabled_mcp_servers: Array.isArray(filteredOverrides.agent_enabled_mcp_servers)
       ? filteredOverrides.agent_enabled_mcp_servers.filter((serverId) => typeof serverId === 'string')
-      : DEFAULT_FRONTEND_CONFIG.agent_enabled_mcp_servers,
+      : DEFAULT_RENDERER_CONFIG.agent_enabled_mcp_servers,
     provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
     appearance_mode: normalizeAppearanceMode(filteredOverrides.appearance_mode),
     appearance_theme: normalizeAppearanceTheme(filteredOverrides.appearance_theme),
@@ -177,7 +177,7 @@ function buildFrontendConfig(overrides = {}) {
 }
 
 function stripProviderSecretsForConfigPersistence(config) {
-  const normalized = buildFrontendConfig(config);
+  const normalized = buildRendererConfig(config);
   const providerApiKeys = {};
   for (const [provider, entry] of Object.entries(normalized.provider_api_keys)) {
     providerApiKeys[provider] = {
@@ -213,7 +213,7 @@ export function loadConfigFromStorage() {
   try {
     const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
     if (!stored) {
-      return buildFrontendConfig();
+      return buildRendererConfig();
     }
     
     const config = JSON.parse(stored);
@@ -222,7 +222,7 @@ export function loadConfigFromStorage() {
     if (typeof config !== 'object' || config === null || Array.isArray(config)) {
       console.warn('[ConfigStorage] Invalid config format in localStorage, clearing');
       clearStoredConfigUnsafe();
-      return buildFrontendConfig();
+      return buildRendererConfig();
     }
     
     return stripProviderSecretsForConfigPersistence(config);
@@ -230,7 +230,7 @@ export function loadConfigFromStorage() {
     console.error('[ConfigStorage] Failed to load config from localStorage:', error);
     // Clear corrupted data
     clearStoredConfigUnsafe();
-    return buildFrontendConfig();
+    return buildRendererConfig();
   }
 }
 

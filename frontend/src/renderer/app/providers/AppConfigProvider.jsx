@@ -87,13 +87,13 @@ export function AppConfigProvider({ children }) {
     }
   }, [configRef]);
 
-  const buildMergedFrontendConfig = useCallback((incomingConfig) => {
+  const buildMergedRendererConfig = useCallback((incomingConfig) => {
     return sanitizeFrontendProviderConfig(
       mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
     );
   }, [configRef]);
 
-  const commitFrontendConfig = useCallback((nextConfig, previousConfig, options = {}) => {
+  const commitRendererConfig = useCallback((nextConfig, previousConfig, options = {}) => {
     const {
       notifySaving = false,
       persistToStorage = true,
@@ -133,13 +133,13 @@ export function AppConfigProvider({ children }) {
       return false;
     }
 
-    commitFrontendConfig(nextConfig, previousConfig, options);
+    commitRendererConfig(nextConfig, previousConfig, options);
     return true;
-  }, [commitFrontendConfig, configRef]);
+  }, [commitRendererConfig, configRef]);
 
-  const applyFrontendConfigPatch = useCallback((incomingConfig, options = {}) => {
-    return applyResolvedConfig(buildMergedFrontendConfig(incomingConfig), options);
-  }, [applyResolvedConfig, buildMergedFrontendConfig]);
+  const applyRendererConfigPatch = useCallback((incomingConfig, options = {}) => {
+    return applyResolvedConfig(buildMergedRendererConfig(incomingConfig), options);
+  }, [applyResolvedConfig, buildMergedRendererConfig]);
 
   const registerSaveStatusCallback = useCallback((callback) => {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
@@ -176,7 +176,7 @@ export function AppConfigProvider({ children }) {
       fallbackAccelerator
       && configRef.current?.global_agent_stop_shortcut !== fallbackAccelerator
     ) {
-      applyFrontendConfigPatch({
+      applyRendererConfigPatch({
         global_agent_stop_shortcut: fallbackAccelerator,
       });
     }
@@ -190,7 +190,7 @@ export function AppConfigProvider({ children }) {
       syncCurrentConfigToRuntime();
     }
   }, [
-    applyFrontendConfigPatch,
+    applyRendererConfigPatch,
     configRef,
     globalAgentStopShortcutStatusRef,
     syncCurrentConfigToRuntime,
@@ -232,7 +232,7 @@ export function AppConfigProvider({ children }) {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
-      const filteredConfig = buildMergedFrontendConfig(diskConfig);
+      const filteredConfig = buildMergedRendererConfig(diskConfig);
       applyResolvedConfig(filteredConfig, {
         persistToDisk: false,
         syncRuntime: runtimeConnectedRef.current,
@@ -244,7 +244,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [applyResolvedConfig, buildMergedFrontendConfig]);
+  }, [applyResolvedConfig, buildMergedRendererConfig]);
 
   useEffect(() => {
     const handleStorage = (event) => {
@@ -260,7 +260,7 @@ export function AppConfigProvider({ children }) {
         return;
       }
 
-      const filteredConfig = buildMergedFrontendConfig(syncedConfig);
+      const filteredConfig = buildMergedRendererConfig(syncedConfig);
       applyResolvedConfig(filteredConfig, {
         persistToStorage: false,
         persistToDisk: false,
@@ -272,10 +272,10 @@ export function AppConfigProvider({ children }) {
     return () => {
       window.removeEventListener('storage', handleStorage);
     };
-  }, [applyResolvedConfig, buildMergedFrontendConfig]);
+  }, [applyResolvedConfig, buildMergedRendererConfig]);
 
   const updateConfig = useCallback((newConfig) => {
-    const didApplyConfig = applyFrontendConfigPatch(newConfig, {
+    const didApplyConfig = applyRendererConfigPatch(newConfig, {
       notifySaving: true,
       persistToDisk: true,
     });
@@ -287,7 +287,7 @@ export function AppConfigProvider({ children }) {
     logConfigInfo('[Settings Update] Updating config and saving to localStorage...');
     logConfigInfo('[Settings Update] Config saved to localStorage');
     return true;
-  }, [applyFrontendConfigPatch]);
+  }, [applyRendererConfigPatch]);
 
   const setWakewordEnabled = useCallback((enabled) => {
     updateConfig({

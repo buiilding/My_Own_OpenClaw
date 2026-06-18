@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename private renderer config storage/provider helpers away from
+  frontend-owned vocabulary while preserving exported compatibility helper
+  names and IPC channels.
 - renderer docs: rename stale frontend-owned settings wording to
   renderer-managed config/settings ownership while preserving real
   `frontend-config` and `filterFrontendConfig` compatibility names.

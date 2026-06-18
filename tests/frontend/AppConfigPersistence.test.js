@@ -142,7 +142,7 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('mergeFrontendProviderConfig drops unknown config fields through the frontend allowlist', () => {
+  test('mergeFrontendProviderConfig drops unknown config fields through the renderer allowlist', () => {
     expect(
       mergeFrontendProviderConfig(
         {

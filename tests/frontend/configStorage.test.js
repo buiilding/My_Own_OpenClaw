@@ -9,7 +9,7 @@ import {
 import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig.js';
 
 const CONFIG_KEY = RENDERER_STORAGE_KEYS.config;
-const DEFAULT_FRONTEND_CONFIG = {
+const DEFAULT_RENDERER_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
   selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
@@ -62,7 +62,7 @@ describe('configStorage', () => {
   });
 
   test('loadConfigFromStorage returns defaults when empty', () => {
-    expect(loadConfigFromStorage()).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(loadConfigFromStorage()).toEqual(DEFAULT_RENDERER_CONFIG);
     expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
   });
 
@@ -76,7 +76,7 @@ describe('configStorage', () => {
     localStorage.setItem(CONFIG_KEY, JSON.stringify({ model_mode: 'offline' }));
     const result = loadConfigFromStorage();
     expect(result).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       model_mode: 'offline',
     });
   });
@@ -87,7 +87,7 @@ describe('configStorage', () => {
       JSON.stringify({ model_mode: 'offline' }),
     );
 
-    expect(loadConfigFromStorage()).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(loadConfigFromStorage()).toEqual(DEFAULT_RENDERER_CONFIG);
   });
 
   test('loadConfigFromStorage normalizes unsupported stored global stop shortcuts', () => {
@@ -97,7 +97,7 @@ describe('configStorage', () => {
     );
 
     expect(loadConfigFromStorage()).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
     });
   });
@@ -110,7 +110,7 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
     expect(result).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       speech_mode_enabled: true,
     });
   });
@@ -122,7 +122,7 @@ describe('configStorage', () => {
     );
 
     expect(loadConfigFromStorage()).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
     });
   });
 
@@ -134,7 +134,7 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
     expect(result).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       wakeword_enabled: false,
     });
   });
@@ -147,7 +147,7 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
     expect(result).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       show_tool_logs: true,
     });
   });
@@ -159,7 +159,7 @@ describe('configStorage', () => {
     );
 
     expect(loadConfigFromStorage()).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       appearance_mode: 'dark',
     });
 
@@ -168,7 +168,7 @@ describe('configStorage', () => {
       JSON.stringify({ appearance_mode: 'sepia' }),
     );
 
-    expect(loadConfigFromStorage()).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(loadConfigFromStorage()).toEqual(DEFAULT_RENDERER_CONFIG);
   });
 
   test('loadConfigFromStorage normalizes stored appearance theme values', () => {
@@ -189,7 +189,7 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
     expect(result.appearance_theme.dark).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG.appearance_theme.dark,
+      ...DEFAULT_RENDERER_CONFIG.appearance_theme.dark,
       accent: '#007AFF',
       foreground: '#F9FAFB',
       translucent_sidebar: false,
@@ -209,7 +209,7 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
     expect(result.provider_api_keys).toEqual({
-      ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
+      ...DEFAULT_RENDERER_CONFIG.provider_api_keys,
       openai: { enabled: true, api_key: '' },
     });
   });
@@ -226,14 +226,14 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
     expect(result.backend_only_state).toBeUndefined();
-    expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(result).toEqual(DEFAULT_RENDERER_CONFIG);
   });
 
   test('saveConfigToStorage strips provider secrets and drops unknown fields from localStorage', () => {
     const ok = saveConfigToStorage({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       provider_api_keys: {
-        ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
+        ...DEFAULT_RENDERER_CONFIG.provider_api_keys,
         openai: { enabled: true, api_key: 'sk-openai' },
       },
       backend_only_state: {
@@ -255,7 +255,7 @@ describe('configStorage', () => {
   test('loadConfigFromStorage clears invalid JSON', () => {
     localStorage.setItem(CONFIG_KEY, '{bad json');
     const result = loadConfigFromStorage();
-    expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(result).toEqual(DEFAULT_RENDERER_CONFIG);
     expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
   });
 
@@ -265,7 +265,7 @@ describe('configStorage', () => {
 
     const result = loadConfigFromStorage();
 
-    expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(result).toEqual(DEFAULT_RENDERER_CONFIG);
     expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
     warnSpy.mockRestore();
   });
@@ -278,19 +278,19 @@ describe('configStorage', () => {
   });
 
   test('saveConfigToStorage persists config', () => {
-    const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG);
+    const ok = saveConfigToStorage(DEFAULT_RENDERER_CONFIG);
     expect(ok).toBe(true);
-    expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_RENDERER_CONFIG);
   });
 
   test('saveConfigToStorage drops backend-owned speech provider values', () => {
     const ok = saveConfigToStorage({
-      ...DEFAULT_FRONTEND_CONFIG,
+      ...DEFAULT_RENDERER_CONFIG,
       speech_provider: 'local',
     });
 
     expect(ok).toBe(true);
-    expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_RENDERER_CONFIG);
   });
 
   test('saveConfigToStorage returns false when storage write throws', () => {
@@ -299,7 +299,7 @@ describe('configStorage', () => {
       throw new Error('set-failed');
     });
 
-    expect(saveConfigToStorage(DEFAULT_FRONTEND_CONFIG)).toBe(false);
+    expect(saveConfigToStorage(DEFAULT_RENDERER_CONFIG)).toBe(false);
     setItemSpy.mockRestore();
     errorSpy.mockRestore();
   });
