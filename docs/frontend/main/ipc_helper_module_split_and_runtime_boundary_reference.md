@@ -202,6 +202,7 @@ Owns persisted desktop UI config disk I/O:
 Owns desktop UI config IPC handler registration while preserving the legacy
 renderer wire channel names:
 
+- `registerDesktopUiConfigHandlers`
 - `load-frontend-config`
 - `save-frontend-config`
 - shortcut fallback application while keeping the latest config cache in

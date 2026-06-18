@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config handler registration boundary
+
+- Finding: after the disk helper rename, Electron main still registered
+  desktop UI config IPC handlers through the frontend-named
+  `registerFrontendConfigHandlers` API.
+- Change: promoted `registerDesktopUiConfigHandlers` and desktop UI
+  config-named dependency slots as the active handler registration contract,
+  switched the main-process caller and focused handler tests to the canonical
+  API, and kept the frontend-named registration export as a compatibility
+  alias.
+- Validation: main config handler syntax checks, focused handler and IPC bridge
+  lifecycle Jest coverage, stale active-registration scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. The renderer IPC wire channels remain
+  `load-frontend-config` / `save-frontend-config`, the persisted filename
+  remains `frontend-config.json`, and payload shape, shortcut fallback,
+  redaction, credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config helper boundary
 
 - Finding: Electron main config disk helpers still used frontend-named helper

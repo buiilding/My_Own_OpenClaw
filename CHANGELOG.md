@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: promote desktop UI config IPC handler registration as the canonical
+  Electron-main API while keeping the legacy frontend-named registration export
+  as an alias; no migration is required because `load-frontend-config` /
+  `save-frontend-config` wire channels and payload behavior are unchanged.
 - main: promote desktop UI config disk helpers as the canonical Electron-main
   API while preserving `frontend-config.json` plus the existing
   `load-frontend-config` / `save-frontend-config` IPC wire channels; no

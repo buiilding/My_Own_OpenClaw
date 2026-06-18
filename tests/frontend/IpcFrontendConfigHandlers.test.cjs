@@ -1,8 +1,9 @@
 /**
- * Covers ipc frontend config handlers. behavior in the frontend test suite.
+ * Covers desktop UI config IPC handler behavior in the frontend test suite.
  */
 
 const {
+  registerDesktopUiConfigHandlers,
   registerFrontendConfigHandlers,
 } = require('../../frontend/src/main/ipc/ipc_frontend_config_handlers.cjs');
 
@@ -15,10 +16,10 @@ function createHarness(overrides = {}) {
   };
   const latest = { current: overrides.initialLatest || null };
   const setGlobalAgentStopShortcutAccelerator = jest.fn();
-  registerFrontendConfigHandlers({
+  registerDesktopUiConfigHandlers({
     ipcMain,
-    loadCachedFrontendConfigFromDisk: jest.fn(async () => overrides.loadResult),
-    persistFrontendConfigToDisk: jest.fn(async (config) => ({ success: true, config })),
+    loadCachedDesktopUiConfigFromDisk: jest.fn(async () => overrides.loadResult),
+    persistDesktopUiConfigToDisk: jest.fn(async (config) => ({ success: true, config })),
     isValidConfigPayload: (config) => (
       Boolean(config) && typeof config === 'object' && !Array.isArray(config)
     ),
@@ -26,8 +27,8 @@ function createHarness(overrides = {}) {
       ...config,
       global_agent_stop_shortcut: config.global_agent_stop_shortcut || 'CommandOrControl+Shift+Escape',
     }),
-    getLatestFrontendConfig: () => latest.current,
-    setLatestFrontendConfig: (config) => {
+    getLatestDesktopUiConfig: () => latest.current,
+    setLatestDesktopUiConfig: (config) => {
       latest.current = config;
     },
     setGlobalAgentStopShortcutAccelerator,
@@ -41,7 +42,11 @@ function createHarness(overrides = {}) {
   };
 }
 
-describe('ipc_frontend_config_handlers', () => {
+describe('desktop UI config IPC handlers', () => {
+  test('keeps frontend-named registration as a compatibility alias', () => {
+    expect(registerFrontendConfigHandlers).toBe(registerDesktopUiConfigHandlers);
+  });
+
   test('load handler applies shortcut fallback and updates latest config', async () => {
     const { handlers, latest, setGlobalAgentStopShortcutAccelerator } = createHarness({
       loadResult: { model_mode: 'offline' },
@@ -60,9 +65,9 @@ describe('ipc_frontend_config_handlers', () => {
   });
 
   test('save handler updates shortcut runtime and delegates persistence', async () => {
-    const persistFrontendConfigToDisk = jest.fn(async () => ({ success: true }));
+    const persistDesktopUiConfigToDisk = jest.fn(async () => ({ success: true }));
     const { handlers, setGlobalAgentStopShortcutAccelerator } = createHarness({
-      runtime: { persistFrontendConfigToDisk },
+      runtime: { persistDesktopUiConfigToDisk },
     });
     const config = {
       model_mode: 'online',
@@ -76,6 +81,6 @@ describe('ipc_frontend_config_handlers', () => {
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith(
       'CommandOrControl+Alt+.',
     );
-    expect(persistFrontendConfigToDisk).toHaveBeenCalledWith(config);
+    expect(persistDesktopUiConfigToDisk).toHaveBeenCalledWith(config);
   });
 });

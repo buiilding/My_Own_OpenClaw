@@ -27,7 +27,7 @@ const {
   saveDesktopUiConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
 const {
-  registerFrontendConfigHandlers,
+  registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_frontend_config_handlers.cjs');
 const {
   clearInstallAuthStateFromDisk,
@@ -1579,14 +1579,14 @@ function initializeIpc(win, options = {}) {
     log,
   });
 
-  registerFrontendConfigHandlers({
+  registerDesktopUiConfigHandlers({
     ipcMain,
-    loadCachedFrontendConfigFromDisk,
-    persistFrontendConfigToDisk,
+    loadCachedDesktopUiConfigFromDisk: loadCachedFrontendConfigFromDisk,
+    persistDesktopUiConfigToDisk: persistFrontendConfigToDisk,
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
-    getLatestFrontendConfig: () => latestFrontendConfig,
-    setLatestFrontendConfig: (config) => {
+    getLatestDesktopUiConfig: () => latestFrontendConfig,
+    setLatestDesktopUiConfig: (config) => {
       latestFrontendConfig = config;
     },
     setGlobalAgentStopShortcutAccelerator,
