@@ -18,7 +18,7 @@ from typing import List, Optional, Tuple
 
 import aiohttp
 import psutil
-from core.user_data_paths import app_user_data_root
+from core.user_data_paths import APP_DATA_DIR_NAME, app_user_data_root
 from tools.browser.chrome_detection import find_chrome_executable
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_CDP_PORT = 9333
 ENV_AGENT_BROWSER_CDP_PORT = "AGENT_BROWSER_CDP_PORT"
 ENV_BROWSER_CDP_PORT = "WINDIE_BROWSER_CDP_PORT"
+ENV_AGENT_USER_DATA_DIR = "AGENT_USER_DATA_DIR"
+ENV_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
 CHROME_STARTUP_TIMEOUT = 10  # seconds
 CHROME_CHECK_INTERVAL = 0.5  # seconds
 
@@ -166,6 +168,14 @@ def _iter_dedicated_chrome_processes(cdp_port: int) -> List[psutil.Process]:
     return matches
 
 
+def _resolve_browser_app_data_dir_name() -> str:
+    for env_name in (ENV_AGENT_USER_DATA_DIR, ENV_USER_DATA_DIR):
+        raw = os.getenv(env_name, "").strip()
+        if raw:
+            return Path(raw).expanduser().name or APP_DATA_DIR_NAME
+    return APP_DATA_DIR_NAME
+
+
 async def terminate_dedicated_chrome_with_cdp(cdp_port: int) -> int:
     """Terminate only dedicated-profile Chrome processes for the requested CDP port."""
     processes = _iter_dedicated_chrome_processes(cdp_port)
@@ -201,7 +211,7 @@ def get_chrome_user_data_dir() -> Path:
 
     if system == "Windows":
         local_app_data = os.environ.get("LOCALAPPDATA", str(home / "AppData" / "Local"))
-        return Path(local_app_data) / "windieos" / "BrowserProfile"
+        return Path(local_app_data) / _resolve_browser_app_data_dir_name() / "BrowserProfile"
     return app_user_data_root() / "BrowserProfile"
 
 

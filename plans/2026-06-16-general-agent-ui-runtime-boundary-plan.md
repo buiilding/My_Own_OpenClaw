@@ -8423,3 +8423,21 @@ Each completed slice should report:
   old implicit fallback can set `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR`;
   schemas, diagnostics database format, memory store files, permissions,
   credentials, IPC, and provider policy are unchanged.
+
+### 2026-06-18 Python browser profile default boundary
+
+- Finding: the dedicated Chrome launcher still hardcoded the Windows
+  `windieos/BrowserProfile` path, and macOS/Linux standalone profile defaults
+  followed the shared app-data helper after it moved to `desktop-runtime`.
+- Change: made standalone dedicated Chrome profile defaults use
+  `desktop-runtime/BrowserProfile` on every platform, while deriving the
+  Windows app-data segment from the injected user-data root so WindieOS desktop
+  launches keep the existing `windieos/BrowserProfile` profile.
+- Validation: focused Chrome launcher pytest coverage, browser docs updates,
+  docs listing, source scans, and `git diff --check`.
+- Compatibility: no automatic migration for standalone Python sidecar launches.
+  Normal WindieOS desktop launches keep using the existing dedicated Chrome
+  profile path through injected host data. Standalone callers that need an old
+  profile path can set `AGENT_USER_DATA_DIR` or `WINDIE_USER_DATA_DIR`;
+  browser tool schemas, CDP port behavior, Browser Use sessions, downloaded
+  files, IPC, permissions, credentials, and provider policy are unchanged.

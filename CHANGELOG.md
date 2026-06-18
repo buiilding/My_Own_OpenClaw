@@ -82,6 +82,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/runtime: default standalone Python sidecar user-data paths to
   generic `desktop-runtime` locations while Electron main injects the
   WindieOS-skinned app-data root for desktop launches.
+- sidecar/browser: default standalone dedicated Chrome profile paths to
+  generic `desktop-runtime` locations while preserving WindieOS desktop profile
+  paths through the injected app-data root.
 - sidecar/daemon: accept generic `AGENT_USER_DATA_DIR` and
   `AGENT_APP_DIAGNOSTICS_DB` daemon data-path env aliases while preserving
   WindieOS aliases.

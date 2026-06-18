@@ -1,7 +1,7 @@
 ---
-summary: "Dedicated browser runtime guide covering the current Browser Use session boundary, Windie-owned Chrome profile launcher, feature packs, and browser file storage."
+summary: "Dedicated browser runtime guide covering the current Browser Use session boundary, dedicated Chrome profile launcher, feature packs, and browser file storage."
 read_when:
-  - When changing Windie dedicated browser launch, CDP port behavior, browser profile paths, browser session state, or browser feature-pack setup.
+  - When changing dedicated browser launch, CDP port behavior, browser profile paths, browser session state, or browser feature-pack setup.
   - When debugging connect/status failures or browser profile isolation.
 title: "Dedicated Browser Runtime"
 ---
@@ -15,22 +15,23 @@ WindieOS does not automate the user's default browser profile by default. `conne
 The current runtime path is:
 
 1. `frontend/src/main/python/tools/browser/browser_tool.py` validates `BrowserControlArgs`.
-2. `frontend/src/main/python/tools/browser/browser_use_engine.py` ensures the WindieOS-owned Chrome profile is available through CDP.
+2. `frontend/src/main/python/tools/browser/browser_use_engine.py` ensures the dedicated Chrome profile is available through CDP.
 3. Browser Use launches or reuses the named daemon session with `--cdp-url` and performs the browser action.
 
-WindieOS no longer keeps a direct browser-controller execution path in this stack. `chrome_launcher.py` only owns the WindieOS profile launch boundary used by the Browser Use adapter.
+WindieOS no longer keeps a direct browser-controller execution path in this stack. `chrome_launcher.py` only owns the dedicated profile launch boundary used by the Browser Use adapter.
 
 | Runtime value | Current behavior |
 | --- | --- |
 | CDP host | `127.0.0.1` only |
 | Default CDP port | `9333` |
 | Port override | `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches) |
-| macOS profile path | `~/Library/Application Support/windieos/BrowserProfile` |
-| Windows profile path | `%LOCALAPPDATA%/windieos/BrowserProfile` |
-| Linux profile path | `~/.config/windieos/BrowserProfile` |
+| Standalone macOS profile path | `~/Library/Application Support/desktop-runtime/BrowserProfile` |
+| Standalone Windows profile path | `%LOCALAPPDATA%/desktop-runtime/BrowserProfile` |
+| Standalone Linux profile path | `~/.config/desktop-runtime/BrowserProfile` |
+| WindieOS desktop profile path | existing `windieos/BrowserProfile` app-data profile, selected from the host-injected user-data root |
 
 Browser Use daemon state lives under `AGENT_BROWSER_USE_HOME` when set, or
-`WINDIE_BROWSER_USE_HOME` in WindieOS launches, otherwise under the WindieOS app
+`WINDIE_BROWSER_USE_HOME` in WindieOS launches, otherwise under the active app
 data directory at `browser-use/`. The default session name is `desktop-agent`.
 Use `AGENT_BROWSER_USE_SESSION` or the WindieOS alias
 `WINDIE_BROWSER_USE_SESSION=windieos` only for diagnostics, isolated local
@@ -41,11 +42,11 @@ sessions, or intentionally reusing a legacy Browser Use daemon session. Legacy
 
 `BrowserUseEngineRuntime._handle_connect`:
 
-1. starts or reuses the WindieOS-owned Chrome profile through `ensure_chrome_with_cdp`,
+1. starts or reuses the dedicated Chrome profile through `ensure_chrome_with_cdp`,
 2. invokes Browser Use `state` with `--cdp-url` targeting that profile,
 3. returns `mode = "browser_use"` and `scope = "dedicated_browser"`.
 
-Browser Use treats `--headed` and `--cdp-url` as explicit daemon-config checks. WindieOS passes them only when starting or recovering the dedicated session, then omits them for normal reuse so Browser Use does not compare the daemon's live CDP URL against every fresh CLI invocation. A state file for a running non-dedicated Browser Use session is treated as disconnected; `connect` closes that stale daemon and waits briefly before starting Browser Use against the WindieOS dedicated profile.
+Browser Use treats `--headed` and `--cdp-url` as explicit daemon-config checks. WindieOS passes them only when starting or recovering the dedicated session, then omits them for normal reuse so Browser Use does not compare the daemon's live CDP URL against every fresh CLI invocation. A state file for a running non-dedicated Browser Use session is treated as disconnected; `connect` closes that stale daemon and waits briefly before starting Browser Use against the dedicated profile.
 
 For browser-internal URLs (`chrome://`, `chrome-extension://`, `devtools://`, and `about:`), WindieOS does not call Browser Use CLI `open` because that command normalizes non-web schemes to `https://...`. The adapter uses Browser Use's Python `browser.goto(...)` wrapper for same-tab internal navigation while leaving normal web navigation on Browser Use `open`.
 

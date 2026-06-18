@@ -65,13 +65,18 @@ Dedicated-browser process matching is scoped to the dedicated profile directory 
 the configured CDP port; the launcher no longer exposes broad Chrome process
 discovery or generic listener checks.
 
-## Dedicated Windie Profile Directory
+## Dedicated Profile Directory
 
-`get_chrome_user_data_dir()` isolates Windie automation state from the user's default browser profile:
+`get_chrome_user_data_dir()` isolates browser automation state from the user's
+default browser profile. Standalone launches use generic desktop-runtime paths:
 
-- Windows: `%LOCALAPPDATA%/windieos/BrowserProfile`
-- macOS: `~/Library/Application Support/windieos/BrowserProfile`
-- Linux: `~/.config/windieos/BrowserProfile`
+- Windows: `%LOCALAPPDATA%/desktop-runtime/BrowserProfile`
+- macOS: `~/Library/Application Support/desktop-runtime/BrowserProfile`
+- Linux: `~/.config/desktop-runtime/BrowserProfile`
+
+WindieOS desktop launches inject the host-skinned `windieos` user-data root, so
+the existing `windieos/BrowserProfile` dedicated profile remains the active
+desktop path.
 
 ## Launch Semantics
 

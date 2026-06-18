@@ -51,7 +51,7 @@ Browser Use runtime is now the default execution path. These flags are optional:
 
 ```bash
 # Browser Use daemon/session state root
-export AGENT_BROWSER_USE_HOME="$HOME/.config/windieos/browser-use"
+export AGENT_BROWSER_USE_HOME="$HOME/.config/desktop-runtime/browser-use"
 
 # Browser Use session name (default: desktop-agent)
 export AGENT_BROWSER_USE_SESSION=desktop-agent

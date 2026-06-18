@@ -10,7 +10,9 @@ from tools.browser.chrome_launcher import (
     DEFAULT_CDP_PORT,
     DEFAULT_DEDICATED_CDP_URL,
     ENV_AGENT_BROWSER_CDP_PORT,
+    ENV_AGENT_USER_DATA_DIR,
     ENV_BROWSER_CDP_PORT,
+    ENV_USER_DATA_DIR,
     ChromeLaunchTimeoutError,
     ChromeNotFoundError,
     _resolve_default_cdp_port,
@@ -176,44 +178,72 @@ class TestGetChromeUserDataDir:
     """Test get_chrome_user_data_dir function."""
 
     @mock.patch("platform.system")
+    @mock.patch("tools.browser.chrome_launcher.app_user_data_root")
     @mock.patch("pathlib.Path.home")
-    def test_macos_path(self, mock_home, mock_system):
+    def test_macos_path(self, mock_home, mock_user_data_root, mock_system):
         """Test macOS user data path."""
         mock_system.return_value = "Darwin"
         mock_home.return_value = Path("/Users/test")
+        mock_user_data_root.return_value = Path(
+            "/Users/test/Library/Application Support/desktop-runtime"
+        )
 
         result = get_chrome_user_data_dir()
 
         assert result is not None
-        assert str(result).endswith(
-            "Library/Application Support/windieos/BrowserProfile"
+        assert result == mock_user_data_root.return_value / "BrowserProfile"
+
+    @mock.patch("platform.system")
+    @mock.patch("tools.browser.chrome_launcher.app_user_data_root")
+    @mock.patch("pathlib.Path.home")
+    def test_linux_path(self, mock_home, mock_user_data_root, mock_system):
+        """Test Linux user data path."""
+        mock_system.return_value = "Linux"
+        mock_home.return_value = Path("/home/test")
+        mock_user_data_root.return_value = Path("/home/test/.config/desktop-runtime")
+
+        result = get_chrome_user_data_dir()
+
+        assert result is not None
+        assert result == mock_user_data_root.return_value / "BrowserProfile"
+
+    @mock.patch("platform.system")
+    @mock.patch("pathlib.Path.home")
+    def test_windows_path(self, mock_home, mock_system, monkeypatch):
+        """Test Windows user data path."""
+        mock_system.return_value = "Windows"
+        mock_home.return_value = Path("C:/Users/test")
+        monkeypatch.setenv("LOCALAPPDATA", "C:/Users/test/AppData/Local")
+        monkeypatch.delenv(ENV_AGENT_USER_DATA_DIR, raising=False)
+        monkeypatch.delenv(ENV_USER_DATA_DIR, raising=False)
+
+        result = get_chrome_user_data_dir()
+
+        assert result is not None
+        assert str(result).replace("\\", "/").endswith(
+            "AppData/Local/desktop-runtime/BrowserProfile"
         )
 
     @mock.patch("platform.system")
     @mock.patch("pathlib.Path.home")
-    def test_linux_path(self, mock_home, mock_system):
-        """Test Linux user data path."""
-        mock_system.return_value = "Linux"
-        mock_home.return_value = Path("/home/test")
-
-        result = get_chrome_user_data_dir()
-
-        assert result is not None
-        assert str(result).endswith(".config/windieos/BrowserProfile")
-
-    @mock.patch("platform.system")
-    @mock.patch("os.environ.get")
-    @mock.patch("pathlib.Path.home")
-    def test_windows_path(self, mock_home, mock_env_get, mock_system):
-        """Test Windows user data path."""
+    def test_windows_path_uses_injected_windie_app_data_name(
+        self, mock_home, mock_system, monkeypatch
+    ):
+        """Test WindieOS desktop launches keep the existing dedicated profile path."""
         mock_system.return_value = "Windows"
         mock_home.return_value = Path("C:/Users/test")
-        mock_env_get.return_value = "C:/Users/test/AppData/Local"
+        monkeypatch.setenv("LOCALAPPDATA", "C:/Users/test/AppData/Local")
+        monkeypatch.setenv(
+            ENV_AGENT_USER_DATA_DIR,
+            "C:/Users/test/AppData/Roaming/windieos",
+        )
 
         result = get_chrome_user_data_dir()
 
         assert result is not None
-        assert str(result).endswith("AppData/Local/windieos/BrowserProfile")
+        assert str(result).replace("\\", "/").endswith(
+            "AppData/Local/windieos/BrowserProfile"
+        )
 
 
 class TestLaunchChromeWithCdp:
@@ -241,7 +271,10 @@ class TestLaunchChromeWithCdp:
         assert cdp_url == DEFAULT_DEDICATED_CDP_URL
         mock_popen.assert_called_once()
         launch_args = mock_popen.call_args.args[0]
-        assert "--user-data-dir=/tmp/test-google-chrome-cdp" in launch_args
+        assert any(
+            arg.replace("\\", "/") == "--user-data-dir=/tmp/test-google-chrome-cdp"
+            for arg in launch_args
+        )
         assert "--profile-directory=Default" in launch_args
         assert "--no-first-run" not in launch_args
 
