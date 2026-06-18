@@ -154,8 +154,29 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   client.
   Renderer chat stream and SDK projection hooks now route conversation fan-out
   subscriptions through a renderer app runtime conversation event client.
+  Renderer chat audio chunk and workspace access update subscriptions now route
+  through renderer app runtime clients.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Chat Side-Channel Runtime Clients Slice
+
+- Worktree was clean after `c07e7e370`, with `main` ahead of `origin/main` by
+  844 commits.
+- Finding: chat UI code still imported direct IPC subscriptions for the untyped
+  audio side channel and workspace access update fan-out.
+- Change: added `DesktopAudioRuntimeClient` and
+  `DesktopWorkspaceRuntimeClient` under the renderer app runtime layer and
+  routed chat audio/workspace subscriptions through them while keeping payload
+  parsing, playback handoff, active-workspace refresh, and workspace-picked
+  new-chat policy in chat-owned code.
+- Validation: focused renderer chat boundary test, chat interface wiring test,
+  targeted direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. `audio-chunk` and
+  `workspace-access-updated` channel strings, payload shapes, audio playback
+  parsing, workspace permission request/check APIs, conversation workspace
+  binding, Electron main fan-out, storage, credentials, and provider policy are
+  unchanged.
 
 ### 2026-06-18 Renderer Conversation Event Runtime Client Slice
 

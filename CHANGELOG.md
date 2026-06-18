@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat audio chunk and workspace access update
+  subscriptions through renderer app runtime clients instead of importing those
+  IPC event channels from chat UI code.
 - renderer/runtime: route chat stream and SDK projection subscriptions through
   a renderer app runtime conversation event client instead of importing
   conversation fan-out channels from chat hooks.

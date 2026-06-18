@@ -11,6 +11,7 @@ title: "Audio Chunk Playback and Stop Semantics Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
@@ -29,7 +30,7 @@ Audio output from backend follows this route:
 2. Electron main `ipc.cjs` parses message and relays the typed `audio-chunk`
    renderer channel
 3. renderer chat runtime (`useChatInterfaceAudioChunkStream` used by
-   `ChatInterface`) listens to `ON_CHANNELS.AUDIO_CHUNK`
+   `ChatInterface`) listens through `DesktopAudioRuntimeClient`
 4. `extractAudioChunkPayload(...)` filters and validates audio payload shape
 5. valid chunk is enqueued in `PlayerService`
 
@@ -45,6 +46,8 @@ Important distinction:
 
 - relay maps `audio-chunk` backend events to
   `broadcastToRenderers('audio-chunk', data)`
+- renderer app runtime owns the `audio-chunk` subscription through
+  `desktopAudioRuntimeClient.ts`
 - overlay phase transitions are updated for text/tool lifecycle events
 - `audio-chunk` does not drive overlay phase transitions
 

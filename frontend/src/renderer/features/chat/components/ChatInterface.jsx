@@ -20,7 +20,7 @@ import {
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { startNewChatSession } from '../utils/session/newChatSession';
@@ -174,8 +174,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
     void refreshActiveWorkspace();
 
-    const removeWorkspaceAccessUpdated = IpcBridge.on(
-      ON_CHANNELS.WORKSPACE_ACCESS_UPDATED,
+    const removeWorkspaceAccessUpdated = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(
       (payload = {}) => {
         const nextWorkspace = {
           activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',

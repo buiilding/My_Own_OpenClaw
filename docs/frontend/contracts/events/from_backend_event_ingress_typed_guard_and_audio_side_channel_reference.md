@@ -14,6 +14,7 @@ title: "Typed Backend Event Fan-Out, Guard, and Audio Side-Channel Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -110,6 +111,7 @@ Renderer event channels have separate listeners with different filters:
   - consumes client tool manifest and remote tool catalog updates
 - `audio-chunk` -> `ChatInterface` audio path:
   - does not use `isBackendEvent(...)`
+  - subscribes through `DesktopAudioRuntimeClient`
   - uses `extractAudioChunkPayload(...)` parser
 
 No single global consumer owns all backend event types.
@@ -125,8 +127,9 @@ No single global consumer owns all backend event types.
   - `payload.sample_rate` number
 
 If shape mismatches, parser returns `null` and audio is skipped. The audio
-listener subscribes to `ON_CHANNELS.AUDIO_CHUNK`, not to the removed
-`from-backend` channel.
+listener subscribes through `DesktopAudioRuntimeClient`, which owns the
+`ON_CHANNELS.AUDIO_CHUNK` channel constant, not the removed `from-backend`
+channel.
 
 ## Main-Process Overlay-Phase Coupling
 

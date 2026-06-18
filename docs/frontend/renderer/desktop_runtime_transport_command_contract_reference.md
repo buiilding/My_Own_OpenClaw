@@ -15,6 +15,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
@@ -22,6 +23,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 - `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient.ts`
 - `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
 - `frontend/src/main/ipc.cjs`
@@ -108,6 +110,16 @@ current-turn projections, and display rows. `useChatStream` and
 `useConversationRuntimeProjectionStream` retain validation, stale-turn policy,
 projection side effects, and display-row merging while delegating channel names
 and `IpcBridge.on(...)` calls to this app runtime client.
+
+`desktopAudioRuntimeClient.ts` owns the renderer subscription to the untyped
+backend `audio-chunk` side channel. Chat interface bindings keep audio payload
+parsing and playback queue policy while delegating the channel subscription to
+this app runtime client.
+
+`desktopWorkspaceRuntimeClient.ts` owns the renderer subscription to workspace
+access update fan-out. `ChatInterface` keeps active-workspace refresh,
+conversation binding, and workspace-picked new-chat policy while delegating the
+channel subscription to this app runtime client.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

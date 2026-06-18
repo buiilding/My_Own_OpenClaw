@@ -87,6 +87,7 @@ Read these files for active workspace selection:
 
 - `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`
 - `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`
+- `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/main/permissions/permission_service_workspace.cjs`
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - `frontend/src/main/index.cjs`
@@ -109,6 +110,10 @@ Renderer callers should use only the public async selection API:
 names such as `normalizeWorkspaceAccessPayload`, `normalizeActiveWorkspace`,
 `extractWorkspaceStatus`, or `WORKSPACE_ACCESS_PERMISSION_ID` should route to
 this workflow and not to generic package export docs.
+
+Workspace update subscriptions should go through
+`DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)` so feature code
+does not import the `workspace-access-updated` IPC channel directly.
 
 ### 3. Inspect conversation workspace binding
 

@@ -3,14 +3,14 @@
  */
 
 import { useEffect } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { extractAudioChunkPayload } from '../utils/audioChunkEvents';
 import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
 import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.AUDIO_CHUNK, (data) => {
+    const removeListener = DesktopAudioRuntimeClient.onAudioChunk((data) => {
       const audioChunk = extractAudioChunkPayload(data);
       if (audioChunk && audioPlayerRef.current) {
         audioPlayerRef.current.enqueueAudio(audioChunk);

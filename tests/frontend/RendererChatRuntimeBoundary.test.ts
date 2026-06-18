@@ -704,6 +704,34 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
   });
 
+  test('chat interface routes audio and workspace subscriptions through app runtime clients', async () => {
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const bindingsSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatInterfaceBindings.js'),
+      'utf8',
+    );
+    const audioClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts'),
+      'utf8',
+    );
+    const workspaceClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(chatInterfaceSource).not.toContain('WORKSPACE_ACCESS_UPDATED');
+    expect(chatInterfaceSource).not.toContain('IpcBridge.on');
+    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
+    expect(bindingsSource).not.toContain('AUDIO_CHUNK');
+    expect(bindingsSource).not.toContain('IpcBridge.on');
+    expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
+    expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
+    expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

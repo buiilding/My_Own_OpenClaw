@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Chat Side-Channel Runtime Clients
+
+- Finding: chat UI code still imported direct IPC subscriptions for the untyped
+  audio side channel and workspace access update fan-out.
+- Change: added `DesktopAudioRuntimeClient` and
+  `DesktopWorkspaceRuntimeClient` under the renderer app runtime layer and
+  routed chat audio/workspace subscriptions through them while keeping payload
+  parsing, playback handoff, active-workspace refresh, and workspace-picked
+  new-chat policy in chat-owned code.
+- Validation: focused renderer chat boundary test, chat interface wiring test,
+  targeted direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. `audio-chunk` and
+  `workspace-access-updated` channel strings, payload shapes, audio playback
+  parsing, workspace permission request/check APIs, conversation workspace
+  binding, Electron main fan-out, storage, credentials, and provider policy are
+  unchanged.
+
 ### 2026-06-18 Renderer Conversation Event Runtime Client
 
 - Finding: chat stream and SDK projection hooks imported conversation runtime

@@ -14,6 +14,8 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 - `frontend/src/renderer/features/chat/components/ChatInterfaceHeaderControls.jsx`
 - `frontend/src/renderer/features/chat/utils/chatModelOptions.js`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
@@ -61,6 +63,15 @@ Operational implication:
 ## Header Controls Runtime
 
 `ChatInterfaceHeaderControls` receives fully resolved view-model props and callbacks from `ChatInterface`.
+
+Chat interface event subscriptions are routed through app runtime clients:
+
+- `DesktopAudioRuntimeClient` owns the untyped `audio-chunk` channel
+  subscription; `useChatInterfaceAudioChunkStream` owns payload parsing and
+  playback queue handoff.
+- `DesktopWorkspaceRuntimeClient` owns the `workspace-access-updated`
+  subscription; `ChatInterface` owns active-workspace refresh, conversation
+  binding comparison, and workspace-picker new-chat policy.
 
 Provider dropdown:
 
