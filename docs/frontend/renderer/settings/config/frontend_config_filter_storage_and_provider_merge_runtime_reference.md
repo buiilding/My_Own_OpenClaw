@@ -56,7 +56,7 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 
 - non-object input -> `{}`
 - includes only keys in the renderer-owned allowlist
-- ignores extra runtime, backend-owned, or sidecar-owned config fields
+- ignores extra runtime, backend-owned, or non-renderer local-runtime config fields
 
 ## Local Config Persistence (`configStorage`)
 

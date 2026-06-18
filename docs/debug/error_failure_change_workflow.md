@@ -72,9 +72,9 @@ Electron main normalizes multiple failure classes:
 
 Do not throw uncaught errors from these hot paths; preserve status updates and pending-promise cleanup.
 
-### Sidecar tool errors
+### Local-runtime tool errors
 
-Sidecar tool execution should converge to `ToolResult`:
+Local-runtime tool execution should converge to `ToolResult`:
 
 - missing tool -> `Tool not found: <name>`
 - non-dict args -> `Tool args must be an object`

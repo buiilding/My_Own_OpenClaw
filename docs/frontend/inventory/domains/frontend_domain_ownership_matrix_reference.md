@@ -21,8 +21,8 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Renderer chat/tool UX runtime | `renderer/features/chat/**` | SDK conversation-event normalization, `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | main overlay bounds logic |
 | Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | local execution logic |
 | Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + sidecar method contracts | landing page modules |
-| Sidecar runtime core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_runtime_bridge.cjs`, wakeword bridge | renderer UI components |
-| Sidecar tool runtime | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
+| Local-runtime Python service core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_runtime_bridge.cjs`, wakeword bridge | renderer UI components |
+| Local-runtime Python tool implementations | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
 | Local-runtime memory runtime | `main/python/memory/**` | SDK-provided embeddings, remote semantic client, and renderer dashboard memory views | renderer chat presentation |
 | Landing page runtime | `frontend/src/landing/**` | none (isolated app surface) | main/renderer runtime modules |
 
@@ -31,7 +31,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 - `main/**` owns process lifecycle, OS windowing, SDK-runtime adaptation, and local-runtime host context/status.
 - `preload.js` owns only safe channel exposure.
 - `renderer/**` owns UI state, event consumption, tool execution orchestration from UI.
-- `main/python/**` owns executable tool/memory/system behavior and local runtime protocols.
+- `main/python/**` implements executable tool/memory/system behavior and local runtime protocols behind the local-runtime boundary.
 - `landing/**` owns standalone marketing surface only.
 
 ## Red-Flag Ownership Violations

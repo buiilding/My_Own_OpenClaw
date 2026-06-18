@@ -1305,8 +1305,18 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar owns local execution + memory/runtime dependency bootstrap',
         'sidecar owns execution',
         'sidecar-owned hosted helper services',
+        'If sidecar-owned, inspect sidecar launch env or JSON-RPC action path',
+        'sidecar-owned config fields',
         'Local sidecar JSON-RPC host',
         'Sidecar core remote clients',
+        'Sidecar local runtime',
+        'Sidecar wakeword service',
+        'Sidecar request dispatch',
+        'Sidecar tool execution',
+        '| Sidecar runtime core |',
+        '| Sidecar tool runtime |',
+        'sidecar `tools/schemas.py`',
+        'sidecar browser adapter/runtime',
         'sidecar-owned schema/result adapters',
         'sidecar-owned MCP discovery',
         'sidecar-owned SDK/local-runtime MCP registration',
@@ -1350,6 +1360,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime wakeword helper');
     expect(docText).not.toContain('Frontend Voice Capture');
     expect(docText).not.toContain('Frontend Wakeword Bridge');
+    expect(docText).not.toContain('Sidecar wakeword service');
     expect(docText).not.toContain('Python sidecar owns wakeword model bootstrap');
     expect(docText).not.toContain('Electron bridge to the sidecar wakeword service');
     expect(docText).not.toContain('renderer microphone chunks -> Electron main -> Python sidecar wakeword service');

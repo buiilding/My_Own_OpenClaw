@@ -27,6 +27,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/settings: route settings debug ownership through local-runtime wording
+  instead of sidecar-owned settings and config-field labels while preserving the
+  Python sidecar docs as implementation-specific follow-up. No migration
+  required.
+- docs/voice: label the wakeword service file as a local-runtime implementation
+  instead of a sidecar-owned service surface. No migration required.
+- docs/frontend: route frontend runtime-surface, change-path, debug, and
+  security inventory labels through local-runtime Python service/tool ownership
+  while keeping concrete `main/python` implementation paths visible. No
+  migration required.
 - docs/frontend: align the frontend capability catalog and browser sidecar
   docs with local-runtime JSON-RPC, remote-client, and browser adapter
   ownership while preserving Python sidecar implementation details. No

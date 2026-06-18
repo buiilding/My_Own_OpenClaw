@@ -34,8 +34,8 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Renderer chat runtime | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | SDK-normalized conversation-event handling, state transitions, and current-turn projection consumption | Message list + overlay updates |
 | SDK tool runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | SDK local runtime + sidecar callback wiring | `tool-result` / `tool-bundle-result` send path |
 | Renderer voice runtime | `frontend/src/renderer/features/voice/hooks/*` | Wakeword capture + gateway audio stream | Transcription/voice status updates |
-| Sidecar local runtime | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry | JSON-RPC result envelopes |
-| Sidecar wakeword service | `frontend/src/main/python/wakeword_service.py` | Wakeword model bootstrap + detection loop | Length-prefixed detection frames |
+| Local-runtime Python service | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry behind the local-runtime boundary | JSON-RPC result envelopes |
+| Local-runtime wakeword service | `frontend/src/main/python/wakeword_service.py` | Wakeword model bootstrap + detection loop behind the local-runtime wakeword boundary | Length-prefixed detection frames |
 | Landing app runtime | `frontend/src/landing/main.jsx` | Landing section composition | Static marketing UI |
 
 ## End-to-End Runtime Paths
@@ -58,8 +58,8 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Tool-call event detected | SDK managed backend session |
 | Tool execution orchestration | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | SDK local runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
-| Sidecar request dispatch | SDK local runtime provider plus `main/sidecar/local_runtime_bridge.cjs` RPC mappers |
-| Sidecar tool execution | `main/python/tools/registry.py` + domain tool modules |
+| Local-runtime request dispatch | SDK local runtime provider plus `main/sidecar/local_runtime_bridge.cjs` RPC mappers |
+| Local-runtime tool execution | `main/python/tools/registry.py` + domain tool modules |
 | Result normalization + send | SDK tool coordinator -> managed backend session -> backend `tool-result` |
 
 ### Voice + Wakeword Path
@@ -85,8 +85,8 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 - IPC channel constants: `renderer/infrastructure/ipc/channels.ts` <-> `main/ipc.cjs` handlers.
 - SDK conversation event/current-turn payload shape: SDK event contracts <-> renderer projection consumers.
-- Tool schema parity: backend tool schemas <-> sidecar `tools/schemas.py`.
-- Browser action compatibility: backend browser schema <-> sidecar browser adapter/runtime.
+- Tool schema parity: backend tool schemas <-> local-runtime executable schemas.
+- Browser action compatibility: backend browser schema <-> local-runtime browser adapter/runtime.
 - Wakeword frame protocol: `main/wakeword_bridge.cjs` + `main/wakeword_bridge_runtime.cjs` <-> `main/python/wakeword_service.py`.
 
 ## Related Docs

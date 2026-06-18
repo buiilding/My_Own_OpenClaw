@@ -74,7 +74,7 @@ Validation:
 
 1. Renderer voice hooks (`useWakewordDetection.ts`, `useVoiceMode.ts`).
 2. Main wakeword bridge framing/relay (`main/wakeword_bridge.cjs`).
-3. Sidecar wakeword service protocol (`main/python/wakeword_service.py`).
+3. Local-runtime wakeword service protocol backed by `main/python/wakeword_service.py`.
 4. Update voice status UI/contract docs.
 
 Validation:

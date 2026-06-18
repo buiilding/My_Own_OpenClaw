@@ -275,6 +275,37 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a renderer settings owner-label slice by routing
+  settings debug ownership and config filtering docs through renderer,
+  Electron main, backend, or local-runtime boundaries instead of sidecar-owned
+  settings/config-field labels. The modular inventory-doc stale guard now
+  rejects the retired sidecar-owned settings launch/env and config-field
+  phrases. Validation: focused modular docs boundary test, docs listing, exact
+  stale settings phrase scan, and diff checks. No migration required; no code
+  path, payload, storage, IPC, settings schema, tool schema, credential,
+  permission, hosted URL, provider-policy, local-runtime launch behavior, or
+  Python sidecar JSON-RPC behavior changed.
+- 2026-06-18: completed a desktop wakeword label follow-up by naming
+  `frontend/src/main/python/wakeword_service.py` as the local-runtime wakeword
+  service implementation instead of a sidecar-owned service surface. The voice
+  routing docs guard now rejects the stale "Sidecar wakeword service" label.
+  Validation: focused modular docs boundary test, docs listing, exact stale
+  wakeword-service phrase scan, and diff checks. No migration required; no code
+  path, payload, storage, IPC, settings, tool schema, credential, permission,
+  hosted URL, provider-policy, wakeword audio framing, or Python service
+  bootstrap behavior changed.
+- 2026-06-18: completed a frontend runtime inventory owner-label slice by
+  updating the runtime surface matrix, frontend domain ownership matrix,
+  frontend change-path playbook, debug workflow, and security boundary matrix
+  so Python service/tool rows use local-runtime service and implementation
+  labels instead of sidecar-as-owner phase names. The modular stale-mention
+  guard now blocks retired sidecar local-runtime, sidecar wakeword service,
+  sidecar request dispatch, sidecar tool execution, sidecar schema parity, and
+  sidecar browser adapter labels. Validation: focused modular docs boundary
+  test, docs listing, exact stale inventory phrase scan, and diff checks. No
+  migration required; no code path, payload, storage, IPC, settings, tool
+  schema, credential, permission, hosted URL, provider-policy, wakeword,
+  browser, or local tool execution behavior changed.
 - 2026-06-18: completed a frontend browser/local-runtime wording slice by
   updating the sidecar implementation catalog and adjacent browser sidecar docs
   so JSON-RPC hosting, remote semantic clients, and browser adapters are
