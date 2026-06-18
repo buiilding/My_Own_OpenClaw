@@ -6,6 +6,7 @@ import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/s
 import {
   DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
+  RENDERER_STORAGE_KEYS,
 } from '../app/skin/desktopRuntimeConfig';
 
 /**
@@ -17,7 +18,7 @@ import {
  * - Persists to localStorage when runtime settings changes are acknowledged
  */
 
-const CONFIG_STORAGE_KEY = 'windieos-config';
+const CONFIG_STORAGE_KEY = RENDERER_STORAGE_KEYS.config;
 
 export const DEFAULT_APPEARANCE_THEME = Object.freeze({
   light: Object.freeze({

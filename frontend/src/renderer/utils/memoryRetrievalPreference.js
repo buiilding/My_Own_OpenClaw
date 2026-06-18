@@ -2,7 +2,9 @@
  * Provides the memory retrieval preference module for the renderer UI.
  */
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'windieos-memory-retrieval-injection-enabled';
+import { RENDERER_STORAGE_KEYS } from '../app/skin/desktopRuntimeConfig';
+
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetrievalInjection;
 
 function resolveStorage(storage) {
   if (storage) {

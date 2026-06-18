@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 renderer storage skin config boundary
+
+- Finding: generic renderer storage helpers and provider listeners still owned WindieOS/desktop-agent localStorage key literals, leaving persisted product/runtime configuration outside the skin/config boundary.
+- Change: added renderer storage-key settings to the WindieOS skin config facade and routed config storage, memory retrieval preference, permission onboarding storage, and config storage-event filtering through that facade.
+- Validation: focused renderer storage, permission, memory, AppConfigProvider, and skin/config boundary Jest coverage, docs listing, exact persisted-key scan, and diff checks.
+- Compatibility: no migration required. Existing localStorage key values and payload shapes are unchanged; only their ownership moved into the renderer skin/config contract.
+
 ### 2026-06-18 SDK local tool event ids
 
 - Finding: `ToolExecutionCoordinator` generated stored local tool output event ids with `sidecar-tool-output` and `sidecar-tool-bundle-output`, leaking the Python executor implementation into SDK-owned conversation event identity.

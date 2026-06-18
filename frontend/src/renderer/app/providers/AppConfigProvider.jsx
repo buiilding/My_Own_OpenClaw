@@ -24,6 +24,7 @@ import {
 } from './appConfigRuntimeSync';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
+import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 function resolveInitialWakewordSuppressed() {
   if (typeof window === 'undefined') {
@@ -249,7 +250,7 @@ export function AppConfigProvider({ children }) {
     const handleStorage = (event) => {
       if (
         event?.storageArea !== window.localStorage
-        || (event?.key && event.key !== 'windieos-config')
+        || (event?.key && event.key !== RENDERER_STORAGE_KEYS.config)
       ) {
         return;
       }

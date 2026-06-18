@@ -6,9 +6,10 @@ import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
 } from '../../frontend/src/renderer/features/permissions/utils/permissionStorage';
+import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
 describe('permission onboarding storage', () => {
-  const STORAGE_KEY = 'desktop-agent-permission-onboarding';
+  const STORAGE_KEY = RENDERER_STORAGE_KEYS.permissionOnboarding;
 
   beforeEach(() => {
     window.localStorage.clear();

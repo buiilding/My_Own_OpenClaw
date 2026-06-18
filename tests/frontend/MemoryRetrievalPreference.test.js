@@ -6,8 +6,9 @@ import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
 } from '../../frontend/src/renderer/utils/memoryRetrievalPreference';
+import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'windieos-memory-retrieval-injection-enabled';
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetrievalInjection;
 
 describe('memoryRetrievalPreference', () => {
   beforeEach(() => {

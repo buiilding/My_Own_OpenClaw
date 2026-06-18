@@ -16,10 +16,14 @@ const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
+const storageSettingsPath = path.join(rendererRoot, 'app/skin/storageSettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
 const configFilterPath = path.join(rendererRoot, 'utils/configFilter.js');
 const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
+const memoryPreferencePath = path.join(rendererRoot, 'utils/memoryRetrievalPreference.js');
+const permissionStoragePath = path.join(rendererRoot, 'features/permissions/utils/permissionStorage.js');
+const appConfigProviderPath = path.join(rendererRoot, 'app/providers/AppConfigProvider.jsx');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(settingsRoot, relativePath), 'utf8');
@@ -208,6 +212,30 @@ describe('renderer skin/config boundary', () => {
     expect(modelCardDataSource).not.toContain('Agentic coding model');
     expect(chatModelOptionsSource).not.toContain("lowerProvider === 'openai'");
     expect(chatModelOptionsSource).not.toContain("return 'OpenRouter'");
+  });
+
+  test('persisted renderer storage keys live in renderer skin config', () => {
+    const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
+    const storageSettingsSource = fs.readFileSync(storageSettingsPath, 'utf8');
+    const consumers = [
+      configStoragePath,
+      memoryPreferencePath,
+      permissionStoragePath,
+      appConfigProviderPath,
+    ].map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
+
+    expect(configFacadeSource).toContain("from './storageSettings'");
+    expect(storageSettingsSource).toContain('RENDERER_STORAGE_KEYS');
+    expect(storageSettingsSource).toContain('windieos-config');
+    expect(storageSettingsSource).toContain('windieos-memory-retrieval-injection-enabled');
+    expect(storageSettingsSource).toContain('desktop-agent-permission-onboarding');
+
+    for (const source of consumers) {
+      expect(source).toContain('RENDERER_STORAGE_KEYS');
+      expect(source).not.toContain("'windieos-config'");
+      expect(source).not.toContain("'windieos-memory-retrieval-injection-enabled'");
+      expect(source).not.toContain("'desktop-agent-permission-onboarding'");
+    }
   });
 
   test('renderer config helpers describe the settings runtime boundary', () => {

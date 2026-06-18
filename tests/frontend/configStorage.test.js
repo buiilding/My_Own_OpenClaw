@@ -6,8 +6,9 @@ import {
   loadConfigFromStorage,
   saveConfigToStorage,
 } from '../../frontend/src/renderer/utils/configStorage.js';
+import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig.js';
 
-const CONFIG_KEY = 'windieos-config';
+const CONFIG_KEY = RENDERER_STORAGE_KEYS.config;
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',

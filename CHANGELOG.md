@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: move persisted config, memory retrieval, and permission onboarding storage key ownership into the renderer skin/config facade while preserving the existing localStorage key values; no migration is required because stored keys and payload shapes are unchanged.
 - sdk/js: rename SDK-generated local tool output event ids from `sidecar-tool-*` to `local-tool-*`; no migration is required because existing stored events keep their ids while new SDK-local tool output rows use generic local-runtime naming.
 - frontend/main: stop the internal SDK stop bridge from accepting the removed camelCase `turnRef` alias; no migration is required because canonical `turn_ref` remains supported and removed alias payloads now produce a null turn ref instead of reviving compatibility behavior.
 - frontend/main: reject removed camelCase `conversation.stop` transport aliases at the SDK command boundary and stop accepting `turnRef` in the direct wake-up stop adapter; no migration is required for supported clients because canonical `conversation_ref` and `turn_ref` payloads continue to work unchanged.

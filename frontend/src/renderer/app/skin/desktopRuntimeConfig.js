@@ -11,3 +11,4 @@ export {
   formatProviderDisplayLabel,
   resolveProviderModelDisplay,
 } from './providerModelDisplaySettings';
+export { RENDERER_STORAGE_KEYS } from './storageSettings';

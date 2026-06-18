@@ -20,6 +20,7 @@ import {
   setClientUserIdResponse,
   setLoadFrontendConfigResponse,
 } from './AppConfigProvider.testUtils';
+import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
 registerAppConfigProviderSuiteLifecycle();
 
@@ -87,7 +88,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: 'windieos-config',
+        key: RENDERER_STORAGE_KEYS.config,
         storageArea: window.localStorage,
       }));
     });
@@ -135,7 +136,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: 'windieos-config',
+        key: RENDERER_STORAGE_KEYS.config,
         storageArea: window.localStorage,
       }));
     });
@@ -177,7 +178,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: 'windieos-config',
+        key: RENDERER_STORAGE_KEYS.config,
         storageArea: window.localStorage,
       }));
     });
