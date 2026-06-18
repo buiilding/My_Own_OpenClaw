@@ -19,7 +19,7 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 - `backend/src/api/processing/formatters/tool_call.py`
 - `backend/src/api/processing/formatters/tool_output.py`
 
-## Event Contract Surface (Renderer Types)
+## Event Contract Surface (Backend Wire)
 
 `ToolCallEvent.payload` fields used by renderer:
 
@@ -63,7 +63,8 @@ visible in chat while remaining non-executable in the SDK local runtime.
 
 ## Skip-Execution Metadata Contract
 
-The SDK tool coordinator treats a tool event as display-only when:
+The SDK tool coordinator treats a tool event as display-only when backend wire
+metadata indicates skipped local execution:
 
 - metadata is object-like
 - `metadata.skip_frontend_execution === true`
@@ -71,8 +72,10 @@ The SDK tool coordinator treats a tool event as display-only when:
 When true:
 
 - no local tool execution occurs
+- the SDK claim reason is `backend-skipped-local-execution`
 - no cancellation payload is sent (event is intentionally acknowledged as non-executable)
-- `useChatStream` still renders the event message
+- SDK projections expose `executionSkipped`
+- renderer surfaces still render the event message from SDK projections
 
 This is critical for backend recovery path that emits synthetic tool protocol events.
 
@@ -104,7 +107,8 @@ SDK projection outcome:
 - tool-call cards prefer `rawToolCallPreview` when present; otherwise they
   render preserved `modelFacingToolCall` for pre-dispatch validation failures
   instead of a synthesized normalized fallback
-- SDK tool coordinator skips local execution for synthetic call
+- SDK tool coordinator skips local execution for synthetic calls and reports
+  `backend-skipped-local-execution`
 - stream can continue to next model turn
 
 ## Stale-Turn Cancellation Path
@@ -179,7 +183,7 @@ So synthetic recovery events still produce consistent UI/transcript breadcrumbs.
 
 If synthetic tool events execute unexpectedly:
 
-1. verify `metadata.skip_frontend_execution` survives formatter/output contract
+1. verify backend `metadata.skip_frontend_execution` survives formatter/output contract
 2. verify SDK backend event normalization receives metadata object (not array/non-object)
 3. verify no local mutation strips metadata before handler
 

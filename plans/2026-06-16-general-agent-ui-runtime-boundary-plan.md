@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK skipped local tool execution boundary
+
+- Finding: `ToolExecutionCoordinator` still named the backend
+  `skip_frontend_execution` metadata check as frontend execution and returned
+  the backend wire key as its SDK claim reason.
+- Change: renamed the SDK predicate to skipped local tool execution, changed
+  the claim reason to `backend-skipped-local-execution`, and refreshed SDK /
+  renderer docs so UI-facing surfaces rely on `executionSkipped` while the
+  backend wire key remains documented only as an ingress metadata field.
+- Validation: SDK build, focused SDK conversation runtime and current-turn side
+  effect Jest coverage, stale SDK/frontend skip-name scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. Backend wire metadata remains
+  `skip_frontend_execution`, SDK current-turn/display projections still expose
+  `executionSkipped`, local tool execution behavior is unchanged, and no IPC,
+  storage, credential, permission, or provider-policy contract changes.
+
 ### 2026-06-18 desktop host operating-system context boundary
 
 - Finding: Electron main still resolved install-registration and agent-definition

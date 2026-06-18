@@ -142,14 +142,15 @@ Backend local execution events are handled by the SDK runtime before renderer fa
    overlay state, typed side-channel fan-out, and SDK conversation projection.
 6. the renderer receives a display-only SDK conversation event for chat state.
 
-Display-only renderer events retain normal chat/transcript/overlay behavior but
-include:
+Display-only backend events retain normal chat/transcript/overlay behavior after
+SDK projection. Their backend wire metadata includes:
 
 - `metadata.skip_frontend_execution = true`
 - `metadata.execution_owner = "sdk-runtime"`
 
-This keeps the UI informed while preventing renderer chat-stream display code
-from executing tools a second time.
+The SDK converts that into display-safe projection fields such as
+`executionSkipped`, keeping the UI informed while preventing local-runtime tool
+execution for synthetic calls.
 
 ## Settings Sync ACK Pipeline
 

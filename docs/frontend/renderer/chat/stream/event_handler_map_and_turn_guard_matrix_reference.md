@@ -106,7 +106,7 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
   - SDK `currentTurn.toolEvents`: clear send/thinking state for active executable tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking
   - SDK `currentTurn.phase`: clear send/thinking state and record terminal `streaming-complete`/`error` tracking for `complete`/`error`
-  - backend-owned synthetic tool calls with `metadata.skip_frontend_execution === true`: record the tool-call tracking event without clearing typing/thinking state as if an executable local-runtime tool started
+  - backend-owned synthetic tool calls projected by the SDK with `executionSkipped === true`: record the tool-call tracking event without clearing typing/thinking state as if an executable local-runtime tool started
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots

@@ -162,9 +162,9 @@ Compaction events:
 SDK current-turn tool events:
 
 - clear transient thinking state for executable local-runtime tool rows. Backend-owned
-  synthetic tool calls marked with `metadata.skip_frontend_execution === true`
+  synthetic tool calls projected with `executionSkipped === true`
   still record tool-call tracking, but they do not clear the current typing or
-  thinking state as if a renderer-executed local tool had started.
+  thinking state as if an executable local-runtime tool had started.
 - dashboard renders SDK display rows for normal tool-call/tool-output rows and
   retained OpenAI-native `tool_progress` search trace rows. Response overlay
   renders current-turn tool-call/tool-output/tool-progress rows from the SDK

@@ -208,7 +208,7 @@ function localToolCallFromEvent(event) {
         conversationRef: event.conversationRef,
     };
 }
-function shouldSkipFrontendExecution(event) {
+function shouldSkipLocalToolExecution(event) {
     const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
     return metadata?.skip_frontend_execution === true;
 }
@@ -487,8 +487,8 @@ class ToolExecutionCoordinator {
         return { claimed: true };
     }
     async execute(event) {
-        if (shouldSkipFrontendExecution(event)) {
-            return { claimed: true, reason: 'skip_frontend_execution' };
+        if (shouldSkipLocalToolExecution(event)) {
+            return { claimed: true, reason: 'backend-skipped-local-execution' };
         }
         const claim = this.canClaim(event);
         if (!claim.claimed) {

@@ -3116,7 +3116,7 @@ describe('Agent SDK conversation runtime core', () => {
       metadata: { skip_frontend_execution: true },
     }));
 
-    expect(claim).toEqual({ claimed: true, reason: 'skip_frontend_execution' });
+    expect(claim).toEqual({ claimed: true, reason: 'backend-skipped-local-execution' });
     expect(executeTool).not.toHaveBeenCalled();
     expect(sendToolResult).not.toHaveBeenCalled();
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual([]);

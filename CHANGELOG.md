@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: rename the tool coordinator's display-only synthetic event claim reason
+  to `backend-skipped-local-execution` so SDK local execution vocabulary no
+  longer exposes frontend-named backend metadata.
 - main/backend docs: rename the Electron-main operating-system helper to the
   desktop host boundary and refresh session/prompt docs so backend prompt
   rewrites refer to desktop client OS context instead of frontend OS context.

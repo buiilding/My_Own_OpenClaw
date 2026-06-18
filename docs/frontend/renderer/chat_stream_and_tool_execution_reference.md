@@ -133,8 +133,8 @@ tool-event ids. It is the renderer-side owner for:
 - recording `query-accepted`, `llm-thought`, `streaming-response`,
   `tool-call`, `tool-output`, `web-search-progress`, `streaming-complete`, and
   `error` tracking events
-- preserving typing/thinking state for backend-owned synthetic tool calls marked
-  with `metadata.skip_frontend_execution === true`
+- preserving typing/thinking state for SDK tool events projected with
+  `executionSkipped === true`
 
 The utility does not create transcript rows or interpret raw backend events.
 Transcript display still comes from SDK display rows, and conversation-event

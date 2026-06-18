@@ -154,7 +154,7 @@ describe('current turn projection side effects', () => {
     );
   });
 
-  test('deduplicates tool events and preserves skip-frontend-execution typing state', () => {
+  test('deduplicates tool events and preserves execution-skipped typing state', () => {
     const deps = createDeps();
     const cursor = applyCurrentTurnProjectionSideEffects({
       conversationRef: 'conv-1',

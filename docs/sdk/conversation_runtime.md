@@ -658,7 +658,11 @@ The underlying `currentTurn.toolEvents` projection exposes those identity fields
 for hosts that still render directly from tool events.
 Claimed SDK-shaped events execute the local runtime, send the result back
 through the transport, and append the corresponding normalized output event
-through the same store/projection path.
+through the same store/projection path. When backend metadata marks the tool
+event as display-only, the event remains claimed with reason
+`backend-skipped-local-execution` so the SDK does not execute a local tool or
+fabricate a backend result while still projecting `executionSkipped` for UI
+consumers.
 Local tool result screenshot metadata uses backend-facing snake_case fields
 (`screenshot_ref`, `screenshot_url`, and `screenshot_content_type`). The
 coordinator rejects camelCase screenshot result aliases instead of rewriting

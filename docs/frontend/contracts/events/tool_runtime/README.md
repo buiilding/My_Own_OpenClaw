@@ -1,5 +1,5 @@
 ---
-summary: "Frontend events tool-runtime docs sub-hub for `tool-call`/`tool-output` contract handling, skip-frontend-execution metadata, stale-turn cancellation, and correlation-id semantics."
+summary: "Frontend events tool-runtime docs sub-hub for `tool-call`/`tool-output` contract handling, backend skip-execution metadata, stale-turn cancellation, and correlation-id semantics."
 read_when:
   - When changing renderer handling of `tool-call`, `tool-output`, or `tool-bundle` events.
   - When debugging why tool calls are skipped, cancelled as stale-turn, or correlated to wrong transcript/chat rows.
