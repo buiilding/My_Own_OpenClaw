@@ -62,12 +62,12 @@ class DummyRouter:
 
 
 @pytest.mark.asyncio
-async def test_process_frontend_tool_result_routes_individual():
+async def test_process_local_tool_result_routes_individual():
     receiver = DummyReceiver()
     router = DummyRouter()
     handler = ToolResultHandler(receiver, router)
 
-    await handler.process_frontend_tool_result(
+    await handler.process_local_tool_result(
         request_id="req-1",
         success=True,
         result_data={"ok": True},
@@ -79,12 +79,12 @@ async def test_process_frontend_tool_result_routes_individual():
 
 
 @pytest.mark.asyncio
-async def test_process_frontend_tool_result_routes_individual_for_non_dict_payload():
+async def test_process_local_tool_result_routes_individual_for_non_dict_payload():
     receiver = DummyReceiver()
     router = DummyRouter()
     handler = ToolResultHandler(receiver, router)
 
-    await handler.process_frontend_tool_result(
+    await handler.process_local_tool_result(
         request_id="req-2",
         success=True,
         result_data=["bundled", True],
@@ -96,12 +96,12 @@ async def test_process_frontend_tool_result_routes_individual_for_non_dict_paylo
 
 
 @pytest.mark.asyncio
-async def test_process_frontend_tool_bundle_result():
+async def test_process_local_tool_bundle_result():
     receiver = DummyReceiver()
     router = DummyRouter()
     handler = ToolResultHandler(receiver, router)
 
-    await handler.process_frontend_tool_bundle_result(
+    await handler.process_local_tool_bundle_result(
         bundle_id="bundle-1",
         status="success",
         step_results=[],
@@ -117,12 +117,12 @@ async def test_process_frontend_tool_bundle_result():
 
 
 @pytest.mark.asyncio
-async def test_process_frontend_tool_bundle_result_forwards_boundary_payload_shape():
+async def test_process_local_tool_bundle_result_forwards_boundary_payload_shape():
     receiver = DummyReceiver()
     router = DummyRouter()
     handler = ToolResultHandler(receiver, router)
 
-    await handler.process_frontend_tool_bundle_result(
+    await handler.process_local_tool_bundle_result(
         bundle_id="bundle-shape",
         status="failure",
         step_results=[{"tool": "read_file", "status": "error", "output": "boom"}],

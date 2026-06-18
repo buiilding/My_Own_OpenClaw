@@ -557,10 +557,10 @@ class DummySession:
         self.tool_calls = []
         self.bundle_calls = []
 
-    async def process_frontend_tool_result(self, **kwargs):
+    async def process_local_tool_result(self, **kwargs):
         self.tool_calls.append(kwargs)
 
-    async def process_frontend_tool_bundle_result(self, **kwargs):
+    async def process_local_tool_bundle_result(self, **kwargs):
         self.bundle_calls.append(kwargs)
 
 
@@ -580,8 +580,8 @@ class ToolOutputReturningSession(DummySession):
             metadata={"tool_call_id": "call_read_file"},
         )
 
-    async def process_frontend_tool_result(self, **kwargs):
-        await super().process_frontend_tool_result(**kwargs)
+    async def process_local_tool_result(self, **kwargs):
+        await super().process_local_tool_result(**kwargs)
         return ToolResult(
             success=True,
             data={

@@ -120,7 +120,7 @@ class ToolResultHandler(MessageHandler):
 
             # Delegate to session. Local tool output display is owned by the SDK
             # sidecar path; backend only consumes local results for model/history.
-            await session.process_frontend_tool_result(
+            await session.process_local_tool_result(
                 request_id=request_id,
                 success=payload.success,
                 result_data=result_data,
@@ -155,7 +155,7 @@ class ToolResultHandler(MessageHandler):
 
         # Delegate to session for processing atomic bundle result
         # step_results is already List[Dict[str, Any]] from schema
-        await session.process_frontend_tool_bundle_result(
+        await session.process_local_tool_bundle_result(
             bundle_id=bundle_id,
             status=payload.status,
             step_results=self._serialize_step_results(payload.step_results),

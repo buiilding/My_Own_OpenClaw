@@ -64,7 +64,7 @@ class ToolResultHandler:
         )
         return tool_result
 
-    async def process_frontend_tool_result(
+    async def process_local_tool_result(
         self,
         request_id: str,
         success: bool,
@@ -92,7 +92,7 @@ class ToolResultHandler:
             is_bundle=False,
         )
 
-    async def process_frontend_tool_bundle_result(
+    async def process_local_tool_bundle_result(
         self,
         bundle_id: str,
         status: str,

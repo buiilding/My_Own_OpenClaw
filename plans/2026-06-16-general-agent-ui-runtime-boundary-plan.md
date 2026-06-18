@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend local tool-result ingress method names
+
+- Finding: backend session and tool waiting handler still exposed
+  frontend-owned tool-result ingress names even though the current owner is
+  SDK-submitted local-runtime tool result ingress.
+- Change: renamed the session/handler methods to `process_local_tool_result`
+  and `process_local_tool_bundle_result`, updated API handler call sites, and
+  refreshed docs/tests that guarded the old compatibility names.
+- Validation: focused backend and frontend boundary checks are listed in the
+  owning commit; no storage migration is required because websocket message
+  types and payloads stay unchanged.
+- Compatibility: callers inside the repo now use the local-runtime names. No
+  wrapper alias remains.
+
 ### 2026-06-18 backend rehydrate artifact screenshot contract
 
 - Finding: the backend rehydrate schema and service still accepted direct
@@ -245,14 +259,13 @@ Each completed slice should report:
   ownership is SDK/main local-runtime result submission with Python execution
   below that boundary.
 - Change: reworded backend runtime, tool-result ingress, and non-query handler
-  docs around SDK/local-runtime results while explicitly keeping historical
-  `process_frontend_tool_*` method names as compatibility surfaces, then
-  extended the modular boundary guard to reject the stale prose.
+  docs around SDK/local-runtime results, then extended the modular boundary
+  guard to reject stale frontend-owned result prose.
 - Validation: focused modular boundary Jest coverage, docs listing, stale
   backend ingress wording scan, and diff check.
 - Compatibility: no migration required. This changes docs/tests only; websocket
-  event names, method names, payload fields, storage, credentials, permissions,
-  and local-runtime execution are unchanged.
+  event names, payload fields, storage, credentials, permissions, and
+  local-runtime execution are unchanged.
 
 ### 2026-06-18 backend provider usage request-local state
 
@@ -310,16 +323,15 @@ Each completed slice should report:
   recovery docs still framed the bridge as frontend tool execution/results even
   after tool dispatch moved to the SDK/main local-runtime boundary.
 - Change: renamed the backend tool bridge policy page to local-runtime bridge
-  ownership, reworded preparation/result-ingress docs and source comments
-  around SDK-submitted local-runtime payloads, and kept existing public
-  `process_frontend_tool_result` method names untouched for compatibility.
+  ownership and reworded preparation/result-ingress docs and source comments
+  around SDK-submitted local-runtime payloads.
 - Validation: docs listing, focused stale frontend-result/dispatch wording
   scan, focused backend tool-result/preparation pytest coverage, and diff
   check. `test_tool_result_router.py` was attempted but the local fallback
   Python lacks `fastapi` because the `jarvis` conda env is unavailable.
 - Compatibility: no migration required. This changes docs/comments only;
-  websocket event names, tool-result payloads, public method names, storage,
-  credentials, permissions, and local-runtime behavior are unchanged.
+  websocket event names, tool-result payloads, storage, credentials,
+  permissions, and local-runtime behavior are unchanged.
 
 ### 2026-06-18 backend tool local-runtime dispatch docs cleanup
 

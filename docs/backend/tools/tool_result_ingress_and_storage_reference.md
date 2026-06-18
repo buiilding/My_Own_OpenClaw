@@ -48,8 +48,8 @@ Incoming schema nuance (`api/schemas/incoming.py`):
 Session delegation (method names retain their historical `frontend` spelling as
 the current compatibility surface):
 
-- `session.process_frontend_tool_result(...)`
-- `session.process_frontend_tool_bundle_result(...)`
+- `session.process_local_tool_result(...)`
+- `session.process_local_tool_bundle_result(...)`
 
 Canonical echo context:
 
@@ -79,7 +79,7 @@ Division of responsibilities:
 
 ### Individual result
 
-`process_frontend_tool_result(request_id, success, result_data, error)`:
+`process_local_tool_result(request_id, success, result_data, error)`:
 
 1. receiver creates `ToolResult.from_payload(...)` from the SDK-submitted
    local-runtime result payload
@@ -95,7 +95,7 @@ Division of responsibilities:
 
 ### Bundle result
 
-`process_frontend_tool_bundle_result(bundle_id, status, step_results, ...)`:
+`process_local_tool_bundle_result(bundle_id, status, step_results, ...)`:
 
 1. receiver normalizes each SDK/local-runtime step result
 2. receiver creates one bundle `ToolResult` with metadata (`is_bundled`, `bundle_id`)

@@ -22,8 +22,8 @@ title: "Tool Result Receiver and Router Shared Route-Mode Reference"
 
 `ToolResultHandler` is a façade with two public entrypoints:
 
-- `process_frontend_tool_result(...)`
-- `process_frontend_tool_bundle_result(...)`
+- `process_local_tool_result(...)`
+- `process_local_tool_bundle_result(...)`
 
 Both paths normalize via `ToolResultReceiver` then funnel into one shared router API:
 

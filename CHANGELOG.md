@@ -6,6 +6,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: require callers to opt into hosted install auto-registration with
+  `installAuth.autoRegister = true` instead of inferring backend auth policy
+  from the WindieOS hosted endpoint hostname; no migration is required for the
+  desktop app because Electron main already passes explicit install-auth policy.
+- backend: rename tool-result ingress methods to the `process_local_tool_*`
+  family, removing stale frontend-owned compatibility naming at the
+  session/tool waiting boundary; no migration is required because the websocket
+  payload contract is unchanged.
 - backend: remove direct `screenshot`/`image_data` rehydrate compatibility so
   resumed transcript images restore only from artifact-backed `screenshot_ref`;
   no storage migration is required, but external rehydrate clients must upload
@@ -41,9 +49,8 @@ All notable changes to WindieOS will be documented in this file.
   the shared simulation config as unused; no migration is required because this
   changes comments only.
 - docs/backend: describe tool-result ingress and runtime waiting as
-  SDK/local-runtime result ownership instead of frontend result ownership while
-  retaining historical `process_frontend_tool_*` method names as compatibility
-  surfaces; no migration is required because this is docs/test wording only.
+  SDK/local-runtime result ownership instead of frontend result ownership; no
+  migration is required because this is docs/test wording only.
 - backend/config: remove the unused `lmstudio.model` config field because LM
   Studio models are discovered from the local server; no migration is required
   because supplied unknown config keys continue to be ignored by the config
