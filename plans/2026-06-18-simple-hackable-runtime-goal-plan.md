@@ -314,6 +314,14 @@ For each completed slice, record:
   listing, source scan, and diff checks. No migration required; no code path,
   payload, storage, IPC, settings, tool schema, credential, permission, or
   provider-policy behavior changed.
+- 2026-06-18: completed the browser workflow hub-routing follow-up by aligning
+  Browser Change Workflow links in the docs hub, browser hub, and getting-started
+  hub with local-runtime execution and Python sidecar adapter wording. The
+  deeper browser workflow still names Python sidecar runtime details where
+  concrete handler/action tests are the subject. Validation: focused modular
+  docs boundary test, docs listing, source scan, and diff checks. No migration
+  required; no code path, payload, storage, IPC, settings, tool schema,
+  credential, permission, or provider-policy behavior changed.
 - 2026-06-18: plan created after reviewing `AGENTS.md`, runtime ownership docs,
   the existing general runtime-boundary plan, and recent commits around
   local-runtime naming, renderer app-runtime facades, SDK runtime helper

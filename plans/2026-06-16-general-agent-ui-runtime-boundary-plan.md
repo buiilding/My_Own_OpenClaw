@@ -9521,3 +9521,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime code, schemas, IPC channels,
   tool payloads/results, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-18 browser workflow hub route wording
+
+- Finding: docs hub entries that route people to the Browser Change Workflow
+  still summarized the public boundary as sidecar runtime ownership, even after
+  the tool overview moved to local-runtime execution and Python sidecar adapter
+  wording.
+- Change: updated the Browser Change Workflow link summaries in the docs hub,
+  browser hub, and getting-started hub, and guarded those route docs with the
+  modular docs boundary test.
+- Validation: focused modular docs boundary test, docs listing, source scan,
+  and diff checks.
+- Compatibility: no migration required. Runtime code, schemas, IPC channels,
+  tool payloads/results, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.

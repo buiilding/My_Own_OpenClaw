@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: align Browser Change Workflow hub links with local-runtime
+  execution and Python sidecar adapter wording. No migration required.
 - docs/tools: route public browser-tool wording through local-runtime execution
   and Python sidecar adapters instead of unqualified sidecar-runtime ownership.
   No migration required.

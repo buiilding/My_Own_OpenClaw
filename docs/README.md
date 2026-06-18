@@ -168,7 +168,7 @@ contracts.
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
 - [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
-- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, local-runtime execution, Python sidecar adapters, CDP launch, Electron bridge, renderer controls, files, and tests
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
 - [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags

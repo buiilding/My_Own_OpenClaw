@@ -545,6 +545,11 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/README.md'),
       read('docs/tools/browser.md'),
     ])).join('\n');
+    const browserRouteDocText = (await Promise.all([
+      read('docs/README.md'),
+      read('docs/browser/README.md'),
+      read('docs/getting-started/docs_hub.md'),
+    ])).join('\n');
 
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
@@ -561,6 +566,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('executable local-runtime payload');
     expect(docText).toContain('local-runtime validation');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
+    expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('SDK desktop agent');
     expect(docText).not.toContain(`SDK desktop-${'agent'}`);
     expect(docText).not.toContain('frontend/sidecar-owned local schemas');
@@ -576,6 +582,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(browserToolOverviewText).not.toContain('sidecar runtime execution');
     expect(browserToolOverviewText).not.toContain('sidecar runtime, CDP launch');
     expect(browserToolOverviewText).not.toContain('Update sidecar runtime argument handling');
+    expect(browserRouteDocText).not.toContain('sidecar runtime, CDP launch');
+    expect(browserRouteDocText).not.toContain('sidecar runtime action tests');
     expect(toolRoutingDocText).not.toContain('sidecar execution');
     expect(toolRoutingDocText).not.toContain('sidecar-executed');
     expect(toolRoutingDocText).not.toContain('sidecar results');
