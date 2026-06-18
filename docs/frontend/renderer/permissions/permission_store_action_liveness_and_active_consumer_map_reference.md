@@ -11,6 +11,7 @@ title: "Permission Store Action Liveness and Active Consumer Map Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts`
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
@@ -21,6 +22,10 @@ The permission store drives startup routing, onboarding permission requests, and
 focused settings permission checks such as Browser automation.
 
 Without an explicit liveness map, it is easy to misclassify store actions as dead when they still gate app entry.
+
+The store delegates desktop transport to `DesktopPermissionRuntimeClient`; UI
+consumers should call store actions, not invoke permission IPC channels
+directly.
 
 ## Active UI Consumer Map (Current Runtime)
 

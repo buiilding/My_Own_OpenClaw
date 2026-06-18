@@ -2,12 +2,18 @@
  * Covers permission store. behavior in the frontend test suite.
  */
 
+const fs = require('fs');
+const path = require('path');
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: jest.fn(),
   },
   INVOKE_CHANNELS: {
+    LIST_PERMISSIONS: 'list-permissions',
     RUN_PERMISSION_PROBE: 'run-permission-probe',
+    REQUEST_PERMISSION: 'request-permission',
+    CHECK_PERMISSIONS: 'check-permissions',
   },
 }));
 
@@ -157,5 +163,31 @@ describe('permissionStore', () => {
     expect(nextState.missingRequiredPermissions).toEqual([]);
     expect(nextState.completedForManifest).toBe(true);
     expect(nextState.needsOnboarding).toBe(false);
+  });
+
+  test('routes permission IPC through the desktop permission runtime client', () => {
+    const storeSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/permissions/stores/permissionStore.js'),
+      'utf8',
+    );
+    const clientSource = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(storeSource).not.toContain('IpcBridge');
+    expect(storeSource).not.toContain('INVOKE_CHANNELS');
+    expect(storeSource).not.toContain('LIST_PERMISSIONS');
+    expect(storeSource).not.toContain('RUN_PERMISSION_PROBE');
+    expect(storeSource).not.toContain('REQUEST_PERMISSION');
+    expect(storeSource).not.toContain('CHECK_PERMISSIONS');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.listPermissions');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.runPermissionProbe');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.requestPermission');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.checkPermissions');
+    expect(clientSource).toContain('INVOKE_CHANNELS.LIST_PERMISSIONS');
+    expect(clientSource).toContain('INVOKE_CHANNELS.RUN_PERMISSION_PROBE');
+    expect(clientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');
+    expect(clientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSIONS');
   });
 });

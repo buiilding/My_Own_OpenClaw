@@ -19,7 +19,7 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 | Main permission IPC | `frontend/src/main/permissions/permission_ipc_runtime.cjs` | Renderer invoke/send channel registration for list/check/request/probe operations. |
 | Permission services | `frontend/src/main/permissions/permission_service*.cjs` | OS-specific probes and request/open-settings behavior for screen, input, mic, browser, workspace, and automation. |
 | Permission state store | `frontend/src/main/permissions/permission_state_store.cjs` | Main-process cached permission state and notifications. |
-| Renderer onboarding/settings | `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions`, `frontend/src/renderer/app/skin` | User-visible permission gates, status rows, request buttons, control center, and product-specific onboarding shell copy. |
+| Renderer onboarding/settings | `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions`, `frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts`, `frontend/src/renderer/app/skin` | User-visible permission gates, status rows, request buttons, control center, runtime-client permission commands, and product-specific onboarding shell copy. |
 | Sidecar platform/tools | `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools` | Runtime local execution that may fail when OS permission is missing. |
 
 ## Add or Change a Permission
@@ -27,7 +27,7 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 1. Add or update the permission contract in `permission_manifest.json` with product-neutral copy.
 2. Add Electron main probe/request/check logic in the focused permission service module.
 3. Register IPC behavior through `permission_ipc_runtime.cjs` only if the renderer needs a new operation.
-4. Update renderer onboarding/control-center display or skin copy only after the main service can report truthfully.
+4. Update renderer onboarding/control-center display, permission runtime client, or skin copy only after the main service can report truthfully.
 5. Update sidecar tool behavior to fail clearly when the capability is unavailable.
 6. Add tests for manifest display, main permission service, renderer state, and sidecar/platform behavior where applicable.
 7. Update platform docs if the behavior differs on macOS, Windows, or Linux.

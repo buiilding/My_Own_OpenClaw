@@ -141,6 +141,11 @@ agent capability event fan-out. Agent settings owns extension/tool presentation,
 tool toggle config patches, and manifest/catalog state projection while
 delegating the desktop event and metadata channels to this client.
 
+`desktopPermissionRuntimeClient.ts` owns renderer permission list, probe,
+request, and batch-check commands. `permissionStore` owns status normalization,
+gate derivation, onboarding persistence, and action errors while delegating
+desktop permission transport to this client.
+
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,
 current-turn projections, and display rows. `useChatStream`,

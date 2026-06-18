@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Permission Runtime Client
+
+- Finding: `permissionStore` owned gate derivation and onboarding persistence
+  correctly but still invoked list/probe/request/check permission IPC channels
+  directly.
+- Change: added `DesktopPermissionRuntimeClient` for permission commands and
+  routed the store through it while leaving status normalization,
+  merge-vs-replace semantics, gate derivation, onboarding persistence, and
+  user-facing errors in the store.
+- Validation: focused permission store, app permission gate, onboarding action,
+  and settings section tests, targeted permission store and renderer feature
+  direct IPC scans, docs listing, and diff check. A broader
+  `DesktopOnboardingSlideshow` run was attempted but hit an existing
+  window-control assertion expecting an explicit `undefined` IPC argument.
+- Compatibility: no migration required. Permission manifest/status payloads,
+  probe/request/check behavior, onboarding storage, trust boundaries,
+  credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Agent Extension Runtime Client
 
 - Finding: `AgentSettingsTab` still imported agent extension metadata and

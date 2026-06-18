@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopPermissionRuntimeClient } from '../../../app/runtime/desktopPermissionRuntimeClient';
 import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
@@ -63,10 +63,6 @@ function resolveGateState({
   };
 }
 
-async function invokePermissionChannel(channel, payload = {}) {
-  return IpcBridge.invoke(channel, payload);
-}
-
 function buildStatusStateUpdate(currentState, statusPayload, options = {}) {
   const incomingStatuses = mapStatusesByPermissionId(statusPayload);
   const statusesByPermissionId = options.replace === true
@@ -111,7 +107,7 @@ export const usePermissionStore = create((set, get) => ({
     set({ isLoading: true, error: '' });
 
     try {
-      const result = await invokePermissionChannel(INVOKE_CHANNELS.LIST_PERMISSIONS);
+      const result = await DesktopPermissionRuntimeClient.listPermissions();
       if (!result?.success || !result?.data) {
         throw new Error(result?.error || 'Failed to load permission manifest.');
       }
@@ -155,9 +151,7 @@ export const usePermissionStore = create((set, get) => ({
     }
 
     try {
-      const result = await invokePermissionChannel(INVOKE_CHANNELS.RUN_PERMISSION_PROBE, {
-        permissionId,
-      });
+      const result = await DesktopPermissionRuntimeClient.runPermissionProbe(permissionId);
 
       if (!result?.success || !result?.data?.status) {
         throw new Error(result?.error || 'Failed to run permission probe.');
@@ -177,9 +171,7 @@ export const usePermissionStore = create((set, get) => ({
     }
 
     try {
-      const result = await invokePermissionChannel(INVOKE_CHANNELS.REQUEST_PERMISSION, {
-        permissionId,
-      });
+      const result = await DesktopPermissionRuntimeClient.requestPermission(permissionId);
 
       if (!result?.success || !result?.data?.status) {
         throw new Error(result?.error || 'Failed to request permission.');
@@ -196,9 +188,7 @@ export const usePermissionStore = create((set, get) => ({
   recheckAllPermissions: async () => {
     try {
       const permissionIds = get().permissions.map((permission) => permission.permission_id);
-      const result = await invokePermissionChannel(INVOKE_CHANNELS.CHECK_PERMISSIONS, {
-        permissionIds,
-      });
+      const result = await DesktopPermissionRuntimeClient.checkPermissions(permissionIds);
       if (!result?.success || !result?.data?.statuses) {
         throw new Error(result?.error || 'Failed to recheck permissions.');
       }

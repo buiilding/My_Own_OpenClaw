@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer `permissionStore` runtime: state normalization, gate derivation rules, IPC action semantics, and onboarding-state persistence behavior."
+summary: "Deep reference for renderer `permissionStore` runtime: state normalization, gate derivation rules, permission runtime client action semantics, and onboarding-state persistence behavior."
 read_when:
   - When changing `permissionStore.js` state fields, gate formulas, or IPC action handlers.
   - When debugging why `needsOnboarding` or missing-required permission state changed unexpectedly after probe/recheck/request actions.
@@ -11,6 +11,7 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
 - `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
@@ -91,12 +92,28 @@ Callers:
 - `requestPermission` (merge path)
 - `recheckAllPermissions` (replace path)
 
-## IPC Action Semantics
+## Permission Runtime Client Boundary
+
+`permissionStore` owns renderer permission state only: manifest snapshot,
+status normalization, gate derivation, onboarding persistence, and user-facing
+errors. Desktop transport is delegated to `DesktopPermissionRuntimeClient`.
+
+Runtime client calls:
+
+- `listPermissions()`
+- `runPermissionProbe(permissionId)`
+- `requestPermission(permissionId)`
+- `checkPermissions(permissionIds)`
+
+The store should not import `IpcBridge`, channel constants, or desktop
+permission channel names directly.
+
+## Permission Action Semantics
 
 ### `bootstrapPermissions`
 
 - no-op when `isLoading` is already true
-- sets loading state, invokes `LIST_PERMISSIONS`
+- sets loading state, calls `DesktopPermissionRuntimeClient.listPermissions()`
 - on success:
   - normalizes manifest + status payload
   - reloads `onboardingState` from localStorage
@@ -112,21 +129,21 @@ Main-process runtime now performs async startup probes before returning the init
 
 ### `runPermissionProbe(permissionId)`
 
-- invokes `RUN_PERMISSION_PROBE` for one id
+- calls `DesktopPermissionRuntimeClient.runPermissionProbe(permissionId)` for one id
 - requires `{ success:true, data.status }` response shape
 - merges normalized status and recomputes gate fields
 - does not set or clear `isLoading`; action-level in-flight state is not tracked
 
 ### `requestPermission(permissionId)`
 
-- invokes `REQUEST_PERMISSION` and then applies returned `data.status`
+- calls `DesktopPermissionRuntimeClient.requestPermission(permissionId)` and then applies returned `data.status`
 - shares merge/recompute semantics with probe path
 - does not set or clear `isLoading`
 
 ### `recheckAllPermissions`
 
 - builds `permissionIds` from current manifest snapshot
-- invokes `CHECK_PERMISSIONS` batch handler
+- calls `DesktopPermissionRuntimeClient.checkPermissions(permissionIds)`
 - replaces entire status map with fresh normalized statuses
 - does not set or clear `isLoading`; repeated clicks can trigger overlapping recheck requests
 
@@ -174,7 +191,8 @@ old namespace.
 
 - `PermissionStorage.test.js` covers storage defaults, round-trip save/load, and malformed JSON fail-closed behavior.
 - `PermissionService.test.cjs` covers async main-process probe/request normalization, workspace-access persistence, and Windows screen-capture verification contracts consumed by store actions.
-- No dedicated `permissionStore` unit test currently verifies every state transition path end-to-end.
+- `permissionStore.test.js` covers focused gate/store transitions and guards the
+  runtime-client IPC boundary.
 
 ## Drift Hotspots
 
