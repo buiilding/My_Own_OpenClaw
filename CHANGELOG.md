@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/getting-started: split first-read runtime boundary bullets into hosted
+  backend, Electron main desktop host, renderer UI, and Python sidecar owners.
 - docs/sidecar: rename visible sidecar hub and link labels from frontend
   sidecar to local runtime sidecar while preserving `docs/frontend/sidecar`
   paths and runtime behavior.

@@ -8,7 +8,7 @@ title: "Browser Hub"
 
 # Browser Hub
 
-WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the frontend sidecar adapts that contract to the maintained Browser Use CLI daemon. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
+WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the local-runtime sidecar adapts that contract to the maintained Browser Use CLI daemon. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
 
 ## Browser Pages
 

@@ -63,9 +63,34 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   dispatch, desktop host boundaries, and sidecar execution instead of stale
   three-runtime shorthand. Sidecar hub titles and cross-links now expose the
   local-runtime sidecar label while preserving existing
-  `docs/frontend/sidecar/...` file paths.
+  `docs/frontend/sidecar/...` file paths. The first-read documentation hub now
+  separates hosted backend, Electron main desktop host, renderer UI, and Python
+  sidecar ownership.
 
 ## Inspection Log
+
+### 2026-06-18 First-Read Runtime Boundary Wording Slice
+
+- Worktree was clean after `998538469` before this slice, with `main` ahead of
+  `origin/main` by 807 commits.
+- Recent commits showed local-runtime sidecar labels and cross-runtime docs
+  aligned, while the documentation hub still described Electron frontend as a
+  single owner for desktop windows, renderer UI, preload IPC, config, and SDK
+  host context. The browser hub still called the Browser Use adapter the
+  old sidecar ownership label.
+- Finding: those first-read docs blurred Electron main desktop host duties,
+  renderer UI duties, and local-runtime sidecar adapter duties.
+- Change: split the docs hub runtime bullets into hosted backend, Electron main
+  desktop host, renderer UI, and Python sidecar owners; reworded the browser
+  overview to local-runtime sidecar ownership.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to guard the
+  retired first-read and browser-adapter phrases.
+- Validation: focused modular boundary Jest, docs listing, targeted stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  Electron main IPC, renderer UI state, sidecar execution, browser JSON-RPC,
+  SDK projections, tool schemas, credentials, permissions, provider policy, and
+  storage are unchanged.
 
 ### 2026-06-18 Local-Runtime Sidecar Docs Label Slice
 

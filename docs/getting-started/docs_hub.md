@@ -11,13 +11,14 @@ title: "Documentation Hub"
 
 This is the OpenClaw-style entrypoint for working on WindieOS. Start here when you need to identify the right subsystem, code roots, docs, and tests before changing behavior.
 
-WindieOS has three hard runtime boundaries:
+WindieOS has four hard runtime boundaries:
 
 - The hosted FastAPI backend owns the agent loop, model-facing tool schema, LLM providers, streaming contracts, OCR/vision, TTS/STT, embeddings, artifacts, and SDK routes.
-- The Electron frontend owns desktop windows, renderer UI, preload IPC, local config, and SDK-runtime adaptation/host context.
+- The Electron main desktop host owns desktop windows, overlays, permissions, preload IPC, local config persistence, OS integration, and SDK local-runtime host context.
+- The renderer owns desktop UI presentation, conversation projection display, settings views, dashboard surfaces, voice UI, and user interaction state.
 - The Python sidecar owns local tool execution, browser automation, filesystem/shell/computer actions, local memory storage, system state, and wakeword subprocesses.
 
-Frontend and sidecar code must not import backend code for parity. Keep parity in explicit contracts, generated schemas, and tests.
+Desktop host, renderer, and sidecar code must not import backend code for parity. Keep parity in explicit contracts, generated schemas, and tests.
 
 ## Agent Workflow
 

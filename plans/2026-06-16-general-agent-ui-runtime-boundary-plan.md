@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 first-read runtime boundary wording
+
+- Finding: the documentation hub still described a three-boundary model where
+  the Electron frontend owned desktop windows, renderer UI, preload IPC, config,
+  and SDK host context together, and the browser hub still described the
+  browser contract adapter with the old sidecar ownership label.
+- Change: split the first-read runtime bullets into hosted backend, Electron
+  main desktop host, renderer UI, and Python sidecar owners; reworded the
+  browser overview to the local-runtime sidecar; expanded the modular boundary
+  guard for the retired first-read and browser-adapter phrases.
+- Validation: focused modular boundary Jest, docs listing, targeted stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  Electron main IPC, renderer UI state, sidecar execution, browser JSON-RPC,
+  SDK projections, tool schemas, credentials, permissions, provider policy, and
+  storage are unchanged.
+
 ### 2026-06-18 local-runtime sidecar docs label boundary
 
 - Finding: sidecar hub titles, frontmatter, cross-links, routing tables, and
