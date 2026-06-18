@@ -80,7 +80,7 @@ This binding is independent from shortcut handling but shares the same coordinat
 
 1. expanding shortcut matching without editable guard can steal keyboard behavior from text inputs.
 2. switching to closure-captured config/update values can introduce stale toggle behavior after rerenders.
-3. emitting partial config payloads instead of merged config can accidentally drop other frontend-owned settings.
+3. emitting partial config payloads instead of merged config can accidentally drop other renderer-managed settings.
 
 ## Related Pages
 

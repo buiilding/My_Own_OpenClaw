@@ -11,14 +11,14 @@ import { DesktopConversationContinuityService } from '../../frontend/src/rendere
 import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
-let mockFrontendConfig = {
+let mockRendererConfig = {
   model_provider: 'anthropic',
   selected_model_id: 'claude-sonnet-4-5',
 };
 
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
-    config: mockFrontendConfig,
+    config: mockRendererConfig,
   })),
 }));
 
@@ -71,7 +71,7 @@ const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.update
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFrontendConfig = {
+    mockRendererConfig = {
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',
     };

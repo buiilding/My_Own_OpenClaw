@@ -12,7 +12,7 @@ import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/ru
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 
-let mockFrontendConfig: Record<string, unknown> = {
+let mockRendererConfig: Record<string, unknown> = {
   include_query_screenshot: true,
   model_provider: 'openai',
   selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
@@ -20,7 +20,7 @@ let mockFrontendConfig: Record<string, unknown> = {
 
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
-    config: mockFrontendConfig,
+    config: mockRendererConfig,
   })),
 }));
 
@@ -161,7 +161,7 @@ describe('useChatMessageSender', () => {
     mockSendQuery.mockReset();
     mockSetModel.mockReset();
     mockActiveConversationRef = null;
-    mockFrontendConfig = {
+    mockRendererConfig = {
       include_query_screenshot: true,
       model_provider: 'openai',
       selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
@@ -246,7 +246,7 @@ describe('useChatMessageSender', () => {
   });
 
   test('syncs selected model to backend immediately before sending query', async () => {
-    mockFrontendConfig = {
+    mockRendererConfig = {
       include_query_screenshot: false,
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',
@@ -366,7 +366,7 @@ describe('useChatMessageSender', () => {
   });
 
   test('does not return to chatbox when screenshots are disabled even if requested', async () => {
-    mockFrontendConfig = { include_query_screenshot: false };
+    mockRendererConfig = { include_query_screenshot: false };
     const { result } = renderSender({ senderSurface: 'main-window' });
     await sendText(result, 'hello');
 
@@ -377,7 +377,7 @@ describe('useChatMessageSender', () => {
   });
 
   test('ignores explicit always return policy for main-window sends', async () => {
-    mockFrontendConfig = { include_query_screenshot: false };
+    mockRendererConfig = { include_query_screenshot: false };
     const { result } = renderSender({
       senderSurface: 'main-window',
       returnToChatboxPolicy: 'always',
@@ -440,7 +440,7 @@ describe('useChatMessageSender', () => {
   });
 
   test('skips screenshot capture when include_query_screenshot is disabled', async () => {
-    mockFrontendConfig = { include_query_screenshot: false };
+    mockRendererConfig = { include_query_screenshot: false };
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'no image');
 

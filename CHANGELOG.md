@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer tests/docs: rename local renderer config mocks and shortcut drift
+  wording away from frontend-owned settings terminology.
 - renderer: rename private renderer config storage/provider helpers away from
   frontend-owned vocabulary while preserving exported compatibility helper
   names and IPC channels.

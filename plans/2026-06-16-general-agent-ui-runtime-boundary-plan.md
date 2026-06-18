@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer config mock naming boundary
+
+- Finding: renderer chat/replay tests used `mockFrontendConfig` for local
+  `AppConfigContext` fixtures, and the shortcut reference still warned about
+  dropping frontend-owned settings.
+- Change: renamed those test fixtures to `mockRendererConfig` and updated the
+  shortcut drift wording to renderer-managed settings while leaving real
+  frontend-named compatibility helpers and IPC commands unchanged.
+- Validation: focused chat message sender/replay/AppProvider Jest coverage,
+  stale local mock-name scan, docs listing, and diff check.
+- Compatibility: no migration required. This is test/docs terminology plus
+  local fixture naming only; renderer behavior, storage, IPC, SDK projections,
+  permissions, credentials, and backend wire metadata are unchanged.
+
 ### 2026-06-18 renderer private config helper boundary
 
 - Finding: private renderer config defaults, storage helpers, and
