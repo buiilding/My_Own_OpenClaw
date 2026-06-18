@@ -623,6 +623,19 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('fails in the sidecar');
   });
 
+  test('local runtime diagnostics avoid sidecar payload wording', async () => {
+    const docs = await Promise.all([
+      read('docs/frontend/sidecar/README.md'),
+      read('frontend/src/main/python/windie/_unicode_sanitizer.py'),
+    ]);
+    const text = docs.join('\n');
+
+    expect(text).toContain('local-runtime JSON-RPC payloads');
+    expect(text).toContain('local-runtime payloads');
+    expect(text).not.toContain('sidecar payload');
+    expect(text).not.toContain('sidecar payloads');
+  });
+
   test('docs use local runtime sidecar labels instead of frontend sidecar labels', async () => {
     const docs = await listMarkdownFiles('docs');
     const offenders: Record<string, string[]> = {};

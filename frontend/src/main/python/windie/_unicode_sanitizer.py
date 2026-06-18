@@ -1,5 +1,5 @@
 """
-Helpers for removing lone surrogate code points from sidecar payloads.
+Helpers for removing lone surrogate code points from local-runtime payloads.
 """
 
 from __future__ import annotations

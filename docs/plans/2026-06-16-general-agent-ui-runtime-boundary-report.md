@@ -107,9 +107,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   validation, runtime, and tool catalog docs now qualify Python sidecar
   validation/runtime and desktop client/local-runtime manifest ownership
   instead of unqualified sidecar validation/runtime or frontend/sidecar manifest
-  wording.
+  wording. Local runtime sidecar diagnostics and the unicode sanitizer helper
+  now describe diagnostic values as local-runtime JSON-RPC/payload data instead
+  of sidecar payloads.
 
 ## Inspection Log
+
+### 2026-06-18 Local Runtime Payload Diagnostic Wording Slice
+
+- Worktree was clean after `6fd248e7c`, with `main` ahead of `origin/main` by
+  825 commits.
+- Finding: the local runtime sidecar hub and unicode sanitizer helper still
+  described diagnostic/sanitized values as sidecar payloads even though the
+  relevant contract is local-runtime JSON-RPC/payload sanitation.
+- Change: reworded the documentation and helper docstring to local-runtime
+  JSON-RPC or local-runtime payload wording and added a modular boundary guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/comment/test guardrail
+  only; payload shape, JSON-RPC routing, unicode sanitation behavior, IPC,
+  storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Browser Contract Python Sidecar Validation Wording Slice
 

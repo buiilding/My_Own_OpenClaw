@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Local Runtime Payload Diagnostic Wording
+
+- Finding: the local runtime sidecar hub and unicode sanitizer helper still
+  described diagnostic/sanitized values as sidecar payloads.
+- Change: reworded the docs and helper docstring to local-runtime JSON-RPC or
+  local-runtime payload wording and added a modular boundary guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/comment/test guardrail
+  only; payload shape, JSON-RPC routing, unicode sanitation behavior, IPC,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Browser Contract Python Sidecar Validation Wording
 
 - Finding: browser/tool catalog docs still used unqualified sidecar
