@@ -376,6 +376,7 @@ export type CurrentTurnToolEvent = {
   text?: string;
   status?: string | null;
   success?: boolean | null;
+  executionSkipped?: boolean | null;
   payload: JsonRecord;
 };
 
@@ -409,6 +410,7 @@ export type LiveTurnPresentationEntry = {
   screenshotContentType?: string | null;
   executionTime?: number | null;
   success?: boolean | null;
+  executionSkipped?: boolean | null;
   modelId?: string | null;
   modelProvider?: string | null;
   isComplete?: boolean;

@@ -165,13 +165,8 @@ describe('current turn projection side effects', () => {
           kind: 'tool_call',
           toolName: 'read_file',
           text: 'Using read_file',
-          payload: {
-            structuredPayload: {
-              metadata: {
-                skip_frontend_execution: true,
-              },
-            },
-          },
+          executionSkipped: true,
+          payload: {},
         }],
       }),
       cursor: createProjectionCursor(),

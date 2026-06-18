@@ -875,7 +875,12 @@ describe('Agent SDK conversation runtime core', () => {
       event('turn_started', {}),
       event('user_message', { text: 'inspect files' }),
       event('reasoning_delta', { text: 'Checking the workspace.' }),
-      event('tool_call', { toolName: 'read_file', requestId: 'req-read', correlationId: 'corr-read' }),
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        correlationId: 'corr-read',
+        metadata: { skip_frontend_execution: true },
+      }),
       event('tool_output', {
         toolName: 'read_file',
         requestId: 'req-read',
@@ -899,6 +904,7 @@ describe('Agent SDK conversation runtime core', () => {
           sourceChannel: 'sdk:current-turn',
           requestId: 'req-read',
           correlationId: 'corr-read',
+          executionSkipped: true,
           modelFacingToolCall: expect.objectContaining({
             name: 'read_file',
           }),

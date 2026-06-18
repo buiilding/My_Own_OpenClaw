@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/renderer: expose skipped local execution state as `executionSkipped` on
+  SDK current-turn tool events and presentation entries so renderer side
+  effects no longer inspect raw tool metadata; no migration is required because
+  backend payloads and local execution behavior are unchanged.
 - renderer: make the legacy current-turn fallback consume SDK tool-event fields
   for tool calls, outputs, screenshots, status, and metadata instead of
   decoding raw payload internals; no migration is required because this only

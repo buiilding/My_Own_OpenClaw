@@ -87,10 +87,7 @@ function resolveSdkPresentationHasVisibleContent(currentTurn: SdkCurrentTurnProj
 }
 
 function isSkipFrontendExecutionToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
-  const payload = asRecord(toolEvent.payload);
-  const structuredPayload = asRecord(payload?.structuredPayload);
-  const metadata = asRecord(structuredPayload?.metadata) ?? asRecord(payload?.metadata);
-  return metadata?.skip_frontend_execution === true;
+  return toolEvent.executionSkipped === true;
 }
 
 export function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: SdkCurrentTurnProjection): boolean {

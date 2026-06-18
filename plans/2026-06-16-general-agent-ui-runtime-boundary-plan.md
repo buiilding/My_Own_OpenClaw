@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK current-turn execution-skipped field
+
+- Finding: renderer current-turn side effects still preserved typing state by
+  reading `skip_frontend_execution` from nested raw tool payload metadata even
+  though SDK current-turn tool events are the live state boundary.
+- Change: added `executionSkipped` to SDK current-turn tool events and live
+  presentation entries, documented it in the SDK conversation runtime contract,
+  and changed renderer side effects to consume the SDK field directly.
+- Validation: focused SDK current-turn projection and renderer side-effect Jest
+  coverage, exact stale side-effect field scan, docs listing, and diff check.
+- Compatibility: no migration required. Backend websocket payloads, stored
+  conversation events, local execution behavior, IPC channels, artifact URLs,
+  credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 renderer current-turn fallback tool-event fields
 
 - Finding: after SDK live presentation entries carried explicit tool display

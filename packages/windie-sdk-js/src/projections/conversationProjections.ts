@@ -769,6 +769,10 @@ function toolMetadataFromPayload(payload: JsonRecord): JsonRecord | null {
     ?? null;
 }
 
+function toolExecutionSkippedFromPayload(payload: JsonRecord): boolean {
+  return toolMetadataFromPayload(payload)?.skip_frontend_execution === true;
+}
+
 function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEvent | null {
   if (event.type !== 'tool_call'
     && event.type !== 'tool_bundle_call'
@@ -811,6 +815,7 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
     ...(outputText ? { text: outputText } : {}),
     status: statusFromToolPayload(event.payload),
     success,
+    executionSkipped: toolExecutionSkippedFromPayload(event.payload),
     payload: event.payload,
   };
 }
@@ -941,6 +946,7 @@ function buildLiveTurnPresentation(
       screenshotContentType: toolEvent.screenshotContentType ?? null,
       executionTime: toolEvent.executionTime ?? null,
       success: toolEvent.success ?? null,
+      executionSkipped: toolEvent.executionSkipped ?? null,
       payload: toolEvent.payload,
     });
   });
