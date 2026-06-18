@@ -8,7 +8,7 @@ title: "Agent Loop"
 
 # Agent Loop
 
-The WindieOS agent loop is backend-owned, but it depends on frontend and sidecar execution for local tools. Treat the loop as a distributed state machine rather than a single function call.
+The WindieOS agent loop is backend-owned, but it depends on SDK/main local execution for local tools. Treat the loop as a distributed state machine rather than a single function call.
 
 ## Turn Lifecycle
 

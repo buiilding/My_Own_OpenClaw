@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS sidecar-executed tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC, and sidecar tests."
+summary: "Workflow for changing WindieOS local-runtime tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC, and sidecar tests."
 read_when:
   - When adding, changing, or debugging a local executable tool.
   - When a model-visible tool call reaches the SDK runtime but fails in the sidecar.

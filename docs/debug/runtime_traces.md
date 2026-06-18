@@ -506,7 +506,7 @@ cd frontend
 WINDIE_SIDECAR_LOG_LEVEL=DEBUG bin/windie start desktop
 ```
 
-If a sidecar result is missing, check for all of these before editing:
+If a local-runtime result is missing, check for all of these before editing:
 
 - Backend emitted a tool-call event with a request id.
 - SDK runtime accepted the event for the active turn and claimed local execution.

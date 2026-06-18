@@ -27,7 +27,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 ## Extension Decision Flow
 
 1. If the model should call it, start with backend tool schema/policy.
-2. If it controls the local machine, add sidecar execution and parity tests.
+2. If it controls the local machine, add local execution and parity tests.
 3. If it calls a model provider, add an LLM provider or provider config/catalog entry.
 4. If it exposes hosted introspection/perception to external clients, add an SDK route/client.
 5. If it changes desktop UI, add a renderer feature and main/preload IPC only when privileged APIs are needed.

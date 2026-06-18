@@ -37,8 +37,8 @@ Current rules:
   tools need backend preparation before execution
 - backend owns client-manifest envelope/trust checks, model-facing policy gates,
   provider adaptation, capability narrowing, and backend-native tools
-- backend validates tool arguments only for backend-executed tools; sidecar/local
-  tool payload validation belongs to the frontend/sidecar execution path
+- backend validates tool arguments only for backend-executed tools; local
+  tool payload validation belongs to the SDK/main local execution path
 - frontend/sidecar do not import backend code
 - drift prevention uses explicit parity tests and generated/shared contracts
 

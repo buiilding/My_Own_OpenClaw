@@ -50,7 +50,7 @@ The handler registry owns the exact dispatch table, but the main websocket curre
 | Family | Typical owner | Notes |
 | --- | --- | --- |
 | `query` | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | Starts or continues an agent turn. |
-| `tool-result`, `tool-bundle-result` | `backend/src/api/handlers/tool_result.py` | Returns frontend/sidecar execution results to backend history. |
+| `tool-result`, `tool-bundle-result` | `backend/src/api/handlers/tool_result.py` | Returns SDK/main local execution results to backend history. |
 | `stop-query` | `backend/src/api/handlers/stop_query.py` | Cancels active query work. |
 | `rehydrate-conversation` | `backend/src/api/handlers/rehydrate.py` | Rebuilds backend session state from frontend transcript. |
 | `compact-history` | `backend/src/api/handlers/compact_history.py` | Runs conversation compaction. |

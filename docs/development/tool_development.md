@@ -152,7 +152,7 @@ class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
   `backend/src/tools/remote_tools/` package root has no compatibility export
   surface.
 
-### 4. Implement sidecar execution handler
+### 4. Implement local execution handler
 
 For a built-in tool, create sidecar implementation in
 `frontend/src/main/python/tools/...`.

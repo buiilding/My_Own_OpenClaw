@@ -147,7 +147,7 @@ for each user query:
       emit completion and stop
     if provider yields tool calls:
       prepare executable arguments and emit tool-call events
-      wait for local SDK/main/sidecar results or run backend-owned tools
+      wait for local SDK/main results or run backend-owned tools
       commit tool outputs to backend history
       continue the loop
   emit deterministic limit/error completion on hard stop
@@ -233,8 +233,8 @@ SDK ownership rules:
   plugin, and hosted-client experiences; interaction style is a client choice.
 - Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle
   code in Electron main or renderer facades behind SDK interfaces.
-- Keep sidecar execution and local storage mechanics in the Python sidecar; the
-  SDK coordinates and normalizes them.
+- Keep local execution and local storage mechanics in the Python sidecar; the
+  SDK coordinates and normalizes that implementation.
 - Keep backend model/provider/prompt/tool-policy decisions in the backend; the
   SDK reports local capability but does not grant backend capability.
 - For SDK-authored agents, the client defines the active tool surface from

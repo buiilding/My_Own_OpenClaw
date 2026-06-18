@@ -8,7 +8,7 @@ title: "Safety Boundaries"
 
 # Safety Boundaries
 
-WindieOS safety is split across prompt-visible capabilities, backend validation, frontend permission checks, sidecar execution limits, and platform controls. The model should only see tools and capabilities that the current client can actually execute.
+WindieOS safety is split across prompt-visible capabilities, backend validation, frontend permission checks, local execution limits, and platform controls. The model should only see tools and capabilities that the current client can actually execute.
 
 ## Boundary Layers
 

@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 general local execution routing docs
+
+- Finding: public routing, security, gateway, memory, and diagnostic docs still described the reusable local tool path as sidecar execution or sidecar results after the SDK/main local-runtime boundary became the current public contract.
+- Change: rewrote those docs to use SDK/main local execution and local-runtime result wording while keeping Python sidecar references where they name the concrete local implementation, and broadened frontend boundary coverage across the touched public docs.
+- Validation: focused ModularRefactorCompletionBoundary Jest coverage, docs listing, exact stale-phrase scan for the selected sidecar-execution/result wording, and scoped diff check.
+- Compatibility: no migration required. This changes docs and boundary-test coverage only; runtime behavior, SDK APIs, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 retired desktop-agent test literal hygiene
 
 - Finding: frontend and sidecar boundary tests still embedded retired `desktop-agent` names in test titles, negative assertions, fixture ids, and no-migration checks after active runtime/source surfaces had moved away from that namespace.

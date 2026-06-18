@@ -2,7 +2,7 @@
 summary: "Deep backend browser-tool reference for the strict grouped browser action catalog, model-facing root-object schema emission, and canonical runtime payload semantics."
 read_when:
   - When changing backend browser action literals, grouped browser schema emission, or remote browser payload validation.
-  - When debugging why a browser payload is rejected before sidecar execution.
+  - When debugging why a browser payload is rejected before local execution.
 title: "Browser Remote Schema Surface Reference"
 ---
 

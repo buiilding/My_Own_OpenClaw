@@ -82,7 +82,7 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, the SDK agent runtime returns results to the backend
+After local execution through the sidecar daemon, the SDK agent runtime returns results to the backend
 using the normal `/ws` tool-result path. The renderer receives SDK display rows
 for chat/transcript/overlay state from that local execution path. Backend
 ingests local results for model/history continuation only; it does not echo

@@ -10,7 +10,7 @@ title: "Prompt and Tool Context"
 
 The hosted backend owns model-facing prompt construction. The desktop app contributes context, but it should not decide the final prompt or model-visible tool schema.
 
-Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) when tracing what the model saw versus what the renderer displayed, what Electron main forwarded, or what the sidecar executed.
+Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) when tracing what the model saw versus what the renderer displayed, what Electron main forwarded, or what local execution ran.
 
 ## Prompt Inputs
 

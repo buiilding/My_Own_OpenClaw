@@ -44,7 +44,7 @@ Avoid: changing only the Python tool executor while leaving the model-visible sc
 
 ## Filesystem Or Shell Tool Behavior
 
-Owner: Python sidecar execution with backend/client tool contract parity.
+Owner: SDK/main local execution with Python sidecar implementation and backend/client tool contract parity.
 
 Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), and [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md).
 

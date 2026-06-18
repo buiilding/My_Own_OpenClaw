@@ -322,18 +322,37 @@ describe('modular sdk refactor completion boundary', () => {
   test('tool and security docs describe local tools through local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/architecture/backend_architecture.md'),
+      read('docs/architecture/agent_visible_data_pipeline.md'),
       read('docs/channels/README.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
+      read('docs/concepts/agent_loop.md'),
+      read('docs/concepts/prompt_and_tool_context.md'),
+      read('docs/concepts/safety_boundaries.md'),
+      read('docs/debug/runtime_traces.md'),
+      read('docs/development/agent_architecture_reference.md'),
+      read('docs/development/agent_routing_quick_cards.md'),
+      read('docs/development/agent_runtime_ownership_and_change_routing.md'),
       read('docs/development/mcp.md'),
       read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
+      read('docs/frontend/renderer/renderer_state_change_workflow.md'),
+      read('docs/frontend/sidecar_tool_change_workflow.md'),
+      read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/tool_catalog_and_execution_model.md'),
       read('docs/frontend/sidecar/sidecar_daemon_runtime_reference.md'),
       read('docs/gateway/gateway_troubleshooting.md'),
+      read('docs/gateway/websocket_connection_lifecycle.md'),
       read('docs/getting-started/docs_directory.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/help/diagnostics.md'),
+      read('docs/memory/memory_change_workflow.md'),
       read('docs/plugins/README.md'),
       read('docs/plugins/current_vs_future_plugin_boundary.md'),
+      read('docs/plugins/extension_surface_matrix.md'),
       read('docs/README.md'),
       read('docs/reference/code_change_surface_index.md'),
+      read('docs/reference/openclaw_docs_structure_reference.md'),
+      read('docs/reference/session_and_transcript_reference.md'),
       read('docs/tools/README.md'),
       read('docs/tools/tool_troubleshooting.md'),
       read('docs/tools/tool_schema_policy_change_workflow.md'),
@@ -346,10 +365,43 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/browser.md'),
       read('docs/tools/computer.md'),
       read('docs/sdk/conversation_runtime.md'),
+      read('docs/security/README.md'),
       read('docs/security/security_boundary_matrix.md'),
+      read('docs/security/security_change_playbook.md'),
     ]);
     const docText = docs.join('\n');
     const toolRoutingDocText = (await Promise.all([
+      read('docs/adr/005-frontend-tool-schema-source-of-truth.md'),
+      read('docs/architecture/agent_visible_data_pipeline.md'),
+      read('docs/backend/agent/tool_turn_change_workflow.md'),
+      read('docs/backend/llm/prompts/prompt_context_change_workflow.md'),
+      read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
+      read('docs/backend/tools/frontend_tool_bridge_and_policy.md'),
+      read('docs/backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md'),
+      read('docs/channels/sidecar_and_tool_channels.md'),
+      read('docs/concepts/agent_loop.md'),
+      read('docs/concepts/prompt_and_tool_context.md'),
+      read('docs/concepts/safety_boundaries.md'),
+      read('docs/debug/runtime_traces.md'),
+      read('docs/development/agent_architecture_reference.md'),
+      read('docs/development/agent_routing_quick_cards.md'),
+      read('docs/development/agent_runtime_ownership_and_change_routing.md'),
+      read('docs/development/tool_development.md'),
+      read('docs/frontend/renderer/renderer_state_change_workflow.md'),
+      read('docs/frontend/sidecar_tool_change_workflow.md'),
+      read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/tool_catalog_and_execution_model.md'),
+      read('docs/gateway/websocket_connection_lifecycle.md'),
+      read('docs/getting-started/docs_directory.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/help/diagnostics.md'),
+      read('docs/memory/memory_change_workflow.md'),
+      read('docs/plugins/extension_surface_matrix.md'),
+      read('docs/reference/openclaw_docs_structure_reference.md'),
+      read('docs/reference/session_and_transcript_reference.md'),
+      read('docs/security/README.md'),
+      read('docs/security/security_boundary_matrix.md'),
+      read('docs/security/security_change_playbook.md'),
       read('docs/tools/README.md'),
       read('docs/tools/tool_troubleshooting.md'),
       read('docs/tools/tool_schema_policy_change_workflow.md'),
@@ -374,6 +426,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local Runtime Plugin Tool Registration');
     expect(docText).toContain('SDK local runtime/local executor');
     expect(docText).toContain('local execution contracts');
+    expect(docText).toContain('SDK/main local execution');
+    expect(docText).toContain('local-runtime result');
     expect(docText).not.toContain('SDK desktop agent');
     expect(docText).not.toContain(`SDK desktop-${'agent'}`);
     expect(docText).not.toContain('client-local sidecar tool');
@@ -383,6 +437,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar execution');
     expect(toolRoutingDocText).not.toContain('sidecar-executed');
     expect(toolRoutingDocText).not.toContain('sidecar results');
+    expect(toolRoutingDocText).not.toContain('sidecar result');
+    expect(toolRoutingDocText).not.toContain('what the sidecar executed');
     expect(docText).not.toContain('Windie Agent owns client-local');
     expect(docText).not.toContain('Sidecar Plugin Tool Registration');
     expect(docText).not.toContain('sidecar plugin');

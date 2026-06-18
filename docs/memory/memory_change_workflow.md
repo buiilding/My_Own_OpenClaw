@@ -143,7 +143,7 @@ Validation:
 | `sessionId` / `session_id` | Runtime session identity; do not use as durable conversation identity when `conversationRef` exists. |
 | `conversationRef` / `conversation_id` | Durable conversation/thread identity across transcript, replay, rehydrate, and sidecar storage. |
 | `turn_ref` | Backend turn-scoped correlation for stream/tool events. |
-| tool call ids/request ids | Preserve through transcript, replay, rehydrate, sidecar execution, and backend tool-result history. |
+| tool call ids/request ids | Preserve through transcript, replay, rehydrate, local execution, and backend tool-result history. |
 
 Do not invent new identifiers inside UI components. Use the transcript/session runtime and existing conversation binding helpers.
 

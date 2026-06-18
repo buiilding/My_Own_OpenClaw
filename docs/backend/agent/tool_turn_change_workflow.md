@@ -3,7 +3,7 @@ summary: "Workflow for backend tool-turn changes across model-visible tool calls
 read_when:
   - When changing tool-call parsing, preparation, backend-vs-SDK/main execution routing, tool bundles, request IDs, result waiting, or tool-output history.
   - When a model-visible tool is called but never executes, executes twice, returns to the wrong turn, or corrupts history.
-  - When deciding whether a tool bug belongs in backend schema, agent orchestration, SDK/main dispatch, sidecar execution, or SDK result relay.
+  - When deciding whether a tool bug belongs in backend schema, agent orchestration, SDK/main dispatch, local execution, or SDK result relay.
 title: "Tool Turn Change Workflow"
 ---
 

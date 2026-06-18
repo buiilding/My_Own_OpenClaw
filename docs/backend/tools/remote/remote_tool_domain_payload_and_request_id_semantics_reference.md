@@ -3,7 +3,7 @@ summary: "Deep backend reference for remote tool stubs across computer/system/fi
 read_when:
   - When modifying remote stub classes, request-id generation, or payload serialization rules.
   - When changing concrete remote-tool payload serialization.
-  - When debugging mismatches where backend remote tool payload looks valid but sidecar execution fails or correlates to wrong request.
+  - When debugging mismatches where backend remote tool payload looks valid but local execution fails or correlates to wrong request.
 title: "Remote Tool Domain Payload and Request-ID Semantics Reference"
 ---
 
@@ -178,7 +178,7 @@ This enforces backend-side parse constraints before remote envelope creation.
 
 Runtime boundary reminder:
 
-- backend validation success does not guarantee sidecar execution success; sidecar may apply stricter action-specific runtime checks
+- backend validation success does not guarantee local execution success; the sidecar may apply stricter action-specific runtime checks
 
 ## Debug Checklist
 

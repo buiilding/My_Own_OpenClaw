@@ -8,7 +8,7 @@ title: "Frontend Tool Bridge and Policy"
 
 # Frontend Tool Bridge and Policy
 
-WindieOS backend does not execute most tools directly. It exposes tool schemas and waits for frontend/sidecar execution results.
+WindieOS backend does not execute most tools directly. It exposes tool schemas and waits for SDK/main local execution results.
 
 ## Registry and Orchestration
 

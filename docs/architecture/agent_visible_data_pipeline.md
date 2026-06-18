@@ -1,7 +1,7 @@
 ---
 summary: "Agent-visible WindieOS data pipeline map showing what the model sees, what each transport carries, where payloads are transformed, and where unnecessary layers or contract drift should be questioned."
 read_when:
-  - When debugging a mismatch between what the model saw, what it emitted, what the UI displayed, what the sidecar executed, and what returned to backend history.
+  - When debugging a mismatch between what the model saw, what it emitted, what the UI displayed, what local execution ran, and what returned to backend history.
   - When evaluating whether a prompt, tool schema, websocket event, IPC payload, JSON-RPC mapper, transcript row, or history row is an unnecessary layer or a justified runtime boundary.
   - When changing query input, prompt context, tool schemas, tool calls, tool results, transcript replay, or transparency events across backend, Electron main, renderer, preload, and sidecar.
 title: "Agent-Visible Data Pipeline"

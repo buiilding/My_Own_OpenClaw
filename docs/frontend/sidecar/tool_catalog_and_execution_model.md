@@ -78,7 +78,7 @@ Current runtime note:
 
 - the live sidecar registry exposes 14 direct tool names
 - `computer_use` and `system_use` are not registered sidecar tools in `frontend/src/main/python/tools/registry.py`
-- wrapper-shaped artifacts still exist under `model-facing/`, but they are not part of the current sidecar execution path
+- wrapper-shaped artifacts still exist under `model-facing/`, but they are not part of the current local execution path
 
 ## Schema Definitions and Validation Boundary
 

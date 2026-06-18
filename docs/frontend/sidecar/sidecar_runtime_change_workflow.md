@@ -45,7 +45,7 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 2. **Check Electron bridge ownership.** If renderer/main payload mapping changes, read [Main Process Change Workflow](../main/main_process_change_workflow.md) and update bridge tests with sidecar tests.
 3. **Keep sidecar runtime and model-facing contracts aligned deliberately.** For tool changes, read [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
 4. **Update the owner module first.** Fix registry/method/tool/storage/platform code at the owner layer before adding tolerance in callers.
-5. **Normalize errors at the boundary.** Convert local exceptions into sidecar result errors or JSON-RPC errors with useful but non-secret messages.
+5. **Normalize errors at the boundary.** Convert local exceptions into local-runtime result errors or JSON-RPC errors with useful but non-secret messages.
 6. **Add focused sidecar tests.** Prefer unit tests around the exact tool, method, memory helper, browser contract, or platform adapter.
 7. **Update docs and changelog.** Link new sidecar surfaces from this workflow and the relevant sub-hub.
 

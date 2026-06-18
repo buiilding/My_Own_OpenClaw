@@ -55,7 +55,7 @@ Do not patch the first failing UI symptom until you know whether the producer co
 
 For cross-runtime failures, capture at least one producer-side signal and one
 consumer-side signal before deciding ownership. Examples include a backend
-websocket event plus renderer handling, an SDK tool dispatch plus sidecar result,
+websocket event plus renderer handling, an SDK tool dispatch plus local result,
 or an Electron main diagnostic row plus renderer surface state. If one side is
 missing evidence, treat that absence as the next diagnostic target rather than
 as proof that the other side is wrong.

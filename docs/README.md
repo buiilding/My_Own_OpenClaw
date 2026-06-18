@@ -129,7 +129,7 @@ contracts.
 - [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, sidecar memory, semanticization, backend history, and compaction changes
 - [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Change workflow for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, resume, rehydrate, and stale-stream routing
 - [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Change workflow for transcript writes, pending queues, dashboard replay/resume, sidecar transcript storage, backend rehydrate payloads, and tool-row reconstruction
-- [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
+- [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and local execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes
 - [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
@@ -170,7 +170,7 @@ contracts.
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
 - [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
-- [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, sidecar execution, sudo policy, sessions, results, and tests
+- [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
 - [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, frontend settings, and tests
 - [**Model Catalog Change Workflow**](providers/model_catalog_change_workflow.md) - Add/change model entries, capability flags, routing metadata, picker behavior, and validation
@@ -363,7 +363,7 @@ contracts.
 - [**Backend Tool Policy + Agent Capability Runtime**](backend/tools/policy/tool_policy_and_agent_capability_runtime_reference.md) - `ToolPolicy` + `ToolSelection` precedence rules, mouse schema pruning, parser method validation, and OCR/vision startup gating behavior
 - [**Backend Remote Tool Domain Payload + Request-ID Runtime**](backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md) - Domain stub matrix (computer/system/filesystem/browser), request-id sourcing/override behavior, and payload model_dump differences
 - [**Backend Query Lifecycle Change Workflow**](backend/runtime/query_lifecycle_change_workflow.md) - Owner routing for query ingress, active-task cancellation, stream completion, TTS, agent loop, and frontend event consumers
-- [**Backend Tool Turn Change Workflow**](backend/agent/tool_turn_change_workflow.md) - Owner routing for model-visible tool schemas, tool-call parsing, preparation, dispatch, waiting, history, and frontend/sidecar execution contracts
+- [**Backend Tool Turn Change Workflow**](backend/agent/tool_turn_change_workflow.md) - Owner routing for model-visible tool schemas, tool-call parsing, preparation, dispatch, waiting, history, and SDK/main local execution contracts
 - [**Backend Query Execution Pipeline**](backend/runtime/query_execution_and_stream_pipeline_reference.md) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
 - [**Backend API Handlers Hub**](backend/api/handlers/README.md) - Sub-hub for typed websocket handler contracts and query/non-query execution ownership boundaries
 - [**Backend API Services Hub**](backend/api/services/README.md) - Sub-hub for query/rehydrate/wakeword service-layer orchestration and shared API TTS-session lifecycle boundaries

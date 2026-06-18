@@ -31,7 +31,7 @@ Do not patch prompt problems in renderer display code or sidecar runtime argumen
 - Backend prompt construction is the source of truth for what the model sees.
 - Renderer transparency panels should display backend-emitted prompt metadata, not reconstruct prompt state locally.
 - Sidecar executable tool schemas are not model-facing prompt schemas. Keep parity through tests, not imports.
-- Do not expose a tool/capability field unless the active backend policy, provider projection, parser path, and frontend/sidecar execution path support it.
+- Do not expose a tool/capability field unless the active backend policy, provider projection, parser path, and SDK/main local execution path support it.
 - Repo instruction order must stay broad-to-specific so nested instructions can override parent guidance.
 - Do not hand-edit generated prompt/schema artifacts when a live generation path exists; regenerate them from the prompt path and document the command used.
 - Prompt metadata events should stay deterministic and first-iteration-only unless the interaction-loop contract intentionally changes.
