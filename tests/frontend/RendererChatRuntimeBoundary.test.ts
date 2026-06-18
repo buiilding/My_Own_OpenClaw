@@ -364,6 +364,21 @@ describe('renderer chat runtime boundary', () => {
     expect(artifactClientSource).toContain('buildRuntimeArtifactUrl');
   });
 
+  test('chat startup mode reads through app runtime client', async () => {
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const startupClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(chatInterfaceSource).toContain('DesktopStartupRuntimeClient.isVmModeEnabled');
+    expect(chatInterfaceSource).not.toContain('infrastructure/runtime/vmMode');
+    expect(startupClientSource).toContain('isVmModeEnabled');
+  });
+
   test('dashboard conversation hook subscribes through app runtime conversation event client', async () => {
     const dashboardHookSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),

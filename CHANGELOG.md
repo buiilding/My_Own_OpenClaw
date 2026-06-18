@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: route chat screenshot artifact URL presentation through the
   desktop artifact runtime client instead of importing the runtime endpoint
   store from chat feature code.
+- renderer/runtime: route VM-mode startup checks in app/chat surfaces through a
+  renderer app startup runtime client instead of importing the URL parser
+  helper directly.
 - sdk/runtime: prefer generic `AGENT_BACKEND_URL`, `AGENT_INSTALL_TOKEN`,
   `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`, `AGENT_LOCAL_RUNTIME_PYTHON`, and
   `AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` env names in TypeScript/Python

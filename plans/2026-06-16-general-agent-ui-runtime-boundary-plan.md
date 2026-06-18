@@ -7925,3 +7925,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime endpoint normalization,
   artifact URL shape, artifact image fetch IPC, context-menu IPC, persisted
   screenshot refs, and replay behavior are unchanged.
+
+### 2026-06-18 renderer startup mode runtime client boundary
+
+- Finding: renderer app startup and chat surface code still imported the
+  URL-query VM-mode helper directly, leaving root/feature surfaces aware of the
+  low-level startup mode parser instead of the app runtime boundary.
+- Change: added `DesktopStartupRuntimeClient.isVmModeEnabled(...)` as the
+  renderer app runtime facade over the URL-derived VM-mode helper and routed
+  `App` plus `ChatInterface` through it.
+- Validation: focused app VM/onboarding and renderer chat boundary Jest
+  coverage, direct app/chat VM-mode helper scans, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. The `vm_mode=1` query contract,
+  startup surface selection, dashboard VM-mode prop, onboarding bypass, and
+  window startup commands are unchanged.

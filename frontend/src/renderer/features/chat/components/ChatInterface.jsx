@@ -38,7 +38,7 @@ import { useConversationReplayActions } from '../hooks/useConversationReplayActi
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
-import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
+import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
   areWorkspaceBindingsEqual,
@@ -68,7 +68,7 @@ function workspaceStateMatches(currentWorkspace, nextWorkspace) {
 }
 
 function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }) {
-  const vmModeEnabled = isVmModeEnabled();
+  const vmModeEnabled = DesktopStartupRuntimeClient.isVmModeEnabled();
 
   const {
     messages,

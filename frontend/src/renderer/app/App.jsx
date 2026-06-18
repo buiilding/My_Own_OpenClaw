@@ -8,8 +8,8 @@ import DashboardShell from '../features/dashboard/components/DashboardShell';
 import DesktopOnboardingSlideshow from '../features/onboarding/components/DesktopOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
-import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import { selectStartupSurface } from './startupSurface';
+import { DesktopStartupRuntimeClient } from './runtime/desktopStartupRuntimeClient';
 import { DesktopWindowRuntimeClient } from './runtime/desktopWindowRuntimeClient';
 import { AppProvider } from './providers/AppProvider';
 import { useAppConfigContext } from './providers/AppConfigContext';
@@ -50,7 +50,7 @@ function DashboardStartupSurface({
  */
 function AppContent() {
   const { config, availableModels, updateConfig } = useAppConfigContext();
-  const vmModeEnabled = isVmModeEnabled();
+  const vmModeEnabled = DesktopStartupRuntimeClient.isVmModeEnabled();
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
   const onboardingCompleted = usePermissionStore((state) => state.onboardingState?.completed === true);

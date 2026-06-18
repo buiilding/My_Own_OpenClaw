@@ -9,8 +9,10 @@ const mockBootstrapPermissions = jest.fn();
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
 const mockWakewordController = jest.fn(() => null);
 
-jest.mock('../../frontend/src/renderer/infrastructure/runtime/vmMode', () => ({
-  isVmModeEnabled: () => true,
+jest.mock('../../frontend/src/renderer/app/runtime/desktopStartupRuntimeClient', () => ({
+  DesktopStartupRuntimeClient: {
+    isVmModeEnabled: () => true,
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/DashboardShell', () => (props) => (

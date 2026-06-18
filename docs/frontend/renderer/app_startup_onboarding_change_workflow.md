@@ -37,7 +37,7 @@ gate state, and main-process surface visibility.
 | --- | --- | --- |
 | App opens onboarding vs dashboard vs chat pill incorrectly | `frontend/src/renderer/app/App.jsx`, `frontend/src/renderer/app/startupSurface.js`, `frontend/src/renderer/features/permissions/stores/permissionStore.js` | `tests/frontend/startupSurface.test.js`, `tests/frontend/AppPermissionGate.test.jsx`, `tests/frontend/AppVmMode.test.jsx` |
 | `view=` route loads wrong renderer app | `frontend/src/renderer/app/main.jsx`, Electron window loader/runtime files | `tests/frontend/MainWindowOverlayRuntime.test.cjs`, renderer provider/view routing tests |
-| VM mode shows onboarding or overlays | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs`, `frontend/src/renderer/infrastructure/runtime/vmMode.js`, `App.jsx` | `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/AppVmMode.test.jsx`, `tests/frontend/startupSurface.test.js` |
+| VM mode shows onboarding or overlays | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs`, `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`, `frontend/src/renderer/infrastructure/runtime/vmMode.js`, `App.jsx` | `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/AppVmMode.test.jsx`, `tests/frontend/startupSurface.test.js` |
 | Onboarding completion does not persist or resets unexpectedly | `frontend/src/renderer/features/permissions/utils/permissionStorage.js`, `permissionStore.js` | `tests/frontend/PermissionStorage.test.js`, `tests/frontend/permissionStore.test.js` |
 | Permission slides/progression are wrong | `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`, `PermissionOnboardingSlide.jsx`, `StopShortcutOnboardingSlide.jsx`, `utils/onboardingSlides.js` | `tests/frontend/DesktopOnboardingSlideshow.test.jsx`, `tests/frontend/onboardingSlides.test.js` |
 | Restart onboarding from Settings opens wrong surface | `SettingsSection.jsx`, `settings/OnboardingSettingsTab.jsx`, main-window open-target IPC | `tests/frontend/SettingsSection.test.jsx`, surface/open-target tests |
@@ -104,6 +104,7 @@ Read:
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/startupSurface.js`
+- `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/app/WakewordController.jsx`
 

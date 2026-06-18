@@ -16,8 +16,10 @@ const mockPermissionState = {
   },
 };
 
-jest.mock('../../frontend/src/renderer/infrastructure/runtime/vmMode', () => ({
-  isVmModeEnabled: () => false,
+jest.mock('../../frontend/src/renderer/app/runtime/desktopStartupRuntimeClient', () => ({
+  DesktopStartupRuntimeClient: {
+    isVmModeEnabled: () => false,
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/DashboardShell', () => (props) => (

@@ -13,6 +13,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/startupSurface.js`
+- `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
@@ -44,7 +45,7 @@ step.
 
 `AppContent` resolves startup destination through `selectStartupSurface(...)`, which centralizes the two gates:
 
-1. VM mode gate (`isVmModeEnabled()`)
+1. VM mode gate (`DesktopStartupRuntimeClient.isVmModeEnabled()`)
 2. permission onboarding gate (`permissionStore.needsOnboarding`)
 
 Routing behavior:
@@ -75,7 +76,8 @@ Pre-bootstrap startup behavior:
 
 ## VM Mode Detection Contract
 
-`isVmModeEnabled()` is renderer-URL based:
+`DesktopStartupRuntimeClient.isVmModeEnabled()` is renderer-URL based through
+`infrastructure/runtime/vmMode.js`:
 
 - reads `window.location.search`
 - returns true only when query parameter `vm_mode=1` is present
