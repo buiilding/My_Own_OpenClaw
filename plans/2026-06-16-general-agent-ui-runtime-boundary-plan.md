@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 tool-system sidecar daemon diagram wording
+
+- Finding: the tool-system architecture diagram still labeled the local tool
+  executor box as a generic Python sidecar even though the active local-runtime
+  process boundary is the sidecar daemon.
+- Change: updated the diagram label to Python Sidecar Daemon while retaining
+  the already-correct `HTTP /rpc` transport wording.
+- Validation: docs listing, scoped diff check, and focused diagram wording scan.
+- Compatibility: no migration required. Documentation-only cleanup; tool
+  execution, schemas, RPC payloads, credentials, permissions, storage, and event
+  payloads are unchanged.
+
 ### 2026-06-18 architecture docs sidecar daemon boundary wording
 
 - Finding: architecture docs still presented `local_backend.py` as the sidecar
