@@ -76,6 +76,8 @@ describe('@windie/sdk package boundary', () => {
     expect(createManagedAgentSession).toBeDefined();
     expect(AgentSession).toBeDefined();
     expect(AgentChatSession).toBeDefined();
+    expect(AgentChatSession.prototype.onEvent).toBeDefined();
+    expect('onConversationEvent' in AgentChatSession.prototype).toBe(false);
     expect(createAgentLocalRuntimeProvider).toBeDefined();
     expect(isDefaultAgentDefinition({ mode: 'default' })).toBe(true);
     expect(buildDisplayConversation).toBeDefined();

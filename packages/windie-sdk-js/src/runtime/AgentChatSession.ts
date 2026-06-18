@@ -3,7 +3,6 @@
  */
 
 import type {
-  ConversationEvent,
   DisplayConversation,
   RehydrateSnapshot,
 } from '../conversation/types.js';
@@ -92,9 +91,5 @@ export class AgentChatSession {
 
   close(): void {
     this.runtime.close();
-  }
-
-  onConversationEvent(listener: (event: ConversationEvent, snapshot: ConversationSnapshot) => void): () => void {
-    return this.onEvent(listener);
   }
 }

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK chat session listener alias removal
+
+- Finding: `AgentChatSession` exposed both the canonical `onEvent` subscriber
+  and a duplicate `onConversationEvent` method alias, keeping an unnecessary
+  compatibility surface on the reusable SDK chat API.
+- Change: removed the alias from the TypeScript and generated CommonJS runtime
+  files and added package-boundary coverage that `onEvent` remains exported
+  while `onConversationEvent` stays absent.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK docs route lookup,
+  and stale `onConversationEvent` scan.
+- Compatibility: no migration required for current code. Exact scans found no
+  callers; conversation event subscription behavior through `onEvent` is
+  unchanged.
+
 ### 2026-06-18 renderer wakeword capture guard runtime key
 
 - Finding: the renderer wakeword capture guard still persisted its private

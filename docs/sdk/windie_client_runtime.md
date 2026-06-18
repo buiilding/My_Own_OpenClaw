@@ -142,7 +142,9 @@ Electron must not reimplement SDK behavior separately.
 `agent.chat(...)` returns the generic `AgentChatSession` convenience wrapper
 over `SdkConversationRuntime`. `AgentChatSession.ts` is the canonical chat
 session module; the old Windie-prefixed chat session module has been removed so
-host code uses the `AgentChat*` names directly.
+host code uses the `AgentChat*` names directly. Chat-session event subscribers
+use `AgentChatSession.onEvent(...)`; duplicate event-listener method aliases are
+not part of the SDK surface.
 Likewise, public agent API option and result shapes use generic `Agent*` names
 such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
 `AgentMemoryQuery`, and `AgentStoreMemoryInput`. Client-level runtime options

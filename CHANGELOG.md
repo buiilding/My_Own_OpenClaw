@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove the duplicate `AgentChatSession.onConversationEvent(...)`
+  listener alias so chat sessions expose `onEvent(...)` as the single event
+  subscription method; SDK callers using the removed alias must call `onEvent`,
+  with no persisted-data, wire-protocol, or runtime-payload migration required.
 - frontend/renderer: rename the private wakeword capture guard global from
   `__desktopAgentWakewordCaptureGuard` to
   `__desktopRuntimeWakewordCaptureGuard` and align wakeword docs/tests; no

@@ -62,8 +62,5 @@ class AgentChatSession {
     close() {
         this.runtime.close();
     }
-    onConversationEvent(listener) {
-        return this.onEvent(listener);
-    }
 }
 exports.AgentChatSession = AgentChatSession;
