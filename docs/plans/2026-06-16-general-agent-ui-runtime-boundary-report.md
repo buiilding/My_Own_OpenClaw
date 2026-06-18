@@ -744,6 +744,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   display, settings payloads, permissions, credentials, and storage are
   unchanged.
 
+### 2026-06-18 SDK Continuity Metadata Source Event Slice
+
+- Finding: `ConversationMetadataInvalidationEvent` exposed the originating
+  local-runtime title update through a `rawEvent` diagnostic field, even though
+  the continuity service event is a public SDK surface and the source is a
+  local-runtime event rather than a backend raw event contract.
+- Decision: keep the source event available for diagnostics, but rename the
+  field to `sourceEvent` and remove the raw-prefixed field instead of keeping a
+  compatibility alias.
+- Change: updated TypeScript SDK and checked-in CJS parity; focused continuity
+  service coverage now asserts `sourceEvent` is present and `rawEvent` is not.
+- Validation: focused SDK continuity-service Jest coverage, targeted stale
+  continuity `rawEvent` scan, docs listing, and `git diff --check` passed.
+- Compatibility: intentional SDK metadata field rename. No storage or runtime
+  migration is required; local-runtime title update payloads, conversation
+  metadata invalidation behavior, renderer subscription flow, transcript
+  storage, backend websocket events, IPC channels, credentials, permissions,
+  and provider policy are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

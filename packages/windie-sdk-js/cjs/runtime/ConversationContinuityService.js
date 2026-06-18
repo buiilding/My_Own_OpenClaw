@@ -41,7 +41,7 @@ function conversationMetadataInvalidationFromLocalRuntimeEvent(event) {
         conversationRef: optionalString(payload.conversation_id),
         title: optionalString(payload.title),
         source: optionalString(payload.source),
-        rawEvent: event,
+        sourceEvent: event,
     };
 }
 class ConversationContinuityService {

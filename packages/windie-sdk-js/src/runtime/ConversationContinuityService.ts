@@ -36,7 +36,7 @@ export type ConversationMetadataInvalidationEvent = {
   conversationRef?: string | null;
   title?: string | null;
   source?: string | null;
-  rawEvent?: JsonRecord;
+  sourceEvent?: JsonRecord;
 };
 
 export type ConversationMetadataInvalidationListener = (
@@ -117,7 +117,7 @@ export function conversationMetadataInvalidationFromLocalRuntimeEvent(
     conversationRef: optionalString(payload.conversation_id),
     title: optionalString(payload.title),
     source: optionalString(payload.source),
-    rawEvent: event,
+    sourceEvent: event,
   };
 }
 

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK continuity metadata source event boundary
+
+- Finding: SDK `ConversationMetadataInvalidationEvent` exposed the originating
+  local-runtime title update as `rawEvent`, carrying raw backend-style
+  vocabulary into the public continuity service event shape.
+- Change: renamed that diagnostic field to `sourceEvent` in TypeScript SDK and
+  checked-in CJS parity, with focused continuity-service coverage proving the
+  old field is absent.
+- Validation: focused SDK continuity-service Jest coverage, targeted stale
+  continuity `rawEvent` scan, docs listing, and diff check.
+- Compatibility: intentional SDK metadata field rename. No storage or runtime
+  migration is required; local-runtime title update payloads, conversation
+  metadata invalidation behavior, renderer subscription flow, transcript
+  storage, backend websocket events, IPC channels, credentials, permissions,
+  and provider policy are unchanged.
+
 ### 2026-06-18 backend/tool inventory local-runtime wording boundary
 
 - Finding: tool lifecycle docs and backend inventory docs still described

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: rename conversation metadata invalidation diagnostics from `rawEvent` to
+  `sourceEvent` so continuity events expose source-local-runtime metadata
+  without raw backend terminology.
 - docs/backend/tools: align tool lifecycle and backend inventory wording with
   SDK/main/local-runtime execution and client settings ownership instead of
   stale frontend-owned result routing and tool execution phrasing.

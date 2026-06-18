@@ -305,7 +305,11 @@ describe('ConversationContinuityService', () => {
       conversationRef: 'conv-title',
       title: 'Generated title',
       source: 'model',
+      sourceEvent: expect.objectContaining({
+        type: 'conversation-title-updated',
+      }),
     }));
+    expect(onInvalidation.mock.calls[0][0]).not.toHaveProperty('rawEvent');
     cleanup();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
