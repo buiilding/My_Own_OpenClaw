@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/config: route renderer config merge sanitization through the
+  frontend-owned allowlist instead of a stale field-specific drop; no migration
+  is required because unknown persisted fields were already excluded by storage
+  normalization and Electron disk redaction still strips secrets at the IPC
+  boundary.
 - docs/sidecar: update the frontend Python folder-structure source map to show
   `sidecar_daemon.py` as the SDK local-runtime entrypoint and `/rpc` as the
   active JSON-RPC transport; no migration is required because this changes docs

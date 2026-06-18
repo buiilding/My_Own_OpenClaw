@@ -3,6 +3,7 @@
  */
 
 import { hasShallowConfigChanges } from './configComparison';
+import { filterFrontendConfig } from '../../utils/configFilter';
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -56,8 +57,7 @@ export function sanitizeFrontendProviderConfig(config) {
     return {};
   }
 
-  const sanitized = sanitizeObjectValues(config);
-  delete sanitized.provider_oauth;
+  const sanitized = sanitizeObjectValues(filterFrontendConfig(config));
   if (isPlainObject(sanitized.provider_api_keys)) {
     const providerApiKeys = {};
     for (const [provider, entry] of Object.entries(sanitized.provider_api_keys)) {

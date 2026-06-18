@@ -214,42 +214,30 @@ describe('configStorage', () => {
     });
   });
 
-  test('loadConfigFromStorage drops stale provider_oauth values', () => {
+  test('loadConfigFromStorage drops unknown persisted values', () => {
     localStorage.setItem(
       CONFIG_KEY,
       JSON.stringify({
-        provider_oauth: {
-          openai_codex: {
-            connected: true,
-            access_token: 'codex-access',
-            refresh_token: 'codex-refresh',
-            expires_at: 12345,
-            profile_id: 'openai-codex:default',
-          },
+        backend_only_state: {
+          token: 'runtime-token',
         },
       }),
     );
 
     const result = loadConfigFromStorage();
-    expect(result.provider_oauth).toBeUndefined();
+    expect(result.backend_only_state).toBeUndefined();
     expect(result).toEqual(DEFAULT_FRONTEND_CONFIG);
   });
 
-  test('saveConfigToStorage strips provider secrets and drops stale OAuth from localStorage', () => {
+  test('saveConfigToStorage strips provider secrets and drops unknown fields from localStorage', () => {
     const ok = saveConfigToStorage({
       ...DEFAULT_FRONTEND_CONFIG,
       provider_api_keys: {
         ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
         openai: { enabled: true, api_key: 'sk-openai' },
       },
-      provider_oauth: {
-        openai_codex: {
-          connected: true,
-          access_token: 'codex-access',
-          refresh_token: 'codex-refresh',
-          expires_at: 12345,
-          profile_id: 'openai-codex:default',
-        },
+      backend_only_state: {
+        token: 'runtime-token',
       },
     });
 
@@ -259,10 +247,9 @@ describe('configStorage', () => {
       enabled: true,
       api_key: '',
     });
-    expect(stored.provider_oauth).toBeUndefined();
+    expect(stored.backend_only_state).toBeUndefined();
     expect(JSON.stringify(stored)).not.toContain('sk-openai');
-    expect(JSON.stringify(stored)).not.toContain('codex-access');
-    expect(JSON.stringify(stored)).not.toContain('codex-refresh');
+    expect(JSON.stringify(stored)).not.toContain('runtime-token');
   });
 
   test('loadConfigFromStorage clears invalid JSON', () => {

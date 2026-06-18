@@ -107,7 +107,6 @@ Load semantics (`loadConfigFromStorage`):
 - the old hardcoded OpenAI selected-model migration map
   (`LEGACY_MODEL_ID_MIGRATIONS`) was removed; config storage does not rewrite
   stale `gpt-5` ids to newer catalog ids during localStorage load
-- stale `provider_oauth` values from the removed desktop OAuth path are dropped
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
 - stored localStorage provider secrets are normalized to empty strings on read
 
@@ -132,6 +131,7 @@ Electron frontend-config persistence are scrubbed.
 `sanitizeFrontendProviderConfig`:
 
 - returns `{}` for non-plain objects
+- applies the frontend-owned config allowlist
 - drops keys whose value is `undefined`
 
 `mergeFrontendProviderConfig(base, patch)`:

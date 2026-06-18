@@ -16,6 +16,7 @@ describe('appConfigPersistence', () => {
         speech_mode_enabled: true,
         include_query_screenshot: undefined,
         selected_model_id: 'model-a',
+        backend_only_state: 'drop-me',
       }),
     ).toEqual({
       speech_mode_enabled: true,
@@ -141,37 +142,27 @@ describe('appConfigPersistence', () => {
     });
   });
 
-  test('mergeFrontendProviderConfig drops stale provider_oauth entries', () => {
+  test('mergeFrontendProviderConfig drops unknown config fields through the frontend allowlist', () => {
     expect(
       mergeFrontendProviderConfig(
         {
-          provider_oauth: {
-            openai_codex: { connected: true, access_token: 'base-token', profile_id: 'openai-codex:default' },
-          },
+          backend_only_state: { token: 'base-token' },
         },
         {
-          provider_oauth: {
-            openai_codex: { connected: false, access_token: '' },
-          },
+          sidecar_only_state: { token: 'patch-token' },
         },
       ),
     ).toEqual({});
   });
 
-  test('buildFrontendConfigPersistencePayload redacts provider secrets and drops stale OAuth', () => {
+  test('buildFrontendConfigPersistencePayload redacts provider secrets and drops unknown fields', () => {
     expect(
       buildFrontendConfigPersistencePayload({
         provider_api_keys: {
           openai: { enabled: true, api_key: 'sk-openai' },
         },
-        provider_oauth: {
-          openai_codex: {
-            connected: true,
-            access_token: 'access-token',
-            refresh_token: 'refresh-token',
-            expires_at: 12345,
-            profile_id: 'openai-codex:default',
-          },
+        backend_only_state: {
+          access_token: 'access-token',
         },
       }),
     ).toEqual({

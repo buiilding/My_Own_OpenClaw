@@ -23,8 +23,8 @@ describe('configFilter', () => {
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
       },
-      provider_oauth: {
-        openai_codex: { connected: true, access_token: 'token' },
+      backend_only_state: {
+        access_token: 'token',
       },
       appearance_mode: 'system',
       appearance_theme: {
