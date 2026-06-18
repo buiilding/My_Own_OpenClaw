@@ -136,7 +136,7 @@ Behavior:
 Conversation identity:
 
 - `AgentSession._switch_conversation_ref(...)` resets history when thread changes.
-- `rehydrate_conversation(...)` replaces history from frontend transcript snapshot.
+- `rehydrate_conversation(...)` replaces history from SDK-projected conversation snapshot entries.
 
 System state:
 

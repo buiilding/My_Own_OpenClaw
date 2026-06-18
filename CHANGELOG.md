@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: align source and docs wording with SDK-projected
+  conversation snapshots instead of stale frontend transcript ownership; no
+  migration is required because websocket schemas, stored rows, and history
+  replacement behavior are unchanged.
 - backend/tools: align tool-result receiver and API handler wording with
   SDK/local-runtime result ingress instead of stale frontend result ownership;
   no migration is required because method names and websocket payloads are

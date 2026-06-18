@@ -86,7 +86,7 @@ Functionality:
 - `stop_query`: cancels active query task by user and emits stop semantics.
 - `tool_result`: ingests tool/synthetic/bundle results from frontend.
 - `settings`: load/update frontend-owned settings and model list retrieval.
-- `rehydrate`: replaces conversation history from frontend transcript snapshot.
+- `rehydrate`: replaces conversation history from SDK-projected snapshot entries.
 - `wakeword`: handles wakeword-triggered entry flow.
 - `compact_history`: manual compaction trigger path.
 

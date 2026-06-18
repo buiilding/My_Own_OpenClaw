@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class RehydrateExecutionService:
-    """Rebuild session conversation history from frontend transcript snapshot."""
+    """Rebuild session conversation history from an SDK rehydrate snapshot."""
 
     def __init__(self, session_manager: "SessionManager") -> None:
         self._session_manager = session_manager

@@ -356,7 +356,7 @@ class AgentSession:
             return
 
         logger.debug(f"Interaction completion for session {self.session_id}")
-        # Memory storage is now handled by the frontend
+        # Durable memory storage is coordinated outside the hosted session runtime.
 
     async def update_config(self, new_cfg: AppConfig) -> None:
         """
@@ -515,7 +515,7 @@ class AgentSession:
         conversation_ref: str,
         entries: List[Dict[str, Any]],
     ) -> None:
-        """Replace in-memory history with frontend-provided transcript snapshot."""
+        """Replace in-memory history with SDK-projected snapshot entries."""
         async with self._lock:
             self.runtime.active_conversation_ref = conversation_ref
             self.history.replace_with_entries(entries)

@@ -178,7 +178,7 @@ Current expectation after the multi-conversation refactor:
 `rehydrate_conversation(conversation_ref, entries)`:
 
 - sets active conversation ref
-- replaces history from frontend snapshot (`replace_with_entries`)
+- replaces history from SDK-projected snapshot entries (`replace_with_entries`)
 
 ## Runtime Config Rewire (`SessionConfigRuntime.apply`)
 

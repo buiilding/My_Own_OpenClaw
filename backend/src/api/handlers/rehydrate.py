@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class RehydrateConversationHandler(TypedMessageHandler[RehydrateConversationMessage]):
-    """Apply a frontend transcript snapshot to backend in-memory history."""
+    """Apply an SDK conversation snapshot to backend in-memory history."""
 
     message_model = RehydrateConversationMessage
 

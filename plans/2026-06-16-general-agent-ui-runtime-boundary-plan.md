@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend rehydrate SDK snapshot wording
+
+- Finding: backend rehydrate handler/service/session docstrings and nearby
+  backend docs still described resume state as a frontend transcript snapshot
+  even though the SDK conversation runtime owns the durable rehydrate
+  projection.
+- Change: reworded backend rehydrate source/docs around SDK conversation
+  snapshots and SDK-projected snapshot entries, renamed the focused rehydrate
+  test label away from UI transcript rows, and added a backend source/doc guard
+  for the retired frontend transcript phrases.
+- Validation: import-light backend source/doc guard, backend py_compile, docs
+  listing, stale phrase scan, and diff check. Broader rehydrate/API pytest was
+  attempted but could not collect because the `jarvis` conda env is unavailable
+  and fallback Python lacks `fastapi`.
+- Compatibility: no migration required. This changes wording/tests only;
+  websocket message schemas, stored history rows, screenshot refs, credentials,
+  permissions, and hosted history replacement behavior are unchanged.
+
 ### 2026-06-18 backend local tool-result ingress method names
 
 - Finding: backend session and tool waiting handler still exposed

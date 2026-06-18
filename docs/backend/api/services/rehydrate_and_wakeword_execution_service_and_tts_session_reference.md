@@ -28,7 +28,7 @@ Flow:
 
 1. get/create session
 2. optionally build artifact store from backend config
-3. normalize each frontend transcript entry (shared normalizer)
+3. normalize each SDK conversation snapshot entry (shared normalizer)
 4. validate tool linkage with `RehydrateToolLinkageState`
 5. reject transcripts that leave unanswered pending tool calls
 6. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`

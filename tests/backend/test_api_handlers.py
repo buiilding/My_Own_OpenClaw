@@ -2543,7 +2543,7 @@ async def test_rehydrate_handler_rebuilds_tool_linkage_for_resumed_transcript():
 
 
 @pytest.mark.asyncio
-async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
+async def test_rehydrate_handler_preserves_supported_sdk_rehydrate_rows():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     handler = RehydrateConversationHandler(session_manager)

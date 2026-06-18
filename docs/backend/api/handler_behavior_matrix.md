@@ -42,7 +42,7 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 
 ### `RehydrateConversationHandler`
 
-- applies frontend transcript snapshot into backend in-memory session history
+- applies SDK conversation snapshot entries into backend in-memory session history
 - delegates to `RehydrateExecutionService`
 
 ### `ToolResultHandler`
