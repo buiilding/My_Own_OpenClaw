@@ -81,7 +81,7 @@ describe('assistant runtime trace logging', () => {
     expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('private output');
   });
 
-  test('logs frontend query, backend connection, and settings as compact lines', () => {
+  test('logs renderer query, backend connection, and settings as compact lines', () => {
     const messages = [];
     const appendIpcBridgeDiagnostic = jest.fn();
     const tracer = createElectronMainTraceLogger({
@@ -94,7 +94,7 @@ describe('assistant runtime trace logging', () => {
       type: 'open',
       handshake: { user_id: 'user-1' },
     });
-    tracer.traceFrontendQuery({
+    tracer.traceRendererQuery({
       queryMessageId: 'turn-1',
       conversationRef: 'conv-1',
       payload: {
@@ -115,7 +115,7 @@ describe('assistant runtime trace logging', () => {
 
     expect(messages).toEqual([
       '[ElectronTrace] backend connection.open connected=true user=user-1',
-      '[ElectronTrace] frontend query.send turn=turn-1 conv=conv-1 text_len=20 resources=1',
+      '[ElectronTrace] renderer query.send turn=turn-1 conv=conv-1 text_len=20 resources=1',
       '[ElectronTrace] settings update.send source=renderer id=settings-1 keys=model_provider,selected_model_id provider=openai model=gpt-4.1 mode=- tools_mode=-',
       '[ElectronTrace] settings update.ack id=settings-1 success=true',
     ]);
@@ -143,7 +143,7 @@ describe('assistant runtime trace logging', () => {
     expect(JSON.stringify(appendIpcBridgeDiagnostic.mock.calls)).not.toContain('sk-secret');
   });
 
-  test('ignores removed frontend query trace id fallbacks', () => {
+  test('ignores removed renderer query trace id fallbacks', () => {
     const messages = [];
     const appendIpcBridgeDiagnostic = jest.fn();
     const tracer = createElectronMainTraceLogger({
@@ -152,7 +152,7 @@ describe('assistant runtime trace logging', () => {
       stdoutEnabled: true,
     });
 
-    tracer.traceFrontendQuery({
+    tracer.traceRendererQuery({
       turnRef: 'turn-legacy',
       payload: {
         text: 'private user request',
@@ -163,7 +163,7 @@ describe('assistant runtime trace logging', () => {
     });
 
     expect(messages).toEqual([
-      '[ElectronTrace] frontend query.send turn=- conv=- text_len=20 resources=1',
+      '[ElectronTrace] renderer query.send turn=- conv=- text_len=20 resources=1',
     ]);
     expect(appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
       action: 'query.send',

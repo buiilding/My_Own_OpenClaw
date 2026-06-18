@@ -176,7 +176,7 @@ App diagnostic paths:
 - `renderer.interaction`: renderer UI interaction breadcrumbs normalized through
   Electron main without raw labels, chat text, or message text.
 - `ipc.bridge`: compact Electron main bridge milestones formerly mirrored to
-  stdout as `[ElectronTrace]`, including backend connection, frontend query
+  stdout as `[ElectronTrace]`, including backend connection, renderer query
   send, backend event milestones, tool call/output markers, and settings update
   send/ack summaries.
 - `local_runtime.lifecycle`: Electron main local-runtime bridge
@@ -191,7 +191,7 @@ App diagnostic paths:
 - `mcp.discovery`: sidecar-owned MCP discovery and stdio initialization,
   including sanitized command basename, argument summary, timeout phase,
   elapsed time, stderr tail, and short spawn/request errors.
-- `mcp.enablement`: Electron main MCP dashboard toggle and frontend-config
+- `mcp.enablement`: Electron main MCP dashboard toggle and desktop UI config
   persistence lifecycle, including whether a renderer save preserved MCP
   enablement from loaded main config or disk.
 - `mcp.registration`: sidecar-owned SDK/local-runtime MCP registration
@@ -243,7 +243,7 @@ stack traces.
 `mcp.enablement` rows may include server id, requested enabled state, config
 save phase, preserve source (`latest`, `disk`, or `none`), persisted enabled
 server count, registry status counts, and MCP tool counts. They must not include
-raw frontend config, provider secrets, absolute paths, raw MCP payloads, tool
+raw desktop UI config, provider secrets, absolute paths, raw MCP payloads, tool
 schemas, prompt text, or message text.
 
 `mcp.registration` rows may include replace/reconcile booleans, requested
@@ -392,7 +392,7 @@ user-agent data is not available. Stale deprecation-audit searches for
 `navigator.platform` in `chatStreamDebugTrace.ts` should route here.
 
 `ipc.bridge` is the compact Electron main bridge timeline. It stores milestones
-for frontend query send, backend connection state, the first backend event
+for renderer query send, backend connection state, the first backend event
 received for a turn, tool call/output, backend completion, and settings updates.
 Inspect it with `bin/windie diagnostics list --path ipc.bridge --limit 50`.
 Set `WINDIE_DEBUG_IPC_STDOUT=1` only when the `[ElectronTrace]` stdout mirror is
@@ -401,7 +401,7 @@ provider ids, and model ids without raw user text, assistant text, provider
 payloads, or secrets. Backend event trace summaries read canonical backend
 fields such as `turn_ref`, `conversation_ref`, `request_id`, `correlation_id`,
 `tool_name`, and `final_response`; removed camelCase aliases are ignored.
-Frontend query trace rows read the main-process query helper fields
+Renderer query trace rows read the main-process query helper fields
 `queryMessageId` and `conversationRef`, not backend payload fallbacks such as
 `turn_ref` or `conversation_ref`. SDK current-turn stdout traces read the SDK
 projection fields `turnRef` and `conversationRef`; removed snake_case

@@ -1799,7 +1799,7 @@ function initializeIpc(win, options = {}) {
         ...input,
         copy: mainHostSkin.queryEvents,
       }),
-      traceFrontendQuery: (input) => electronMainTraceLogger.traceFrontendQuery(input),
+      traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
     },
   });
 

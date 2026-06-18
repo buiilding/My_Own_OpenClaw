@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename Electron compact query tracing from frontend query to renderer
+  query so app diagnostics and `[ElectronTrace]` output describe the UI handoff
+  boundary without changing query payloads or backend events.
 - docs: refresh frontend inventory references so Electron-main config
   persistence, MCP enablement, and settings-gate state are described as desktop
   UI config while preserving the legacy IPC channel names.

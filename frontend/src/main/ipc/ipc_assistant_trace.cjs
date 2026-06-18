@@ -310,20 +310,20 @@ function createElectronMainTraceLogger({
     return null;
   }
 
-  function traceFrontendQuery(input = {}) {
+  function traceRendererQuery(input = {}) {
     const payload = safeObject(input.payload);
     const turnRef = safeId(input.queryMessageId);
     const conversationRef = safeId(input.conversationRef);
     record({
       action: 'query.send',
-      phase: 'frontend',
+      phase: 'renderer',
       requestId: turnRef !== '-' ? turnRef : null,
       conversationRef: conversationRef !== '-' ? conversationRef : null,
       turnRef: turnRef !== '-' ? turnRef : null,
       textLength: typeof payload.text === 'string' ? payload.text.length : 0,
       resourceCount: Array.isArray(payload.resources) ? payload.resources.length : 0,
     });
-    return emit('frontend', 'query.send', [
+    return emit('renderer', 'query.send', [
       `turn=${turnRef}`,
       `conv=${conversationRef}`,
       `text_len=${typeof payload.text === 'string' ? payload.text.length : 0}`,
@@ -462,7 +462,7 @@ function createElectronMainTraceLogger({
     reset,
     traceBackendConnection,
     traceBackendEvent,
-    traceFrontendQuery,
+    traceRendererQuery,
     traceSettingsUpdate,
   };
 }

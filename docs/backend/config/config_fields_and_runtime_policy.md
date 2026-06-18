@@ -87,7 +87,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in frontend query entry flow. |
+| `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in renderer query entry flow. |
 | `stt_provider` | `"nova" \| "openai"` | `"openai"` | Backend-owned transcription provider behind the local `/ws/transcription` route. |
 | `stt_language` | `str` | `"en"` | Default transcription language hint applied by backend-owned STT sessions. |
 | `nova_voice_gateway_url` | `str` | `"ws://127.0.0.1:5026"` | External Nova-Voice gateway URL used when `stt_provider="nova"`. |

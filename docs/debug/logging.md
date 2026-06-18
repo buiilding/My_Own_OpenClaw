@@ -108,7 +108,7 @@ bin/windie diagnostics list --path wakeword.lifecycle --limit 50
 ```
 
 `ipc.bridge` is the persistent mirror for compact `[ElectronTrace]` milestones:
-frontend query send, backend connection state, first backend event per turn,
+renderer query send, backend connection state, first backend event per turn,
 tool call/output, backend completion, and settings updates. Rows summarize ids,
 counts, lengths, selected settings names, provider ids, and model ids without
 raw user text, assistant text, provider payloads, or secrets.

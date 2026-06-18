@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer query trace naming boundary
+
+- Finding: Electron main compact trace helpers still used frontend-named query
+  trace APIs and stdout scopes even though this path records renderer query
+  handoff into the generic desktop host.
+- Change: renamed the helper/dependency to `traceRendererQuery`, changed the
+  app diagnostic phase and stdout scope to `renderer`, and refreshed trace docs
+  plus prompt/config docs that described current query content as frontend
+  query content.
+- Validation: focused AssistantTrace and IPC query Jest coverage, full
+  AssistantTrace Jest coverage, syntax checks, stale trace-name scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. This changes diagnostic labels and
+  internal helper names only; query payloads, IPC channels, backend events,
+  persisted data, credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config inventory docs boundary
 
 - Finding: frontend inventory docs still described Electron-main settings gate,
@@ -1343,9 +1359,9 @@ Each completed slice should report:
 ### 2026-06-17 main trace input alias removal
 
 - Finding: Electron main trace helpers still accepted removed query/current-turn
-  alias fields even though frontend query tracing is passed explicit helper
+  alias fields even though renderer query tracing is passed explicit helper
   fields and SDK current-turn projections are camelCase.
-- Change: made frontend query diagnostics read only `queryMessageId` and
+- Change: made renderer query diagnostics read only `queryMessageId` and
   `conversationRef`, made SDK current-turn stdout traces read only `turnRef`
   and `conversationRef`, and kept backend event trace summaries on canonical
   backend snake_case fields.
@@ -1390,7 +1406,7 @@ Each completed slice should report:
   aliases such as `turnRef`, `conversationRef`, `requestId`, `correlationId`,
   `toolName`, and `finalResponse` while summarizing backend websocket events.
 - Change: made backend event trace summaries read only canonical backend
-  snake_case fields, kept main-local frontend query trace arguments separate,
+  snake_case fields, kept main-local renderer query trace arguments separate,
   and added focused AssistantTrace regression coverage.
 - Validation: focused AssistantTrace Jest test, docs listing, and diff check.
 - Compatibility: no migration required. This changes diagnostic summarization

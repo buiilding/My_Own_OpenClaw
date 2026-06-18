@@ -205,7 +205,7 @@ Overlay phase updates during relay/stream lifecycle:
 Compact response lifecycle milestones are stored in app diagnostics under
 `ipc.bridge`:
 
-- `frontend query.send`: renderer query handoff into Electron
+- `renderer query.send`: renderer query handoff into Electron
   main, with conversation/turn ids, text length, and resource count.
 - `backend connection.*`: backend websocket connection state.
 - `backend first_event`: the first backend event received for a

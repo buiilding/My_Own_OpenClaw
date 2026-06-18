@@ -75,7 +75,7 @@ function createChatQueryHandlers({
       conversationRef: preparedQuery.conversationRef,
       accepted: false,
     });
-    deps.traceFrontendQuery?.({
+    deps.traceRendererQuery?.({
       payload,
       conversationRef: preparedQuery.conversationRef,
       queryMessageId,
