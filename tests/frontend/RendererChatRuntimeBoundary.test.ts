@@ -347,6 +347,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('setIsSending(');
     expect(source).not.toContain('setThinkingStatus(');
     expect(source).not.toContain('setThinkingSourceEventType(');
+    expect(source).not.toContain('rawEvent');
     expect(source).toContain("recordTrackingEvent('token-count'");
     expect(source).not.toContain("recordTrackingEvent('memory-store'");
   });

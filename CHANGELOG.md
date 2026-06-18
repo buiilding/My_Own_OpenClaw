@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: make terminal stream telemetry consume explicit SDK error and
+  token-count fields instead of stripping raw backend diagnostic payload fields
+  in chat feature code.
 - backend/sidecar comments: reword source comments and docstrings around SDK
   tool templates, audio playback, session metadata, provider API-key overrides,
   tool-result display, and browser registry imports to client/UI/local-runtime

@@ -689,6 +689,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   payloads, ToolContext metadata, tool-result history processing, sidecar
   browser imports, permissions, credentials, and storage are unchanged.
 
+### 2026-06-18 Renderer Terminal Telemetry Raw Diagnostic Boundary Slice
+
+- Finding: `useChatStreamTerminalHandlers.ts` still knew about SDK
+  `payload.rawEvent` diagnostics so it could drop raw backend details before
+  passing error and token-count telemetry into renderer state/tracking.
+- Decision: keep raw backend diagnostics available inside the SDK for
+  inspection, but make renderer chat feature code consume only explicit SDK
+  terminal fields.
+- Change: terminal error handling now passes only normalized `message` and
+  `content`; token-count handling now whitelists the public token fields needed
+  by renderer state instead of copying the rest of the SDK payload.
+- Change: renderer chat runtime boundary coverage now fails if the terminal
+  handler mentions `rawEvent` again.
+- Validation: focused renderer chat runtime boundary Jest coverage, targeted
+  renderer `rawEvent` scan, docs listing, and `git diff --check` passed.
+- Compatibility: no migration required. Renderer-visible token counts and error
+  tracking behavior are preserved; SDK diagnostic payloads, transcript storage,
+  backend websocket events, IPC channels, credentials, permissions, and
+  provider policy are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

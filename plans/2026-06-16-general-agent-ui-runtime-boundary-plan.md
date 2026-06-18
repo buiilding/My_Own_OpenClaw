@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer terminal telemetry raw diagnostic boundary
+
+- Finding: the renderer terminal stream handler still knew about SDK
+  `payload.rawEvent` diagnostics so it could strip raw backend details before
+  handling error and token-count telemetry.
+- Change: terminal telemetry now consumes explicit SDK error fields and
+  whitelisted token-count fields, leaving raw diagnostic payload knowledge out
+  of renderer chat feature code.
+- Validation: focused renderer chat runtime boundary Jest coverage, targeted
+  renderer `rawEvent` scan, docs listing, and diff check.
+- Compatibility: no migration required. Renderer-visible token counts and error
+  tracking behavior are preserved; SDK diagnostic payloads, transcript storage,
+  backend websocket events, IPC channels, credentials, permissions, and
+  provider policy are unchanged.
+
 ### 2026-06-18 backend comment client/local-runtime wording boundary
 
 - Finding: backend source comments and docstrings still described SDK tool
