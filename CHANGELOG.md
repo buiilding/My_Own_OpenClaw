@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename the private runtime-sync local-only settings set from
+  frontend config to renderer config terminology while preserving settings sync
+  behavior.
 - main: rename private desktop UI config IPC helper modules and focused
   handler coverage from `ipc_frontend_config*` to `ipc_desktop_ui_config*`
   while preserving the `load-frontend-config` / `save-frontend-config` wire

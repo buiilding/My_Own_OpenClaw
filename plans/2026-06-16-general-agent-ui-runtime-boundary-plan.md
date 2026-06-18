@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer runtime sync local-only config boundary
+
+- Finding: `appConfigRuntimeSync.js` used a private
+  `LOCAL_ONLY_FRONTEND_CONFIG_KEYS` set even though the active owner is
+  renderer-managed local settings filtered before backend runtime sync.
+- Change: renamed the private set to `LOCAL_ONLY_RENDERER_CONFIG_KEYS`, updated
+  renderer docs wording, and added a boundary assertion so local-only settings
+  stay renderer-owned in runtime-sync code.
+- Validation: focused renderer runtime-sync/boundary/storage IPC Jest tests,
+  docs listing, stale private constant scan, and diff check.
+- Compatibility: no migration required. Renderer config fields, localStorage
+  and disk payloads, IPC channel names, backend `update-settings` payloads,
+  credentials, permissions, and SDK projections are unchanged.
+
 ### 2026-06-18 main desktop UI config IPC module boundary
 
 - Finding: Electron main disk persistence and handler code already used

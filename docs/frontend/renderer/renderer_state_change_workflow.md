@@ -8,7 +8,7 @@ title: "Renderer State Change Workflow"
 
 # Renderer State Change Workflow
 
-Use this workflow for UI and renderer-state work. The renderer owns presentation, local state projection, user interaction hooks, frontend config persistence, transcript projection, and dispatch to existing IPC/backend clients. It does not own backend event production, Electron window policy, preload channel exposure, local tool execution, or hosted auth decisions.
+Use this workflow for UI and renderer-state work. The renderer owns presentation, local state projection, user interaction hooks, renderer config persistence, transcript projection, and dispatch to existing IPC/backend clients. It does not own backend event production, Electron window policy, preload channel exposure, local tool execution, or hosted auth decisions.
 
 The goal is to fix the state owner, not the nearest component. If a malformed backend event causes bad UI, fix the backend event contract. If a local-runtime result is malformed, fix the sidecar/main bridge. If the renderer projection is stale or over-broad, fix the renderer store/hook/selector layer.
 

@@ -6,7 +6,7 @@ const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
   'model_provider',
   'selected_model_id',
 ]);
-const LOCAL_ONLY_FRONTEND_CONFIG_KEYS = new Set([
+const LOCAL_ONLY_RENDERER_CONFIG_KEYS = new Set([
   'global_agent_stop_shortcut',
   'show_tool_logs',
   'agent_custom_instructions',
@@ -57,7 +57,7 @@ export function buildDeferredQueryModelSelection(config) {
 export function buildImmediateRuntimeConfig(config) {
   return pickConfigKeys(config, (key) => (
     !DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key)
-    && !LOCAL_ONLY_FRONTEND_CONFIG_KEYS.has(key)
+    && !LOCAL_ONLY_RENDERER_CONFIG_KEYS.has(key)
   ));
 }
 
@@ -73,7 +73,7 @@ export function hasImmediateRuntimeConfigChanges(previousConfig, nextConfig) {
     if (DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key)) {
       continue;
     }
-    if (LOCAL_ONLY_FRONTEND_CONFIG_KEYS.has(key)) {
+    if (LOCAL_ONLY_RENDERER_CONFIG_KEYS.has(key)) {
       continue;
     }
     if (previous[key] !== next[key]) {

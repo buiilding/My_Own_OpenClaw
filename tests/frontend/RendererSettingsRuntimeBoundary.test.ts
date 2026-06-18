@@ -37,4 +37,14 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('SDK command IPC');
     expect(source).not.toContain('backend IPC');
   });
+
+  test('renderer runtime sync names local-only config as renderer-owned state', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/providers/appConfigRuntimeSync.js'),
+      'utf8',
+    );
+
+    expect(source).toContain('LOCAL_ONLY_RENDERER_CONFIG_KEYS');
+    expect(source).not.toContain('LOCAL_ONLY_FRONTEND_CONFIG_KEYS');
+  });
 });
