@@ -2,7 +2,7 @@
  * Provides the message transparency module for the renderer UI.
  */
 
-import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
+import { normalizeToolSchemaList } from '../../../../app/runtime/desktopChatMessageRuntimeClient';
 
 function resolveMessageToolSchemas(message) {
   const toolSchemas = normalizeToolSchemaList(message?.toolSchemas);

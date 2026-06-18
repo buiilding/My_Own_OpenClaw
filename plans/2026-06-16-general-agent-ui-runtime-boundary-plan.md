@@ -8102,3 +8102,19 @@ Each completed slice should report:
 - Compatibility: no migration required. Sanitized HTML output, math handling,
   find highlighting, plain-text extraction, and transport-artifact normalization
   are unchanged.
+
+### 2026-06-18 renderer chat message runtime facade boundary
+
+- Finding: chat stream updates, transparency helpers, current-turn projection
+  display, and tool-output message builders still imported transcript message
+  state, tool-schema, and incoming-text helpers directly from renderer
+  infrastructure.
+- Change: added `desktopChatMessageRuntimeClient.ts` as the renderer app
+  runtime facade over chat message builders and normalization helpers, then
+  routed chat feature consumers through it.
+- Validation: focused chat stream message update, chat box response state,
+  message transparency, pending-turn live surface, and renderer boundary Jest
+  coverage, direct feature import scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Tool-call/tool-output display shape,
+  current-turn presentation, tool-schema transparency, and incoming text
+  normalization are unchanged.

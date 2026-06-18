@@ -522,6 +522,34 @@ describe('renderer chat runtime boundary', () => {
     expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
   });
 
+  test('chat message state helpers route transcript builders through app runtime client', async () => {
+    const files = [
+      path.join(chatRoot, 'utils/toolOutputMessages.ts'),
+      path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
+      path.join(chatRoot, 'utils/message/messageTransparency.js'),
+      path.join(chatRoot, 'utils/message/liveTurnPresentationMessages.js'),
+      path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
+    ];
+    const chatMessageClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const source = await fs.readFile(file, 'utf8');
+      expect(source).not.toContain('infrastructure/transcript/toolCall');
+      expect(source).not.toContain('infrastructure/transcript/toolOutputChatMessageState');
+      expect(source).not.toContain('infrastructure/transcript/toolSchemaShape');
+      expect(source).not.toContain('infrastructure/text/incomingTextNormalization');
+      expect(source).toContain('desktopChatMessageRuntimeClient');
+    }
+    expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallMessageState');
+    expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallChatMessageState');
+    expect(chatMessageClientSource).toContain('infrastructure/transcript/toolOutputChatMessageState');
+    expect(chatMessageClientSource).toContain('infrastructure/transcript/toolSchemaShape');
+    expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
+  });
+
   test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];

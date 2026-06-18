@@ -4,8 +4,10 @@
 
 import type { ToolSchema } from '../../../../types/toolSchemas';
 import type { ChatMessage } from '../../stores/chatStore';
-import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
-import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
+import {
+  normalizeIncomingText,
+  normalizeToolSchemaList,
+} from '../../../../app/runtime/desktopChatMessageRuntimeClient';
 
 type SystemPromptPayload = {
   content?: unknown;

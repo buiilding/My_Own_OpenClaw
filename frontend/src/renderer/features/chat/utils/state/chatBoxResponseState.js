@@ -4,9 +4,9 @@
 
 import {
   buildToolBundleMessageState,
+  buildToolCallChatMessageState,
   buildToolCallMessageState,
-} from '../../../../infrastructure/transcript/toolCallMessageState';
-import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
+} from '../../../../app/runtime/desktopChatMessageRuntimeClient';
 import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
 import { buildScreenshotAttachment } from '../chatStream/chatStreamEventUtils';
 import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../message/sourceChannels';

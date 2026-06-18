@@ -59,6 +59,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: route chat markdown rendering, find highlighting, and LLM
   output normalization helpers through a renderer app runtime facade instead
   of direct infrastructure imports from chat display code.
+- renderer/runtime: route chat tool-call/tool-output message builders, tool
+  schema normalization, and incoming-text normalization through a renderer app
+  runtime facade instead of direct transcript infrastructure imports.
 - renderer/runtime: route dashboard local-runtime readiness subscriptions
   through a renderer app runtime client instead of importing the shared IPC
   status store directly.
