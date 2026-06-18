@@ -63,7 +63,7 @@ export interface ChatMessage {
     raw_tool_call_preview?: string;
     raw_arguments_preview?: string;
     parse_error?: string;
-    frontend_execution_skipped?: boolean;
+    execution_skipped?: boolean;
   } | null;
   toolCallDisplayText?: string | null;
   modelFacingToolOutput?: string | null;

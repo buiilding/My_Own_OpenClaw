@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: rename the tool-call card display marker from
+  `frontend_execution_skipped` to `execution_skipped` so model-facing recovery
+  previews no longer leak the old frontend execution vocabulary.
 - renderer: rename the permission onboarding component, stylesheet, selectors,
   and focused coverage from frontend onboarding to desktop onboarding so the
   generic renderer surface no longer carries frontend-named UI internals.

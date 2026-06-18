@@ -260,7 +260,7 @@ describe('useChatStream message metadata handling', () => {
         raw_tool_call_preview: expect.stringContaining('"name":"run_shell_command"'),
         raw_arguments_preview: expect.stringContaining('cat > index.html'),
         parse_error: 'failed to parse streamed tool-call arguments',
-        frontend_execution_skipped: true,
+        execution_skipped: true,
       }),
     }));
     expect((toolCallMessage?.modelFacingToolCall as Record<string, unknown>)?.arguments).toBeUndefined();
@@ -315,7 +315,7 @@ describe('useChatStream message metadata handling', () => {
           explanation: 'Create a temporary test file to test the replace tool',
           command: "echo 'Original text to replace' > /tmp/test_replace.txt",
         },
-        frontend_execution_skipped: true,
+        execution_skipped: true,
       }, null, 2),
     );
     expect(toolCallMessage).toEqual(expect.objectContaining({
@@ -327,12 +327,12 @@ describe('useChatStream message metadata handling', () => {
           explanation: 'Create a temporary test file to test the replace tool',
           command: "echo 'Original text to replace' > /tmp/test_replace.txt",
         },
-        frontend_execution_skipped: true,
+        execution_skipped: true,
       }),
     }));
   });
 
-  test('projected tool-call message marks frontend execution skipped for direct-tool validation failures', () => {
+  test('projected tool-call message marks execution skipped for direct-tool validation failures', () => {
     const messages = buildCurrentTurnMessagesFromProjection({
       conversationRef: 'conv-test',
       turnRef: 'turn-test',
@@ -367,7 +367,7 @@ describe('useChatStream message metadata handling', () => {
       type: 'tool-call',
       modelFacingToolCall: expect.objectContaining({
         name: 'mouse_control',
-        frontend_execution_skipped: true,
+        execution_skipped: true,
         arguments: { action: 'click', x: 100, y: 200 },
       }),
     }));

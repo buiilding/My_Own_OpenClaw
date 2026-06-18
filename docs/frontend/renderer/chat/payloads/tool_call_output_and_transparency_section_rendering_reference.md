@@ -170,6 +170,8 @@ preview and display-only execution state come from SDK current-turn fields such
 as `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
 `toolCallValidationFailed`, and `executionSkipped`, not from backend-shaped
 metadata keys in renderer message helpers.
+When the renderer includes the display-only marker in the pretty-printed
+model-facing payload, it uses the neutral `execution_skipped` field.
 
 Tool-call preview content stays in the transcript flow instead of using a nested
 vertical scroll box. Long JSON lines wrap inside the card so the first line is

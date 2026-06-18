@@ -111,7 +111,7 @@ function buildNormalizedToolCall({
     normalizedToolCall.parse_error = resolvedParseError;
   }
   if (executionSkipped === true) {
-    normalizedToolCall.frontend_execution_skipped = true;
+    normalizedToolCall.execution_skipped = true;
   }
 
   return Object.keys(normalizedToolCall).length > 0 ? normalizedToolCall : null;

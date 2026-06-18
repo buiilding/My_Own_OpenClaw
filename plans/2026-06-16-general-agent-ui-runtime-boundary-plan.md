@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer tool-call display skipped marker boundary
+
+- Finding: renderer tool-call card state already consumed SDK
+  `executionSkipped`, but the pretty-printed model-facing display payload still
+  emitted `frontend_execution_skipped`.
+- Change: renamed the transient display marker to `execution_skipped` in the
+  renderer tool-call message builder, chat message type, focused projection
+  expectations, and tool-call rendering docs.
+- Validation: focused chat-stream metadata Jest coverage, stale
+  `frontend_execution_skipped` scan, docs listing, and diff check.
+- Compatibility: no migration required. Backend wire metadata remains
+  `skip_frontend_execution`, SDK projections still expose `executionSkipped`,
+  and no transcript storage, IPC, permission, credential, or provider-policy
+  behavior changed.
+
 ### 2026-06-18 renderer desktop onboarding surface boundary
 
 - Finding: the active renderer permission-onboarding surface still used
