@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Chat Runtime Type Boundary
+
+- Finding: frontend typecheck was blocked in renderer chat/artifact adapters by
+  overly broad `unknown` payload refs, an over-generic artifact URL helper, and
+  a stop-tracking patch whose JavaScript helper widened `phase` from the
+  renderer `StreamPhase` contract to `string`.
+- Change: normalized pending-turn broadcast refs at the chat-store boundary,
+  made stopped-turn stream tracking explicitly satisfy the renderer
+  `StreamTracking` projection, and simplified the desktop artifact runtime
+  helper to a concrete record-shaped adapter instead of a misleading generic.
+- Validation: frontend typecheck, focused ChatStore and renderer runtime
+  boundary Jest coverage, docs listing, and diff-check validation.
+- Compatibility: no migration required. Runtime behavior, IPC payloads,
+  screenshot/artifact URL resolution, SDK current-turn projections, chat
+  storage, and provider policy are unchanged; the renderer contract is now
+  typecheckable again.
+
 ### 2026-06-18 SDK Runtime Env Contract Boundary
 
 - Finding: the TypeScript SDK already preferred generic `AGENT_*` env aliases,

@@ -34,13 +34,13 @@ function buildArtifactUrl(artifactId: string): string {
   return DesktopRuntimeEndpointClient.buildArtifactUrl(artifactId);
 }
 
-function withArtifactUrlBuilder<TOptions extends Record<string, unknown> = Record<string, unknown>>(
-  options: TOptions | null | undefined = {},
-): TOptions & { artifactUrlBuilder: (artifactId: string) => string } {
+function withArtifactUrlBuilder(
+  options: Record<string, unknown> | null | undefined = {},
+): Record<string, unknown> & { artifactUrlBuilder: (artifactId: string) => string } {
   return {
     ...(options || {}),
     artifactUrlBuilder: buildArtifactUrl,
-  } as TOptions & { artifactUrlBuilder: (artifactId: string) => string };
+  };
 }
 
 export const DesktopArtifactRuntimeClient = {

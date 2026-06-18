@@ -353,8 +353,8 @@ function normalizePendingTurn(value: unknown): PendingTurn | null {
     return null;
   }
   const source = value as Record<string, unknown>;
-  const conversationRef = normalizeConversationRef(source.conversationRef);
-  const turnRef = normalizeTurnRef(source.turnRef);
+  const conversationRef = normalizeConversationRef(source.conversationRef as string | null | undefined);
+  const turnRef = normalizeTurnRef(source.turnRef as string | null | undefined);
   const userMessageId = typeof source.userMessageId === 'string' && source.userMessageId.trim()
     ? source.userMessageId.trim()
     : null;
@@ -798,9 +798,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const nextPendingTurn = doesPendingTurnMatch(currentWorkspace.pendingTurn, target)
         ? null
         : currentWorkspace.pendingTurn;
-      const nextStreamTracking = {
+      const nextStreamTracking: StreamTracking = {
         ...currentWorkspace.streamTracking,
         ...buildStopQueryTrackingPatch(stoppedAt),
+        phase: 'complete',
       };
       const nextWorkspace = {
         ...currentWorkspace,
@@ -825,7 +826,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ? payload as Record<string, unknown>
         : {};
       if (source.type === 'clear') {
-        const conversationRef = normalizeConversationRef(source.conversationRef);
+        const conversationRef = normalizeConversationRef(source.conversationRef as string | null | undefined);
         const turnRef = normalizeTurnRef(source.turnRef as string | null | undefined);
         const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
         const currentWorkspace = readWorkspaceState(state, workspaceRef);
