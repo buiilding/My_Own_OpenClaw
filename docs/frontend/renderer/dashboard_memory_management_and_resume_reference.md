@@ -63,7 +63,7 @@ IPC constants.
 
 Toggle behavior contract:
 
-- toggle `ON` (default): query payload builder performs sidecar memory search and injects `<episodic_memory>` / `<semantic_memory>` tags.
+- toggle `ON` (default): query payload builder performs local-runtime memory search and injects `<episodic_memory>` / `<semantic_memory>` tags.
 - toggle `OFF`: query payload builder skips memory search and omits memory tags from prompt content.
 - completed-turn memory persistence is SDK-owned and writes to the local-runtime memory index when memory is enabled.
 

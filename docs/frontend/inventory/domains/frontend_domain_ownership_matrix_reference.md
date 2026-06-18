@@ -23,7 +23,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + sidecar method contracts | landing page modules |
 | Sidecar runtime core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_runtime_bridge.cjs`, wakeword bridge | renderer UI components |
 | Sidecar tool runtime | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
-| Sidecar memory runtime | `main/python/memory/**` | SDK-provided embeddings, remote semantic client, and renderer dashboard memory views | renderer chat presentation |
+| Local-runtime memory runtime | `main/python/memory/**` | SDK-provided embeddings, remote semantic client, and renderer dashboard memory views | renderer chat presentation |
 | Landing page runtime | `frontend/src/landing/**` | none (isolated app surface) | main/renderer runtime modules |
 
 ## Responsibility Boundaries

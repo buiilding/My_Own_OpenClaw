@@ -79,6 +79,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/backend: route prompt-context and semantic/embedding service memory
   guidance through local-runtime memory instead of sidecar-memory ownership. No
   migration required.
+- docs/frontend: route dashboard, settings, IPC, and frontend inventory memory
+  labels through local-runtime memory ownership while preserving Python-backed
+  handler paths. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

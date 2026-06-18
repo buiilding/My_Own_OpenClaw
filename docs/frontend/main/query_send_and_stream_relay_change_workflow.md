@@ -177,7 +177,7 @@ Main relay invariants:
 - `buildQueryPayload(...)` requires a current authenticated user id. If the
   query send path can run before install auth, fix auth/connection ordering
   instead of inventing an anonymous fallback.
-- SDK `ContextEnrichmentPipeline.ts` may call sidecar memory helpers and
+- SDK `ContextEnrichmentPipeline.ts` may call local-runtime memory helpers and
   renders escaped model-facing memory/attachment/query content.
 - On websocket send failure, main clears replay state and emits an SDK
   `turn_error` conversation event from `buildQuerySendFailure(...)` context.
@@ -298,7 +298,7 @@ Backend query schema or stream event change:
 - `./scripts/python-in-env backend pytest tests/backend/test_query_execution_service_helpers.py`
 - `./scripts/python-in-env backend pytest tests/backend/test_stream_pipeline.py`
 
-Sidecar memory/system-state enrichment change:
+Local-runtime memory/system-state enrichment change:
 
 - `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_search_helpers.py`
 - `./scripts/python-in-env sidecar pytest tests/sidecar/test_conversation_semanticization_runtime.py`

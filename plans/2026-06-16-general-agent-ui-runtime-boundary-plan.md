@@ -9401,3 +9401,19 @@ Each completed slice should report:
   route payloads, embedding provider metadata, remote-client error handling,
   JSON-RPC methods, IPC channels, credentials, permissions, hosted backend URLs,
   and provider policy are unchanged.
+
+### 2026-06-18 frontend docs local-runtime memory surface boundary
+
+- Finding: frontend dashboard, settings, IPC, query relay, and inventory docs
+  still routed memory panels, payloads, admin actions, and handler labels
+  through sidecar-memory ownership rather than the SDK/main local-runtime
+  memory boundary.
+- Change: reworded those docs to local-runtime memory ownership, preserved
+  concrete Python handler/module paths where they identify the current backing
+  implementation, and added exact stale guards.
+- Validation: focused modular-boundary guard, docs listing, frontend stale scan,
+  and diff checks.
+- Compatibility: no migration required. Renderer command names, IPC channels,
+  SDK command routing, Python handler paths, JSON-RPC methods, memory
+  reset/delete/search behavior, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged.

@@ -94,7 +94,7 @@ Validation:
 
 - Dashboard section tests.
 - Memory utility tests.
-- Sidecar memory operation tests.
+- Local-runtime memory operation tests.
 
 ## Scope Guards
 

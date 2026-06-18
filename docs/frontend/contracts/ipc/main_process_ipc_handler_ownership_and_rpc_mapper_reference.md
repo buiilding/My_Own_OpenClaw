@@ -239,7 +239,7 @@ If renderer `invoke` resolves with "not handled"/unexpected response:
 2. verify `ipcMain.handle` registration path is executed at startup
 3. if a local-runtime-backed helper is involved, inspect the SDK/local-runtime target keys and method name
 
-If sidecar memory operations return wrong filters:
+If local-runtime memory operations return wrong filters:
 
 1. verify SDK local-runtime source keys (`userId`, `conversationId`, `recordKind`, etc.)
 2. inspect the JSON-RPC method name used by the SDK local-runtime store

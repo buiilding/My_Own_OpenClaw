@@ -173,7 +173,7 @@ The SDK local runtime provides query-enrichment dependencies:
 
 Mapping details for memory search payload are centralized in:
 
-- `LocalRuntime.ts` and sidecar memory RPC handlers
+- `LocalRuntime.ts` and local-runtime memory RPC handlers
 
 ## Connection Context and Overlay State
 

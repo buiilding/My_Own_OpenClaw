@@ -1,5 +1,5 @@
 ---
-summary: "Renderer/main/sidecar memory and chat-event contract reference: SDK-shaped renderer commands, internal local-runtime JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
+summary: "Renderer/main/local-runtime memory and chat-event contract reference: SDK-shaped renderer commands, internal local-runtime JSON-RPC bridge handler mappings, response envelopes, and storage ownership."
 read_when:
   - When changing memory-related SDK renderer commands, local-runtime bridge handler payloads, or sidecar JSON-RPC method contracts.
   - When debugging dashboard memory list/delete failures, chat history persistence issues, or embedding memory search mismatches.
@@ -33,7 +33,7 @@ Memory storage and retrieval:
   `memories.delete`, and `memories.clearAll` commands over
   `window.agentSdk.invoke`.
 - Electron main maps those commands to public Agent SDK APIs.
-- Sidecar memory RPC names remain implementation details behind the SDK local
+- Python-backed memory RPC names remain implementation details behind the SDK local
   runtime.
 - Chat clear uses SDK-shaped `conversations.clearAll`.
 
@@ -100,7 +100,7 @@ not expose a direct memory-storage channel.
 
 ## Sidecar Response Envelope
 
-Sidecar memory handlers return:
+Local-runtime memory handlers return:
 
 - success: `{ "success": true, "data": { ... } }`
 - failure: `{ "success": false, "error": "<message>" }`
@@ -161,7 +161,7 @@ If chats do not reload:
 2. inspect Electron main `windie:invoke` command handling
 3. if the SDK command reaches local persistence but data is missing, inspect
    the SDK local-runtime store params sent to the sidecar
-4. verify sidecar memory store is initialized and `conversation_events` rows exist
+4. verify local-runtime memory store is initialized and `conversation_events` rows exist
 
 If memory injection is empty:
 

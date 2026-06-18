@@ -78,7 +78,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | --- | --- |
 | Transcript projection/session state | SDK conversation runtime plus renderer transcript/session facades |
 | Store/search invoke | SDK `LocalRuntimeConversationStore` and SDK-shaped renderer commands |
-| Sidecar memory handlers | `main/python/{local_backend.py,local_backend_memory_handlers.py}` + `memory/local_store.py` |
+| Local-runtime memory handlers | `main/python/{local_backend.py,local_backend_memory_handlers.py}` + `memory/local_store.py` |
 | Optional semantic summarization | `memory/summarizer.py` + `core/{remote_api_client_base,remote_semantic_client}.py` |
 
 ## High-Risk Cross-Boundary Contracts

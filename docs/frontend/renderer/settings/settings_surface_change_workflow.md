@@ -3,7 +3,7 @@ summary: "Workflow for changing WindieOS dashboard settings surfaces across tab 
 read_when:
   - When adding, removing, renaming, or debugging a dashboard settings tab or control.
   - When a setting persists locally but does not affect runtime behavior, reappears after reload, fails runtime sync, triggers the wrong permission action, or calls the wrong memory/workspace/browser IPC path.
-  - When deciding whether a settings change belongs to renderer settings UI, AppConfig persistence, Electron main IPC/config, backend update-settings validation, permission services, sidecar memory actions, or workspace access.
+  - When deciding whether a settings change belongs to renderer settings UI, AppConfig persistence, Electron main IPC/config, backend update-settings validation, permission services, local-runtime memory actions, or workspace access.
   - When searching for the retired agent sudo access setting or removed dashboard sudo access control.
 title: "Settings Surface Change Workflow"
 ---
@@ -35,7 +35,7 @@ flowchart LR
     G --> H["permission service / browser / workspace"]
     B -- "local data admin" --> I["memory settings action hook"]
     I --> J["main IPC memory RPC"]
-    J --> K["sidecar memory admin/store"]
+    J --> K["local-runtime memory admin/store"]
 ```
 
 ## Fast Owner Map
@@ -51,7 +51,7 @@ flowchart LR
 | Global stop shortcut fails to register, falls back, or syncs to backend | Renderer config plus Electron main shortcut runtime | `GeneralSettingsTab.jsx`, `desktopShortcutRuntimeClient.ts`, `agentStopShortcut.js`, `agent_stop_shortcut_runtime.cjs`, `AppConfigProvider.jsx` | [Global Stop Shortcut Runtime Reference](../../main/global_stop_shortcut_runtime_reference.md), settings/config/IPC tests |
 | Workspace settings uses wrong folder | Workspace permission/runtime path | `WorkspaceSettingsTab.jsx`, `DesktopWorkspaceRuntimeClient`, Electron workspace permission service | [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md), file/shell workflow |
 | Browser settings opens wrong browser or status is stale | Permission store plus browser permission service | `BrowserSettingsTab.jsx`, `permissionStore.js`, browser permission service, browser runtime docs | permission/browser tests |
-| Memory tab nukes wrong data | Memory settings actions and sidecar admin path | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js`, main memory IPC, sidecar memory admin/store | memory reset/delete tests |
+| Memory tab nukes wrong data | Memory settings actions and local-runtime admin path | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js`, main memory IPC, local-runtime memory admin/store | memory reset/delete tests |
 | Onboarding tab shows wrong permission state | Permission onboarding surface | `OnboardingSettingsTab.jsx`, permission store, onboarding permission docs | onboarding/permission tests |
 | Save status gets stuck | App status provider and settings ACK routing | `AppStatusProvider.jsx`, `appConfigEvents.js`, `ipc_settings_sync.cjs` | `AppStatusProvider`/settings ACK tests |
 
@@ -62,7 +62,7 @@ flowchart LR
 | General | `GeneralSettingsTab.jsx` | wakeword listening, wakeword STT, tool log visibility, global stop shortcut | mixed: context setters and config patches |
 | Workspace | `WorkspaceSettingsTab.jsx` | active workspace display and folder selection | `DesktopWorkspaceRuntimeClient` update fan-out plus Electron workspace permission/runtime path |
 | Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/sidecar browser runtime |
-| Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, sidecar memory admin |
+| Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, local-runtime memory admin |
 | Onboarding | `OnboardingSettingsTab.jsx` | permission/onboarding reset or status controls | renderer permission/onboarding store |
 
 ## Change Sequence
@@ -70,7 +70,7 @@ flowchart LR
 1. Classify the control.
    - Config patch: persists in renderer config and may sync to backend.
    - Permission or authority action: calls permission store or Electron main.
-   - Local data admin: calls main/sidecar memory actions.
+   - Local data admin: calls main/local-runtime memory actions.
    - Workspace/browser action: calls specialized runtime paths.
    - Presentation-only: affects renderer display only.
 
@@ -119,7 +119,7 @@ flowchart LR
 | Permission/onboarding controls | `cd frontend && npm run test -- AppPermissionGate PermissionStorage PermissionIpcRuntime PermissionService useOnboardingPermissionActions DesktopOnboardingSlideshow` |
 | Workspace controls | `cd frontend && npm run test -- ChatWorkspaceState` plus workspace IPC/permission tests if main-process behavior changes |
 | Browser controls | `cd frontend && npm run test -- ChatBrowserSessionControl PermissionService PermissionIpcRuntime` plus browser workflow tests if runtime changes |
-| Memory reset controls | `cd frontend && npm run test -- SettingsSection` plus focused sidecar memory delete/reset tests if sidecar admin behavior changes |
+| Memory reset controls | `cd frontend && npm run test -- SettingsSection` plus focused local-runtime memory delete/reset tests if local-runtime admin behavior changes |
 | Docs-only settings surface | `<windie> docs list`, `git diff --check`, focused Markdown link check |
 
 If a test stem is not available in the current checkout, search by the component or helper name before adding new coverage.

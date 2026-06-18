@@ -11,7 +11,7 @@ title: "Dashboard Change Workflow"
 
 Use this workflow before editing dashboard behavior. Dashboard bugs often look
 like a single React component problem, but the real owner may be transcript
-state, sidecar memory JSON-RPC, app config sync, main-process open-target
+state, local-runtime memory JSON-RPC, app config sync, main-process open-target
 routing, or chat-session rehydrate. Start with the feature surface, then follow
 the owner map before changing code.
 
@@ -30,7 +30,7 @@ the owner map before changing code.
 - Chat resume must go through transcript/session helpers and local snapshot
   loading. Do not rebuild backend history directly from dashboard UI code.
 - Memory panels must use renderer IPC/main bridge channels; do not import or
-  mutate sidecar memory files directly.
+  mutate local-runtime memory files directly.
 - Model/settings panels must round-trip through AppConfig/AppStatus and backend
   ACK events. Do not update model runtime state by mutating local component state
   only.
@@ -83,7 +83,7 @@ Before editing, decide which layer owns the behavior:
 - Conversation handoff: local snapshot load, transcript session update, chat
   store messages, inference session state, workspace selection.
 - Section panel: memory, models, settings, usage, and panel-specific state.
-- Shared runtime: AppConfig/AppStatus, transcript storage, sidecar memory,
+- Shared runtime: AppConfig/AppStatus, transcript storage, local-runtime memory,
   backend model catalog, or token/usage events.
 
 If a change crosses layers, update the shared runtime tests before adjusting
@@ -227,7 +227,7 @@ Memory panel change:
 
 - `cd frontend && npm run test -- MemorySection`
 - `cd frontend && npm run test -- MemorySectionState`
-- relevant sidecar memory tests when IPC/memory storage behavior changes
+- relevant local-runtime memory tests when IPC/memory storage behavior changes
 
 Models/settings panel change:
 

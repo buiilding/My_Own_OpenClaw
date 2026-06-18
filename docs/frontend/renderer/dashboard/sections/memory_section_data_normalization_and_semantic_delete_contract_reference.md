@@ -129,7 +129,7 @@ After delete:
 
 ## Drift Hotspots
 
-1. Changing sidecar memory payload shape without updating normalizers.
+1. Changing local-runtime memory payload shape without updating normalizers.
 2. Reintroducing local add/edit without a backend write path creates reload-time data loss.
 3. Removing runtime memory id propagation (`runtimeMemoryId`) breaks delete routing.
 4. Importing `MEMORY_STORE_CHANGED` in the panel bypasses the runtime client and
