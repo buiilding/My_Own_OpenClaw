@@ -131,6 +131,7 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('desktop-agent-capture-processor');
       expect(source).not.toContain('DesktopAgentCaptureProcessor');
       expect(source).not.toContain('__windieWakewordCaptureGuard');
+      expect(source).not.toContain('__desktopAgentWakewordCaptureGuard');
     }
   });
 

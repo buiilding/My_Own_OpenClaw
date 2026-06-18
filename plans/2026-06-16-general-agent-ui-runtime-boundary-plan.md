@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer wakeword capture guard runtime key
+
+- Finding: the renderer wakeword capture guard still persisted its private
+  remount lockout state on `__desktopAgentWakewordCaptureGuard`, and wakeword
+  docs still mentioned the older Windie-specific key.
+- Change: renamed the private global to `__desktopRuntimeWakewordCaptureGuard`,
+  updated wakeword docs, and extended renderer boundary coverage to reject the
+  retired desktop-agent guard key.
+- Validation: focused WakewordDetectionHook and RendererSkinConfigBoundary Jest
+  tests, wakeword docs route lookup, and stale wakeword guard key scan.
+- Compatibility: no migration required. The guard is in-memory only; guard
+  shape, wakeword IPC channels, settings, service payloads, and persisted data
+  are unchanged.
+
 ### 2026-06-18 renderer skin/config facade runtime naming
 
 - Finding: after the renderer skin/config facade files moved to desktop-runtime

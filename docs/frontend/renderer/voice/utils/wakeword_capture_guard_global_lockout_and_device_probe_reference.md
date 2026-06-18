@@ -24,7 +24,7 @@ It owns:
   - `missingDeviceLocked: boolean`
   - `nextRetryAt: number`
 - global persistence key:
-  - `globalThis.__windieWakewordCaptureGuard`
+  - `globalThis.__desktopRuntimeWakewordCaptureGuard`
 - helper functions for guard lifecycle and device heuristics.
 
 `useWakewordDetection` consumes this utility but does not own global object creation semantics.

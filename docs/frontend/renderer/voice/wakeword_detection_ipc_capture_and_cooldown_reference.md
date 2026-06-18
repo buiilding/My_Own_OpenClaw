@@ -160,7 +160,7 @@ Missing microphone behavior (`NotFoundError` / "requested device not found"):
 - local capture error is surfaced with reconnect guidance
 - capture startup enters missing-device lockout to prevent repeated start attempts/log spam while still enabled
 - lockout state is persisted across hook remounts to avoid repeated retries when UI surfaces restart while wakeword remains enabled
-- lockout state is stored on `globalThis.__windieWakewordCaptureGuard` with:
+- lockout state is stored on `globalThis.__desktopRuntimeWakewordCaptureGuard` with:
   - `missingDeviceLocked`
   - `nextRetryAt`
 - suppression-only disable (`wakewordActive=false` while `wakewordPreferenceEnabled=true`) does not clear lockout

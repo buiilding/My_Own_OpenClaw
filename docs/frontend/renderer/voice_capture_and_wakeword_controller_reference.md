@@ -182,7 +182,7 @@ Chunk-size normalization:
 Missing-device guardrails:
 
 - capture startup retry uses `CAPTURE_RETRY_DELAY_MS = 3000`
-- missing-mic failures lock capture via `globalThis.__windieWakewordCaptureGuard`
+- missing-mic failures lock capture via `globalThis.__desktopRuntimeWakewordCaptureGuard`
 - lock persists across hook remounts
 - temporary suppression (`wakewordActive=false` while `wakewordEnabled=true`) keeps lockout active
 - lockout clears when wakeword preference is explicitly disabled or when `devicechange` detects an available `audioinput`

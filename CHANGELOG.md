@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the private wakeword capture guard global from
+  `__desktopAgentWakewordCaptureGuard` to
+  `__desktopRuntimeWakewordCaptureGuard` and align wakeword docs/tests; no
+  migration is required because the in-memory guard shape, wakeword IPC,
+  settings, and service payloads are unchanged.
 - frontend/renderer: rename the renderer skin/config facade symbols, imports,
   docs, and boundary tests from `desktopAgent*` to `desktopRuntime*` after the
   facade files moved; no migration is required because rendered copy, CSS,
