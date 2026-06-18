@@ -24,6 +24,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: require agents to redo required orientation after every
+  compaction summary before continuing implementation or analysis.
 - main/diagnostics: inject WindieOS app diagnostics database and user-data env
   names from the main host skin instead of hardcoding them inside the generic
   diagnostics store.
