@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer settings ownership docs boundary
+
+- Finding: renderer/runtime docs still described local config and settings sync
+  as frontend-owned even though the active owner is the renderer config provider
+  and the compatibility names are limited to `frontend-config` IPC/disk
+  contracts and `filterFrontendConfig`.
+- Change: reworded docs to renderer-managed settings/config ownership and
+  desktop-host OS handshake ownership while preserving the real compatibility
+  names for file paths, IPC commands, helper names, and
+  `skip_frontend_execution` metadata.
+- Validation: docs listing, stale frontend-owned wording scan across touched
+  docs, and diff check.
+- Compatibility: no migration required. This is a docs-only boundary alignment;
+  SDK projections, renderer behavior, transcript storage, IPC names, config
+  files, permissions, credentials, and backend wire metadata are unchanged.
+
 ### 2026-06-18 renderer current-turn skipped tool helper boundary
 
 - Finding: `currentTurnProjectionSideEffects.ts` consumed SDK

@@ -148,7 +148,7 @@ Main process (`ipc.cjs`) enforces initial settings synchronization ACK before fi
 
 Behavioral contract:
 
-- renderer pushes frontend-owned config through `windie:invoke` command
+- renderer pushes renderer-managed settings through `windie:invoke` command
   `settings.update`
 - main tracks pending ACK timeout
 - first query waits for initial update-settings attempt path

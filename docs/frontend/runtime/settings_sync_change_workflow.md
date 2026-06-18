@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for frontend settings-sync changes across renderer config storage, AppConfig/AppStatus providers, Electron disk persistence, update-settings ACK gating, backend session config, and model/provider UI."
+summary: "Workflow for renderer settings-sync changes across renderer config storage, AppConfig/AppStatus providers, Electron disk persistence, update-settings ACK gating, backend session config, and model/provider UI."
 read_when:
-  - When changing a user-facing setting, config persistence, model picker, settings ACK behavior, first-query settings sync, or frontend-to-backend settings payload shape.
+  - When changing a user-facing setting, config persistence, model picker, settings ACK behavior, first-query settings sync, or renderer-to-backend settings payload shape.
   - When debugging stale settings, save-status drift, first-query settings races, model list fallback, or config fields that reappear after reload.
   - When deciding whether a setting belongs in renderer local storage, Electron disk config, backend session config, or sidecar env.
 title: "Settings Sync Change Workflow"
@@ -9,14 +9,14 @@ title: "Settings Sync Change Workflow"
 
 # Settings Sync Change Workflow
 
-Use this workflow before changing frontend settings or config sync. Settings changes are cross-runtime by default: renderer UI persists local state, Electron main stores disk state and gates backend sync, and the backend may rewire sessions from the sanitized settings payload.
+Use this workflow before changing renderer settings or config sync. Settings changes are cross-runtime by default: renderer UI persists local state, Electron main stores disk state and gates backend sync, and the backend may rewire sessions from the sanitized settings payload.
 
 For tab/control ownership, start with [Settings Surface Change Workflow](../renderer/settings/settings_surface_change_workflow.md). Use this page when the setting value crosses persistence, Electron ACK, or backend session-config boundaries.
 
 ## Settings Flow
 
 1. renderer loads local storage and disk config.
-2. renderer filters to frontend-owned fields.
+2. renderer filters to renderer-owned settings fields.
 3. settings UI updates `AppConfigProvider`.
 4. renderer persists local storage and main-process disk config.
 5. renderer sends `update-settings` to Electron main.
@@ -124,7 +124,7 @@ Validation:
 
 Rules:
 
-- Reject or ignore fields outside the frontend-owned patch allowlist.
+- Reject or ignore fields outside the renderer settings patch allowlist.
 - Rebuild provider, prompt, and tool policy dependencies only when the changed field affects them.
 - Keep session-scoped config distinct from process-wide defaults.
 - Do not trust renderer-provided hosted identity.
@@ -150,7 +150,7 @@ Validation:
 ## Review Checklist
 
 - The setting has exactly one owner.
-- Renderer persistence contains only allowed frontend fields.
+- Renderer persistence contains only allowed renderer-managed settings fields.
 - Electron main ACK and timeout behavior are covered.
 - Backend patch validation covers accepted and rejected fields.
 - First-query sync still prevents stale settings from reaching the backend.

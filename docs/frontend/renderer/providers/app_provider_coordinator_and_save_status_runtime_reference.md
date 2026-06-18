@@ -98,7 +98,7 @@ One-time model-list request guard:
 
 `buildMergedFrontendConfig(incoming)`:
 
-- filters to frontend-owned keys
+- filters to renderer-managed settings keys
 - merges with current config
 - strips `undefined` keys
 
@@ -159,7 +159,7 @@ Net effect:
 
 ## Drift Hotspots
 
-1. changing filter/persistence helpers and bypassing frontend-owned config boundary
+1. changing filter/persistence helpers and bypassing the renderer-managed config boundary
 2. registering duplicate model-list fetches across windows
 3. removing shallow-change guard and causing write storms
 4. changing save-status error string matching without aligned backend message text

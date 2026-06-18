@@ -184,7 +184,7 @@ frontend/src/renderer/
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
 │   │
-│   ├── interaction/                      # Frontend interaction diagnostics
+│   ├── interaction/                      # Renderer interaction diagnostics
 │   │   └── rendererInteractionLogger.js # rendererInteractionLogger - capture-phase click/control-change logging and send-message traces
 │   │
 │   ├── ipc/                              # IPC communication layer
@@ -219,7 +219,7 @@ frontend/src/renderer/
 │   └── toolSchemas.ts                    # Renderer display tool-schema type helpers
 │
 └── utils/                                 # Utility functions
-    ├── configFilter.js                  # configFilter - Filters config to frontend-managed fields only
+    ├── configFilter.js                  # configFilter - Filters config to renderer-managed fields only
     ├── configStorage.js                 # configStorage - localStorage utilities for config persistence (optimistic state pattern)
 ```
 
@@ -399,7 +399,7 @@ frontend/src/renderer/
                ↓
 2. CONFIG UPDATE
    └─> app/providers/AppConfigContext.jsx
-       ├─> filterFrontendConfig() - Filter to frontend-managed fields
+       ├─> filterFrontendConfig() - Filter to renderer-managed fields
        ├─> Update state immediately
        └─> saveConfigToStorage() - Persist to localStorage
            ↓
@@ -475,7 +475,7 @@ frontend/src/renderer/
 
 16. **Memory Storage**: SDK-shaped memory runtime commands and SDK-owned invalidation events; Python sidecar RPC names stay below the SDK/local-runtime boundary
 
-17. **Config Filtering**: Frontend only manages subset of config (model_mode, selected_model_id, speech_mode_enabled, wakeword flags, etc.)
+17. **Config Filtering**: Renderer only manages subset of config (model_mode, selected_model_id, speech_mode_enabled, wakeword flags, etc.)
 
 18. **Error Boundaries**: React error boundaries prevent full app crashes
 
@@ -534,7 +534,7 @@ App
 - `WAKEWORD_DETECTED` - Wakeword detection event
 - `WAKEWORD_STATUS` - Wakeword service status
 
-### Frontend Interaction Logs
+### Renderer Interaction Logs
 
 - `infrastructure/interaction/rendererInteractionLogger.js` installs one capture-phase renderer listener for user clicks and control changes.
 - Click logs include the resolved control label, element role/type, class/test id metadata, and current renderer view.

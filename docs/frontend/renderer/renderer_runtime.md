@@ -25,7 +25,7 @@ Provider layering:
 Provider responsibilities:
 
 - `AppConfigProvider`:
-  - frontend-owned config state
+  - renderer-owned config state
   - model list loading/refresh
   - runtime settings sync
   - one-shot `list-models` request guard in main dashboard renderer only
@@ -132,7 +132,7 @@ Desktop transcript projection runtime guarantees:
 
 ## Config Ownership Boundary
 
-Frontend-managed settings are filtered/sanitized before runtime settings sync.
+Renderer-managed settings are filtered/sanitized before runtime settings sync.
 
 Typical keys:
 
@@ -144,7 +144,7 @@ Typical keys:
 - provider OAuth credentials can still be persisted/synced, but no OAuth controls are exposed in the renderer settings UI
 - browser automation feature toggle (`browser_automation_enabled`)
 
-Backend remains source of truth for non-frontend runtime fields.
+Backend remains source of truth for non-renderer runtime fields.
 
 ## Related Docs
 

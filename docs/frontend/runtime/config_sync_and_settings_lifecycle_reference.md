@@ -1,7 +1,7 @@
 ---
-summary: "Frontend config/settings lifecycle reference across renderer providers, main-process settings ACK gating, local storage + disk persistence, and settings runtime sync timing."
+summary: "Renderer config/settings lifecycle reference across renderer providers, main-process settings ACK gating, local storage + disk persistence, and settings runtime sync timing."
 read_when:
-  - When changing frontend-managed config fields, settings persistence, or update-settings ACK behavior.
+  - When changing renderer-managed config fields, settings persistence, or update-settings ACK behavior.
   - When debugging stale settings, save-status drift, or first-query settings sync races.
 title: "Config Sync and Settings Lifecycle Reference"
 ---
@@ -23,7 +23,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 
 ## Config Ownership Boundary
 
-Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
+Renderer-managed settings are filtered through `filterFrontendConfig(...)`:
 
 - `model_mode`
 - `model_provider`
@@ -41,7 +41,7 @@ Backend-owned speech/transcription runtime policy is intentionally excluded from
 - `speech_provider`
 - `stt_provider`
 
-`global_agent_stop_shortcut` remains frontend-owned and local-only:
+`global_agent_stop_shortcut` remains renderer-owned and local-only:
 
 - persisted in localStorage + main-process disk config
 - intentionally removed from backend `update-settings` payloads
@@ -143,7 +143,7 @@ Before forwarding `query` or `wakeword-detected`, main ensures one-time per-conn
 
 Purpose:
 
-- reduce race where first query reaches backend before frontend-owned settings are applied
+- reduce race where first query reaches backend before renderer-managed settings are applied
 
 ## Connection/Status Propagation
 
@@ -201,7 +201,7 @@ If settings revert unexpectedly:
 
 1. inspect storage event cross-window sync path
 2. verify disk-loaded config was filtered/sanitized correctly
-3. verify frontend only merges frontend-owned fields from backend payloads
+3. verify renderer only merges renderer-managed fields from backend payloads
 
 ## Related Renderer Provider Deep Dives
 
