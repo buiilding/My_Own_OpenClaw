@@ -69,6 +69,8 @@ All notable changes to WindieOS will be documented in this file.
   WindieOS sidecar alias.
 - sidecar/runtime: accept generic `AGENT_SIDECAR_LOG_LEVEL` Python sidecar log
   level configuration while preserving the WindieOS sidecar alias.
+- sidecar/extensions: accept generic `AGENT_CONTRIBUTIONS_DIR` local-runtime
+  plugin contribution-root configuration while preserving the WindieOS alias.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.

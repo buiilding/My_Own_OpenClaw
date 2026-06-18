@@ -5,7 +5,11 @@ import json
 import sys
 from pathlib import Path
 
-from tools.extension_loader import resolve_default_contribution_root
+from tools.extension_loader import (
+    ENV_AGENT_CONTRIBUTIONS_DIR,
+    ENV_WINDIE_CONTRIBUTIONS_DIR,
+    resolve_default_contribution_root,
+)
 from tools.manifest import (
     EXPOSED_TO_BACKEND_TOOL_NAMES,
     build_sidecar_capability_schema,
@@ -179,7 +183,7 @@ def test_registry_loads_plugin_entrypoint_and_manifest(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("WINDIE_AGENT_CONTRIBUTIONS_DIR", str(tmp_path))
+    monkeypatch.setenv(ENV_AGENT_CONTRIBUTIONS_DIR, str(tmp_path))
 
     registry = ToolRegistry()
     result = asyncio.run(
@@ -204,10 +208,33 @@ def test_default_contribution_root_ignores_ambient_cwd_contribution_folders(
     assert resolve_default_contribution_root() == REPO_ROOT
 
 
-def test_default_contribution_root_honors_explicit_environment_override(
+def test_default_contribution_root_honors_generic_environment_override(
     tmp_path: Path,
     monkeypatch,
 ):
-    monkeypatch.setenv("WINDIE_AGENT_CONTRIBUTIONS_DIR", str(tmp_path))
+    monkeypatch.setenv(ENV_AGENT_CONTRIBUTIONS_DIR, str(tmp_path))
 
     assert resolve_default_contribution_root() == tmp_path.resolve()
+
+
+def test_default_contribution_root_preserves_windie_environment_alias(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setenv(ENV_WINDIE_CONTRIBUTIONS_DIR, str(tmp_path))
+
+    assert resolve_default_contribution_root() == tmp_path.resolve()
+
+
+def test_default_contribution_root_prefers_generic_environment_override(
+    tmp_path: Path,
+    monkeypatch,
+):
+    generic_root = tmp_path / "generic"
+    windie_root = tmp_path / "windie"
+    generic_root.mkdir()
+    windie_root.mkdir()
+    monkeypatch.setenv(ENV_AGENT_CONTRIBUTIONS_DIR, str(generic_root))
+    monkeypatch.setenv(ENV_WINDIE_CONTRIBUTIONS_DIR, str(windie_root))
+
+    assert resolve_default_contribution_root() == generic_root.resolve()

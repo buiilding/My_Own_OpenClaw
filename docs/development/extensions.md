@@ -32,10 +32,12 @@ shape, `plugin/index.cjs`, or an Electron-main plugin tool execution surface.
 Some local checkouts may still contain an empty legacy `extensions/` directory;
 it is not the contribution root and is not tracked as the current authoring
 surface. Default discovery uses the WindieOS repo root, or the configured
-contribution-root env override. WindieOS supplies
-`WINDIE_AGENT_CONTRIBUTIONS_DIR` through the main host skin; set it when using a
-separate contribution root. The loader does not infer contribution roots from
-the process working directory. Plugin tools are local-runtime tools:
+contribution-root env override. Generic hosts can set
+`AGENT_CONTRIBUTIONS_DIR`; WindieOS also supplies
+`WINDIE_AGENT_CONTRIBUTIONS_DIR` through the main host skin for existing
+launches. Set one of these variables when using a separate contribution root.
+The loader does not infer contribution roots from the process working
+directory. Plugin tools are local-runtime tools:
 Electron main reads `plugin.json` for the model-facing client manifest, and the
 Python sidecar implementation loads the same `plugin.json` to execute the
 declared Python entrypoints. Use this page for extension package, plugin, MCP,

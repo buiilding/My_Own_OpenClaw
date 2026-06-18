@@ -16,6 +16,8 @@ from typing import Any, Callable
 logger = logging.getLogger(__name__)
 
 TOOL_NAME_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]{0,95}$")
+ENV_AGENT_CONTRIBUTIONS_DIR = "AGENT_CONTRIBUTIONS_DIR"
+ENV_WINDIE_CONTRIBUTIONS_DIR = "WINDIE_AGENT_CONTRIBUTIONS_DIR"
 
 
 @dataclass(slots=True)
@@ -34,9 +36,10 @@ class LoadedLocalRuntimePlugins:
 
 
 def resolve_default_contribution_root() -> Path:
-    env_dir = os.getenv("WINDIE_AGENT_CONTRIBUTIONS_DIR")
-    if env_dir:
-        return Path(env_dir).expanduser().resolve()
+    for env_name in (ENV_AGENT_CONTRIBUTIONS_DIR, ENV_WINDIE_CONTRIBUTIONS_DIR):
+        env_dir = os.getenv(env_name)
+        if env_dir:
+            return Path(env_dir).expanduser().resolve()
 
     return Path(__file__).resolve().parents[5]
 

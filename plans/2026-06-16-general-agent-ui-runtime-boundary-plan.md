@@ -8294,3 +8294,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing WindieOS log-level overrides
   continue to work, generic hosts can use the Agent env name, and the default
   `WARNING` level plus invalid-value fallback remain unchanged.
+
+### 2026-06-18 Python extension contribution-root env alias boundary
+
+- Finding: Electron main extension discovery already defaults generic hosts to
+  `AGENT_CONTRIBUTIONS_DIR`, but the Python local-runtime plugin loader still
+  read only `WINDIE_AGENT_CONTRIBUTIONS_DIR` when resolving the executable
+  contribution root.
+- Change: made the Python plugin loader read `AGENT_CONTRIBUTIONS_DIR` first
+  with the WindieOS alias preserved.
+- Validation: focused sidecar tool-manifest pytest coverage, source scans,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS contribution-root
+  overrides continue to work, explicit loader arguments still win, generic
+  hosts can use `AGENT_CONTRIBUTIONS_DIR`, and the default repo-root discovery
+  behavior is unchanged.
