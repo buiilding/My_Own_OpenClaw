@@ -2511,6 +2511,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   artifact/transcription URL shapes, transcript session binding, local-runtime
   launch, hosted backend URL, and provider policy are unchanged.
 
+### 2026-06-18 Python Local-Runtime User-Data Helper Wording Slice
+
+- Finding: `core/user_data_paths.py` still described the shared app-data path
+  helper as sidecar-owned and emitted an unsupported-OS error that named a
+  sidecar user-data path, despite the helper now owning generic
+  local-runtime storage fallback paths.
+- Decision: keep path defaults and env override behavior stable; only correct
+  the shared helper ownership wording.
+- Change: reworded the helper docstring and unsupported-OS error to
+  local-runtime terms and added a source-copy guard to the focused user-data
+  path tests.
+- Validation: focused user-data path pytest coverage, source scans, docs
+  listing, and `git diff --check` passed.
+- Compatibility: no migration required. Platform path resolution, the
+  `desktop-runtime` default directory, env overrides, Windows fallback behavior,
+  storage formats, permissions, credentials, IPC, local-runtime launch, hosted
+  backend URL handling, and provider policy are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

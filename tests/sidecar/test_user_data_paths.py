@@ -1,4 +1,4 @@
-"""Covers sidecar user-data path helpers."""
+"""Covers local-runtime user-data path helpers."""
 
 from pathlib import Path
 
@@ -60,5 +60,13 @@ def test_app_user_data_root_unsupported_os_uses_generic_error(monkeypatch):
     else:
         raise AssertionError("expected unsupported OS to raise")
 
-    assert "sidecar user-data path" in message
+    assert "local-runtime user-data path" in message
     assert "WindieOS" not in message
+
+
+def test_user_data_path_source_uses_local_runtime_terms():
+    source = Path(user_data_paths.__file__).read_text(encoding="utf-8")
+
+    assert "Python local-runtime storage" in source
+    assert "sidecar-owned local storage" not in source
+    assert "sidecar user-data path" not in source

@@ -1,4 +1,4 @@
-"""Platform user-data paths for sidecar-owned local storage."""
+"""Platform user-data paths for Python local-runtime storage."""
 
 from __future__ import annotations
 
@@ -58,4 +58,4 @@ def app_user_data_root(
         )
         return Path(config_home or (Path.home() / ".config")) / APP_DATA_DIR_NAME
 
-    raise RuntimeError(f"Unsupported OS for sidecar user-data path: {os.name}")
+    raise RuntimeError(f"Unsupported OS for local-runtime user-data path: {os.name}")

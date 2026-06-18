@@ -79,6 +79,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/python: describe private backend endpoint, hosted HTTP, and install-auth
   helpers with Python SDK/local-runtime ownership instead of sidecar-client
   wording.
+- sidecar/runtime: describe the shared Python user-data path helper with
+  local-runtime storage ownership instead of sidecar-owned storage wording.
 - sdk/local-runtime: treat daemon discovery launch contexts as compatibility
   supersets so generic Agent SDK and WindieOS launch keys do not force local
   runtime restart loops.

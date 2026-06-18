@@ -8737,3 +8737,18 @@ Each completed slice should report:
   storage, credential, permission, IPC channel, artifact URL shape, transcript
   session, local-runtime launch, hosted backend URL, or provider-policy
   contract changes.
+
+### 2026-06-18 Python local-runtime user-data helper wording boundary
+
+- Finding: the shared Python user-data path helper still described its default
+  storage root and unsupported-OS error as sidecar-owned even though the helper
+  now provides generic local-runtime storage paths and is configured by
+  Electron host skin/env injection.
+- Change: reworded the helper docstring and unsupported-OS error to
+  local-runtime ownership and added a focused source-copy guard.
+- Validation: focused user-data path pytest coverage, source scans, docs
+  listing, and `git diff --check`.
+- Compatibility: no migration required. Platform path resolution, the
+  `desktop-runtime` default directory, env overrides, Windows fallback behavior,
+  storage formats, permissions, credentials, IPC, local-runtime launch, hosted
+  backend URL handling, and provider policy are unchanged.
