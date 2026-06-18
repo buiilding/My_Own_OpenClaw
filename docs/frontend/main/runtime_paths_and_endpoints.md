@@ -22,7 +22,10 @@ title: "Runtime Paths and Endpoints"
 
 ## Backend Endpoint Resolution
 
-`resolveBackendEndpoints(env)` derives the websocket and HTTP base URLs for main process relays.
+`resolveBackendEndpoints(env)` derives the websocket and HTTP base URLs for
+main process relays. The reusable resolver has generic loopback defaults; the
+WindieOS desktop and `<windie>` CLI configure hosted defaults through
+`mainHostSkin.hostedBackend` at their composition roots.
 
 Supported env vars (priority order):
 
@@ -30,8 +33,10 @@ Supported env vars (priority order):
 - `BACKEND_HTTP_URL`
 - explicit endpoint override pair: `BACKEND_HOST` + `BACKEND_PORT`
 - hosted-default override pair:
-  - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
-  - `WINDIE_DEFAULT_BACKEND_WS_URL`
+  - generic fallback: `AGENT_DEFAULT_BACKEND_HTTP_URL`
+  - generic fallback: `AGENT_DEFAULT_BACKEND_WS_URL`
+  - WindieOS host skin: `WINDIE_DEFAULT_BACKEND_HTTP_URL`
+  - WindieOS host skin: `WINDIE_DEFAULT_BACKEND_WS_URL`
 
 Removed packaged endpoint aliases:
 
@@ -42,11 +47,14 @@ Removed packaged endpoint aliases:
 
 Defaults when explicit `BACKEND_*` is unset:
 
-- Dev/source runs:
+- Generic resolver without host configuration:
+  - http: `http://127.0.0.1:8765`
+  - ws: `ws://127.0.0.1:8765/ws`
+- WindieOS dev/source runs:
   - primary hosted candidate:
     - http: `https://api.windieos.com`
     - ws: `wss://api.windieos.com/ws`
-- Packaged runs:
+- WindieOS packaged runs:
   - primary hosted candidate:
     - http: `https://api.windieos.com`
     - ws: `wss://api.windieos.com/ws`
@@ -69,8 +77,9 @@ Returned object:
 `resolveBackendEndpointCandidates(env, { isPackaged })` returns the ordered candidate list
 used by the IPC websocket bridge:
 
-- source runs: hosted default only
-- packaged runs: hosted default only
+- generic resolver without host configuration: loopback default only
+- WindieOS source runs: hosted default only
+- WindieOS packaged runs: hosted default only
 - explicit `BACKEND_*` or host/port overrides collapse the list to the explicit target
 
 ## VM Worker Endpoint Consumption

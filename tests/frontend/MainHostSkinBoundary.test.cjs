@@ -148,8 +148,9 @@ describe('main host skin/config boundary', () => {
     const runtimeModeSource = fs.readFileSync(runtimeModePath, 'utf8');
     const vmWorkerRuntimeSource = fs.readFileSync(vmWorkerRuntimePath, 'utf8');
 
-    expect(backendEndpointSource).toContain("require('./main_host_skin.cjs')");
-    expect(backendEndpointSource).toContain('mainHostSkin.hostedBackend');
+    expect(backendEndpointSource).toContain('configureBackendEndpointRuntime');
+    expect(backendEndpointSource).not.toContain('mainHostSkin');
+    expect(fs.readFileSync(mainIpcPath, 'utf8')).toContain('configureBackendEndpointRuntime(mainHostSkin.hostedBackend)');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
     expect(backendEndpointSource).not.toContain('WINDIE_DEFAULT_BACKEND_HTTP_URL');

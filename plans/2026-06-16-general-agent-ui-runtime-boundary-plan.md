@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Hosted Endpoint Config Boundary
+
+- Finding: `backend_endpoints.cjs` had generic env fallbacks but still imported
+  `mainHostSkin` directly for WindieOS hosted defaults, so a reusable endpoint
+  resolver carried product configuration.
+- Change: added explicit endpoint runtime configuration, gave the generic
+  resolver loopback defaults, removed the host-skin import from the resolver,
+  and configured WindieOS hosted defaults from Electron main and CLI status
+  composition roots.
+- Validation: focused backend endpoint, main host skin boundary, Windie CLI,
+  docs listing, source scan, and diff-check validation.
+- Compatibility: no migration required. WindieOS source, packaged, and CLI
+  status paths still default to `https://api.windieos.com` /
+  `wss://api.windieos.com/ws` and still honor
+  `WINDIE_DEFAULT_BACKEND_HTTP_URL` / `WINDIE_DEFAULT_BACKEND_WS_URL` through
+  host-skin configuration; explicit `BACKEND_*` overrides are unchanged.
+
 ### 2026-06-18 Main Diagnostics Store Config Boundary
 
 - Finding: `app_diagnostics_store.cjs` used generic fallback path/env names but

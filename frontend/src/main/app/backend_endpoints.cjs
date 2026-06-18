@@ -8,15 +8,18 @@
  * - host-supplied hosted-default override env keys
  */
 
-const { mainHostSkin } = require('./main_host_skin.cjs');
-
 const DEFAULT_LOOPBACK_BACKEND_HOST = '127.0.0.1';
 const DEFAULT_LOOPBACK_BACKEND_PORT = '8765';
-const DEFAULT_HOSTED_BACKEND = mainHostSkin.hostedBackend;
 const DEFAULT_HOSTED_BACKEND_ENV = Object.freeze({
   defaultHttpUrl: 'AGENT_DEFAULT_BACKEND_HTTP_URL',
   defaultWsUrl: 'AGENT_DEFAULT_BACKEND_WS_URL',
 });
+const DEFAULT_HOSTED_BACKEND = Object.freeze({
+  httpUrl: `http://${DEFAULT_LOOPBACK_BACKEND_HOST}:${DEFAULT_LOOPBACK_BACKEND_PORT}`,
+  wsUrl: `ws://${DEFAULT_LOOPBACK_BACKEND_HOST}:${DEFAULT_LOOPBACK_BACKEND_PORT}/ws`,
+  env: DEFAULT_HOSTED_BACKEND_ENV,
+});
+let configuredHostedBackend = normalizeHostedBackendConfig();
 
 function trimTrailingSlash(value) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -131,7 +134,12 @@ function normalizeHostedBackendConfig(hostedBackend = DEFAULT_HOSTED_BACKEND) {
   };
 }
 
-function resolveHostedDefaultEndpoints(env, hostedBackend = DEFAULT_HOSTED_BACKEND) {
+function configureBackendEndpointRuntime(hostedBackend = DEFAULT_HOSTED_BACKEND) {
+  configuredHostedBackend = normalizeHostedBackendConfig(hostedBackend);
+  return configuredHostedBackend;
+}
+
+function resolveHostedDefaultEndpoints(env, hostedBackend = configuredHostedBackend) {
   const hostedConfig = normalizeHostedBackendConfig(hostedBackend);
   const explicitDefaultHttpUrl = normalizeUrl(
     env[hostedConfig.env.defaultHttpUrl],
@@ -196,7 +204,7 @@ function resolveBackendEndpoints(env = process.env, options = {}) {
 }
 
 function resolveBackendEndpointCandidates(env = process.env, options = {}) {
-  const hostedBackend = options?.hostedBackend || DEFAULT_HOSTED_BACKEND;
+  const hostedBackend = options?.hostedBackend || configuredHostedBackend;
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
   const explicitHostOrPortOverride = (
@@ -254,6 +262,7 @@ function resolvePreferredArtifactHttpUrl(activeHttpUrl, endpointCandidates = [])
 }
 
 module.exports = {
+  configureBackendEndpointRuntime,
   resolvePreferredArtifactHttpUrl,
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,

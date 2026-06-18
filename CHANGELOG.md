@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/diagnostics: configure the generic diagnostics store from Electron/CLI
   composition roots instead of importing the WindieOS host skin inside the
   store.
+- main/endpoints: configure hosted backend defaults from Electron/CLI
+  composition roots instead of importing the WindieOS host skin inside the
+  generic endpoint resolver.
 - main/runtime: inject the WindieOS Python executable override env name from
   the main host skin instead of hardcoding it inside generic runtime path
   resolution.

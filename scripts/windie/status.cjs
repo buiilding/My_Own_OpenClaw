@@ -6,9 +6,13 @@ const fs = require('fs');
 const path = require('path');
 const { capture } = require('./run.cjs');
 const { FRONTEND_DIR, REPO_ROOT, repoPath } = require('./paths.cjs');
+const { mainHostSkin } = require('../../frontend/src/main/app/main_host_skin.cjs');
 const {
+  configureBackendEndpointRuntime,
   resolveBackendEndpoints,
 } = require('../../frontend/src/main/app/backend_endpoints.cjs');
+
+configureBackendEndpointRuntime(mainHostSkin.hostedBackend);
 
 function exists(relativePath) {
   return fs.existsSync(repoPath(relativePath));

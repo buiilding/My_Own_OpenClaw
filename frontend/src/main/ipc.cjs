@@ -12,6 +12,7 @@ const {
 } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const {
+  configureBackendEndpointRuntime,
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
@@ -169,6 +170,7 @@ const {
   summarizeCurrentTurn,
 } = require('./debug/live_surface_trace_runtime.cjs');
 
+configureBackendEndpointRuntime(mainHostSkin.hostedBackend);
 const backendEndpointState = createBackendEndpointState({
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
