@@ -12,6 +12,7 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `tests/frontend/DashboardShell.test.jsx`
@@ -69,20 +70,18 @@ On successful load, retry counter resets to `0`.
 
 ## Title Visibility Poll After Transcript Writes
 
-Hook subscribes to browser event:
+Hook subscribes through `DesktopConversationRuntimeEventClient.onConversationEvent`:
 
-- `window` event: `transcript-entry-stored`
-- Electron IPC event: `sidecar-event`
+- event type: `user_message` -> immediate `loadRecentConversations()`
+- event type: `assistant_message` -> title visibility handling
 
 Trigger condition:
 
-- `detail.role === 'assistant'`
-- `detail.messageType === 'llm-text'`
+- no `conversationRef` in an assistant event -> immediate `loadRecentConversations()`
+- with `conversationRef` -> schedule visibility poll for that conversation id
 
 Behavior:
 
-- no `conversationRef` in event detail -> immediate `loadRecentConversations()`
-- with `conversationRef` -> schedule visibility poll for that conversation id
 - `windie:conversation-metadata-invalidated` with `reason = conversation-title-updated` -> immediate `loadRecentConversations()`
 
 Poll contract:

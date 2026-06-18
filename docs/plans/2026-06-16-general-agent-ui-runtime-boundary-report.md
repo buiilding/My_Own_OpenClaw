@@ -158,8 +158,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through renderer app runtime clients.
   Renderer app startup, wakeword chatbox restore, and main-window controls now
   route through the renderer app runtime window client.
+  Renderer dashboard conversation refresh and title-poll subscriptions now route
+  through the renderer app runtime conversation event client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Dashboard Conversation Event Subscription Slice
+
+- Worktree was clean after `083e49bf4`, with `main` ahead of `origin/main` by
+  846 commits.
+- Finding: `useDashboardConversations` still subscribed to the desktop runtime
+  conversation-event IPC channel directly while chat stream/projection paths used
+  `DesktopConversationRuntimeEventClient`.
+- Change: routed the dashboard conversation event subscription through
+  `DesktopConversationRuntimeEventClient.onConversationEvent` while leaving
+  recent-list refresh, SDK metadata invalidation, and assistant-title polling
+  policy in the dashboard hook.
+- Validation: focused dashboard conversation hook test, renderer chat boundary
+  test, targeted dashboard direct conversation-event IPC scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. Conversation event payloads, SDK
+  metadata commands, title polling timing, dashboard list/search/open/delete
+  behavior, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Window Runtime Client Expansion Slice
 

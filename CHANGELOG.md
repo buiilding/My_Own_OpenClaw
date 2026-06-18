@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route dashboard conversation event refresh and title-poll
+  subscriptions through the renderer app runtime conversation event client.
 - renderer/runtime: route app startup, wakeword chatbox restore, and main-window
   controls through the renderer app runtime window client instead of importing
   window IPC channels at those call sites.

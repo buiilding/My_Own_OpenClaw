@@ -314,6 +314,22 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
   });
 
+  test('dashboard conversation hook subscribes through app runtime conversation event client', async () => {
+    const dashboardHookSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+    const eventClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts'),
+      'utf8',
+    );
+
+    expect(dashboardHookSource).toContain('DesktopConversationRuntimeEventClient.onConversationEvent');
+    expect(dashboardHookSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+    expect(dashboardHookSource).not.toContain('IpcBridge.on');
+    expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+  });
+
   test('conversation runtime projections subscribe through app runtime client', async () => {
     const projectionSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationRuntimeProjectionStream.ts'),

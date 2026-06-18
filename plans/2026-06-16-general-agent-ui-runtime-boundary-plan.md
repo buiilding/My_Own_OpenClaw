@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Dashboard Conversation Event Subscription
+
+- Finding: `useDashboardConversations` still subscribed to the desktop runtime
+  conversation-event IPC channel directly while chat stream/projection paths used
+  `DesktopConversationRuntimeEventClient`.
+- Change: routed the dashboard conversation event subscription through
+  `DesktopConversationRuntimeEventClient.onConversationEvent` while leaving
+  recent-list refresh, SDK metadata invalidation, and assistant-title polling
+  policy in the dashboard hook.
+- Validation: focused dashboard conversation hook test, renderer chat boundary
+  test, targeted dashboard direct conversation-event IPC scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. Conversation event payloads, SDK
+  metadata commands, title polling timing, dashboard list/search/open/delete
+  behavior, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Window Runtime Client Expansion
 
 - Finding: app startup, wakeword detection, and shared main-window controls

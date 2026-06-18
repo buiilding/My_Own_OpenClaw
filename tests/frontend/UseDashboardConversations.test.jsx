@@ -9,8 +9,7 @@ import {
   getLocalRuntimeStatusSnapshot,
   subscribeLocalRuntimeStatusStore,
 } from '../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore';
-import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
+import { DesktopConversationRuntimeEventClient } from '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
@@ -32,12 +31,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/runtime/localRuntimeStatus
   subscribeLocalRuntimeStatusStore: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-  IpcBridge: {
-    on: jest.fn(),
-  },
-  ON_CHANNELS: {
-    DESKTOP_RUNTIME_CONVERSATION_EVENT: 'windie:conversation-event',
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient', () => ({
+  DesktopConversationRuntimeEventClient: {
+    onConversationEvent: jest.fn(),
   },
 }));
 
@@ -109,7 +105,7 @@ describe('useDashboardConversations', () => {
     subscribeLocalRuntimeStatusStore.mockImplementation(() => jest.fn());
     DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValue([]);
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
-    IpcBridge.on.mockImplementation(() => jest.fn());
+    DesktopConversationRuntimeEventClient.onConversationEvent.mockImplementation(() => jest.fn());
   });
 
   test('reloads recent conversations when the local runtime becomes ready', async () => {
@@ -209,10 +205,8 @@ describe('useDashboardConversations', () => {
 
   test('reloads recent conversations through SDK conversation events', async () => {
     let sdkConversationEventListener = null;
-    IpcBridge.on.mockImplementation((channel, listener) => {
-      if (channel === DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT) {
-        sdkConversationEventListener = listener;
-      }
+    DesktopConversationRuntimeEventClient.onConversationEvent.mockImplementation((listener) => {
+      sdkConversationEventListener = listener;
       return jest.fn();
     });
     DesktopConversationLibraryClient.listMetadata

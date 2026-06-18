@@ -107,10 +107,11 @@ of importing `get-client-user-id` or `ipc-status` channel constants directly.
 
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,
-current-turn projections, and display rows. `useChatStream` and
-`useConversationRuntimeProjectionStream` retain validation, stale-turn policy,
-projection side effects, and display-row merging while delegating channel names
-and `IpcBridge.on(...)` calls to this app runtime client.
+current-turn projections, and display rows. `useChatStream`,
+`useDashboardConversations`, and `useConversationRuntimeProjectionStream` retain
+validation, stale-turn policy, list refresh/title polling, projection side
+effects, and display-row merging while delegating channel names and
+`IpcBridge.on(...)` calls to this app runtime client.
 
 `desktopAudioRuntimeClient.ts` owns the renderer subscription to the untyped
 backend `audio-chunk` side channel. Chat interface bindings keep audio payload
