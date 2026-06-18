@@ -3,7 +3,7 @@ summary: "Detailed browser tool action reference for canonical Browser Use CLI r
 read_when:
   - When changing browser action payload fields, action names, strict schema policy, or Browser Use engine normalization logic.
   - When debugging browser `replace_file` payloads, canonical `old_string` / `new_string` fields, or rejected `old_str` / `new_str` aliases.
-  - When debugging browser action failures caused by Python sidecar validation, Browser Use CLI execution, or timeout boundaries.
+  - When debugging browser action failures caused by local-runtime validation, Browser Use CLI execution, or timeout boundaries.
 title: "Browser Action Runtime Reference"
 ---
 

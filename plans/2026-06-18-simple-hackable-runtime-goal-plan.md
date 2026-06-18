@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a browser docs navigation follow-up by replacing
+  backend-sidecar browser parity labels in top-level docs hubs, backend browser
+  hubs, tools docs, and local-runtime sidecar browser references with
+  backend/local-runtime schema parity wording. Validation: modular docs
+  boundary test, docs listing, exact stale-label scan, and diff checks. No
+  migration required; browser schema, action validation, local-runtime
+  execution, IPC, credentials, permissions, storage, hosted URLs, and provider
+  policy are unchanged.
 - 2026-06-18: completed a browser shared-contract wording slice by updating
   `backend/src/tools/browser/shared_contract_loader.py`, backend/browser docs,
   browser workflow docs, tool docs, and boundary tests so shared browser schema

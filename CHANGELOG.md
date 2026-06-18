@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: align browser hub, backend hub, sidecar browser-contract, and
+  top-level docs navigation labels with backend/local-runtime schema parity
+  wording. No migration required.
 - backend/browser: route the shared browser contract loader and schema docs
   through backend/local-runtime validation wording, leaving Python sidecar
   Browser Use adapters as the current concrete implementation. No migration

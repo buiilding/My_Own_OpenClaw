@@ -22,7 +22,7 @@ policy/projection, and SDK/main-process dispatch.
 - [Web Search Tool](web_search.md) covers backend-owned `web_search`, OpenAI native search, Gemini native grounding, Brave fallback, visibility policy, and result validation.
 - [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures to the right owner.
 - [Computer Tools](computer.md) covers mouse, keyboard, screenshot, scroll, window switching, and local OS control.
-- [Browser Tool](browser.md) covers the dedicated Windie browser runtime, browser action schemas, snapshots, and backend-sidecar parity.
+- [Browser Tool](browser.md) covers the dedicated Windie browser runtime, browser action schemas, snapshots, and backend/local-runtime parity.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, local-runtime execution, Python sidecar adapters, CDP launch, Electron bridge, renderer controls, files, and tests.
 - [Filesystem and Shell Tools](filesystem_shell.md) covers `read_file`, `replace`, shell/process execution, and output formatting.
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) routes file/shell changes across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests.

@@ -166,7 +166,7 @@ Covers:
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 - [Browser Remote Schema Surface Reference](tools/browser/browser_remote_schema_surface_reference.md)
 - [Browser Control Unified Schema Reference](tools/browser/schema/browser_control_unified_schema_reference.md)
-- [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+- [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 - [Tool Policy and Agent Capability Runtime Reference](tools/policy/tool_policy_and_agent_capability_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
 - [Tool Domain Enum Contract Reference](tools/contracts/tool_domain_and_category_enum_contract_reference.md)
