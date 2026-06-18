@@ -3,6 +3,7 @@
  */
 
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
+import { DesktopInteractionRuntimeClient } from '../../../../app/runtime/desktopInteractionRuntimeClient';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../../app/runtime/desktopPendingTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
@@ -10,7 +11,6 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/d
 import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from '../../../../app/runtime/desktopWindowRuntimeClient';
 import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
-import { logUserSentMessage } from '../../../../infrastructure/interaction/rendererInteractionLogger';
 import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
   ensureConversationRefForSend,
@@ -251,7 +251,7 @@ export async function prepareDesktopChatSend({
     reason: sendLifecycle.surfaceReason,
   }, conversationRef);
 
-  logUserSentMessage({
+  DesktopInteractionRuntimeClient.logUserSentMessage({
     conversationRef,
     senderSurface,
     messageText: text,

@@ -750,6 +750,23 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_CHATBOX');
   });
 
+  test('chat send preparation routes interaction diagnostics through app runtime client', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopInteractionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('rendererInteractionLogger');
+    expect(source).not.toContain('import { logUserSentMessage');
+    expect(source).toContain('DesktopInteractionRuntimeClient.logUserSentMessage');
+    expect(clientSource).toContain('rendererInteractionLogger');
+    expect(clientSource).toContain('logUserSentMessage(details)');
+  });
+
   test('message artifact image UI routes desktop IPC through app runtime client', async () => {
     const resolverSource = await fs.readFile(
       path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),

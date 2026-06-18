@@ -149,12 +149,16 @@ not store raw labels or message text because those can contain chat titles or
 user content.
 
 Renderer interaction logging is intentionally narrow. Feature code should use
-only the public interaction logger surface:
+the renderer app runtime client instead of importing the infrastructure logger
+directly:
 
 - `installRendererInteractionLogger()` installs the document-level click/change
   listener from the renderer app entrypoint.
-- `logUserSentMessage(...)` records the explicit send-message breadcrumb used by
-  the chat send path.
+- `DesktopInteractionRuntimeClient.logUserSentMessage(...)` records the explicit
+  send-message breadcrumb used by the chat send path, while
+  `rendererInteractionLogger.js` keeps target description, redaction, dispatch,
+  and the lower-level `logUserSentMessage(...)` implementation private to the
+  diagnostics infrastructure.
 
 For browser-only renderer debugging, the logger accepts private
 `window.__DESKTOP_RUNTIME_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__` and

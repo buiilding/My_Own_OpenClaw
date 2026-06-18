@@ -7973,3 +7973,18 @@ Each completed slice should report:
   normalization, active workspace selection IPC, query `workspace_path`
   forwarding, replay workspace context, and dashboard handoff behavior are
   unchanged.
+
+### 2026-06-18 renderer interaction runtime client boundary
+
+- Finding: chat send preparation still imported
+  `rendererInteractionLogger.js` directly to record the send-message diagnostic
+  breadcrumb, leaving chat feature code aware of diagnostics infrastructure.
+- Change: added `DesktopInteractionRuntimeClient.logUserSentMessage(...)` as
+  the renderer app runtime facade over the interaction logger and routed chat
+  send preparation through it while keeping logger redaction, target
+  normalization, and IPC dispatch in the diagnostics infrastructure module.
+- Validation: focused chat send and renderer chat boundary Jest coverage,
+  direct chat feature import scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. The `renderer-log` IPC payload shape,
+  message text redaction defaults, diagnostic toggles, capture-phase
+  click/change listener, and send-message breadcrumb fields are unchanged.
