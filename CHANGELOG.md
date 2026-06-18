@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/scripts: rename backend package metadata to `windieos-backend`
+  and remove desktop-assistant reinstall cleanup paths/packages from local
+  reinstall helpers; no migration is provided for those old install names, and
+  current WindieOS install/package cleanup remains unchanged.
 - docs/frontend: describe trace and transcript persistence through the
   local-runtime-backed SDK store boundary instead of sidecar-backed wording, and
   add boundary coverage to keep those references generic; no migration is

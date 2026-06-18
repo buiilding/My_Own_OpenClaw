@@ -41,7 +41,7 @@ pkill -f '(^|/)windieos($| )' || true
 
 echo "[reinstall-windieos-linux] uninstalling previous packages"
 INSTALLED_PACKAGES=()
-for pkg in windieos desktop-assistant-frontend; do
+for pkg in windieos; do
   if dpkg-query -W -f='${db:Status-Status}\n' "${pkg}" 2>/dev/null | grep -qx 'installed'; then
     INSTALLED_PACKAGES+=("${pkg}")
   fi

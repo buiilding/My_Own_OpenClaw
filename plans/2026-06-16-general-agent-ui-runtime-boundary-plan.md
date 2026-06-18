@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 desktop-assistant reinstall/package metadata cleanup
+
+- Finding: backend package metadata and local reinstall helpers still carried
+  desktop-assistant product names: `desktop-assistant-backend`, old macOS
+  app-state paths, and the `desktop-assistant-frontend` Linux package purge.
+- Change: renamed backend package metadata to `windieos-backend`, removed old
+  desktop-assistant macOS state paths from local reinstall cleanup, removed the
+  Linux purge candidate for `desktop-assistant-frontend`, and refreshed
+  packaging docs/tests to keep only current WindieOS install cleanup.
+- Validation: `bin\windie.cmd test frontend -- PackageScripts.test.cjs`,
+  `scripts\python-in-env backend python -c "import tomllib; tomllib.load(open('backend/pyproject.toml','rb')); print('pyproject ok')"`,
+  `bash -n scripts/reinstall-windieos-macos.sh scripts/reinstall-windieos-linux.sh`,
+  focused stale-name scans, and `git diff --check`.
+- Compatibility: no migration is provided for the old desktop-assistant
+  install/package/state names. Current WindieOS package/app-state cleanup, build
+  commands, bundle IDs, and reinstall flow remain unchanged.
+
 ### 2026-06-18 frontend trace and transcript local-runtime docs
 
 - Finding: runtime trace, frontend architecture, memory IPC/RPC, and transcript

@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 describe('frontend package scripts', () => {
+  const repoRoot = path.resolve(__dirname, '../..');
   const packageJsonPath = path.resolve(__dirname, '../../frontend/package.json');
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
@@ -30,5 +31,30 @@ describe('frontend package scripts', () => {
     expect(packageJson.scripts).not.toHaveProperty('package:win:bundled-python');
     expect(packageJson.scripts).not.toHaveProperty('package:mac:bundled-python');
     expect(packageJson.scripts).not.toHaveProperty('package:linux:bundled-python');
+  });
+
+  test('reinstall helpers only purge current WindieOS install names', () => {
+    const linuxReinstallScript = fs.readFileSync(
+      path.join(repoRoot, 'scripts/reinstall-windieos-linux.sh'),
+      'utf8',
+    );
+    const macosReinstallScript = fs.readFileSync(
+      path.join(repoRoot, 'scripts/reinstall-windieos-macos.sh'),
+      'utf8',
+    );
+
+    expect(linuxReinstallScript).toContain('for pkg in windieos; do');
+    expect(linuxReinstallScript).not.toContain('desktop-assistant-frontend');
+
+    for (const staleStatePath of [
+      'Application Support/desktop-assistant',
+      'Application Support/DesktopAssistant',
+      'Caches/desktop-assistant',
+      'Caches/DesktopAssistant',
+      'WebKit/desktop-assistant',
+      'WebKit/DesktopAssistant',
+    ]) {
+      expect(macosReinstallScript).not.toContain(staleStatePath);
+    }
   });
 });

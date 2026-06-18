@@ -134,7 +134,7 @@ What it does:
 - Requires `conda`, `npm`, and an executable Python build interpreter.
 - Defaults Python build interpreter to `/home/peter/miniconda3/envs/frontend_jarvis/bin/python` unless `WINDIE_PYTHON_BUILD` is set.
 - Stops running `windieos` processes.
-- Purges installed `windieos` or `desktop-assistant-frontend` packages if present.
+- Purges the installed `windieos` package if present.
 - Runs `sudo apt autoremove -y`.
 - Cleans `release`, `dist`, `python-runtime`, and `python-runtime.tar.gz`.
 - Runs `conda run -n frontend_jarvis npm ci`.

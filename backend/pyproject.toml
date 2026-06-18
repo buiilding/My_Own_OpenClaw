@@ -1,5 +1,5 @@
 [project]
-name = "desktop-assistant-backend"
+name = "windieos-backend"
 version = "0.6.4"
 
 [tool.black]
