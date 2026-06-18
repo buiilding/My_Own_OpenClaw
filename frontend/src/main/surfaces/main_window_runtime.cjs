@@ -211,6 +211,8 @@ function createMainWindow({
   rendererLogPrefix = null,
   bundledRuntimeCopy = null,
   runtimePaths = null,
+  localRuntimeDaemonEntrypoint = null,
+  localRuntimeEnv = null,
   wakewordEnv = null,
   wakewordStderrLogMarkers = null,
   localRuntimeCopy = null,
@@ -272,6 +274,10 @@ function createMainWindow({
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),
     getWindows,
+    bundledRuntimeCopy,
+    runtimePaths,
+    localRuntimeDaemonEntrypoint,
+    localRuntimeEnv,
   });
   initializeWakewordBridge(mainWindow, () => {
     const result = showChatWindow({ focus: true, reason: 'wakeword' });

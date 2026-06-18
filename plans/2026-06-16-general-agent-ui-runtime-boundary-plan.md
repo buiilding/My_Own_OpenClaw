@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main IPC Local-Runtime Launch Config Boundary
+
+- Finding: `ipc.cjs` still read `mainHostSkin.bundledRuntime`,
+  `mainHostSkin.localRuntime`, and `mainHostSkin.runtimePaths` when building
+  SDK auto-local-runtime launch options, even though the window/main startup
+  path already receives host-skin runtime values.
+- Change: passed bundled-runtime copy, runtime paths, daemon entrypoint, and
+  local-runtime env config from the Electron main composition root through
+  window bootstrap/startup options into IPC initialization.
+- Validation: focused main-window runtime, main-process bootstrap, host-skin
+  boundary, SDK IPC boundary, and local-runtime launch-option Jest coverage plus
+  CommonJS syntax checks.
+- Compatibility: no migration required. SDK auto-local-runtime startup,
+  backend endpoint handoff, user-data paths, permission/auth state paths,
+  wakeword, IPC, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Main Permission IPC Fallback Removal
 
 - Finding: after permission services moved to injected `permissionCopy`,

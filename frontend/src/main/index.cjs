@@ -293,6 +293,8 @@ const {
   trayTooltip: mainHostSkin.identity.trayTooltip,
   bundledRuntimeCopy: mainHostSkin.bundledRuntime,
   runtimePaths: mainHostSkin.runtimePaths,
+  localRuntimeDaemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
+  localRuntimeEnv: mainHostSkin.localRuntime.env,
   wakewordEnv: mainHostSkin.wakeword.env,
   wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers,
   localRuntimeCopy: mainHostSkin.localRuntime,

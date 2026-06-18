@@ -45,6 +45,10 @@ describe('main_process_bootstrap_runtime', () => {
         runtimePaths: {
           pythonPath: 'WINDIE_PYTHON_PATH',
         },
+        localRuntimeDaemonEntrypoint: 'sidecar_daemon.py',
+        localRuntimeEnv: {
+          backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL',
+        },
         wakewordEnv: {
           packagedApp: 'WINDIE_PACKAGED_APP',
         },
@@ -120,6 +124,8 @@ describe('main_process_bootstrap_runtime', () => {
       rendererLogPrefix: '[WindieOS]',
       bundledRuntimeCopy: deps.bundledRuntimeCopy,
       runtimePaths: deps.runtimePaths,
+      localRuntimeDaemonEntrypoint: 'sidecar_daemon.py',
+      localRuntimeEnv: deps.localRuntimeEnv,
       wakewordEnv: deps.wakewordEnv,
       wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
       localRuntimeCopy: deps.localRuntimeCopy,

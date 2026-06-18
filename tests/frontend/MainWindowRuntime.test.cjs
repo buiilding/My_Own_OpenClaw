@@ -529,6 +529,16 @@ describe('main_window_runtime createMainWindow', () => {
       initializeLocalRuntimeBridge: jest.fn(),
       getKnownLocalRuntime: jest.fn(),
       ensureLocalRuntime: jest.fn(),
+      bundledRuntimeCopy: {
+        missingRuntimeMessage: 'Please reinstall this app',
+      },
+      runtimePaths: {
+        pythonPath: 'AGENT_PYTHON_PATH',
+      },
+      localRuntimeDaemonEntrypoint: 'local-runtime-daemon.py',
+      localRuntimeEnv: {
+        backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
+      },
       localRuntimeCopy: {
         browserWarmupExplanation: 'Open the desktop browser',
       },
@@ -580,6 +590,10 @@ describe('main_window_runtime createMainWindow', () => {
     expect(deps.initializeIpc).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
       syncSdkLiveTurnSurfaceIntent: deps.syncSdkLiveTurnSurfaceIntent,
+      bundledRuntimeCopy: deps.bundledRuntimeCopy,
+      runtimePaths: deps.runtimePaths,
+      localRuntimeDaemonEntrypoint: 'local-runtime-daemon.py',
+      localRuntimeEnv: deps.localRuntimeEnv,
     }));
   });
 

@@ -42,6 +42,8 @@ function createWindowBootstrapRuntime(deps) {
       rendererLogPrefix: deps.rendererLogPrefix,
       bundledRuntimeCopy: deps.bundledRuntimeCopy,
       runtimePaths: deps.runtimePaths,
+      localRuntimeDaemonEntrypoint: deps.localRuntimeDaemonEntrypoint,
+      localRuntimeEnv: deps.localRuntimeEnv,
       wakewordEnv: deps.wakewordEnv,
       wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
       localRuntimeCopy: deps.localRuntimeCopy,

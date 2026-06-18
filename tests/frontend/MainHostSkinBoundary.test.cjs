@@ -429,8 +429,11 @@ describe('main host skin/config boundary', () => {
     expect(runtimePathsSource).toContain('resolveRuntimePathEnvConfig');
     expect(runtimePathsSource).toContain('resolveRuntimePathConfig');
     expect(runtimePathsSource).not.toContain('WINDIE_PYTHON_PATH');
-    expect(ipcSource).toContain('runtimePaths: mainHostSkin.runtimePaths');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('runtimePaths: mainHostSkin.runtimePaths');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeDaemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(ipcSource).toContain('runtimePaths: options.runtimePaths');
+    expect(ipcSource).not.toContain('runtimePaths: mainHostSkin.runtimePaths');
     expect(mainWindowSource).toContain('runtimePaths,');
     expect(mainWindowSource).not.toContain('mainHostSkin?.runtimePaths');
   });
@@ -499,7 +502,9 @@ describe('main host skin/config boundary', () => {
     expect(utilsSource).toContain("verboseStderr: 'AGENT_VERBOSE_LOCAL_RUNTIME_STDERR'");
     expect(utilsSource).toContain('resolveLocalRuntimeEnvConfig');
     expect(launchSource).toContain('localRuntimeEnv');
-    expect(ipcSource).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(ipcSource).toContain('localRuntimeEnv: options.localRuntimeEnv');
+    expect(ipcSource).not.toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
     expect(utilsSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
     expect(launchSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
   });
@@ -523,8 +528,12 @@ describe('main host skin/config boundary', () => {
     expect(launchSource).toContain("userDataDir: 'AGENT_USER_DATA_DIR'");
     expect(launchSource).toContain("DEFAULT_LOCAL_RUNTIME_DAEMON_ENTRYPOINT = 'local_runtime_daemon.py'");
     expect(launchSource).toContain('resolveLocalRuntimeDaemonEnvConfig');
-    expect(ipcSource).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
-    expect(ipcSource).toContain('daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('localRuntimeDaemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint');
+    expect(ipcSource).toContain('localRuntimeEnv: options.localRuntimeEnv');
+    expect(ipcSource).toContain('daemonEntrypoint: options.localRuntimeDaemonEntrypoint');
+    expect(ipcSource).not.toContain('mainHostSkin.localRuntime.env');
+    expect(ipcSource).not.toContain('mainHostSkin.localRuntime.daemonEntrypoint');
     expect(ipcSource).toContain('userDataRoot: appUserDataRoot()');
     expect(launchSource).not.toContain("'sidecar_daemon.py'");
     expect(launchSource).not.toContain('WINDIE_BACKEND_HTTP_URL');

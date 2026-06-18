@@ -739,10 +739,6 @@ function buildDesktopLocalRuntimeLaunchOptionsForAgent() {
     backendEndpoints: {
       httpUrl: backendEndpointState.getHttpUrl(),
     },
-    copy: mainHostSkin.bundledRuntime,
-    daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
-    localRuntimeEnv: mainHostSkin.localRuntime.env,
-    runtimePaths: mainHostSkin.runtimePaths,
     userDataRoot: appUserDataRoot(),
     ...(agentWebSocketImpl ? { WebSocketImpl: agentWebSocketImpl } : {}),
   });
@@ -1568,6 +1564,10 @@ function initializeIpc(win, options = {}) {
     isPackaged: options.isPackaged === true,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
+    copy: options.bundledRuntimeCopy,
+    daemonEntrypoint: options.localRuntimeDaemonEntrypoint,
+    localRuntimeEnv: options.localRuntimeEnv,
+    runtimePaths: options.runtimePaths,
   };
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
