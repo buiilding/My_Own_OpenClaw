@@ -8,7 +8,7 @@ title: "Frontend IPC and Sidecar Contract Touchpoints Reference"
 
 # Frontend IPC and Sidecar Contract Touchpoints Reference
 
-This reference maps frontend-owned contract boundaries and their paired modules.
+This reference maps renderer/main/sidecar contract boundaries and their paired modules.
 
 ## Renderer <-> Main IPC Touchpoints
 

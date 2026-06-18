@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sidecar: align local memory, prompt/tool context, client manifest, and
+  contract-boundary wording with renderer/client/local-runtime ownership
+  instead of stale frontend-owned phrasing.
 - backend comments/docs-in-code: reword stale frontend-owned comments and
   docstrings around stream chunks, UI events, settings patches, tool-result
   ingress, local memory clients, and click-coordinate helpers to client/UI and

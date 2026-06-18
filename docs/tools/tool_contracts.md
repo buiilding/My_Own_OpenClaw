@@ -1,5 +1,5 @@
 ---
-summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, frontend tool manifest builder ownership, local-runtime executable tools, bundles, request ids, and validation."
+summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, Electron client manifest builder ownership, local-runtime executable tools, bundles, request ids, and validation."
 read_when:
   - When changing tool schemas or tool result payloads.
   - When debugging backend/frontend/sidecar tool drift.
@@ -19,12 +19,12 @@ The public client sends local tool schemas through
 backend validates that manifest, applies policy/provider projection, and can
 resolve high-level or grounded intent into a simpler local-runtime executable
 action.
-Built-in local tool schemas are generated from the frontend/sidecar Python
+Built-in local tool schemas are generated from the local-runtime Python
 contract into
 `frontend/src/main/generated/builtin_tool_manifest.json`, which Electron loads
 into the agent definition for the websocket handshake.
 
-## Frontend Tool Manifest Builder
+## Electron Client Manifest Builder
 
 `frontend/src/main/extensions/tool_manifest.cjs` is the Electron-side
 loader/merger for that generated built-in manifest plus plugin tools. Its public
@@ -43,7 +43,7 @@ with the arguments emitted for that tool.
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No sidecar parity is needed, but provider projection and policy still apply. |
-| client-local manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | frontend/sidecar `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
+| client-local manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | Electron/local-runtime `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
 | local-executor-only helper | no until exposed | local executor | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
@@ -69,7 +69,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 
 ## Contract Flow
 
-1. Frontend generates the built-in local manifest from `frontend/src/main/python/tools/manifest.py` into `frontend/src/main/generated/builtin_tool_manifest.json`.
+1. The local-runtime manifest generator creates the built-in local manifest from `frontend/src/main/python/tools/manifest.py` into `frontend/src/main/generated/builtin_tool_manifest.json`.
 2. Electron loads the generated built-in manifest and merges plugin/MCP tools.
    - MCP stdio clients are cached by server identity, command, args, cwd, and a hashed fingerprint of configured env key/value pairs so changed credentials or endpoints create a fresh client without placing raw secrets in the cache key.
 3. Client sends `agent_definition.tools.client_manifest` during websocket

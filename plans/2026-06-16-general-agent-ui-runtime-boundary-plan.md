@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer client local-runtime wording boundary
+
+- Finding: sidecar comments and cross-runtime docs still described local
+  memory, client-provided tool policy inputs, Electron client manifest
+  generation, and renderer/main/sidecar contract maps with stale
+  frontend-owned wording.
+- Change: reworded those comments/docs to local memory, client-provided tool
+  inputs, Electron client manifest, renderer settings, and
+  renderer/main/sidecar contract terminology while preserving real
+  `frontend/src/...` paths and compatibility names.
+- Validation: sidecar `remote_semantic_client.py` passed `py_compile`;
+  docs listing, targeted stale wording scan, and diff check passed.
+- Compatibility: no migration required. This is comments/docs only; local
+  memory APIs, client manifests, renderer settings, backend validation,
+  filesystem paths, credentials, permissions, and SDK projections are
+  unchanged.
+
 ### 2026-06-18 backend comments client/local-runtime wording boundary
 
 - Finding: backend comments and docstrings still called stream chunks,

@@ -1,7 +1,7 @@
 """
 Remote Semantic Client
 
-Client for calling the backend semantic summarization API from the frontend memory system.
+Client for calling the backend semantic summarization API from local memory.
 """
 
 import aiohttp

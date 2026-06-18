@@ -315,7 +315,7 @@ Screenshots are captured strategically at key points to provide visual context f
 - `tool-bundle-result`: Atomic bundle execution result
 - `wakeword-detected`: Wakeword activation event
 
-**Note**: both `load-settings` and `update-settings` are handled by the backend. The frontend remains the source of truth for these config fields.
+**Note**: both `load-settings` and `update-settings` are handled by the backend. Renderer settings remain the source of truth for these client settings fields.
 
 **Response Types**:
 - `streaming-response`: Streaming text chunks

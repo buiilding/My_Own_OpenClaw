@@ -57,7 +57,7 @@ That means tool schema visibility is narrowed by:
 
 - backend tool registry contents,
 - active tool policy/profile,
-- frontend-provided available tools and coordinate methods,
+- client-provided available tools and coordinate methods,
 - provider/inference health,
 - provider-specific schema projection.
 
@@ -118,7 +118,7 @@ Keep ordering broad-to-specific so nested repo instructions can override parent 
 - Do not hand-edit generated prompt/schema snapshots when a live generation path exists.
 - Do not put hidden attachment context into transcript-visible user text unless that is the intended user-facing behavior.
 - Do not expose a provider-native tool field unless the provider and parser path support it.
-- Do not let frontend settings broaden backend model-visible tools without backend validation.
+- Do not let renderer settings broaden backend model-visible tools without backend validation.
 - When prompt metadata field names change, update backend event schemas and frontend transparency consumers together.
 - Do not add prompt layers that only duplicate repo instructions, visible transcript text, or backend history. Add a layer only when it has a distinct producer, priority, and removal condition.
 - Do not patch missing model context by adding renderer-only display state. Fix the query payload, backend prompt constructor, or backend history source.

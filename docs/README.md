@@ -339,7 +339,7 @@ contracts.
 - [**Backend Remote Tools Docs Hub**](backend/tools/remote/README.md) - Sub-hub for domain-specific remote stub payload and request-id behavior before SDK/main local-runtime execution
 - [**Backend Tools Execution Docs Hub**](backend/tools/execution/README.md) - Sub-hub for send-path dispatch rules, bundle detection branching, and single/bundle wait orchestration semantics
 - [**Backend Tools Preparation Docs Hub**](backend/tools/preparation/README.md) - Sub-hub for active screenshot/OCR state lifecycle and resolved-call storage contracts used across preparation and execution
-- [**Backend Tools Waiting Docs Hub**](backend/tools/waiting/README.md) - Sub-hub for frontend tool-result receive/route internals and centralized pending/future storage cleanup semantics
+- [**Backend Tools Waiting Docs Hub**](backend/tools/waiting/README.md) - Sub-hub for SDK/local-runtime tool-result receive/route internals and centralized pending/future storage cleanup semantics
 - [**Backend Tools Processing Docs Hub**](backend/tools/processing/README.md) - Sub-hub for result-transform formatting rules, synthetic failure result generation, and history-commit cleanup sequencing
 - [**Backend Tools Contracts Docs Hub**](backend/tools/contracts/README.md) - Sub-hub for tool taxonomy enums, shared schema field factories, and typed tool-result helper/model contracts
 - [**Backend Tools Templates Docs Hub**](backend/tools/templates/README.md) - Sub-hub for SDK tool scaffold files and manifest/capability conventions for new tool authors
