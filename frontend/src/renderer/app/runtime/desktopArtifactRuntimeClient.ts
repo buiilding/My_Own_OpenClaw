@@ -3,7 +3,7 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
-import { buildRuntimeArtifactUrl } from '../../infrastructure/services/RuntimeEndpointStore';
+import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 
 export type FetchArtifactImageRequest = {
   artifactId?: string | null;
@@ -21,7 +21,7 @@ export type ShowImageContextMenuRequest = {
 
 export const DesktopArtifactRuntimeClient = {
   buildArtifactUrl(artifactId: string): string {
-    return buildRuntimeArtifactUrl(artifactId);
+    return DesktopRuntimeEndpointClient.buildArtifactUrl(artifactId);
   },
 
   fetchArtifactImage(request: FetchArtifactImageRequest): Promise<FetchArtifactImageResult> {

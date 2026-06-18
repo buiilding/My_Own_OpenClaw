@@ -9,7 +9,6 @@ import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configSt
 import { AppConfigContext } from './AppConfigContext';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
-import { setRuntimeEndpointHttpUrl } from '../../infrastructure/services/RuntimeEndpointStore';
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
   applyConfigIfChanged,
@@ -23,6 +22,7 @@ import {
 } from './appConfigRuntimeSync';
 import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntimeClient';
 import { DesktopClientSessionRuntimeClient } from '../runtime/desktopClientSessionRuntimeClient';
+import { DesktopRuntimeEndpointClient } from '../runtime/desktopRuntimeEndpointClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
@@ -187,7 +187,7 @@ export function AppConfigProvider({ children }) {
       userId: extractTranscriptUserId(data),
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
     });
-    setRuntimeEndpointHttpUrl(data?.backendHttpUrl);
+    DesktopRuntimeEndpointClient.setHttpUrl(data?.backendHttpUrl);
     if (runtimeConnectedRef.current) {
       syncCurrentConfigToRuntime();
     }

@@ -19,6 +19,7 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
 - `frontend/src/renderer/app/providers/ChatProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`
 
 ## Root Component Selection
 
@@ -41,6 +42,7 @@ All surfaces mount `AppProvider`, which means:
 - shared config/status contexts
 - shared settings sync/model list logic
 - shared wakeword suppression inputs
+- runtime endpoint propagation through `DesktopRuntimeEndpointClient`
 
 `ChatProvider` is mounted on all surfaces, but flags differ:
 

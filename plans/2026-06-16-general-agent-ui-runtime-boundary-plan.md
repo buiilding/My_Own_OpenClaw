@@ -7940,3 +7940,18 @@ Each completed slice should report:
 - Compatibility: no migration required. The `vm_mode=1` query contract,
   startup surface selection, dashboard VM-mode prop, onboarding bypass, and
   window startup commands are unchanged.
+
+### 2026-06-18 renderer runtime endpoint client boundary
+
+- Finding: renderer config, artifact, and voice app-runtime paths still imported
+  `RuntimeEndpointStore` directly for backend HTTP URL propagation, artifact URL
+  construction, and transcription websocket URL construction.
+- Change: added `DesktopRuntimeEndpointClient` as the renderer app runtime
+  facade over endpoint URL state, then routed `AppConfigProvider`,
+  `DesktopArtifactRuntimeClient`, and `DesktopVoiceRuntimeClient` through it.
+- Validation: focused app config, voice, artifact screenshot, and renderer chat
+  boundary Jest coverage, direct app/feature endpoint-store scans, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. Runtime endpoint normalization,
+  artifact URL shape, transcription websocket URL shape, IPC status endpoint
+  propagation, artifact fetch IPC, and voice websocket creation are unchanged.

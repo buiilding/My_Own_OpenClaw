@@ -14,6 +14,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
@@ -102,6 +103,9 @@ artifact refs.
 - consumed by chat presentation through
   `DesktopArtifactRuntimeClient.buildArtifactUrl(...)` so feature code does not
   import endpoint state directly
+- surfaced to app providers and runtime clients through
+  `DesktopRuntimeEndpointClient` so config, artifact, and voice paths do not
+  import the endpoint store directly
 
 ## Content-Type Normalization
 
@@ -132,8 +136,9 @@ Current ownership:
 - Electron main owns sidecar screenshot invocation, selected-display bounds
   injection, and local bridge result normalization.
 - Renderer infrastructure owns artifact URL display helpers only
-  (`RuntimeEndpointStore` and `ArtifactImageUtils`), while renderer feature
-  code reaches artifact URL construction through
+  (`RuntimeEndpointStore` and `ArtifactImageUtils`), while app providers and
+  runtime clients reach endpoint state through `DesktopRuntimeEndpointClient`
+  and renderer feature code reaches artifact URL construction through
   `DesktopArtifactRuntimeClient.buildArtifactUrl(...)`.
 - Renderer chat presentation consumes projected SDK/backend events; it does not
   construct model-facing result payloads or upload screenshot artifacts before

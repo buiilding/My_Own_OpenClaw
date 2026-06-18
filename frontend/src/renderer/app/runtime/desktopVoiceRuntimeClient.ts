@@ -3,7 +3,7 @@
  */
 
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
-import { buildRuntimeTranscriptionWebSocketUrl } from '../../infrastructure/services/RuntimeEndpointStore';
+import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
@@ -82,10 +82,12 @@ export const DesktopVoiceRuntimeClient = {
   },
 
   getTranscriptionGatewayUrl(): string {
-    return buildRuntimeTranscriptionWebSocketUrl();
+    return DesktopRuntimeEndpointClient.buildTranscriptionWebSocketUrl();
   },
 
-  createTranscriptionWebSocket(gatewayUrl: string = buildRuntimeTranscriptionWebSocketUrl()): WebSocket {
+  createTranscriptionWebSocket(
+    gatewayUrl: string = DesktopRuntimeEndpointClient.buildTranscriptionWebSocketUrl(),
+  ): WebSocket {
     return new WebSocket(gatewayUrl);
   },
 

@@ -357,11 +357,16 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts'),
       'utf8',
     );
+    const endpointClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts'),
+      'utf8',
+    );
 
     expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.buildArtifactUrl');
     expect(screenshotSource).not.toContain('RuntimeEndpointStore');
     expect(screenshotSource).not.toContain('buildRuntimeArtifactUrl');
-    expect(artifactClientSource).toContain('buildRuntimeArtifactUrl');
+    expect(artifactClientSource).toContain('DesktopRuntimeEndpointClient.buildArtifactUrl');
+    expect(endpointClientSource).toContain('buildRuntimeArtifactUrl');
   });
 
   test('chat startup mode reads through app runtime client', async () => {
