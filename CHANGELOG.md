@@ -16,6 +16,8 @@ All notable changes to WindieOS will be documented in this file.
   renderer chat-message detail payloads.
 - sdk: rename the Agent query backend-wire extension field from `rawPayload` to
   `backendPayload` across TS/CJS transports, Agent enrichment, and tests.
+- sdk: remove remaining display/native-web-search projection fallbacks that read
+  backend `payload.rawEvent` instead of normalized SDK source/tool fields.
 - sdk: normalize completed-turn model metadata onto `turn_completed` events so
   title generation consumes SDK event fields instead of unwrapping
   `payload.rawEvent`.

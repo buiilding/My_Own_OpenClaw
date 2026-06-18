@@ -265,12 +265,7 @@ function stringArrayField(record: JsonRecord, ...keys: string[]): string[] | nul
 }
 
 function sourceEventTypeFromPayload(payload: JsonRecord): string | null {
-  const sourceEventType = stringField(payload, 'sourceEventType', 'source_event_type');
-  if (sourceEventType) {
-    return sourceEventType;
-  }
-  const rawEvent = recordFromUnknown(payload.rawEvent);
-  return rawEvent ? stringField(rawEvent, 'type') : null;
+  return stringField(payload, 'sourceEventType', 'source_event_type');
 }
 
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
@@ -1458,8 +1453,7 @@ function isNativeWebSearchProgressPayload(payload: JsonRecord): boolean {
   if (stringField(payload, 'sourceEventType', 'source_event_type') === 'web-search-progress') {
     return true;
   }
-  const rawEvent = recordFromUnknown(payload.rawEvent);
-  return stringField(rawEvent, 'type') === 'web-search-progress';
+  return false;
 }
 
 function progressGroupIdentity(event: ConversationEvent): string | null {

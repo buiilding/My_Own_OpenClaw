@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK projection raw-event fallback removal
+
+- Finding: after SDK ingress began stamping `sourceEventType`, display-row
+  metadata and native web-search grouping still kept compatibility fallbacks
+  that inspected backend `payload.rawEvent` inside conversation projections.
+- Change: removed those raw-event fallback reads from TypeScript SDK
+  `conversationProjections` and checked-in CJS parity so display and web-search
+  grouping depend on normalized SDK source/tool fields.
+- Validation: focused SDK conversation-runtime and display-row projection Jest
+  coverage, stale SDK projection `payload.rawEvent` scan, docs listing, and
+  diff check.
+- Compatibility: no migration required for active runtime paths because current
+  normalized backend events carry `sourceEventType`, tool identity, or both.
+  Older stored diagnostic events that only depended on raw backend event type no
+  longer receive this projection compatibility behavior.
+
 ### 2026-06-18 SDK query backend payload boundary
 
 - Finding: the public Agent query input still exposed backend-wire query

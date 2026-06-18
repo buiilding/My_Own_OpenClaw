@@ -224,12 +224,7 @@ function stringArrayField(record, ...keys) {
     return null;
 }
 function sourceEventTypeFromPayload(payload) {
-    const sourceEventType = (0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type');
-    if (sourceEventType) {
-        return sourceEventType;
-    }
-    const rawEvent = (0, toolOutputContent_js_1.recordFromUnknown)(payload.rawEvent);
-    return rawEvent ? (0, toolOutputContent_js_1.stringField)(rawEvent, 'type') : null;
+    return (0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type');
 }
 function displayRowMetadata(event) {
     const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
@@ -1267,8 +1262,7 @@ function isNativeWebSearchProgressPayload(payload) {
     if ((0, toolOutputContent_js_1.stringField)(payload, 'sourceEventType', 'source_event_type') === 'web-search-progress') {
         return true;
     }
-    const rawEvent = (0, toolOutputContent_js_1.recordFromUnknown)(payload.rawEvent);
-    return (0, toolOutputContent_js_1.stringField)(rawEvent, 'type') === 'web-search-progress';
+    return false;
 }
 function progressGroupIdentity(event) {
     return (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
