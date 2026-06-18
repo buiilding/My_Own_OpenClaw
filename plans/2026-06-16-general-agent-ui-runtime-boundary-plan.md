@@ -9149,3 +9149,20 @@ Each completed slice should report:
   `desktop-runtime` default directory, env overrides, Windows fallback behavior,
   storage formats, permissions, credentials, IPC, local-runtime launch, hosted
   backend URL handling, and provider policy are unchanged.
+
+### 2026-06-18 renderer deferred model-selection runtime facade boundary
+
+- Finding: chat send preparation, retry/edit replay, and manual compaction
+  still imported the app-provider `appConfigRuntimeSync` helper directly to
+  build deferred SDK model-selection payloads. That made reusable chat runtime
+  paths depend on provider synchronization internals.
+- Change: added `DesktopRendererConfigRuntimeClient` for deferred
+  model-selection payload building, routed chat send/replay/compaction through
+  it, and added a renderer chat boundary guard against importing
+  `app/providers/appConfigRuntimeSync` from chat feature modules.
+- Validation: focused renderer config/runtime and chat boundary coverage,
+  frontend typecheck, docs listing, and diff checks.
+- Compatibility: no migration required. Settings storage, provider config
+  shapes, immediate settings sync, SDK `setModel` payloads, transcript
+  sessions, IPC channels, local-runtime launch, hosted backend URLs, and
+  provider policy are unchanged.

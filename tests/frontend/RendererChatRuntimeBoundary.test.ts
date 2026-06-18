@@ -80,6 +80,26 @@ describe('renderer chat runtime boundary', () => {
     expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
   });
 
+  test('chat feature code builds deferred model selection through app runtime facade', async () => {
+    const files = await listSourceFiles(chatRoot);
+    const offenders: string[] = [];
+    const runtimeClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient.js'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const relativePath = path.relative(chatRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('app/providers/appConfigRuntimeSync')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    expect(runtimeClientSource).toContain('buildDeferredQueryModelSelection');
+  });
+
   test('message sender does not persist live user transcript rows in renderer', async () => {
     const hookSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),

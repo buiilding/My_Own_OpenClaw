@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { useChatStore } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
-import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigRuntimeSync';
+import { buildDeferredQueryModelSelection } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopArtifactRuntimeClient } from '../../../app/runtime/desktopArtifactRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';

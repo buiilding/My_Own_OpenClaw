@@ -2,7 +2,7 @@
  * Provides the desktop chat send preparation module for the renderer UI.
  */
 
-import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigRuntimeSync';
+import { buildDeferredQueryModelSelection } from '../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopInteractionRuntimeClient } from '../../../../app/runtime/desktopInteractionRuntimeClient';
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../../app/runtime/desktopPendingTurnRuntimeClient';

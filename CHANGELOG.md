@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: expose deferred model-selection payload building through
+  `DesktopRendererConfigRuntimeClient` so chat send, replay, and manual
+  compaction paths no longer import app-provider runtime-sync internals. No
+  migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

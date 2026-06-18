@@ -3,10 +3,12 @@
  */
 
 import {
-  buildDeferredQueryModelSelection,
   buildImmediateRuntimeConfig,
   hasImmediateRuntimeConfigChanges,
 } from '../../frontend/src/renderer/app/providers/appConfigRuntimeSync';
+import {
+  buildDeferredQueryModelSelection,
+} from '../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient';
 
 describe('appConfigRuntimeSync', () => {
   test('builds deferred model selection for SDK setModel callers', () => {

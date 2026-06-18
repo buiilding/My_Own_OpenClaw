@@ -2,6 +2,10 @@
  * Defines app config runtime sync helpers for the renderer UI.
  */
 
+import { buildDeferredQueryModelSelection } from '../runtime/desktopRendererConfigRuntimeClient';
+
+export { buildDeferredQueryModelSelection };
+
 const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
   'model_provider',
   'selected_model_id',
@@ -33,25 +37,6 @@ function pickConfigKeys(config, predicate) {
     return null;
   }
   return Object.fromEntries(entries);
-}
-
-export function buildDeferredQueryModelSelection(config) {
-  if (!isPlainObject(config)) {
-    return null;
-  }
-  const modelId = typeof config.selected_model_id === 'string'
-    ? config.selected_model_id.trim()
-    : '';
-  const modelProvider = typeof config.model_provider === 'string'
-    ? config.model_provider.trim()
-    : '';
-  if (!modelId || !modelProvider) {
-    return null;
-  }
-  return {
-    modelId,
-    modelProvider,
-  };
 }
 
 export function buildImmediateRuntimeConfig(config) {
