@@ -7,7 +7,7 @@ import {
   setMemoryRetrievalInjectionEnabled,
 } from '../../frontend/src/renderer/utils/memoryRetrievalPreference';
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'windieos-memory-retrieval-injection-enabled';
 
 describe('memoryRetrievalPreference', () => {
   beforeEach(() => {
@@ -15,6 +15,15 @@ describe('memoryRetrievalPreference', () => {
   });
 
   test('defaults to enabled when no stored preference exists', () => {
+    expect(getMemoryRetrievalInjectionEnabled()).toBe(true);
+  });
+
+  test('ignores removed desktop assistant storage key', () => {
+    window.localStorage.setItem(
+      'desktop-assistant-memory-retrieval-injection-enabled',
+      'false',
+    );
+
     expect(getMemoryRetrievalInjectionEnabled()).toBe(true);
   });
 

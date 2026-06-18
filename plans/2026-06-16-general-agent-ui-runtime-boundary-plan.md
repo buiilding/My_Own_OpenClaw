@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 renderer localStorage product keys
+
+- Finding: renderer-local config and memory retrieval preferences still used
+  `desktop-assistant-*` localStorage keys, and the config provider listened
+  by the old `desktop-assistant-config` prefix even after the version key was
+  removed.
+- Change: moved active renderer config storage to `windieos-config`, moved
+  memory retrieval preference storage to
+  `windieos-memory-retrieval-injection-enabled`, made storage-event sync use
+  the exact current key, and added guards that the old keys are ignored.
+- Validation: focused config storage, memory retrieval preference, memory
+  section, and AppConfigProvider storage/IPC Jest coverage; docs search;
+  stale active-key scans; and diff checks.
+- Compatibility: persisted-data compatibility is intentionally broken for
+  the old localStorage keys. No migration is provided; stale renderer-local
+  values at `desktop-assistant-*` keys are ignored, while Electron disk
+  `frontend-config.json`, backend settings, IPC payloads, provider-secret
+  redaction, and runtime sync contracts are unchanged.
+
 ### 2026-06-18 SDK agent definition default mode
 
 - Finding: SDK-generated untouched agent definitions still emitted the

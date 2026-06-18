@@ -4,7 +4,7 @@
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'windieos-memory-retrieval-injection-enabled';
 
 const mockListEpisodicMemories = jest.fn();
 const mockListSemanticMemories = jest.fn();

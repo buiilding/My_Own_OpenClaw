@@ -249,7 +249,7 @@ export function AppConfigProvider({ children }) {
     const handleStorage = (event) => {
       if (
         event?.storageArea !== window.localStorage
-        || (event?.key && !event.key.startsWith('desktop-assistant-config'))
+        || (event?.key && event.key !== 'windieos-config')
       ) {
         return;
       }

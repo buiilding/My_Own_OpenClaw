@@ -87,7 +87,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: 'desktop-assistant-config',
+        key: 'windieos-config',
         storageArea: window.localStorage,
       }));
     });
@@ -98,6 +98,26 @@ describe('AppConfigProvider storage + IPC status handling', () => {
         include_query_screenshot: false,
       }),
     );
+  });
+
+  test('ignores removed desktop assistant storage key events', () => {
+    const { result } = renderAppConfigContext();
+    const currentConfig = result.current.config;
+
+    mockLoadConfigFromStorage.mockReturnValue({
+      speech_mode_enabled: true,
+      include_query_screenshot: false,
+    });
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'desktop-assistant-config',
+        storageArea: window.localStorage,
+      }));
+    });
+
+    expect(result.current.config).toBe(currentConfig);
+    expect(mockLoadConfigFromStorage).toHaveBeenCalledTimes(1);
   });
 
   test('does not rebroadcast storage-event config changes to localStorage or settings runtime', () => {
@@ -115,7 +135,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: 'desktop-assistant-config',
+        key: 'windieos-config',
         storageArea: window.localStorage,
       }));
     });
@@ -163,7 +183,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: 'desktop-assistant-config',
+        key: 'windieos-config',
         storageArea: window.localStorage,
       }));
     });

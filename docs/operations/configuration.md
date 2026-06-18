@@ -194,8 +194,12 @@ The frontend only persists these fields:
 
 ### Storage Locations
 
-- **localStorage**: key `desktop-assistant-config`
+- **localStorage**: key `windieos-config`
 - **Disk**: `frontend-config.json` in Electron’s `app.getPath('userData')`
+
+The removed `desktop-assistant-config` localStorage key is not migrated. If only
+that old renderer-local key exists, the UI starts from current defaults and then
+merges the Electron disk config when present.
 
 See:
 - `frontend/src/renderer/utils/configStorage.js`

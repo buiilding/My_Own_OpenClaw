@@ -18,7 +18,7 @@ import {
  * - Persists to localStorage when runtime settings changes are acknowledged
  */
 
-const CONFIG_STORAGE_KEY = 'desktop-assistant-config';
+const CONFIG_STORAGE_KEY = 'windieos-config';
 
 export const DEFAULT_APPEARANCE_THEME = Object.freeze({
   light: Object.freeze({

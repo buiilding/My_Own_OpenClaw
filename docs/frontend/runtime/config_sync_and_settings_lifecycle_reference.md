@@ -85,10 +85,12 @@ Tracks transient save state machine:
 ### Browser localStorage (`configStorage.js`)
 
 - immediate startup config source
-- stores `desktop-assistant-config`
+- stores `windieos-config`
 - validates shape and clears corrupted payloads
 - includes default frontend config fallback
 - drops deprecated or backend-owned keys before the in-memory config is rebuilt
+- ignores the removed `desktop-assistant-config` key; renderer-local settings at
+  that key are not migrated
 
 ### Main-process disk config (`ipc_frontend_config.cjs`)
 

@@ -45,7 +45,7 @@ title: "Dashboard Memory Management and Resume Reference"
 `MemorySection` (opened from dashboard modal) owns:
 
 - memory-type tabs: `episodic`, `semantic`, `procedural`
-- retrieval injection toggle (`Inject memory into prompts`) persisted in localStorage key `desktop-assistant-memory-retrieval-injection-enabled`
+- retrieval injection toggle (`Inject memory into prompts`) persisted in localStorage key `windieos-memory-retrieval-injection-enabled`; the removed `desktop-assistant-memory-retrieval-injection-enabled` key is ignored and not migrated
 - memory list fetch + normalization
 - local search filter over loaded rows
 - edit/delete interactions for rendered memory rows

@@ -66,8 +66,11 @@ The renderer persists only the user-facing subset:
 
 Storage locations:
 
-- `localStorage` key: `desktop-assistant-config`
+- `localStorage` key: `windieos-config`
 - Electron user data file: `frontend-config.json`
+
+There is no localStorage migration from the removed `desktop-assistant-config`
+key; stale renderer-local values at that key are ignored.
 
 Do not add backend-owned provider internals such as `speech_provider`, `stt_provider`, remote inference URLs, or provider API keys to renderer persistence.
 

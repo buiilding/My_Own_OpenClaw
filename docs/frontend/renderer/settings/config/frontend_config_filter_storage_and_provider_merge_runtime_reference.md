@@ -1,9 +1,9 @@
 ---
-summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config-version behavior, removed legacy OpenAI selected_model_id migration behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
+summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config and desktop-assistant-config-version behavior, removed legacy OpenAI selected_model_id migration behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
 read_when:
   - When changing frontend-owned config keys (`configFilter`) or local fallback defaults (`configStorage`).
   - When debugging why settings updates are skipped, cross-window storage sync applies unexpectedly, or disk config merges differ from memory state.
-  - When resolving stale references to `desktop-assistant-config-version`, `saveConfigToStorage` version arguments, or `Date.now()` storage-version writes.
+  - When resolving stale references to `desktop-assistant-config`, `desktop-assistant-config-version`, `saveConfigToStorage` version arguments, or `Date.now()` storage-version writes.
   - When resolving stale references to removed legacy model id migration behavior, hardcoded OpenAI selected-model ids, `LEGACY_MODEL_ID_MIGRATIONS`, or renderer localStorage selected_model_id rewrites.
 title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 ---
@@ -61,15 +61,24 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 
 Storage keys:
 
-- `desktop-assistant-config`
+- `windieos-config`
 
 Removed storage keys:
 
+- `desktop-assistant-config`
 - `desktop-assistant-config-version`
 
 Renderer config persistence is intentionally single-key: config payload changes
-are broadcast by the `desktop-assistant-config` localStorage write itself, not by
+are broadcast by the `windieos-config` localStorage write itself, not by
 a separate version timestamp.
+
+Storage compatibility note:
+
+- no migration is provided from `desktop-assistant-config`; old renderer-local
+  settings at that key are ignored and the UI starts from defaults plus disk
+  config if available
+- no migration is provided for `desktop-assistant-config-version`; timestamp
+  writes remain removed
 
 Default config surface:
 
@@ -93,6 +102,7 @@ Default config surface:
 Load semantics (`loadConfigFromStorage`):
 
 - missing key -> fresh default object
+- removed `desktop-assistant-config` key -> ignored
 - parsed object -> known frontend fields merged over defaults
 - invalid JSON / non-object payload -> clear keys + return defaults
 - stored `selected_model_id` values are trimmed and preserved as-is; model
@@ -107,7 +117,7 @@ Load semantics (`loadConfigFromStorage`):
 Save semantics (`saveConfigToStorage`):
 
 - rejects non-object/array payloads
-- writes only `desktop-assistant-config`
+- writes only `windieos-config`
 - strips provider `api_key`, OAuth `access_token`, and OAuth `refresh_token` before serializing to localStorage
 - returns boolean success/failure
 
@@ -173,7 +183,7 @@ When IPC status reports connected:
 
 ### Storage-event sync behavior
 
-On `window.storage` for desktop-assistant config keys:
+On `window.storage` for `windieos-config`:
 
 - reload from localStorage
 - merge/filter
@@ -198,8 +208,8 @@ On `window.storage` for desktop-assistant config keys:
 - default-return behavior when empty
 - default merge with stored overrides
 - invalid payload cleanup
-- single-key persistence after the removed `desktop-assistant-config-version`
-  timestamp behavior
+- single-key persistence after the removed `desktop-assistant-config` product
+  key and `desktop-assistant-config-version` timestamp behavior
 - write-failure handling returns false
 
 `AppConfigProvider.models.test.tsx` and `storageAndIpc.test.tsx`:
@@ -217,7 +227,8 @@ On `window.storage` for desktop-assistant config keys:
 1. Adding frontend-owned fields in backend validator without updating `FRONTEND_CONFIG_FIELDS` or defaults causes silent drops.
 2. Removing change guards or storage-event write suppression can create write storms to localStorage/disk/backend.
 3. Returning `null` instead of default object from storage loader can break provider assumptions.
-4. Changing storage key names without migration can strand stale config state across windows.
+4. Changing storage key names without migration intentionally starts from fresh
+   renderer defaults; document this as a persisted-data compatibility break.
 
 ## Related Pages
 

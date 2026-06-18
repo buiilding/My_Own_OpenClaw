@@ -2,7 +2,7 @@
  * Provides the memory retrieval preference module for the renderer UI.
  */
 
-const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'windieos-memory-retrieval-injection-enabled';
 
 function resolveStorage(storage) {
   if (storage) {

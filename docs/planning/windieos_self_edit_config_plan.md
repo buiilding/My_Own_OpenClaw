@@ -22,7 +22,7 @@ Examples:
 
 - Config changes are currently UI-driven via dashboard toggles and model selectors.
 - Frontend persists config to:
-  - `localStorage` (`desktop-assistant-config`)
+  - `localStorage` (`windieos-config`)
   - Electron disk config (`frontend-config.json` via `save-frontend-config`)
 - Frontend syncs config to backend through `update-settings`.
 - Backend only accepts an allowlisted settings schema (`UpdateSettingsPayload`).

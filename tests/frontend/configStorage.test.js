@@ -7,7 +7,7 @@ import {
   saveConfigToStorage,
 } from '../../frontend/src/renderer/utils/configStorage.js';
 
-const CONFIG_KEY = 'desktop-assistant-config';
+const CONFIG_KEY = 'windieos-config';
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
@@ -87,6 +87,15 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG,
       model_mode: 'offline',
     });
+  });
+
+  test('loadConfigFromStorage ignores removed desktop assistant storage key', () => {
+    localStorage.setItem(
+      'desktop-assistant-config',
+      JSON.stringify({ model_mode: 'offline' }),
+    );
+
+    expect(loadConfigFromStorage()).toEqual(DEFAULT_FRONTEND_CONFIG);
   });
 
   test('loadConfigFromStorage normalizes unsupported stored global stop shortcuts', () => {
