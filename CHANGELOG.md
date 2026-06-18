@@ -31,8 +31,9 @@ All notable changes to WindieOS will be documented in this file.
   Electron launch helpers.
 - sdk/runtime: prefer generic `AGENT_BACKEND_URL`, `AGENT_INSTALL_TOKEN`,
   `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`, `AGENT_LOCAL_RUNTIME_PYTHON`, and
-  `AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` env names in SDK runtime
-  fallback paths while keeping existing `WINDIE_*` names as compatibility.
+  `AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` env names in TypeScript/Python
+  SDK runtime fallback paths while keeping existing `WINDIE_*` names as
+  compatibility.
 - sdk/runtime: use the generic `AGENT_DEBUG_COMPACTION_STDOUT` debug flag for
   SDK compaction stdout logging instead of a WindieOS-specific env name.
 - main/runtime: inject the WindieOS verbose local-runtime stderr env name from

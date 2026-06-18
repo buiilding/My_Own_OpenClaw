@@ -642,10 +642,25 @@ def _read_daemon_discovery(path: Path) -> Optional[dict[str, str]]:
 def _resolve_daemon_script(explicit: Optional[str] = None) -> Path:
     if _clean_string(explicit):
         return Path(str(explicit)).expanduser().resolve()
-    env_value = _clean_string(os.environ.get("WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT"))
+    env_value = _clean_string(
+        os.environ.get("AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT")
+        or os.environ.get("WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT")
+    )
     if env_value:
         return Path(env_value).expanduser().resolve()
     return Path(__file__).resolve().parents[1] / "sidecar_daemon.py"
+
+
+def _resolve_local_runtime_discovery_file(explicit: Optional[str] = None) -> Path:
+    if _clean_string(explicit):
+        return Path(str(explicit)).expanduser()
+    env_value = _clean_string(
+        os.environ.get("AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE")
+        or os.environ.get("WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE")
+    )
+    if env_value:
+        return Path(env_value).expanduser()
+    return DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE
 
 
 class AgentSdkAgentSession:
@@ -1077,14 +1092,15 @@ class AgentSdkClient(RemoteApiClientBase):
         self.default_user_id = default_user_id
         self.local_runtime = local_runtime
         self.auto_start_local_runtime = auto_start_local_runtime
-        self.local_runtime_discovery_file = (
-            Path(local_runtime_discovery_file).expanduser()
-            if local_runtime_discovery_file
-            else DEFAULT_LOCAL_RUNTIME_DISCOVERY_FILE
+        self.local_runtime_discovery_file = _resolve_local_runtime_discovery_file(
+            local_runtime_discovery_file
         )
         self.local_runtime_daemon_script = local_runtime_daemon_script
         self.python_command = (
-            python_command or os.environ.get("WINDIE_PYTHON") or "python3"
+            _clean_string(python_command)
+            or _clean_string(os.environ.get("AGENT_LOCAL_RUNTIME_PYTHON"))
+            or _clean_string(os.environ.get("WINDIE_PYTHON"))
+            or "python3"
         )
         self._owned_local_runtime_process: asyncio.subprocess.Process | None = None
 

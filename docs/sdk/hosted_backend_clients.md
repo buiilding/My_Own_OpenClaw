@@ -126,7 +126,10 @@ tool manifest in `agent_definition`, and route backend `tool-call` /
 custom executor with `local_runtime=...`, choose discovery through
 `local_runtime_discovery_file`, and override the daemon script with
 `local_runtime_daemon_script`, `AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT`, or legacy
-`WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`.
+`WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT`. The Python SDK also honors generic
+`AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` and `AGENT_LOCAL_RUNTIME_PYTHON`
+env aliases before the legacy `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` and
+`WINDIE_PYTHON` fallbacks.
 
 The Python runtime also exposes `status()`, `list_tools()`, and
 `shutdown_local_runtime()` for the resolved local runtime.

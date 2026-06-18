@@ -701,8 +701,42 @@ def test_python_sdk_local_runtime_errors_use_generic_boundary_wording():
     assert "sidecar: Any = None" not in source
     assert "sidecar_discovery_file" not in source
     assert "sidecar_daemon_script" not in source
+    assert "AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT" in source
     assert "WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT" in source
+    assert "AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE" in source
+    assert "WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE" in source
+    assert "AGENT_LOCAL_RUNTIME_PYTHON" in source
+    assert "WINDIE_PYTHON" in source
     assert "WINDIE_SIDECAR_DAEMON_SCRIPT" not in source
+
+
+def test_python_sdk_daemon_script_prefers_generic_env(monkeypatch, tmp_path):
+    agent_script = tmp_path / "agent-runtime-daemon.py"
+    legacy_script = tmp_path / "legacy-runtime-daemon.py"
+    monkeypatch.setenv("AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT", str(agent_script))
+    monkeypatch.setenv("WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT", str(legacy_script))
+
+    assert windie_sdk_module._resolve_daemon_script() == agent_script.resolve()
+
+
+def test_python_sdk_local_runtime_env_aliases_prefer_generic(monkeypatch, tmp_path):
+    discovery_file = tmp_path / "agent-runtime.json"
+    legacy_discovery_file = tmp_path / "legacy-runtime.json"
+    monkeypatch.setenv(
+        "AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE",
+        str(discovery_file),
+    )
+    monkeypatch.setenv(
+        "WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE",
+        str(legacy_discovery_file),
+    )
+    monkeypatch.setenv("AGENT_LOCAL_RUNTIME_PYTHON", "agent-python")
+    monkeypatch.setenv("WINDIE_PYTHON", "legacy-python")
+
+    client = AgentSdkClient(backend_url="https://api.windieos.com")
+
+    assert client.local_runtime_discovery_file == discovery_file
+    assert client.python_command == "agent-python"
 
 
 @pytest.mark.asyncio
