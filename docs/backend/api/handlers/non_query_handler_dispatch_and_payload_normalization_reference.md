@@ -81,14 +81,16 @@ Single result path:
 - supports `dict` and Pydantic `model_dump(...)`
 - unexpected payload types logged and normalized to `None`
 - when the session returns a backend canonical result, the emitted `tool-output` envelope uses backend-owned session context (`session_id`, active `conversation_ref`, active `turn_ref`) instead of echoing client-supplied context fields from the inbound result
-- delegates to `session.process_frontend_tool_result(...)`
+- delegates to the session local-runtime result ingress method
+  `process_frontend_tool_result(...)`
 
 Bundle path:
 
 - `_serialize_step_results(...)` normalizes each step to plain dict
 - preserves extra step fields (`extra="allow"` schema behavior)
 - forwards `bundle_id/status/step_results/screenshot/screenshot_ref/system_state/error`
-- delegates to `session.process_frontend_tool_bundle_result(...)`
+- delegates to the session local-runtime bundle-result ingress method
+  `process_frontend_tool_bundle_result(...)`
 
 Missing session behavior:
 

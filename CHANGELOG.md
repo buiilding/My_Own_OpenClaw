@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: describe tool-result ingress and runtime waiting as
+  SDK/local-runtime result ownership instead of frontend result ownership while
+  retaining historical `process_frontend_tool_*` method names as compatibility
+  surfaces; no migration is required because this is docs/test wording only.
 - backend/config: remove the unused `lmstudio.model` config field because LM
   Studio models are discovered from the local server; no migration is required
   because supplied unknown config keys continue to be ignored by the config

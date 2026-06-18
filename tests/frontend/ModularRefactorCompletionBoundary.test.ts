@@ -536,7 +536,10 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/browser/browser_troubleshooting.md',
       'docs/browser/browser_change_workflow.md',
       'docs/backend/agent/tool_turn_change_workflow.md',
+      'docs/backend/runtime/agent_and_tool_runtime.md',
+      'docs/backend/tools/tool_result_ingress_and_storage_reference.md',
       'docs/backend/tools/execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md',
+      'docs/backend/api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md',
       'docs/debug/error_failure_change_workflow.md',
       'docs/debug/observability_change_workflow.md',
       'docs/debug/runtime_traces.md',
@@ -612,6 +615,11 @@ describe('modular sdk refactor completion boundary', () => {
         'backend communication (dependency injection)',
         'Handles model listing events from backend',
         'Backend sends audio-chunk event',
+        'frontend-completed result futures',
+        'Transforms frontend tool outputs',
+        'Tool Result Ingress from Frontend',
+        'delegates to `session.process_frontend_tool_result(...)`',
+        'delegates to `session.process_frontend_tool_bundle_result(...)`',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

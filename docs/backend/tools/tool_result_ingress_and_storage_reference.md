@@ -45,7 +45,8 @@ Incoming schema nuance (`api/schemas/incoming.py`):
   - additional keys (for example renderer `system_state_internal`) are accepted and forwarded
 - `tool-bundle-result.payload.error` is nullable and may be `null` in non-failure bundle paths
 
-Session delegation:
+Session delegation (method names retain their historical `frontend` spelling as
+the current compatibility surface):
 
 - `session.process_frontend_tool_result(...)`
 - `session.process_frontend_tool_bundle_result(...)`
@@ -80,7 +81,8 @@ Division of responsibilities:
 
 `process_frontend_tool_result(request_id, success, result_data, error)`:
 
-1. receiver creates `ToolResult.from_payload(...)`
+1. receiver creates `ToolResult.from_payload(...)` from the SDK-submitted
+   local-runtime result payload
 2. router updates session system-state if present:
    - `system_state_internal` is authoritative when the key is present
    - invalid `system_state_internal` payloads are ignored instead of repaired
@@ -95,7 +97,7 @@ Division of responsibilities:
 
 `process_frontend_tool_bundle_result(bundle_id, status, step_results, ...)`:
 
-1. receiver normalizes each step result
+1. receiver normalizes each SDK/local-runtime step result
 2. receiver creates one bundle `ToolResult` with metadata (`is_bundled`, `bundle_id`)
 3. router processes screenshot/system-state path
 4. router stores bundle result

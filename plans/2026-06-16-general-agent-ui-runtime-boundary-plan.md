@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend tool-result ingress wording guard
+
+- Finding: backend runtime and API handler docs still described tool-result
+  waits, processing, and ingress as frontend-owned results even though current
+  ownership is SDK/main local-runtime result submission with Python execution
+  below that boundary.
+- Change: reworded backend runtime, tool-result ingress, and non-query handler
+  docs around SDK/local-runtime results while explicitly keeping historical
+  `process_frontend_tool_*` method names as compatibility surfaces, then
+  extended the modular boundary guard to reject the stale prose.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  backend ingress wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; websocket
+  event names, method names, payload fields, storage, credentials, permissions,
+  and local-runtime execution are unchanged.
+
 ### 2026-06-18 backend provider usage request-local state
 
 - Finding: `LLMProvider` still kept provider-instance last usage and normalized

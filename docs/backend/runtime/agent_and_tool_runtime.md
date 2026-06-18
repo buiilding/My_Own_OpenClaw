@@ -80,7 +80,7 @@ Behavior:
 
 Behavior:
 
-- Waits on frontend-completed result futures
+- Waits on SDK/local-runtime completed result futures
 - Bundle path waits on single bundle future
 - Single path waits per request id
 - Applies tool policy filtered capability surface for metadata listing
@@ -91,10 +91,11 @@ Behavior:
 
 Behavior:
 
-- Transforms frontend tool outputs into history-ready representations
+- Transforms SDK-submitted local-runtime tool outputs into history-ready
+  representations
 - Commits results to conversation history for next LLM turn context
 
-## Tool Result Ingress from Frontend
+## Tool Result Ingress from SDK/Local Runtime
 
 Flow:
 
