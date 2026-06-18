@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Coordinates the desktop settings runtime client for the renderer UI.
  */
 
@@ -6,7 +6,7 @@ import {
   buildModelSettingsPatch,
   type AgentModelSelection,
 } from '../../infrastructure/api/agentSdkClient';
-import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
+import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 
 type RuntimeSettingsPatch = Record<string, unknown>;
 
@@ -35,7 +35,7 @@ function getDashboardModelListWindow(): DashboardModelListWindow | null {
  */
 export const DesktopSettingsRuntimeClient = {
   listModels(): Promise<void> {
-    return createDesktopAgentRuntimeTransport(null).listModels().then(() => undefined);
+    return createDesktopRuntimeTransport(null).listModels().then(() => undefined);
   },
 
   requestDashboardStartupModelList(): boolean {
@@ -56,11 +56,11 @@ export const DesktopSettingsRuntimeClient = {
   },
 
   updateSettings(config: RuntimeSettingsPatch): void {
-    void createDesktopAgentRuntimeTransport(null).updateSettings(config);
+    void createDesktopRuntimeTransport(null).updateSettings(config);
   },
 
   setModel(selection: AgentModelSelection): void {
-    void createDesktopAgentRuntimeTransport(null).updateSettings(
+    void createDesktopRuntimeTransport(null).updateSettings(
       buildModelSettingsPatch(selection, 'DesktopSettingsRuntimeClient.setModel'),
     );
   },

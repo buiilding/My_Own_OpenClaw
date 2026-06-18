@@ -2,7 +2,7 @@
  * Coordinates the desktop voice runtime client for the renderer UI.
  */
 
-import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
+import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { buildRuntimeTranscriptionWebSocketUrl } from '../../infrastructure/services/RuntimeEndpointStore';
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
@@ -38,7 +38,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 export const DesktopVoiceRuntimeClient = {
   wakewordDetected(): Promise<string | void> {
-    return createDesktopAgentRuntimeTransport(null).wakewordDetected({});
+    return createDesktopRuntimeTransport(null).wakewordDetected({});
   },
 
   getTranscriptionGatewayUrl(): string {

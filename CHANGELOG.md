@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the renderer SDK command transport from
+  `desktopAgentRuntimeTransport` to `desktopRuntimeTransport`, including the
+  focused test and command-contract docs; no migration is required because the
+  `windie:invoke` wire command names and payloads are unchanged.
 - frontend/renderer: rename the voice AudioWorklet processor and test blob
   fixture from desktop-agent to desktop-runtime capture terminology, with
   renderer boundary coverage guarding the retired worklet names; no

@@ -1,8 +1,8 @@
 /**
- * Covers desktop agent runtime transport behavior in the frontend test suite.
+ * Covers desktop runtime transport behavior in the frontend test suite.
  */
 
-import { createDesktopAgentRuntimeTransport } from '../../frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport';
+import { createDesktopRuntimeTransport } from '../../frontend/src/renderer/app/runtime/desktopRuntimeTransport';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({
@@ -11,7 +11,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient',
 
 const mockInvokeAgentSdkCommand = invokeAgentSdkCommand as jest.MockedFunction<typeof invokeAgentSdkCommand>;
 
-describe('desktopAgentRuntimeTransport', () => {
+describe('desktopRuntimeTransport', () => {
   afterEach(() => {
     mockInvokeAgentSdkCommand.mockReset();
     jest.restoreAllMocks();
@@ -23,7 +23,7 @@ describe('desktopAgentRuntimeTransport', () => {
       error: 'Failed to send query through agent runtime',
     });
 
-    const transport = createDesktopAgentRuntimeTransport('/repo');
+    const transport = createDesktopRuntimeTransport('/repo');
 
     await expect(transport.sendQuery({
       text: 'retry this',
@@ -42,7 +42,7 @@ describe('desktopAgentRuntimeTransport', () => {
       messageId: 'msg-1',
     });
 
-    const transport = createDesktopAgentRuntimeTransport(null);
+    const transport = createDesktopRuntimeTransport(null);
 
     await expect(transport.sendQuery({
       text: 'hello',
@@ -64,7 +64,7 @@ describe('desktopAgentRuntimeTransport', () => {
       messageId: 'msg-1',
     });
 
-    const transport = createDesktopAgentRuntimeTransport(null);
+    const transport = createDesktopRuntimeTransport(null);
 
     await expect(transport.sendQuery({
       text: 'hello',
@@ -88,7 +88,7 @@ describe('desktopAgentRuntimeTransport', () => {
       messageId: 'msg-1',
     });
 
-    const transport = createDesktopAgentRuntimeTransport(null);
+    const transport = createDesktopRuntimeTransport(null);
 
     await expect(transport.sendQuery({
       text: 'hello',
@@ -118,7 +118,7 @@ describe('desktopAgentRuntimeTransport', () => {
   test('rejects removed camelCase stop payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
 
-    const transport = createDesktopAgentRuntimeTransport(null);
+    const transport = createDesktopRuntimeTransport(null);
 
     await expect(transport.stop({
       conversationRef: 'conv-camel',
@@ -132,7 +132,7 @@ describe('desktopAgentRuntimeTransport', () => {
   test('rejects removed camelCase rehydrate and compact payload aliases', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
 
-    const transport = createDesktopAgentRuntimeTransport(null);
+    const transport = createDesktopRuntimeTransport(null);
 
     await expect(transport.rehydrateConversation({
       conversationRef: 'conv-camel',
@@ -152,7 +152,7 @@ describe('desktopAgentRuntimeTransport', () => {
 
   test('routes runtime commands through SDK-shaped command invoke', async () => {
     mockInvokeAgentSdkCommand.mockResolvedValue({});
-    const transport = createDesktopAgentRuntimeTransport('/repo');
+    const transport = createDesktopRuntimeTransport('/repo');
 
     await transport.rehydrateConversation({
       conversation_ref: 'conv-r',

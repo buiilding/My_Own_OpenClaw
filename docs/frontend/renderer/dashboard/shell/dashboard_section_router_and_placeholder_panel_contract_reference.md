@@ -19,7 +19,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `tests/frontend/DashboardShell.test.jsx`
 
 ## Primary Surface Contract

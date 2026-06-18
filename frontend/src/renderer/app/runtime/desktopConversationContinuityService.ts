@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Implements the desktop conversation continuity service service for the renderer UI.
  */
 
@@ -20,7 +20,7 @@ import {
   loadDesktopTraceTimeline,
   type DesktopTraceTimelineOptions,
 } from '../../infrastructure/transcript/desktopConversationStore';
-import { createDesktopAgentRuntimeTransport } from './desktopAgentRuntimeTransport';
+import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
@@ -57,7 +57,7 @@ function optionalString(value: unknown): string | null {
 
 const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
-  transportFactory: ({ workspacePath }) => createDesktopAgentRuntimeTransport(workspacePath ?? null),
+  transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
 });
 
 function metadataToDashboardConversation(metadata: ConversationMetadata) {

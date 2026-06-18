@@ -107,7 +107,7 @@ Feature slices:
 Infrastructure:
 
 - IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
-- Desktop agent runtime transport: `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
+- Desktop runtime transport: `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - Tool runtime services: `frontend/src/renderer/infrastructure/services/*`
 - Audio player: `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - Transcript runtime: `frontend/src/renderer/infrastructure/transcript/*`

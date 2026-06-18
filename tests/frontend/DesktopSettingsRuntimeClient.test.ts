@@ -20,7 +20,7 @@ describe('DesktopSettingsRuntimeClient', () => {
     DesktopSettingsRuntimeClient.resetDashboardStartupModelListForTests();
   });
 
-  test('requests model lists through the desktop agent runtime transport', () => {
+  test('requests model lists through the desktop runtime transport', () => {
     DesktopSettingsRuntimeClient.listModels();
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('models.list');
@@ -67,7 +67,7 @@ describe('DesktopSettingsRuntimeClient', () => {
     warnSpy.mockRestore();
   });
 
-  test('sends settings patches through the desktop agent runtime transport', () => {
+  test('sends settings patches through the desktop runtime transport', () => {
     DesktopSettingsRuntimeClient.updateSettings({
       speech_mode_enabled: true,
     });

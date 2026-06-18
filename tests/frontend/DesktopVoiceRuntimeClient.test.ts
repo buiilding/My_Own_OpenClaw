@@ -18,7 +18,7 @@ describe('DesktopVoiceRuntimeClient', () => {
     mockInvokeAgentSdkCommand.mockResolvedValue(undefined);
   });
 
-  test('sends wakeword notifications through the desktop agent runtime transport', async () => {
+  test('sends wakeword notifications through the desktop runtime transport', async () => {
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).resolves.toBeUndefined();
 
     expect(mockInvokeAgentSdkCommand).toHaveBeenCalledWith('wakeword.detected', {});

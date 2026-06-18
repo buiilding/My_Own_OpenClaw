@@ -18,7 +18,7 @@ title: "Audio Chunk Playback and Stop Semantics Reference"
 - `frontend/src/renderer/features/chat/utils/audioChunkEvents.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 
 ## End-to-End Audio Event Path
@@ -112,7 +112,7 @@ When user stops query:
 1. renderer applies shared stop-state helper (`applyStopQueryUiState`) to mark terminal stop phase
 2. playback stops immediately
 3. `DesktopLiveTurnRuntimeClient.stop(...)` calls the SDK conversation runtime stop command
-4. the desktop agent runtime transport adapter maps that semantic stop into the `stop-query` backend envelope
+4. the desktop runtime transport adapter maps that semantic stop into the `stop-query` backend envelope
 
 When user sends a new query:
 

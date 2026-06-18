@@ -1,5 +1,5 @@
-﻿/**
- * Provides the desktop agent runtime transport module for the renderer UI.
+/**
+ * Provides the desktop runtime transport module for the renderer UI.
  */
 
 import {
@@ -145,7 +145,7 @@ async function sendListModels(): Promise<void> {
   await invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.MODELS_LIST);
 }
 
-export function createDesktopAgentRuntimeTransport(workspacePath: string | null = null): AgentRuntimeTransport {
+export function createDesktopRuntimeTransport(workspacePath: string | null = null): AgentRuntimeTransport {
   const normalizedWorkspacePath = optionalString(workspacePath);
   return {
     connect: async () => undefined,

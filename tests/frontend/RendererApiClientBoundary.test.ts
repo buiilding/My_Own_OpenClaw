@@ -12,7 +12,7 @@ const allowedRelativePaths = new Set([
   'app/runtime/desktopVoiceRuntimeClient.ts',
 ]);
 const allowedBackendIpcRelativePaths = new Set([
-  'app/runtime/desktopAgentRuntimeTransport.ts',
+  'app/runtime/desktopRuntimeTransport.ts',
   'infrastructure/ipc/channels.ts',
 ]);
 

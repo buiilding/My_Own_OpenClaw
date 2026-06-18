@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer desktop runtime transport rename
+
+- Finding: the renderer SDK command transport already mapped SDK-shaped runtime
+  calls to Electron main but still used the stale `desktopAgentRuntimeTransport`
+  module, factory, test, and docs route names.
+- Change: renamed the module and factory to `desktopRuntimeTransport`, renamed
+  the focused test and command-contract doc, and updated routing docs plus
+  runtime clients that import the factory.
+- Validation: focused DesktopRuntimeTransport, DesktopSettingsRuntimeClient,
+  DesktopVoiceRuntimeClient, RendererAppRuntimeBoundary, RendererApiClientBoundary,
+  and WindieDocsIndex coverage; docs search for `DesktopRuntimeTransport`; stale
+  transport-name scan.
+- Compatibility: no migration required. The `windie:invoke` channel, SDK command
+  constants, query payload fields, settings/model/wakeword commands, IPC, storage,
+  and persisted transcript data are unchanged.
+
 ### 2026-06-18 renderer voice worklet desktop-runtime naming
 
 - Finding: renderer voice capture had already moved to generic capture

@@ -1095,12 +1095,12 @@ describe('windie docs index', () => {
       'docs',
       'frontend',
       'renderer',
-      'desktop_agent_runtime_transport_command_contract_reference.md',
+      'desktop_runtime_transport_command_contract_reference.md',
     );
 
     expect(findDocs('camelCase query payload')[0].path).toBe(expectedPath);
     expect(findDocs('snake_case command contract')[0].path).toBe(expectedPath);
-    expect(findDocs('DesktopAgentRuntimeTransport')[0].path).toBe(expectedPath);
+    expect(findDocs('DesktopRuntimeTransport')[0].path).toBe(expectedPath);
     expect(
       findDocs('SDK_RUNTIME_COMMANDS conversation.send conversations.list memories.list diagnostics.append')[0].path,
     ).toBe(expectedPath);

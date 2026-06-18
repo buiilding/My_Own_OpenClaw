@@ -1,34 +1,34 @@
 ---
-summary: "Renderer and Electron main desktop agent runtime transport command contract for DesktopAgentRuntimeTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case query payload fields, and removed query-payload aliases."
+summary: "Renderer and Electron main desktop runtime transport command contract for DesktopRuntimeTransport, SDK_RUNTIME_COMMANDS, windie:invoke conversation commands, canonical snake_case command contract fields, camelCase query payload alias rejection, and removed query-payload aliases."
 read_when:
-  - When changing `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
+  - When changing `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`, `DesktopLiveTurnRuntimeClient`, or renderer-to-main `windie:invoke` command payloads.
   - When changing `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`, the SDK `SDK_RUNTIME_COMMANDS` export, renderer runtime facades that call `invokeAgentSdkCommand`, Electron main `handleAgentSdkInvoke`, its internal `buildAgentSdkCommandHandlers` table, or shared SDK-shaped command names.
   - When resolving stale references to the removed renderer `windieCommandInvokeClient.ts` file or `invokeWindieCommand(...)` helper; the current generic renderer helper is `agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`.
   - When resolving stale references to the removed `handleWindieSdkInvoke` or `buildWindieSdkCommandHandlers` helper names; the current generic Electron-host helper names are `handleAgentSdkInvoke` and `buildAgentSdkCommandHandlers`.
   - When searching for main ipc buildWindieSdkCommandHandlers SDK_RUNTIME_COMMANDS conversation.send command-shape routing; this transport contract is the current owner.
-  - When debugging removed query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
-title: "Desktop Agent Runtime Transport Command Contract Reference"
+  - When debugging removed camelCase query payload aliases, snake_case command contract fields, `conversation.send`, `conversation.stop`, `conversations.list`, `memories.list`, `diagnostics.append`, or typed SDK dispatch between renderer facades and Electron main.
+title: "Desktop Runtime Transport Command Contract Reference"
 ---
 
-# Desktop Agent Runtime Transport Command Contract Reference
+# Desktop Runtime Transport Command Contract Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/app/runtime/desktopAgentRuntimeTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient.ts`
 - `packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
-- `tests/frontend/DesktopAgentRuntimeTransport.test.ts`
+- `tests/frontend/DesktopRuntimeTransport.test.ts`
 - `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcQueryRuntime.test.cjs`
 
 ## Boundary
 
-`desktopAgentRuntimeTransport.ts` is the renderer-side adapter from SDK-style
+`desktopRuntimeTransport.ts` is the renderer-side adapter from SDK-style
 conversation runtime calls into the main-process `windie:invoke` command
 surface.
 
@@ -38,7 +38,7 @@ constants so first-party renderer facades, main-process handler keys, and
 non-renderer SDK callers use one command vocabulary instead of duplicating
 literals in each facade or IPC handler map.
 
-`desktopAgentRuntimeTransport.ts` calls:
+`desktopRuntimeTransport.ts` calls:
 
 - `conversation.send`
 - `conversation.stop`
@@ -107,7 +107,7 @@ The transport and Electron main query command boundary reject removed aliases su
 `attachmentContext`, `attachmentFilenames`, `workspacePath`, `turnRef`,
 `queryMessageId`, `messageId`, `message_id`, or `id`.
 
-If a caller passes removed aliases into `desktopAgentRuntimeTransport` or
+If a caller passes removed aliases into `desktopRuntimeTransport` or
 directly through `windie:invoke`, those fields fail fast. Fix the caller to send
 the canonical snake_case runtime shape and use `query_message_id` for the turn
 identifier instead of reintroducing alias fallback in the transport or main
@@ -139,12 +139,12 @@ the snake_case `turn_ref` when present. Removed `turnRef` aliases are rejected.
 
 ## Drift Hotspots
 
-1. Re-adding query alias fallback in `desktopAgentRuntimeTransport` or
+1. Re-adding query alias fallback in `desktopRuntimeTransport` or
    `ipc_query_runtime.cjs` keeps duplicate
    renderer command authorities alive and hides callers that failed to normalize
    at the SDK/runtime boundary.
 2. Moving query enrichment into this adapter duplicates Electron main ownership.
-3. Treating `DesktopAgentRuntimeTransport` as a websocket client bypasses main-owned
+3. Treating `DesktopRuntimeTransport` as a websocket client bypasses main-owned
    settings gates, overlay phase, replay buffers, and failure synthesis.
 4. Letting `workspacePath` override `workspace_path` can send queries with stale
    workspace context after the active workspace binding has changed.

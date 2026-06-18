@@ -77,7 +77,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
     const agentRuntimeTransportSource = await fs.readFile(
-      path.join(appRoot, 'runtime/desktopAgentRuntimeTransport.ts'),
+      path.join(appRoot, 'runtime/desktopRuntimeTransport.ts'),
       'utf8',
     );
 
