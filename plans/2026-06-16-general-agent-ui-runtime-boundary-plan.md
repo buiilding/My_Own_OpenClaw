@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend app container docs cleanup
+
+- Finding: backend architecture/bootstrap docs still described global container
+  registration and a `get_container()` global fallback even though
+  `backend/src/api/deps.py` now reads only `app.state.container` and fails fast
+  when lifecycle state is missing.
+- Change: updated the backend architecture and bootstrap docs to describe the
+  app-lifespan container boundary and removed the stale process-global fallback
+  wording.
+- Validation: stale global-container fallback scan, docs search/list smoke
+  checks, and `git diff --check`.
+- Compatibility: no migration required. Runtime code, FastAPI dependency
+  behavior, app startup/shutdown wiring, config state, APIs, and persisted data
+  are unchanged.
 ### 2026-06-18 local-runtime path trace helper names
 
 - Finding: Python path-trace internals still exposed sidecar-named memory

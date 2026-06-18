@@ -31,7 +31,7 @@ Startup sequence:
 2. Container phase
 - Constructs `core/container/facade.py:Container`.
 - Facade wraps `ApplicationContainer` and DI providers.
-- Container is globally registered for API dependency resolution.
+- Container is registered on `app.state.container` for API dependency resolution.
 
 3. Services phase
 - Initializes prompt manager.

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: remove stale global-container fallback wording from backend
+  architecture and bootstrap docs so API dependency resolution is described as
+  app-lifespan scoped through `app.state.container`; no migration is required
+  because runtime code already fails fast on missing app container state.
 - sidecar: rename internal memory and screenshot path-trace helper functions
   to local-runtime names while preserving trace payload shape; no migration
   is required.

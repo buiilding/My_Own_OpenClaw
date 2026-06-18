@@ -48,7 +48,7 @@ To reduce feature-change friction in `backend/src/core`, runtime internals were 
 - **ApiContainer handler wiring is declarative** in `backend/src/core/container/api_container.py` so adding/removing WebSocket handlers no longer requires repetitive manual registration calls.
 - **Incoming message routing is core-owned** in `backend/src/core/container/incoming_routing.py`, and `ApiContainer` now consumes that single route table with schema coverage checks against `IncomingMessage`.
 - **Tool schema cache is DI-owned** in `backend/src/tools/schema_registry.py` and `backend/src/tools/registry.py` (no global cache singleton dependency in backend tool schema path).
-- **Initialization rollback now clears global container state** from the coordinator path for safer same-process startup retries.
+- **Initialization rollback clears app-lifespan container state** from the coordinator path for safer same-process startup retries.
 
 ## Agent Runtime Refactors (2026-02-11)
 
@@ -67,7 +67,7 @@ To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API
 - **Schemas are split by concern** in `backend/src/api/schemas/common.py`, `backend/src/api/schemas/incoming.py`, and `backend/src/api/schemas/outgoing.py`. Backend code imports the first-class schema modules directly; the old compatibility re-export module is gone.
 - **Query and wakeword orchestration moved to services** in `backend/src/api/services/query_execution.py` and `backend/src/api/services/wakeword_execution.py`, with shared TTS lifecycle handling in `backend/src/api/services/tts_session.py`.
 - **Semantic summarization parsing/orchestration moved out of route handlers** into `backend/src/api/routes/memory/semantic/parser.py` and `backend/src/api/routes/memory/semantic/service.py`, leaving `semantic.py` as a thin HTTP layer.
-- **FastAPI dependency resolution now prefers app scope** in `backend/src/api/deps.py` (`app.state.container` first, global fallback second) so tests and request-scoped integrations can use a single container source.
+- **FastAPI dependency resolution is app scoped** in `backend/src/api/deps.py` (`app.state.container` only) so missing lifecycle wiring fails fast instead of falling back to process-global state.
 - **WebSocket JSON parse policy is shared** in `backend/src/api/routes/websocket/json_parse.py` so handshake/message parsing uses one threshold policy (inline for small payloads, executor offload for larger payloads) to protect event-loop latency.
 
 ## Runtime Surface Notes (2026-03-11)
