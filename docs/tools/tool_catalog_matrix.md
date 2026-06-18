@@ -1,5 +1,5 @@
 ---
-summary: "Model-visible WindieOS tool catalog matrix with backend owners, sidecar executors, use cases, policy gates, and validation routes."
+summary: "Model-visible WindieOS tool catalog matrix with backend owners, Python sidecar executors, use cases, policy gates, and validation routes."
 read_when:
   - When adding, removing, renaming, or debugging a model-visible tool.
   - When deciding whether a tool belongs in backend schema, SDK/main dispatch, local execution, UI projection, or provider-native capability routing.

@@ -95,7 +95,7 @@ Use `/api/sdk/*` when:
 | --- | --- | --- |
 | Query never reaches backend | desktop IPC or `/ws` | [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md), [Backend WebSocket Reference](../backend/api/websocket_connection_and_task_lifecycle_reference.md) |
 | Query streams but UI does not update | backend outgoing event or renderer stream consumer | [Backend Contracts Events Hub](../backend/contracts/events/README.md), [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md) |
-| Tool call appears but local action does not run | SDK runtime tool router or sidecar executor | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Tool call appears but local action does not run | SDK runtime tool router or Python sidecar executor | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Voice text does not appear | `/ws/transcription` or voice renderer state | [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword fires repeatedly or not at all | wakeword bridge/subprocess | [Voice and Audio Channels](voice_and_audio_channels.md) |
 | SDK route works but desktop action fails | hosted SDK vs sidecar split | [SDK Hub](../sdk/README.md), [Sidecar and Tool Channels](sidecar_and_tool_channels.md) |

@@ -569,6 +569,31 @@ describe('modular sdk refactor completion boundary', () => {
     );
   });
 
+  test('tool routing docs qualify sidecar executor ownership', async () => {
+    const docs = await Promise.all([
+      read('docs/README.md'),
+      read('docs/architecture/tool_system.md'),
+      read('docs/channels/channel_routing_matrix.md'),
+      read('docs/frontend/renderer/renderer_state_change_workflow.md'),
+      read('docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md'),
+      read('docs/gateway/gateway_troubleshooting.md'),
+      read('docs/reference/code_change_surface_index.md'),
+      read('docs/tools/README.md'),
+      read('docs/tools/tool_catalog_matrix.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('Python sidecar executor');
+    expect(docText).toContain('local-runtime sidecar executor');
+    expect(docText).not.toContain(' or sidecar executor');
+    expect(docText).not.toContain('and sidecar executor');
+    expect(docText).not.toContain('vs sidecar executor');
+    expect(docText).not.toContain('schema owners, sidecar executors');
+    expect(docText).not.toContain('backend owners, sidecar executors');
+    expect(docText).not.toContain('Built-in sidecar executors');
+    expect(docText).not.toContain('Plugin sidecar executors');
+  });
+
   test('docs use local runtime sidecar labels instead of frontend sidecar labels', async () => {
     const docs = await listMarkdownFiles('docs');
     const offenders: Record<string, string[]> = {};

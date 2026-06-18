@@ -99,9 +99,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   send-failure copy now use Agent SDK runtime wording instead of SDK-agent
   wording for generic runtime command routing. The active frontend architecture
   settings/model sync row now uses Agent SDK host runtime wording instead of the
-  stale SDK-agent-host label.
+  stale SDK-agent-host label. Active tool routing, channel, gateway, renderer,
+  and reference docs now qualify sidecar executor references as Python or
+  local-runtime sidecar executor ownership.
 
 ## Inspection Log
+
+### 2026-06-18 Qualified Tool Sidecar Executor Wording Slice
+
+- Worktree was clean after `51ac9fb02`, with `main` ahead of `origin/main` by
+  822 commits.
+- Finding: active tool routing, channel, gateway, renderer, and reference docs
+  still used unqualified "sidecar executor" wording in local tool execution
+  paths.
+- Change: qualified those references as Python sidecar executor or
+  local-runtime sidecar executor ownership, and added a modular docs guard for
+  the stale unqualified phrases.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; tool
+  schemas, manifests, SDK/main dispatch, local-runtime bridge behavior,
+  credentials, permissions, storage, and provider policy are unchanged.
 
 ### 2026-06-18 Frontend Architecture Agent SDK Host Runtime Wording Slice
 

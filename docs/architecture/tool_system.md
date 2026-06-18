@@ -282,7 +282,7 @@ class MyTool(Tool[MyToolArgs]):
 Client-local tools use backend catalog stubs for model-facing schema and
 policy, then dispatch executable payloads through the SDK/main local runtime
 into the Python sidecar daemon. Backend-owned remote tools such as `web_search`
-stay in backend services and do not use the sidecar executor.
+stay in backend services and do not use the local-runtime sidecar executor.
 
 **Backend Catalog Stub** (`backend/src/tools/remote_tools/<domain>.py`, a
 historical package name for local-runtime-executed catalog entries):
@@ -332,8 +332,8 @@ async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 Tools are automatically registered:
 
 1. **Backend remote stubs**: Declared once in `backend/src/tools/tool_catalog.py`, implemented in concrete `backend/src/tools/remote_tools/*` modules, and instantiated by `backend/src/tools/registry.py`.
-2. **Built-in sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
-3. **Plugin sidecar executors**: Declared with `entrypoint` in `plugins/<id>/plugin.json` and loaded by `frontend/src/main/python/tools/extension_loader.py`.
+2. **Built-in Python sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
+3. **Plugin Python sidecar executors**: Declared with `entrypoint` in `plugins/<id>/plugin.json` and loaded by `frontend/src/main/python/tools/extension_loader.py`.
 4. **LLM-callable built-in sidecar subset**: Explicitly declared in `frontend/src/main/python/tools/manifest.py` as `EXPOSED_TO_BACKEND_TOOL_NAMES`.
 5. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()` or marked non-client-executable in `backend/src/tools/tool_catalog.py`.
    - `web_search` is the current backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.

@@ -216,7 +216,7 @@ Platform rules:
 - macOS and Windows content protection should be enabled only while the
   screenshot-capture lease is active and disabled immediately after capture.
 - Dashboard-originated computer-use should hand off to the minimal pill in
-  Electron main before SDK/main invokes the sidecar executor.
+  Electron main before SDK/main invokes the local-runtime sidecar executor.
 - Surface restore should not steal focus.
 
 ## Debug Routes
