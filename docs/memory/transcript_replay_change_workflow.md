@@ -81,8 +81,13 @@ flowchart LR
      retry fallback for renderer-only transcript ids.
 
 5. Preserve rehydrate shape.
-   - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries from stored conversation events.
-   - Backend rehydrate should normalize message roles, structured tool payloads, transparency rows, screenshot refs, and tool-call/tool-output linkage.
+   - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries
+     from stored conversation events, including canonical stored
+     `message_type` values such as `user_query`, `assistant_response`, and
+     `tool_output`.
+   - Backend rehydrate should normalize message roles, structured tool
+     payloads, transparency rows, screenshot refs, and tool-call/tool-output
+     linkage, while rejecting stale message-type aliases at the API boundary.
    - Provider-strict history should be rejected at the backend rehydrate layer when
      current transcript projections omit required tool linkage or structured tool
      payloads.

@@ -136,19 +136,21 @@ Response types:
 Execution sequence:
 
 1. get/create session
-2. normalize frontend transcript entries into backend history entry format
+2. validate SDK rehydrate transcript entries into backend history entry format
 3. resolve screenshot payload from inline data or artifact refs
-4. reconstruct tool-call/tool-output linkage (`tool_call_id`/`correlation_id`) when possible
+4. validate tool-call/tool-output linkage (`tool_call_id`/`correlation_id`)
 5. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
 
 Normalization behavior highlights:
 
-- message types normalize underscores to hyphens once before routing (`tool_call`
-  -> `tool-call`, `tool_output` -> `tool-output`)
-- rehydrate routing checks the canonical hyphenated tool-call/tool-output and
-  tool-bundle forms only
-- missing tool-call IDs can trigger synthetic tool-call history entries for linkage continuity
-- malformed `tool_calls` blocks are sanitized/dropped rather than crashing
+- explicit message types must already be canonical stored values such as
+  `user_query`, `assistant_response`, `tool_output`, or `context_compaction`
+- SDK-projected assistant rows carry structured `tool_calls`; backend rehydrate
+  does not parse stale JSON-content tool-call aliases
+- missing or unknown tool-call IDs fail rehydrate instead of synthesizing repair
+  history
+- malformed `tool_calls` blocks are sanitized/dropped before linkage
+  validation
 
 ## Error Semantics
 

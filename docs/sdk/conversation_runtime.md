@@ -509,6 +509,11 @@ that replay snapshot. Otherwise it derives rehydrate messages from normalized
 events. Rehydrate projection keeps only complete tool-call/tool-output pairs;
 dangling calls, orphan outputs, or incomplete bundle pairs stay available to
 display/debug projections but are not sent back to backend provider history.
+Generated rehydrate rows must carry canonical backend stored-history
+`message_type` values (`user_query`, `assistant_response`, `tool_output`, or
+`context_compaction`); renderer/source labels such as `tool-call`,
+`tool-output`, and `assistant-message` remain display/debug labels, not backend
+rehydrate message types.
 
 ## Revision and Resource Preservation Rule
 

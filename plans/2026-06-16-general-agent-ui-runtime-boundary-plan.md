@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK rehydrate canonical message-type boundary
+
+- Finding: backend rehydrate still accepted renderer/source message labels such
+  as `tool-call`, `tool-output`, and `assistant-message`, while SDK rehydrate
+  projections did not stamp canonical stored `message_type` values on every
+  generated row.
+- Change: SDK rehydrate projection now emits canonical stored message types,
+  backend rehydrate rejects explicit non-canonical labels instead of parsing old
+  JSON-content tool-call aliases, and docs/tests now route replay shape through
+  SDK-owned projection plus backend-owned validation/linkage.
+- Validation: focused SDK conversation-runtime projection tests, backend
+  rehydrate normalizer compile/import-light tests, docs listing, stale alias
+  scan, and diff check.
+- Compatibility: no migration is provided. Current SDK snapshots send
+  canonical values and omitted message types still default from role, but stale
+  explicit replay aliases now fail fast at the backend API boundary. No
+  credential, permission, storage-location, or tool-execution trust boundary
+  changes.
+
 ### 2026-06-18 backend tool bridge result-ingress wording cleanup
 
 - Finding: backend tool preparation, tool-result ingress, architecture, and

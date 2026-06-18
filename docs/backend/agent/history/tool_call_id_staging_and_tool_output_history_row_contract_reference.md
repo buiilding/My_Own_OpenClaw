@@ -90,14 +90,13 @@ On tool output:
 
 Message-type normalization is split by boundary:
 
-- API rehydrate converts current frontend labels such as `tool-output` and
-  `tool-call` into canonical stored `MessageType` values before replacing
-  history.
+- SDK rehydrate projection emits canonical stored `MessageType` values before
+  sending replay rows to the backend.
 - `ConversationHistory.replace_with_entries(...)` accepts only canonical stored
   values (`user_query`, `assistant_response`, `tool_output`,
   `context_compaction`).
-- Unknown or old stored message-type aliases raise instead of falling back by
-  role.
+- Backend rehydrate rejects unknown or old stored message-type aliases instead
+  of silently repairing projection drift.
 
 This allows restored history to survive provider normalization without dropping tool linkage.
 

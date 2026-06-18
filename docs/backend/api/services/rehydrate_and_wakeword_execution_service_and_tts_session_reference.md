@@ -37,26 +37,28 @@ Flow:
 
 Per-entry fields normalized:
 
-- message type, with underscore aliases normalized once to canonical hyphenated
-  forms before row routing
+- message type, which must already be a canonical stored `MessageType` value
+  (`user_query`, `assistant_response`, `tool_output`, or
+  `context_compaction`) when present; missing values may fall back from role
 - tool name / correlation / tool_call_id string normalization
 - screenshot resolution via inline `screenshot` or `screenshot_ref`
-- internal bundle trace rows are recognized only from explicit message type or
-  tool name metadata, not by guessing from JSON-looking message content
+- internal bundle trace rows are recognized from explicit bundle tool-name
+  metadata, not by stale message-type aliases or JSON-looking message content
 
 ### Tool-call reconstruction
 
-For tool-call-like rows:
+For assistant rows with tool calls:
 
-- require an explicit or parsed tool call id
-- parse JSON content for `name`, `id`, and `args`; structured tool-call
-  payloads use plural `toolCalls[]` entries with canonical `arguments`
-- emit assistant entry with `tool_calls=[{id,name,arguments}]`
+- accept only structured `tool_calls` rows or structured payload
+  `toolCalls[]` entries with canonical `arguments`
+- emit assistant entries with `tool_calls=[{id,name,arguments}]`
 - update `known_tool_call_ids` and `pending_tool_call_ids`
+- reject stale message-type aliases such as `tool-call` instead of parsing
+  JSON content as a fallback tool call
 
 ### Tool-output linkage validation
 
-For tool/tool-output rows:
+For tool rows or canonical `tool_output` rows:
 
 - choose call id from explicit tool_call_id, correlation_id, or pending call id
 - reject tool outputs that cannot be linked to a known tool call
@@ -133,14 +135,17 @@ This provides consistent setup/teardown for both query and wakeword service flow
 ## Drift Hotspots
 
 1. allowing fallback tool-call ids can reintroduce provider-history rows that never existed in the transcript.
-2. accepting top-level JSON-content `arguments` can reintroduce old transcript
-   parser aliases; use `args` in content fallbacks or structured tool-call
-   payloads instead.
+2. accepting JSON-content tool-call parsing can reintroduce old transcript
+   parser aliases; current SDK rehydrate projections must send structured
+   `tool_calls` / `toolCalls[]` instead.
 3. accepting singular structured-payload `toolCall` can reintroduce old replay
    aliases; current SDK rehydrate projections use `toolCalls[]`.
-4. accepting unknown tool-output ids can orphan tool rows.
-5. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
-6. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
+4. accepting old message-type aliases such as `assistant-message`,
+   `tool-output`, or `tool-call` can hide projection drift at the SDK/backend
+   boundary.
+5. accepting unknown tool-output ids can orphan tool rows.
+6. tightening screenshot-ref failures to hard abort can make conversation resume brittle on artifact loss.
+7. changing TTSSession cleanup semantics risks leaked audio tasks across requests.
 
 ## Related Pages
 

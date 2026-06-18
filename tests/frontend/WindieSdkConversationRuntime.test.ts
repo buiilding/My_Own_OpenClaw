@@ -1079,9 +1079,10 @@ describe('Agent SDK conversation runtime core', () => {
 	    const snapshot = buildRehydrateSnapshot(events);
 
 	    expect(snapshot.messages).toEqual([
-      expect.objectContaining({ role: 'user', content: 'inspect file' }),
+      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'inspect file' }),
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         tool_call_id: 'call-read',
         tool_calls: [
           expect.objectContaining({
@@ -1091,6 +1092,7 @@ describe('Agent SDK conversation runtime core', () => {
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         content: 'README contents',
         tool_call_id: 'call-read',
         tool_name: 'read_file',
@@ -1170,9 +1172,10 @@ describe('Agent SDK conversation runtime core', () => {
 	    });
 
 	    expect(snapshot.messages).toEqual([
-      expect.objectContaining({ role: 'user', content: 'inspect files' }),
+      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'inspect files' }),
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         tool_calls: [
           expect.objectContaining({ id: 'call-readme' }),
           expect.objectContaining({ id: 'call-package' }),
@@ -1184,6 +1187,7 @@ describe('Agent SDK conversation runtime core', () => {
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         tool_call_id: 'call-readme',
         tool_name: 'tool_bundle',
         content: 'README contents',
@@ -1194,6 +1198,7 @@ describe('Agent SDK conversation runtime core', () => {
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         tool_call_id: 'call-package',
         tool_name: 'tool_bundle',
         content: 'package contents',
@@ -1331,9 +1336,9 @@ describe('Agent SDK conversation runtime core', () => {
 
     expect(buildDisplayConversation(events).messages).toHaveLength(6);
     expect(snapshot.messages).toEqual([
-      expect.objectContaining({ role: 'user', content: 'inspect files' }),
-      expect.objectContaining({ role: 'assistant', tool_call_id: 'call-complete' }),
-      expect.objectContaining({ role: 'tool', content: 'complete result', tool_call_id: 'call-complete' }),
+      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'inspect files' }),
+      expect.objectContaining({ role: 'assistant', message_type: 'assistant_response', tool_call_id: 'call-complete' }),
+      expect.objectContaining({ role: 'tool', message_type: 'tool_output', content: 'complete result', tool_call_id: 'call-complete' }),
     ]);
   });
 
@@ -1361,10 +1366,10 @@ describe('Agent SDK conversation runtime core', () => {
     ];
 
     expect(buildRehydrateSnapshot(events).messages).toEqual([
-      expect.objectContaining({ role: 'assistant', tool_call_id: 'call-read' }),
-      expect.objectContaining({ role: 'tool', content: 'result by provider id only', tool_call_id: 'call-read' }),
-      expect.objectContaining({ role: 'assistant' }),
-      expect.objectContaining({ role: 'tool', content: 'result by wait id only' }),
+      expect.objectContaining({ role: 'assistant', message_type: 'assistant_response', tool_call_id: 'call-read' }),
+      expect.objectContaining({ role: 'tool', message_type: 'tool_output', content: 'result by provider id only', tool_call_id: 'call-read' }),
+      expect.objectContaining({ role: 'assistant', message_type: 'assistant_response' }),
+      expect.objectContaining({ role: 'tool', message_type: 'tool_output', content: 'result by wait id only' }),
     ]);
   });
 
@@ -2098,6 +2103,7 @@ describe('Agent SDK conversation runtime core', () => {
     expect(buildRehydrateSnapshot([firstProgress, secondProgress]).messages).toEqual([
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         content: '',
         tool_call_id: 'native-web-search:turn-1:req-search-1',
         tool_calls: [
@@ -2113,6 +2119,7 @@ describe('Agent SDK conversation runtime core', () => {
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         tool_name: 'web_search',
         tool_call_id: 'native-web-search:turn-1:req-search-1',
         content: [
@@ -2164,10 +2171,12 @@ describe('Agent SDK conversation runtime core', () => {
     expect(rehydrateMessages).toEqual([
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         tool_call_id: 'call-search-real',
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         tool_call_id: 'call-search-real',
         content: 'real web search output',
       }),
@@ -2313,6 +2322,7 @@ describe('Agent SDK conversation runtime core', () => {
     ]).messages).toEqual([
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         content: 'final assistant answer',
       }),
     ]);
@@ -4336,13 +4346,13 @@ describe('Agent SDK conversation runtime core', () => {
       { messageId: 'turn-send' },
     );
     expect(rehydrate.messages).toEqual([
-      expect.objectContaining({ role: 'user', content: 'hello' }),
+      expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'hello' }),
     ]);
     expect(sentRehydrates[0]).toMatchObject({
       conversation_ref: 'conv-sdk-runtime',
       rehydrate_mode: 'replace',
       messages: [
-        expect.objectContaining({ role: 'user', content: 'hello' }),
+        expect.objectContaining({ role: 'user', message_type: 'user_query', content: 'hello' }),
       ],
     });
   });
@@ -5739,6 +5749,7 @@ describe('Agent SDK conversation runtime core', () => {
     expect(snapshot.rehydrate.messages).toEqual([
       expect.objectContaining({
         role: 'user',
+        message_type: 'user_query',
         content: 'use the selected model',
       }),
     ]);
@@ -5866,10 +5877,12 @@ describe('Agent SDK conversation runtime core', () => {
     expect(originalSnapshot.rehydrate.messages.slice(1, 3)).toEqual([
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         tool_call_id: 'call-original',
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         content: 'backend accepted README contents',
         tool_call_id: 'call-original',
       }),
@@ -5986,20 +5999,24 @@ describe('Agent SDK conversation runtime core', () => {
     expect(finalSnapshot.rehydrate.messages).toEqual([
       expect.objectContaining({
         role: 'user',
+        message_type: 'user_query',
         content: 'Read package.json and summarize it in bullets.',
       }),
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         tool_call_id: 'call-edited',
       }),
       expect.objectContaining({
         role: 'tool',
+        message_type: 'tool_output',
         content: 'backend accepted package contents',
         tool_call_id: 'call-edited',
         tool_name: 'read_file',
       }),
       expect.objectContaining({
         role: 'assistant',
+        message_type: 'assistant_response',
         content: '- package summary',
       }),
     ]);
