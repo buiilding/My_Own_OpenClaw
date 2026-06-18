@@ -12,9 +12,9 @@ title: "Tool Turn Change Workflow"
 Use this workflow before changing backend tool-turn behavior. WindieOS has two tool contracts:
 
 - Backend model-facing tools tell the LLM what it can request.
-- Frontend/sidecar executable tools run local actions and return results.
+- SDK/main local-runtime tools run local actions and return results.
 
-Frontend and sidecar code must not import backend tool schema code for parity. Keep parity in docs and tests.
+Client-local runtime and sidecar code must not import backend tool schema code for parity. Keep parity in docs and tests.
 
 ## Tool-Turn Path
 
@@ -24,7 +24,7 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 4. history stages assistant tool-call IDs before execution.
 5. `ToolPreparer` resolves call parameters, request IDs, screenshots, OCR, and coordinate state.
 6. `ToolSender` emits `tool-call` or `tool-bundle` events for SDK/main execution, or runs backend tools immediately.
-7. SDK/main dispatches executable tool calls through Electron main to the sidecar.
+7. SDK/main dispatches executable tool calls through Electron main to the local runtime.
 8. SDK/main sends `tool-result` messages back over websocket.
 9. backend routes, stores, and resolves results.
 10. result processor commits tool-output history rows and cleans pending state.
@@ -50,7 +50,7 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 - Tool visibility and schema policy belong in `backend/src/tools` and backend policy code.
 - Provider-specific tool-call normalization belongs in the provider or LLM stream processor, not the renderer.
 - Request ID generation, resolved-call state, and coordinate preparation belong in backend agent tool preparation.
-- Local execution belongs in renderer/Electron/sidecar code, except explicitly backend-executed SDK tools.
+- Local execution belongs in SDK/main local-runtime adapters and Python sidecar implementations, except explicitly backend-executed SDK tools.
 - Tool-result websocket ingress belongs in backend API handlers.
 - Tool-result waiting, storage, and cleanup belong in backend tool orchestration.
 - Replay-safe history formatting belongs in backend history/result processing.
@@ -63,7 +63,7 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 4. Preserve request ID and tool-call ID correlation across every stage.
 5. Keep `tool-call` before `tool-output` for synthetic and failed-tool paths.
 6. Keep backend-executed and SDK/main local-runtime lanes explicit.
-7. Update frontend/sidecar tests if executable payloads change.
+7. Update SDK/main local-runtime and sidecar tests if executable payloads change.
 8. Update tool contract docs and the changelog in the same commit.
 
 ## Tool Schema Changes
@@ -130,11 +130,11 @@ Validation:
 
 - `tests/backend/test_tool_preparer.py`
 - coordinate or OCR/vision focused tests.
-- sidecar screenshot/computer tests if executable payload expectations changed.
+- SDK/main local-runtime and sidecar screenshot/computer tests if executable payload expectations changed.
 
 Rules:
 
-- Keep model-facing argument shape separate from sidecar executable shape.
+- Keep model-facing argument shape separate from local-runtime executable shape.
 - Keep stale screenshot and coordinate-resolution failures explicit.
 - Store synthetic failed results when preparation fails after a request ID exists.
 
@@ -198,7 +198,7 @@ Rules:
 
 ## SDK/Main and Sidecar Boundary
 
-If executable payloads change, update SDK/main and sidecar docs/tests with the backend change.
+If executable payloads change, update SDK/main local-runtime and sidecar docs/tests with the backend change.
 
 SDK/main owners:
 

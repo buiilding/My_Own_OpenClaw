@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: route the backend tool-turn change workflow through
+  SDK/main local-runtime ownership instead of frontend/sidecar execution
+  shorthand; no migration is required because this is docs/test wording only.
 - docs/backend: align backend inventory and API/tool-system references with
   SDK/main local-runtime tool dispatch and client-local manifest ownership; no
   migration is required because this is docs/test wording only.

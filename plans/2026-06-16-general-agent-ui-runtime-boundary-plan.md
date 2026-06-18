@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend tool-turn workflow local-runtime ownership
+
+- Finding: the backend tool-turn change workflow still described local tool
+  execution as frontend/sidecar ownership and said SDK/main dispatches directly
+  to the sidecar, which skipped the local-runtime boundary now owned by the SDK
+  and Electron main adapters.
+- Change: reworded the workflow around SDK/main local-runtime execution,
+  retained Python sidecar implementation ownership where executable code lives,
+  and extended the modular boundary guard to reject the stale backend workflow
+  phrases.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  backend workflow wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; tool
+  schemas, websocket events, result payloads, storage, credentials,
+  permissions, and local-runtime execution behavior are unchanged.
+
 ### 2026-06-18 backend inventory client-local tool wording
 
 - Finding: backend inventory and API/tool-system references still framed local

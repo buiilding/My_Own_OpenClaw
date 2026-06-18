@@ -622,6 +622,9 @@ describe('modular sdk refactor completion boundary', () => {
         'delegates to `session.process_frontend_tool_result(...)`',
         'delegates to `session.process_frontend_tool_bundle_result(...)`',
         'Tool events execute in frontend/sidecar',
+        'Frontend/sidecar executable tools run local actions',
+        'SDK/main dispatches executable tool calls through Electron main to the sidecar',
+        'Local execution belongs in renderer/Electron/sidecar code',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
