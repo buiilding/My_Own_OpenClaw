@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/vision: remove stale desktop-assistant wording from the InternVL
+  provider source and guard the provider comment against old product copy; no
+  migration is required because vision model loading and screen-grounding
+  behavior are unchanged.
 - docs/runtime-boundary: correct the sidecar-plugin routing progress note
   validation list to match the focused tests, docs listing, stale phrase scan,
   and diff check that were actually run; no migration is required.

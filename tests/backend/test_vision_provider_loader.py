@@ -2,6 +2,7 @@
 
 import hashlib
 import logging
+from pathlib import Path
 
 import pytest
 
@@ -41,6 +42,15 @@ class _FakeTorch:
 
 def _test_logger():
     return logging.getLogger("tests.vision.provider.loader")
+
+
+def test_internvl_provider_source_uses_current_product_wording():
+    source = Path("backend/src/services/vision/providers/internvl.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "desktop assistant" not in source.lower()
+    assert "WindieOS screen grounding" in source
 
 
 def _load_model_with_defaults(

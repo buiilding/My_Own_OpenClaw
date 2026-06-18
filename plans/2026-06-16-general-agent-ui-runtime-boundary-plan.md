@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 InternVL product wording cleanup
+
+- Finding: the InternVL provider source still described the implementation as
+  adapted for a desktop assistant, leaving old product wording in backend
+  screen-grounding code.
+- Change: rewrote the provider docstring to describe WindieOS screen grounding
+  and added a focused source guard in the existing vision provider tests.
+- Validation: `scripts\python-in-env backend pytest tests/backend/test_vision_provider_loader.py -q -k "current_product_wording"`,
+  stale desktop-assistant source scan, and `git diff --check`. The full
+  `test_vision_provider_loader.py` suite was attempted, but fallback Python
+  lacks vision model dependencies after the `jarvis` conda env was unavailable,
+  so existing AutoModel monkeypatch tests fail before this wording guard.
+- Compatibility: no migration required. This changes source comments and test
+  coverage only; InternVL loading, CUDA/CPU fallback, prompt construction,
+  coordinate extraction, APIs, settings, and persisted data are unchanged.
 ### 2026-06-18 sidecar-plugin routing wording cleanup
 
 - Finding: docs directory, MCP routing, and sidecar daemon registration docs

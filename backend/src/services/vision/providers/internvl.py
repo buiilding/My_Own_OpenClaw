@@ -61,7 +61,7 @@ else:
 class InternVLModel(BaseVisionModel):
     """
     Generic Hugging Face vision-language model handler for InternVL models.
-    Based on CoAct-1's implementation, adapted for desktop assistant.
+    Based on CoAct-1's implementation and adapted for WindieOS screen grounding.
     """
 
     def _load(self):
