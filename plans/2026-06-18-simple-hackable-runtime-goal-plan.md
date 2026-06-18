@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a voice/wakeword ownership wording slice by routing
+  public wakeword model/protocol ownership through the local-runtime wakeword
+  helper while keeping the Python sidecar wakeword service visible as the
+  current concrete implementation. The modular docs boundary guard now covers
+  the new local-runtime helper wording and blocks the retired Python
+  sidecar-as-owner wakeword phrase. Validation: focused modular docs boundary
+  test, docs listing, exact stale wakeword-owner phrase scan, and diff checks.
+  No migration required; no code path, payload, storage, IPC, settings, tool
+  schema, credential, permission, hosted URL, provider-policy, or microphone
+  capture behavior changed.
 - 2026-06-18: completed a hosted helper client wording slice by updating
   `docs/architecture/python_sidecar.md` and
   `docs/providers/inference_capability_change_workflow.md` so semantic/helper

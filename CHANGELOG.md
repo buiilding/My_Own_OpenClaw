@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route wakeword service ownership through the local-runtime
+  wakeword helper while keeping the Python sidecar wakeword service visible as
+  the concrete implementation. No migration required.
 - docs/providers: route hosted semantic/helper client wording through
   local-runtime hosted helper services instead of sidecar-owned hosted helper
   services. No migration required.

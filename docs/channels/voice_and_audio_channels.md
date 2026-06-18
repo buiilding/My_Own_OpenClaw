@@ -15,7 +15,7 @@ WindieOS voice is three channels that share microphone/audio concepts but have d
 
 | Channel | Purpose | Transport | Owners |
 | --- | --- | --- | --- |
-| Wakeword | Ambient trigger detection | renderer audio chunks -> Electron main IPC -> Python wakeword subprocess | `WakewordController.jsx`, `wakeword_bridge*.cjs`, `wakeword_service.py` |
+| Wakeword | Ambient trigger detection | renderer audio chunks -> Electron main IPC -> local-runtime wakeword helper backed by the Python wakeword subprocess | `WakewordController.jsx`, `wakeword_bridge*.cjs`, `wakeword_service.py` |
 | Voice dictation | Turn text entry from microphone | renderer audio -> backend `/ws/transcription` | voice hooks/utils, transcription route/services |
 | TTS playback | Spoken backend response | backend `/ws` `audio-chunk` events -> renderer playback queue | backend TTS manager/session, renderer audio service |
 
@@ -28,7 +28,7 @@ Main flow:
 1. renderer `WakewordController` starts only when config and surface state allow it.
 2. renderer captures microphone chunks.
 3. chunks are sent over IPC channel `wakeword-audio-chunk`.
-4. Electron main forwards normalized binary frames to the Python wakeword service.
+4. Electron main forwards normalized binary frames to the local-runtime wakeword helper backed by the Python wakeword service.
 5. the wakeword subprocess emits detection results.
 6. Electron main sends renderer events such as `wakeword-detected` and `wakeword-status`.
 7. optional backend activation uses the normal `/ws` `wakeword-detected` message path.

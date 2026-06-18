@@ -9508,6 +9508,21 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 Wakeword Local-Runtime Helper Wording
+
+- Finding: voice/audio channel docs still routed wakeword audio directly to the
+  Python sidecar wakeword service and named Python sidecar ownership for
+  wakeword model bootstrap/detection, even though the current boundary is the
+  local-runtime wakeword helper backed by that Python service.
+- Change: reworded the voice/audio channel matrix, voice audio workflow, and
+  desktop voice guide to route wakeword through the local-runtime helper while
+  keeping the Python sidecar wakeword service as the concrete implementation.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, wakeword IPC framing,
+  payloads, subprocess behavior, storage, settings, credentials, permissions,
+  hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-18 Hosted Helper Client Local-Runtime Wording
 
 - Finding: provider and Python sidecar architecture docs still described

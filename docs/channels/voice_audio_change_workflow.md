@@ -11,7 +11,7 @@ title: "Voice Audio Change Workflow"
 
 Use this workflow before changing voice or audio behavior. WindieOS has three different audio paths that must stay separate:
 
-- Wakeword detection: renderer microphone chunks -> Electron main -> Python sidecar wakeword service.
+- Wakeword detection: renderer microphone chunks -> Electron main -> local-runtime wakeword helper backed by the Python sidecar wakeword service.
 - Voice dictation: renderer microphone chunks -> backend `/ws/transcription` websocket -> renderer text region.
 - TTS playback: backend `/ws` `audio-chunk` events -> renderer playback queue.
 
@@ -24,7 +24,7 @@ Do not route live dictation through wakeword. Do not route wakeword chunks to tr
 | microphone permission or onboarding voice gate is wrong | Electron permission service and renderer permission UI | `frontend/src/main/permissions/permission_service_microphone.cjs`, `frontend/src/renderer/features/permissions`, `frontend/src/renderer/features/onboarding` | [Onboarding and Permissions](../desktop/onboarding_permissions.md), [Platform Permission Matrix](../platforms/permission_matrix.md) | `tests/frontend/PermissionService.test.cjs`, permission/onboarding tests |
 | wakeword starts during onboarding or when disabled | renderer wakeword controller and settings gate | `frontend/src/renderer/app/WakewordController.jsx`, `frontend/src/renderer/features/voice/hooks`, `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts` | [Renderer Voice Capture and Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md) | `tests/frontend/voice/WakewordDetectionHook.test.ts`, `tests/frontend/VoiceModeHook.test.ts` |
 | wakeword chunks do not reach sidecar | Electron wakeword bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`, `frontend/src/main/wakeword/wakeword_supervisor.cjs` | [Electron Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/WakewordSupervisor.test.cjs` |
-| wakeword model fails to load or detection output is malformed | Python sidecar wakeword service | `frontend/src/main/python/wakeword_service.py` | [Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md) | `tests/sidecar/test_wakeword_service.py` |
+| wakeword model fails to load or detection output is malformed | Local-runtime wakeword helper backed by the Python sidecar wakeword service | `frontend/src/main/python/wakeword_service.py` | [Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md) | `tests/sidecar/test_wakeword_service.py` |
 | voice dictation connects but no text appears | renderer voice mode and transcription region state | `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`, `frontend/src/renderer/features/chat/hooks/useTranscription.ts`, `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts` | [Frontend Voice Mode Gateway and Transcription Region Reference](../frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md) | `tests/frontend/VoiceModeHook.test.ts`, `tests/frontend/TranscriptionHook.test.ts`, `tests/frontend/TranscriptionRegions.test.ts` |
 | `/ws/transcription` rejects or disconnects | backend transcription gateway | `backend/src/api/routes/transcription`, `backend/src/api/services/transcription` | [Voice and Audio Channels](voice_and_audio_channels.md), [HTTP and WebSocket Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md) | `tests/backend/test_transcription_gateway.py`, provider-specific transcription tests |
 | STT provider events map incorrectly | backend transcription provider adapter | `backend/src/api/services/transcription/openai_realtime.py`, `backend/src/api/services/transcription/nova_proxy.py`, `backend/src/api/services/transcription/protocol.py` | [Voice and Audio Channels](voice_and_audio_channels.md) | `tests/backend/test_openai_realtime_transcription.py`, `tests/backend/test_transcription_gateway.py` |
@@ -35,7 +35,7 @@ Do not route live dictation through wakeword. Do not route wakeword chunks to tr
 
 - Renderer owns microphone capture, capture cleanup, dictation UI state, wakeword capture gating, and playback.
 - Electron main owns wakeword IPC framing and subprocess lifecycle.
-- Python sidecar owns wakeword model bootstrap and detection protocol.
+- The local runtime owns wakeword model bootstrap and detection protocol; the Python sidecar wakeword service is the current concrete implementation.
 - Backend transcription route owns `/ws/transcription` connection lifecycle and STT provider normalization.
 - Backend TTS owns converting assistant text chunks into `audio-chunk` events on the normal query websocket.
 - Settings/config owns whether features are enabled; audio owners should consume normalized settings, not invent parallel flags.
