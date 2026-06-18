@@ -139,6 +139,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_EDIT_AND_RESEND]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATION_PREPARE_RETRY_TURN]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE]');
+    expect(source).toContain("'agent-sdk-command'");
+    expect(source).not.toContain("'renderer-sdk-command'");
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MODELS_LIST]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED]');
     expect(source).toContain('localRuntimeReady: true');

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main SDK command settings source label
+
+- Finding: the Electron main SDK command allowlist still sent settings updates
+  with the diagnostic source `renderer-sdk-command`, even though the owner is
+  the main-process Agent SDK command bridge.
+- Change: renamed that settings-sync source to `agent-sdk-command` and added a
+  main SDK boundary guard against the retired label.
+- Validation: focused main SDK boundary and IPC query Jest coverage plus a
+  stale-label scan.
+- Compatibility: no migration required. This changes internal trace/settings
+  ACK source metadata only; IPC channels, settings payloads, backend websocket
+  messages, config persistence, credentials, permissions, and provider policy
+  are unchanged.
+
 ### 2026-06-18 renderer interaction diagnostics boundary
 
 - Finding: renderer UI interaction diagnostics still used

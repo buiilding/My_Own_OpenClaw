@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename the settings-sync source emitted by the SDK command bridge from
+  `renderer-sdk-command` to `agent-sdk-command`, keeping Electron main as the
+  Agent SDK host boundary; no migration is required because this changes only
+  internal trace/settings ACK source metadata.
 - renderer/main: rename the active renderer interaction diagnostics source,
   path, helper, and docs from frontend-interaction/frontend.interaction to
   renderer-interaction/renderer.interaction so UI breadcrumbs are owned by the

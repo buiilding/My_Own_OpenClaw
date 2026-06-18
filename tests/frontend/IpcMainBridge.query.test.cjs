@@ -508,7 +508,7 @@ describe('ipc.cjs bridge query handling', () => {
     expectSdkPreparedContentWithUserQuery(queryMessage.payload, 'mode check');
   });
 
-  test('waits for pending renderer update-settings ack before sending query', async () => {
+  test('waits for pending SDK settings update ack before sending query', async () => {
     const { handlers, ws } = await setupQueryBridge();
 
     const settingsPromise = invokeAgentSdkCommandHandler(handlers, 'settings.update', { interaction_mode: 'agent' });
@@ -531,7 +531,7 @@ describe('ipc.cjs bridge query handling', () => {
     expectSdkPreparedContentWithUserQuery(queryMessage.payload, 'after settings update');
   });
 
-  test('connects before sending renderer update-settings', async () => {
+  test('connects before sending SDK settings update', async () => {
     const bridge = initIpc();
 
     const settingsPromise = invokeAgentSdkCommandHandler(bridge.handlers, 'settings.update', { interaction_mode: 'agent' });

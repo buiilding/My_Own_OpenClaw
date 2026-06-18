@@ -184,7 +184,7 @@ function buildAgentSdkCommandHandlers({
     },
     [SDK_RUNTIME_COMMANDS.SETTINGS_UPDATE]: async (payload = {}) => deps.sendSettingsUpdate(
       payload,
-      'renderer-sdk-command',
+      'agent-sdk-command',
     ),
     [SDK_RUNTIME_COMMANDS.MODELS_LIST]: async () => deps.requestModelListThroughSdkAgent(),
     [SDK_RUNTIME_COMMANDS.WAKEWORD_DETECTED]: async (payload = {}) => {
