@@ -30,7 +30,7 @@ function createMemoryFs() {
 
 describe('permission_state_store', () => {
   test('uses generic fallback state filename when user data path is unavailable', () => {
-    expect(resolveStatePath({})).toBe(path.join(process.cwd(), '.desktop-agent-permission-state.json'));
+    expect(resolveStatePath({})).toBe(path.join(process.cwd(), '.desktop-runtime-permission-state.json'));
   });
 
   test('preserves independent concurrent permission updates', async () => {

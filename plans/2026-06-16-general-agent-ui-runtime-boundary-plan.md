@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 main permission-state fallback prefix
+
+- Finding: the Electron main permission-state store still used `desktop-agent` for its no-userData fallback filename after the main host internals standardized on desktop-runtime naming.
+- Change: renamed the fallback prefix to `desktop-runtime` and updated focused permission-state coverage.
+- Validation: focused PermissionStateStore Jest coverage, exact stale fallback-prefix scan, and diff checks.
+- Compatibility: no normal runtime migration required. Production/runtime storage uses explicit `userDataPath` or `statePath`; only the no-userData development/test fallback filename changes.
+
 ### 2026-06-18 CLI desktop log alias removal
 
 - Finding: the first-class Windie CLI still accepted `windie logs desktop` as a compatibility alias for the main-process log stream after explicit log layers existed.

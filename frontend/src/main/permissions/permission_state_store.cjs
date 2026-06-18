@@ -7,7 +7,7 @@ const path = require('path');
 
 const PERMISSION_STATE_FILENAME = 'permission-state.json';
 const PERMISSION_STATE_VERSION = 1;
-const DEFAULT_PERMISSION_STATE_PREFIX = 'desktop-agent';
+const DEFAULT_PERMISSION_STATE_PREFIX = 'desktop-runtime';
 const stateUpdateQueues = new Map();
 
 function resolveStatePath(deps = {}) {
