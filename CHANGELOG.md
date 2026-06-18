@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar: report Python local runtime ping/status diagnostics with `service: local_runtime` instead of `local_sidecar_runtime`; no migration is required because this is a diagnostic label only and no source callers consume the old value.
 - backend/sdk: remove the unused response extractor helper and self-test so sub-agent result handling stays owned by the runtime consuming AgentSession.process_query; no migration is required because no live code imported the helper and SDK route/tool/context contracts are unchanged.
 - docs/runtime-boundary: align first-read and public web/API docs on the SDK local-runtime contract instead of local-sidecar topology wording; no migration is required because this is documentation and guard coverage only.
 - docs/frontend-landing: align landing reference docs with the desktop-runtime/local-runtime public copy and real footer links; no migration is required because this updates documentation and guard coverage only.

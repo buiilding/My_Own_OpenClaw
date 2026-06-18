@@ -495,7 +495,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
     async def _handle_ping(self) -> Dict[str, Any]:
         """Health check method."""
-        return {"status": "ok", "service": "local_sidecar_runtime"}
+        return {"status": "ok", "service": "local_runtime"}
 
     async def _handle_get_status(self, **kwargs) -> Dict[str, Any]:
         """Get detailed backend status for diagnostics."""
@@ -503,7 +503,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             browser_binary_path = self._find_available_browser_binary()
             status = {
                 "status": "ok",
-                "service": "local_sidecar_runtime",
+                "service": "local_runtime",
                 "running": self.running,
                 "memory_store_initialized": self.memory_store is not None,
                 "memory_store_initializing": self._memory_store_initializing,

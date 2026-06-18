@@ -120,6 +120,13 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 sidecar status service local-runtime label
+
+- Finding: the Python local runtime ping/status diagnostics still returned `service: local_sidecar_runtime`, even though the public local execution boundary is the SDK local runtime and exact usage scans found only focused tests consuming that value.
+- Change: changed ping/get-status diagnostics to report `service: local_runtime` and updated sidecar daemon/local-backend tests.
+- Validation: focused sidecar pytest targets for local backend ping/status and daemon RPC, stale `local_sidecar_runtime` scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. This changes a diagnostic status label only; JSON-RPC method names, daemon routes, SDK local-runtime behavior, tool schemas, settings, and persisted data are unchanged.
+
 ### 2026-06-17 backend SDK response extractor helper
 
 - Finding: `backend/src/sdk/agents/response_extractor.py` had no runtime imports;
