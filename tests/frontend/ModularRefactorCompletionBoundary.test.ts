@@ -119,6 +119,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(offenders).toEqual({});
   });
 
+  test('public SDK README describes local runtime examples without sidecar-facing prose', async () => {
+    const readme = await read('packages/windie-sdk-js/README.md');
+
+    expect(readme).toContain('local-runtime execution');
+    expect(readme).toContain('local-runtime module-tool registration');
+    expect(readme).toContain('local-runtime plugin package registration');
+    expect(readme).not.toContain('local sidecar execution');
+    expect(readme).not.toContain('sidecar module-tool registration');
+    expect(readme).not.toContain('sidecar plugin package registration');
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

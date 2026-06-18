@@ -69,7 +69,7 @@ for await (const event of agent.stream('Run the repo checks and report progress.
 }
 ```
 
-Node examples that need local sidecar execution can let `AgentClient` own
+Node examples that need local-runtime execution can let `AgentClient` own
 daemon discovery and startup:
 
 ```ts
@@ -102,6 +102,6 @@ Runnable repo examples:
 - `examples/simple-chat-cli`: interactive remote-backend CLI using
   `agent.chat(...)`.
 - `examples/custom-ui`: browser UI projection demo.
-- `examples/local-tool-extension`: sidecar module-tool registration with
+- `examples/local-tool-extension`: local-runtime module-tool registration with
   `moduleTool(...)`.
-- `examples/repo-agent-extension`: sidecar plugin package registration.
+- `examples/repo-agent-extension`: local-runtime plugin package registration.
