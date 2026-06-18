@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/examples: align the simple chat CLI README with explicit SDK backend
+  endpoint and `WINDIE_INSTALL_TOKEN` requirements instead of hosted fallback
+  and `WINDIE_API_KEY` wording; no migration is required because this changes
+  docs/tests only.
 - docs/architecture: distinguish client-local local-runtime catalog stubs from
   backend-owned remote tools in the tool system architecture page; no migration
   is required because this changes docs/tests only.

@@ -6,6 +6,8 @@ local TypeScript SDK build and renders normalized `chat.stream(...)` events.
 Run from the repo root:
 
 ```bash
+WINDIE_BACKEND_URL=https://api.windieos.com \
+WINDIE_INSTALL_TOKEN=<install-token> \
 node examples/simple-chat-cli/run.mjs
 ```
 
@@ -16,11 +18,13 @@ and errors from the SDK stream. Final assistant message events are received as
 the canonical completed message, but the example does not print them when
 assistant deltas have already streamed.
 
-The SDK defaults to `WINDIE_BACKEND_URL` or `https://api.windieos.com` and reads
-`WINDIE_API_KEY` as the install token when it is set. For the hosted backend,
-the SDK registers a temporary install identity through `/api/install/register`
-when `WINDIE_API_KEY` is not set. To reuse an existing hosted identity, pass:
+The SDK requires an explicit backend endpoint through `WINDIE_BACKEND_URL` or
+`new AgentClient({ backendUrl })`. This example also requires
+`WINDIE_INSTALL_TOKEN` and does not register a temporary install identity.
+To reuse an existing hosted identity, pass:
 
 ```bash
-WINDIE_API_KEY=<install-token> node examples/simple-chat-cli/run.mjs
+WINDIE_BACKEND_URL=https://api.windieos.com \
+WINDIE_INSTALL_TOKEN=<install-token> \
+node examples/simple-chat-cli/run.mjs
 ```

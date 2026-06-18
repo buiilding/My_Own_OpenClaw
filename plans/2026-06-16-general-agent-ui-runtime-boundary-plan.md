@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 simple chat CLI endpoint docs
+
+- Finding: the simple chat CLI README still said the SDK defaults to
+  `WINDIE_BACKEND_URL` or `https://api.windieos.com` and reads
+  `WINDIE_API_KEY`, while the script now requires explicit backend endpoint
+  configuration and `WINDIE_INSTALL_TOKEN`.
+- Change: updated the example README to require `WINDIE_BACKEND_URL` plus
+  `WINDIE_INSTALL_TOKEN`, removed temporary-install fallback wording, and added
+  the README to the public example boundary guard.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  example endpoint/auth wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; SDK
+  endpoint resolution, install auth, websocket payloads, storage, credentials,
+  and local-runtime behavior are unchanged.
+
 ### 2026-06-18 tool architecture remote-vs-local wording
 
 - Finding: the architecture tool-system page labeled the local-runtime stub

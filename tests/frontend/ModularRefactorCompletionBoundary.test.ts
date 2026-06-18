@@ -135,11 +135,23 @@ describe('modular sdk refactor completion boundary', () => {
     const localToolRun = await read('examples/local-tool-extension/run.mjs');
     const repoAgentReadme = await read('examples/repo-agent-extension/README.md');
     const repoAgentManifest = await read('examples/repo-agent-extension/plugin.json');
-    const publicExampleText = [localToolReadme, localToolRun, repoAgentReadme, repoAgentManifest].join('\n');
+    const simpleChatReadme = await read('examples/simple-chat-cli/README.md');
+    const publicExampleText = [
+      localToolReadme,
+      localToolRun,
+      repoAgentReadme,
+      repoAgentManifest,
+      simpleChatReadme,
+    ].join('\n');
 
     expect(publicExampleText).toContain('local-runtime daemon discovery');
     expect(publicExampleText).toContain('local-runtime plugin example');
     expect(publicExampleText).toContain('local-runtime tool implementation');
+    expect(simpleChatReadme).toContain('requires an explicit backend endpoint');
+    expect(simpleChatReadme).toContain('WINDIE_INSTALL_TOKEN');
+    expect(simpleChatReadme).not.toContain('defaults to `WINDIE_BACKEND_URL`');
+    expect(simpleChatReadme).not.toContain('WINDIE_API_KEY');
+    expect(simpleChatReadme).not.toContain('registers a temporary install identity');
     expect(publicExampleText).not.toContain('sidecar daemon discovery');
     expect(publicExampleText).not.toContain('through the sidecar');
     expect(publicExampleText).not.toContain('Windie sidecar plugin');
