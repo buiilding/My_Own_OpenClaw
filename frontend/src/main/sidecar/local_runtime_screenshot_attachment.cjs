@@ -6,8 +6,8 @@ const fsPromises = require('fs/promises');
 const os = require('os');
 const path = require('path');
 
-const SCREENSHOT_TEMP_DIR_NAME = 'desktop-agent-screenshots';
-const SCREENSHOT_TEMP_FILE_PREFIX = 'desktop-agent-shot-';
+const SCREENSHOT_TEMP_DIR_NAME = 'desktop-runtime-screenshots';
+const SCREENSHOT_TEMP_FILE_PREFIX = 'desktop-runtime-shot-';
 const LOCAL_RUNTIME_BRIDGE_LOG_PREFIX = '[Main][LocalRuntimeBridge]';
 
 function isRecord(value) {

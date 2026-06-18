@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 screenshot temp desktop-runtime boundary
+
+- Finding: the local-runtime screenshot bridge and Python screenshot producer still treated `${os.tmpdir()}/desktop-agent-screenshots` plus `desktop-agent-shot-` filenames as the canonical owned temp screenshot namespace after other main/SDK temp boundaries moved to desktop-runtime naming.
+- Change: renamed the canonical temp directory and filename prefix to `desktop-runtime-screenshots` / `desktop-runtime-shot-`, updated the deep IPC/local-runtime references, and added focused coverage proving the retired desktop-agent namespace is rejected without upload, read, or cleanup.
+- Validation: focused LocalRuntimeBridge screenshot host-channel Jest coverage, sidecar screenshot-tool py_compile, docs listing, exact stale active-surface temp-name scan, and scoped diff check.
+- Compatibility: no migration required. Screenshot files are transient temp artifacts; explicit unowned or retired paths continue to fail closed and are stripped from returned payloads without being read, uploaded, or deleted.
+
 ### 2026-06-18 local-runtime discovery temp directory
 
 - Finding: SDK auto-local-runtime, Electron launch options, the Python daemon, and the Python SDK still defaulted transient daemon discovery to `${TMPDIR}/desktop-agent/local-runtime-daemon.json`, leaving the old desktop-agent namespace on the shared SDK/main/sidecar runtime boundary.

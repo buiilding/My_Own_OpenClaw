@@ -20,8 +20,8 @@ const {
 
 function createOwnedScreenshotTempPath(
   label,
-  dirName = 'desktop-agent-screenshots',
-  filePrefix = 'desktop-agent-shot-',
+  dirName = 'desktop-runtime-screenshots',
+  filePrefix = 'desktop-runtime-shot-',
 ) {
   return path.join(
     os.tmpdir(),
@@ -263,11 +263,58 @@ describe('local_runtime_bridge RPC handlers', () => {
 
     const screenshotPath = createOwnedScreenshotTempPath(
       'legacy-prefix-capture',
-      'desktop-agent-screenshots',
+      'desktop-runtime-screenshots',
       'windie-shot-',
     );
     await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
     await fsPromises.writeFile(screenshotPath, Buffer.from('legacy-prefix-fake-jpeg-bytes'));
+
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        artifact_id: 'should-not-upload',
+      }),
+    });
+
+    try {
+      const promise = handlers['capture-screenshot-attachment'](null, {
+        args: {},
+      });
+
+      emitRpcResult(stdoutHandler, {
+        success: true,
+        data: {
+          screenshot_path: screenshotPath,
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+
+      await expect(promise).resolves.toEqual({
+        success: true,
+        data: {
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+      expect(global.fetch).not.toHaveBeenCalled();
+      await expect(fsPromises.access(screenshotPath)).resolves.toBeUndefined();
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(screenshotPath, { force: true });
+    }
+  });
+
+  test('screenshot host channel rejects retired desktop-agent temp namespace', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const screenshotPath = createOwnedScreenshotTempPath(
+      'retired-desktop-agent-capture',
+      `desktop-${'agent'}-screenshots`,
+      `desktop-${'agent'}-shot-`,
+    );
+    await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
+    await fsPromises.writeFile(screenshotPath, Buffer.from('retired-desktop-agent-fake-jpeg-bytes'));
 
     const originalFetch = global.fetch;
     global.fetch = jest.fn().mockResolvedValue({
