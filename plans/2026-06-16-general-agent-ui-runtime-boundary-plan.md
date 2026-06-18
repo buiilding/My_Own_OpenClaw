@@ -129,9 +129,8 @@ Each completed slice should report:
   keeping Python sidecar implementation references where the sidecar daemon is
   the concrete executor, and expanded the modular boundary guard to cover the
   touched docs.
-- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary.test.ts`,
-  `bin\windie.cmd docs search "local runtime plugin"`, stale sidecar-plugin
-  phrase scan, and `git diff --check`.
+- Validation: focused modular boundary and docs-index tests, docs listing,
+  stale sidecar-plugin phrase scan, and `git diff --check`.
 - Compatibility: no migration required. Plugin directories, `plugin.json`
   schema fields, Python entrypoint paths, manifest loading, permissions, and
   local tool execution behavior are unchanged.
