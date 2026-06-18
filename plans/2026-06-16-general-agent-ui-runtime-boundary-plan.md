@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK managed backend socket factory alias removal
+
+- Finding: `ManagedBackendSocketFactory` only renamed `() => WebSocketLike`, and
+  exact scans found no callers outside `ManagedBackendSessionOptions`.
+- Change: removed the exported type alias and typed `createSocket` directly on
+  `ManagedBackendSessionOptions`, with package-boundary coverage guarding the
+  removed alias.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK TypeScript
+  `--noEmit` compile, managed-backend docs route lookup, and stale alias scan.
+- Compatibility: no repo migration required because there were no internal
+  callers. External SDK callers should type `createSocket` directly as a
+  function returning `WebSocketLike` when needed.
+
 ### 2026-06-18 SDK runtime command type alias removal
 
 - Finding: `SdkRuntimeCommand` only re-exported a type union over

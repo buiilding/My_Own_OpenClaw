@@ -82,7 +82,7 @@ describe('window_suppression_runtime', () => {
     const window = createWindow();
 
     rememberWindowBoundsForScreenshotSuppression(window);
-    expect(window.__desktopAgentScreenshotRestoreBounds).toEqual({
+    expect(window.__desktopRuntimeScreenshotRestoreBounds).toEqual({
       x: 100,
       y: 100,
       width: 600,
@@ -96,7 +96,7 @@ describe('window_suppression_runtime', () => {
       width: 600,
       height: 400,
     }, false);
-    expect(window.__desktopAgentScreenshotRestoreBounds).toBeUndefined();
+    expect(window.__desktopRuntimeScreenshotRestoreBounds).toBeUndefined();
   });
 
   test('normalizes remembered screenshot suppression bounds before restore', () => {
@@ -110,7 +110,7 @@ describe('window_suppression_runtime', () => {
     });
 
     rememberWindowBoundsForScreenshotSuppression(window);
-    expect(window.__desktopAgentScreenshotRestoreBounds).toEqual({
+    expect(window.__desktopRuntimeScreenshotRestoreBounds).toEqual({
       x: 0,
       y: 0,
       width: 1,

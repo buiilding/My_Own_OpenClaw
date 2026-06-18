@@ -357,6 +357,7 @@ describe('main host skin/config boundary', () => {
       '__windieRendererConsoleLoggingAttached',
       '__windiePendingCollapseToChatPill',
       '__windieScreenshotRestoreBounds',
+      '__desktopAgentScreenshotRestoreBounds',
     ];
 
     for (const markerConsumerPath of mainMarkerConsumerPaths) {

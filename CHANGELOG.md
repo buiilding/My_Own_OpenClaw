@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove the unused exported `ManagedBackendSocketFactory` type alias
+  and keep `ManagedBackendSessionOptions.createSocket` typed directly as a
+  function returning `WebSocketLike`; no runtime, storage, or wire-payload
+  migration is required.
 - sdk/js: remove the unused exported `SdkRuntimeCommand` type alias; callers
   should use the `SDK_RUNTIME_COMMANDS` constant or derive their own value union
   when needed, with no runtime, storage, or wire-payload migration required.

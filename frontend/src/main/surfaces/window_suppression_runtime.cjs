@@ -2,7 +2,7 @@
  * Coordinates the window suppression runtime for the Electron main process.
  */
 
-const SCREENSHOT_RESTORE_BOUNDS_KEY = '__desktopAgentScreenshotRestoreBounds';
+const SCREENSHOT_RESTORE_BOUNDS_KEY = '__desktopRuntimeScreenshotRestoreBounds';
 
 function setWindowOpacityIfSupported(targetWindow, opacity) {
   if (!targetWindow || typeof targetWindow.setOpacity !== 'function') {
