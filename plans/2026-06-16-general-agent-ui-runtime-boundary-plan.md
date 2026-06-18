@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 desktop host operating-system context boundary
+
+- Finding: Electron main still resolved install-registration and agent-definition
+  operating-system context through a frontend-named helper, and backend/session
+  docs used frontend-owned wording for an operating-system prompt override even
+  though the value is a desktop client host fact supplied by Electron main.
+- Change: renamed the Electron main helper to
+  `resolveDesktopHostOperatingSystem`, switched install registration and
+  generated agent-definition context to that helper, and refreshed backend,
+  gateway, and architecture docs to describe desktop client OS prompt context.
+- Validation: main IPC syntax check, focused backend websocket contract Jest
+  coverage for agent-definition handshake shape, stale helper/doc scan, docs
+  listing, and diff check.
+- Compatibility: no migration required. The install registration
+  `operating_system` payload field, agent-definition runtime
+  `operating_system` field, backend session behavior, credentials, permissions,
+  and provider policy are unchanged.
+
 ### 2026-06-18 renderer query trace naming boundary
 
 - Finding: Electron main compact trace helpers still used frontend-named query

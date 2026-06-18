@@ -34,7 +34,7 @@ title: "Session Runtime and Config Rewire Reference"
 - `SessionConfigService`
   - per-user config overrides
   - effective-config assembly for new/existing sessions
-  - frontend operating-system prompt rewrites
+  - desktop client operating-system prompt rewrites
 - `ActiveQueryTracker`
   - active task registration
   - stop-query cancellation / pending-stop consumption
@@ -58,7 +58,7 @@ This boundary matters because handlers/services should still depend on `SessionM
 3. double-check after lock acquisition
 4. `SessionConfigService` detached `AppConfig` copy + per-user override merge + runtime normalization
 5. factory `create_agent_session(user_id, config)` and cache insert under the requested conversation ref
-6. apply any frontend operating-system override already registered for that user so prompt/history use the frontend OS instead of the backend host OS
+6. apply any desktop client operating-system override already registered for that user so prompt/history use the client OS instead of the backend host OS
 
 Container-owned default session creation preserves the distinction between the
 factory base config and a real session-specific config override:
@@ -151,7 +151,7 @@ Critical mutating operations are serialized:
 
 Query-scoped prompt/runtime inputs are also applied under that same lock:
 
-- frontend operating-system + workspace/repo instruction prompt context
+- desktop client operating-system + workspace/repo instruction prompt context
 - backend-only `system_state_internal` merge for the turn
 
 This keeps per-conversation mutable state atomic for one active turn while still

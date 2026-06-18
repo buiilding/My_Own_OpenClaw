@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/backend docs: rename the Electron-main operating-system helper to the
+  desktop host boundary and refresh session/prompt docs so backend prompt
+  rewrites refer to desktop client OS context instead of frontend OS context.
 - main: rename Electron compact query tracing from frontend query to renderer
   query so app diagnostics and `[ElectronTrace]` output describe the UI handoff
   boundary without changing query payloads or backend events.

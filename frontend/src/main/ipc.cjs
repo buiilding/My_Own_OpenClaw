@@ -316,7 +316,7 @@ async function ensureInstallAuthState() {
       try {
         const registeredState = await registerInstallWithBackend({
           backendHttpUrl: candidate.httpUrl,
-          operatingSystem: resolveFrontendOperatingSystem(process.platform),
+          operatingSystem: resolveDesktopHostOperatingSystem(process.platform),
           log,
         });
         const persistResult = await saveInstallAuthStateToDisk(registeredState, log);
@@ -338,7 +338,7 @@ async function ensureInstallAuthState() {
   return pendingInstallAuthStatePromise;
 }
 
-function resolveFrontendOperatingSystem(platformName = process.platform) {
+function resolveDesktopHostOperatingSystem(platformName = process.platform) {
   switch (platformName) {
     case 'darwin':
       return 'macOS';
@@ -2130,7 +2130,7 @@ function attachAgentDefinitionContext(payload) {
     promptLayers: loadExtensionSkillPromptLayers(),
     agentsMd,
     workspacePath,
-    operatingSystem: resolveFrontendOperatingSystem(process.platform),
+    operatingSystem: resolveDesktopHostOperatingSystem(process.platform),
   }));
   const suppliedAgentDefinition = isPlainObject(payload.agent_definition)
     ? payload.agent_definition
