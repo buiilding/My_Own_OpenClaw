@@ -7,9 +7,13 @@ from unittest import mock
 
 import pytest
 from tools.browser.chrome_launcher import (
+    DEFAULT_CDP_PORT,
     DEFAULT_DEDICATED_CDP_URL,
+    ENV_AGENT_BROWSER_CDP_PORT,
+    ENV_BROWSER_CDP_PORT,
     ChromeLaunchTimeoutError,
     ChromeNotFoundError,
+    _resolve_default_cdp_port,
     ensure_chrome_with_cdp,
     get_chrome_user_data_dir,
     is_cdp_available,
@@ -17,6 +21,25 @@ from tools.browser.chrome_launcher import (
     launch_chrome_with_cdp,
     terminate_dedicated_chrome_with_cdp,
 )
+
+
+def test_resolve_default_cdp_port_prefers_generic_alias(monkeypatch):
+    monkeypatch.setenv(ENV_AGENT_BROWSER_CDP_PORT, "9444")
+    monkeypatch.setenv(ENV_BROWSER_CDP_PORT, "9555")
+
+    assert _resolve_default_cdp_port() == 9444
+
+
+def test_resolve_default_cdp_port_preserves_windie_alias(monkeypatch):
+    monkeypatch.setenv(ENV_BROWSER_CDP_PORT, "9555")
+
+    assert _resolve_default_cdp_port() == 9555
+
+
+def test_resolve_default_cdp_port_falls_back_on_invalid_value(monkeypatch):
+    monkeypatch.setenv(ENV_AGENT_BROWSER_CDP_PORT, "not-a-port")
+
+    assert _resolve_default_cdp_port() == DEFAULT_CDP_PORT
 
 
 class TestIsCdpAvailable:

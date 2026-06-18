@@ -8309,3 +8309,19 @@ Each completed slice should report:
   overrides continue to work, explicit loader arguments still win, generic
   hosts can use `AGENT_CONTRIBUTIONS_DIR`, and the default repo-root discovery
   behavior is unchanged.
+
+### 2026-06-18 Python browser diagnostic env alias boundary
+
+- Finding: Python browser local-runtime helpers still read only WindieOS env
+  names for Browser Use daemon home/session/command/timeout, dedicated CDP
+  port, and browser-local file root, even though these are reusable sidecar
+  diagnostics rather than WindieOS product policy.
+- Change: made the browser helpers read generic `AGENT_BROWSER_*` env names
+  first with the WindieOS aliases preserved, and removed the stale documented
+  `WINDIE_BROWSER_USE_RUNTIME` entry from central config docs.
+- Validation: focused Browser Use engine, browser file-store, and Chrome
+  launcher pytest coverage; source scans; docs listing; and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS browser diagnostic
+  env names continue to work, generic hosts can use matching
+  `AGENT_BROWSER_*` names, and default WindieOS browser profile/session/file
+  roots remain unchanged.

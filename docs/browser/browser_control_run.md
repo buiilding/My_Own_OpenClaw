@@ -51,13 +51,13 @@ Browser Use runtime is now the default execution path. These flags are optional:
 
 ```bash
 # Browser Use daemon/session state root
-export WINDIE_BROWSER_USE_HOME="$HOME/.config/windieos/browser-use"
+export AGENT_BROWSER_USE_HOME="$HOME/.config/windieos/browser-use"
 
 # Browser Use session name (default: windieos)
-export WINDIE_BROWSER_USE_SESSION=windieos
+export AGENT_BROWSER_USE_SESSION=windieos
 
 # Optional diagnostic command override
-export WINDIE_BROWSER_USE_CLI=browser-use
+export AGENT_BROWSER_USE_CLI=browser-use
 ```
 
 That's it. WindieOS connect now targets the named Browser Use daemon session:
@@ -364,7 +364,7 @@ brew install --cask google-chrome
 
 **Fix:** Set a different Windie browser CDP port:
 ```bash
-export WINDIE_BROWSER_CDP_PORT=9334
+export AGENT_BROWSER_CDP_PORT=9334
 ```
 
 ### Extension Badge Shows "OFF"
@@ -417,10 +417,10 @@ Agent:
 
 ```bash
 # Windie browser CDP port (default: 9333)
-export WINDIE_BROWSER_CDP_PORT=9333
+export AGENT_BROWSER_CDP_PORT=9333
 
 # Browser Use session name (default: windieos)
-export WINDIE_BROWSER_USE_SESSION=windieos
+export AGENT_BROWSER_USE_SESSION=windieos
 ```
 
 ## Next Steps

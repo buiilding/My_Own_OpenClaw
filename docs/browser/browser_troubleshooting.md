@@ -22,7 +22,8 @@ Inspect:
 Checks:
 
 - Is a Chromium executable detectable?
-- Is `WINDIE_BROWSER_CDP_PORT` valid?
+- Is `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches)
+  valid?
 - Is anything else already bound to port `9333`?
 - Does `/json/version` respond on the expected CDP URL?
 - Is the sidecar using Playwright `>=1.59.0`?
@@ -33,7 +34,7 @@ management is not supported`, the CDP endpoint accepted the websocket
 connection but rejected the command Playwright sends during attach setup. The
 launcher should restart only a matching WindieOS-owned Chrome process on that
 port; if another process owns the port, stop it manually or choose a different
-`WINDIE_BROWSER_CDP_PORT`.
+`AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches).
 
 Focused tests:
 
@@ -114,7 +115,8 @@ Inspect:
 Checks:
 
 - Browser-owned paths resolve under `~/.windieos/browser` unless
-  `WINDIE_BROWSER_FILES_DIR` overrides the root.
+  `AGENT_BROWSER_FILES_DIR` (`WINDIE_BROWSER_FILES_DIR` in WindieOS launches)
+  overrides the root.
 - Parent directories are created through `resolve_browser_path(..., ensure_parent=True)`.
 - Download state is not confused with arbitrary filesystem tools.
 

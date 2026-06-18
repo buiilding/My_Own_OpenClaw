@@ -45,7 +45,7 @@ Constants:
 
 Port override:
 
-- env: `WINDIE_BROWSER_CDP_PORT`
+- env: `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches)
 - empty -> default
 - non-positive/non-integer -> warning + default fallback
 
@@ -158,7 +158,8 @@ State fields:
 
 If connect/launch fails:
 
-1. verify `WINDIE_BROWSER_CDP_PORT` parses to positive integer
+1. verify `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches)
+   parses to positive integer
 2. verify detected executable path exists and is runnable
 3. check dedicated profile directory permissions
 4. probe `<cdp_url>/json/version`

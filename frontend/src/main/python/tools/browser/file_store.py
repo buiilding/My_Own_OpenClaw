@@ -6,11 +6,16 @@ import os
 from pathlib import Path
 
 DEFAULT_BROWSER_FILES_DIR = Path.home() / ".windieos" / "browser"
+ENV_AGENT_BROWSER_FILES_DIR = "AGENT_BROWSER_FILES_DIR"
 ENV_BROWSER_FILES_DIR = "WINDIE_BROWSER_FILES_DIR"
 
 
 def browser_files_root() -> Path:
-    raw = os.getenv(ENV_BROWSER_FILES_DIR, "").strip()
+    raw = ""
+    for env_name in (ENV_AGENT_BROWSER_FILES_DIR, ENV_BROWSER_FILES_DIR):
+        raw = os.getenv(env_name, "").strip()
+        if raw:
+            break
     root = Path(raw).expanduser() if raw else DEFAULT_BROWSER_FILES_DIR
     root.mkdir(parents=True, exist_ok=True)
     return root.resolve()

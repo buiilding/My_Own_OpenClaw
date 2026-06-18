@@ -24,12 +24,17 @@ WindieOS no longer keeps a direct browser-controller execution path in this stac
 | --- | --- |
 | CDP host | `127.0.0.1` only |
 | Default CDP port | `9333` |
-| Port override | `WINDIE_BROWSER_CDP_PORT` |
+| Port override | `AGENT_BROWSER_CDP_PORT` (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches) |
 | macOS profile path | `~/Library/Application Support/windieos/BrowserProfile` |
 | Windows profile path | `%LOCALAPPDATA%/windieos/BrowserProfile` |
 | Linux profile path | `~/.config/windieos/BrowserProfile` |
 
-Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`. The default session name is `windieos`; use `WINDIE_BROWSER_USE_SESSION` only for diagnostics or isolated local sessions. Retired `desktop-agent` Browser Use session state is not migrated.
+Browser Use daemon state lives under `AGENT_BROWSER_USE_HOME` when set, or
+`WINDIE_BROWSER_USE_HOME` in WindieOS launches, otherwise under the WindieOS app
+data directory at `browser-use/`. The default session name is `windieos`; use
+`AGENT_BROWSER_USE_SESSION` (`WINDIE_BROWSER_USE_SESSION` in WindieOS launches)
+only for diagnostics or isolated local sessions. Retired `desktop-agent`
+Browser Use session state is not migrated.
 
 ## Connect Flow
 
@@ -45,7 +50,8 @@ For browser-internal URLs (`chrome://`, `chrome-extension://`, `devtools://`, an
 
 If you change Browser Use session behavior, align:
 
-- `WINDIE_BROWSER_USE_HOME` and `WINDIE_BROWSER_USE_SESSION` handling,
+- `AGENT_BROWSER_USE_HOME` / `WINDIE_BROWSER_USE_HOME` and
+  `AGENT_BROWSER_USE_SESSION` / `WINDIE_BROWSER_USE_SESSION` handling,
 - feature-pack dependency markers,
 - docs/tests that assert Browser Use engine routing,
 - renderer status labels if the visible behavior changes.
@@ -76,9 +82,10 @@ Default file root:
 ~/.windieos/browser
 ```
 
-Set `WINDIE_BROWSER_FILES_DIR` only when a diagnostic run needs an isolated
-browser file root. Retired `~/.desktop-agent/browser` files are not migrated to
-the current browser file root.
+Set `AGENT_BROWSER_FILES_DIR` (`WINDIE_BROWSER_FILES_DIR` in WindieOS launches)
+only when a diagnostic run needs an isolated browser file root. Retired
+`~/.desktop-agent/browser` files are not migrated to the current browser file
+root.
 
 Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and screenshots should resolve paths through this helper when the path is browser-owned. Browser-owned file paths must be relative to the browser file root; absolute paths and `..` escapes are rejected instead of falling through to arbitrary filesystem locations.
 

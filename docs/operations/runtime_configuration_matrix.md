@@ -85,7 +85,7 @@ Do not add backend-owned provider internals such as `speech_provider`, `stt_prov
 | `WINDIE_BACKGROUND_WORKERS` | Sidecar env | Background executor max workers. Generic host fallback: `AGENT_BACKGROUND_WORKERS`. | `frontend/src/main/python/core/executors.py` |
 | `WINDIE_SHELL_JOB_TTL_SECONDS` | Sidecar env | Finished shell/process session retention TTL. Generic host fallback: `AGENT_SHELL_JOB_TTL_SECONDS`. | `frontend/src/main/python/tools/system/shell_process_registry.py` |
 | `WINDIE_PERMISSION_STATE_PATH` | Sidecar env injected by Electron main through WindieOS host skin | Permission-state path for path resolution helpers. Generic host fallback: `AGENT_PERMISSION_STATE_PATH`. | `frontend/src/main/python/tools/path_resolution.py` |
-| Browser env vars (`WINDIE_BROWSER_CDP_PORT`, `WINDIE_BROWSER_USE_RUNTIME`, `WINDIE_BROWSER_FILES_DIR`) | Sidecar env | Dedicated browser port, runtime handler, and file storage behavior | `frontend/src/main/python/tools/browser/**` |
+| Browser env vars (`WINDIE_BROWSER_CDP_PORT`, `WINDIE_BROWSER_USE_HOME`, `WINDIE_BROWSER_USE_SESSION`, `WINDIE_BROWSER_USE_CLI`, `WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS`, `WINDIE_BROWSER_FILES_DIR`) | Sidecar env | Dedicated browser port, Browser Use daemon settings, and browser file storage behavior. Generic host fallbacks use matching `AGENT_BROWSER_*` names. | `frontend/src/main/python/tools/browser/**` |
 
 ## VM Worker and Runs API Variables
 

@@ -31,6 +31,16 @@ from tools.browser.file_store import (
 )
 
 DEFAULT_SESSION_NAME = "windieos"
+ENV_AGENT_BROWSER_USE_HOME = "AGENT_BROWSER_USE_HOME"
+ENV_BROWSER_USE_HOME = "WINDIE_BROWSER_USE_HOME"
+ENV_AGENT_BROWSER_USE_SESSION = "AGENT_BROWSER_USE_SESSION"
+ENV_BROWSER_USE_SESSION = "WINDIE_BROWSER_USE_SESSION"
+ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS = (
+    "AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS"
+)
+ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS = "WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS"
+ENV_AGENT_BROWSER_USE_CLI = "AGENT_BROWSER_USE_CLI"
+ENV_BROWSER_USE_CLI = "WINDIE_BROWSER_USE_CLI"
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
@@ -43,6 +53,14 @@ BROWSER_INTERNAL_URL_PREFIXES = (
 )
 
 
+def _env_first(names: tuple[str, ...]) -> str | None:
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return None
+
+
 @dataclass(slots=True)
 class BrowserActionError(Exception):
     code: str
@@ -53,7 +71,7 @@ class BrowserActionError(Exception):
 
 
 def _browser_use_home() -> str:
-    configured = os.getenv("WINDIE_BROWSER_USE_HOME")
+    configured = _env_first((ENV_AGENT_BROWSER_USE_HOME, ENV_BROWSER_USE_HOME))
     if configured:
         return str(Path(configured).expanduser())
     return str(app_user_data_root() / "browser-use")
@@ -61,13 +79,21 @@ def _browser_use_home() -> str:
 
 def _browser_use_session() -> str:
     return (
-        os.getenv("WINDIE_BROWSER_USE_SESSION", DEFAULT_SESSION_NAME).strip()
+        (
+            _env_first((ENV_AGENT_BROWSER_USE_SESSION, ENV_BROWSER_USE_SESSION))
+            or DEFAULT_SESSION_NAME
+        ).strip()
         or DEFAULT_SESSION_NAME
     )
 
 
 def _browser_use_timeout() -> float:
-    raw = os.getenv("WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS")
+    raw = _env_first(
+        (
+            ENV_AGENT_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
+            ENV_BROWSER_USE_COMMAND_TIMEOUT_SECONDS,
+        )
+    )
     if not raw:
         return 120.0
     try:
@@ -77,7 +103,7 @@ def _browser_use_timeout() -> float:
 
 
 def _base_command() -> list[str]:
-    configured = os.getenv("WINDIE_BROWSER_USE_CLI")
+    configured = _env_first((ENV_AGENT_BROWSER_USE_CLI, ENV_BROWSER_USE_CLI))
     if configured:
         return [configured]
     return [sys.executable, "-m", "browser_use.skill_cli.main"]

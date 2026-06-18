@@ -24,12 +24,20 @@ from tools.browser.chrome_detection import find_chrome_executable
 logger = logging.getLogger(__name__)
 
 DEFAULT_CDP_PORT = 9333
+ENV_AGENT_BROWSER_CDP_PORT = "AGENT_BROWSER_CDP_PORT"
+ENV_BROWSER_CDP_PORT = "WINDIE_BROWSER_CDP_PORT"
 CHROME_STARTUP_TIMEOUT = 10  # seconds
 CHROME_CHECK_INTERVAL = 0.5  # seconds
 
 
 def _resolve_default_cdp_port() -> int:
-    raw = os.getenv("WINDIE_BROWSER_CDP_PORT", "").strip()
+    env_name = ENV_AGENT_BROWSER_CDP_PORT
+    raw = ""
+    for candidate in (ENV_AGENT_BROWSER_CDP_PORT, ENV_BROWSER_CDP_PORT):
+        raw = os.getenv(candidate, "").strip()
+        if raw:
+            env_name = candidate
+            break
     if not raw:
         return DEFAULT_CDP_PORT
     try:
@@ -39,7 +47,8 @@ def _resolve_default_cdp_port() -> int:
         return parsed
     except ValueError:
         logger.warning(
-            "Invalid WINDIE_BROWSER_CDP_PORT=%r; falling back to %d",
+            "Invalid %s=%r; falling back to %d",
+            env_name,
             raw,
             DEFAULT_CDP_PORT,
         )

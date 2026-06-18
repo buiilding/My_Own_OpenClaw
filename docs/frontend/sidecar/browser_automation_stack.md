@@ -89,7 +89,8 @@ Policy:
 
 - The app uses a dedicated browser profile dir (separate from user default profile)
 - default CDP endpoint: `http://127.0.0.1:9333`
-- CDP port can be overridden with `WINDIE_BROWSER_CDP_PORT`
+- CDP port can be overridden with `AGENT_BROWSER_CDP_PORT`
+  (`WINDIE_BROWSER_CDP_PORT` in WindieOS launches)
 - browser executable auto-detected cross-platform (Chrome/Brave/Edge/Chromium)
 
 Connect behavior:
