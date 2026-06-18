@@ -424,9 +424,9 @@ user-message ordinal fallbacks.
 `wakeUp` performs this sequence:
 
 1. Resolve the hosted backend URL.
-2. Resolve install auth from `installToken`; when the backend is the hosted
-   default endpoint and no caller-provided user identity is configured, the SDK
-   registers a temporary install identity automatically.
+2. Resolve install auth from `installToken`; callers that want the hosted
+   install-registration route set `installAuth.autoRegister = true` explicitly
+   so backend auth policy stays outside endpoint-name inference.
 3. Normalize feature flags. `memory` and `persistence` both default to enabled.
 4. Ensure a local runtime client is available when memory, persistence,
    builtins, module tools, plugins, or MCPs need local runtime support.

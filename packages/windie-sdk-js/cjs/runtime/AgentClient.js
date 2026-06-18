@@ -213,7 +213,7 @@ class AgentClient {
                 userId: configuredUserId ?? identity?.userId ?? 'local-sdk-user',
             };
         }
-        const shouldAutoRegister = configured.autoRegister ?? (!configuredUserId && isHostedDefaultBackendUrl(backendUrl));
+        const shouldAutoRegister = configured.autoRegister === true;
         if (!shouldAutoRegister) {
             return null;
         }
@@ -443,15 +443,6 @@ function buildWakeUpAgentDefinition(options, tools) {
     };
     (0, CapabilityManifest_js_1.stampAgentDefinitionCapabilityMetadata)(definition);
     return definition;
-}
-function isHostedDefaultBackendUrl(backendUrl) {
-    try {
-        const hostname = new URL(backendUrl).hostname.toLowerCase();
-        return hostname === 'api.windieos.com';
-    }
-    catch {
-        return false;
-    }
 }
 function normalizeBuiltins(options) {
     const selected = options.builtins;

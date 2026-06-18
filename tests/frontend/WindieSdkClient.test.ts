@@ -637,6 +637,9 @@ describe('Agent SDK client behavior', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      installAuth: {
+        autoRegister: true,
+      },
     });
 
     const wakePromise = client.wakeUp({ agentId: 'auth-agent' });
@@ -663,6 +666,27 @@ describe('Agent SDK client behavior', () => {
     });
   });
 
+  test('AgentClient does not infer install registration from the hosted endpoint', async () => {
+    const client = new AgentClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+    });
+
+    const wakePromise = client.wakeUp({ agentId: 'auth-agent' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await wakePromise;
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(socket.options?.headers).toBeUndefined();
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'local-sdk-user',
+    });
+  });
+
   test('AgentClient auto-registers hosted install auth with an explicit install user id', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       user_id: 'registered-user',
@@ -673,6 +697,9 @@ describe('Agent SDK client behavior', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      installAuth: {
+        autoRegister: true,
+      },
     });
 
     const wakePromise = client.wakeUp({
@@ -711,6 +738,9 @@ describe('Agent SDK client behavior', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      installAuth: {
+        autoRegister: true,
+      },
     });
 
     await expect(client.wakeUp({ agentId: 'auth-agent' })).rejects.toThrow(
@@ -728,6 +758,9 @@ describe('Agent SDK client behavior', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      installAuth: {
+        autoRegister: true,
+      },
     });
 
     await expect(client.wakeUp({ agentId: 'auth-agent' })).rejects.toThrow(
@@ -735,7 +768,7 @@ describe('Agent SDK client behavior', () => {
     );
   });
 
-  test('AgentClient source uses generic hosted default endpoint helper naming', async () => {
+  test('AgentClient source keeps install registration policy explicit', async () => {
     const sdkSource = await fsPromises.readFile(
       path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),
       'utf8',
@@ -745,11 +778,10 @@ describe('Agent SDK client behavior', () => {
       'utf8',
     );
 
-    expect(sdkSource).toContain('isHostedDefaultBackendUrl');
-    expect(sdkCjsSource).toContain('isHostedDefaultBackendUrl');
-    const retiredProductHelper = `isHosted${'Wind' + 'ie'}BackendUrl`;
-    expect(sdkSource).not.toContain(retiredProductHelper);
-    expect(sdkCjsSource).not.toContain(retiredProductHelper);
+    expect(sdkSource).toContain('configured.autoRegister === true');
+    expect(sdkCjsSource).toContain('configured.autoRegister === true');
+    expect(sdkSource).not.toContain('isHostedDefaultBackendUrl');
+    expect(sdkCjsSource).not.toContain('isHostedDefaultBackendUrl');
   });
 
   test('AgentClient source uses localRuntime for explicit local runtime clients', async () => {

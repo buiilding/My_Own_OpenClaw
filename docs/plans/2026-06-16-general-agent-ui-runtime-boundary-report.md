@@ -34,7 +34,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   stop timeout diagnostics use generic local sidecar daemon wording. Electron
   main now calls the desktop local-runtime launch plan API and emits generic
   local-runtime launch logs while preserving the sidecar daemon implementation
-  and compatibility launch alias.
+  and compatibility launch alias. SDK hosted install registration is now
+  explicit caller policy through `installAuth.autoRegister` instead of a
+  WindieOS hosted-endpoint hostname inference.
 
 ## Inspection Log
 
@@ -357,6 +359,14 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: Python SDK auto-start discovery timeout now says "local sidecar daemon".
 - Change: the SDK client test now covers the generic discovery timeout path.
 
+### 2026-06-18 SDK Install Auth Policy Slice
+
+- Compaction recovery: recent commits, the clean worktree, boundary docs, and SDK install-auth tests were inspected before continuing.
+- Finding: `AgentClient` still inferred hosted install auto-registration from the `api.windieos.com` hostname, which made reusable SDK auth behavior depend on a WindieOS backend endpoint name.
+- Decision: keep the existing `installAuth.autoRegister` contract and require callers to opt in explicitly; Electron main already passes explicit install auth policy from the desktop host path.
+- Change: SDK install auto-registration now runs only when `installAuth.autoRegister === true`.
+- Change: the hosted-endpoint helper was removed from TypeScript source and checked-in CJS output, and SDK tests now prove the hosted URL alone does not trigger install registration.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -394,6 +404,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] Python SDK stream/trace fallback diagnostics use generic Agent SDK wording while preserving public package names.
 - [x] JS SDK stream projection fallback diagnostics use generic Agent wording while preserving public stream event names.
 - [x] SDK local-runtime sidecar timeout diagnostics use generic local sidecar daemon wording.
+- [x] SDK hosted install registration is explicit caller policy instead of endpoint-hostname inference.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -581,6 +592,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   than using host skin copy.
 - Change: routed that callback error prefix through the host copy object with a
   provider-neutral default while preserving the browser callback response copy.
+- Validation: focused SDK install-auth tests passed, including explicit
+  auto-registration, hosted-endpoint non-inference, registration failure
+  handling, and the source/CJS explicit-policy boundary assertion.
+- Validation: focused SDK package-boundary tests passed.
+- Validation: `bin\windie.cmd docs list` and `git diff --check` passed.
 
 ## Remaining Findings
 
@@ -644,6 +660,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK local-runtime auto-start discovery and stop timeout diagnostics now use
   generic local sidecar daemon wording. Public SDK/Python package names remain
   unchanged.
+- SDK hosted install registration now requires explicit
+  `installAuth.autoRegister = true`; the SDK no longer infers backend auth
+  policy from the WindieOS hosted endpoint hostname.
 - SDK hosted HTTP, local-runtime HTTP, and backend websocket construction
   failures now use generic Agent SDK dependency diagnostics. Exported
   `WindieSdkClient` and `createWindieSdkBackendSocket` names remain unchanged.
