@@ -119,6 +119,19 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 interaction debug retired-literal scan cleanup
+
+- Finding: frontend interaction logger tests kept raw retired
+  `__DESKTOP_AGENT_*` debug flag literals in negative assertions after the
+  active flags moved to desktop-runtime names.
+- Change: kept the negative assertions while constructing the retired flag
+  names in tests, so stale scans now report only active desktop-runtime flags.
+- Validation: focused frontend interaction logger Jest coverage, retired flag
+  scan, and scoped `git diff --check`.
+- Compatibility: no migration required. This is test-only scan hygiene;
+  active debug flags, renderer log payloads, IPC, log files, storage, and
+  runtime behavior are unchanged.
+
 ### 2026-06-18 MCP client fallback desktop-runtime identity
 
 - Finding: Electron main MCP fallback client info and the Python sidecar MCP

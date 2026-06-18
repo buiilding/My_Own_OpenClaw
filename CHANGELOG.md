@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tests/frontend: construct retired desktop-agent interaction debug flag
+  names inside negative assertions; no migration is required because this is
+  test-only scan hygiene and the active desktop-runtime debug flags are
+  unchanged.
 - frontend/mcp: rename generic MCP client-info fallback copy from Desktop
   Agent to Desktop Runtime in Electron main and the Python sidecar; no
   migration is required because MCP protocol fields, server specs, tool names,

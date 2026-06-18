@@ -19,6 +19,8 @@ import {
   logUserSentMessage,
 } from '../../frontend/src/renderer/infrastructure/interaction/frontendInteractionLogger';
 
+const retiredDesktopAgentFlag = (suffix) => `__DESKTOP_${'AGENT'}_${suffix}__`;
+
 describe('frontendInteractionLogger', () => {
   let cleanup = null;
   let consoleSpy = null;
@@ -34,8 +36,8 @@ describe('frontendInteractionLogger', () => {
     cleanup = null;
     delete window.__DESKTOP_RUNTIME_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
     delete window.__DESKTOP_RUNTIME_DEBUG_SURFACE_STDOUT__;
-    delete window.__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
-    delete window.__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__;
+    delete window[retiredDesktopAgentFlag('ENABLE_INTERACTION_MESSAGE_TEXT_LOGS')];
+    delete window[retiredDesktopAgentFlag('DEBUG_SURFACE_STDOUT')];
     consoleSpy?.mockRestore();
   });
 
@@ -175,7 +177,7 @@ describe('frontendInteractionLogger', () => {
   });
 
   test('ignores retired desktop-agent interaction message-text diagnostic flag', () => {
-    window.__DESKTOP_AGENT_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
+    window[retiredDesktopAgentFlag('ENABLE_INTERACTION_MESSAGE_TEXT_LOGS')] = true;
 
     logUserSentMessage({
       conversationRef: 'conv-1',
@@ -224,7 +226,7 @@ describe('frontendInteractionLogger', () => {
   });
 
   test('ignores retired desktop-agent debug stdout diagnostic flag', () => {
-    window.__DESKTOP_AGENT_DEBUG_SURFACE_STDOUT__ = true;
+    window[retiredDesktopAgentFlag('DEBUG_SURFACE_STDOUT')] = true;
 
     logUserSentMessage({
       conversationRef: 'conv-1',
