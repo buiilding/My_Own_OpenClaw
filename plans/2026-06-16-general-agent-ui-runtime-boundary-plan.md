@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 agent-definition default mode bridge removal
+
+- Finding: the SDK and backend still treated the removed `windie_default` agent
+  definition mode as a default-agent alias after generated clients had moved to
+  the generic `default` wire value.
+- Change: removed the SDK predicate alias and backend schema normalization path,
+  updated docs/report text to describe `default` as the only live default mode,
+  and changed focused backend/frontend tests to reject or ignore the removed
+  literal.
+- Validation: `scripts\python-in-env backend pytest tests/backend/test_common_schemas.py -q`,
+  `bin\windie.cmd test frontend -- --runTestsByPath ../tests/frontend/WindieSdkClient.test.ts ../tests/frontend/WindieSdkPackageBoundary.test.ts ../tests/frontend/IpcMainSdkRuntimeBoundary.test.cjs`,
+  `npm.cmd run build:cjs` in `packages/windie-sdk-js`, focused stale-literal
+  scans, `bin\windie.cmd docs search windie_default`, and `git diff --check`.
+- Compatibility: no migration is provided for clients still sending
+  `windie_default`. Current SDK-generated payloads, Electron host payloads, and
+  backend default-agent omission behavior already use `default` or no
+  `agent_definition`.
+
 ### 2026-06-18 tool docs local-runtime wording
 
 - Finding: tool schema, tool contract, tool catalog, filesystem/shell, and

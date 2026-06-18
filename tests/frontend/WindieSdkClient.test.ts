@@ -269,7 +269,7 @@ describe('Agent SDK client behavior', () => {
     expect(isDefaultAgentDefinition({
       ...definition,
       mode: 'windie_default',
-    })).toBe(true);
+    })).toBe(false);
     expect(isDefaultAgentDefinition({
       ...definition,
       mode: 'default_plus_overrides',

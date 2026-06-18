@@ -316,7 +316,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Worktree recovery: recent commits and concurrent backend/client-contract worktree edits were inspected before continuing, and the dirty backend/sidecar/docs contract files were left outside this SDK slice.
 - Finding: SDK fallback display names were generic, but generated default agent IDs still used `windie-default` and `windie-agent-*` when callers did not supply an explicit ID.
-- Decision: keep public `WindieClient`/`WindieAgent` names and the backend `windie_default` mode contract unchanged, but make SDK-generated default IDs generic.
+- Decision: keep public `WindieClient`/`WindieAgent` names and make
+  SDK-generated default IDs generic. The temporary backend `windie_default`
+  bridge recorded by this slice was later removed, so the live contract now
+  accepts only the generic `default` mode.
 - Change: `buildAgentDefinition()` now defaults to `agent-default`.
 - Change: `WindieClient.wakeUp()` now generates `agent-*` IDs when `agentId` is omitted.
 - Change: SDK tests and the hosted runtime docs now describe the generic generated IDs.
@@ -629,8 +632,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK managed endpoint validation now uses generic endpoint wording and rejects
   invalid endpoint configuration without leaving connection waiters alive.
 - SDK-generated default agent IDs now use generic `agent-default` and `agent-*`
-  values. Explicit caller IDs and the backend `windie_default` mode contract
-  remain unchanged.
+  values. Explicit caller IDs remain unchanged; the temporary backend
+  `windie_default` bridge was later removed so live payloads use `default`.
 - Preload SDK-command validation diagnostics now use generic Agent SDK wording.
   The `window.windie` bridge and `windie:invoke` channel remain the existing
   wire contracts.

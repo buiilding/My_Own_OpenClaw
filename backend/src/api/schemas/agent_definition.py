@@ -181,13 +181,6 @@ class AgentDefinition(BaseModel):
     def validate_optional_strings(cls, value: Optional[str]) -> Optional[str]:
         return _normalize_optional_string(value)
 
-    @field_validator("mode", mode="before")
-    @classmethod
-    def normalize_mode(cls, value: Any) -> Any:
-        if value == "windie_default":
-            return "default"
-        return value
-
     def system_prompt_override(self) -> Optional[str]:
         return self.system_prompt.replacement_content()
 

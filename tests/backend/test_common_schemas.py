@@ -122,11 +122,9 @@ def test_handshake_coordinate_method_overrides_use_consistent_key():
     }
 
 
-def test_agent_definition_normalizes_legacy_default_mode():
-    definition = AgentDefinition(mode="windie_default")
-
-    assert definition.mode == "default"
-    assert definition.model_dump()["mode"] == "default"
+def test_agent_definition_rejects_removed_legacy_default_mode():
+    with pytest.raises(ValidationError):
+        AgentDefinition(mode="windie_default")
 
 
 def test_agent_definition_normalizes_prompt_tools_and_runtime():

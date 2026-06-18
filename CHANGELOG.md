@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/backend: remove the legacy `windie_default` agent-definition mode bridge
+  so default agents use only the generic `default` mode at SDK and backend
+  validation boundaries; no migration is provided for payloads still sending the
+  removed literal.
 - docs/tools: describe public local tool schema and execution flows through the
   SDK local-runtime boundary instead of local sidecar wording, with focused
   docs-boundary coverage; no migration is required because this is docs/test
