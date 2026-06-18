@@ -1,4 +1,4 @@
-"""Browser-local file helpers for sidecar browser actions."""
+"""Browser-local file helpers for local-runtime browser actions."""
 
 from __future__ import annotations
 

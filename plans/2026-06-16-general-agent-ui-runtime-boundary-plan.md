@@ -9219,3 +9219,19 @@ Each completed slice should report:
   shape, daemon process name, discovery files, env aliases, tool execution,
   memory storage, IPC channels, hosted backend URLs, credentials, permissions,
   and provider policy are unchanged.
+
+### 2026-06-18 Python local tool adapter copy boundary
+
+- Finding: reusable browser, wait, and shell local-tool code still described
+  helper paths, feature-pack guidance, PTY warnings, and shutdown ownership with
+  sidecar-specific browser/Python/operation wording even though these modules
+  now express the generic local-runtime adapter contract.
+- Change: reworded browser helper docstrings, Browser Use unavailable guidance,
+  browser shutdown copy, wait-tool comments, and shell PTY warnings to use
+  local-runtime terminology, with focused source-copy and warning guards.
+- Validation: focused browser engine, system tool, shell process, Python
+  compile, docs listing, and diff checks.
+- Compatibility: no migration required. Tool names, schemas, Browser Use CLI
+  invocation, feature-pack lookup, PTY behavior, wait timing, browser profile
+  persistence, JSON-RPC envelopes, IPC channels, hosted backend URLs,
+  credentials, permissions, and provider policy are unchanged.

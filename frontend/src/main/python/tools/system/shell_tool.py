@@ -128,7 +128,7 @@ async def run_shell_command(args: Dict[str, Any]) -> ToolResult:
 
         warnings = []
         if pty_requested and (IS_WINDOWS or pty is None):
-            warnings.append("PTY requested but not supported in this sidecar; running without PTY.")
+            warnings.append("PTY requested but not supported in this local runtime; running without PTY.")
 
         exec_command, sudo_auth_routed, sudo_error = _rewrite_sudo_command_for_os_prompt(
             command,

@@ -35,7 +35,7 @@ async def wait(args: Dict[str, Any]) -> ToolResult:
             return ToolResult.error_result("seconds must be a non-negative number")
         
         # Return immediately; the SDK local-runtime coordinator delays
-        # screenshot/system-state capture without blocking sidecar operations.
+        # screenshot/system-state capture without blocking local-runtime operations.
         seconds_float = float(seconds)
         
         # Format message based on seconds value

@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/local-runtime: align reusable Python local-runtime service and
   JSON-RPC protocol docstrings with local-runtime daemon/status wording instead
   of sidecar/backend ownership. No migration required.
+- sidecar/tools: align reusable browser, wait, and shell tool copy with
+  local-runtime adapter/operation wording instead of sidecar-specific runtime
+  ownership. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

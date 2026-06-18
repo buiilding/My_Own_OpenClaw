@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+from tools.browser import browser_use_engine, content_extraction, file_store
 from tools.browser.browser_use_engine import (
     BrowserActionError,
     BrowserUseEngineRuntime,
@@ -80,6 +81,20 @@ def test_browser_use_env_resolvers_preserve_windie_alias(
     assert _browser_use_session() == "windieos"
     assert _browser_use_timeout() == 9.0
     assert _base_command() == ["windie-browser-use"]
+
+
+def test_browser_runtime_source_copy_uses_local_runtime_terms() -> None:
+    sources = "\n".join(
+        Path(module.__file__).read_text(encoding="utf-8")
+        for module in [browser_use_engine, content_extraction, file_store]
+    )
+
+    assert "local-runtime browser actions" in sources
+    assert "local-runtime Python environment" in sources
+    assert "local-runtime-managed Chrome process" in sources
+    assert "sidecar " + "browser" not in sources
+    assert "sidecar " + "Python" not in sources
+    assert "sidecar" + "-managed" not in sources
 
 
 def test_extract_response_data_rejects_non_object_data() -> None:

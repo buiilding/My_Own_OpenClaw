@@ -506,8 +506,8 @@ class BrowserUseEngineRuntime:
             raise BrowserActionError(
                 code="BROWSER_USE_ENGINE_UNAVAILABLE",
                 message=(
-                    "Browser Use CLI is unavailable. Install the sidecar browser "
-                    "feature pack or add browser-use to the sidecar Python environment."
+                    "Browser Use CLI is unavailable. Install the browser feature "
+                    "pack or add browser-use to the local-runtime Python environment."
                 ),
             ) from exc
 
@@ -1091,7 +1091,7 @@ class BrowserUseEngineRuntime:
 
 
 async def shutdown_browser_runtime() -> dict[str, Any]:
-    """Close the live Browser Use session and sidecar-managed Chrome process.
+    """Close the live Browser Use session and local-runtime-managed Chrome process.
 
     This intentionally leaves the dedicated Chrome profile directory in place so
     cookies and login state persist across SDK/sidecar restarts.

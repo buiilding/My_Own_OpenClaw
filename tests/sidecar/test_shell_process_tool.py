@@ -268,6 +268,8 @@ async def test_run_shell_command_env_override_and_pty_warning():
         pty_available = False
     if sys.platform == "win32" or not pty_available:
         assert "PTY requested" in warnings
+        assert "not supported in this local runtime" in warnings
+        assert "not supported in this " + "sidecar" not in warnings
 
 
 @pytest.mark.asyncio

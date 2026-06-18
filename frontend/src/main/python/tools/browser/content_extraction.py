@@ -1,4 +1,4 @@
-"""HTML-to-markdown helpers for sidecar browser actions."""
+"""HTML-to-markdown helpers for local-runtime browser actions."""
 
 from __future__ import annotations
 

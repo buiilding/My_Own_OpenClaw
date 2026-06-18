@@ -1,6 +1,7 @@
 """Covers system tools behavior in the sidecar test suite."""
 
 import builtins
+from pathlib import Path
 import sys
 import types
 
@@ -436,6 +437,13 @@ async def test_wait_tool_formats_zero_and_integer_one_second_consistently():
     assert one_result.data is not None
     assert one_result.data["seconds_waited"] == 1.0
     assert one_result.data["status"] == "Waited for 1 second"
+
+
+def test_wait_tool_source_copy_uses_local_runtime_operations():
+    source = Path(wait_tool.__file__).read_text(encoding="utf-8")
+
+    assert "blocking local-runtime operations" in source
+    assert "blocking sidecar " + "operations" not in source
 
 
 @pytest.mark.asyncio
