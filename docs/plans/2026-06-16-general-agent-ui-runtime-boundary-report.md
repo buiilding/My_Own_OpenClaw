@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main Extension Env Skin Boundary
+
+- Worktree was clean after `bf1ebefad`, with `main` ahead of `origin/main` by
+  876 commits.
+- Main-process product/env coupling scans were inspected after the GPU env-key
+  slice.
+- Finding: `extension_manifest.cjs` still hardcoded
+  `WINDIE_AGENT_CONTRIBUTIONS_DIR` while otherwise acting as the generic
+  extension/plugin/skill/MCP contribution loader.
+- Change: added configurable extension env keys with a generic
+  `AGENT_CONTRIBUTIONS_DIR` fallback, moved the WindieOS contribution-root env
+  name into `mainHostSkin.extensions.env`, and configured the loader from the
+  main startup path.
+- Validation: focused extension manifest Jest coverage, main host skin boundary
+  Jest coverage, targeted source scan, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_AGENT_CONTRIBUTIONS_DIR`; explicit `contributionsDir` options,
+  default repo-root discovery, registry caching, and plugin/skill/MCP manifest
+  shapes are unchanged.
+
 ### 2026-06-18 Main GPU Env Skin Boundary
 
 - Worktree was clean after `4315644fb`, with `main` ahead of `origin/main` by

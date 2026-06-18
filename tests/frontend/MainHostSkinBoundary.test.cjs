@@ -23,6 +23,7 @@ const mainWindowIconRuntimePath = path.join(mainRoot, 'surfaces/main_window_icon
 const mainWindowRuntimePath = path.join(mainRoot, 'surfaces/main_window_runtime.cjs');
 const mcpRuntimePath = path.join(mainRoot, 'extensions/mcp_runtime.cjs');
 const layerLogSinkPath = path.join(mainRoot, 'logging/layer_log_sink.cjs');
+const extensionManifestPath = path.join(mainRoot, 'extensions/extension_manifest.cjs');
 const wakewordRuntimePath = path.join(mainRoot, 'wakeword/wakeword_bridge_runtime.cjs');
 const localRuntimeLaunchOptionsPath = path.join(mainRoot, 'sidecar/local_runtime_launch_options.cjs');
 const localRuntimeBridgePath = path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs');
@@ -72,6 +73,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
     expect(skinSource).toContain('gpu');
     expect(skinSource).toContain("forceSoftwareRendering: 'WINDIE_FORCE_SOFTWARE_RENDERING'");
+    expect(skinSource).toContain('extensions');
+    expect(skinSource).toContain("contributionsDir: 'WINDIE_AGENT_CONTRIBUTIONS_DIR'");
     expect(skinSource).toContain('logging');
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain('sdkAgentName');
@@ -307,6 +310,18 @@ describe('main host skin/config boundary', () => {
     expect(gpuSource).toContain('resolveGpuEnvConfig');
     expect(gpuSource).not.toContain('WINDIE_FORCE_SOFTWARE_RENDERING');
     expect(indexSource).toContain('gpuEnv: mainHostSkin.gpu.env');
+  });
+
+  test('extension contribution env name lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const extensionSource = fs.readFileSync(extensionManifestPath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
+
+    expect(skinSource).toContain("contributionsDir: 'WINDIE_AGENT_CONTRIBUTIONS_DIR'");
+    expect(extensionSource).toContain("contributionsDir: 'AGENT_CONTRIBUTIONS_DIR'");
+    expect(extensionSource).toContain('configureExtensionManifestRuntime');
+    expect(extensionSource).not.toContain('WINDIE_AGENT_CONTRIBUTIONS_DIR');
+    expect(indexSource).toContain('configureExtensionManifestRuntime(mainHostSkin.extensions)');
   });
 
   test('local runtime helpers consume host copy with generic defaults', () => {

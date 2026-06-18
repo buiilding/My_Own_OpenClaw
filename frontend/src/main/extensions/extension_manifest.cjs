@@ -6,11 +6,51 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
+const DEFAULT_EXTENSION_ENV = Object.freeze({
+  contributionsDir: 'AGENT_CONTRIBUTIONS_DIR',
+});
 const extensionRuntimeCache = new Map();
+let extensionManifestRuntimeConfig = Object.freeze({
+  env: DEFAULT_EXTENSION_ENV,
+});
 
-function resolveDefaultContributionRoot() {
-  if (process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR) {
-    return path.resolve(process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR);
+function normalizeEnvKey(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function resolveExtensionEnvConfig(extensionEnv = {}) {
+  return {
+    contributionsDir: normalizeEnvKey(
+      extensionEnv.contributionsDir,
+      DEFAULT_EXTENSION_ENV.contributionsDir,
+    ),
+  };
+}
+
+function configureExtensionManifestRuntime(config = {}) {
+  extensionManifestRuntimeConfig = Object.freeze({
+    env: resolveExtensionEnvConfig(config.env),
+  });
+  extensionRuntimeCache.clear();
+  return extensionManifestRuntimeConfig;
+}
+
+function resolveConfiguredExtensionEnv(extensionEnv = undefined) {
+  return resolveExtensionEnvConfig(
+    extensionEnv || extensionManifestRuntimeConfig.env,
+  );
+}
+
+function resolveDefaultContributionRoot(options = {}) {
+  const env = options.env || process.env;
+  const envConfig = resolveConfiguredExtensionEnv(options.extensionEnv);
+  const configuredRoot = env[envConfig.contributionsDir];
+  if (configuredRoot) {
+    return path.resolve(configuredRoot);
   }
   return path.resolve(__dirname, '../../../..');
 }
@@ -315,7 +355,9 @@ function loadMcpEntry(mcpDir) {
 }
 
 function loadAgentExtensionRegistry(options = {}) {
-  const contributionRoot = path.resolve(options.contributionsDir || resolveDefaultContributionRoot());
+  const contributionRoot = path.resolve(
+    options.contributionsDir || resolveDefaultContributionRoot(options),
+  );
   if (options.reload !== true && extensionRuntimeCache.has(contributionRoot)) {
     return extensionRuntimeCache.get(contributionRoot);
   }
@@ -474,6 +516,7 @@ function loadPublicExtensionRegistry(options = {}) {
 
 module.exports = {
   clearExtensionRuntimeCache: () => extensionRuntimeCache.clear(),
+  configureExtensionManifestRuntime,
   loadAgentExtensionRegistry,
   loadExtensionMcpServers,
   loadExtensionPluginTools,
@@ -481,4 +524,5 @@ module.exports = {
   loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
   resolveDefaultContributionRoot,
+  resolveExtensionEnvConfig,
 };

@@ -8,6 +8,7 @@ const path = require('path');
 
 const {
   clearExtensionRuntimeCache,
+  configureExtensionManifestRuntime,
   loadAgentExtensionRegistry,
   loadExtensionMcpServers,
   loadExtensionPluginTools,
@@ -15,7 +16,11 @@ const {
   loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
   resolveDefaultContributionRoot,
+  resolveExtensionEnvConfig,
 } = require('../../frontend/src/main/extensions/extension_manifest.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 function writeExtensionRegistry() {
   const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
@@ -94,7 +99,9 @@ function writeExtensionRegistry() {
 describe('extension registry loader', () => {
   afterEach(() => {
     clearExtensionRuntimeCache();
+    configureExtensionManifestRuntime();
     delete process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR;
+    delete process.env.AGENT_CONTRIBUTIONS_DIR;
   });
 
   test('loads divided plugin, skill, and MCP roots', () => {
@@ -305,10 +312,31 @@ describe('extension registry loader', () => {
     }
   });
 
-  test('default contribution root still honors explicit environment override', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-env-contributions-'));
-    process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR = contributionRoot;
+  test('default contribution root honors generic explicit environment override', () => {
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-env-contributions-'));
+    process.env.AGENT_CONTRIBUTIONS_DIR = contributionRoot;
 
     expect(resolveDefaultContributionRoot()).toBe(path.resolve(contributionRoot));
+  });
+
+  test('default contribution root honors configured host environment override', () => {
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-env-contributions-'));
+    process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR = contributionRoot;
+    configureExtensionManifestRuntime(mainHostSkin.extensions);
+
+    expect(resolveDefaultContributionRoot()).toBe(path.resolve(contributionRoot));
+  });
+
+  test('extension contribution env names are configurable by host skin', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/extensions/extension_manifest.cjs'),
+      'utf8',
+    );
+
+    expect(resolveExtensionEnvConfig()).toEqual({
+      contributionsDir: 'AGENT_CONTRIBUTIONS_DIR',
+    });
+    expect(mainHostSkin.extensions.env.contributionsDir).toBe('WINDIE_AGENT_CONTRIBUTIONS_DIR');
+    expect(source).not.toContain('WINDIE_AGENT_CONTRIBUTIONS_DIR');
   });
 });

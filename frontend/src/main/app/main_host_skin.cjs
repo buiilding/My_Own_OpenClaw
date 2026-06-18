@@ -65,6 +65,12 @@ const gpu = Object.freeze({
   }),
 });
 
+const extensions = Object.freeze({
+  env: Object.freeze({
+    contributionsDir: 'WINDIE_AGENT_CONTRIBUTIONS_DIR',
+  }),
+});
+
 const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
 });
@@ -154,6 +160,7 @@ const mainHostSkin = Object.freeze({
   dataPaths,
   runtimePaths,
   gpu,
+  extensions,
   logging,
   hostedBackend,
   vmWorker,

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Extension Env Skin Boundary
+
+- Finding: `extension_manifest.cjs` still hardcoded
+  `WINDIE_AGENT_CONTRIBUTIONS_DIR` while otherwise acting as the generic
+  extension/plugin/skill/MCP contribution loader.
+- Change: added configurable extension env keys with a generic
+  `AGENT_CONTRIBUTIONS_DIR` fallback, moved the WindieOS contribution-root env
+  name into `mainHostSkin.extensions.env`, and configured the loader from the
+  main startup path.
+- Validation: focused extension manifest Jest coverage, main host skin boundary
+  Jest coverage, targeted source scan, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_AGENT_CONTRIBUTIONS_DIR`; explicit `contributionsDir` options,
+  default repo-root discovery, registry caching, and plugin/skill/MCP manifest
+  shapes are unchanged.
+
 ### 2026-06-18 Main GPU Env Skin Boundary
 
 - Finding: `gpu_runtime.cjs` still hardcoded

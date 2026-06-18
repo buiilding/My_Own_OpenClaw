@@ -105,8 +105,12 @@ const {
   configureLayerLogSink,
   installConsoleLayerLog,
 } = require('./logging/layer_log_sink.cjs');
+const {
+  configureExtensionManifestRuntime,
+} = require('./extensions/extension_manifest.cjs');
 
 configureLayerLogSink(mainHostSkin.logging);
+configureExtensionManifestRuntime(mainHostSkin.extensions);
 installConsoleLayerLog({
   layer: 'main',
   logPrefix: mainHostSkin.identity.logPrefix,

@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/runtime: inject the WindieOS GPU software-rendering override env name
   from the main host skin instead of hardcoding it inside generic GPU runtime
   configuration.
+- main/extensions: inject the WindieOS extension contribution root env name from
+  the main host skin instead of hardcoding it inside the generic extension
+  manifest loader.
 - main/runtime: inject WindieOS hosted backend default endpoint override env
   names from the main host skin instead of hardcoding them inside the generic
   backend endpoint resolver.
