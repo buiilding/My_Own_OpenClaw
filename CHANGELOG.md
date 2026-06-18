@@ -30,6 +30,10 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/memory: stamp new Python local-runtime memory diagnostics and search
   traces with `runtime: "local-runtime"` instead of the retired `sidecar`
   runtime label. No migration required for historical trace rows.
+- sidecar/mcp: identify the daemon's MCP client as `Desktop Runtime local
+  runtime` instead of `Desktop Runtime sidecar` so MCP servers see the reusable
+  local-runtime boundary rather than the process implementation. No migration
+  required.
 - sdk/images: add a private shared visual-resource materializer for user image
   attachments, query screenshots, and tool screenshots; SDK query resolution
   now requires Electron main to materialize raw screenshot temp paths before

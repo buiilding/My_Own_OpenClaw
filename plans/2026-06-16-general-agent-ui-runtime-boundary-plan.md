@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python MCP Client Identity Boundary
+
+- Finding: the Python daemon's MCP initialize payload identified the client as
+  `Desktop Runtime sidecar`, exposing the daemon implementation detail to MCP
+  servers instead of the reusable local-runtime boundary.
+- Change: renamed the MCP `clientInfo.name` value to
+  `Desktop Runtime local runtime` and updated the daemon identity-copy guard.
+- Validation: focused sidecar daemon identity pytest coverage, Python compile
+  checks, docs listing, source scans, and `git diff --check`.
+- Compatibility: no migration required. MCP protocol version, capabilities,
+  server registration, tool names, JSON-RPC routing, auth, storage,
+  credentials, permissions, hosted backend URL handling, and provider policy
+  are unchanged.
+
 ### 2026-06-18 Python Memory Trace Runtime Label Boundary
 
 - Finding: new Python local-runtime memory diagnostics and search trace payloads
