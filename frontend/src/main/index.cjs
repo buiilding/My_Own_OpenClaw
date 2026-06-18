@@ -120,7 +120,7 @@ const {
 } = require('./app/debug_env.cjs');
 
 configureDebugEnvRuntime(mainHostSkin.debug);
-configureAppDiagnosticsStore(mainHostSkin.dataPaths);
+configureAppDiagnosticsStore(mainHostSkin.diagnostics);
 configureLayerLogSink(mainHostSkin.logging);
 configureExtensionManifestRuntime(mainHostSkin.extensions);
 configureMcpRuntime(mainHostSkin.mcp);

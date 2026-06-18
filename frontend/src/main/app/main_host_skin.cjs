@@ -53,6 +53,11 @@ const dataPaths = Object.freeze({
   }),
 });
 
+const diagnostics = Object.freeze({
+  dataPaths,
+  localRuntimeErrorMarkers: Object.freeze(['sidecar']),
+});
+
 const runtimePaths = Object.freeze({
   packagedEntrypointDirName: 'sidecar',
   env: Object.freeze({
@@ -212,6 +217,7 @@ const mainHostSkin = Object.freeze({
   identity,
   assets,
   dataPaths,
+  diagnostics,
   runtimePaths,
   gpu,
   extensions,

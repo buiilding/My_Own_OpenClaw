@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Diagnostics Error Marker Skin Boundary
+
+- Finding: `app_diagnostics_store.cjs` no longer imported the WindieOS host
+  skin, but the generic diagnostics classifier still knew the historical
+  `sidecar` failure marker when mapping sanitized errors to
+  `local_runtime_unavailable`.
+- Change: added diagnostics-store configuration for local-runtime error
+  markers, kept the generic default marker as `local runtime`, moved the
+  WindieOS `sidecar` compatibility marker into `mainHostSkin.diagnostics`, and
+  configured Electron main plus the Windie CLI from that diagnostics config.
+- Validation: focused diagnostics store and main host skin boundary coverage,
+  syntax checks, source scan, docs listing, and diff-check validation.
+- Compatibility: no migration required. Existing WindieOS diagnostics still
+  classify historical sidecar-worded local-runtime failures as
+  `local_runtime_unavailable`; generic hosts only get generic local-runtime
+  classification unless they configure extra markers.
+
 ### 2026-06-18 Main Hosted Endpoint Config Boundary
 
 - Finding: `backend_endpoints.cjs` had generic env fallbacks but still imported

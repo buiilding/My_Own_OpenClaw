@@ -72,6 +72,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("appDataDirName: 'windieos'");
     expect(skinSource).toContain("diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB'");
     expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
+    expect(skinSource).toContain('diagnostics');
+    expect(skinSource).toContain("localRuntimeErrorMarkers: Object.freeze(['sidecar'])");
     expect(skinSource).toContain('runtimePaths');
     expect(skinSource).toContain("packagedEntrypointDirName: 'sidecar'");
     expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
@@ -186,13 +188,17 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("appDataDirName: 'windieos'");
     expect(skinSource).toContain("diagnosticsDb: 'WINDIE_APP_DIAGNOSTICS_DB'");
     expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
+    expect(skinSource).toContain("localRuntimeErrorMarkers: Object.freeze(['sidecar'])");
     expect(diagnosticsSource).toContain("DEFAULT_APP_DATA_DIR_NAME = 'desktop-runtime'");
     expect(diagnosticsSource).toContain('dataPathConfig');
     expect(diagnosticsSource).toContain('dataPaths.appDataDirName');
     expect(diagnosticsSource).toContain('configureAppDiagnosticsStore');
+    expect(diagnosticsSource).toContain('DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS');
+    expect(diagnosticsSource).toContain('configuredLocalRuntimeErrorMarkers');
     expect(diagnosticsSource).not.toContain('mainHostSkin');
-    expect(fs.readFileSync(indexPath, 'utf8')).toContain('configureAppDiagnosticsStore(mainHostSkin.dataPaths)');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('configureAppDiagnosticsStore(mainHostSkin.diagnostics)');
     expect(diagnosticsSource).not.toContain('windieos');
+    expect(diagnosticsSource).not.toContain('sidecar');
     expect(diagnosticsSource).not.toContain('WINDIE_APP_DIAGNOSTICS_DB');
     expect(diagnosticsSource).not.toContain('WINDIE_USER_DATA_DIR');
   });

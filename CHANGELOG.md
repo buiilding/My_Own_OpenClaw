@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/diagnostics: configure the generic diagnostics store from Electron/CLI
   composition roots instead of importing the WindieOS host skin inside the
   store.
+- main/diagnostics: move the legacy WindieOS local-runtime error marker into
+  host-skin diagnostics config so the generic diagnostics store classifies only
+  configured local-runtime failure vocabulary.
 - main/endpoints: configure hosted backend defaults from Electron/CLI
   composition roots instead of importing the WindieOS host skin inside the
   generic endpoint resolver.

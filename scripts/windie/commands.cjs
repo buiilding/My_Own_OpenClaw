@@ -32,7 +32,7 @@ const {
 } = require('../../frontend/src/main/logging/layer_log_sink.cjs');
 
 configureLayerLogSink(mainHostSkin.logging);
-configureAppDiagnosticsStore(mainHostSkin.dataPaths);
+configureAppDiagnosticsStore(mainHostSkin.diagnostics);
 
 let DatabaseSync = null;
 try {

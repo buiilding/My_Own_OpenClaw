@@ -27,7 +27,9 @@ const DEFAULT_DATA_PATH_ENV = Object.freeze({
   diagnosticsDb: 'AGENT_APP_DIAGNOSTICS_DB',
   userDataDir: 'AGENT_USER_DATA_DIR',
 });
+const DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS = Object.freeze(['local runtime']);
 let configuredDataPaths = resolveDiagnosticsDataPathConfig();
+let configuredLocalRuntimeErrorMarkers = DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS;
 
 const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   [CONVERSATION_METADATA_LIST_DIAGNOSTICS_PATH]: {
@@ -237,6 +239,26 @@ function normalizeEnvKey(value, fallback) {
   return normalized.length > 0 ? normalized : fallback;
 }
 
+function normalizeMarkerList(values = []) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+  const markers = [];
+  const seen = new Set();
+  for (const value of values) {
+    if (typeof value !== 'string') {
+      continue;
+    }
+    const marker = value.trim().toLowerCase();
+    if (!marker || seen.has(marker)) {
+      continue;
+    }
+    seen.add(marker);
+    markers.push(marker);
+  }
+  return markers;
+}
+
 function resolveDiagnosticsDataPathConfig(dataPaths = {}) {
   const envConfig = dataPaths.env && typeof dataPaths.env === 'object'
     ? dataPaths.env
@@ -256,8 +278,23 @@ function resolveDiagnosticsDataPathConfig(dataPaths = {}) {
   };
 }
 
-function configureAppDiagnosticsStore(dataPaths = {}) {
-  configuredDataPaths = resolveDiagnosticsDataPathConfig(dataPaths);
+function resolveDiagnosticsStoreConfig(config = {}) {
+  const dataPaths = config.dataPaths && typeof config.dataPaths === 'object'
+    ? config.dataPaths
+    : config;
+  return {
+    dataPaths: resolveDiagnosticsDataPathConfig(dataPaths),
+    localRuntimeErrorMarkers: Object.freeze([
+      ...DEFAULT_LOCAL_RUNTIME_ERROR_MARKERS,
+      ...normalizeMarkerList(config.localRuntimeErrorMarkers),
+    ]),
+  };
+}
+
+function configureAppDiagnosticsStore(config = {}) {
+  const resolved = resolveDiagnosticsStoreConfig(config);
+  configuredDataPaths = resolved.dataPaths;
+  configuredLocalRuntimeErrorMarkers = resolved.localRuntimeErrorMarkers;
   return configuredDataPaths;
 }
 
@@ -379,7 +416,7 @@ function classifyErrorCode(value) {
   if (message.includes('memory store not initialized')) {
     return 'memory_store_not_initialized';
   }
-  if (message.includes('local runtime') || message.includes('sidecar')) {
+  if (configuredLocalRuntimeErrorMarkers.some(marker => message.includes(marker))) {
     return 'local_runtime_unavailable';
   }
   return 'runtime_error';

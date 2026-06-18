@@ -107,14 +107,14 @@ describe('app diagnostics store', () => {
   let tempDir;
 
   beforeEach(() => {
-    configureAppDiagnosticsStore(mainHostSkin.dataPaths);
+    configureAppDiagnosticsStore(mainHostSkin.diagnostics);
     previousDbPath = process.env.WINDIE_APP_DIAGNOSTICS_DB;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-diagnostics-'));
     process.env.WINDIE_APP_DIAGNOSTICS_DB = path.join(tempDir, 'diagnostics.db');
   });
 
   afterEach(() => {
-    configureAppDiagnosticsStore(mainHostSkin.dataPaths);
+    configureAppDiagnosticsStore(mainHostSkin.diagnostics);
     if (previousDbPath === undefined) {
       delete process.env.WINDIE_APP_DIAGNOSTICS_DB;
     } else {
@@ -276,6 +276,7 @@ describe('app diagnostics store', () => {
 
     expect(storeSource).toContain("return 'local_runtime_unavailable';");
     expect(storeSource).not.toContain("return 'sidecar_unavailable';");
+    expect(storeSource).not.toContain('sidecar');
   });
 
   test('diagnostics data path env names are supplied by host skin config', () => {
