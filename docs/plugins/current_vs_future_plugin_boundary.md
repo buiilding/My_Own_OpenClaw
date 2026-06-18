@@ -61,7 +61,7 @@ Do not imply this exists in current docs.
 | "Add a local plugin contribution" | use `plugins/<id>/plugin.json` with sidecar Python |
 | "Connect an MCP server" | add `mcps/<id>/mcp.json` |
 | "Let users install marketplace plugins" | planning/design first |
-| "Load local sidecar tools from a plugin manifest" | use `plugins/<id>/plugin.json` |
+| "Load local-runtime tools from a plugin manifest" | use `plugins/<id>/plugin.json` |
 | "Add extension skills" | add `skills/<skill-id>/SKILL.md` |
 | "Install plugins from a marketplace" | planning/design first |
 | "Expose a new SDK integration" | add SDK route/client docs and tests |

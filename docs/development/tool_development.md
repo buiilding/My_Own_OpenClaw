@@ -8,10 +8,11 @@ read_when:
 
 ## Overview
 
-WindieOS tool calling is split across backend and frontend sidecar:
+WindieOS tool calling is split across backend policy, the Agent SDK/local
+runtime contract, and the frontend sidecar executor:
 
-- Windie Agent/frontend owns local tool implementations and model-facing schemas
-  for client-local tools.
+- Agent SDK plus the desktop local-runtime host own model-facing schemas for
+  client-local tools.
 - Backend validates client-provided manifests, applies policy/provider
   projection, owns backend remote tools, and owns request correlation.
 - Frontend Python sidecar executes local tools against the local machine.

@@ -2,7 +2,7 @@
 summary: "Sidecar and local tool channel guide covering SDK main-runtime execution, sidecar daemon tools, display-only renderer events, and backend tool-result ingress."
 read_when:
   - When changing local tool execution, sidecar daemon routing, renderer tool-call display behavior, shell/filesystem/browser/computer actions, or local memory calls.
-  - When debugging a tool call that is visible in backend streaming but fails before, during, or after local sidecar execution.
+  - When debugging a tool call that is visible in backend streaming but fails before, during, or after SDK local-runtime execution.
 title: "Sidecar and Tool Channels"
 ---
 

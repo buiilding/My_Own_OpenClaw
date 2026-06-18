@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 channel and tool routing local-runtime docs
+
+- Finding: channel, gateway, plugin, backend architecture, and tool-development
+  docs still routed public local tool flows through `local sidecar` or
+  `Windie Agent` wording even though the owned public contract is the Agent SDK
+  plus SDK local-runtime host.
+- Change: rewrote those public routing docs to say SDK local-runtime tools,
+  Agent SDK/local-runtime manifests, and SDK local-runtime actions while keeping
+  the Python sidecar as the concrete executor below that boundary. Expanded the
+  modular boundary guard to cover these docs.
+- Validation: focused `ModularRefactorCompletionBoundary.test.ts` coverage,
+  docs listing, stale local-sidecar/Windie-Agent phrase scan for the touched
+  docs, and diff checks.
+- Compatibility: no migration required. This is docs/test terminology cleanup;
+  channels, SDK commands, sidecar daemon endpoints, plugin schema paths, and
+  backend policy behavior are unchanged.
 ### 2026-06-18 agent-definition default mode bridge removal
 
 - Finding: the SDK and backend still treated the removed `windie_default` agent

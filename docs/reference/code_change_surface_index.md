@@ -56,7 +56,7 @@ Hard rule: do not make the frontend or sidecar import backend code to gain parit
 | Electron main | Window lifecycle, preload bridge, local config, endpoint diagnostics, SDK local-runtime host/status context, platform adapters, renderer IPC, and direct `AgentClient.wakeUp(...)` hosting | Model-facing tool schema, provider normalization, backend session history, websocket/tool orchestration |
 | Renderer | Chat surfaces, dashboard, settings, transcript rendering, projected tool state, voice UI | Raw filesystem/shell/computer execution, backend tool-result delivery, backend route assembly, secret-bearing hosted auth decisions |
 | Python sidecar | Local executable tools, browser automation, shell/filesystem/computer/system actions, local memory store, system state probes | Model policy, prompt construction, hosted route auth, renderer state layout |
-| VM worker | Polling assigned hosted runs, dispatching run payloads, relaying run events, honoring stop controls | Interactive desktop UI state, user local sidecar memory |
+| VM worker | Polling assigned hosted runs, dispatching run payloads, relaying run events, honoring stop controls | Interactive desktop UI state, user local-runtime memory |
 
 If a change seems to belong to two rows, change the producer first and then update the consumer contract. For example, if a backend event payload is malformed and the renderer crashes, fix the backend event shape or contract before adding renderer-only defensive parsing.
 

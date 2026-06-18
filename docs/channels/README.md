@@ -8,7 +8,10 @@ title: "Channels Hub"
 
 # Channels Hub
 
-WindieOS has several user and developer entry channels that eventually meet the backend agent loop or local sidecar tools. Use this hub before changing routing behavior so the implementation lands in the owner channel instead of patching the wrong consumer.
+WindieOS has several user and developer entry channels that eventually meet the
+backend agent loop or SDK local-runtime tools. Use this hub before changing
+routing behavior so the implementation lands in the owner channel instead of
+patching the wrong consumer.
 
 ## Channel Map
 
@@ -29,7 +32,7 @@ WindieOS has several user and developer entry channels that eventually meet the 
 - Use `/ws` for normal agent queries, settings/model messages, tool-result ingress, rehydrate, stop-query, wakeword activation, and stream events.
 - Use `/ws/transcription` only for voice-mode STT audio/control messages.
 - Use `/api/runs/*` only for VM worker assignment, run control, and run timeline events.
-- Use `/api/sdk/*` for hosted developer introspection and perception routes, not local sidecar execution.
+- Use `/api/sdk/*` for hosted developer introspection and perception routes, not SDK local-runtime execution.
 - Use the SDK local-runtime path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
 - Do not make frontend or sidecar code import backend modules to share channel schemas.
 

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route public local tool and plugin flows through the Agent SDK
+  and SDK local-runtime boundary instead of Windie Agent or local sidecar
+  wording; no migration is required because this is docs/test terminology
+  cleanup.
 - sdk/backend: remove the legacy `windie_default` agent-definition mode bridge
   so default agents use only the generic `default` mode at SDK and backend
   validation boundaries; no migration is provided for payloads still sending the
@@ -2308,6 +2312,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route public local tool and plugin flows through the Agent SDK
+  and SDK local-runtime boundary instead of Windie Agent or local sidecar
+  wording; no migration is required because this is docs/test terminology
+  cleanup.
 - docs/tools: describe public local tool schema and execution flows through the
   SDK local-runtime boundary instead of local sidecar wording, with focused
   docs-boundary coverage; no migration is required because this is docs/test
@@ -4103,6 +4111,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route public local tool and plugin flows through the Agent SDK
+  and SDK local-runtime boundary instead of Windie Agent or local sidecar
+  wording; no migration is required because this is docs/test terminology
+  cleanup.
 - docs/tools: describe public local tool schema and execution flows through the
   SDK local-runtime boundary instead of local sidecar wording, with focused
   docs-boundary coverage; no migration is required because this is docs/test
@@ -4553,6 +4565,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route public local tool and plugin flows through the Agent SDK
+  and SDK local-runtime boundary instead of Windie Agent or local sidecar
+  wording; no migration is required because this is docs/test terminology
+  cleanup.
 - docs/tools: describe public local tool schema and execution flows through the
   SDK local-runtime boundary instead of local sidecar wording, with focused
   docs-boundary coverage; no migration is required because this is docs/test
@@ -5033,6 +5049,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route public local tool and plugin flows through the Agent SDK
+  and SDK local-runtime boundary instead of Windie Agent or local sidecar
+  wording; no migration is required because this is docs/test terminology
+  cleanup.
 - docs/tools: describe public local tool schema and execution flows through the
   SDK local-runtime boundary instead of local sidecar wording, with focused
   docs-boundary coverage; no migration is required because this is docs/test
@@ -7469,6 +7489,10 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- docs/channels: route public local tool and plugin flows through the Agent SDK
+  and SDK local-runtime boundary instead of Windie Agent or local sidecar
+  wording; no migration is required because this is docs/test terminology
+  cleanup.
 - docs/tools: describe public local tool schema and execution flows through the
   SDK local-runtime boundary instead of local sidecar wording, with focused
   docs-boundary coverage; no migration is required because this is docs/test

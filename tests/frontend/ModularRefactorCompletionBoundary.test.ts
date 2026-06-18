@@ -255,6 +255,14 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('tool and security docs describe local tools through local runtime boundary', async () => {
     const docs = await Promise.all([
+      read('docs/architecture/backend_architecture.md'),
+      read('docs/channels/README.md'),
+      read('docs/channels/sidecar_and_tool_channels.md'),
+      read('docs/development/tool_development.md'),
+      read('docs/gateway/gateway_troubleshooting.md'),
+      read('docs/plugins/current_vs_future_plugin_boundary.md'),
+      read('docs/README.md'),
+      read('docs/reference/code_change_surface_index.md'),
       read('docs/tools/tool_schema_policy_change_workflow.md'),
       read('docs/tools/tool_contracts.md'),
       read('docs/tools/tool_catalog_matrix.md'),
@@ -266,9 +274,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
     expect(docText).toContain('execute through the SDK local runtime');
+    expect(docText).toContain('SDK local-runtime tools');
+    expect(docText).toContain('Agent SDK/local-runtime manifest');
     expect(docText).not.toContain('client-local sidecar tool');
     expect(docText).not.toContain('local sidecar tools');
     expect(docText).not.toContain('local sidecar execution');
+    expect(docText).not.toContain('Windie Agent owns client-local');
   });
 
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
