@@ -26,6 +26,8 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
     expect(source).toContain('new AgentClient({');
+    expect(source).toContain('function createElectronAgentClient()');
+    expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('client.wakeUp({');
     expect(source).toContain('agent.conversation({');
     expect(source).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');

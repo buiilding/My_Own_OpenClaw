@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Electron main SDK client factory rename
+
+- Finding: Electron main already owns host-local SDK client construction, but
+  the internal factory was still named `createDesktopAgentClient`.
+- Change: renamed the helper to `createElectronAgentClient` and extended the
+  SDK runtime boundary test to guard the retired helper name.
+- Validation: focused IpcMainSdkRuntimeBoundary Jest coverage and stale helper
+  scan.
+- Compatibility: no migration required. SDK client construction, IPC channel
+  names, local-runtime launch options, backend endpoints, storage, and payload
+  contracts are unchanged.
+
 ### 2026-06-18 renderer desktop runtime transport rename
 
 - Finding: the renderer SDK command transport already mapped SDK-shaped runtime

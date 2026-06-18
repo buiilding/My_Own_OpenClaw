@@ -754,7 +754,7 @@ function buildDesktopLocalRuntimeOptions() {
     : { autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
 }
 
-function createDesktopAgentClient() {
+function createElectronAgentClient() {
   logMainRuntime(`[Main][SDK] creating_client backend=${backendEndpointState.getHttpUrl()}`);
   return new AgentClient({
     backendUrl: backendEndpointState.getHttpUrl(),
@@ -783,7 +783,7 @@ function createDesktopAgentClient() {
 function getAgentClient() {
   if (!agentClient) {
     logMainRuntime('[Main][SDK] client_initialized');
-    agentClient = createDesktopAgentClient();
+    agentClient = createElectronAgentClient();
   }
   return agentClient;
 }

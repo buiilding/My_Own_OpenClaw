@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the internal Electron main SDK client factory from
+  `createDesktopAgentClient` to `createElectronAgentClient`; no migration is
+  required because SDK client construction, IPC, local-runtime launch options,
+  and wire payloads are unchanged.
 - frontend/renderer: rename the renderer SDK command transport from
   `desktopAgentRuntimeTransport` to `desktopRuntimeTransport`, including the
   focused test and command-contract docs; no migration is required because the
