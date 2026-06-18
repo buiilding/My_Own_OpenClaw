@@ -5,7 +5,7 @@
     {
       "permission_id": "screen_capture",
       "label": "Screen capture",
-      "description": "Allow the desktop agent to capture the current screen for screenshot context and visual grounding.",
+      "description": "Allow the desktop runtime to capture the current screen for screenshot context and visual grounding.",
       "access_kind": "os_permission",
       "grant_action_label": "Grant",
       "risk_level": "high",
@@ -18,7 +18,7 @@
     {
       "permission_id": "input_control_accessibility",
       "label": "Input control",
-      "description": "Allow the desktop agent to automate mouse, keyboard, and scroll interactions.",
+      "description": "Allow the desktop runtime to automate mouse, keyboard, and scroll interactions.",
       "access_kind": "os_permission",
       "grant_action_label": "Grant",
       "risk_level": "high",
@@ -31,7 +31,7 @@
     {
       "permission_id": "system_events_automation",
       "label": "System Events automation",
-      "description": "Allow the desktop agent to control macOS System Events so window focusing and other UI automation steps do not prompt mid-task.",
+      "description": "Allow the desktop runtime to control macOS System Events so window focusing and other UI automation steps do not prompt mid-task.",
       "access_kind": "os_permission",
       "grant_action_label": "Grant",
       "risk_level": "high",
@@ -83,7 +83,7 @@
     {
       "permission_id": "browser_automation",
       "label": "Browser automation",
-      "description": "Open the dedicated browser so you can sign in with the profile the desktop agent should use for browsing, navigation, and web tasks.",
+      "description": "Open the dedicated browser so you can sign in with the profile the desktop runtime should use for browsing, navigation, and web tasks.",
       "access_kind": "app_capability",
       "grant_action_label": "Open browser",
       "risk_level": "high",

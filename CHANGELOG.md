@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/permissions: replace desktop-agent wording in shared permission
+  manifest descriptions with desktop-runtime copy; no migration is required
+  because permission ids, manifest version, probes, and grant state are unchanged.
 - frontend/main: rename the internal Electron main SDK client factory from
   `createDesktopAgentClient` to `createElectronAgentClient`; no migration is
   required because SDK client construction, IPC, local-runtime launch options,

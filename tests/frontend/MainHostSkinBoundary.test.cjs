@@ -91,14 +91,15 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('logoutFailure');
   });
 
-  test('shared permission manifest uses generic desktop-agent descriptions', () => {
+  test('shared permission manifest uses generic desktop-runtime descriptions', () => {
     const manifestSource = fs.readFileSync(permissionManifestPath, 'utf8');
     const manifest = JSON.parse(manifestSource);
 
     expect(manifestSource).not.toContain('WindieOS');
     expect(manifestSource).not.toContain('WindieOS browser');
+    expect(manifestSource).not.toContain('desktop agent');
     expect(manifest.permissions.find(permission => permission.permission_id === 'screen_capture')).toMatchObject({
-      description: expect.stringContaining('desktop agent'),
+      description: expect.stringContaining('desktop runtime'),
     });
     expect(manifest.permissions.find(permission => permission.permission_id === 'browser_automation')).toMatchObject({
       description: expect.stringContaining('dedicated browser'),

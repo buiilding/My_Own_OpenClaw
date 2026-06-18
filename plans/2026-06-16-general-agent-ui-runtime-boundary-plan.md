@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 permission manifest runtime copy
+
+- Finding: the shared permission manifest still used desktop-agent wording in
+  user-facing descriptions even though the permission contract is owned by the
+  desktop runtime/local authority boundary.
+- Change: updated screen capture, input control, System Events automation, and
+  browser automation descriptions to desktop-runtime wording and adjusted the
+  onboarding/host-skin boundary coverage.
+- Validation: focused FrontendOnboardingSlideshow and MainHostSkinBoundary Jest
+  coverage plus stale permission-manifest desktop-agent copy scan.
+- Compatibility: no migration required. Permission ids, manifest version,
+  probes, grant state, IPC, storage, and capability grouping are unchanged.
+
 ### 2026-06-18 Electron main SDK client factory rename
 
 - Finding: Electron main already owns host-local SDK client construction, but
