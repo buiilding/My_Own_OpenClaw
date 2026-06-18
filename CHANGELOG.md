@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/renderer: expose live current-turn tool display details on SDK
+  presentation entries so renderer overlay rows consume explicit SDK fields for
+  model-facing calls, arguments, screenshots, status, and metadata instead of
+  decoding raw event payloads; no migration is required because backend events
+  and persisted conversation storage are unchanged.
 - sdk/renderer: promote normalized SDK display-row metadata for screenshots,
   reasoning, tool-call identity, tool progress source type, and tool-output
   status so renderer chat projection no longer parses raw backend-shaped

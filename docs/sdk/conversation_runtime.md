@@ -122,6 +122,12 @@ UI adapters:
 - `presentation.entries[*].sourceChannel`: SDK presentation metadata uses
   `sdk:current-turn`; host IPC channel names are adapter details and must not
   leak into reusable SDK projections
+- Tool presentation entries carry explicit SDK display fields such as
+  `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
+  `toolOutputDetails`, `toolMetadata`, screenshot refs/URLs, `executionTime`,
+  and `success`. Renderer adapters may preserve `payload` for diagnostics, but
+  should render live tool rows from these SDK fields rather than decoding raw
+  backend-shaped event payloads.
 
 ### Removed Standalone Current Turn Projector
 

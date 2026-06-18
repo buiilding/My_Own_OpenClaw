@@ -172,6 +172,15 @@ describe('messagePresentationPipeline', () => {
           toolName: 'read_file',
           requestId: 'req-read',
           correlationId: 'corr-read',
+          modelFacingToolCall: {
+            id: 'call-read',
+            name: 'read_file',
+            arguments: { path: 'README.md' },
+          },
+          toolArguments: { path: 'README.md' },
+          toolCallDetails: {
+            displaySource: 'sdk-entry-details',
+          },
           payload: {
             toolName: 'read_file',
             requestId: 'req-read',
@@ -199,11 +208,16 @@ describe('messagePresentationPipeline', () => {
       text: expect.stringContaining('"name": "read_file"'),
       correlationId: 'corr-read',
       modelFacingToolCall: expect.objectContaining({
-        id: 'req-read',
+        id: 'call-read',
         name: 'read_file',
+        arguments: { path: 'README.md' },
       }),
+      toolCallDetails: {
+        displaySource: 'sdk-entry-details',
+      },
     }));
     expect(rendered[1].text).not.toContain('wrong_backend_tool');
+    expect(rendered[1].text).not.toContain('wrong.md');
     expect(rendered[1].correlationId).not.toBe('wrong-correlation');
   });
 

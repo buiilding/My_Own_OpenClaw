@@ -743,6 +743,32 @@ function statusFromToolPayload(payload: JsonRecord): string | null {
   return null;
 }
 
+function numberField(record: JsonRecord | null, ...keys: string[]): number | null {
+  for (const key of keys) {
+    const value = record?.[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function toolArgumentsFromPayload(payload: JsonRecord, modelFacingToolCall: JsonRecord | null): JsonRecord | null {
+  const structuredPayload = structuredPayloadFrom(payload);
+  return recordFromUnknown(modelFacingToolCall?.arguments)
+    ?? recordFromUnknown(payload.args)
+    ?? recordFromUnknown(payload.parameters)
+    ?? recordFromUnknown(structuredPayload?.parameters)
+    ?? null;
+}
+
+function toolMetadataFromPayload(payload: JsonRecord): JsonRecord | null {
+  const structuredPayload = structuredPayloadFrom(payload);
+  return recordFromUnknown(structuredPayload?.metadata)
+    ?? recordFromUnknown(payload.metadata)
+    ?? null;
+}
+
 function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEvent | null {
   if (event.type !== 'tool_call'
     && event.type !== 'tool_bundle_call'
@@ -759,6 +785,11 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
   const outputText = event.type === 'tool_output' || event.type === 'tool_bundle_output'
     ? (event.type === 'tool_bundle_output' ? bundleDisplayTextFromPayload(event.payload) : displayTextFromPayload(event.payload))
     : textFromPayload(event.payload);
+  const structuredPayload = structuredPayloadFrom(event.payload);
+  const modelFacingToolCall = event.type === 'tool_call'
+    ? modelFacingToolCallFromPayload(event.payload)
+    : null;
+  const success = typeof event.payload.success === 'boolean' ? event.payload.success : null;
   return {
     id: event.eventId,
     kind,
@@ -766,8 +797,20 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
     requestId: stringField(event.payload, 'requestId'),
     correlationId: stringField(event.payload, 'correlationId'),
     bundleId: stringField(event.payload, 'bundleId'),
+    modelFacingToolCall,
+    toolArguments: toolArgumentsFromPayload(event.payload, modelFacingToolCall),
+    toolCallDetails: structuredPayload ?? event.payload,
+    toolOutputDetails: structuredPayload ?? event.payload,
+    toolMetadata: toolMetadataFromPayload(event.payload),
+    screenshot: stringField(event.payload, 'screenshot', 'image'),
+    screenshotRef: stringField(event.payload, 'screenshotRef', 'screenshot_ref'),
+    screenshotUrl: stringField(event.payload, 'screenshotUrl', 'screenshot_url'),
+    screenshotContentType: stringField(event.payload, 'screenshotContentType', 'screenshot_content_type'),
+    executionTime: numberField(event.payload, 'executionTime', 'execution_time')
+      ?? numberField(structuredPayload, 'executionTime', 'execution_time'),
     ...(outputText ? { text: outputText } : {}),
     status: statusFromToolPayload(event.payload),
+    success,
     payload: event.payload,
   };
 }
@@ -887,6 +930,17 @@ function buildLiveTurnPresentation(
       requestId: toolEvent.requestId ?? null,
       correlationId: toolEvent.correlationId ?? null,
       bundleId: toolEvent.bundleId ?? null,
+      modelFacingToolCall: toolEvent.modelFacingToolCall ?? null,
+      toolArguments: toolEvent.toolArguments ?? null,
+      toolCallDetails: toolEvent.toolCallDetails ?? null,
+      toolOutputDetails: toolEvent.toolOutputDetails ?? null,
+      toolMetadata: toolEvent.toolMetadata ?? null,
+      screenshot: toolEvent.screenshot ?? null,
+      screenshotRef: toolEvent.screenshotRef ?? null,
+      screenshotUrl: toolEvent.screenshotUrl ?? null,
+      screenshotContentType: toolEvent.screenshotContentType ?? null,
+      executionTime: toolEvent.executionTime ?? null,
+      success: toolEvent.success ?? null,
       payload: toolEvent.payload,
     });
   });

@@ -899,6 +899,12 @@ describe('Agent SDK conversation runtime core', () => {
           sourceChannel: 'sdk:current-turn',
           requestId: 'req-read',
           correlationId: 'corr-read',
+          modelFacingToolCall: expect.objectContaining({
+            name: 'read_file',
+          }),
+          toolCallDetails: expect.objectContaining({
+            toolName: 'read_file',
+          }),
         }),
         expect.objectContaining({
           type: 'tool-output',
@@ -906,6 +912,10 @@ describe('Agent SDK conversation runtime core', () => {
           sourceChannel: 'sdk:current-turn',
           requestId: 'req-read',
           correlationId: 'corr-read',
+          success: true,
+          toolOutputDetails: expect.objectContaining({
+            output: 'README contents',
+          }),
         }),
         expect.objectContaining({ type: 'llm-text', text: 'Done.', sourceChannel: 'sdk:current-turn' }),
       ],

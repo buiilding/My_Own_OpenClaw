@@ -363,8 +363,19 @@ export type CurrentTurnToolEvent = {
   requestId?: string | null;
   correlationId?: string | null;
   bundleId?: string | null;
+  modelFacingToolCall?: JsonRecord | null;
+  toolArguments?: JsonRecord | null;
+  toolCallDetails?: JsonRecord | null;
+  toolOutputDetails?: JsonRecord | null;
+  toolMetadata?: JsonRecord | null;
+  screenshot?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  screenshotContentType?: string | null;
+  executionTime?: number | null;
   text?: string;
   status?: string | null;
+  success?: boolean | null;
   payload: JsonRecord;
 };
 
@@ -387,6 +398,17 @@ export type LiveTurnPresentationEntry = {
   requestId?: string | null;
   correlationId?: string | null;
   bundleId?: string | null;
+  modelFacingToolCall?: JsonRecord | null;
+  toolArguments?: JsonRecord | null;
+  toolCallDetails?: JsonRecord | null;
+  toolOutputDetails?: JsonRecord | null;
+  toolMetadata?: JsonRecord | null;
+  screenshot?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  screenshotContentType?: string | null;
+  executionTime?: number | null;
+  success?: boolean | null;
   modelId?: string | null;
   modelProvider?: string | null;
   isComplete?: boolean;

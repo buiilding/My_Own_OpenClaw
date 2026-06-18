@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK live presentation tool details boundary
+
+- Finding: renderer live current-turn presentation still decoded tool-call
+  details, arguments, screenshots, status, and metadata from raw event payload
+  shapes even though `currentTurn.presentation.entries` is the SDK-owned live
+  UI contract.
+- Change: added explicit tool display fields to SDK current-turn tool events
+  and live presentation entries, documented the contract, and made renderer
+  live-row projection prefer those SDK fields while preserving raw payloads as
+  diagnostics/detail context.
+- Validation: focused SDK current-turn, renderer message-presentation, and
+  pending live-surface Jest coverage; exact stale renderer live-presentation
+  field scan; docs listing; and diff check.
+- Compatibility: no migration required. Backend websocket events, stored
+  conversation events, IPC channels, local execution, artifact URLs, and
+  provider policy are unchanged; this tightens the first-party renderer's
+  current-turn adapter input.
+
 ### 2026-06-18 SDK display-row metadata projection boundary
 
 - Finding: renderer SDK display-row projection still parsed raw

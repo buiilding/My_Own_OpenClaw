@@ -88,7 +88,7 @@ function buildToolCallMessage(entry, currentTurnProjection) {
   const toolName = normalizeOptionalText(entry.toolName)
     || normalizeOptionalText(payload.toolName);
   const text = normalizeText(entry.text) || (toolName ? `Using ${toolName}` : 'Using tool');
-  const toolDetails = asRecord(payload.structuredPayload) || payload;
+  const toolDetails = asRecord(entry.toolCallDetails) || asRecord(entry.structuredPayload) || payload;
   if (toolName === 'tool_bundle' || Array.isArray(payload.tools) || Array.isArray(toolDetails.tools)) {
     const bundlePayload = {
       ...toolDetails,
@@ -105,22 +105,17 @@ function buildToolCallMessage(entry, currentTurnProjection) {
     });
   }
 
-  const args = asRecord(payload.args)
-    || asRecord(payload.parameters)
-    || asRecord(toolDetails.parameters)
-    || null;
-  const metadata = asRecord(toolDetails.metadata);
+  const args = asRecord(entry.toolArguments) || null;
+  const metadata = asRecord(entry.toolMetadata);
   const toolCallState = buildToolCallMessageState({
-    rawToolCall: asRecord(metadata?.model_facing_tool_call),
+    rawToolCall: asRecord(entry.modelFacingToolCall),
     fallbackToolName: toolName,
     fallbackToolCallId: normalizeOptionalText(entry.requestId)
-      || normalizeOptionalText(payload.requestId)
       || entry.id,
     fallbackArguments: args,
     metadata,
     toolCallDetails: toolDetails,
-    correlationId: normalizeOptionalText(entry.correlationId)
-      || normalizeOptionalText(payload.correlationId),
+    correlationId: normalizeOptionalText(entry.correlationId),
   });
 
   return buildToolCallChatMessageState({
@@ -144,13 +139,13 @@ function buildToolProgressMessage(entry, currentTurnProjection) {
     sender: 'assistant',
     type: 'search-source',
     toolName: entry.toolName || undefined,
-    toolMetadata: entry.payload || null,
+    toolMetadata: entry.toolMetadata || entry.payload || null,
   };
 }
 
 function buildToolOutputMessage(entry, currentTurnProjection) {
   const payload = asRecord(entry.payload) || {};
-  const toolDetails = asRecord(payload.structuredPayload) || payload;
+  const toolDetails = asRecord(entry.toolOutputDetails) || asRecord(entry.structuredPayload) || payload;
   const toolName = normalizeOptionalText(entry.toolName)
     || normalizeOptionalText(payload.toolName);
   const text = normalizeText(entry.text) || (toolName ? `${toolName} completed` : 'Tool completed');
@@ -159,17 +154,15 @@ function buildToolOutputMessage(entry, currentTurnProjection) {
       outputText: text,
       sourceEventType: entry.sourceEventType || 'tool_output',
       sourceChannel: entry.sourceChannel || SDK_CURRENT_TURN_SOURCE_CHANNEL,
-      screenshot: normalizeOptionalText(payload.screenshot) || normalizeOptionalText(toolDetails.screenshot),
-      screenshotRef: normalizeOptionalText(payload.screenshotRef) || normalizeOptionalText(toolDetails.screenshot_ref),
-      screenshotUrl: normalizeOptionalText(payload.screenshotUrl) || normalizeOptionalText(toolDetails.screenshot_url),
-      screenshotContentType: normalizeOptionalText(payload.screenshotContentType)
-        || normalizeOptionalText(toolDetails.screenshot_content_type),
-      toolMetadata: asRecord(toolDetails.metadata) || asRecord(payload.metadata),
+      screenshot: normalizeOptionalText(entry.screenshot),
+      screenshotRef: normalizeOptionalText(entry.screenshotRef),
+      screenshotUrl: normalizeOptionalText(entry.screenshotUrl),
+      screenshotContentType: normalizeOptionalText(entry.screenshotContentType),
+      toolMetadata: asRecord(entry.toolMetadata),
       toolName,
-      executionTime: typeof toolDetails.execution_time === 'number' ? toolDetails.execution_time : null,
-      success: typeof toolDetails.success === 'boolean' ? toolDetails.success : null,
-      correlationId: normalizeOptionalText(entry.correlationId)
-        || normalizeOptionalText(payload.correlationId),
+      executionTime: typeof entry.executionTime === 'number' ? entry.executionTime : null,
+      success: typeof entry.success === 'boolean' ? entry.success : null,
+      correlationId: normalizeOptionalText(entry.correlationId),
       toolOutputDetails: toolDetails,
       turnRef: entry.turnRef || currentTurnProjection?.turnRef || null,
       modelContext: {
