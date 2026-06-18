@@ -144,6 +144,10 @@ describe('app diagnostics store', () => {
         path: MCP_REGISTRATION_DIAGNOSTICS_PATH,
         owner: 'Python local-runtime MCP adapter',
       }),
+      expect.objectContaining({
+        path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+        purpose: 'MCP dashboard enablement toggles and desktop UI config persistence lifecycle.',
+      }),
     ]));
   });
 

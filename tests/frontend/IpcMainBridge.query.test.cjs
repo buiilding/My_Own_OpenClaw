@@ -473,7 +473,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.payload).not.toHaveProperty('memory_retrieval_enabled');
   });
 
-  test('gates first query behind settings-updated ack when frontend config exists', async () => {
+  test('gates first query behind settings-updated ack when desktop UI config exists', async () => {
     const bridge = initIpc();
     const { handlers, backendBridge, fs } = bridge;
     fs.existsSync.mockReturnValue(true);

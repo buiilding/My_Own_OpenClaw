@@ -114,7 +114,7 @@ Renderer invokes:
 
 Key runtime state:
 
-- `latestFrontendConfig`
+- `latestDesktopUiConfig`
 - `hasAttemptedInitialSettingsSync`
 - `pendingSettingsSyncPromise`
 - `pendingSettingsSyncs` map keyed by outbound message ID
@@ -189,7 +189,7 @@ If first query ignores latest settings:
 
 1. verify `ensureInitialSettingsSync()` runs before query send
 2. verify `update-settings` ACK (`settings-updated`) arrives with matching message `id`
-3. verify `latestFrontendConfig` is populated (memory or disk load path)
+3. verify `latestDesktopUiConfig` is populated (memory or disk load path)
 
 If UI save indicator sticks on `saving`:
 

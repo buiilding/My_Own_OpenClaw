@@ -56,7 +56,7 @@ const DIAGNOSTIC_PATH_DEFINITIONS = Object.freeze({
   },
   [MCP_ENABLEMENT_DIAGNOSTICS_PATH]: {
     owner: 'Electron main MCP config runtime',
-    purpose: 'MCP dashboard enablement toggles and frontend-config persistence lifecycle.',
+    purpose: 'MCP dashboard enablement toggles and desktop UI config persistence lifecycle.',
   },
   [MCP_EXECUTION_DIAGNOSTICS_PATH]: {
     owner: 'Python local-runtime MCP adapter',

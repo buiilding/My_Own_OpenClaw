@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config filename label boundary
+
+- Finding: after removing Electron-main desktop UI config compatibility
+  aliases, the disk helper still named its persisted filename constant
+  `FRONTEND_CONFIG_FILENAME`, and diagnostics/test/docs wording still described
+  host-owned runtime state as frontend config in a few main-process contexts.
+- Change: renamed the source constant to `DESKTOP_UI_CONFIG_FILENAME`, updated
+  MCP enablement diagnostics and first-query settings-sync test wording, and
+  changed the settings lifecycle doc to point at `latestDesktopUiConfig`.
+- Validation: focused syntax checks, AppDiagnosticsStore metadata coverage,
+  desktop UI config persistence concurrency coverage, first-query settings-gate
+  coverage, stale label scan, docs listing, and diff check. A broader
+  diagnostics-store run could not complete because the local environment lacks
+  the `sqlite3` binary; a broader persistence run also hit the pre-existing
+  install-auth concurrency case, while the touched desktop UI config case
+  passed.
+- Compatibility: no migration required. The persisted filename string remains
+  `frontend-config.json`, the renderer IPC wire channels are unchanged, and
+  payload shape, settings ACK gating, MCP enablement diagnostics path,
+  credentials, permissions, and provider policy are unchanged.
+
 ### 2026-06-18 main desktop UI config compatibility alias deletion
 
 - Finding: after the active Electron-main config helpers, handler registration,

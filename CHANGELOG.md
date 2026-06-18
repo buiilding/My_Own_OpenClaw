@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: rename the desktop UI config persisted-filename constant and MCP
+  enablement diagnostic wording so Electron-main source labels no longer call
+  the host-owned disk file frontend config; no migration is required because
+  the actual persisted filename remains `frontend-config.json`.
 - main: remove unused frontend-named Electron-main desktop UI config helper
   aliases, handler registration alias, cache getter export alias, and fallback
   dependency slots; no migration is required because `frontend-config.json` and

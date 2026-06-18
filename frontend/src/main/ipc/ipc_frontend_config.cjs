@@ -7,7 +7,7 @@ const path = require('path');
 const { enqueueAtomicWrite } = require('./queued_atomic_write.cjs');
 const { app } = require('electron');
 
-const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
+const DESKTOP_UI_CONFIG_FILENAME = 'frontend-config.json';
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -35,7 +35,7 @@ function redactProviderSecretsFromDesktopUiConfig(config) {
 }
 
 function getDesktopUiConfigPath() {
-  return path.join(app.getPath('userData'), FRONTEND_CONFIG_FILENAME);
+  return path.join(app.getPath('userData'), DESKTOP_UI_CONFIG_FILENAME);
 }
 
 async function loadDesktopUiConfigFromDisk(log) {
