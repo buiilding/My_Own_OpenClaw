@@ -1094,7 +1094,7 @@ async def shutdown_browser_runtime() -> dict[str, Any]:
     """Close the live Browser Use session and local-runtime-managed Chrome process.
 
     This intentionally leaves the dedicated Chrome profile directory in place so
-    cookies and login state persist across SDK/sidecar restarts.
+    cookies and login state persist across SDK/local-runtime restarts.
     """
 
     errors: list[str] = []

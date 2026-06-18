@@ -9275,3 +9275,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Record-kind values, memory source
   values, SQLite/FAISS storage, JSON-RPC methods, IPC channels, hosted backend
   URLs, credentials, permissions, and provider policy are unchanged.
+
+### 2026-06-18 Python browser profile persistence wording boundary
+
+- Finding: the Browser Use shutdown helper already used local-runtime-managed
+  Chrome ownership wording, but its persistence note still said cookies and
+  login state survive SDK/sidecar restarts.
+- Change: reworded the shutdown note to SDK/local-runtime restarts and extended
+  the focused browser runtime source-copy guard.
+- Validation: focused browser runtime source guard, Python compile checks,
+  stale SDK/sidecar restart scan, and diff checks.
+- Compatibility: no migration required. Browser Use close behavior, dedicated
+  Chrome termination, profile directory persistence, cookies/login state,
+  JSON-RPC methods, IPC channels, credentials, permissions, and provider policy
+  are unchanged.

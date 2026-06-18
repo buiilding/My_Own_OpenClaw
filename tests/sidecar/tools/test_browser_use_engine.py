@@ -92,9 +92,11 @@ def test_browser_runtime_source_copy_uses_local_runtime_terms() -> None:
     assert "local-runtime browser actions" in sources
     assert "local-runtime Python environment" in sources
     assert "local-runtime-managed Chrome process" in sources
+    assert "SDK/local-runtime restarts" in sources
     assert "sidecar " + "browser" not in sources
     assert "sidecar " + "Python" not in sources
     assert "sidecar" + "-managed" not in sources
+    assert "SDK/" + "sidecar " + "restarts" not in sources
 
 
 def test_extract_response_data_rejects_non_object_data() -> None:
