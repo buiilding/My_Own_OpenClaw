@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/docs: rename the websocket incoming contract test and references from
+  frontend/backend wording to the backend-to-SDK contract boundary.
 - docs/frontend: align active streaming, IPC, architecture, and query relay
   docs with backend-wire event wording for SDK/main-normalized renderer paths.
 - docs/sdk: describe normal SDK conversation and transport paths as

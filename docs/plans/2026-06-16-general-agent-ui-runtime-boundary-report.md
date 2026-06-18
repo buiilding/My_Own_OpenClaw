@@ -79,9 +79,31 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend-wire/source-event wording while keeping `subscribeRawBackendEvents`
   as the explicit debug listener API. Active concept, frontend runtime,
   architecture, inventory, IPC, and query-relay docs now use backend-wire event
-  wording for SDK/main-normalized renderer paths.
+  wording for SDK/main-normalized renderer paths. The websocket incoming
+  contract test and current references now use the `BackendSdkWebsocketContract`
+  name instead of the stale frontend/backend boundary label.
 
 ## Inspection Log
+
+### 2026-06-18 Backend-to-SDK Websocket Contract Test Naming Slice
+
+- Worktree was clean after `c6c067c15` before this slice, with `main` ahead of
+  `origin/main` by 813 commits.
+- Recent scans showed active stale backend/frontend wording reduced to guard
+  strings and report history, while the websocket incoming contract test file
+  and current docs still referenced `FrontendBackendWebsocketContract`.
+- Finding: the test behavior and description already cover the backend-to-SDK
+  incoming contract, but the filename kept the retired frontend/backend mental
+  model visible in docs and test targets.
+- Change: renamed the test to `BackendSdkWebsocketContract.test.cjs`, updated
+  current docs and boundary guard references, and guarded against the retired
+  name in the source-event boundary test.
+- Validation: renamed websocket contract test, focused modular boundary test,
+  targeted retired-name scan, docs listing, and diff check.
+- Compatibility: no migration required. This is test/docs naming cleanup only;
+  backend incoming websocket contract fixtures, SDK/main payload filtering,
+  renderer query behavior, IPC channels, provider policy, credentials,
+  permissions, and storage are unchanged.
 
 ### 2026-06-18 Frontend Streaming Backend-Wire Docs Boundary Slice
 

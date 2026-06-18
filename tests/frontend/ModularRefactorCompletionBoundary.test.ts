@@ -544,7 +544,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/inventory/frontend_capability_to_file_matrix_reference.md',
       'docs/frontend/contracts/ipc_channels_and_event_contracts.md',
       'docs/frontend/main/query_payload_and_relay_reference.md',
-      'tests/frontend/FrontendBackendWebsocketContract.test.cjs',
+      'tests/frontend/BackendSdkWebsocketContract.test.cjs',
       'tests/frontend/RendererChatRuntimeBoundary.test.ts',
       'tests/frontend/ChatInterfaceWiring.test.jsx',
       'tests/frontend/ChatStreamThinkingStatus.state.test.tsx',
@@ -560,6 +560,7 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend/backend websocket incoming contract',
         'frontend outbound payload filter',
         'frontend command family',
+        'FrontendBackendWebsocketContract',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

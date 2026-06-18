@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend-to-SDK websocket contract test naming
+
+- Finding: the websocket incoming contract test description was already
+  backend-to-SDK, but the filename and current docs still referenced
+  `FrontendBackendWebsocketContract`, preserving the stale frontend/backend
+  boundary in tooling and docs.
+- Change: renamed the test to `BackendSdkWebsocketContract.test.cjs`, updated
+  current docs and boundary guard references, and guarded against the retired
+  test name in current source-event boundary docs.
+- Validation: renamed websocket contract test, focused modular boundary test,
+  targeted retired-name scan, docs listing, and diff check.
+- Compatibility: no migration required. This is test/docs naming cleanup only;
+  backend incoming websocket contract fixtures, SDK/main payload filtering,
+  renderer query behavior, IPC channels, provider policy, credentials,
+  permissions, and storage are unchanged.
+
 ### 2026-06-18 frontend streaming backend-wire docs boundary
 
 - Finding: active concept, frontend runtime, architecture, inventory, IPC, and

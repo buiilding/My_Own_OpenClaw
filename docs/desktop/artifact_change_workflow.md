@@ -157,7 +157,7 @@ Validation:
 
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
-- `tests/frontend/FrontendBackendWebsocketContract.test.cjs`
+- `tests/frontend/BackendSdkWebsocketContract.test.cjs`
 - `tests/backend/test_query_execution_inputs.py`
 - backend tool-result router/receiver/storage tests.
 
