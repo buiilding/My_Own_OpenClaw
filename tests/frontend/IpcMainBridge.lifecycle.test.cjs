@@ -539,6 +539,22 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(ws.sent).toHaveLength(sentBefore);
   });
 
+  test('internal stop bridge ignores removed turnRef alias', async () => {
+    const { ws, ipc } = await setupOpenedIpc();
+
+    await expect(ipc.stopQueryThroughSdkAgent({
+      conversation_ref: 'conv-stop-alias',
+      turnRef: 'turn-removed-alias',
+    })).resolves.toBe(true);
+
+    const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(sentStopQuery.type).toBe('stop-query');
+    expect(sentStopQuery.payload).toEqual({
+      conversation_ref: 'conv-stop-alias',
+      turn_ref: null,
+    });
+  });
+
   test('rejects typed query invokes with missing payload object without throwing', async () => {
     const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);

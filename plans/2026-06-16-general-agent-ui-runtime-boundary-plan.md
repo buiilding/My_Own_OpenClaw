@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 internal stop bridge turnRef alias removal
+
+- Finding: after the SDK command boundary rejected removed camelCase `conversation.stop` aliases, the internal `stopQueryThroughSdkAgent(...)` bridge still read `turnRef` as a fallback when composing backend stop payloads.
+- Change: removed that fallback so the internal bridge only honors canonical `turn_ref`, with focused coverage proving `turnRef` becomes a null stop turn instead of an accepted alias.
+- Validation: focused `IpcMainBridge.lifecycle` Jest coverage for the internal `turnRef` bridge path, supported `conversation.stop` behavior, and scoped diff check.
+- Compatibility: canonical `turn_ref` payloads keep working; the removed camelCase alias is no longer revived by the internal bridge. Runtime behavior, storage, tool schemas, settings, credentials, permissions, and persisted data are otherwise unchanged.
+
 ### 2026-06-18 conversation stop transport alias rejection
 
 - Finding: the main SDK command handler already rejected removed camelCase `conversationRef` for transport commands, but `conversation.stop` still accepted camelCase `turnRef` through the direct wake-up adapter path.

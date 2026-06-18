@@ -1865,7 +1865,7 @@ async function stopQueryThroughSdkAgent(payload = {}) {
   }
   const stopTurnRef = payload && typeof payload.turn_ref === 'string'
     ? payload.turn_ref
-    : (payload && typeof payload.turnRef === 'string' ? payload.turnRef : null);
+    : null;
   const stopConversationRef = resolveConversationRefFromPayload(payload);
   clearLatestPendingTurn({
     conversationRef: stopConversationRef,
