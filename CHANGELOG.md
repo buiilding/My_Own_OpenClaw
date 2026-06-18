@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align Electron main workflow wording with SDK local-runtime
+  bridge ownership instead of sidecar-owned execution/backend-bridge phrasing;
+  no migration is required because this changes docs/tests only.
 - frontend/renderer: make `channels.ts` validate shared IPC channel keys
   without duplicating legacy `windie:*` wire values; no migration is required
   because `ipcChannels.json` remains the single wire-value source.

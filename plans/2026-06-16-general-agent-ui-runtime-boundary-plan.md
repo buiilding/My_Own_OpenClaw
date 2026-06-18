@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Electron main local-runtime workflow wording
+
+- Finding: the main-process workflow still said the sidecar owns execution and
+  the Electron main overview routed readers to backend bridge logic, which
+  skipped the current SDK local-runtime bridge ownership.
+- Change: reworded the main workflow around host-context adaptation through
+  the SDK local-runtime bridge, kept Python sidecar as the concrete executor,
+  and extended the modular boundary guard for the retired phrases.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; IPC
+  channels, payloads, storage, credentials, permissions, and local-runtime
+  execution behavior are unchanged.
+
 ### 2026-06-18 renderer IPC channel wire-value ownership
 
 - Finding: renderer `channels.ts` imported the shared IPC registry but also

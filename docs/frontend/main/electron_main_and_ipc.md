@@ -1,7 +1,7 @@
 ---
 summary: "Electron main process runtime: window orchestration, SDK runtime bridge, SDK local-runtime bridge, IPC contracts, and the `electron_agent_definition_inputs.cjs` collector that feeds the SDK `buildAgentDefinition` builder."
 read_when:
-  - When changing renderer/main IPC channels or backend bridge logic.
+  - When changing renderer/main IPC channels or SDK runtime bridge logic.
   - When debugging window overlays, wakeword bridge, SDK runtime connectivity, or backend connectivity.
   - When changing `frontend/src/main/agent/electron_agent_definition_inputs.cjs`, Electron-injected AGENTS.md layers, extension prompt layers, workspace path facts, or OS facts before SDK agent-definition construction.
 title: "Electron Main and IPC"

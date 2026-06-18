@@ -628,6 +628,8 @@ describe('modular sdk refactor completion boundary', () => {
         'Local execution belongs in renderer/Electron/sidecar code',
         'ipc.cjs keeps backend transport and frontend session state',
         'sidecar owns local execution + memory/runtime dependency bootstrap',
+        'sidecar owns execution',
+        'backend bridge logic',
         'sidecar direct-tool exposure contract used for backend parity',
         'live sidecar registry exposes concrete tool names only',
       ].filter((needle) => source.includes(needle));
