@@ -36,7 +36,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime launch logs while preserving the sidecar daemon implementation
   and compatibility launch alias. SDK hosted install registration is now
   explicit caller policy through `installAuth.autoRegister` instead of a
-  WindieOS hosted-endpoint hostname inference.
+  WindieOS hosted-endpoint hostname inference. SDK hosted endpoint selection is
+  now caller-supplied through `backendUrl`, `httpBaseUrl`, or
+  `WINDIE_BACKEND_URL` instead of falling back to a hardcoded WindieOS hosted
+  URL.
 
 ## Inspection Log
 
@@ -367,6 +370,13 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Change: SDK install auto-registration now runs only when `installAuth.autoRegister === true`.
 - Change: the hosted-endpoint helper was removed from TypeScript source and checked-in CJS output, and SDK tests now prove the hosted URL alone does not trigger install registration.
 
+### 2026-06-18 SDK Hosted Endpoint Config Slice
+
+- Finding: `AgentClient.resolveBackendUrl(...)` still fell back to `https://api.windieos.com`, which kept WindieOS hosted backend selection inside the generic SDK runtime.
+- Decision: make hosted endpoint selection explicit through caller config or environment while leaving Electron main's host-skin endpoint injection unchanged.
+- Change: hosted SDK operations now fail fast unless callers pass `backendUrl`, pass `httpBaseUrl`, or set `WINDIE_BACKEND_URL`.
+- Change: the hardcoded WindieOS hosted endpoint was removed from TypeScript source and checked-in CJS output, and public SDK docs now construct `AgentClient` with an explicit hosted endpoint.
+
 ## Checklist
 
 - [x] Renderer skin/config boundary introduced.
@@ -405,6 +415,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - [x] JS SDK stream projection fallback diagnostics use generic Agent wording while preserving public stream event names.
 - [x] SDK local-runtime sidecar timeout diagnostics use generic local sidecar daemon wording.
 - [x] SDK hosted install registration is explicit caller policy instead of endpoint-hostname inference.
+- [x] SDK hosted endpoint selection is caller-supplied instead of hardcoded in `AgentClient`.
 - [x] Docs/changelog updated.
 - [x] Targeted validation recorded.
 - [x] Fresh design inspection completed after the slice.
@@ -597,6 +608,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   handling, and the source/CJS explicit-policy boundary assertion.
 - Validation: focused SDK package-boundary tests passed.
 - Validation: `bin\windie.cmd docs list` and `git diff --check` passed.
+- Validation: focused SDK backend/endpoint tests passed, including the new
+  missing-backend fail-fast path and existing env-backed endpoint path.
+- Validation: focused hosted-endpoint tests passed, including the source/CJS
+  assertion that endpoint selection is caller supplied.
+- Validation: `rg -n "https://api\.windieos\.com|api\.windieos\.com" packages\windie-sdk-js\src packages\windie-sdk-js\cjs` returned no matches.
 
 ## Remaining Findings
 
@@ -663,6 +679,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - SDK hosted install registration now requires explicit
   `installAuth.autoRegister = true`; the SDK no longer infers backend auth
   policy from the WindieOS hosted endpoint hostname.
+- SDK hosted endpoint selection now requires caller config or
+  `WINDIE_BACKEND_URL`; the generic SDK runtime no longer embeds the WindieOS
+  hosted backend URL.
 - SDK hosted HTTP, local-runtime HTTP, and backend websocket construction
   failures now use generic Agent SDK dependency diagnostics. Exported
   `WindieSdkClient` and `createWindieSdkBackendSocket` names remain unchanged.

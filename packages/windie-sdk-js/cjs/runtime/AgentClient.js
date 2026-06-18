@@ -146,11 +146,14 @@ class AgentClient {
         }
     }
     resolveBackendUrl(backendUrl) {
-        return backendUrl
+        const resolvedBackendUrl = backendUrl
             ?? this.defaultOptions.backendUrl
             ?? this.defaultOptions.httpBaseUrl
-            ?? readRuntimeEnv('WINDIE_BACKEND_URL')
-            ?? 'https://api.windieos.com';
+            ?? readRuntimeEnv('WINDIE_BACKEND_URL');
+        if (resolvedBackendUrl) {
+            return resolvedBackendUrl;
+        }
+        throw new Error('Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set WINDIE_BACKEND_URL.');
     }
     createSdkClient(backendUrl, authToken) {
         return new HostedBackendHttpClient_js_1.AgentHostedBackendClient({

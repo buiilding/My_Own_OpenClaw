@@ -784,6 +784,48 @@ describe('Agent SDK client behavior', () => {
     expect(sdkCjsSource).not.toContain('isHostedDefaultBackendUrl');
   });
 
+  test('AgentClient requires an explicit backend URL for hosted runtime calls', async () => {
+    const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
+    delete process.env.WINDIE_BACKEND_URL;
+    try {
+      const client = new AgentClient({
+        fetchImpl: mockFetch,
+        WebSocketImpl: FakeWebSocket as any,
+      });
+
+      await expect(client.wakeUp({ agentId: 'missing-backend-agent' })).rejects.toThrow(
+        'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set WINDIE_BACKEND_URL.',
+      );
+      await expect(client.listModels()).rejects.toThrow(
+        'Agent SDK backend URL is required. Pass backendUrl, httpBaseUrl, or set WINDIE_BACKEND_URL.',
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(FakeWebSocket.instances).toHaveLength(0);
+    } finally {
+      if (previousBackendUrl === undefined) {
+        delete process.env.WINDIE_BACKEND_URL;
+      } else {
+        process.env.WINDIE_BACKEND_URL = previousBackendUrl;
+      }
+    }
+  });
+
+  test('AgentClient source keeps hosted endpoint selection caller supplied', async () => {
+    const sdkSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),
+      'utf8',
+    );
+    const sdkCjsSource = await fsPromises.readFile(
+      path.join(__dirname, '../../packages/windie-sdk-js/cjs/runtime/AgentClient.js'),
+      'utf8',
+    );
+
+    expect(sdkSource).toContain('Agent SDK backend URL is required');
+    expect(sdkCjsSource).toContain('Agent SDK backend URL is required');
+    expect(sdkSource).not.toContain('https://api.windieos.com');
+    expect(sdkCjsSource).not.toContain('https://api.windieos.com');
+  });
+
   test('AgentClient source uses localRuntime for explicit local runtime clients', async () => {
     const sdkSource = await fsPromises.readFile(
       path.join(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentClient.ts'),

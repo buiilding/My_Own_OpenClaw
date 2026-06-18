@@ -352,10 +352,11 @@ These routes are for hosted backend use. They are not meant to require SDK consu
 ```ts
 import { AgentClient, moduleTool } from '@windie/sdk';
 
-const client = new AgentClient();
+const client = new AgentClient({
+  backendUrl: 'https://api.windieos.com',
+});
 
 const agent = await client.wakeUp({
-  backendUrl: 'https://api.windieos.com',
   userId: 'dev-user',
   systemPrompt: 'You are a concise coding agent.',
   workspacePath: '/Users/me/project',

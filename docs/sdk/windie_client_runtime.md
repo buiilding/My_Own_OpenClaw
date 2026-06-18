@@ -280,7 +280,9 @@ tool-result return.
 ```ts
 import { AgentClient, agentBuiltins, moduleTool } from "@windie/sdk";
 
-const client = new AgentClient();
+const client = new AgentClient({
+  backendUrl: "https://api.windieos.com"
+});
 
 const simpleAgent = await client.wakeUp({
   systemPrompt: "You are a helpful assistant. Be concise. This text-only client has no callable tools.",
@@ -423,7 +425,9 @@ user-message ordinal fallbacks.
 
 `wakeUp` performs this sequence:
 
-1. Resolve the hosted backend URL.
+1. Resolve the hosted backend URL from `backendUrl`, `httpBaseUrl`, or
+   `WINDIE_BACKEND_URL`; hosted operations fail fast when no backend URL is
+   configured.
 2. Resolve install auth from `installToken`; callers that want the hosted
    install-registration route set `installAuth.autoRegister = true` explicitly
    so backend auth policy stays outside endpoint-name inference.
