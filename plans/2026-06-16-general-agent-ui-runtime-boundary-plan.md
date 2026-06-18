@@ -4988,3 +4988,18 @@ Each completed slice should report:
 - Compatibility: no migration required. These were unused backend-internal type
   aliases only; runtime payloads, API schemas, provider normalized response
   shapes, and tool-schema events are unchanged.
+
+### 2026-06-17 backend core unused streaming chunk TypedDicts
+
+- Finding: `backend/src/core/types/schemas.py` still defined normalized
+  streaming chunk TypedDicts such as `ContentChunk`, `ThinkingChunk`,
+  `ToolCallChunk`, and `StreamingChunk`, but exact-name scans showed no source,
+  test, or doc callers; current streaming contracts use event dataclasses and
+  outgoing formatter schemas.
+- Change: removed the unused chunk TypedDicts and expanded the core schema
+  surface guard so those old aliases do not return.
+- Validation: focused core type schema py_compile and pytest, exact-name stale
+  scan, docs listing, and `git diff --check`.
+- Compatibility: no migration required. These were unused backend-internal type
+  aliases only; runtime stream events, formatter output, outgoing API schemas,
+  and provider normalized response payloads are unchanged.
