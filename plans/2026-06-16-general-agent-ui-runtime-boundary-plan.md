@@ -143,8 +143,9 @@ Each completed slice should report:
   as `backendHttpUrl`/`backendWsUrl`, and the renderer endpoint client kept a
   backend-shaped fallback parser after the generic `runtimeHttpUrl` path was in
   place.
-- Change: `ipc-status`, `get-client-user-id`, and the main connection-state
-  helper now publish `runtimeHttpUrl`/`runtimeWsUrl`, and the renderer endpoint
+- Change: renderer-facing `ipc-status` and `get-client-user-id` snapshots now
+  publish `runtimeHttpUrl`/`runtimeWsUrl`, while the VM-worker-facing backend
+  connection-state helper keeps backend field names. The renderer endpoint
   client accepts only the generic runtime field.
 - Validation: focused IPC lifecycle, app config, runtime endpoint, and chat
   sender tests plus syntax checks, docs listing, and `git diff --check`.

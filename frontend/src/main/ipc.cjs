@@ -2077,8 +2077,8 @@ function getBackendConnectionState() {
     sessionId: currentSessionId,
     serverUserId: currentServerUserId,
     conversationRef: currentConversationRef,
-    runtimeWsUrl: backendEndpointState.getWsUrl(),
-    runtimeHttpUrl: backendEndpointState.getHttpUrl(),
+    backendWsUrl: backendEndpointState.getWsUrl(),
+    backendHttpUrl: backendEndpointState.getHttpUrl(),
     globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }

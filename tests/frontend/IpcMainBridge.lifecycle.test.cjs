@@ -194,6 +194,23 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     }));
   });
 
+  test('keeps renderer endpoint snapshots generic while VM worker connection state stays backend-shaped', async () => {
+    const { handlers, ipc } = await setupOpenedIpc();
+
+    const clientInfo = await handlers['get-client-user-id']();
+    expect(clientInfo).toEqual(expect.objectContaining({
+      runtimeWsUrl: 'wss://api.windieos.com/ws',
+      runtimeHttpUrl: 'https://api.windieos.com',
+    }));
+    expect(clientInfo).not.toHaveProperty('backendWsUrl');
+    expect(clientInfo).not.toHaveProperty('backendHttpUrl');
+
+    expect(ipc.getBackendConnectionState()).toEqual(expect.objectContaining({
+      backendWsUrl: 'wss://api.windieos.com/ws',
+      backendHttpUrl: 'https://api.windieos.com',
+    }));
+  });
+
   test('includes global stop shortcut status in IPC snapshots after runtime updates', async () => {
     const { handlers, mainWindow, ipc } = await setupOpenedIpc();
 
