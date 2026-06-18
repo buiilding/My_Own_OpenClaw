@@ -19,7 +19,7 @@ import {
 } from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
-import { PlayerService } from '../../../infrastructure/audio/PlayerService';
+import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
@@ -113,7 +113,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
   ]);
 
   useEffect(() => {
-    audioPlayerRef.current = new PlayerService();
+    audioPlayerRef.current = DesktopAudioRuntimeClient.createAudioPlayer();
     return () => {
       audioPlayerRef.current?.cleanup();
     };

@@ -8025,3 +8025,18 @@ Each completed slice should report:
   `global_agent_stop_shortcut` persisted value, platform accelerator catalog,
   fallback labels, and Electron main global shortcut registration contract are
   unchanged.
+
+### 2026-06-18 renderer audio playback runtime client boundary
+
+- Finding: `ChatInterface` still imported and constructed `PlayerService`
+  directly, while the audio chunk subscription already routed through
+  `DesktopAudioRuntimeClient`.
+- Change: expanded `DesktopAudioRuntimeClient` with `createAudioPlayer()` and
+  routed chat audio player construction through that app runtime client. The
+  queue/decode/playback implementation remains in `PlayerService`.
+- Validation: focused chat interface, player service, and renderer chat
+  boundary Jest coverage, direct chat feature `PlayerService` import scan,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. Audio chunk payload validation,
+  sequential playback, stop/new-query cleanup, and the `audio-chunk` renderer
+  channel are unchanged.

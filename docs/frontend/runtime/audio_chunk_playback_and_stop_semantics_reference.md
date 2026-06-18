@@ -32,7 +32,8 @@ Audio output from backend follows this route:
 3. renderer chat runtime (`useChatInterfaceAudioChunkStream` used by
    `ChatInterface`) listens through `DesktopAudioRuntimeClient`
 4. `extractAudioChunkPayload(...)` filters and validates audio payload shape
-5. valid chunk is enqueued in `PlayerService`
+5. valid chunk is enqueued in the audio player created by
+   `DesktopAudioRuntimeClient.createAudioPlayer()`
 
 Important distinction:
 
@@ -46,8 +47,8 @@ Important distinction:
 
 - relay maps `audio-chunk` backend events to
   `broadcastToRenderers('audio-chunk', data)`
-- renderer app runtime owns the `audio-chunk` subscription through
-  `desktopAudioRuntimeClient.ts`
+- renderer app runtime owns the `audio-chunk` subscription and playback service
+  creation through `desktopAudioRuntimeClient.ts`
 - overlay phase transitions are updated for text/tool lifecycle events
 - `audio-chunk` does not drive overlay phase transitions
 
@@ -130,7 +131,8 @@ If text streams but no audio plays:
 
 1. verify `audio-chunk` events are arriving on the typed `audio-chunk` channel
 2. verify payload has both `audio` and `sample_rate`
-3. inspect decode/playback errors from `PlayerService`
+3. inspect decode/playback errors from the `PlayerService` instance created by
+   `DesktopAudioRuntimeClient`
 
 If old audio keeps playing after stop/new query:
 

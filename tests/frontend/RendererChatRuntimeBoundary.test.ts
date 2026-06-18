@@ -922,6 +922,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).not.toContain('IpcBridge.on');
     expect(chatInterfaceSource).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(chatInterfaceSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
+    expect(chatInterfaceSource).not.toContain('infrastructure/audio/PlayerService');
     expect(replayActionsSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(newChatSessionSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
@@ -930,6 +931,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
+    expect(chatInterfaceSource).toContain('DesktopAudioRuntimeClient.createAudioPlayer');
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
@@ -943,6 +945,8 @@ describe('renderer chat runtime boundary', () => {
     expect(bindingsSource).toContain('DesktopAudioRuntimeClient.onAudioChunk');
     expect(bindingsSource).toContain('DesktopShortcutRuntimeClient.isAgentStopShortcutEvent');
     expect(audioClientSource).toContain('ON_CHANNELS.AUDIO_CHUNK');
+    expect(audioClientSource).toContain('PlayerService');
+    expect(audioClientSource).toContain('createAudioPlayer');
     expect(shortcutClientSource).toContain('isAgentStopShortcutEvent');
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSION');

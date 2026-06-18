@@ -20,6 +20,7 @@ frontend/src/renderer/
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
 │   │   ├── desktopArtifactRuntimeClient.ts # Renderer artifact URL, image fetch, screenshot attachment, and content-type facade
+│   │   ├── desktopAudioRuntimeClient.ts # Renderer audio chunk subscription and playback-service creation facade
 │   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
 │   │   ├── desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
 │   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers

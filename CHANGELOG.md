@@ -44,6 +44,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.
+- renderer/runtime: route chat audio player creation through the desktop audio
+  runtime client instead of constructing the playback service from chat feature
+  code.
 - renderer/runtime: route dashboard local-runtime readiness subscriptions
   through a renderer app runtime client instead of importing the shared IPC
   status store directly.
