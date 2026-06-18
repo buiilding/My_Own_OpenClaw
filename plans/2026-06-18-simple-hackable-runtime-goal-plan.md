@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed an agent-runtime ownership routing slice by aligning
+  `docs/development/agent_runtime_ownership_and_change_routing.md` with the
+  browser workflow's local-runtime browser execution plus Python sidecar adapter
+  wording. The guide no longer presents sidecar runtime as a peer public owner
+  for browser automation while still pointing to concrete Python sidecar tests
+  in the browser workflow. Validation: focused modular docs boundary test, docs
+  listing, source scan, and diff checks. No migration required; no code path,
+  payload, storage, IPC, settings, tool schema, credential, permission, or
+  provider-policy behavior changed.
 - 2026-06-18: completed a browser workflow owner-label slice by routing
   `docs/browser/browser_change_workflow.md` and adjacent browser hub summaries
   through local-runtime browser execution plus Python sidecar Browser Use

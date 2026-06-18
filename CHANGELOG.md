@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/development: route the agent-facing browser automation ownership row
+  through local-runtime browser execution and Python sidecar adapters instead
+  of sidecar-runtime peer ownership. No migration required.
 - docs/browser: route Browser Change Workflow owner labels through
   local-runtime browser execution and Python sidecar Browser Use adapters,
   instead of presenting the sidecar runtime as a peer public owner. No migration
