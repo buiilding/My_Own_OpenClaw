@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 sidecar conversation handler private-name alignment
+
+- Finding: after the sidecar chat-history registry converged on `conversation.*` JSON-RPC methods, private handler names and focused tests still used direct chat-history wording such as `_handle_store_chat_event` and `_handle_get_chat_events`.
+- Change: renamed those private handlers and tests to `conversation_*` names while keeping registered method names, handler behavior, storage calls, and title/admin RPCs unchanged.
+- Validation: focused sidecar conversation-handler pytest, Python compile check for `local_backend.py` and `local_backend_memory_handlers.py`, stale private-handler scan, and `git diff --check`. The full `test_local_backend.py` file still has the unrelated browser-binary preference failure noted in the previous slice.
+- Compatibility: no migration required. This is private Python method/test naming only; JSON-RPC method names, SDK calls, storage rows, IPC, and event payloads are unchanged.
+
 ### 2026-06-18 sidecar conversation RPC direct-name removal
 
 - Finding: the Python sidecar still registered retired direct chat-history JSON-RPC names such as `store_chat_event` and `list_chat_conversations`, even though the SDK local-runtime conversation store already calls the canonical `conversation.*` methods.

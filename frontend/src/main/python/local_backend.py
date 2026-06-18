@@ -190,30 +190,30 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             "clear_chat_history", self._handle_clear_chat_history
         )
         self.protocol.register_method(
-            "conversation.append_event", self._handle_store_chat_event
+            "conversation.append_event", self._handle_conversation_append_event
         )
         self.protocol.register_method(
-            "conversation.list", self._handle_list_chat_conversations
+            "conversation.list", self._handle_conversation_list
         )
         self.protocol.register_method(
-            "conversation.search", self._handle_search_chat_conversations
+            "conversation.search", self._handle_conversation_search
         )
         self.protocol.register_method(
-            "conversation.load_events", self._handle_get_chat_events
+            "conversation.load_events", self._handle_conversation_load_events
         )
         self.protocol.register_method(
             "conversation.get_revision",
-            self._handle_get_chat_conversation_revision,
+            self._handle_conversation_get_revision,
         )
         self.protocol.register_method(
-            "conversation.delete", self._handle_delete_chat_conversation
+            "conversation.delete", self._handle_conversation_delete
         )
         self.protocol.register_method(
-            "conversation.replace", self._handle_replace_chat_conversation
+            "conversation.replace", self._handle_conversation_replace
         )
         self.protocol.register_method(
             "conversation.rewrite_after_event",
-            self._handle_rewrite_chat_conversation_after_event,
+            self._handle_conversation_rewrite_after_event,
         )
         self.protocol.register_method(
             "update_conversation_title", self._handle_update_conversation_title

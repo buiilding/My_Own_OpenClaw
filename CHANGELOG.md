@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sidecar: rename private chat-history handler methods to match the
+  registered `conversation.*` local-runtime RPC contract; no migration is
+  required because JSON-RPC method names, storage, and SDK callers are unchanged.
 - sidecar/sdk: remove retired direct chat-history JSON-RPC method names
   from the Python sidecar registry so the SDK local-runtime store owns the
   canonical `conversation.*` contract; SDK callers already use these methods,

@@ -481,7 +481,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_store_chat_event(
+    async def _handle_conversation_append_event(
         self,
         user_id: str = "default_user",
         conversation_id: Optional[str] = None,
@@ -665,7 +665,7 @@ class LocalBackendMemoryHandlersMixin:
         }
 
     @requires_memory_store
-    async def _handle_replace_chat_conversation(
+    async def _handle_conversation_replace(
         self,
         user_id: str = "default_user",
         conversation_id: Optional[str] = None,
@@ -691,7 +691,7 @@ class LocalBackendMemoryHandlersMixin:
             normalized_events.append(normalized_event)
 
         try:
-            result = await self.memory_store.replace_chat_conversation(
+            result = await self.memory_store.replace_conversation(
                 user_id=sanitize_surrogates_in_text(user_id),
                 conversation_id=sanitize_surrogates_in_text(conversation_id),
                 events=normalized_events,
@@ -717,7 +717,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_rewrite_chat_conversation_after_event(
+    async def _handle_conversation_rewrite_after_event(
         self,
         user_id: str = "default_user",
         conversation_id: Optional[str] = None,
@@ -739,7 +739,7 @@ class LocalBackendMemoryHandlersMixin:
             }
 
         try:
-            result = await self.memory_store.rewrite_chat_conversation_after_event(
+            result = await self.memory_store.rewrite_conversation_after_event(
                 user_id=sanitize_surrogates_in_text(user_id),
                 conversation_id=sanitize_surrogates_in_text(conversation_id),
                 cut_after_event_id=(
@@ -770,7 +770,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_get_chat_conversation_revision(
+    async def _handle_conversation_get_revision(
         self,
         user_id: str = "default_user",
         conversation_id: Optional[str] = None,
@@ -779,7 +779,7 @@ class LocalBackendMemoryHandlersMixin:
         if not conversation_id:
             return {"success": False, "error": "conversation_id is required"}
         try:
-            revision = await self.memory_store.get_chat_conversation_revision(
+            revision = await self.memory_store.get_conversation_revision(
                 user_id=sanitize_surrogates_in_text(user_id),
                 conversation_id=sanitize_surrogates_in_text(conversation_id),
             )
@@ -800,7 +800,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_list_chat_conversations(
+    async def _handle_conversation_list(
         self,
         user_id: str = "default_user",
         limit: Optional[int] = None,
@@ -820,7 +820,7 @@ class LocalBackendMemoryHandlersMixin:
         )
         started_at = time.monotonic()
         try:
-            conversations = await self.memory_store.list_chat_conversations(
+            conversations = await self.memory_store.list_conversations(
                 user_id=user_id,
                 limit=limit,
             )
@@ -871,7 +871,7 @@ class LocalBackendMemoryHandlersMixin:
             }
 
     @requires_memory_store
-    async def _handle_search_chat_conversations(
+    async def _handle_conversation_search(
         self,
         query: str,
         user_id: str = "default_user",
@@ -879,7 +879,7 @@ class LocalBackendMemoryHandlersMixin:
         **kwargs,
     ) -> Dict[str, Any]:
         try:
-            conversations = await self.memory_store.search_chat_conversations(
+            conversations = await self.memory_store.search_conversations(
                 user_id=user_id,
                 query=query,
                 limit=limit,
@@ -897,7 +897,7 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_get_chat_events(
+    async def _handle_conversation_load_events(
         self,
         conversation_id: Optional[str] = None,
         user_id: str = "default_user",
@@ -906,7 +906,7 @@ class LocalBackendMemoryHandlersMixin:
         **kwargs,
     ) -> Dict[str, Any]:
         try:
-            events = await self.memory_store.get_chat_events(
+            events = await self.memory_store.load_conversation_events(
                 user_id=user_id,
                 conversation_id=conversation_id,
                 limit=limit,
@@ -925,14 +925,14 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_delete_chat_conversation(
+    async def _handle_conversation_delete(
         self,
         user_id: str = "default_user",
         conversation_id: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         try:
-            deleted_count = await self.memory_store.delete_chat_conversation(
+            deleted_count = await self.memory_store.delete_conversation(
                 user_id=user_id,
                 conversation_id=conversation_id,
             )

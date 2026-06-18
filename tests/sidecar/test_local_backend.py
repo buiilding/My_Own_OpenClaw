@@ -16,6 +16,17 @@ from local_backend import LocalBackend  # noqa: E402
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
+RETIRED_DIRECT_CHAT_METHODS = {
+    "store_chat_event",
+    "list_conversations",
+    "search_conversations",
+    "load_conversation_events",
+    "get_conversation_revision",
+    "delete_conversation",
+    "replace_conversation",
+    "rewrite_conversation_after_event",
+}
+
 
 def test_local_backend_runtime_copy_uses_sidecar_boundary_terms():
     sources = "\n".join(
@@ -98,25 +109,25 @@ class DummyMemoryStore:
         self.chat_event_calls.append(kwargs)
         return {"event_id": "evt-1", "message_index": kwargs.get("message_index") or 1}
 
-    async def list_chat_conversations(self, user_id, limit=None):
+    async def list_conversations(self, user_id, limit=None):
         self.list_chat_conversation_calls.append((user_id, limit))
         return [{"conversation_id": "conv-chat"}]
 
-    async def search_chat_conversations(self, user_id, query, limit=40):
+    async def search_conversations(self, user_id, query, limit=40):
         return [{"conversation_id": "conv-chat", "query": query, "limit": limit}]
 
-    async def get_chat_events(
+    async def load_conversation_events(
         self, user_id, conversation_id, limit=1000, after_message_index=None
     ):
         return self.chat_event_rows or [
             {"id": "evt-1", "conversation_id": conversation_id}
         ]
 
-    async def delete_chat_conversation(self, user_id, conversation_id):
+    async def delete_conversation(self, user_id, conversation_id):
         self.deleted_chat_conversation_calls.append((user_id, conversation_id))
         return 1
 
-    async def replace_chat_conversation(
+    async def replace_conversation(
         self,
         user_id,
         conversation_id,
@@ -129,7 +140,7 @@ class DummyMemoryStore:
         )
         return {"deleted_count": 2, "inserted_count": len(events)}
 
-    async def rewrite_chat_conversation_after_event(
+    async def rewrite_conversation_after_event(
         self,
         user_id,
         conversation_id,
@@ -150,7 +161,7 @@ class DummyMemoryStore:
         )
         return {"deleted_count": 1, "inserted_count": 1}
 
-    async def get_chat_conversation_revision(self, user_id, conversation_id):
+    async def get_conversation_revision(self, user_id, conversation_id):
         return {
             "conversation_id": conversation_id,
             "revision_id": "rev-next",
@@ -888,21 +899,11 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "get_conversation_title_state",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
-    retired_direct_chat_methods = {
-        "store_chat_event",
-        "list_chat_conversations",
-        "search_chat_conversations",
-        "get_chat_events",
-        "get_chat_conversation_revision",
-        "delete_chat_conversation",
-        "replace_chat_conversation",
-        "rewrite_chat_conversation_after_event",
-    }
-    assert retired_direct_chat_methods.isdisjoint(set(backend.protocol.methods.keys()))
+    assert RETIRED_DIRECT_CHAT_METHODS.isdisjoint(set(backend.protocol.methods.keys()))
 
 
 @pytest.mark.asyncio
-async def test_handle_list_chat_conversations_returns_sanitized_diagnostics(tmp_path):
+async def test_handle_conversation_list_returns_sanitized_diagnostics(tmp_path):
     backend = LocalBackend()
     memory_store = DummyMemoryStore()
     canonical_db = tmp_path / "history" / "history.db"
@@ -911,7 +912,7 @@ async def test_handle_list_chat_conversations_returns_sanitized_diagnostics(tmp_
     memory_store.history_db_path = str(canonical_db)
     backend.memory_store = memory_store
 
-    result = await backend._handle_list_chat_conversations(
+    result = await backend._handle_conversation_list(
         user_id="user-1",
         limit=5,
         diagnostics={"trace_id": "diag-1", "request_id": "req-1"},
@@ -1251,11 +1252,11 @@ async def test_handle_clear_chat_history_routes_to_store():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_chat_event_writes_dedicated_chat_storage():
+async def test_handle_conversation_append_event_writes_dedicated_chat_storage():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_chat_event(
+    result = await backend._handle_conversation_append_event(
         user_id="user-1",
         conversation_id="conv-chat",
         event_type="user_message",
@@ -1301,11 +1302,11 @@ async def test_handle_store_chat_event_writes_dedicated_chat_storage():
 
 
 @pytest.mark.asyncio
-async def test_handle_replace_chat_conversation_uses_atomic_store_replace():
+async def test_handle_conversation_replace_uses_atomic_store_replace():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_replace_chat_conversation(
+    result = await backend._handle_conversation_replace(
         user_id="user-1",
         conversation_id="conv-chat",
         revision_id="rev-next",
@@ -1381,11 +1382,11 @@ async def test_handle_replace_chat_conversation_uses_atomic_store_replace():
 
 
 @pytest.mark.asyncio
-async def test_handle_rewrite_chat_conversation_after_event_uses_cutoff_store_rewrite():
+async def test_handle_conversation_rewrite_after_event_uses_cutoff_store_rewrite():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_rewrite_chat_conversation_after_event(
+    result = await backend._handle_conversation_rewrite_after_event(
         user_id="user-1",
         conversation_id="conv-chat",
         cut_after_event_id="evt-user",
@@ -1427,11 +1428,11 @@ async def test_handle_rewrite_chat_conversation_after_event_uses_cutoff_store_re
 
 
 @pytest.mark.asyncio
-async def test_handle_get_chat_conversation_revision_returns_store_revision():
+async def test_handle_conversation_get_revision_returns_store_revision():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_get_chat_conversation_revision(
+    result = await backend._handle_conversation_get_revision(
         user_id="user-1",
         conversation_id="conv-chat",
     )
@@ -1545,11 +1546,11 @@ async def test_handle_get_conversation_title_state_returns_store_state(monkeypat
 
 
 @pytest.mark.asyncio
-async def test_handle_get_chat_events_reads_dedicated_chat_storage():
+async def test_handle_conversation_load_events_reads_dedicated_chat_storage():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_get_chat_events(
+    result = await backend._handle_conversation_load_events(
         user_id="user-1",
         conversation_id="conv-chat",
         limit=25,
