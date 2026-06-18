@@ -13,7 +13,7 @@ import {
 } from '../../utils/chatStream/chatStreamEventUtils';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
-import type { ConversationEvent } from '../../../../infrastructure/api/agentSdkClient';
+import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 
 type UseChatStreamTerminalHandlersDeps = {
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;

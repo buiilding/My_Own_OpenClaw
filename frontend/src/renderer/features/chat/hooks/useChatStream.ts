@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
-import type { ConversationEvent } from '../../../infrastructure/api/agentSdkClient';
+import type { ConversationEvent } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   useChatStore,
 } from '../stores/chatStore';

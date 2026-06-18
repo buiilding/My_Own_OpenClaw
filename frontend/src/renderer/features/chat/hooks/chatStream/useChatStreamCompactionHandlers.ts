@@ -7,7 +7,7 @@ import type {
   CompactedReplaySnapshot,
   ConversationEvent,
   JsonRecord,
-} from '../../../../infrastructure/api/agentSdkClient';
+} from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   COMPACTION_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,

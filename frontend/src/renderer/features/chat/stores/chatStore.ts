@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 import type { ToolSchema } from '../../../types/toolSchemas';
-import type { CurrentTurnProjection } from '../../../infrastructure/api/agentSdkClient';
+import type { CurrentTurnProjection } from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   DEFAULT_CHAT_WORKSPACE_REF,
   createInitialStreamTracking,

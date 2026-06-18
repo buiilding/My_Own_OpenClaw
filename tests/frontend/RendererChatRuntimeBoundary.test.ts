@@ -44,6 +44,26 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('chat feature code reads SDK conversation contracts through app runtime facade', async () => {
+    const files = await listSourceFiles(chatRoot);
+    const offenders: string[] = [];
+    const contractsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeContracts.ts'),
+      'utf8',
+    );
+
+    for (const file of files) {
+      const relativePath = path.relative(chatRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/api/agentSdkClient')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
+  });
+
   test('message sender does not persist live user transcript rows in renderer', async () => {
     const hookSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),

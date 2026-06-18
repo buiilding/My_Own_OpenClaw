@@ -10,7 +10,7 @@ import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSet
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopWindowRuntimeClient } from '../../../../app/runtime/desktopWindowRuntimeClient';
-import type { AgentModelSelection, TurnInputResource } from '../../../../infrastructure/api/agentSdkClient';
+import type { AgentModelSelection, TurnInputResource } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
   ensureConversationRefForSend,

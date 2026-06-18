@@ -7,7 +7,7 @@ import {
   resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
-} from '../../../infrastructure/api/agentSdkClient';
+} from '../../../app/runtime/desktopConversationRuntimeContracts';
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);

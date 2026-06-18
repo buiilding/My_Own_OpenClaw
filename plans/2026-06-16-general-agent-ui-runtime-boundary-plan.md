@@ -8072,3 +8072,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Stored SDK display rows, chat message
   projection shape, dashboard resume behavior, and transcript storage are
   unchanged.
+
+### 2026-06-18 renderer conversation runtime contract facade boundary
+
+- Finding: chat stream handlers, chat store projection types, send preparation,
+  and replay tool-message helpers still imported SDK conversation contracts and
+  correlation helpers directly from the renderer infrastructure SDK adapter.
+- Change: added `desktopConversationRuntimeContracts.ts` as the renderer app
+  runtime facade over SDK conversation contracts and helper exports, then
+  routed chat feature consumers through it.
+- Validation: focused chat stream, compaction, replay tool-message, pending-turn
+  send preparation, and renderer boundary Jest coverage, direct feature import
+  scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. SDK event types, send input resource
+  shape, model-selection shape, replay correlation resolution, and projection
+  state are unchanged.

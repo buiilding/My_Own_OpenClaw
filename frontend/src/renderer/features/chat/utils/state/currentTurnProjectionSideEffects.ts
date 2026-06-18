@@ -2,7 +2,7 @@
  * Derives renderer chat UI side effects from SDK current-turn projections.
  */
 
-import type { CurrentTurnToolEvent } from '../../../../infrastructure/api/agentSdkClient';
+import type { CurrentTurnToolEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import type { SdkCurrentTurnProjection } from '../../stores/chatStore';
 import { buildThinkingStatus } from '../chatStream/chatStreamFormatting';
 import { GENERIC_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';

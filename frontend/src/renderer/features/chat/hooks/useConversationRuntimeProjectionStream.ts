@@ -7,7 +7,7 @@ import { useChatStore } from '../stores/chatStore';
 import type { ChatMessage, SdkCurrentTurnProjection } from '../stores/chatStore';
 import type {
   SdkDisplayRow,
-} from '../../../infrastructure/api/agentSdkClient';
+} from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../../app/runtime/desktopConversationDisplayProjection';

@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import type { ConversationEvent } from '../../../../infrastructure/api/agentSdkClient';
+import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,

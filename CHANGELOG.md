@@ -53,6 +53,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/runtime: route SDK display-row to chat-message projection consumers
   through a renderer app runtime facade instead of importing the transcript
   projection directly from chat and dashboard feature code.
+- renderer/runtime: expose SDK conversation contracts and replay correlation
+  helpers through a renderer app runtime facade instead of direct
+  `agentSdkClient` imports from chat feature code.
 - renderer/runtime: route dashboard local-runtime readiness subscriptions
   through a renderer app runtime client instead of importing the shared IPC
   status store directly.
