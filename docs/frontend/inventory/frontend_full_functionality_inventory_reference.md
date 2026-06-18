@@ -188,7 +188,7 @@ Functionality:
 - Entry view routing:
   - `main.jsx` selects root by `?view=` (`App`, `minimal-chat-pill`, `minimal-response-overlay`, `tool-ghost-debug`).
 - Mounts provider stack (`AppConfigProvider` + `AppStatusProvider` + `ChatProvider`).
-- Loads/syncs frontend config with disk/localStorage/backend update-settings.
+- Loads/syncs renderer config through disk, localStorage, and backend `update-settings`.
 - Uses provider-layer diff/merge guards to avoid redundant writes and stale config merges.
 - Maintains wakeword preference/suppression state.
 - Coordinates save-state callback from config updates into status context.

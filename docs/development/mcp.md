@@ -192,7 +192,7 @@ app from depending on interactive shell PATH setup after the CUA installer runs.
 MCP enablement, registration, discovery, and execution emit persistent app
 diagnostics:
 
-- `mcp.enablement`: dashboard toggle, frontend-config persistence, and registry
+- `mcp.enablement`: dashboard toggle, desktop UI config persistence, and registry
   refresh/list after enablement changes.
 - `mcp.registration`: SDK/local-runtime registration through the sidecar
   `/mcps/register` boundary, including replace/reconcile and registered tool

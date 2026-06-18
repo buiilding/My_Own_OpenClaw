@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align renderer and desktop UI config state guidance with
+  renderer config, desktop UI config, and client-settings patch ownership while
+  preserving legacy-named config channels and filenames.
 - docs/security/providers: align provider credential and settings guidance with
   renderer-managed client settings and backend validation ownership instead of
   stale broad frontend terminology.

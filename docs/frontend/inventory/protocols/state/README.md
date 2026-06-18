@@ -1,5 +1,5 @@
 ---
-summary: "Frontend protocol state sub-hub for main-process websocket bridge state, conversation-ref fallback handling, SDK transcript-session synchronization, and frontend-config to sidecar RPC argument propagation."
+summary: "Frontend protocol state sub-hub for main-process websocket bridge state, conversation-ref fallback handling, SDK transcript-session synchronization, and renderer config to local-runtime RPC argument propagation."
 read_when:
   - When changing `frontend/src/main/ipc.cjs` state fields that track connection/session/user/conversation identity.
   - When changing renderer-side event gating or SDK transcript session update behavior driven by backend context fields.

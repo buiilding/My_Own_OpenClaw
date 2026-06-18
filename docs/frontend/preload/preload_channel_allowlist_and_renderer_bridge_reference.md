@@ -197,7 +197,7 @@ Current high-value mappings:
   `ipc.cjs`
 - `invoke('windie:invoke')` -> SDK-shaped command router in `ipc.cjs`
 - `invoke('load-frontend-config')` / `invoke('save-frontend-config')` ->
-  frontend config handlers
+  desktop UI config handlers
 - `invoke('get-client-user-id')` -> connection/user/session snapshot handler
 - `invoke('upload-artifact')` / `invoke('fetch-artifact-image')` -> artifact
   handlers

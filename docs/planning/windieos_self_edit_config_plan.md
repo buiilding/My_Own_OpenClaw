@@ -195,7 +195,7 @@ Manual E2E checks:
 
 ## Dependencies
 
-- Existing frontend config persistence + backend settings sync pipeline.
+- Existing renderer config persistence plus backend settings sync pipeline.
 - Existing `update-settings` schema contract.
 
 ## Cross References

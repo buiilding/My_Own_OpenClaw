@@ -31,7 +31,7 @@ header controls, and persisted selected model config.
   AppConfig state. Keep their fallback and provider-mismatch behavior aligned.
 - Provider API-key controls are renderer settings state, but key resolution and
   provider routing are backend behavior.
-- Codex/OpenAI OAuth storage may remain in frontend config for compatibility,
+- Codex/OpenAI OAuth storage may remain in desktop UI config for compatibility,
   but do not re-add a visible OAuth settings control unless the product surface
   explicitly requires it.
 
@@ -153,7 +153,7 @@ Chat rules:
 - Query, tool-result, and transcript metadata read the selected model/provider
   from AppConfig state; changing selector semantics can affect stored chats.
 
-### 5. Inspect frontend config persistence and settings sync
+### 5. Inspect Renderer Config Persistence and Settings Sync
 
 Read:
 

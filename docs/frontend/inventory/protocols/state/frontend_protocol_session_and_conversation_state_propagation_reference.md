@@ -191,7 +191,7 @@ It then:
 
 - updates transcript user context via `updateTranscriptSession(undefined, userId)` when valid user id exists
 - sets artifact backend HTTP URL from metadata
-- resyncs frontend config to backend when connection is reported as already connected
+- resyncs renderer config to backend when connection is reported as already connected
 
 Locked by:
 
@@ -217,9 +217,9 @@ Locked by:
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 - `tests/frontend/IpcTranscriptSessionSync.test.cjs`
 
-## Frontend Config -> Local Runtime Tool Arg State Propagation
+## Renderer Config -> Local Runtime Tool Arg State Propagation
 
-`local_runtime_bridge.cjs` rewrites shell-tool args with frontend config state:
+`local_runtime_bridge.cjs` rewrites shell-tool args with renderer config state:
 
 - for `run_shell_command` only:
 - for `system_use` only when nested `tool === 'run_shell_command'` and nested `arguments` is an object:

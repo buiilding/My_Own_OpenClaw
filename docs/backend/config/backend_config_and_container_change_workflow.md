@@ -143,9 +143,9 @@ Container wiring changes are higher risk because they alter startup, API handler
 - Confirm env-var lookup happens before `build_runtime_config(...)` returns.
 - Confirm the field is included in the docs and tests that assert model defaults.
 
-### Frontend Setting Is Ignored
+### Renderer Setting Is Ignored
 
-- Confirm the key is allowlisted in backend frontend-patch validation.
+- Confirm the key is allowlisted in backend client-settings patch validation.
 - Confirm renderer persistence is allowed to send the key.
 - Confirm `UpdateSettingsHandler` passes the field through.
 - Confirm `SessionManager.update_session_config(...)` writes session-scoped config, not only global config.

@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `1005bdaf9` (`docs(backend): align stream consumer ownership wording`)
+- Latest inspected plan checkpoint: `e2217374d` (`docs(security): align provider settings ownership wording`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -48,9 +48,39 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   consumers, and SDK/main local-runtime dispatch instead of frontend-owned
   runtime semantics. Provider credential and settings docs now describe
   renderer-managed client settings and backend validation ownership instead of
-  stale broad frontend terminology.
+  stale broad frontend terminology. Renderer config-state docs now describe
+  renderer config, desktop UI config persistence, and backend client-settings
+  validation while preserving legacy-named config channels and filenames.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer/Desktop UI Config State Wording Slice
+
+- Worktree was clean after `e2217374d` before this slice, with `main` ahead of
+  `origin/main` by 802 commits.
+- Recent commits showed desktop UI config modules, helpers, and credential
+  docs already moved away from broad frontend ownership, while current renderer
+  and inventory docs still described config sync, local-runtime argument
+  propagation, camera toggles, disk persistence, and patch validation with
+  broad frontend config wording.
+- Finding: current renderer, frontend inventory, preload, MCP, backend config,
+  and self-edit planning docs still blurred renderer-owned settings state,
+  Electron desktop UI config persistence, and backend client-settings patch
+  validation. Compatibility names such as `frontend-config.json`,
+  `load-frontend-config`, and `save-frontend-config` remain real storage/IPC
+  contracts.
+- Change: reworded those docs to renderer config, desktop UI config handlers,
+  desktop UI config persistence, renderer-to-backend settings sync, and
+  client-settings patch validation while preserving real legacy-named channels
+  and filenames.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to include the
+  touched config-state docs and guard the stale config-state ownership phrases.
+- Validation: focused modular boundary Jest coverage; targeted stale
+  config-state wording scan over current docs; docs listing; `git diff --check`.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  renderer config keys, localStorage, disk filename, IPC channels, backend
+  `update-settings` payloads, local-runtime argument shaping, credentials,
+  permissions, provider policy, SDK projections, and storage are unchanged.
 
 ### 2026-06-18 Renderer/Client-Settings Provider Credential Wording Slice
 

@@ -80,7 +80,7 @@ Pre-bootstrap startup behavior:
 - returns true only when query parameter `vm_mode=1` is present
 - fails closed (`false`) on missing window/location or parse exceptions
 
-This is intentionally independent from backend/frontend config state.
+This is intentionally independent from backend and renderer config state.
 
 ## Permission Onboarding Persistence Contract
 

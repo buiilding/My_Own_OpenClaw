@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer/desktop UI config state wording boundary
+
+- Finding: current renderer, frontend inventory, preload, MCP, backend config,
+  and self-edit planning docs still described config sync, local-runtime
+  argument propagation, camera toggles, disk persistence, and patch validation
+  with broad frontend config terminology even though the active owners are
+  renderer config, desktop UI config persistence, and backend client-settings
+  validation.
+- Change: reworded those docs to renderer config, desktop UI config handlers,
+  desktop UI config persistence, renderer-to-backend settings sync, and
+  client-settings patch validation while preserving legacy-named channels and
+  filenames such as `load-frontend-config`, `save-frontend-config`, and
+  `frontend-config.json`; expanded the modular boundary test to guard the stale
+  config-state wording across the touched docs.
+- Validation: focused modular boundary Jest coverage, targeted stale
+  config-state wording scan over current docs, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  renderer config keys, localStorage, disk filename, IPC channels, backend
+  `update-settings` payloads, local-runtime argument shaping, credentials,
+  permissions, provider policy, SDK projections, and storage are unchanged.
+
 ### 2026-06-18 renderer/client-settings provider credential wording boundary
 
 - Finding: provider credential, backend config, security, channel, concept,

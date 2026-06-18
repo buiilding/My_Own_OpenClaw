@@ -120,11 +120,11 @@ Save semantics (`saveConfigToStorage`):
 Disk persistence uses the same redaction rule. `AppConfigProvider` builds a
 redacted persistence payload before invoking `SAVE_FRONTEND_CONFIG`, and
 Electron main defensively redacts provider secrets again on both
-`save-frontend-config` and disk `load-frontend-config` paths.
+`save-frontend-config` and disk `load-frontend-config` legacy-named routes.
 
 Live provider credential edits still flow to backend settings through
 `DesktopSettingsRuntimeClient.updateSettings(...)`; only renderer-local and
-Electron frontend-config persistence are scrubbed.
+Electron desktop UI config persistence are scrubbed.
 
 ## Provider Merge/Apply Guards (`appConfigPersistence`)
 

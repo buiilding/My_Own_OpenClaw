@@ -74,7 +74,7 @@ Minimal pill control inventory in current production `MinimalChatPill`:
 Chatbox camera-toggle behavior:
 
 - the camera button no longer captures immediately into the preview lane
-- it toggles frontend config `include_query_screenshot`
+- it toggles renderer config `include_query_screenshot`
 - enabled state is blue and defaults to enabled on startup
 - enabled hover keeps the icon blue; hover only changes the button background
 - disabled state falls back to the normal white icon color
