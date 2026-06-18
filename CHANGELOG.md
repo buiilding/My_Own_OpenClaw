@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: describe normal SDK conversation and transport paths as
+  backend-wire/source-event boundaries while preserving the intentionally
+  raw-named debug listener API.
 - renderer: dedupe same-turn SDK current-turn tool rows against materialized SDK
   display tool rows by SDK-shaped tool identity so transient live progress does
   not appear as duplicate transcript content.

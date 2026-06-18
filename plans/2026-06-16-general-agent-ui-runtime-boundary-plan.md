@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK backend-wire documentation boundary
+
+- Finding: SDK conversation/runtime docs still used "raw backend" wording for
+  normal projection, current-turn, transport, and authoring guidance even
+  though the reusable SDK boundary is normalized conversation/runtime state;
+  only `subscribeRawBackendEvents(...)` should remain raw-named as an explicit
+  debug surface.
+- Change: reworded normal SDK docs to backend-wire/source-event terminology and
+  expanded the modular boundary guard so public SDK docs do not regain raw
+  backend wording outside the intentional API symbol.
+- Validation: focused modular boundary test, targeted SDK-doc stale wording
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; SDK
+  public API names, debug listener behavior, backend event normalization,
+  conversation projections, tool/local runtime contracts, IPC channels,
+  provider policy, credentials, permissions, and storage are unchanged.
+
 ### 2026-06-18 renderer backend-wire boundary and tool-row presentation
 
 - Finding: current renderer stream docs and a websocket contract test still

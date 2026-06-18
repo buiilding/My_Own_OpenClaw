@@ -130,7 +130,7 @@ UI adapters:
   refs/URLs, `executionTime`, `success`, and `executionSkipped`. Renderer
   adapters may preserve `payload` and raw `toolMetadata` for diagnostics, but
   should render live tool rows and side effects from these SDK fields rather
-  than decoding raw backend-shaped event payloads.
+  than decoding backend-wire event payloads.
 
 ### Removed Standalone Current Turn Projector
 
@@ -145,7 +145,7 @@ same transcript, active-turn, and replay views.
 Electron main emits the projection to renderer surfaces as
 `conversation-runtime-updated`. Renderer overlays should
 render `currentTurn.presentation.entries` instead of independently interpreting
-raw backend stream/tool events or synthesizing current-turn chat messages.
+backend-wire stream/tool events or synthesizing current-turn chat messages.
 Conversation-control compaction events are not current-turn events: they must
 not reset the current-turn anchor to a compaction operation id, set
 `presentation.isBusy`, or turn a manual compaction failure into an assistant
@@ -154,9 +154,9 @@ display/debug projections.
 Electron main emits SDK-normalized conversation side-effect events separately
 as `conversation-event`; chat transcript/session handlers consume that channel
 instead of subscribing to raw `from-backend` stream semantics.
-When a same-turn `currentTurn` projection is present, renderer raw backend
+When a same-turn `currentTurn` projection is present, renderer backend-wire
 handlers should not build duplicate live assistant/tool rows or own chat stream
-normalization. Raw backend events may remain as compatibility traffic for
+normalization. Backend-wire events may remain as compatibility traffic for
 non-chat consumers, diagnostics, or legacy hosts that do not emit the SDK
 projection.
 Renderer live-turn presentation adapters should render explicit SDK
@@ -165,7 +165,7 @@ presentation-entry fields such as `toolCallDetails`, `toolOutputDetails`,
 display details from raw `payload` or `structuredPayload` fallbacks.
 Older renderer fallback adapters that read `snapshot.currentTurn.toolEvents`
 directly follow the same boundary: use projected tool-event fields and
-projected detail objects, not raw backend-shaped payload recovery.
+projected detail objects, not backend-wire payload recovery.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 
@@ -401,7 +401,7 @@ conversation runtime snapshot. Renderer UI/debug state may keep the source label
 `reasoning_delta` as a separate live-state path.
 
 Desktop assistant live text consumes SDK `currentTurn.assistantText` from the
-conversation runtime snapshot. Raw backend `streaming-response` and normalized
+conversation runtime snapshot. Backend-wire `streaming-response` and normalized
 SDK `assistant_delta` events may still exist in the event log, but they should
 not be renderer live-row or active-turn state fallbacks.
 
@@ -411,9 +411,9 @@ renderer transcript writes, so the completion handler should not unwrap
 `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
 Completed-turn model metadata is normalized onto `payload.modelId` and
 `payload.modelProvider` before runtime title generation, so runtime code does
-not unwrap raw backend payloads to recover model identity.
+not unwrap backend-wire payloads to recover model identity.
 Active desktop completion and error phase tracking consumes
-`snapshot.currentTurn.phase` and `snapshot.currentTurn.lastError`; renderer raw
+`snapshot.currentTurn.phase` and `snapshot.currentTurn.lastError`; renderer
 terminal handlers should only materialize/persist transcript rows for
 `turn_completed` and `turn_error`.
 The current-turn projection filters benign settings-update failures and
@@ -428,7 +428,7 @@ normalized-event live-state path.
 
 Desktop local-user projection consumes SDK `user_message` directly for backend
 `local-user-message` echoes. Renderer UI/debug state may keep the source label
-`local-user-message`, but the handler should not consume a raw backend
+`local-user-message`, but the handler should not consume a backend-wire
 `local-user-message` fallback after SDK dispatch.
 
 Desktop tool-call transcript persistence may consume SDK `tool_call` directly.
@@ -588,7 +588,7 @@ Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom
 UI clients. UI components can still use `subscribe()` when they only need
 projected snapshots.
 
-Raw backend websocket packets are not the normal authoring surface. Use
+Backend-wire websocket packets are not the normal authoring surface. Use
 `agent.subscribeRawBackendEvents(...)` only for debug traces or protocol tests;
 display, rehydrate, tool execution, and compaction behavior should consume
 normalized conversation events.

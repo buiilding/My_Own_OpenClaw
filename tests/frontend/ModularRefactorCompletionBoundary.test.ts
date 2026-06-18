@@ -202,6 +202,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('runnable sidecar plugin');
     expect(sdkDocText).not.toContain('sidecar local tool implementation');
     expect(sdkDocText).not.toContain('Use sidecar tools for local machine control');
+    expect(sdkDocText).not.toContain('raw backend');
+    expect(sdkDocText).not.toContain('raw-backend');
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');

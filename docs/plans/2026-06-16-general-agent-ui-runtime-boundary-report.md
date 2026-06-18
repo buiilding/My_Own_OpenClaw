@@ -74,9 +74,33 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   source-event boundaries, and SDK/main command ownership instead of stale
   raw-backend and frontend/backend labels. Renderer transcript presentation now
   dedupes same-turn SDK current-turn tool rows against materialized SDK display
-  tool rows by SDK-shaped tool identity when correlation ids are absent.
+  tool rows by SDK-shaped tool identity when correlation ids are absent. SDK
+  public docs now describe normal conversation/runtime paths with
+  backend-wire/source-event wording while keeping `subscribeRawBackendEvents`
+  as the explicit debug listener API.
 
 ## Inspection Log
+
+### 2026-06-18 SDK Backend-Wire Documentation Boundary Slice
+
+- Worktree was clean after `47fd314ad` before this slice, with `main` ahead of
+  `origin/main` by 811 commits.
+- Recent commits showed SDK raw-event fallbacks and listener aliases already
+  removed or narrowed, while SDK docs still used "raw backend" wording for
+  normal current-turn projection, transport, and authoring paths.
+- Finding: that wording made ordinary SDK consumers look closer to backend
+  websocket packet handling than they are; public app authors should consume
+  SDK streams, conversation projections, and source-event metadata, reserving
+  `subscribeRawBackendEvents(...)` for debug traces and protocol tests.
+- Change: reworded SDK docs to backend-wire/source-event terminology for the
+  normal path and added a modular boundary guard against raw-backend wording in
+  public SDK docs.
+- Validation: focused modular boundary test, targeted SDK-doc stale wording
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; SDK
+  public API names, debug listener behavior, backend event normalization,
+  conversation projections, tool/local runtime contracts, IPC channels,
+  provider policy, credentials, permissions, and storage are unchanged.
 
 ### 2026-06-18 Renderer Backend-Wire Boundary and Tool-Row Presentation Slice
 

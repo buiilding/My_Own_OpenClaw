@@ -800,10 +800,10 @@ backend tool-call -> SDK conversation runtime -> SDK local runtime /execute-tool
 ```
 
 `AgentSession` is now transport-only. It connects, handshakes, sends
-queries/results, and emits raw backend events. It does not execute local tools.
+queries/results, and emits backend-wire events. It does not execute local tools.
 `ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
 that need connection waiters, reconnect scheduling, endpoint advance, idle
-disconnect, typed backend sends, and raw event parsing. Electron main consumes
+disconnect, typed backend sends, and backend-wire event parsing. Electron main consumes
 that SDK package transport and only supplies host-specific socket construction,
 headers, handshake data, local tool execution, and renderer fan-out.
 Close metadata reports whether a reconnect was already scheduled as
@@ -853,13 +853,14 @@ Current canonical surface:
 
 `listModels` is backend-owned. `listAgents` is SDK-runtime state for active local agent sessions.
 
-`agent.subscribeRawBackendEvents(listener)` is a debug surface. It receives
-typed backend websocket events before conversation projection and returns an
-unsubscribe function. Normal app authors should use `agent.stream(...)`,
-`conversation.stream(...)`, or `conversation.subscribe(...)`; raw backend events
-are for trace tools, tests, and protocol debugging only. The listener uses the
-direct `(event: BackendEvent) => void` shape; there is no separate exported
-raw-backend listener alias.
+`agent.subscribeRawBackendEvents(listener)` is the intentionally raw-named
+debug surface. It receives typed backend websocket events before conversation
+projection and returns an unsubscribe function. Normal app authors should use
+`agent.stream(...)`, `conversation.stream(...)`, or
+`conversation.subscribe(...)`; backend-wire events are for trace tools, tests,
+and protocol debugging only. The listener uses the direct
+`(event: BackendEvent) => void` shape; there is no separate exported raw-named
+listener alias.
 
 `agent.setModel({ modelProvider, modelId, modelMode?, interactionMode? })` is
 the first-class SDK model-changing API for agent-level selection. Conversation
