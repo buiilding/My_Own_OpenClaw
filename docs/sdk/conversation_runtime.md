@@ -207,7 +207,7 @@ or raw SQL rows.
 After completed-turn memory is successfully stored, the SDK emits
 `memory_store_changed` with the authenticated `userId`, `conversationRef`,
 changed memory types, `reason: "completed_turn"`, and the memory id when the
-sidecar returns one. Hosts should treat this as an invalidation signal and
+local runtime returns one. Hosts should treat this as an invalidation signal and
 reload memory display data through SDK memory APIs. Skipped or failed
 completed-turn memory persistence does not emit `memory_store_changed`, so open
 memory surfaces do not refresh against unchanged storage.
@@ -215,7 +215,7 @@ memory surfaces do not refresh against unchanged storage.
 Generated conversation titles are also terminal-turn enrichment owned by
 `ConversationRuntime`, but they are best-effort and asynchronous after the
 completed-turn snapshot is emitted. After the first successful assistant text
-completion for a conversation, the SDK checks sidecar title state; if there is
+completion for a conversation, the SDK checks local-runtime title state; if there is
 no locked, manual, model, or unknown durable title, it calls the hosted title
 route with the first completed user/assistant pair and active model/provider
 metadata, then persists the result through the local
@@ -286,7 +286,7 @@ The SDK ships two reusable store adapters:
 
 - `InMemoryConversationStore` for tests, demos, and short-lived processes.
 - `FileConversationStore` for Node CLI/custom UI hosts that want durable JSON
-  event logs without Electron sidecar storage. Same-conversation mutations are
+  event logs without Electron local-runtime storage. Same-conversation mutations are
   serialized inside the adapter so overlapping append/rewrite/replay/delete
   operations do not lose events through read-modify-write races.
 - `LocalRuntimeConversationStore` for Node/Electron hosts that want durable
@@ -296,7 +296,7 @@ The SDK ships two reusable store adapters:
   conversation library uses this store for metadata operations such as list,
   search, delete, and generated-title invalidation refreshes. The desktop
   conversation store adapter also delegates its read/projection conveniences to
-  this SDK store. Metadata rows read from the sidecar use canonical snake_case
+  this SDK store. Metadata rows read from the local runtime use canonical snake_case
   local-runtime fields such as `conversation_id`, `revision_id`,
   `last_timestamp`, `entry_count`, `workspace_path`, and `workspace_name`;
   removed camelCase row aliases are ignored. Desktop supplies Electron-specific
@@ -317,7 +317,7 @@ adapter. Set `persistence: false` for an in-memory session.
 local order. Backend events write `producer = "backend"`,
 `producer_event_id = eventId`, and `producer_sequence =
 payload.backendSequence`. SDK/local-runtime-created events keep SDK-owned event ids.
-The sidecar still assigns `message_index` locally, and display/replay loading
+The local runtime still assigns `message_index` locally, and display/replay loading
 orders by `message_index` rather than backend sequence.
 
 Electron's local-runtime-backed store is a first-party adapter. It is allowed to know
@@ -459,15 +459,15 @@ Responsibility split:
 - Electron owns local IPC, local-runtime-backed persistence, and renderer wiring.
 - Sidecar owns durable rows, ordering, list/search/title/delete queries, and
   SQLite/FAISS mechanics.
-- SDK local-runtime clients own the raw sidecar event subscription surface.
+- SDK local-runtime clients own the raw local-runtime event subscription surface.
   Electron hosts classify local events such as `conversation-title-updated` at
   the main-process boundary and broadcast public invalidations such as
   `windie:conversation-metadata-invalidated` to renderer UI. The SDK
   `conversationMetadataInvalidationFromLocalRuntimeEvent(...)` helper owns that
-  normalizer so host adapters do not invent sidecar payload parsing. It reads
-  the canonical sidecar payload fields `conversation_id`, `title`, and `source`;
+  normalizer so host adapters do not invent local-runtime payload parsing. It reads
+  the canonical local-runtime payload fields `conversation_id`, `title`, and `source`;
   removed top-level, camelCase, and `conversation_ref` aliases are ignored. UI
-  adapters reload metadata from the store instead of handling raw sidecar event
+  adapters reload metadata from the store instead of handling raw local-runtime event
   payloads. No persisted-data migration is required for alias removal because
   title updates are transient local-runtime events.
 
@@ -611,7 +611,7 @@ Malformed or unclaimable tool events should remain unclaimed or become explicit
 failures; they should not be marked display-only without a backend result path.
 When a local runtime is available but a backend tool event is missing the fields
 needed to claim execution, the SDK stores a `runtime_error` with
-`reason: "malformed_tool_event"` instead of invoking the sidecar or inventing a
+`reason: "malformed_tool_event"` instead of invoking the local runtime or inventing a
 backend result id.
 
 `SdkConversationRuntime` can be constructed with a `localRuntime` adapter. In

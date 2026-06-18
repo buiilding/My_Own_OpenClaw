@@ -39,7 +39,7 @@ Query routing boundary:
 
 - Hosted query turns use the backend websocket opened by the SDK runtime.
 - Local desktop authority is delegated to the SDK local runtime, implemented by
-  the Python sidecar daemon in the desktop app, for executable tools, local
+  the Python local-runtime daemon in the desktop app, for executable tools, local
   memory, screenshots, shell/filesystem, browser, computer-use, and
   local-runtime status calls.
 - `AgentClient.wakeUp(...)` is the path that combines both: it connects the
@@ -538,7 +538,7 @@ Electron uses the SDK `LocalRuntimeConversationStore` through a desktop store fa
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
   pages. `cursor` is the last `conversationRef` from the previous page.
-- Electron store event loading preserves the sidecar row append order from
+- Electron store event loading preserves the local-runtime row append order from
   `message_index` pagination. It must not re-sort events by timestamp or event
   id because same-timestamp turns, tool pairs, and assistant commits depend on
   append order.
