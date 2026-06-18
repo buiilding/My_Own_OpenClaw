@@ -13,7 +13,7 @@ title: "Sidecar Service Protocol Docs Hub"
 
 ## Related Pages
 
-- [Frontend Sidecar Services Docs Hub](../README.md)
+- [Local Runtime Sidecar Services Docs Hub](../README.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](../wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 
 ## Code Scope

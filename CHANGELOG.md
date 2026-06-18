@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sidecar: rename visible sidecar hub and link labels from frontend
+  sidecar to local runtime sidecar while preserving `docs/frontend/sidecar`
+  paths and runtime behavior.
 - docs/runtime: align cross-runtime contract, debug, security, install, and
   incident guidance with backend, SDK/main, renderer, desktop host, and sidecar
   ownership instead of stale three-runtime shorthand.

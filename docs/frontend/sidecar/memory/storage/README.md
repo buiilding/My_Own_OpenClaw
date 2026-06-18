@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar memory storage docs sub-hub for LocalMemoryStore routing/search internals, SDK-provided embeddings, transcript-window queries, FAISS artifact cleanup, and schema/index/watermark persistence contracts."
+summary: "Local Runtime Sidecar memory storage docs sub-hub for LocalMemoryStore routing/search internals, SDK-provided embeddings, transcript-window queries, FAISS artifact cleanup, and schema/index/watermark persistence contracts."
 read_when:
   - When changing `frontend/src/main/python/memory/local_store.py` behavior beyond summarizer-only logic.
   - When debugging memory type routing, vector mapping/index drift, transcript conversation window ordering, title drift, or watermark persistence issues.
-title: "Frontend Sidecar Memory Storage Docs Hub"
+title: "Local Runtime Sidecar Memory Storage Docs Hub"
 ---
 
-# Frontend Sidecar Memory Storage Docs Hub
+# Local Runtime Sidecar Memory Storage Docs Hub
 
 ## Deep Pages
 
@@ -17,7 +17,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 
 ## Related Pages
 
-- [Frontend Sidecar Memory Docs Hub](../README.md)
+- [Local Runtime Sidecar Memory Docs Hub](../README.md)
 - [Memory Pipeline and Summarization](../../memory_pipeline_and_summarization.md)
 - [Summarizer Watermark and Conversation Batch Reference](../summarizer_watermark_and_conversation_batch_reference.md)
 

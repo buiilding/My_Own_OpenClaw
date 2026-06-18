@@ -17,7 +17,7 @@ title: "Backend Browser Schema Docs Hub"
 
 - [Backend Browser Tools Docs Hub](../README.md)
 - [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)
-- [Frontend Sidecar Browser Docs Hub](../../../../frontend/sidecar/browser/README.md)
+- [Local Runtime Sidecar Browser Docs Hub](../../../../frontend/sidecar/browser/README.md)
 
 ## Code Scope
 

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local-runtime sidecar docs label boundary
+
+- Finding: sidecar hub titles, frontmatter, cross-links, routing tables, and
+  related tool/memory/browser/channel docs still exposed the sidecar as
+  a frontend-owned sidecar surface even though the runtime boundary now treats
+  it as the desktop host's local-runtime sidecar.
+- Change: mechanically renamed visible docs labels and links to "Local Runtime
+  Sidecar" across current docs while preserving existing
+  `docs/frontend/sidecar/...` file paths; added a docs-wide modular boundary
+  guard so the retired visible label does not return.
+- Validation: targeted label scan confirmed no current docs/test markdown keeps
+  the retired visible label before adding the guard.
+- Compatibility: no migration required. This is docs/test label cleanup only;
+  docs paths, sidecar process names, JSON-RPC methods, tool schemas,
+  local-runtime dispatch, IPC channels, credentials, permissions, provider
+  policy, and storage are unchanged.
+
 ### 2026-06-18 cross-runtime contract wording boundary
 
 - Finding: architecture, backend inventory, tool-contract, debug, security,

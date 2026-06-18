@@ -159,6 +159,6 @@ Test coverage confirms stale local mappings are cleared deterministically.
 
 ## Related Pages
 
-- [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Local Runtime Sidecar Memory Storage Docs Hub](README.md)
 - [Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference](conversation_search_helper_term_snippet_grouping_and_timestamp_contract_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)

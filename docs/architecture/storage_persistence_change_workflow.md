@@ -35,7 +35,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) |
 | Sidecar transcript/memory SQLite | Python sidecar memory store | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Sidecar Local Memory](../memory/sidecar_local_memory.md) |
 | Sidecar FAISS indexes and vector mappings | Python sidecar memory store | `frontend/src/main/python/memory/faiss_index.py`, `sqlite_store.py`, `local_store.py` | `tests/sidecar/test_local_store_init.py`, `test_local_store_delete_cleanup.py`, storage tests | [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) |
-| Semanticization watermark | Python sidecar summarizer | `frontend/src/main/python/memory/watermark_state.py`, `summarizer.py`, `conversation_semanticization_runtime.py` | `tests/sidecar/test_memory_summarizer.py`, semanticization tests | [Frontend Sidecar Memory Hub](../frontend/sidecar/memory/README.md) |
+| Semanticization watermark | Python sidecar summarizer | `frontend/src/main/python/memory/watermark_state.py`, `summarizer.py`, `conversation_semanticization_runtime.py` | `tests/sidecar/test_memory_summarizer.py`, semanticization tests | [Local Runtime Sidecar Memory Hub](../frontend/sidecar/memory/README.md) |
 | Backend artifacts | Backend artifact service | `backend/src/services/artifacts/store.py`, `backend/src/api/routes/artifacts/**` | `tests/backend/test_artifacts_store.py`, artifact route tests | [Artifact Change Workflow](../desktop/artifact_change_workflow.md) |
 | Backend install-auth DB | Backend auth service | `backend/src/api/auth/service.py` | `tests/backend/test_install_auth.py` | [Hosted Backend Auth](../operations/hosted_backend_auth.md) |
 | Backend active history and compaction state | Backend agent runtime | `backend/src/agent/history/**`, `backend/src/agent/compaction/**` | backend history/compaction/interaction-loop tests | [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md) |
@@ -133,7 +133,7 @@ Read:
 
 - [Sidecar Local Memory](../memory/sidecar_local_memory.md)
 - [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
-- [Frontend Sidecar Memory Storage Hub](../frontend/sidecar/memory/storage/README.md)
+- [Local Runtime Sidecar Memory Storage Hub](../frontend/sidecar/memory/storage/README.md)
 
 Edit:
 
@@ -180,7 +180,7 @@ Read:
 
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
 - [Sidecar Local Memory](../memory/sidecar_local_memory.md)
-- [Frontend Sidecar Memory Hub](../frontend/sidecar/memory/README.md)
+- [Local Runtime Sidecar Memory Hub](../frontend/sidecar/memory/README.md)
 
 Edit:
 

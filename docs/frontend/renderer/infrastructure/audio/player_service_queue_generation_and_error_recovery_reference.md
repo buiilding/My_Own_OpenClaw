@@ -149,4 +149,4 @@ It is a service-local indicator, not a global backend stream phase signal.
 
 - [Frontend Renderer Infrastructure Audio Docs Hub](README.md)
 - [Audio Chunk Playback and Stop Semantics Reference](../../../runtime/audio_chunk_playback_and_stop_semantics_reference.md)
-- [Frontend Sidecar Wakeword Bridge and Audio Framing Reference](../../../sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Local Runtime Sidecar Wakeword Bridge and Audio Framing Reference](../../../sidecar/wakeword_bridge_and_audio_framing_reference.md)

@@ -96,5 +96,5 @@ Errors are surfaced as action failure payloads in the same shape used by other B
 
 ## Related Pages
 
-- [Frontend Sidecar Browser Docs Hub](README.md)
+- [Local Runtime Sidecar Browser Docs Hub](README.md)
 - [Browser Action Runtime Reference](../browser_action_runtime_reference.md)

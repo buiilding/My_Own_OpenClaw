@@ -166,6 +166,6 @@ If connect/launch fails:
 
 ## Related Pages
 
-- [Frontend Sidecar Browser Chrome Docs Hub](README.md)
+- [Local Runtime Sidecar Browser Chrome Docs Hub](README.md)
 - [Browser Runtime Deterministic Extraction Contract Reference](../browser_runtime_deterministic_extraction_contract_reference.md)
 - [Browser Automation Stack](../../browser_automation_stack.md)

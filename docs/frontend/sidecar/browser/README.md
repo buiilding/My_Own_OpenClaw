@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar browser docs sub-hub for the Browser Use CLI adapter, canonical browser contract validation, and sidecar browser launch/result boundaries."
+summary: "Local Runtime Sidecar browser docs sub-hub for the Browser Use CLI adapter, canonical browser contract validation, and sidecar browser launch/result boundaries."
 read_when:
   - When changing sidecar Browser Use engine routing, browser action validation, or Browser Use daemon invocation.
   - When debugging browser action failures across adapter routing, action parameter normalization, or Browser Use CLI execution.
-title: "Frontend Sidecar Browser Docs Hub"
+title: "Local Runtime Sidecar Browser Docs Hub"
 ---
 
-# Frontend Sidecar Browser Docs Hub
+# Local Runtime Sidecar Browser Docs Hub
 
 Current browser tool execution routes through `frontend/src/main/python/tools/browser/browser_use_engine.py`, which adapts canonical browser payloads to the official `browser-use[cli]` package. The sidecar browser adapter owns runtime validation, Chrome/CDP launch policy, local tool transport, browser-local files, and result normalization; Browser Use owns browser/session mechanics.
 

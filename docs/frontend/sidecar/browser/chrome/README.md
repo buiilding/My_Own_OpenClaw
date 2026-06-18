@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar browser chrome docs sub-hub for executable detection and dedicated CDP launch policy used by the Browser Use CLI adapter."
+summary: "Local Runtime Sidecar browser chrome docs sub-hub for executable detection and dedicated CDP launch policy used by the Browser Use CLI adapter."
 read_when:
   - When changing `tools/browser/chrome_detection.py` or `chrome_launcher.py`.
   - When debugging Windie browser auto-launch/connect behavior or CDP attach failures.
-title: "Frontend Sidecar Browser Chrome Docs Hub"
+title: "Local Runtime Sidecar Browser Chrome Docs Hub"
 ---
 
-# Frontend Sidecar Browser Chrome Docs Hub
+# Local Runtime Sidecar Browser Chrome Docs Hub
 
 ## Deep Pages
 
@@ -14,7 +14,7 @@ title: "Frontend Sidecar Browser Chrome Docs Hub"
 
 ## Related Pages
 
-- [Frontend Sidecar Browser Docs Hub](../README.md)
+- [Local Runtime Sidecar Browser Docs Hub](../README.md)
 - [Browser Automation Stack](../../browser_automation_stack.md)
 
 ## Code Scope

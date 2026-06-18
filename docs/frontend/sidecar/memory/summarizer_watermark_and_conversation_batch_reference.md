@@ -149,5 +149,5 @@ Chunking:
 
 ## Related Pages
 
-- [Frontend Sidecar Memory Docs Hub](README.md)
-- [Frontend Sidecar Memory Storage Docs Hub](storage/README.md)
+- [Local Runtime Sidecar Memory Docs Hub](README.md)
+- [Local Runtime Sidecar Memory Storage Docs Hub](storage/README.md)

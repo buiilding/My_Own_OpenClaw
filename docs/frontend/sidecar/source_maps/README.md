@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar source-maps docs sub-hub for Python sidecar folder topology and package `__init__` export surfaces."
+summary: "Local Runtime Sidecar source-maps docs sub-hub for Python sidecar folder topology and package `__init__` export surfaces."
 read_when:
   - When reorganizing `frontend/src/main/python/*` package layout.
   - When changing sidecar package import surfaces.
-title: "Frontend Sidecar Source Maps Docs Hub"
+title: "Local Runtime Sidecar Source Maps Docs Hub"
 ---
 
-# Frontend Sidecar Source Maps Docs Hub
+# Local Runtime Sidecar Source Maps Docs Hub
 
 ## Deep Pages
 
@@ -14,8 +14,8 @@ title: "Frontend Sidecar Source Maps Docs Hub"
 
 ## Related Pages
 
-- [Frontend Sidecar Docs Hub](../README.md)
-- [Frontend Sidecar Browser Docs Hub](../browser/README.md)
+- [Local Runtime Sidecar Docs Hub](../README.md)
+- [Local Runtime Sidecar Browser Docs Hub](../browser/README.md)
 
 ## Code Scope
 

@@ -47,4 +47,4 @@ This is the canonical computer use screenshot guide.
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
 - [Backend OCR + Vision Coordinate Runtime Overview](../backend/services/ocr_and_vision_coordinate_runtime_reference.md)
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
-- [Frontend Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
+- [Local Runtime Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)

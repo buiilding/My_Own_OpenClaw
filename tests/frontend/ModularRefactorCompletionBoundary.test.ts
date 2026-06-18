@@ -16,6 +16,19 @@ async function read(relativePath: string): Promise<string> {
   return fs.readFile(path.join(repoRoot, relativePath), 'utf8');
 }
 
+async function listMarkdownFiles(relativeDir: string): Promise<string[]> {
+  const absoluteDir = path.join(repoRoot, relativeDir);
+  const entries = await fs.readdir(absoluteDir, { withFileTypes: true });
+  const files = await Promise.all(entries.map(async entry => {
+    const relativePath = path.join(relativeDir, entry.name);
+    if (entry.isDirectory()) {
+      return listMarkdownFiles(relativePath);
+    }
+    return entry.isFile() && entry.name.endsWith('.md') ? [relativePath] : [];
+  }));
+  return files.flat();
+}
+
 describe('modular sdk refactor completion boundary', () => {
   test('electron main uses AgentClient wakeUp instead of a desktop wrapper', async () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
@@ -501,6 +514,20 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain(
       'Remote tools are dispatched through the SDK/main local runtime',
     );
+  });
+
+  test('docs use local runtime sidecar labels instead of frontend sidecar labels', async () => {
+    const docs = await listMarkdownFiles('docs');
+    const offenders: Record<string, string[]> = {};
+
+    for (const relativePath of docs) {
+      const source = await read(relativePath);
+      if (source.includes('Frontend Sidecar')) {
+        offenders[relativePath] = ['Frontend Sidecar'];
+      }
+    }
+
+    expect(offenders).toEqual({});
   });
 
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {

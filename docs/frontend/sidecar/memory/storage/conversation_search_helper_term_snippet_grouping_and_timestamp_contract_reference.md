@@ -161,5 +161,5 @@ Used for recency scoring/sort tie-break safety across heterogeneous stored times
 
 ## Related Pages
 
-- [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Local Runtime Sidecar Memory Storage Docs Hub](README.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)

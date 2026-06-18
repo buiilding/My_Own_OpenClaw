@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar system-tools docs sub-hub for wait/window/stats runtime semantics, platform window-manager behavior, and system metrics collection contracts."
+summary: "Local Runtime Sidecar system-tools docs sub-hub for wait/window/stats runtime semantics, platform window-manager behavior, and system metrics collection contracts."
 read_when:
   - When changing sidecar system tools (`wait`, `switch_window`, `get_open_windows`, `get_system_stats`, `open_app`).
   - When debugging platform-specific window switching behavior or host metrics collection failures.
-title: "Frontend Sidecar System Tools Docs Hub"
+title: "Local Runtime Sidecar System Tools Docs Hub"
 ---
 
-# Frontend Sidecar System Tools Docs Hub
+# Local Runtime Sidecar System Tools Docs Hub
 
 ## Deep Pages
 

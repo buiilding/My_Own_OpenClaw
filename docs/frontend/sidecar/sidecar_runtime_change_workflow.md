@@ -127,7 +127,7 @@ Before committing sidecar work:
 
 ## Related Docs
 
-- [Frontend Sidecar Docs Hub](README.md)
+- [Local Runtime Sidecar Docs Hub](README.md)
 - [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md)

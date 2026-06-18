@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar filesystem tools docs sub-hub for read-file pagination/binary guards and replace engine matching/atomic write semantics."
+summary: "Local Runtime Sidecar filesystem tools docs sub-hub for read-file pagination/binary guards and replace engine matching/atomic write semantics."
 read_when:
   - When changing sidecar filesystem tools under `frontend/src/main/python/tools/filesystem/*`.
   - When debugging read-file truncation windows, replace ambiguity errors, or patch-chunk apply failures.
-title: "Frontend Sidecar Filesystem Tools Docs Hub"
+title: "Local Runtime Sidecar Filesystem Tools Docs Hub"
 ---
 
-# Frontend Sidecar Filesystem Tools Docs Hub
+# Local Runtime Sidecar Filesystem Tools Docs Hub
 
 ## Deep Pages
 
@@ -15,7 +15,7 @@ title: "Frontend Sidecar Filesystem Tools Docs Hub"
 
 ## Related Pages
 
-- [Frontend Sidecar Tools Docs Hub](../README.md)
+- [Local Runtime Sidecar Tools Docs Hub](../README.md)
 - [Filesystem Read and Replace Runtime Reference](../filesystem_read_replace_runtime_reference.md)
 
 ## Code Scope

@@ -108,5 +108,5 @@ Operational expectation:
 
 ## Related Pages
 
-- [Frontend Sidecar Browser Contracts Docs Hub](README.md)
+- [Local Runtime Sidecar Browser Contracts Docs Hub](README.md)
 - [Browser Action Runtime Reference](../../browser_action_runtime_reference.md)

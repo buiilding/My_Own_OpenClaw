@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar memory docs sub-hub for transcript storage, SDK-provided embeddings, summarizer cadence, watermark progression, and unsemanticized conversation-window batching behavior."
+summary: "Local Runtime Sidecar memory docs sub-hub for transcript storage, SDK-provided embeddings, summarizer cadence, watermark progression, and unsemanticized conversation-window batching behavior."
 read_when:
   - When changing sidecar transcript storage fields, semantic-candidate rules, or summarizer watermark progression logic.
   - When debugging why episodic transcript entries are or are not promoted to semantic memory, or why transcript windows remain untitled/pending.
-title: "Frontend Sidecar Memory Docs Hub"
+title: "Local Runtime Sidecar Memory Docs Hub"
 ---
 
-# Frontend Sidecar Memory Docs Hub
+# Local Runtime Sidecar Memory Docs Hub
 
 ## Deep Pages
 

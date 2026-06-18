@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar docs sub-hub for Python sidecar runtime, tool catalog execution model, memory pipeline, and browser automation stack."
+summary: "Local Runtime Sidecar docs sub-hub for Python sidecar runtime, tool catalog execution model, memory pipeline, and browser automation stack."
 read_when:
   - When changing sidecar JSON-RPC methods, tool implementations, or memory summarization behavior.
   - When debugging renderer->main->local-runtime bridge failures or browser automation runtime issues.
-title: "Frontend Sidecar Docs Hub"
+title: "Local Runtime Sidecar Docs Hub"
 ---
 
-# Frontend Sidecar Docs Hub
+# Local Runtime Sidecar Docs Hub
 
 ## Deep Pages
 

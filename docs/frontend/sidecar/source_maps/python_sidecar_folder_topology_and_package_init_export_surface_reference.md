@@ -60,6 +60,6 @@ When moving sidecar modules:
 
 ## Related Docs
 
-- [Frontend Sidecar Source Maps Docs Hub](README.md)
-- [Frontend Sidecar Docs Hub](../README.md)
-- [Frontend Sidecar Browser Docs Hub](../browser/README.md)
+- [Local Runtime Sidecar Source Maps Docs Hub](README.md)
+- [Local Runtime Sidecar Docs Hub](../README.md)
+- [Local Runtime Sidecar Browser Docs Hub](../browser/README.md)

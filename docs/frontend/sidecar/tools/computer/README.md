@@ -1,12 +1,12 @@
 ---
-summary: "Frontend sidecar computer-tools docs sub-hub for mouse/keyboard/scroll/screenshot runtime behavior, OS scroll normalization, and output envelope semantics."
+summary: "Local Runtime Sidecar computer-tools docs sub-hub for mouse/keyboard/scroll/screenshot runtime behavior, OS scroll normalization, and output envelope semantics."
 read_when:
   - When changing sidecar computer-use tools (`mouse_control`, `keyboard_control`, `scroll_control`, `screenshot`).
   - When debugging coordinate-action failures, scroll-distance drift, or screenshot payload size/format behavior.
-title: "Frontend Sidecar Computer Tools Docs Hub"
+title: "Local Runtime Sidecar Computer Tools Docs Hub"
 ---
 
-# Frontend Sidecar Computer Tools Docs Hub
+# Local Runtime Sidecar Computer Tools Docs Hub
 
 ## Deep Pages
 

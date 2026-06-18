@@ -61,9 +61,33 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   validation, sidecar-browser, landing, and reference docs now describe
   backend/client contracts, SDK/renderer consumers, SDK/main local-runtime
   dispatch, desktop host boundaries, and sidecar execution instead of stale
-  three-runtime shorthand.
+  three-runtime shorthand. Sidecar hub titles and cross-links now expose the
+  local-runtime sidecar label while preserving existing
+  `docs/frontend/sidecar/...` file paths.
 
 ## Inspection Log
+
+### 2026-06-18 Local-Runtime Sidecar Docs Label Slice
+
+- Worktree was clean after `4faa92f42` before this slice, with `main` ahead of
+  `origin/main` by 806 commits.
+- Recent commits showed cross-runtime ownership and local-runtime wording
+  already aligned, while sidecar hub titles, frontmatter, cross-links, routing
+  tables, and related tool/memory/browser/channel docs still exposed the
+  sidecar as a frontend-owned surface.
+- Finding: retired frontend-owned sidecar labels conflicted with the active
+  local-runtime sidecar boundary, even though the `docs/frontend/sidecar/...`
+  paths remain real repository paths.
+- Change: mechanically renamed visible labels and links to "Local Runtime
+  Sidecar" across current docs while preserving all existing paths and anchors.
+- Change: added a docs-wide modular boundary guard that fails if the retired
+  visible label returns to current markdown docs.
+- Validation: targeted label scan confirmed no current docs/test markdown kept
+  the retired visible label before adding the guard.
+- Compatibility: no migration required. This is docs/test label cleanup only;
+  docs paths, sidecar process names, JSON-RPC methods, tool schemas,
+  local-runtime dispatch, IPC channels, credentials, permissions, provider
+  policy, and storage are unchanged.
 
 ### 2026-06-18 Cross-Runtime Contract Wording Slice
 
