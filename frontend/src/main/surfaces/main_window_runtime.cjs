@@ -26,7 +26,7 @@ const {
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 164;
 const DEFAULT_OVERLAY_QUERY_CAPTURE_FOCUS_WAIT_MS = 120;
-const PENDING_COLLAPSE_TO_CHAT_PILL_KEY = '__desktopAgentPendingCollapseToChatPill';
+const PENDING_COLLAPSE_TO_CHAT_PILL_KEY = '__desktopRuntimePendingCollapseToChatPill';
 
 function normalizeOverlayQueryCaptureFocusWaitMs(value) {
   if (typeof value !== 'number' && typeof value !== 'string') {

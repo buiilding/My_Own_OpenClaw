@@ -746,13 +746,13 @@ describe('main_window_runtime createMainWindow', () => {
 
       expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
       expect(mainWindow.hide).not.toHaveBeenCalled();
-      expect(mainWindow.__desktopAgentPendingCollapseToChatPill).toBe(true);
+      expect(mainWindow.__desktopRuntimePendingCollapseToChatPill).toBe(true);
 
       jest.advanceTimersByTime(1500);
 
       expect(mainWindow.hide).toHaveBeenCalledTimes(1);
       expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
-      expect(mainWindow.__desktopAgentPendingCollapseToChatPill).toBe(false);
+      expect(mainWindow.__desktopRuntimePendingCollapseToChatPill).toBe(false);
     } finally {
       jest.useRealTimers();
     }

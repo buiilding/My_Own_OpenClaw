@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main pending collapse marker runtime key
+
+- Finding: the macOS fullscreen close fallback still tracked dashboard-to-pill
+  collapse state on `__desktopAgentPendingCollapseToChatPill`, a private main
+  window marker below the desktop-runtime surface boundary.
+- Change: renamed the private marker to
+  `__desktopRuntimePendingCollapseToChatPill` and extended main host boundary
+  coverage to reject the retired desktop-agent marker.
+- Validation: focused MainWindowRuntime and MainHostSkinBoundary Jest tests,
+  recent history review, and stale pending-collapse marker scan.
+- Compatibility: no migration required. The marker is process-local temporary
+  window state; close/fallback behavior, chat pill restore, IPC, settings, and
+  persisted data are unchanged.
+
 ### 2026-06-18 main renderer console logging marker runtime key
 
 - Finding: Electron main renderer-console mirroring still used the private

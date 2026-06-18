@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the private dashboard-to-chat-pill collapse marker from
+  `__desktopAgentPendingCollapseToChatPill` to
+  `__desktopRuntimePendingCollapseToChatPill`; no migration is required because
+  close/fallback behavior, window state, IPC, and persisted data are unchanged.
 - frontend/main: rename the private renderer-console logging attachment marker
   from `__desktopAgentRendererConsoleLoggingAttached` to
   `__desktopRuntimeRendererConsoleLoggingAttached`; no migration is required

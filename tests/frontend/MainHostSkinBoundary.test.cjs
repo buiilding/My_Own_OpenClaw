@@ -357,6 +357,7 @@ describe('main host skin/config boundary', () => {
       '__windieRendererConsoleLoggingAttached',
       '__windiePendingCollapseToChatPill',
       '__windieScreenshotRestoreBounds',
+      '__desktopAgentPendingCollapseToChatPill',
       '__desktopAgentRendererConsoleLoggingAttached',
       '__desktopAgentScreenshotRestoreBounds',
     ];
