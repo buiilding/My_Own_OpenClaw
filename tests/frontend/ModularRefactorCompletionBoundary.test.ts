@@ -323,18 +323,24 @@ describe('modular sdk refactor completion boundary', () => {
     const docs = await Promise.all([
       read('docs/architecture/backend_architecture.md'),
       read('docs/architecture/agent_visible_data_pipeline.md'),
+      read('docs/architecture/storage_persistence_change_workflow.md'),
       read('docs/channels/README.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
       read('docs/concepts/agent_loop.md'),
       read('docs/concepts/prompt_and_tool_context.md'),
       read('docs/concepts/safety_boundaries.md'),
       read('docs/debug/runtime_traces.md'),
+      read('docs/backend/agent/tool_turn_change_workflow.md'),
       read('docs/development/agent_architecture_reference.md'),
       read('docs/development/agent_routing_quick_cards.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
       read('docs/development/mcp.md'),
       read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
+      read('docs/frontend/ipc_change_workflow.md'),
+      read('docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md'),
+      read('docs/frontend/inventory/protocols/state/frontend_protocol_session_and_conversation_state_propagation_reference.md'),
+      read('docs/frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
@@ -368,6 +374,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/security/README.md'),
       read('docs/security/security_boundary_matrix.md'),
       read('docs/security/security_change_playbook.md'),
+      read('docs/security/permissions_and_local_authority_workflow.md'),
     ]);
     const docText = docs.join('\n');
     const toolRoutingDocText = (await Promise.all([
@@ -415,6 +422,18 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/computer.md'),
       read('docs/sdk/conversation_runtime.md'),
     ])).join('\n');
+    const localRuntimePayloadDocText = (await Promise.all([
+      read('docs/architecture/agent_visible_data_pipeline.md'),
+      read('docs/architecture/storage_persistence_change_workflow.md'),
+      read('docs/backend/agent/tool_turn_change_workflow.md'),
+      read('docs/frontend/ipc_change_workflow.md'),
+      read('docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md'),
+      read('docs/frontend/inventory/protocols/state/frontend_protocol_session_and_conversation_state_propagation_reference.md'),
+      read('docs/frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md'),
+      read('docs/security/permissions_and_local_authority_workflow.md'),
+      read('docs/tools/tool_troubleshooting.md'),
+      read('docs/tools/tool_schema_policy_change_workflow.md'),
+    ])).join('\n');
 
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
@@ -428,6 +447,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local execution contracts');
     expect(docText).toContain('SDK/main local execution');
     expect(docText).toContain('local-runtime result');
+    expect(docText).toContain('executable local-runtime payload');
+    expect(docText).toContain('local-runtime validation');
     expect(docText).not.toContain('SDK desktop agent');
     expect(docText).not.toContain(`SDK desktop-${'agent'}`);
     expect(docText).not.toContain('client-local sidecar tool');
@@ -439,6 +460,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar results');
     expect(toolRoutingDocText).not.toContain('sidecar result');
     expect(toolRoutingDocText).not.toContain('what the sidecar executed');
+    expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
+    expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
+    expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');
     expect(docText).not.toContain('Windie Agent owns client-local');
     expect(docText).not.toContain('Sidecar Plugin Tool Registration');
     expect(docText).not.toContain('sidecar plugin');

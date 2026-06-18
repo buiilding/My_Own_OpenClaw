@@ -97,7 +97,7 @@ Validation:
 
 ## Scope Guards
 
-- Do not patch renderer to hide malformed sidecar payloads; fix sidecar/main contract owners.
+- Do not patch renderer to hide malformed local-runtime payloads; fix SDK/main contract owners.
 - Do not patch main IPC for UI-only state bugs; fix renderer providers/hooks.
 - Do not patch sidecar tool logic for missing renderer correlation IDs.
 - Do not patch preload to add broad channel exposure for convenience.

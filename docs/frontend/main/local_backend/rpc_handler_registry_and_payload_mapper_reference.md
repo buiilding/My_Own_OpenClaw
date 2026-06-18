@@ -65,7 +65,7 @@ Dispatch:
 
 Tool-arg normalization behavior:
 
-- invalid non-object `system_use.arguments` values are intentionally passed through unchanged for sidecar validation ownership
+- invalid non-object `system_use.arguments` values are intentionally passed through unchanged for local-runtime validation ownership
 - non-shell tools receive deep-cloned object args
 - non-object args normalize to `{}`
 - screenshot tools may receive injected fallback `display_bounds` derived from

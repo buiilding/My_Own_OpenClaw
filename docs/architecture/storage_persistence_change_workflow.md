@@ -140,7 +140,7 @@ Edit:
 - `frontend/src/main/python/memory/sqlite_store.py` for table/index creation and migration probes.
 - `frontend/src/main/python/memory/local_store.py` for runtime reads/writes and schema assumptions.
 - `operations.py` and `conversation_*_runtime.py` for higher-level semantics.
-- dashboard renderer code only after sidecar payload shape is stable.
+- dashboard renderer code only after local-runtime payload shape is stable.
 
 Validate:
 

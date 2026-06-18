@@ -217,15 +217,15 @@ Locked by:
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 - `tests/frontend/IpcTranscriptSessionSync.test.cjs`
 
-## Frontend Config -> Sidecar Tool Arg State Propagation
+## Frontend Config -> Local Runtime Tool Arg State Propagation
 
 `local_runtime_bridge.cjs` rewrites shell-tool args with frontend config state:
 
 - for `run_shell_command` only:
 - for `system_use` only when nested `tool === 'run_shell_command'` and nested `arguments` is an object:
-  - leaves non-object nested `arguments` unchanged so sidecar validation remains authoritative
+  - leaves non-object nested `arguments` unchanged so local-runtime validation remains authoritative
 
-This is protocol state propagation because a renderer config bit changes sidecar RPC payload semantics (`execute_tool` args) without call-site changes.
+This is protocol state propagation because a renderer config bit changes local-runtime RPC payload semantics (`execute_tool` args) without call-site changes.
 
 Locked by:
 

@@ -220,7 +220,7 @@ Start docs:
 ## Review Checklist
 
 - The change names the tool-turn stage it owns.
-- Model-facing schema and executable sidecar payload remain separate.
+- Model-facing schema and executable local-runtime payload remain separate.
 - Request IDs and tool-call IDs survive parse, preparation, dispatch, wait, result, and history.
 - Synthetic failures emit frontend-visible events in the same order as real tool calls.
 - Bundle behavior stays atomic or the contract is explicitly updated.

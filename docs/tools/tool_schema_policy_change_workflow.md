@@ -75,7 +75,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 1. Model emits a tool call using the final model-facing schema.
 2. Backend parser validates the call against the registered tool `args_model` only when the backend owns execution.
-3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots; passthrough sidecar payload shape is left to frontend/sidecar validation.
+3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots; passthrough executable payload shape is left to SDK local-runtime validation.
 4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
 5. SDK main runtime dispatches local execution through Electron main.
 6. Electron main forwards the executable request to the SDK local runtime daemon/JSON-RPC bridge.

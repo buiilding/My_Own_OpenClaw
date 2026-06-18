@@ -43,7 +43,7 @@ Do not mark a permission granted just because the user clicked a button. The sou
 | Microphone | Voice/onboarding UI | Main microphone permission service and renderer capture flow | Voice UI should surface denied/not-ready separately from STT provider failure. |
 | Browser automation | Browser/session UI and permission surface | Dedicated browser runtime and sidecar browser tools | Browser availability is not the same as arbitrary user Chrome control. |
 | Workspace/repo context | Chat/settings surfaces | Main workspace access/runtime helpers | Do not treat workspace access as broad filesystem permission. |
-| Shell/filesystem tools | Tool policy and permissions UI | Backend tool visibility, main shell-execution authorization probe, plus sidecar validation | Shell execution requires both an explicit persisted authorization grant and current runtime availability. Local execution must validate args even if model schema is narrow. |
+| Shell/filesystem tools | Tool policy and permissions UI | Backend tool visibility, main shell-execution authorization probe, plus local-runtime validation | Shell execution requires both an explicit persisted authorization grant and current runtime availability. Local execution must validate args even if model schema is narrow. |
 
 Workspace access grants must come from the main-process workspace picker flow.
 Renderer-driven active-workspace sync may switch to a previously selected path

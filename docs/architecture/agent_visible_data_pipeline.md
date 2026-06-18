@@ -47,7 +47,7 @@ The model-visible surface is owned by the backend and should be treated as the h
 - provider-specific tool projection
 - tool-output rows returned into model history
 
-Renderer, Electron main, and sidecar payloads are allowed to differ from this shape only when they cross a real runtime boundary. If a second shape exists only because an older helper expected different names, remove it and move tests to the canonical field.
+Renderer, Electron main, and local-runtime payloads are allowed to differ from this shape only when they cross a real runtime boundary. If a second shape exists only because an older helper expected different names, remove it and move tests to the canonical field.
 
 ## Shape Trace
 
