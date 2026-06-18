@@ -55,7 +55,7 @@ describe('preload IPC channel registry', () => {
     };
     process.argv = [
       '/path/to/electron',
-      `--desktop-agent-ipc-channels=${encodeURIComponent(JSON.stringify(preloadChannels))}`,
+      `--desktop-runtime-ipc-channels=${encodeURIComponent(JSON.stringify(preloadChannels))}`,
     ];
 
     require('../../frontend/src/preload.js');
@@ -233,8 +233,17 @@ describe('preload IPC channel registry', () => {
   test('loads channel data from the injected preload argument', () => {
     expect(process.argv).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('--desktop-agent-ipc-channels='),
+        expect.stringContaining('--desktop-runtime-ipc-channels='),
       ]),
     );
+  });
+
+  test('does not keep the removed desktop-agent preload argument alias', () => {
+    const source = fs.readFileSync(
+      path.join(__dirname, '../../frontend/src/preload.js'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('--desktop-agent-ipc-channels=');
   });
 });

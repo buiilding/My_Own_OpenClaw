@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 preload IPC registry argument wording
+
+- Finding: Electron main and preload still exchanged the private IPC channel
+  registry through a `--desktop-agent-ipc-channels` launch argument even
+  though the host/preload boundary is now described as desktop-runtime IPC.
+- Change: renamed the private launch argument to
+  `--desktop-runtime-ipc-channels`, updated the IPC workflow docs, and added
+  preload/main-window coverage that rejects the removed desktop-agent flag.
+- Validation: focused preload/main-window Jest tests, docs route lookup,
+  recent history review, stale argument scan, and diff check.
+- Compatibility: no migration required because the argument is private to the
+  Electron main-to-preload launch path and the encoded registry payload, IPC
+  channel names, preload bridge, and runtime behavior are unchanged.
+
 ### 2026-06-18 main extension entrypoint validator local-runtime naming
 
 - Finding: extension manifest parsing still used the private helper name

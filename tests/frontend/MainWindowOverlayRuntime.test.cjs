@@ -175,6 +175,11 @@ describe('main_window_overlay_runtime', () => {
     }));
     expect(win.options.webPreferences.additionalArguments).toEqual(
       expect.arrayContaining([
+        expect.stringContaining('--desktop-runtime-ipc-channels='),
+      ]),
+    );
+    expect(win.options.webPreferences.additionalArguments).not.toEqual(
+      expect.arrayContaining([
         expect.stringContaining('--desktop-agent-ipc-channels='),
       ]),
     );

@@ -4,7 +4,7 @@
 
 const IPC_CHANNELS = require('../../shared/ipcChannels.json');
 
-const IPC_CHANNELS_ARGUMENT_PREFIX = '--desktop-agent-ipc-channels=';
+const IPC_CHANNELS_ARGUMENT_PREFIX = '--desktop-runtime-ipc-channels=';
 
 function buildPreloadIpcChannelsArgument(channelRegistry = IPC_CHANNELS) {
   return `${IPC_CHANNELS_ARGUMENT_PREFIX}${encodeURIComponent(JSON.stringify(channelRegistry))}`;

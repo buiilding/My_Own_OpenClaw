@@ -5,7 +5,7 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-const IPC_CHANNELS_ARGUMENT_PREFIX = '--desktop-agent-ipc-channels=';
+const IPC_CHANNELS_ARGUMENT_PREFIX = '--desktop-runtime-ipc-channels=';
 
 function loadIpcChannels(argv = process.argv) {
   const serializedRegistry = argv.find(

@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the private preload IPC channel registry launch
+  argument from `--desktop-agent-ipc-channels` to
+  `--desktop-runtime-ipc-channels`; no migration is required because the
+  encoded registry payload, preload bridge, IPC channel names, and runtime
+  behavior are unchanged.
 - frontend/main: rename the private extension manifest plugin entrypoint
   validator from sidecar to local-runtime wording; no migration is required
   because contribution paths, plugin manifests, execution targets, and runtime

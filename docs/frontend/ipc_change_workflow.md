@@ -34,7 +34,7 @@ The shared channel registry is the naming source of truth, but it is not a handl
 | Surface | Code | Role |
 | --- | --- | --- |
 | Shared channel registry | `frontend/src/shared/ipcChannels.json` | Canonical channel names grouped by `SEND_CHANNELS`, `INVOKE_CHANNELS`, and `ON_CHANNELS`. |
-| Preload allowlist | `frontend/src/preload.js` | Loads registry from `--desktop-agent-ipc-channels=...`, gates send/invoke/on/once calls, strips Electron event objects. |
+| Preload allowlist | `frontend/src/preload.js` | Loads registry from `--desktop-runtime-ipc-channels=...`, gates send/invoke/on/once calls, strips Electron event objects. |
 | Renderer constants | `frontend/src/renderer/infrastructure/ipc/channels.ts` | Typed channel constants derived from the shared JSON registry. |
 | Renderer wrapper | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | Typed `IpcBridge` helper used by renderer features and infrastructure. |
 | Main handler surface | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/*.cjs`, `frontend/src/main/*_ipc_runtime.cjs` | Registers handlers, backend relay, overlay channels, settings sync, memory, artifacts, permissions, lifecycle, and query events. |
