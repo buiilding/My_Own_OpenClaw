@@ -16,6 +16,8 @@ All notable changes to WindieOS will be documented in this file.
   renderer app memory runtime client.
 - renderer/runtime: route dashboard MCP registry IPC through the renderer app
   MCP runtime client.
+- renderer/runtime: route agent settings extension metadata and capability
+  events through the renderer app agent extension runtime client.
 - renderer/runtime: route minimal response overlay size, hit-test, dismiss, and
   visibility re-report IPC through a renderer app response overlay runtime client.
 - renderer/runtime: route minimal chatbox overlay focus, drag, hit-test,

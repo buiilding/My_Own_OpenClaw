@@ -8,7 +8,7 @@ import {
   formatToolAcceptanceRuntimeSummary,
   desktopRuntimeSkin,
 } from '../../../../../app/skin/desktopRuntimeSkin';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
+import { DesktopAgentExtensionRuntimeClient } from '../../../../../app/runtime/desktopAgentExtensionRuntimeClient';
 import { CloneToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
@@ -47,7 +47,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
     : [];
 
   useEffect(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS)
+    DesktopAgentExtensionRuntimeClient.listAgentExtensions()
       .then((payload) => {
         setExtensionRuntime({
           plugins: Array.isArray(payload?.plugins) ? payload.plugins : [],
@@ -60,7 +60,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
         setExtensionRuntime({ plugins: [], skills: [], mcps: [], errors: [] });
       });
 
-    const removeListener = IpcBridge.on(ON_CHANNELS.AGENT_CAPABILITY_EVENT, (event) => {
+    const removeListener = DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent((event) => {
       if (event?.type === 'client-tool-manifest') {
         setManifestStatus({
           accepted: Array.isArray(event.payload?.accepted) ? event.payload.accepted : [],

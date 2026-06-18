@@ -74,7 +74,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `get-displays` | `main/surfaces/window_controls_ipc_runtime.cjs` | Return display inventory mapped as `{ id, label, isPrimary, bounds, scaleFactor }` |
 | `load-frontend-config` | `main/ipc.cjs` | Reads desktop UI config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists desktop UI config to disk |
-| `list-agent-extensions` | `main/ipc.cjs` | Returns public extension metadata plus MCP registry snapshot |
+| `list-agent-extensions` | `main/ipc.cjs`; renderer via `DesktopAgentExtensionRuntimeClient` | Returns public extension metadata plus MCP registry snapshot |
 | `list-mcp-servers` | `main/ipc.cjs`; renderer via `DesktopMcpRuntimeClient` | Lists configured MCP servers from desktop UI config |
 | `set-mcp-server-enabled` | `main/ipc.cjs`; renderer via `DesktopMcpRuntimeClient` | Persists MCP enablement and refreshes SDK MCP registration when running outside tests |
 | `refresh-mcp-servers` | `main/ipc.cjs`; renderer via `DesktopMcpRuntimeClient` | Rebuilds current MCP server registry from config |
@@ -113,7 +113,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `main-window-open-target` | `main/index.cjs` | Dashboard route target (`chat`, `memory`, `models`, `settings`) |
 | `response-overlay-phase` | `main/ipc.cjs` | Stream/loop phase state (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`) |
 | `backend-settings-event` | `main/ipc/ipc_backend_event_channels.cjs` | Typed backend settings/model events (`models-listed`, `settings-updated`, `error`) |
-| `agent-capability-event` | `main/ipc/ipc_backend_event_channels.cjs` | Typed backend capability events (`client-tool-manifest`, `remote-tool-catalog`) |
+| `agent-capability-event` | `main/ipc/ipc_backend_event_channels.cjs`; renderer via `DesktopAgentExtensionRuntimeClient` | Typed backend capability events (`client-tool-manifest`, `remote-tool-catalog`) |
 | `audio-chunk` | `main/ipc/ipc_backend_event_channels.cjs` | Typed backend audio chunk event fan-out |
 | `response-overlay-visibility` | `main/index.cjs` | Response overlay visible state |
 

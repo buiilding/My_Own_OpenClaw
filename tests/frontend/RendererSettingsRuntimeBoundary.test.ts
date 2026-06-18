@@ -97,6 +97,30 @@ describe('renderer settings runtime boundary', () => {
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
   });
 
+  test('agent settings routes extension and capability IPC through app runtime client', async () => {
+    const source = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/settings/AgentSettingsTab.jsx',
+      ),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAgentExtensionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('IpcBridge');
+    expect(source).not.toContain('INVOKE_CHANNELS');
+    expect(source).not.toContain('ON_CHANNELS');
+    expect(source).not.toContain('LIST_AGENT_EXTENSIONS');
+    expect(source).not.toContain('AGENT_CAPABILITY_EVENT');
+    expect(source).toContain('DesktopAgentExtensionRuntimeClient.listAgentExtensions');
+    expect(source).toContain('DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent');
+    expect(clientSource).toContain('INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS');
+    expect(clientSource).toContain('ON_CHANNELS.AGENT_CAPABILITY_EVENT');
+  });
+
   test('settings runtime facade describes SDK command IPC rather than backend IPC', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts'),

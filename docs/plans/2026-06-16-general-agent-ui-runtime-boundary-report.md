@@ -173,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Renderer Agent Extension Runtime Client Slice
+
+- Worktree was clean after `ff302ffb7`, with `main` ahead of `origin/main` by
+  855 commits.
+- Recent related commits were inspected before touching the agent settings
+  path.
+- Finding: `AgentSettingsTab` still imported agent extension metadata and
+  capability event IPC channels directly.
+- Change: added `DesktopAgentExtensionRuntimeClient` for extension metadata and
+  agent capability fan-out, then routed `AgentSettingsTab` through it while
+  leaving extension/tool presentation, accepted/rejected manifest state, remote
+  catalog state, and config toggles in the tab.
+- Validation: focused agent settings and renderer settings boundary tests,
+  targeted agent settings direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Extension metadata payloads,
+  `client-tool-manifest` and `remote-tool-catalog` events, tool toggles,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer MCP Runtime Client Slice
 
 - Worktree was clean after `ea8c1d6cd`, with `main` ahead of `origin/main` by

@@ -12,8 +12,10 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/AgentSettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js`
+- `frontend/src/renderer/app/runtime/desktopAgentExtensionRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppConfigContext.jsx`
 - `tests/frontend/SettingsSection.test.jsx`
 
@@ -113,6 +115,25 @@ The renderer root consumes `appearance_mode` and the active `appearance_theme` s
 setting document-level theme attributes and CSS variables. Light/dark/system selection is
 therefore a renderer presentation concern: the settings tab produces the config patch, and
 the app root applies the effective theme to shared dashboard/settings tokens.
+
+## Agent Tab Ownership Model
+
+`AgentSettingsTab` owns presentation for:
+
+- custom instruction config patches
+- extension runtime diagnostics
+- local/remote tool enablement config patches
+- accepted/rejected local tool schema display
+- remote tool catalog availability display
+
+Runtime inputs:
+
+- `DesktopAgentExtensionRuntimeClient.listAgentExtensions()`
+- `DesktopAgentExtensionRuntimeClient.onAgentCapabilityEvent(...)`
+
+The tab should not import desktop IPC channels directly. It consumes extension
+metadata and capability events through the runtime client, then keeps all UI
+normalization and config patches local to the settings surface.
 
 ## Memory Tab Ownership Model
 
