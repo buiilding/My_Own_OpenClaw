@@ -4,7 +4,7 @@
 
 import type { TokenCounts } from '../../stores/chatStore';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import { applyRendererConversationSelection } from '../../session/conversationSessionRuntime';
+import { applyRendererConversationSelection } from '../../../../app/runtime/desktopConversationSessionRuntime';
 
 type ResetActiveChatSessionOptions = {
   conversationRef?: string | null;

@@ -8,7 +8,7 @@ import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWo
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
-} from '../../session/conversationSessionRuntime';
+} from '../../../../app/runtime/desktopConversationSessionRuntime';
 import { createConversationRef } from './conversationRef';
 import { resetActiveChatSession } from './resetActiveChatSession';
 

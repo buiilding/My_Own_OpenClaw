@@ -15,7 +15,7 @@ import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
   resolveRendererConversationSessionSnapshot,
-} from '../session/conversationSessionRuntime';
+} from '../../../app/runtime/desktopConversationSessionRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Conversation Session Runtime Owner
+
+- Finding: the app-runtime facade for conversation-session helper rules still
+  imported `features/chat/session/conversationSessionRuntime`, so app runtime
+  depended on a chat feature module for shared transcript/chat identity rules.
+- Change: moved the shared helper implementation to
+  `desktopConversationSessionRuntime.ts`, updated chat/dashboard callers and
+  tests to import the app-runtime owner, and removed the app-runtime boundary
+  exception for chat feature internals.
+- Validation: focused conversation-session, dashboard-conversation,
+  chat-session, sender/replay, and renderer app-boundary tests plus frontend
+  typecheck, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Conversation ref generation,
+  transcript session updates, chat-store projection, SDK events, IPC channels,
+  credentials, permissions, local authority, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Chat Presentation Contracts
 
 - Finding: SDK display-row projection still imported chat feature internals for

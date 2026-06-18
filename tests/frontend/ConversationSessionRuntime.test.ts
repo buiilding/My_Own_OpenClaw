@@ -11,7 +11,7 @@ import {
   hydrateConversationSessionFromMainSnapshot,
   initializeLocalConversationSession,
   resolveRendererConversationSessionSnapshot,
-} from '../../frontend/src/renderer/features/chat/session/conversationSessionRuntime';
+} from '../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime';
 
 describe('conversationSessionRuntime', () => {
   test('applyRendererConversationSelection updates transcript session and optionally projects chat store selection', () => {

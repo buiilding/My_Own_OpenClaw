@@ -48,7 +48,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationSessionRuntime', () => ({
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime', () => ({
   applyRendererConversationSelection: jest.fn(({ conversationRef, setChatConversationRef }) => {
     setChatConversationRef?.(conversationRef);
   }),

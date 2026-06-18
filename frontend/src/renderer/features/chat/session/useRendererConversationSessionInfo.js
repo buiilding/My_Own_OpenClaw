@@ -5,7 +5,7 @@
 import { useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useDesktopTranscriptSessionInfo } from '../../../app/runtime/desktopTranscriptSessionInfoRuntimeClient';
-import { resolveRendererConversationSessionSnapshot } from './conversationSessionRuntime';
+import { resolveRendererConversationSessionSnapshot } from '../../../app/runtime/desktopConversationSessionRuntime';
 
 const EMPTY_RENDERER_SESSION_INFO = Object.freeze({
   conversationRef: null,

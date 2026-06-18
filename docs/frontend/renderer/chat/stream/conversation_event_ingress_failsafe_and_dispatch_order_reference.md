@@ -120,7 +120,7 @@ does not import chat session internals directly.
 2. Reordering ingress steps can break turn-map availability for downstream events with missing `conversation_ref`.
 3. Dropping active transcript conversation precedence can desync transcript session routing during background conversation event ingress.
 4. Reintroducing backend event imports in chat hooks splits backend-wire event ownership between feature code and the SDK/main runtime.
-5. Reintroducing direct `conversationSessionRuntime` imports in ingress or
+5. Reintroducing direct `desktopConversationSessionRuntime` imports in ingress or
    transcript clients bypasses the app-runtime facade that owns shared session
    helper routing.
 

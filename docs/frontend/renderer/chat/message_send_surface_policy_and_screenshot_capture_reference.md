@@ -18,7 +18,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
-- `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
@@ -99,7 +99,7 @@ When attachment(s) exist:
      - transcript session ref
      - chat store active conversation ref
      - generated new ref (only when all three are missing)
-   - snapshot projection into transcript/chat state is centralized in `conversationSessionRuntime.ts`
+   - snapshot projection into transcript/chat state is centralized in `desktopConversationSessionRuntime.ts`
    - send preparation uses `resolveRendererConversationSessionSnapshot(...)`; it
      no longer awaits a main-process session snapshot before composing the local
      pending row.

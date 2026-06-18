@@ -31,6 +31,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
+│   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
 │   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients

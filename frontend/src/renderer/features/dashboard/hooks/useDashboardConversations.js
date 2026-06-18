@@ -9,7 +9,7 @@ import { DesktopLocalRuntimeStatusRuntimeClient } from '../../../app/runtime/des
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import { applyRendererConversationSelection } from '../../chat/session/conversationSessionRuntime';
+import { applyRendererConversationSelection } from '../../../app/runtime/desktopConversationSessionRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
   buildConversationGroups,

@@ -15,7 +15,7 @@ import type { ChatSendSurface } from '../../policies/messageSendUiPolicy';
 import {
   ensureConversationRefForSend,
   resolveRendererConversationSessionSnapshot,
-} from '../../session/conversationSessionRuntime';
+} from '../../../../app/runtime/desktopConversationSessionRuntime';
 import { useChatStore } from '../../stores/chatStore';
 import { logRendererChatPillTrace } from '../chatStream/chatStreamDebugTrace';
 import {

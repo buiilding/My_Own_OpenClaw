@@ -7,9 +7,7 @@ import path from 'node:path';
 
 const appRoot = path.resolve(__dirname, '../../frontend/src/renderer/app');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
-const allowedRelativePaths = new Set([
-  'runtime/desktopConversationSessionRuntimeClient.ts',
-]);
+const allowedRelativePaths = new Set<string>();
 const allowedSdkOwnedInternalChannelPaths = new Set([
   'infrastructure/ipc/channels.ts',
 ]);
@@ -218,6 +216,8 @@ describe('renderer app runtime boundary', () => {
     expect(transcriptClientSource).toContain('DesktopConversationSessionRuntimeClient.bindTranscriptUser');
     expect(transcriptClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
     expect(sessionClientSource).toContain('applyTranscriptSessionUserBinding');
+    expect(sessionClientSource).toContain('./desktopConversationSessionRuntime');
+    expect(sessionClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
   });
 
   test('chat provider reads transcript session info through app runtime client', async () => {
@@ -252,6 +252,7 @@ describe('renderer app runtime boundary', () => {
     expect(ingressSource).toContain('DesktopConversationSessionRuntimeClient.applyEventChatConversationProjection');
     expect(ingressSource).not.toContain('features/chat/session/conversationSessionRuntime');
     expect(sessionClientSource).toContain('applyEventChatConversationProjection');
+    expect(sessionClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
   });
 
   test('app runtime modules do not import chat feature internals', async () => {

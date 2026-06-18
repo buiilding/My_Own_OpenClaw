@@ -5,7 +5,7 @@
 import {
   applyEventChatConversationProjection,
   applyTranscriptSessionUserBinding,
-} from '../../features/chat/session/conversationSessionRuntime';
+} from './desktopConversationSessionRuntime';
 
 type TranscriptSessionUpdater = (
   conversationRef?: string | null,
