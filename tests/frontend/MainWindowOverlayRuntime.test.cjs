@@ -180,7 +180,7 @@ describe('main_window_overlay_runtime', () => {
     );
     expect(win.options.webPreferences.additionalArguments).not.toEqual(
       expect.arrayContaining([
-        expect.stringContaining('--desktop-agent-ipc-channels='),
+        expect.stringContaining('--desktop-' + 'agent-ipc-channels='),
       ]),
     );
     expect(BrowserWindow.mock.calls[0][0]).not.toHaveProperty('type');

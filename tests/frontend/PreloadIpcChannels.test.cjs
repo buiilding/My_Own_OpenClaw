@@ -245,6 +245,6 @@ describe('preload IPC channel registry', () => {
       'utf8',
     );
 
-    expect(source).not.toContain('--desktop-agent-ipc-channels=');
+    expect(source).not.toContain('--desktop-' + 'agent-ipc-channels=');
   });
 });

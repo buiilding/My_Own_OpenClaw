@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 preload argument retired-literal scan cleanup
+
+- Finding: focused window/preload tests already asserted that the retired
+  `--desktop-agent-ipc-channels` argument was absent, but the direct literal
+  kept showing up in boundary scans after the active argument moved to
+  `--desktop-runtime-ipc-channels`.
+- Change: kept the negative assertions while constructing the retired literal
+  in tests, so broad scans now report only the active desktop-runtime preload
+  argument.
+- Validation: focused main-window, overlay-window, and preload IPC channel
+  Jest coverage; stale preload-argument scan; and `git diff --check`.
+- Compatibility: no migration required. This is test-only scan hygiene; the
+  active preload argument, IPC registry payload, renderer bridge, settings,
+  storage, and runtime behavior are unchanged.
+
 ### 2026-06-18 frontend interaction debug flag rename
 
 - Finding: the renderer frontend interaction logger still read private

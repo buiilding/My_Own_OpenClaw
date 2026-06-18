@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tests/frontend: hide retired desktop-agent preload argument literals behind
+  constructed negative assertions; no migration is required because this is
+  test-only scan hygiene and the active `--desktop-runtime-ipc-channels`
+  preload argument remains unchanged.
 - frontend/renderer: rename private frontend interaction debug window flags
   from desktop-agent to desktop-runtime wording; no migration is required
   because these are browser-only diagnostics and renderer interaction log

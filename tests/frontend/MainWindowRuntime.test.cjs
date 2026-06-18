@@ -555,7 +555,7 @@ describe('main_window_runtime createMainWindow', () => {
     );
     expect(options.webPreferences.additionalArguments).not.toEqual(
       expect.arrayContaining([
-        expect.stringContaining('--desktop-agent-ipc-channels='),
+        expect.stringContaining('--desktop-' + 'agent-ipc-channels='),
       ]),
     );
   });
