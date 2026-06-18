@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a browser docs guard follow-up by extending the modular
+  boundary test to read top-level docs, backend tools hubs, the getting-started
+  hub, and the tools hub when checking browser schema parity labels. This keeps
+  the newly aligned backend/local-runtime browser navigation wording covered
+  instead of relying on the deeper browser references alone. Validation:
+  focused modular docs boundary test, docs listing, exact stale-label scan, and
+  diff checks. No migration required; no runtime behavior, schema, IPC,
+  credential, permission, storage, hosted URL, or provider-policy behavior
+  changed.
 - 2026-06-18: completed a browser docs navigation follow-up by replacing
   backend-sidecar browser parity labels in top-level docs hubs, backend browser
   hubs, tools docs, and local-runtime sidecar browser references with
