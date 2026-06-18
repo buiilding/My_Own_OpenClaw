@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 main local runtime launch resolver boundary
+
+- Finding: `runtime_paths.cjs` still exported the canonical launch helper as
+  `resolveSidecarLaunchTarget`, even though Electron main now treats the
+  Python daemon as an SDK local-runtime dependency and both local-runtime and
+  wakeword startup consume the same generic launch target shape.
+- Change: renamed the main-process helper API to
+  `resolveLocalRuntimeLaunchTarget`, updated local-runtime and wakeword callers,
+  and locked focused runtime-path tests so the sidecar-named export stays
+  removed. Packaged resource directories and Python service filenames remain
+  unchanged because they are packaging/runtime facts.
+- Validation: focused runtime-path and local-runtime launch-option Jest
+  coverage, docs listing, stale helper scans, and diff checks.
+- Compatibility: no migration required for packaged resources, env vars,
+  daemon discovery, JSON-RPC payloads, tool schemas, or stored settings.
+  Internal main-process imports should use the local-runtime helper name.
+
 ### 2026-06-17 local runtime daemon lifecycle log prefix
 
 - Finding: the Python sidecar daemon still emitted `[SidecarDaemon]`

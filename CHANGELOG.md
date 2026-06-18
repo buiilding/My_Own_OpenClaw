@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: rename the runtime path launch helper to `resolveLocalRuntimeLaunchTarget` and remove the sidecar-named export while preserving packaged sidecar resource paths and Python service filenames; no migration is required because packaged resources, env vars, daemon discovery, JSON-RPC payloads, tool schemas, and stored settings are unchanged.
+
 - sidecar: move platform WindowManager selection from the `core.platform` package root to `core.platform.window_manager` and remove `core/platform/__init__.py`; no migration is required because JSON-RPC methods, tool schemas, window-manager behavior, and platform adapters are unchanged.
 
 - sidecar/main: emit and forward local runtime daemon lifecycle logs with `[LocalRuntimeDaemon]` instead of `[SidecarDaemon]`; no migration is required because daemon routes, discovery metadata, JSON-RPC payloads, tool schemas, and stored diagnostics are unchanged.

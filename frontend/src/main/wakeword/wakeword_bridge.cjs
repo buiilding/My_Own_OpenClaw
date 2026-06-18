@@ -8,7 +8,7 @@
 const { spawn } = require('child_process');
 const { app, ipcMain } = require('electron');
 const {
-  resolveSidecarLaunchTarget,
+  resolveLocalRuntimeLaunchTarget,
 } = require('../app/runtime_paths.cjs');
 const {
   emitWakewordEvent,
@@ -71,7 +71,7 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
     return;
   }
 
-  const launchTarget = resolveSidecarLaunchTarget('wakeword_service.py');
+  const launchTarget = resolveLocalRuntimeLaunchTarget('wakeword_service.py');
   const packagedApp = Boolean(app && app.isPackaged);
   stderrBuffer = '';
 

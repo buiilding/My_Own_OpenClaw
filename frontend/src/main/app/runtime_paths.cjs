@@ -2,8 +2,8 @@
  * Runtime path helpers for dev vs packaged Electron execution.
  *
  * Packaged builds can run from app.asar, where child processes cannot execute
- * scripts directly from the archive. Packaged sidecar code is expected under
- * resources/python-runtime/sidecar as sourceless bytecode.
+ * scripts directly from the archive. Packaged local runtime code is expected
+ * under resources/python-runtime/sidecar as sourceless bytecode.
  */
 
 const fs = require('fs');
@@ -157,7 +157,7 @@ function resolveBundledRuntimeRootFromExecutable(executablePath) {
   return executableDir;
 }
 
-function resolveSidecarBinaryPath(serviceName) {
+function resolveLocalRuntimeBinaryPath(serviceName) {
   const normalizedServiceName = String(serviceName || '').trim().replace(/\.py$/i, '');
   if (!normalizedServiceName || !isPackagedApp()) {
     return null;
@@ -172,10 +172,10 @@ function resolveSidecarBinaryPath(serviceName) {
   return firstExistingPath(candidates);
 }
 
-function resolveSidecarLaunchTarget(scriptName) {
+function resolveLocalRuntimeLaunchTarget(scriptName) {
   const normalizedScript = String(scriptName || '').trim();
   const serviceName = normalizedScript.replace(/\.py$/i, '');
-  const binaryPath = resolveSidecarBinaryPath(serviceName);
+  const binaryPath = resolveLocalRuntimeBinaryPath(serviceName);
   if (binaryPath) {
     return {
       kind: 'binary',
@@ -199,5 +199,5 @@ function resolveSidecarLaunchTarget(scriptName) {
 }
 
 module.exports = {
-  resolveSidecarLaunchTarget,
+  resolveLocalRuntimeLaunchTarget,
 };

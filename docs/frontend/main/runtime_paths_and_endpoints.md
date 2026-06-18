@@ -90,8 +90,8 @@ Optional runs auth header:
 
 ## Python Runtime and Script Resolution
 
-Main process uses `runtime_paths.cjs` helpers through the canonical sidecar
-launch resolver.
+Main process uses `runtime_paths.cjs` helpers through the canonical local
+runtime launch resolver.
 
 ### Python Executable Resolution
 
@@ -112,9 +112,9 @@ Bundled runtime candidate roots:
 - `<resources>/python-runtime`
 - `<resources>/python`
 
-### `resolveSidecarLaunchTarget(scriptName)`
+### `resolveLocalRuntimeLaunchTarget(scriptName)`
 
-This is the canonical sidecar launch resolver used by both:
+This is the canonical local runtime launch resolver used by both:
 
 - `local_runtime_bridge.cjs`
 - `wakeword_bridge.cjs`
@@ -163,7 +163,7 @@ Read behavior (`loadFrontendConfigFromDisk`):
 - `BACKEND_HTTP_URL` for artifact upload route
 - `load-frontend-config` / `save-frontend-config` invoke handlers
 - VM worker HTTP calls to `/api/runs/*` consume resolved `backendHttpUrl`
-- local-runtime and wakeword bridges consume `resolveSidecarLaunchTarget(...)`
+- local-runtime and wakeword bridges consume `resolveLocalRuntimeLaunchTarget(...)`
 
 ## Operational Debug Checklist
 
@@ -187,6 +187,6 @@ If settings persistence fails:
 
 If wakeword startup/readiness behaves inconsistently:
 
-1. verify `resolveSidecarLaunchTarget('wakeword_service.py')` output
+1. verify `resolveLocalRuntimeLaunchTarget('wakeword_service.py')` output
 2. verify packaged-vs-dev error mapping in `wakeword_bridge_runtime.cjs`
 3. verify stderr status lines are parsed through helper-level filter/emit paths

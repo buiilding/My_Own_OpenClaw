@@ -10,7 +10,7 @@ const {
   resolveBackendEndpoints,
 } = require('../app/backend_endpoints.cjs');
 const {
-  resolveSidecarLaunchTarget,
+  resolveLocalRuntimeLaunchTarget,
 } = require('../app/runtime_paths.cjs');
 const {
   shouldForwardStderrLine,
@@ -164,7 +164,7 @@ function createDesktopLocalRuntimeLaunchPlan({
   authStatePath,
   WebSocketImpl,
   copy = {},
-  resolveLaunchTarget = resolveSidecarLaunchTarget,
+  resolveLaunchTarget = resolveLocalRuntimeLaunchTarget,
 } = {}) {
   const launchTarget = resolveLaunchTarget('sidecar_daemon.py');
   if (launchTarget.kind === 'python' && !launchTarget.command) {
