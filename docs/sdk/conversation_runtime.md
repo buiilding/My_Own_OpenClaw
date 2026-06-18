@@ -204,6 +204,12 @@ summaries. It must not store user message text, retrieved memory text,
 embedding vectors, screenshots, file contents, raw provider payloads, secrets,
 or raw SQL rows.
 
+Backend-origin `trace-event` payloads follow the backend API schema's camelCase
+trace fields such as `traceId`, `spanId`, `requestId`, and `durationMs`.
+Conversation identity remains on the backend event envelope as
+`conversation_ref`, `turn_ref`, and `user_id`; SDK normalization does not read
+snake_case trace payload aliases.
+
 After completed-turn memory is successfully stored, the SDK emits
 `memory_store_changed` with the authenticated `userId`, `conversationRef`,
 changed memory types, `reason: "completed_turn"`, and the memory id when the

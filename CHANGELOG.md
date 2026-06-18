@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: replace stale frontend-executed tool wording in backend source
+  comments with the current local-runtime/backend execution split; no migration
+  is required because this changes comments only.
+- sdk/backend: narrow SDK normalization for backend-origin `trace-event`
+  payloads to the backend API schema's camelCase trace fields and top-level
+  event identity; no migration is required because stored SDK `trace_event`
+  rows already use normalized conversation-event payloads.
 - frontend/config: route renderer config merge sanitization through the
   frontend-owned allowlist instead of a stale field-specific drop; no migration
   is required because unknown persisted fields were already excluded by storage

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend trace-event payload alias cleanup
+
+- Finding: SDK backend-event normalization still accepted snake_case aliases
+  inside backend-origin `trace-event` payloads even though the backend API
+  schema emits camelCase trace fields and keeps conversation identity on the
+  event envelope.
+- Change: narrowed trace normalization to `traceId`, `spanId`, `requestId`,
+  `durationMs`, and other backend API schema fields, kept envelope
+  `conversation_ref`, `turn_ref`, and `user_id` as the identity source, and
+  typed the SDK backend trace payload contract.
+- Validation: focused SDK conversation-runtime coverage, docs listing, and
+  diff check.
+- Compatibility: no migration required. Stored SDK `trace_event` rows already
+  contain normalized conversation-event payloads, and this does not change
+  backend API output, IPC channels, storage schemas, credentials, permissions,
+  or local-runtime payloads.
+
 ### 2026-06-18 sidecar folder structure daemon transport wording
 
 - Finding: the checked-in frontend Python folder-structure source map still

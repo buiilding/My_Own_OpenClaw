@@ -53,6 +53,23 @@ export type ToolSchema = {
   } & Record<string, unknown>;
 } & Record<string, unknown>;
 
+export type BackendTraceEventPayload = {
+  schemaVersion?: 1;
+  path?: string;
+  stage?: string;
+  status?: 'started' | 'succeeded' | 'failed' | 'skipped';
+  runtime?: 'sdk' | 'electron-main' | 'renderer' | 'local-runtime' | 'backend' | 'provider';
+  traceId?: string | null;
+  spanId?: string | null;
+  parentSpanId?: string | null;
+  requestId?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  durationMs?: number | null;
+  data?: Record<string, unknown> | null;
+  error?: ({ code?: string; message?: string } & Record<string, unknown>) | null;
+} & Record<string, unknown>;
+
 export type BackendEvent =
   | BackendEventBase<'query-accepted', { status?: string }>
   | BackendEventBase<'llm-thought', { status?: string }>
@@ -98,7 +115,7 @@ export type BackendEvent =
   | BackendEventBase<'assistant-message-full', Record<string, unknown>>
   | BackendEventBase<'token-count', Record<string, unknown>>
   | BackendEventBase<'tool-schemas', { tool_schemas?: ToolSchema[] }>
-  | BackendEventBase<'trace-event', Record<string, unknown>>
+  | BackendEventBase<'trace-event', BackendTraceEventPayload>
   | BackendEventBase<'error', { message?: string; content?: string | null }>;
 
 const BACKEND_EVENT_TYPES = new Set<BackendEventType>([

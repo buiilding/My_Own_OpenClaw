@@ -2485,21 +2485,21 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
-  test('backend trace-event normalization creates sanitized hidden trace rows', () => {
+  test('backend trace-event normalization creates sanitized hidden trace rows from backend schema fields', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'trace-event',
       conversation_ref: 'conv-sdk-runtime',
       user_id: 'user-sdk-runtime',
       turn_ref: 'turn-provider-trace',
       payload: {
-        trace_id: 'trace-provider-1',
-        span_id: 'span-provider-1',
+        traceId: 'trace-provider-1',
+        spanId: 'span-provider-1',
         path: 'provider.call',
         stage: 'completion',
         status: 'succeeded',
         runtime: 'provider',
-        request_id: 'req-provider-1',
-        duration_ms: 42,
+        requestId: 'req-provider-1',
+        durationMs: 42,
         data: {
           provider: 'openai',
           modelId: 'gpt-test',
@@ -2550,6 +2550,54 @@ describe('Agent SDK conversation runtime core', () => {
         runtime: 'provider',
       }),
     ]);
+  });
+
+  test('backend trace-event normalization ignores removed snake_case trace payload aliases', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'trace-event',
+      conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
+      turn_ref: 'turn-provider-trace',
+      payload: {
+        trace_id: 'trace-snake',
+        span_id: 'span-snake',
+        parent_span_id: 'span-parent-snake',
+        conversation_ref: 'conv-payload-snake',
+        turn_ref: 'turn-payload-snake',
+        user_id: 'user-payload-snake',
+        request_id: 'req-snake',
+        started_at: '2026-06-18T00:00:00.000Z',
+        ended_at: '2026-06-18T00:00:01.000Z',
+        duration_ms: 42,
+        path: 'provider.call',
+        stage: 'completion',
+        status: 'succeeded',
+        runtime: 'provider',
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'trace_event',
+      source: 'backend',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-provider-trace',
+      payload: expect.objectContaining({
+        traceId: expect.stringMatching(/^trace_/),
+        spanId: expect.stringMatching(/^span_/),
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-provider-trace',
+        userId: 'user-sdk-runtime',
+        requestId: null,
+        startedAt: null,
+        durationMs: null,
+      }),
+    });
+    expect(normalized?.payload).not.toEqual(expect.objectContaining({
+      traceId: 'trace-snake',
+      spanId: 'span-snake',
+      parentSpanId: 'span-parent-snake',
+      endedAt: '2026-06-18T00:00:01.000Z',
+    }));
   });
 
   test('conversation runtime persists backend-origin trace-event rows from transport', async () => {

@@ -29,10 +29,12 @@ function conversationRefOf(event: BackendEvent): string | null {
 }
 
 function scopedErrorTurnRef(event: BackendEvent, fallbackTurnRef?: string): string | null {
-  const payload = payloadOf(event);
-  const payloadTurnRef = stringField(payload, 'turn_ref');
-  if (payloadTurnRef?.trim()) {
-    return payloadTurnRef.trim();
+  if (event.type === 'error') {
+    const payload = payloadOf(event);
+    const payloadTurnRef = stringField(payload, 'turn_ref');
+    if (payloadTurnRef?.trim()) {
+      return payloadTurnRef.trim();
+    }
   }
   if (typeof event.turn_ref === 'string' && event.turn_ref.trim()) {
     return event.turn_ref.trim();
@@ -233,22 +235,22 @@ function tracePayloadFromBackendEvent(
     : undefined;
   return {
     schemaVersion: 1,
-    traceId: traceStringField(payload, 'traceId', 'trace_id') ?? createRuntimeId('trace'),
-    spanId: traceStringField(payload, 'spanId', 'span_id') ?? createRuntimeId('span'),
-    parentSpanId: traceStringField(payload, 'parentSpanId', 'parent_span_id'),
+    traceId: traceStringField(payload, 'traceId') ?? createRuntimeId('trace'),
+    spanId: traceStringField(payload, 'spanId') ?? createRuntimeId('span'),
+    parentSpanId: traceStringField(payload, 'parentSpanId'),
     path,
     stage,
     status,
     runtime: traceRuntimeOf(payload.runtime),
-    conversationRef: traceStringField(payload, 'conversationRef', 'conversation_ref') ?? base.conversationRef,
-    turnRef: traceStringField(payload, 'turnRef', 'turn_ref') ?? base.turnRef,
-    userId: traceStringField(payload, 'userId', 'user_id') ?? (
+    conversationRef: base.conversationRef,
+    turnRef: base.turnRef,
+    userId: (
       typeof event.user_id === 'string' && event.user_id.trim() ? event.user_id.trim() : null
     ),
-    requestId: traceStringField(payload, 'requestId', 'request_id'),
-    startedAt: traceStringField(payload, 'startedAt', 'started_at'),
-    endedAt: traceStringField(payload, 'endedAt', 'ended_at') ?? base.timestamp,
-    durationMs: traceNumberField(payload, 'durationMs', 'duration_ms'),
+    requestId: traceStringField(payload, 'requestId'),
+    startedAt: traceStringField(payload, 'startedAt'),
+    endedAt: traceStringField(payload, 'endedAt') ?? base.timestamp,
+    durationMs: traceNumberField(payload, 'durationMs'),
     backendSequence: backendSequenceOf(event),
     backendEventId: typeof event.event_id === 'string' && event.event_id.trim() ? event.event_id.trim() : null,
     ...(data ? { data } : {}),
