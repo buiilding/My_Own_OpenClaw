@@ -22,8 +22,8 @@ const {
   sendLocalRuntimeStatus,
 } = require('./local_runtime_status_broadcaster.cjs');
 const {
-  DESKTOP_AGENT_INVOKE_CHANNELS,
-} = require('../ipc/ipc_desktop_agent_channels.cjs');
+  DESKTOP_RUNTIME_INVOKE_CHANNELS,
+} = require('../ipc/ipc_desktop_runtime_channels.cjs');
 const {
   loadInstallAuthStateFromDisk,
 } = require('../ipc/ipc_install_auth_state.cjs');
@@ -535,7 +535,7 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
     }
   });
   ipcMain.handle(
-    DESKTOP_AGENT_INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS,
+    DESKTOP_RUNTIME_INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS,
     async () => wakeSdkLocalRuntimeForStatus(mainWindow),
   );
 

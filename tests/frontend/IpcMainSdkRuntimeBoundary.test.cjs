@@ -90,7 +90,7 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
     const channelSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_agent_channels.cjs'),
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_runtime_channels.cjs'),
       'utf8',
     );
     const legacyInvokeChannel = ['get-local', 'backend-status'].join('-');
@@ -98,8 +98,8 @@ describe('main ipc sdk runtime boundary', () => {
 
     expect(channelSource).toContain('GET_LOCAL_RUNTIME_STATUS: IPC_CHANNELS.INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS');
     expect(channelSource).toContain('LOCAL_RUNTIME_STATUS: IPC_CHANNELS.ON_CHANNELS.LOCAL_RUNTIME_STATUS');
-    expect(bridgeSource).toContain('DESKTOP_AGENT_INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS');
-    expect(broadcasterSource).toContain('DESKTOP_AGENT_ON_CHANNELS.LOCAL_RUNTIME_STATUS');
+    expect(bridgeSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS.GET_LOCAL_RUNTIME_STATUS');
+    expect(broadcasterSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.LOCAL_RUNTIME_STATUS');
     expect(bridgeSource).not.toContain(`ipcMain.handle('${legacyInvokeChannel}'`);
     expect(broadcasterSource).not.toContain(`webContents.send('${legacyStatusChannel}'`);
   });
@@ -114,8 +114,8 @@ describe('main ipc sdk runtime boundary', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
-    expect(mainSource).toContain('ipcMain.handle(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
+    expect(mainSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
+    expect(mainSource).toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
     expect(mainSource).toContain('handleAgentSdkInvoke(event, payload');
     expect(mainSource).toContain('ensureAgent,');
     expect(mainSource).not.toContain(`ensureAgent: ensure${retiredProductName('Agent')}`);

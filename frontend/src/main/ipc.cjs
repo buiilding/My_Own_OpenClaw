@@ -125,10 +125,10 @@ const {
   createIpcEventReplayState,
 } = require('./ipc/ipc_event_replay_state.cjs');
 const {
-  DESKTOP_AGENT_SEND_CHANNELS,
-  DESKTOP_AGENT_INVOKE_CHANNELS,
-  DESKTOP_AGENT_ON_CHANNELS,
-} = require('./ipc/ipc_desktop_agent_channels.cjs');
+  DESKTOP_RUNTIME_SEND_CHANNELS,
+  DESKTOP_RUNTIME_INVOKE_CHANNELS,
+  DESKTOP_RUNTIME_ON_CHANNELS,
+} = require('./ipc/ipc_desktop_runtime_channels.cjs');
 const {
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,
@@ -799,7 +799,7 @@ function createDirectWakeUpAgentAdapter({
   let closed = false;
 
   function broadcastStatus(status) {
-    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.STATUS, status);
+    broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.STATUS, status);
   }
 
   function createRuntimeHandle(nextConversationRef) {
@@ -831,11 +831,11 @@ function createDirectWakeUpAgentAdapter({
       } else if (phase) {
         handle.terminal = false;
       }
-      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, event);
+      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, event);
       if (event && event.type === 'memory_store_changed') {
-        broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.MEMORY_STORE_CHANGED, event);
+        broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.MEMORY_STORE_CHANGED, event);
       }
-      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.ROWS, snapshot.displayRows);
+      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.ROWS, snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
       if (pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)) {
         clearLatestPendingTurn({
@@ -859,7 +859,7 @@ function createDirectWakeUpAgentAdapter({
           log('Failed to sync SDK live-turn surface intent:', error?.message || error);
         }
       }
-      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN, snapshot.currentTurn);
+      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, snapshot.currentTurn);
       const terminalStatus = statusFromConversationEvent(event, workspacePath);
       if (terminalStatus) {
         broadcastStatus(terminalStatus);
@@ -1372,7 +1372,7 @@ function clearLatestPendingTurn(input = {}) {
   }
   latestPendingTurn = null;
   if (input.broadcast === true) {
-    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
+    broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
       type: 'clear',
       conversationRef: normalizeOptionalString(input.conversationRef)
         || pendingTurn.conversationRef,
@@ -1721,7 +1721,7 @@ function initializeIpc(win, options = {}) {
     handleRendererLiveSurfaceTrace(payload);
   });
 
-  ipcMain.on(DESKTOP_AGENT_SEND_CHANNELS.PENDING_TURN, (_event, payload = {}) => {
+  ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, (_event, payload = {}) => {
     const source = payload && typeof payload === 'object' && !Array.isArray(payload)
       ? payload
       : {};
@@ -1739,7 +1739,7 @@ function initializeIpc(win, options = {}) {
         ? source.turnRef.trim()
         : null;
       clearLatestPendingTurn({ conversationRef, turnRef });
-      broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
+      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
         type: 'clear',
         conversationRef,
         turnRef,
@@ -1751,7 +1751,7 @@ function initializeIpc(win, options = {}) {
       return;
     }
     latestPendingTurn = pendingTurn;
-    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
+    broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
       type: 'pending',
       pendingTurn,
     });
@@ -1819,7 +1819,7 @@ function initializeIpc(win, options = {}) {
     },
   });
 
-  ipcMain.handle(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE, async (event, payload = {}) => (
+  ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE, async (event, payload = {}) => (
     handleAgentSdkInvoke(event, payload, {
       handleRendererChatQuery,
       handleRendererStopQuery,

@@ -11,7 +11,8 @@ const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
-const desktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
+const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_channels.cjs');
+const retiredDesktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
 const ipcRendererWindowsPath = path.join(mainRoot, 'ipc/ipc_renderer_windows.cjs');
 const ipcQueryBroadcastPath = path.join(mainRoot, 'ipc/ipc_query_broadcast.cjs');
 const openAICodexOAuthPath = path.join(mainRoot, 'app/openai_codex_oauth.cjs');
@@ -313,28 +314,31 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain(['getLocal', 'BackendStatus'].join(''));
   });
 
-  test('main SDK conversation channels use desktop-agent channel groups', () => {
+  test('main SDK conversation channels use desktop-runtime channel groups', () => {
     const {
-      DESKTOP_AGENT_SEND_CHANNELS,
-      DESKTOP_AGENT_INVOKE_CHANNELS,
-      DESKTOP_AGENT_ON_CHANNELS,
-    } = require(desktopAgentChannelsPath);
-    expect(DESKTOP_AGENT_SEND_CHANNELS.PENDING_TURN).toBe('windie:pending-turn');
-    expect(DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE).toBe('windie:invoke');
-    expect(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT).toBe('windie:conversation-event');
-    expect(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN).toBe('windie:current-turn');
+      DESKTOP_RUNTIME_SEND_CHANNELS,
+      DESKTOP_RUNTIME_INVOKE_CHANNELS,
+      DESKTOP_RUNTIME_ON_CHANNELS,
+    } = require(desktopRuntimeChannelsPath);
+    expect(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN).toBe('windie:pending-turn');
+    expect(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE).toBe('windie:invoke');
+    expect(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT).toBe('windie:conversation-event');
+    expect(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN).toBe('windie:current-turn');
 
-    const channelSource = fs.readFileSync(desktopAgentChannelsPath, 'utf8');
+    const channelSource = fs.readFileSync(desktopRuntimeChannelsPath, 'utf8');
     const genericHostSources = [
       mainIpcPath,
       ipcRendererWindowsPath,
       ipcQueryBroadcastPath,
     ].map(modulePath => fs.readFileSync(modulePath, 'utf8')).join('\n');
 
-    expect(channelSource).toContain('desktop-agent IPC channel groups');
-    expect(channelSource).not.toContain(['desktop-agent IPC channel', 'aliases'].join(' '));
-    expect(genericHostSources).toContain('DESKTOP_AGENT_ON_CHANNELS');
-    expect(genericHostSources).toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(channelSource).toContain('desktop-runtime IPC channel groups');
+    expect(fs.existsSync(retiredDesktopAgentChannelsPath)).toBe(false);
+    expect(channelSource).not.toContain('desktop-agent IPC channel groups');
+    expect(genericHostSources).toContain('DESKTOP_RUNTIME_ON_CHANNELS');
+    expect(genericHostSources).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
+    expect(genericHostSources).not.toContain('DESKTOP_AGENT_ON_CHANNELS');
+    expect(genericHostSources).not.toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
     expect(genericHostSources).not.toMatch(
       /['"`]windie:(status|conversation-event|memory-store-changed|rows|current-turn|pending-turn|invoke)['"`]/,
     );

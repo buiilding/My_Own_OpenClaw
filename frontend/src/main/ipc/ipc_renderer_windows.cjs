@@ -3,8 +3,8 @@
  */
 
 const {
-  DESKTOP_AGENT_ON_CHANNELS,
-} = require('./ipc_desktop_agent_channels.cjs');
+  DESKTOP_RUNTIME_ON_CHANNELS,
+} = require('./ipc_desktop_runtime_channels.cjs');
 
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
@@ -46,13 +46,13 @@ function trackRendererWindow({
     if (typeof getLatestCurrentTurn === 'function') {
       const latestCurrentTurn = getLatestCurrentTurn();
       if (latestCurrentTurn && typeof latestCurrentTurn === 'object') {
-        webContents.send(DESKTOP_AGENT_ON_CHANNELS.CURRENT_TURN, latestCurrentTurn);
+        webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, latestCurrentTurn);
       }
     }
     if (typeof getLatestPendingTurn === 'function') {
       const latestPendingTurn = getLatestPendingTurn();
       if (latestPendingTurn && typeof latestPendingTurn === 'object') {
-        webContents.send(DESKTOP_AGENT_ON_CHANNELS.PENDING_TURN, {
+        webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
           type: 'pending',
           pendingTurn: latestPendingTurn,
         });
@@ -69,7 +69,7 @@ function trackRendererWindow({
       if (typeof buildConversationEvent === 'function') {
         const conversationEvent = buildConversationEvent(replayEvent);
         if (conversationEvent) {
-          webContents.send(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, conversationEvent);
+          webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, conversationEvent);
         }
       }
     }
@@ -111,7 +111,7 @@ function broadcastToRenderers({
   }
   if (
     isDebugStreamTraceEnabled()
-    && channel === DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT
+    && channel === DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT
     && payload
     && typeof payload === 'object'
   ) {

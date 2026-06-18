@@ -6,8 +6,8 @@ const {
   sendLocalRuntimeStatus,
 } = require('../../frontend/src/main/sidecar/local_runtime_status_broadcaster.cjs');
 const {
-  DESKTOP_AGENT_ON_CHANNELS,
-} = require('../../frontend/src/main/ipc/ipc_desktop_agent_channels.cjs');
+  DESKTOP_RUNTIME_ON_CHANNELS,
+} = require('../../frontend/src/main/ipc/ipc_desktop_runtime_channels.cjs');
 
 describe('local_runtime_status_broadcaster', () => {
   test('builds local runtime status from supervisor and SDK local runtime snapshots', () => {
@@ -38,7 +38,7 @@ describe('local_runtime_status_broadcaster', () => {
     sendLocalRuntimeStatus(mainWindow, { ready: true });
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      DESKTOP_AGENT_ON_CHANNELS.LOCAL_RUNTIME_STATUS,
+      DESKTOP_RUNTIME_ON_CHANNELS.LOCAL_RUNTIME_STATUS,
       { ready: true },
     );
   });
@@ -67,7 +67,7 @@ describe('local_runtime_status_broadcaster', () => {
     });
 
     expect(liveWindow.webContents.send).toHaveBeenCalledWith(
-      DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED,
+      DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED,
       expect.objectContaining({
         type: 'conversation-metadata-invalidated',
         reason: 'conversation-title-updated',

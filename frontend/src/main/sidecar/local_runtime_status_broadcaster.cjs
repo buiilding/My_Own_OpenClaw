@@ -6,11 +6,11 @@ const {
   conversationMetadataInvalidationFromLocalRuntimeEvent,
 } = require('../../../../packages/windie-sdk-js/cjs/index.js');
 const {
-  DESKTOP_AGENT_ON_CHANNELS,
-} = require('../ipc/ipc_desktop_agent_channels.cjs');
+  DESKTOP_RUNTIME_ON_CHANNELS,
+} = require('../ipc/ipc_desktop_runtime_channels.cjs');
 
 function sendLocalRuntimeStatus(mainWindow, payload) {
-  mainWindow?.webContents.send(DESKTOP_AGENT_ON_CHANNELS.LOCAL_RUNTIME_STATUS, payload);
+  mainWindow?.webContents.send(DESKTOP_RUNTIME_ON_CHANNELS.LOCAL_RUNTIME_STATUS, payload);
 }
 
 function buildLocalRuntimeStatusPayload({
@@ -37,7 +37,7 @@ function broadcastConversationMetadataInvalidation(resolveWindows, payload) {
       continue;
     }
     win.webContents?.send?.(
-      DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED,
+      DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_METADATA_INVALIDATED,
       invalidation,
     );
   }

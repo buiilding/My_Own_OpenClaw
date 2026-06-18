@@ -6,8 +6,8 @@ const {
   normalizeBackendEventToConversationEvent,
 } = require('../../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 const {
-  DESKTOP_AGENT_ON_CHANNELS,
-} = require('./ipc_desktop_agent_channels.cjs');
+  DESKTOP_RUNTIME_ON_CHANNELS,
+} = require('./ipc_desktop_runtime_channels.cjs');
 
 function broadcastQuerySendFailure({
   queryMessageId,
@@ -32,7 +32,7 @@ function broadcastQuerySendFailure({
     fallbackConversationRef: conversationRef,
   });
   if (conversationEvent) {
-    broadcastToRenderers(DESKTOP_AGENT_ON_CHANNELS.CONVERSATION_EVENT, conversationEvent);
+    broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, conversationEvent);
   }
 }
 

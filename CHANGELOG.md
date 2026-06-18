@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/main: rename the private Electron-main SDK channel group module
+  and exports from desktop-agent to desktop-runtime wording; no migration is
+  required because the `windie:*` IPC wire channel names, preload bridge, and
+  renderer-facing channel registry are unchanged.
 - docs/runtime-boundary: replace conceptual `SDK desktop agent` wording in
   architecture, channel, frontend IPC, query relay, and tool lifecycle docs
   with SDK agent-runtime terminology; no migration is required because this is

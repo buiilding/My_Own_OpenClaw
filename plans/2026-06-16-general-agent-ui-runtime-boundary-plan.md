@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main SDK channel group module rename
+
+- Finding: Electron main still routed SDK conversation/current-turn IPC through
+  a private `ipc_desktop_agent_channels.cjs` module with `DESKTOP_AGENT_*`
+  group exports even though the owning boundary is now desktop-runtime IPC.
+- Change: renamed the private module to `ipc_desktop_runtime_channels.cjs`,
+  renamed its group exports and Electron-main consumers to `DESKTOP_RUNTIME_*`,
+  and added boundary coverage that the retired desktop-agent module path stays
+  absent.
+- Validation: focused MainHostSkinBoundary, IpcMainSdkRuntimeBoundary, and
+  LocalRuntimeStatusBroadcaster Jest tests; docs route lookup; recent history
+  review; stale main-process channel-group scan; and diff check.
+- Compatibility: no migration required because the `windie:*` IPC wire channel
+  names, shared renderer-facing channel registry values, preload bridge, and
+  runtime behavior are unchanged.
+
 ### 2026-06-18 docs SDK agent-runtime topology wording
 
 - Finding: current architecture, channel, query relay, and tool lifecycle docs
