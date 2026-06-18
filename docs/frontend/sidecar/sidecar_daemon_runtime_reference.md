@@ -77,8 +77,11 @@ platform path table. Default paths remain unchanged:
 - Linux: `$XDG_CONFIG_HOME/windieos` for daemon contexts that opt into XDG, or
   `~/.config/windieos` when no XDG root is provided
 
-`WINDIE_USER_DATA_DIR` overrides the daemon user-data root for tests and
-special local runs. Other Python local-runtime code uses the same helper while
+`AGENT_USER_DATA_DIR` overrides the daemon user-data root for generic hosts;
+WindieOS launches can still use `WINDIE_USER_DATA_DIR` for tests and special
+local runs. `AGENT_APP_DIAGNOSTICS_DB` similarly overrides the daemon
+diagnostics database path, with `WINDIE_APP_DIAGNOSTICS_DB` preserved as the
+WindieOS alias. Other Python local-runtime code uses the same helper while
 preserving its existing defaults unless it explicitly opts into daemon-style
 fallbacks.
 

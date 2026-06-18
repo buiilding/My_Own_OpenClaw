@@ -8325,3 +8325,19 @@ Each completed slice should report:
   env names continue to work, generic hosts can use matching
   `AGENT_BROWSER_*` names, and default WindieOS browser profile/session/file
   roots remain unchanged.
+
+### 2026-06-18 Python sidecar daemon data-path env alias boundary
+
+- Finding: the Python sidecar daemon still read only
+  `WINDIE_USER_DATA_DIR` and `WINDIE_APP_DIAGNOSTICS_DB` for daemon data-path
+  overrides, even though Electron main diagnostics already exposes generic
+  data-path env defaults for reusable hosts.
+- Change: made daemon user-data and diagnostics DB resolution read
+  `AGENT_USER_DATA_DIR` and `AGENT_APP_DIAGNOSTICS_DB` first with WindieOS
+  aliases preserved.
+- Validation: focused sidecar daemon data-path pytest coverage, source scans,
+  docs listing, and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS daemon data-path
+  overrides continue to work, generic hosts can use the Agent env names, and
+  default app-data directory names, diagnostics schema, storage formats,
+  permissions, credentials, IPC, and provider policy are unchanged.

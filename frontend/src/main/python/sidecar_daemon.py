@@ -32,6 +32,10 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_DISCOVERY_FILE = (
     Path(tempfile.gettempdir()) / "desktop-runtime" / "local-runtime-daemon.json"
 )
+ENV_AGENT_USER_DATA_DIR = "AGENT_USER_DATA_DIR"
+ENV_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
+ENV_AGENT_APP_DIAGNOSTICS_DB = "AGENT_APP_DIAGNOSTICS_DB"
+ENV_APP_DIAGNOSTICS_DB = "WINDIE_APP_DIAGNOSTICS_DB"
 LOCAL_RUNTIME_TOKEN_HEADER = "x-agent-local-runtime-token"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
@@ -100,6 +104,14 @@ def normalize_object(value: Any) -> dict[str, Any]:
 
 def normalize_string(value: Any) -> str:
     return value.strip() if isinstance(value, str) and value.strip() else ""
+
+
+def first_env_value(*names: str) -> str:
+    for name in names:
+        value = normalize_string(os.getenv(name))
+        if value:
+            return value
+    return ""
 
 
 def reject_removed_keys(payload: dict[str, Any], keys: set[str], label: str) -> None:
@@ -191,16 +203,18 @@ def serialize_diagnostic_args(args: list[str]) -> str:
 
 
 def app_user_data_root() -> Path:
+    override = first_env_value(ENV_AGENT_USER_DATA_DIR, ENV_USER_DATA_DIR)
+    if override:
+        return Path(override)
     return resolve_app_user_data_root(
         platform_name=normalize_string(os.getenv("WINDIE_TEST_PLATFORM")) or None,
-        override_env_key="WINDIE_USER_DATA_DIR",
         allow_windows_home_fallback=True,
         honor_xdg_config_home=True,
     )
 
 
 def diagnostics_database_path() -> Path:
-    override = normalize_string(os.getenv("WINDIE_APP_DIAGNOSTICS_DB"))
+    override = first_env_value(ENV_AGENT_APP_DIAGNOSTICS_DB, ENV_APP_DIAGNOSTICS_DB)
     if override:
         return Path(override)
     return app_user_data_root() / "diagnostics" / "diagnostics.db"

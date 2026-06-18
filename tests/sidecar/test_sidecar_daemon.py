@@ -50,6 +50,46 @@ def test_sidecar_daemon_default_discovery_path_is_generic():
     )
 
 
+def test_sidecar_daemon_user_data_root_prefers_generic_env(
+    tmp_path: Path, monkeypatch
+):
+    generic_root = tmp_path / "generic"
+    windie_root = tmp_path / "windie"
+    monkeypatch.setenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, str(generic_root))
+    monkeypatch.setenv(sidecar_daemon.ENV_USER_DATA_DIR, str(windie_root))
+
+    assert sidecar_daemon.app_user_data_root() == generic_root
+
+
+def test_sidecar_daemon_user_data_root_preserves_windie_env_alias(
+    tmp_path: Path, monkeypatch
+):
+    windie_root = tmp_path / "windie"
+    monkeypatch.setenv(sidecar_daemon.ENV_USER_DATA_DIR, str(windie_root))
+
+    assert sidecar_daemon.app_user_data_root() == windie_root
+
+
+def test_sidecar_daemon_diagnostics_path_prefers_generic_env(
+    tmp_path: Path, monkeypatch
+):
+    generic_db = tmp_path / "generic.db"
+    windie_db = tmp_path / "windie.db"
+    monkeypatch.setenv(sidecar_daemon.ENV_AGENT_APP_DIAGNOSTICS_DB, str(generic_db))
+    monkeypatch.setenv(sidecar_daemon.ENV_APP_DIAGNOSTICS_DB, str(windie_db))
+
+    assert sidecar_daemon.diagnostics_database_path() == generic_db
+
+
+def test_sidecar_daemon_diagnostics_path_preserves_windie_env_alias(
+    tmp_path: Path, monkeypatch
+):
+    windie_db = tmp_path / "windie.db"
+    monkeypatch.setenv(sidecar_daemon.ENV_APP_DIAGNOSTICS_DB, str(windie_db))
+
+    assert sidecar_daemon.diagnostics_database_path() == windie_db
+
+
 class FakeRequest:
     def __init__(self, payload=None, headers=None):
         self._payload = payload or {}

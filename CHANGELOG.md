@@ -74,6 +74,9 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: accept generic `AGENT_BROWSER_*` diagnostic env aliases for
   Browser Use daemon settings, CDP port, and browser file storage while
   preserving WindieOS aliases.
+- sidecar/daemon: accept generic `AGENT_USER_DATA_DIR` and
+  `AGENT_APP_DIAGNOSTICS_DB` daemon data-path env aliases while preserving
+  WindieOS aliases.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.
