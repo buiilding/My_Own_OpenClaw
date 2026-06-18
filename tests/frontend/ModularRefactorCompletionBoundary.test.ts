@@ -518,6 +518,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md',
       'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
       'docs/frontend/runtime/tool_execution_and_streaming.md',
+      'docs/frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md',
       'docs/architecture/agent_visible_data_pipeline.md',
       'docs/frontend/sidecar_tool_change_workflow.md',
       'docs/frontend/renderer/README.md',
@@ -625,6 +626,10 @@ describe('modular sdk refactor completion boundary', () => {
         'Frontend/sidecar executable tools run local actions',
         'SDK/main dispatches executable tool calls through Electron main to the sidecar',
         'Local execution belongs in renderer/Electron/sidecar code',
+        'ipc.cjs keeps backend transport and frontend session state',
+        'sidecar owns local execution + memory/runtime dependency bootstrap',
+        'sidecar direct-tool exposure contract used for backend parity',
+        'live sidecar registry exposes concrete tool names only',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

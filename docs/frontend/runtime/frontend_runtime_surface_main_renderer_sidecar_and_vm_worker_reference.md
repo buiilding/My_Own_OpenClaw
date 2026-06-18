@@ -1,12 +1,12 @@
 ---
-summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream orchestration, sidecar feature-pack behavior, and VM worker run relay."
+summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream orchestration, Python local-runtime feature-pack behavior, and VM worker run relay."
 read_when:
-  - When changing frontend runtime boundaries across main, renderer, and sidecar.
-  - When modifying VM worker orchestration (`WINDIE_VM_*`), global stop shortcut runtime, or sidecar browser feature-pack install behavior.
-title: "Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker"
+  - When changing frontend runtime boundaries across main, renderer, and the Python local runtime.
+  - When modifying VM worker orchestration (`WINDIE_VM_*`), global stop shortcut runtime, or local-runtime browser feature-pack install behavior.
+title: "Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker"
 ---
 
-# Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker
+# Frontend Runtime Surface: Main, Renderer, Local Runtime, and VM Worker
 
 ## Scope
 
@@ -21,6 +21,7 @@ Canonical files:
 - `frontend/src/main/app/vm_worker_runtime.cjs`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/main/python/sidecar_daemon.py`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/core/feature_pack_installer.py`
 - `frontend/src/main/python/tools/registry.py`
@@ -42,14 +43,14 @@ This split keeps lifecycle/window policy/IPC concerns separate while preserving 
 
 ## IPC Runtime State Contract
 
-`ipc.cjs` keeps backend transport and frontend session state:
+`ipc.cjs` hosts SDK-backed query/session relay state and renderer fanout:
 
-- backend endpoint resolution (`ws` + `http`)
+- SDK/backend endpoint resolution (`ws` + `http`)
 - renderer window tracking and broadcast fanout
 - initial settings sync gate with ACK timeout (`2500ms`)
-- backend session fields (`currentSessionId`, `currentServerUserId`, `currentConversationRef`)
+- SDK session identity fields (`currentSessionId`, `currentServerUserId`, `currentConversationRef`)
 - overlay phase replay state for late-mounted renderer surfaces
-- local synthetic events (`local-user-message`, query-send-failure)
+- local UI projection events (`local-user-message`, query-send-failure)
 - global stop-shortcut status projection into IPC status payloads
 
 Settings sync boundary:
@@ -121,20 +122,23 @@ Send pipeline details:
 
 `useChatStream.ts` remains the canonical stream-event state machine and stale-turn guard boundary for renderer message updates.
 
-## Sidecar Runtime: Feature Pack and Tool Exposure
+## Python Local Runtime: Feature Pack and Tool Exposure
 
-`local_backend.py` supports optional browser runtime install path:
+`sidecar_daemon.py` is the SDK local-runtime entrypoint, and
+`local_backend.py` provides the in-process service implementation used by that
+daemon. The Python local runtime supports the optional browser runtime install
+path:
 
-- bootstraps sidecar feature-pack site-packages into `sys.path`
+- bootstraps local-runtime feature-pack site-packages into `sys.path`
 - checks browser availability through `feature_pack_installer.py` markers
-- can auto-install browser feature pack on-demand (pip target to user-writable sidecar feature-pack directory)
+- can auto-install browser feature pack on-demand (pip target to user-writable local-runtime feature-pack directory)
 - emits packaged-app specific failure guidance when bundled runtime dependencies are missing
 
 Tool exposure boundary is defined in `tools/registry.py`:
 
-- `frontend/src/main/python/tools/manifest.py:EXPOSED_TO_BACKEND_TOOL_NAMES` defines the sidecar direct-tool exposure contract used for backend parity
-- the current live sidecar registry exposes concrete tool names only
-- repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` wrapper artifacts, but those names are not registered in the live sidecar runtime
+- `frontend/src/main/python/tools/manifest.py:EXPOSED_TO_BACKEND_TOOL_NAMES` defines the executable local-runtime tool exposure contract used for SDK/backend parity
+- the current live local-runtime registry exposes concrete tool names only
+- repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` wrapper artifacts, but those names are not registered in the live local runtime
 - registry reload path exists for post-install browser tool availability (`reload_tools`)
 
 ## Why This Surface Matters
@@ -143,7 +147,7 @@ Recent runtime changes are about explicit ownership:
 
 - main process owns process/window/lifecycle policy
 - renderer owns turn-level UI/send/stream behavior
-- sidecar owns local execution + memory/runtime dependency bootstrap
+- Python local runtime owns local execution and memory/runtime dependency bootstrap
 - VM worker mode is an optional polling/relay runtime layered on top of the same backend transport and run APIs
 
 Keeping these boundaries explicit reduces cross-process drift and makes docs, tests, and runtime behavior easier to keep aligned.

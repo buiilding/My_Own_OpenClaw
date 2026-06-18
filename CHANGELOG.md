@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align the frontend runtime surface reference with SDK-backed
+  query/session relay ownership and Python local-runtime execution wording
+  instead of stale backend-transport and sidecar ownership shorthand; no
+  migration is required because this changes docs/test wording only.
 - frontend/main: move the source-run layer log directory default into the
   WindieOS host skin so the generic Electron log sink defaults to
   `.desktop-runtime/logs` while the app and CLI still resolve `.windie/logs`;

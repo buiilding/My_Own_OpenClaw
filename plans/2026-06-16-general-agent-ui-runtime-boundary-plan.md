@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 frontend runtime surface local-runtime wording
+
+- Finding: the frontend runtime surface reference still described `ipc.cjs` as
+  keeping backend transport/frontend session state and described the Python
+  local execution boundary as sidecar ownership, which skipped the current
+  SDK-backed relay and local-runtime daemon/service boundary.
+- Change: reworded the document around SDK-backed query/session relay state,
+  Python local-runtime feature-pack/tool exposure, and concrete local-runtime
+  registry ownership, then added the doc to the modular boundary guard with the
+  retired phrases.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; IPC
+  channels, websocket payloads, tool schemas, storage, credentials,
+  permissions, and local-runtime execution are unchanged.
+
 ### 2026-06-18 main layer-log host skin config
 
 - Finding: the generic Electron main `layer_log_sink` still hardcoded the
