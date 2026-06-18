@@ -163,6 +163,9 @@ Renderer live-turn presentation adapters should render explicit SDK
 presentation-entry fields such as `toolCallDetails`, `toolOutputDetails`,
 `toolArguments`, `toolCalls`, and identity refs; they should not recover tool
 display details from raw `payload` or `structuredPayload` fallbacks.
+Older renderer fallback adapters that read `snapshot.currentTurn.toolEvents`
+directly follow the same boundary: use projected tool-event fields and
+projected detail objects, not raw backend-shaped payload recovery.
 
 ### Removed Renderer Transcript and Rehydrate Helpers
 

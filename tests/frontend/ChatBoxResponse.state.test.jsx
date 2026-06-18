@@ -259,6 +259,48 @@ describe('ChatBoxResponse state behavior', () => {
     expect(toolMessage.text).not.toContain('wrong.md');
   });
 
+  test('buildCurrentTurnMessagesFromProjection ignores raw payload details for tool output', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-test',
+      turnRef: 'turn-live',
+      phase: 'tool_output',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_output',
+        toolName: 'read_file',
+        requestId: 'req-read',
+        correlationId: 'corr-read',
+        text: '',
+        toolOutputDetails: {
+          output: 'README contents',
+          success: true,
+        },
+        payload: {
+          output: 'wrong output',
+          structuredPayload: {
+            output: 'also wrong',
+            step_results: [{ tool: 'wrong_tool', output: 'wrong step' }],
+          },
+        },
+      }],
+    });
+
+    const toolMessage = messages.find(message => message.type === 'tool-output');
+    expect(toolMessage).toEqual(expect.objectContaining({
+      text: 'README contents',
+      correlationId: 'corr-read',
+      toolOutputDetails: {
+        output: 'README contents',
+        success: true,
+      },
+    }));
+    expect(toolMessage.text).not.toContain('wrong output');
+    expect(toolMessage.text).not.toContain('wrong step');
+  });
+
   test('logs when the awaiting typing indicator is actually rendered and removed', async () => {
     window.history.pushState({}, '', '/?dev_ui=1&view=minimal-response-overlay');
     useChatStore.setState({

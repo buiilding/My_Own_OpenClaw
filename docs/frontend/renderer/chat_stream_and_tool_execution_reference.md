@@ -279,13 +279,14 @@ SDK dispatch behavior:
   rows.
   - live presentation entries carry SDK-shaped tool identity fields
     (`toolName`, `requestId`, `correlationId`, `bundleId`). Renderer live-row
-    builders consume those fields and camelCase payload fields, leaving
-    `structuredPayload` for detailed backend metadata instead of re-reading raw
-    backend identity aliases.
+    builders consume those fields plus explicit SDK `toolCallDetails`,
+    `toolOutputDetails`, `toolArguments`, and `toolCalls`, leaving raw payloads
+    out of live display recovery.
   - response overlay fallback rows built from `currentTurnProjection.toolEvents`
-    follow the same rule: `toolName`, `requestId`, and `correlationId` come from
-    SDK tool-event fields or camelCase payload fields, while backend
-    `structuredPayload` remains detail-only.
+    follow the same rule: `toolName`, `requestId`, `correlationId`, bundle
+    calls, metadata, and output text come from explicit SDK tool-event fields
+    and projected detail objects instead of raw `payload` or
+    `structuredPayload` fallbacks.
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic Windie `web_search` tool-call/tool-output pair for later model
     history.

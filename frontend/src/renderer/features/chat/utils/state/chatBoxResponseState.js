@@ -23,29 +23,23 @@ function readArray(value) {
   return Array.isArray(value) ? value : null;
 }
 
-function resolveToolPayload(toolEvent) {
-  return asObject(toolEvent?.payload) || {};
-}
-
 function buildProjectedToolCallMessage({
   baseId,
   turnRef,
   toolEvent,
-  payload,
 }) {
-  const toolCallDetails = asObject(toolEvent.toolCallDetails) || payload;
+  const toolCallDetails = asObject(toolEvent.toolCallDetails);
   const metadata = asObject(toolEvent.toolDisplayMetadata) || asObject(toolEvent.toolMetadata);
   const args = asObject(toolEvent.toolArguments);
   const toolName = readString(toolEvent.toolName) || '';
   const requestId = readString(toolEvent.requestId);
   const correlationId = readString(toolEvent.correlationId);
 
-  if (toolName === 'tool_bundle' || readArray(payload.tools) || readArray(toolCallDetails.tools)) {
+  if (toolName === 'tool_bundle' || readArray(toolEvent.toolCalls) || readArray(toolCallDetails?.tools)) {
     const bundlePayload = {
-      ...toolCallDetails,
-      ...payload,
+      ...(toolCallDetails || {}),
       toolCalls: readArray(toolEvent.toolCalls),
-      tools: readArray(payload.tools) || toolCallDetails.tools,
+      tools: readArray(toolCallDetails?.tools),
     };
     const bundleState = buildToolBundleMessageState(bundlePayload);
     return buildToolCallChatMessageState({
@@ -89,13 +83,10 @@ function buildProjectedToolCallMessage({
 }
 
 function formatProjectedToolOutputText(payload) {
-  const structuredPayload = asObject(payload.structuredPayload);
   const bundleSteps = [
     payload.stepResults,
     payload.step_results,
-    structuredPayload?.stepResults,
-    structuredPayload?.step_results,
-    structuredPayload?.results,
+    payload.results,
   ].find(Array.isArray);
   if (Array.isArray(bundleSteps) && bundleSteps.length > 0) {
     return bundleSteps
@@ -127,9 +118,8 @@ function buildProjectedToolOutputMessage({
   baseId,
   turnRef,
   toolEvent,
-  payload,
 }) {
-  const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || payload;
+  const toolOutputDetails = asObject(toolEvent.toolOutputDetails) || {};
   const screenshot = readString(toolEvent.screenshot);
   const screenshotRefValue = readString(toolEvent.screenshotRef);
   const screenshotAttachment = buildScreenshotAttachment(screenshotRefValue);
@@ -184,19 +174,18 @@ function buildProjectedToolProgressMessage({
     turnRef: turnRef || undefined,
     toolName: toolEvent.toolName || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
-    toolMetadata: toolEvent.toolMetadata || toolEvent.payload || null,
+    toolMetadata: toolEvent.toolMetadata || null,
   };
 }
 
 function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
-  const payload = resolveToolPayload(toolEvent);
   if (toolEvent.kind === 'tool_output') {
-    return buildProjectedToolOutputMessage({ baseId, turnRef, toolEvent, payload });
+    return buildProjectedToolOutputMessage({ baseId, turnRef, toolEvent });
   }
   if (toolEvent.kind === 'tool_progress') {
     return buildProjectedToolProgressMessage({ baseId, turnRef, toolEvent });
   }
-  return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent, payload });
+  return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent });
 }
 
 export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {

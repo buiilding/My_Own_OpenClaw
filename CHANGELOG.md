@@ -7,9 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - renderer: build live current-turn tool rows only from explicit SDK
-  presentation fields instead of raw `payload` or `structuredPayload`
-  fallbacks, keeping backend-shaped tool details inside the SDK projection
-  boundary.
+  presentation/tool-event fields instead of raw `payload` or
+  `structuredPayload` fallbacks, keeping backend-shaped tool details inside
+  the SDK projection boundary.
 - docs/sidecar: align local memory, prompt/tool context, client manifest, and
   contract-boundary wording with renderer/client/local-runtime ownership
   instead of stale frontend-owned phrasing.

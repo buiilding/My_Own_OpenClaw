@@ -123,14 +123,17 @@ Each completed slice should report:
 ### 2026-06-18 renderer live-turn payload fallback boundary
 
 - Finding: the renderer live current-turn presentation adapter still used raw
-  `payload` / `structuredPayload` fallbacks when building live tool rows, even
-  though the SDK projection already emits explicit tool identity, arguments,
-  display details, output details, metadata, and bundle call fields.
+  `payload` / `structuredPayload` fallbacks when building live tool rows; the
+  older response-overlay fallback from `currentTurnProjection.toolEvents` had
+  the same raw payload recovery path. The SDK projection already emits explicit
+  tool identity, arguments, display details, output details, metadata, and
+  bundle call fields.
 - Change: removed the raw payload fallback path from
-  `liveTurnPresentationMessages.js` so live tool-call, tool-progress, and
-  tool-output rows are built only from explicit SDK presentation-entry fields;
-  added behavior and source-boundary tests to keep backend-shaped payload
-  recovery out of the renderer.
+  `liveTurnPresentationMessages.js` and `chatBoxResponseState.js` so live
+  tool-call, tool-progress, and tool-output rows are built only from explicit
+  SDK presentation-entry or tool-event fields; added behavior and
+  source-boundary tests to keep backend-shaped payload recovery out of the
+  renderer.
 - Validation: focused renderer message presentation and chat runtime boundary
   Jest coverage, docs listing, stale raw-payload fallback scan, and diff check.
 - Compatibility: no migration required. SDK `currentTurn.presentation` shape,

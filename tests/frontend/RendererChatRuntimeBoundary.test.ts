@@ -589,4 +589,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('entry.structuredPayload');
     expect(source).not.toContain('entry.payload');
   });
+
+  test('current-turn tool-event fallback does not read raw backend-shaped payload details', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
+      'utf8',
+    );
+
+    expect(source).toContain('toolCallDetails');
+    expect(source).toContain('toolOutputDetails');
+    expect(source).not.toContain('toolEvent.payload');
+    expect(source).not.toContain('structuredPayload');
+  });
 });
