@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 public sidecar-backed docs cleanup
+
+- Finding: routing, IPC, JSON-RPC, platform, and packaging docs still used
+  `sidecar-backed` for public workflow and validation concepts even though the
+  owned contract is now the SDK local runtime; this kept pointing agents at the
+  concrete Python sidecar rather than the SDK/local-runtime boundary.
+- Change: replaced those public workflow references with local-runtime-backed
+  terminology, updated the dashboard memory reference to the local-runtime
+  memory index, and expanded the docs-boundary guard to cover the routing and
+  packaging docs.
+- Validation: focused `ModularRefactorCompletionBoundary.test.ts` coverage,
+  docs listing, repo scan for `sidecar-backed` leaving only negative assertions,
+  and diff checks.
+- Compatibility: no migration required. This is docs/test terminology cleanup;
+  SDK commands, IPC channels, sidecar RPC names, packaging scripts, and storage
+  payloads are unchanged.
 ### 2026-06-18 desktop-assistant reinstall/package metadata cleanup
 
 - Finding: backend package metadata and local reinstall helpers still carried

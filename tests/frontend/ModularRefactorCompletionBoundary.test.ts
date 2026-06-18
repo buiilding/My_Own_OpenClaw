@@ -232,13 +232,23 @@ describe('modular sdk refactor completion boundary', () => {
     const docs = await Promise.all([
       read('docs/debug/runtime_traces.md'),
       read('docs/architecture/frontend_architecture.md'),
+      read('docs/architecture/storage_persistence_change_workflow.md'),
       read('docs/frontend/contracts/memory_ipc_and_rpc_mapping_reference.md'),
+      read('docs/frontend/contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md'),
+      read('docs/frontend/renderer/dashboard_memory_management_and_resume_reference.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
+      read('docs/frontend/sidecar/local_backend_jsonrpc_reference.md'),
+      read('docs/operations/release_packaging_change_workflow.md'),
+      read('docs/platforms/platform_change_workflow.md'),
+      read('docs/platforms/packaging_runtime_matrix.md'),
+      read('docs/reference/code_change_surface_index.md'),
     ]);
     const docText = docs.join('\n');
 
     expect(docText).toContain('local-runtime-backed `LocalRuntimeConversationStore`');
     expect(docText).toContain('local-runtime-backed chat-event store');
+    expect(docText).toContain('local-runtime-backed store adapters');
+    expect(docText).toContain('local-runtime-backed local tool');
     expect(docText).toContain('returns sanitized search metadata');
     expect(docText).not.toContain('sidecar-backed');
   });

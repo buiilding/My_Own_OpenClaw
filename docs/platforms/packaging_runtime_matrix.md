@@ -52,7 +52,7 @@ For platform packaging changes:
 3. Inspect package contents for `resources/python-runtime`.
 4. Launch the installed app, not only Electron dev.
 5. Send a prompt.
-6. Execute one sidecar-backed local tool.
+6. Execute one local-runtime-backed local tool.
 7. Verify backend endpoint selection.
 8. Run the matching smoke helper where available.
 

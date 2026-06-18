@@ -241,7 +241,7 @@ If renderer `invoke` resolves with "not handled"/unexpected response:
 
 1. locate owner file for channel in matrix above
 2. verify `ipcMain.handle` registration path is executed at startup
-3. if a sidecar-backed helper is involved, inspect the SDK/local-runtime target keys and method name
+3. if a local-runtime-backed helper is involved, inspect the SDK/local-runtime target keys and method name
 
 If sidecar memory operations return wrong filters:
 

@@ -198,7 +198,7 @@ Validation sequence:
 3. inspect installed package for `resources/python-runtime`
 4. launch installed app
 5. send one prompt
-6. run one sidecar-backed local tool
+6. run one local-runtime-backed local tool
 7. verify backend endpoint selection
 8. run the target OS smoke helper when available
 

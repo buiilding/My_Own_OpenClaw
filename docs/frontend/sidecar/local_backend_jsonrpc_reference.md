@@ -121,7 +121,7 @@ assistant, tool-call, tool-output, compaction, metadata, and attachment events.
 Conversation listing/search/replay reads from this table.
 
 `conversation_revisions` stores the current SDK conversation revision for
-sidecar-backed conversations. `replace_chat_conversation` updates it atomically
+local-runtime-backed conversations. `replace_chat_conversation` updates it atomically
 with the replacement event rows, and `get_chat_conversation_revision` reads it
 before falling back to the latest event revision. This keeps edit/resend and
 retry rewrites from reporting an old preserved event revision.
