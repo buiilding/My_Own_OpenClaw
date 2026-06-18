@@ -233,7 +233,6 @@ Phase 2 (consumer migration):
 Phase 3 (event contract standardization):
 
 - normalize overlay-phase payload types to include optional recovery metadata.
-- keep backward compatibility for older payload shape.
 - preserve current phase progression semantics.
 
 Phase 4 (tests + docs + hardening):

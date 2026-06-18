@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
   `AgentClient`; SDK callers must pass `backendUrl`/`httpBaseUrl` or set
   `WINDIE_BACKEND_URL` for hosted operations. Electron main already supplies
   host-skin endpoint config, so no desktop migration is required.
+- docs/frontend: remove stale backward-compatibility wording from the
+  historical renderer surface orchestration reference; no migration is required
+  because the page is historical routing context only.
 - sdk: require callers to opt into hosted install auto-registration with
   `installAuth.autoRegister = true` instead of inferring backend auth policy
   from the WindieOS hosted endpoint hostname; no migration is required for the
