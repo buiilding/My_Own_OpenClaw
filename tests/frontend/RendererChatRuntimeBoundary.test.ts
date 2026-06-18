@@ -817,6 +817,38 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('ON_CHANNELS.WAKEWORD_STT_TRIGGER');
   });
 
+  test('minimal response overlay routes responsebox IPC through app runtime client', async () => {
+    const overlaySource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
+      'utf8',
+    );
+    const syncSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js'),
+      'utf8',
+    );
+    const viewModelSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const source of [overlaySource, syncSource, viewModelSource]) {
+      expect(source).not.toContain('IpcBridge');
+      expect(source).not.toContain('INVOKE_CHANNELS');
+      expect(source).not.toContain('ON_CHANNELS');
+    }
+    expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActive');
+    expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
+    expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility');
+    expect(viewModelSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE');
+    expect(clientSource).toContain('INVOKE_CHANNELS.SET_RESPONSEBOX_HIT_TEST_ACTIVE');
+    expect(clientSource).toContain('ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

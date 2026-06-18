@@ -13,6 +13,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
@@ -115,7 +116,9 @@ Contract ownership:
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
 - `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary: current-turn presentation state, response-entry derivation, rendered markdown payloads, closeability, and stale-response suppression during preflight/awaiting.
-- `useResponseOverlayWindowSync(...)` owns response-window sizing IPC and visibility re-report behavior.
+- `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
+  visibility re-report behavior, delegating responsebox IPC to
+  `DesktopResponseOverlayRuntimeClient`.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:

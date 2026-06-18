@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useCurrentTurnPresentationState } from '../../chat/hooks/useCurrentTurnPresentationState';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import {
   buildResponseOverlayDismissalKey,
   useChatStore,
@@ -383,7 +383,7 @@ export function useResponseOverlayViewModel({
       responseEntryId: viewIntent.latestResponseOverlayEntryId,
     };
     dismissResponseOverlayEntry(dismissalTarget);
-    IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
+    DesktopResponseOverlayRuntimeClient.setResponseboxSize({
       visible: false,
       width: 0,
       height: 0,

@@ -17,7 +17,7 @@ import {
   logRendererResponseSurfaceTrace,
 } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 
 const RESPONSE_FIXED_HEIGHT = RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
@@ -85,7 +85,7 @@ function MinimalResponseOverlay() {
       return;
     }
     responseboxHitTestActiveRef.current = nextActive;
-    IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_HIT_TEST_ACTIVE, {
+    DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActive({
       active: nextActive,
     }).catch(() => {});
     logRendererLiveSurfaceTrace('response_overlay.hit_test.set', {

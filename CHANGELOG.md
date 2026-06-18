@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route minimal response overlay size, hit-test, dismiss, and
+  visibility re-report IPC through a renderer app response overlay runtime client.
 - renderer/runtime: route minimal chatbox overlay focus, drag, hit-test,
   visual-anchor, text-entry, hide, and dashboard handoff IPC through the
   renderer app window runtime client.

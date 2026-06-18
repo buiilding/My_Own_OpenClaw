@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Response Overlay Runtime Client
+
+- Finding: `MinimalResponseOverlay`, `useResponseOverlayWindowSync`, and
+  `useResponseOverlayViewModel` still imported responsebox IPC channels directly
+  for hit-test, size reporting, close/dismiss hide, and visibility re-report
+  behavior.
+- Change: added `DesktopResponseOverlayRuntimeClient` for responsebox size,
+  hit-test, and visibility fan-out, then routed the response overlay component,
+  window-sync hook, and view-model close path through it while leaving overlay
+  selection, stale-turn, sizing, scroll, and dismiss policy in the overlay
+  feature.
+- Validation: focused chatbox response state tests, renderer chat boundary test,
+  targeted response overlay direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Responsebox channel strings, payload
+  shapes, visibility re-report timing, fixed-size/awaiting sizing policy,
+  dismissal behavior, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Renderer Minimal Chatbox Window Runtime Client
 
 - Finding: `MinimalChatPill` and `useMinimalChatPillBindings` still imported

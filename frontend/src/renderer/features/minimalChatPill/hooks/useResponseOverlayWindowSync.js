@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 import { getRoundedFrameSize } from '../../chat/utils/overlay/overlayFrameSize';
 import {
   isCompactHoverLayoutMode,
@@ -93,7 +93,7 @@ export function useResponseOverlayWindowSync({
           width: 0,
           height: 0,
         }, overlayIntent?.conversationRef || null);
-        await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
+        await DesktopResponseOverlayRuntimeClient.setResponseboxSize({
           visible: false,
           width: 0,
           height: 0,
@@ -168,7 +168,7 @@ export function useResponseOverlayWindowSync({
         width,
         height,
       }, overlayIntent?.conversationRef || null);
-      await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
+      await DesktopResponseOverlayRuntimeClient.setResponseboxSize({
         visible: true,
         width,
         height,
@@ -193,7 +193,7 @@ export function useResponseOverlayWindowSync({
   }, [reportOverlaySize]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
+    const removeListener = DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility((payload = {}) => {
       const overlayVisible = payload?.visible === true;
       if (!overlayVisible) {
         lastFrameRef.current = createHiddenFrameState();

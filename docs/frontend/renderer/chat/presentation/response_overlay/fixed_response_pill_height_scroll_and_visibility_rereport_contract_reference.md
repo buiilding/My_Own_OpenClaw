@@ -11,6 +11,7 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 ## Canonical Modules
 
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
@@ -53,7 +54,7 @@ Closeability:
 
 Main-process size updates are sent through:
 
-- `IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, { visible, width, height, compact_hover })`
+- `DesktopResponseOverlayRuntimeClient.setResponseboxSize({ visible, width, height, compact_hover })`
 
 Behavior:
 
@@ -64,7 +65,9 @@ Behavior:
 
 Visibility re-report rule:
 
-- on `response-overlay-visibility` show event, renderer schedules re-report on next animation frame when overlay should be visible
+- on `DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility(...)` show
+  event, renderer schedules re-report on next animation frame when overlay
+  should be visible
 - on hide event, cached frame state resets so next show forces fresh size report
 
 ## Scroll-Anchor Policy
