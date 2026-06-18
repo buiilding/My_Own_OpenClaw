@@ -50,6 +50,7 @@ const {
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
+  verifyScreenCaptureCapability,
 } = require('./sidecar/local_runtime_bridge.cjs');
 const { createVmWorkerRuntime } = require('./app/vm_worker_runtime.cjs');
 const {
@@ -476,6 +477,7 @@ function initializeMainProcessIpc() {
       permissionCopy: mainHostSkin.permissions,
       platform: process.platform,
       userDataPath: getUserDataPath(),
+      verifyScreenCaptureCapability,
       focusPermissionPromptWindow: async () => {
         const mainWindow = surfaceRuntime.getMainWindow();
         return await focusWindowForPermissionPrompt({

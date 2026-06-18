@@ -48,6 +48,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/permissions: remove the full host-skin fallback from permission IPC
   runtime now that the Electron composition root passes `permissionCopy`
   directly. No migration required.
+- main/permissions: inject the screen-capture capability verifier from the
+  Electron composition root instead of importing the local-runtime bridge inside
+  permission IPC. No migration required.
 - main/ipc: pass SDK local-runtime launch copy, daemon entrypoint, env names,
   and runtime paths through window startup options instead of reading those
   WindieOS host-skin values inside IPC runtime. No migration required.

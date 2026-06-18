@@ -237,6 +237,7 @@ describe('main host skin/config boundary', () => {
     expect(source).toContain('browserAutomationCopy.installBrowserPrompt');
     expect(source).toContain('local_runtime_status');
     expect(source).not.toContain(['backend', 'status'].join('_'));
+    expect(source).toContain('verifyScreenCaptureCapability');
     expect(source).toContain('macAutomationCopy.probeFailure');
     expect(source).toContain('macAutomationCopy.requestFailure');
     expect(source).toContain('local_runtime_result');
@@ -275,6 +276,8 @@ describe('main host skin/config boundary', () => {
       .toContain('permissionCopy: permissionCopy || {}');
     expect(fs.readFileSync(permissionIpcRuntimePath, 'utf8'))
       .not.toContain('mainHostSkin');
+    expect(fs.readFileSync(permissionIpcRuntimePath, 'utf8'))
+      .not.toContain('local_runtime_bridge.cjs');
   });
 
   test('query event builders keep product copy in the host skin', () => {

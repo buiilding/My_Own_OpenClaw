@@ -53,6 +53,35 @@ describe('permission_ipc_runtime', () => {
     expect(invokeHandlers['show-chatbox']).toBeUndefined();
   });
 
+  test('fails screen capture probes closed when no host verifier is configured', async () => {
+    const { invokeHandlers } = createRuntime();
+
+    const result = await invokeHandlers['run-permission-probe'](null, {
+      permissionId: 'screen_capture',
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'screen_capture',
+          status: 'needs-action',
+          granted: false,
+          reason: 'Screen capture verifier is not configured.',
+          details: expect.objectContaining({
+            capability_check: expect.objectContaining({
+              granted: false,
+              reason: 'Screen capture verifier is not configured.',
+              details: {
+                configured: false,
+              },
+            }),
+          }),
+        }),
+      },
+    });
+  });
+
   test('returns the same canonical probe envelope for single-permission checks', async () => {
     const permissionStateStore = {
       get: jest.fn(async () => null),

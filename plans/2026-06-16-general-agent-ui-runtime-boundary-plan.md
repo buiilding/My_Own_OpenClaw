@@ -261,6 +261,20 @@ Each completed slice should report:
   IPC channels, state storage, diagnostics, platform adapters, credentials, and
   tool execution are unchanged.
 
+### 2026-06-18 Main Permission Screen-Capture Verifier Boundary
+
+- Finding: `permission_ipc_runtime.cjs` still imported the local-runtime bridge
+  directly to get the screen-capture capability verifier, so generic permission
+  IPC registration knew about the concrete local runtime process adapter.
+- Change: made the screen-capture verifier an injected permission IPC
+  dependency with a fail-closed default, and wired the real local-runtime
+  verifier from the Electron main composition root.
+- Validation: focused permission IPC and main host-skin boundary Jest coverage,
+  CommonJS syntax checks, docs listing, and diff check.
+- Compatibility: no migration required. Permission ids, IPC channels, stored
+  permission state, platform adapter behavior, and local screenshot execution
+  remain unchanged.
+
 ### 2026-06-18 Main Window Host-Skin Boundary
 
 - Finding: `main_window_runtime.cjs` and the window bootstrap still accepted the

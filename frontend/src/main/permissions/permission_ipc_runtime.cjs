@@ -2,9 +2,6 @@
  * Coordinates the permission ipc runtime for the Electron main process.
  */
 
-const {
-  verifyScreenCaptureCapability: verifyRealScreenCaptureCapability,
-} = require('../sidecar/local_runtime_bridge.cjs');
 const { createPermissionStateStore } = require('./permission_state_store.cjs');
 const {
   checkPermissions,
@@ -43,6 +40,17 @@ function initializePermissionHandlersRuntime(deps = {}) {
   const resolvedPermissionStateStore = permissionStateStore || createPermissionStateStore({
     userDataPath,
   });
+  const resolvedVerifyScreenCaptureCapability = (
+    typeof verifyScreenCaptureCapability === 'function'
+      ? verifyScreenCaptureCapability
+      : async () => ({
+        granted: false,
+        reason: 'Screen capture verifier is not configured.',
+        details: {
+          configured: false,
+        },
+      })
+  );
 
   const permissionDeps = {
     platform,
@@ -54,11 +62,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     runCommand,
     requestRendererMicrophoneAccess,
     focusPermissionPromptWindow,
-    verifyScreenCaptureCapability: (
-      typeof verifyScreenCaptureCapability === 'function'
-        ? verifyScreenCaptureCapability
-        : verifyRealScreenCaptureCapability
-    ),
+    verifyScreenCaptureCapability: resolvedVerifyScreenCaptureCapability,
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,
