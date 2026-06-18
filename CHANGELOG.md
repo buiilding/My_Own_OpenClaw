@@ -5,6 +5,11 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: rename the private SDK command invoke bridge helper from
+  `DesktopAgentCommandBridge`/`getDesktopAgentCommandBridge` to
+  `AgentSdkCommandBridge`/`getAgentSdkCommandBridge`; no migration is required
+  because the existing `window.desktopAgent` bridge and `windie:invoke` IPC
+  contract are unchanged.
 - frontend/main: rename the private dashboard-to-chat-pill collapse marker from
   `__desktopAgentPendingCollapseToChatPill` to
   `__desktopRuntimePendingCollapseToChatPill`; no migration is required because

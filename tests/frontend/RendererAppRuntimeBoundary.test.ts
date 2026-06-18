@@ -103,18 +103,20 @@ describe('renderer app runtime boundary', () => {
     expect(agentRuntimeTransportSource).not.toContain('WINDIE_COMPACT_HISTORY');
   });
 
-  test('SDK command invoke client resolves the generic desktop agent bridge', async () => {
+  test('SDK command invoke client resolves the generic agent SDK bridge', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/agentSdkCommandInvokeClient.ts'),
       'utf8',
     );
 
-    expect(source).toContain('getDesktopAgentCommandBridge');
+    expect(source).toContain('getAgentSdkCommandBridge');
+    expect(source).toContain('type AgentSdkCommandBridge');
     expect(source).toContain('window.desktopAgent ?? null');
     expect(source).not.toContain('window.windie');
     expect(source).toContain('DESKTOP_AGENT_INVOKE_CHANNELS.INVOKE');
     expect(source).not.toContain('INVOKE_CHANNELS.WINDIE_INVOKE');
-    expect(source).not.toContain('function getAgentSdkBridge');
+    expect(source).not.toContain('getDesktopAgentCommandBridge');
+    expect(source).not.toContain('DesktopAgentCommandBridge');
   });
 
   test('app provider code uses runtime facades for transcript session helpers', async () => {

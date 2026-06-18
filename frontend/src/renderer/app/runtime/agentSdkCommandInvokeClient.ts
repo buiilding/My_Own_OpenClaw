@@ -11,7 +11,7 @@ type AgentSdkCommandResult<T = unknown> = {
   error?: string;
 };
 
-type DesktopAgentCommandBridge = {
+type AgentSdkCommandBridge = {
   invoke: (
     command: string,
     payload?: Record<string, unknown>,
@@ -20,11 +20,11 @@ type DesktopAgentCommandBridge = {
 
 declare global {
   interface Window {
-    desktopAgent?: DesktopAgentCommandBridge;
+    desktopAgent?: AgentSdkCommandBridge;
   }
 }
 
-function getDesktopAgentCommandBridge(): DesktopAgentCommandBridge | null {
+function getAgentSdkCommandBridge(): AgentSdkCommandBridge | null {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -35,7 +35,7 @@ export async function invokeAgentSdkCommand<T = unknown>(
   command: string,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
-  const bridge = getDesktopAgentCommandBridge();
+  const bridge = getAgentSdkCommandBridge();
   const result = bridge
     ? await bridge.invoke(command, payload)
     : await IpcBridge.invoke<AgentSdkCommandResult<T>>(

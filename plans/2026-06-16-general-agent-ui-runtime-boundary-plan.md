@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer SDK command bridge helper naming
+
+- Finding: `agentSdkCommandInvokeClient.ts` still named its private preload
+  bridge type/helper `DesktopAgentCommandBridge` and
+  `getDesktopAgentCommandBridge`, even though the module owns generic Agent SDK
+  command invocation.
+- Change: renamed the private type/helper to `AgentSdkCommandBridge` and
+  `getAgentSdkCommandBridge`, documented the distinction from the preserved
+  `window.desktopAgent` preload bridge, and updated renderer boundary coverage.
+- Validation: focused RendererAppRuntimeBoundary Jest test, desktop runtime
+  command docs route lookup, recent history review, and stale helper/type scan.
+- Compatibility: no migration required. The public preload bridge name,
+  `windie:invoke` IPC channel, command payloads, and runtime behavior are
+  unchanged.
+
 ### 2026-06-18 main pending collapse marker runtime key
 
 - Finding: the macOS fullscreen close fallback still tracked dashboard-to-pill
