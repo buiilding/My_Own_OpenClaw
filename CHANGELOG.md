@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route client manifest validation to desktop client manifest
+  builder tests instead of frontend manifest wording.
 - docs/tools: qualify tool-routing sidecar executor references as Python or
   local-runtime sidecar executor ownership.
 - docs/frontend: align the architecture settings/model sync row with Agent SDK

@@ -193,7 +193,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | Changed surface | Minimum checks |
 | --- | --- |
 | backend catalog/name registration | `./scripts/python-in-env backend pytest tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py tests/backend/test_remote_tools.py` |
-| client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus frontend manifest builder tests when client payload generation changes |
+| client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus desktop client manifest builder tests when client payload generation changes |
 | backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env sidecar pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
 | policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_tool_selection.py tests/backend/test_provider_health_policy.py` |
 | parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |

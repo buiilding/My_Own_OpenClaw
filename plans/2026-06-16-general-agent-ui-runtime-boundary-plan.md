@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Desktop Client Manifest Validation Wording
+
+- Finding: the tool schema policy workflow still routed client manifest payload
+  generation changes to "frontend manifest builder tests."
+- Change: reworded the validation row to desktop client manifest builder tests
+  and added a modular docs guard for the stale phrase.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  client manifest shape, builder behavior, SDK/main dispatch, local-runtime
+  bridge behavior, credentials, permissions, storage, and provider policy are
+  unchanged.
+
 ### 2026-06-18 Qualified Tool Sidecar Executor Wording
 
 - Finding: active tool routing, channel, gateway, renderer, and reference docs

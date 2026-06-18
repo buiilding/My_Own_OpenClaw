@@ -546,6 +546,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('SDK desktop agent');
     expect(docText).not.toContain(`SDK desktop-${'agent'}`);
     expect(docText).not.toContain('frontend/sidecar-owned local schemas');
+    expect(docText).not.toContain('frontend manifest builder tests');
     expect(docText).not.toContain(
       'frontend/sidecar owns built-in local tool schemas',
     );

@@ -101,9 +101,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   settings/model sync row now uses Agent SDK host runtime wording instead of the
   stale SDK-agent-host label. Active tool routing, channel, gateway, renderer,
   and reference docs now qualify sidecar executor references as Python or
-  local-runtime sidecar executor ownership.
+  local-runtime sidecar executor ownership. Tool schema policy validation now
+  routes client manifest payload changes to desktop client manifest builder
+  tests instead of frontend manifest wording.
 
 ## Inspection Log
+
+### 2026-06-18 Desktop Client Manifest Validation Wording Slice
+
+- Worktree was clean after `32381717c`, with `main` ahead of `origin/main` by
+  823 commits.
+- Finding: the tool schema policy workflow still routed client manifest payload
+  generation changes to "frontend manifest builder tests."
+- Change: reworded the validation row to desktop client manifest builder tests
+  and added a modular docs guard for the stale phrase.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  client manifest shape, builder behavior, SDK/main dispatch, local-runtime
+  bridge behavior, credentials, permissions, storage, and provider policy are
+  unchanged.
 
 ### 2026-06-18 Qualified Tool Sidecar Executor Wording Slice
 
