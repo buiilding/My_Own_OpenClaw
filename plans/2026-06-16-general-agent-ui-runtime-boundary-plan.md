@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK/Main Trusted Screenshot Materialization Boundary
+
+- Finding: Electron main owned both the trusted temp screenshot path boundary
+  and the artifact upload payload shaping for screenshot tool results, while
+  the SDK already owned the shared visual-resource normalization path.
+- Change: main now converts a validated owned temp screenshot into SDK
+  `trusted_temp_screenshot_path` bytes and lets the shared materializer handle
+  artifact upload normalization, while main keeps path trust, auth headers,
+  cleanup, and inline fallback behavior.
+- Validation: focused frontend bridge and SDK materialization tests plus syntax
+  checks, docs listing, and `git diff --check`.
+- Compatibility: no migration required. Screenshot temp paths remain transient,
+  backend query contracts remain artifact-ref based, renderer send behavior,
+  credentials, permissions, provider policy, and local tool execution are
+  unchanged.
+
 ### 2026-06-18 Python MCP Client Identity Boundary
 
 - Finding: the Python daemon's MCP initialize payload identified the client as
