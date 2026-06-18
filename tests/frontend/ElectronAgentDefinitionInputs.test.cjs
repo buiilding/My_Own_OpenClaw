@@ -2,11 +2,21 @@
  * Covers Electron main agent definition input collection.
  */
 
+const fs = require('fs');
+const path = require('path');
+
 const {
   buildElectronAgentDefinitionInputs,
 } = require('../../frontend/src/main/agent/electron_agent_definition_inputs.cjs');
 
 describe('electron_agent_definition_inputs', () => {
+  test('removed desktop-named collector file stays deleted', () => {
+    expect(fs.existsSync(path.join(
+      __dirname,
+      '../../frontend/src/main/agent/desktop_agent_definition_inputs.cjs',
+    ))).toBe(false);
+  });
+
   test('collects camelCase AGENTS.md layers for the SDK builder', () => {
     const agentsMd = [{ id: 'repo', type: 'agents_md', content: 'Repo rules.' }];
 

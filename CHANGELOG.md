@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: guard that the removed desktop-named Electron
+  agent-definition collector file stays deleted; no migration is required.
+
 - frontend/main: rename the Electron agent-definition input collector from
   desktop-agent to electron-agent terminology, keeping SDK agent-definition
   handoff behavior unchanged; no migration is required.

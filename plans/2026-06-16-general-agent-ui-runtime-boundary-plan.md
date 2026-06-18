@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Electron collector removed-file guard
+
+- Finding: after the Electron agent-definition collector rename, the focused
+  test covered the new module behavior but did not explicitly guard the old
+  desktop-named module path from returning.
+- Change: added a deletion guard to the collector test for the removed
+  `desktop_agent_definition_inputs.cjs` path.
+- Validation: focused Electron collector Jest test, stale old-name scan, and
+  `git diff --check`.
+- Compatibility: no migration required. This is test-only coverage; Electron
+  main behavior, SDK agent-definition payloads, prompt layers, settings, and
+  persisted data are unchanged.
+
 ### 2026-06-18 Electron agent-definition input collector naming
 
 - Finding: Electron main still named the SDK agent-definition input collector
