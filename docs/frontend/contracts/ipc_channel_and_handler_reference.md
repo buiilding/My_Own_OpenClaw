@@ -88,7 +88,7 @@ Behavior:
 
 - `windie:invoke` -> strict SDK-shaped command bridge. Renderer facades and Electron main use the SDK `SDK_RUNTIME_COMMANDS` export for supported user-runtime commands such as `conversation.send`, `conversation.stop`, `settings.update`, `models.list`, `conversation.rehydrate`, `conversation.compact`, `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`, and `wakeword.detected`.
 - `load-frontend-config` -> loads persisted config JSON from userData
-- `save-frontend-config` -> redacted frontend-config atomic temp-write + rename persistence
+- `save-frontend-config` -> redacted desktop UI config atomic temp-write + rename persistence
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
 - `fetch-artifact-image` -> authenticated artifact image fetch

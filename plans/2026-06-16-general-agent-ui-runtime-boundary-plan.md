@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 desktop client/local-runtime tool manifest wording boundary
+
+- Finding: docs hubs, ADR labels, tool-development guidance, extension/plugin
+  routing, an IPC channel description, and a renderer settings test label still
+  used frontend-specific wording for tool manifest ownership, local execution,
+  tool-name parity, and config persistence even though those boundaries now
+  belong to the desktop client/local-runtime path, renderer config, or desktop
+  UI config persistence.
+- Change: reworded those surfaces to desktop client/local-runtime manifests,
+  backend/client-local parity, desktop local-runtime execution, renderer
+  settings, and desktop UI config persistence while preserving real file paths
+  and legacy-named IPC/storage contracts; expanded the modular boundary test to
+  guard the stale manifest/local-execution labels.
+- Validation: targeted stale wording scan over docs/tests confirmed only the
+  boundary guard keeps the retired phrases.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  tool schemas, manifest filenames, plugin layout, sidecar execution,
+  IPC channels, config storage, credentials, permissions, provider policy, SDK
+  projections, and backend validation are unchanged.
+
 ### 2026-06-18 backend event consumer wording boundary
 
 - Finding: backend API route, formatter, message-type, tool-turn, reference,

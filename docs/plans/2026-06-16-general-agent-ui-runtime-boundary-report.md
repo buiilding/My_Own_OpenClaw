@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `60bb203f1` (`docs(frontend): align renderer config state wording`)
+- Latest inspected plan checkpoint: `79ba0450d` (`docs(backend): align event consumer ownership wording`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -52,9 +52,38 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer config, desktop UI config persistence, and backend client-settings
   validation while preserving legacy-named config channels and filenames.
   Backend event-contract docs now describe SDK/renderer/client consumers rather
-  than frontend-specific consumers.
+  than frontend-specific consumers. Tool manifest, registry, ADR, extension,
+  plugin, IPC, and renderer settings docs now describe desktop
+  client/local-runtime manifests, backend/client-local parity, desktop
+  local-runtime execution, renderer settings, and desktop UI config persistence
+  instead of stale frontend manifest, sidecar-executor, and config labels.
 
 ## Inspection Log
+
+### 2026-06-18 Desktop Client/Local-Runtime Tool Manifest Wording Slice
+
+- Worktree was clean after `79ba0450d` before this slice, with `main` ahead of
+  `origin/main` by 804 commits.
+- Recent commits showed backend event, renderer config, and provider settings
+  wording already aligned, while tool manifest hubs, ADR labels, extension and
+  plugin routing, IPC config persistence wording, and one renderer settings
+  test label still used frontend-specific ownership terminology.
+- Finding: those docs and the test label described tool-name parity,
+  executable manifests, local execution, and config persistence with stale
+  frontend wording even though the current owners are desktop
+  client/local-runtime manifests, backend/client-local parity, renderer
+  settings, and desktop UI config persistence.
+- Change: reworded the affected docs and test label while preserving real
+  `frontend/...` source paths and compatibility names such as
+  `save-frontend-config` and `frontend-config.json`.
+- Change: expanded `ModularRefactorCompletionBoundary.test.ts` to include the
+  touched docs and guard the retired manifest/local-execution/config labels.
+- Validation: targeted stale wording scan over docs/tests confirmed the retired
+  phrases only remain inside the boundary guard.
+- Compatibility: no migration required. This is docs/test guardrail only; tool
+  schemas, generated manifest artifacts, plugin layout, sidecar execution,
+  IPC channels, config storage, credentials, permissions, provider policy, SDK
+  projections, and backend validation are unchanged.
 
 ### 2026-06-18 Backend Event Consumer Wording Slice
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: align remaining tool manifest, registry, and local execution
+  wording with desktop client/local-runtime ownership instead of stale frontend
+  manifest and sidecar-executor labels.
 - docs/backend: align API route, formatter, message-type, and tool-turn
   event-consumer wording with SDK/renderer/client consumers instead of
   frontend-specific event/display terminology.

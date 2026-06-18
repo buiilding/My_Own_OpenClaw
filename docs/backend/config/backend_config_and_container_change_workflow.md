@@ -187,7 +187,7 @@ Container wiring changes are higher risk because they alter startup, API handler
 | --- | --- |
 | config model/default only | `./scripts/python-in-env backend pytest tests/backend/test_config_models.py tests/backend/test_config_loader.py` |
 | config manager/service/subscriptions | `./scripts/python-in-env backend pytest tests/backend/test_config_manager.py tests/backend/test_config_service.py tests/backend/test_config_subscriptions.py` |
-| client settings patch contract | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py tests/backend/test_settings_payload_builder.py` plus focused frontend settings tests |
+| client settings patch contract | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py tests/backend/test_settings_payload_builder.py` plus focused renderer settings tests |
 | container update/rebinding | `./scripts/python-in-env backend pytest tests/backend/test_container_config_updater.py tests/backend/test_api_container_source.py` |
 | provider/model config | provider-specific backend tests plus `tests/backend/test_models_config.py` and `tests/backend/test_provider_factory_helpers.py` |
 | OCR/vision/embedding config | focused provider/router tests and relevant service tests |

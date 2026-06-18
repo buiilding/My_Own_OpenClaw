@@ -400,7 +400,7 @@ describe('SettingsSection', () => {
     });
   });
 
-  test('appearance tab updates theme controls through frontend config', () => {
+  test('appearance tab updates theme controls through renderer config', () => {
     const onConfigChange = jest.fn();
     renderSettingsSection({ initialTab: 'appearance', onConfigChange });
 

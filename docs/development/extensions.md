@@ -37,9 +37,9 @@ from the process working directory. Plugin tools are local-runtime tools:
 Electron main reads `plugin.json` for the model-facing client manifest, and the
 Python sidecar implementation loads the same `plugin.json` to execute the
 declared Python entrypoints. Use this page for extension package, plugin, MCP,
-skills, and local-runtime tool contribution layout. Use the frontend sidecar
-tools docs for built-in computer/system/filesystem/shell/browser implementation
-behavior.
+skills, and local-runtime tool contribution layout. Use the local-runtime
+sidecar tools docs for built-in computer/system/filesystem/shell/browser
+implementation behavior.
 
 ## Choose The Surface
 
@@ -48,7 +48,7 @@ behavior.
 | The model should call local Python code | `plugins/<id>/plugin.json`, `schemas/*.schema.json`, and `python/*.py`. |
 | The agent needs reusable instructions only | `skills/<id>/SKILL.md`. |
 | A protocol server should expose tools | `mcps/<id>/mcp.json`. |
-| A built-in WindieOS tool changes | Core backend/frontend/sidecar tool files, not the contribution roots. |
+| A built-in WindieOS tool changes | Core backend, desktop local-runtime, and sidecar tool files, not the contribution roots. |
 
 The backend receives the final output as normal `client_tool_manifest` entries
 and prompt layers. The backend validates and projects those schemas but does not

@@ -3,10 +3,10 @@ summary: "ADR 005 for the desktop client/local-runtime executable tool manifest 
 read_when:
   - When changing backend tool schemas, sidecar executable tool manifests, schema parity tests, tool catalog generation, or provider-visible tool policy.
   - When evaluating whether the desktop client/local-runtime manifest pipeline should publish executable tool manifests consumed by the backend.
-title: "ADR 005: Frontend Tool Schema Source of Truth"
+title: "ADR 005: Desktop Client Tool Manifest Source of Truth"
 ---
 
-# ADR 005: Frontend Tool Schema Source of Truth
+# ADR 005: Desktop Client Tool Manifest Source of Truth
 
 ## Status
 

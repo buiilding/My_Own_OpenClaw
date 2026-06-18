@@ -332,7 +332,7 @@ contracts.
 - [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
 - [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
 - [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for SDK/main local-runtime tools
-- [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/frontend tool-name parity contracts
+- [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/client-local tool-name parity contracts
 - [**Backend Browser Tools Docs Hub**](backend/tools/browser/README.md) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
 - [**Backend Browser Schema Docs Hub**](backend/tools/browser/schema/README.md) - Sub-hub for BrowserControlArgs schema layering, compatibility-field mixins, and backend-sidecar validation boundary mapping
 - [**Backend Tools Policy Docs Hub**](backend/tools/policy/README.md) - Sub-hub for interaction allowlist + dev tool-selection filtering and mouse method startup gating semantics
@@ -476,7 +476,7 @@ contracts.
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system
 - [**Architecture Decision Records**](adr/README.md) - Durable technical decisions, ADR status, and when to create/update decision records
 - [**ADR 004: Browser Extension Auto-Attach Boundary**](adr/004-browser-extension-auto-attach.md) - Current dedicated browser runtime versus future extension auto-attach behavior
-- [**ADR 005: Frontend Tool Schema Source of Truth**](adr/005-frontend-tool-schema-source-of-truth.md) - Proposed executable-tool manifest direction while preserving backend policy ownership
+- [**ADR 005: Desktop Client Tool Manifest Source of Truth**](adr/005-frontend-tool-schema-source-of-truth.md) - Accepted executable-tool manifest direction while preserving backend policy ownership
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Packaging, smoke, reinstall, and release guardrail command reference
 
 ### Configuration & Deployment
