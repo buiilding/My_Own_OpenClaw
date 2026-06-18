@@ -142,13 +142,13 @@ The SDK `ContextEnrichmentPipeline.ts` then renders model-facing `content` with 
 
 Memory section formatting contract (`ContextEnrichmentPipeline.ts`):
 
-- SDK `agent.searchMemory(...)` creates the query embedding and calls sidecar
+- SDK `agent.searchMemory(...)` creates the query embedding and calls local-runtime
   `search_memory_by_embedding` when retrieval injection is enabled.
 - prompt injection requests a balanced retrieval budget:
   - `episodic_limit=4`
   - `semantic_limit=2`
   - `semantic_min_score=0.20`
-- sidecar search path applies: embedding store search -> active-conversation exclusion -> episodic/semantic grouping.
+- local-runtime memory search path applies: embedding store search -> active-conversation exclusion -> episodic/semantic grouping.
 - episodic grouping prefers pre-paired interaction rows (`User + Assistant`), then transcript synthesis fallback, then raw episodic fallback text.
 - each section is always emitted when retrieval injection is enabled:
   - `<episodic_memory>...</episodic_memory>`
@@ -169,7 +169,7 @@ Failure behavior:
 The SDK local runtime provides query-enrichment dependencies:
 
 - backend embeddings API -> query embedding for local memory search
-- `search_memory_by_embedding` sidecar RPC -> episodic/semantic memory snippets for prompt enrichment
+- `search_memory_by_embedding` local-runtime RPC -> episodic/semantic memory snippets for prompt enrichment
 
 Mapping details for memory search payload are centralized in:
 
@@ -234,7 +234,7 @@ If query content misses memory or attachment context:
 1. verify `buildQueryPayload(...)` returns the expected backend query fields, then check SDK context enrichment diagnostics
 2. inspect local runtime bridge readiness (`Local runtime not ready` errors)
 3. verify SDK memory search traces include `search_memory_by_embedding` with the expected conversation exclusion key
-4. verify sidecar episodic grouping/pairing behavior from `memory.operations` when retrieval text is unexpectedly user-only
+4. verify local-runtime episodic grouping/pairing behavior from `memory.operations` when retrieval text is unexpectedly user-only
 
 If renderer shows user message but backend never streams:
 

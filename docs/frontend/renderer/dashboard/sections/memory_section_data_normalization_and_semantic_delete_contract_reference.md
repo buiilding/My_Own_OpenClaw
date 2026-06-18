@@ -88,7 +88,7 @@ Match behavior:
 
 ## Mutation Semantics
 
-Add/edit controls are intentionally not exposed in `MemorySection`. The panel is backed by sidecar episodic and semantic stores, and local-only draft mutations would disappear on reload. Until a real create/update memory IPC contract exists for this dashboard shape, delete is the only row mutation.
+Add/edit controls are intentionally not exposed in `MemorySection`. The panel is backed by local-runtime episodic and semantic stores, and local-only draft mutations would disappear on reload. Until a real create/update memory IPC contract exists for this dashboard shape, delete is the only row mutation.
 
 - no confirmation prompt; delete is single-click
 - rows with `runtimeMemoryId` and runtime memory kind call

@@ -9417,3 +9417,20 @@ Each completed slice should report:
   SDK command routing, Python handler paths, JSON-RPC methods, memory
   reset/delete/search behavior, credentials, permissions, hosted backend URLs,
   and provider policy are unchanged.
+
+### 2026-06-18 sidecar docs local-runtime memory implementation boundary
+
+- Finding: sidecar implementation docs, navigation labels, and query-enrichment
+  references still described the memory implementation as sidecar-memory
+  ownership even where the reusable contract is SDK/local-runtime memory and
+  the Python sidecar is the current backing implementation.
+- Change: renamed memory hub/navigation labels and query-enrichment/search
+  wording to local-runtime memory ownership, while preserving concrete Python
+  module paths and sidecar daemon references where they identify the backing
+  process.
+- Validation: focused modular-boundary guard, docs listing, sidecar-doc stale
+  scan, and diff checks.
+- Compatibility: no migration required. JSON-RPC method names, renderer
+  commands, SDK local-runtime calls, Python handler modules, SQLite/FAISS
+  schemas, summarizer behavior, IPC channels, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.

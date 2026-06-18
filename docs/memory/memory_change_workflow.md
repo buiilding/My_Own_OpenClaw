@@ -97,7 +97,7 @@ Validation:
 Read:
 
 - [Local Runtime Memory](sidecar_local_memory.md)
-- [Local Runtime Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
+- [Local Runtime Memory Docs Hub](../frontend/sidecar/memory/README.md)
 - [Memory Troubleshooting](memory_troubleshooting.md)
 
 Likely code:

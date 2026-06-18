@@ -1,7 +1,7 @@
 ---
 summary: "Python sidecar runtime architecture: JSON-RPC local runtime, tool registry, memory stores, semantic consolidation, and wakeword service."
 read_when:
-  - When changing sidecar tools, memory persistence/search, or subprocess protocol behavior.
+  - When changing sidecar tools, local-runtime memory persistence/search, or subprocess protocol behavior.
   - When debugging sidecar readiness, request correlation, or memory summarization cadence.
 title: "Python Sidecar and Memory"
 ---
@@ -112,8 +112,8 @@ Behavior:
 
 Memory deep references:
 
-- [Sidecar Memory Docs Hub](memory/README.md)
-- [Sidecar Memory Storage Docs Hub](memory/storage/README.md)
+- [Local Runtime Memory Docs Hub](memory/README.md)
+- [Local Runtime Memory Storage Docs Hub](memory/storage/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)

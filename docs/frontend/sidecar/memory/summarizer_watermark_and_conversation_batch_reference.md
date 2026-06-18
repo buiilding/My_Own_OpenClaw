@@ -151,5 +151,5 @@ Chunking:
 
 ## Related Pages
 
-- [Local Runtime Sidecar Memory Docs Hub](README.md)
-- [Local Runtime Sidecar Memory Storage Docs Hub](storage/README.md)
+- [Local Runtime Memory Docs Hub](README.md)
+- [Local Runtime Memory Storage Docs Hub](storage/README.md)

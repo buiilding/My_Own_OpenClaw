@@ -1,5 +1,5 @@
 ---
-summary: "Detailed sidecar memory pipeline: local store internals, SDK-provided embeddings, remote semantic summarization, and periodic summarization workflow."
+summary: "Detailed local-runtime memory pipeline: local store internals, SDK-provided embeddings, remote semantic summarization, and periodic summarization workflow."
 read_when:
   - When changing memory retrieval quality, summarization cadence, or memory persistence behavior.
   - When debugging missing semantic memories or vector-index drift.
@@ -10,7 +10,7 @@ title: "Memory Pipeline and Summarization"
 
 Deep split references:
 
-- [Sidecar Memory Docs Hub](memory/README.md)
+- [Local Runtime Memory Docs Hub](memory/README.md)
 - [Memory Storage Docs Hub](memory/storage/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
@@ -37,10 +37,10 @@ State tracked:
 ## Embedding Ownership
 
 The SDK owns backend embedding calls for memory. It calls the backend
-`POST /api/embeddings/` route, then sends vectors into the sidecar through
+`POST /api/embeddings/` route, then sends vectors into the local runtime through
 `search_memory_by_embedding` and `store_memory_by_embedding`.
 
-The Python sidecar owns local SQLite/FAISS storage only. It persists
+The Python sidecar backs local-runtime SQLite/FAISS storage. It persists
 `embedding_space.json` to detect embedding-space version or dimension changes
 and clears local vector mappings when the caller-provided embedding space
 changes.

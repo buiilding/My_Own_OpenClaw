@@ -23,7 +23,7 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 | Shell/process/open-app/wait/stats behavior changes | System tools and process registry | `frontend/src/main/python/tools/system/*` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py`, `tests/sidecar/test_system_tools.py` | [Shell and Process Session Runtime](tools/shell_and_process_session_runtime_reference.md), [Sidecar System Tools Hub](tools/system/README.md) |
 | Mouse, keyboard, scroll, screenshot, or local window action changes | Computer tools plus platform adapters | `frontend/src/main/python/tools/computer/*`, `frontend/src/main/python/core/platform/*` | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, platform tests | [Computer Tools Runtime](tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md), [System-State Platform Adapter Reference](system_state/platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md) |
 | Browser launch, session, action, extraction, snapshot, file, or role ref behavior changes | Sidecar browser runtime | `frontend/src/main/python/tools/browser/*`, `frontend/src/main/python/windie_shared/browser_contract*` | `tests/sidecar/test_browser_registry.py`, `tests/sidecar/tools/test_browser_*.py` | [Sidecar Browser Hub](browser/README.md), [Browser Automation Stack](browser_automation_stack.md) |
-| Local memory search, transcript rows, conversation list/window/search, semantic memory, or summarizer changes | Sidecar memory runtime and storage | `frontend/src/main/python/memory/*`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_conversation_*runtime.py`, `tests/sidecar/test_memory_operations.py` | [Sidecar Memory Hub](memory/README.md), [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md) |
+| Local memory search, transcript rows, conversation list/window/search, semantic memory, or summarizer changes | Local-runtime memory implementation and storage | `frontend/src/main/python/memory/*`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_conversation_*runtime.py`, `tests/sidecar/test_memory_operations.py` | [Local Runtime Memory Hub](memory/README.md), [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md) |
 | Backend URL, remote semantic client, or sidecar API token forwarding changes | Sidecar backend config and remote semantic client | `frontend/src/main/python/windie/_backend_config.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_semantic_client.py` | `tests/sidecar/test_backend_config.py`, `tests/sidecar/test_remote_semantic_client.py` | [Backend Config Env-Precedence Reference](core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md), [Remote Semantic Client Reference](core/remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md), [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md) |
 | System-state payload is stale, missing, or platform-specific | System-state collector and platform probe layer | `frontend/src/main/python/core/system_state.py`, `frontend/src/main/python/core/platform/*`, `frontend/src/main/python/tools/system/window_tool.py` | `tests/sidecar/test_system_state.py`, `tests/sidecar/test_platform_module_selection.py`, platform window-manager tests | [System-State Collection](system_state/system_state_collection_and_platform_adapter_reference.md), [System-State Platform Adapter Reference](system_state/platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md) |
 | Sidecar request parsing, stdout framing, or daemon shutdown fails | JSON-RPC protocol, stdout JSON, and daemon lifecycle | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/core/stdout_json.py`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | `tests/sidecar/test_stdout_json.py`, `tests/sidecar/test_json_rpc_protocol.py`, `tests/sidecar/test_sidecar_daemon.py` | [JSON-RPC Protocol and Stdout Framing](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md), [SDK-Owned Sidecar Lifecycle](local_backend_process_lifecycle_reference.md) |
@@ -73,13 +73,13 @@ When changing a local executable tool:
 
 ## Memory Runtime Checklist
 
-When changing sidecar memory:
+When changing local-runtime memory implementation:
 
 - Preserve record-kind semantics: transcript rows, interaction rows, semantic rows, and metadata/watermark rows have different jobs.
 - Keep embedding unavailability non-fatal where the existing contract allows local writes without embeddings.
 - Update conversation list/search/window runtime tests when stored row shape or grouping changes.
 - Keep FAISS/SQLite cleanup behavior explicit when deleting conversations or semantic memories.
-- Update backend remote client docs/tests if sidecar memory starts calling a hosted route differently.
+- Update backend remote client docs/tests if local-runtime memory starts calling a hosted route differently.
 
 ## Browser Runtime Checklist
 
@@ -132,7 +132,7 @@ Before committing sidecar work:
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md)
 - [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
-- [Sidecar Memory Hub](memory/README.md)
+- [Local Runtime Memory Hub](memory/README.md)
 - [Sidecar Browser Hub](browser/README.md)
 - [System-State Collection](system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Wakeword Bridge and Audio Framing](wakeword_bridge_and_audio_framing_reference.md)

@@ -439,7 +439,7 @@ Read:
 
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)
 - [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
-- [Local Runtime Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
+- [Local Runtime Memory Docs Hub](../frontend/sidecar/memory/README.md)
 - [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
 - [Backend API Memory Docs Hub](../backend/api/memory/README.md)
 

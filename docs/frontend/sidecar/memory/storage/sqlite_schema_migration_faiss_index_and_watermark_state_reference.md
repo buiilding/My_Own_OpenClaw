@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for sidecar memory persistence helpers: SQLite schema/migration/index creation, safe FAISS read/write lifecycle, and thread-pool-backed watermark state file semantics."
+summary: "Deep reference for local-runtime memory persistence helpers: SQLite schema/migration/index creation, safe FAISS read/write lifecycle, and thread-pool-backed watermark state file semantics."
 read_when:
-  - When changing sidecar memory table columns/indexes or migration behavior.
+  - When changing local-runtime memory table columns/indexes or migration behavior.
   - When debugging corrupted FAISS index recovery, failed index saves, or watermark JSON load/save drift.
 title: "SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference"
 ---
@@ -122,7 +122,7 @@ Helper methods:
 - resilient index load/save (`faiss_index`)
 - summarizer watermark reads/writes (`watermark_state`)
 
-Together they form the persistence substrate for all sidecar memory and summarizer behavior.
+Together they form the persistence substrate for all local-runtime memory and summarizer behavior.
 
 ## Drift Hotspots
 
@@ -133,5 +133,5 @@ Together they form the persistence substrate for all sidecar memory and summariz
 
 ## Related Pages
 
-- [Local Runtime Sidecar Memory Storage Docs Hub](README.md)
+- [Local Runtime Memory Storage Docs Hub](README.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)

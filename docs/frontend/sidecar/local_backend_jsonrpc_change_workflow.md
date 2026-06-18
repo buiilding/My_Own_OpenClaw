@@ -72,7 +72,7 @@ as `conversations.list`, `conversations.search`, `conversation.load`,
 `memories.delete`, and `memories.clearAll`. The SDK local-runtime store owns the
 Python sidecar JSON-RPC calls behind those commands.
 
-Completed-turn memory writes are SDK-owned and call the sidecar directly through
+Completed-turn memory writes are SDK-owned and call the local runtime through
 `store_memory_by_embedding`; there is no renderer-visible `store-memory` IPC
 channel.
 
@@ -83,7 +83,7 @@ channel.
 2. Keep renderer payloads in the SDK command contract; do not expose sidecar
    JSON-RPC method names as renderer invoke channels.
 3. Add or update the SDK local-runtime store/client call that builds the
-   sidecar JSON-RPC method and params.
+   local-runtime JSON-RPC method and params.
 4. Register the Python method in `LocalRuntimeService._initialize_methods`.
 5. Implement the handler in `local_backend.py`,
    `local_backend_memory_handlers.py`, or a focused sidecar module.
@@ -112,7 +112,7 @@ Use this path when renderer does not need a general IPC channel, but Electron ma
 Preserve these payload guarantees:
 
 - renderer-facing SDK command fields usually stay camelCase.
-- sidecar JSON-RPC method params stay snake_case.
+- Python JSON-RPC method params stay snake_case.
 - non-object or malformed renderer payloads should fail at the SDK command
   boundary rather than being silently coerced into sidecar params.
 - string payload values that cross into Python should be sanitized at the
@@ -177,7 +177,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged sidecar launch target |
 | JSON parse errors in main | Python stdout pollution, non-JSON output, partial/large response parsing |
 | Method works in source but fails packaged | runtime dependency packaging, `AGENT_PACKAGED_APP` / `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
-| Memory command maps wrong user/conversation | SDK local-runtime store params, fallback keys, sidecar memory handler defaults |
+| Memory command maps wrong user/conversation | SDK local-runtime store params, fallback keys, Python memory handler defaults |
 | Tool result shape differs from renderer expectation | `ToolResult`, local tool runtime normalization, screenshot materialization wrapper |
 
 ## Validation Matrix

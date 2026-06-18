@@ -82,6 +82,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: route dashboard, settings, IPC, and frontend inventory memory
   labels through local-runtime memory ownership while preserving Python-backed
   handler paths. No migration required.
+- docs/frontend: rename sidecar memory implementation docs and query-enrichment
+  labels around local-runtime memory ownership while preserving Python sidecar
+  backing-module references. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

@@ -17,7 +17,7 @@ dispatches them through `LocalRuntimeService.protocol.handle_request(...)`.
 - Electron bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - Sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
 - LocalRuntimeService implementation: `frontend/src/main/python/local_backend.py`
-- Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
+- Local-runtime memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC protocol implementation: `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Transport Model
@@ -103,7 +103,7 @@ Removed direct chat/memory IPC mappings:
   `get-chat-conversation-revision` IPC handlers.
 - Renderer-visible chat and memory actions use SDK-shaped
   `window.agentSdk.invoke(...)` commands. The SDK local runtime store calls
-  sidecar JSON-RPC methods directly behind that public command boundary.
+  local-runtime JSON-RPC methods behind that public command boundary.
 - The deleted mapper module must not be reintroduced for compatibility aliases;
   add a typed SDK command or a main-only helper at the owning boundary instead.
 
