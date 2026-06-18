@@ -499,6 +499,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
       read('docs/backend/tools/local_runtime_tool_bridge_and_policy.md'),
       read('docs/backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md'),
+      read('docs/channels/channel_routing_matrix.md'),
       read('docs/channels/sidecar_and_tool_channels.md'),
       read('docs/concepts/agent_loop.md'),
       read('docs/concepts/prompt_and_tool_context.md'),
@@ -607,6 +608,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary');
     expect(toolRoutingDocText).toContain('local-runtime host own client-local tool schemas and local executable authority');
     expect(toolRoutingDocText).toContain('The local runtime owns what can actually run locally');
+    expect(toolRoutingDocText).toContain('Local-runtime implementation payloads');
+    expect(toolRoutingDocText).toContain('Local-runtime tool');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -619,6 +622,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('The Python sidecar owns what can actually run locally');
     expect(toolRoutingDocText).not.toContain('Python sidecar owns the concrete local tool implementations');
     expect(toolRoutingDocText).not.toContain('Python sidecar owns local executable tool registry entries');
+    expect(toolRoutingDocText).not.toContain('Python sidecar-owned payloads');
+    expect(toolRoutingDocText).not.toContain('Local sidecar tool');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

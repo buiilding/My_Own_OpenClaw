@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a channel routing matrix ownership label slice by
+  updating `docs/channels/channel_routing_matrix.md` so local tool channels and
+  payload groups use local-runtime tool and local-runtime implementation labels
+  while preserving Python sidecar daemon details in the concrete transport path.
+  The modular docs boundary guard now reads the matrix and blocks the retired
+  `Local sidecar tool` and `Python sidecar-owned payloads` labels. Validation:
+  focused modular docs boundary test, docs listing, exact stale-label scan, and
+  diff checks. No migration required; no code path, payload, storage, IPC,
+  settings, tool schema, credential, permission, hosted URL, or provider-policy
+  behavior changed.
 - 2026-06-18: completed a filesystem/platform local-authority wording slice by
   routing the filesystem/shell workflow, window/input matrix, platform change
   workflow, and agent architecture reference through local-runtime authority

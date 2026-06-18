@@ -23,7 +23,7 @@ This matrix maps entry channels to the transport and code that own them. Start h
 | Voice dictation | voice-mode microphone capture | renderer audio -> `/ws/transcription` | transcription route/services/providers | voice hooks/utils | STT gateway tests, voice hook tests |
 | Wakeword | background microphone chunks | renderer IPC -> main wakeword bridge -> sidecar subprocess | optional wakeword activation handler on `/ws` | `wakeword_bridge*.cjs`, `wakeword_service.py`, `WakewordController.jsx` | wakeword bridge and controller tests |
 | TTS playback | backend audio chunk event | `/ws` `audio-chunk` -> renderer playback queue | API TTS manager/session | renderer audio playback service | TTS backend tests, renderer audio tests |
-| Local sidecar tool | model-visible tool call | backend emits tool-call -> SDK/main local runtime executes via Python sidecar daemon and fans out display-only renderer event | backend schema/preparation/waiting/history | SDK/main local runtime, `local_runtime_bridge.cjs`, Python sidecar tools | schema parity, sidecar tool, SDK/IPC router tests |
+| Local-runtime tool | model-visible tool call | backend emits tool-call -> SDK/main local runtime executes via Python sidecar daemon and fans out display-only renderer event | backend schema/preparation/waiting/history | SDK/main local runtime, `local_runtime_bridge.cjs`, Python sidecar tools | schema parity, sidecar tool, SDK/IPC router tests |
 | SDK hosted query | external SDK client | direct WebSocket `/ws` | same websocket query path | TypeScript/Python SDK clients | SDK client and backend route tests |
 | SDK HTTP routes | external SDK client | direct `/api/sdk/*`, `/api/artifacts/*` | SDK/artifact routes/services | SDK client wrappers | SDK route/client tests |
 | VM run control | dashboard/API caller + VM worker | `/api/runs/*` HTTP plus worker-dispatched `/ws` query | runs router/service | `vm_worker_runtime.cjs` | runs route tests, VM worker tests |
@@ -46,7 +46,7 @@ Desktop client-owned payloads:
 - renderer chat state and transcript queue payloads
 - sidecar JSON-RPC request envelopes created by Electron main
 
-Python sidecar-owned payloads:
+Local-runtime implementation payloads:
 
 - executable tool argument validation
 - local JSON-RPC method responses

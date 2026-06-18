@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: align the channel routing matrix with local-runtime tool and
+  payload ownership labels while preserving Python sidecar daemon
+  implementation details. No migration required.
 - docs/runtime: route filesystem/shell and platform local-authority owner
   wording through the local runtime while keeping Python sidecar implementation
   details explicit. No migration required.

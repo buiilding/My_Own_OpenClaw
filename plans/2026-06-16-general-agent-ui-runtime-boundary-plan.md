@@ -9508,6 +9508,23 @@ Each completed slice should report:
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
 
+### 2026-06-18 Channel Routing Local-Runtime Labels
+
+- Finding: `docs/channels/channel_routing_matrix.md` still labeled the
+  model-visible local tool route as `Local sidecar tool` and grouped executable
+  payload ownership under `Python sidecar-owned payloads`, which made the
+  first-read channel matrix present the implementation process as the reusable
+  runtime boundary.
+- Change: renamed the route to `Local-runtime tool`, renamed the payload owner
+  section to `Local-runtime implementation payloads`, and extended the modular
+  docs boundary guard to read the channel matrix and reject the retired
+  local-sidecar labels.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, channel names, payload
+  shapes, schemas, storage, IPC, settings, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.
+
 ### 2026-06-18 Filesystem and Platform Local Authority Wording
 
 - Finding: filesystem/shell and platform routing docs still presented the
