@@ -480,6 +480,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Windie Agent owns client-local');
     expect(docText).not.toContain('Sidecar Plugin Tool Registration');
     expect(docText).not.toContain('sidecar plugin');
+    expect(docText).not.toContain(
+      'Remote tools are dispatched through the SDK/main local runtime',
+    );
   });
 
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {

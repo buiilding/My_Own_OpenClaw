@@ -277,11 +277,15 @@ class MyTool(Tool[MyToolArgs]):
         }
 ```
 
-### Remote Tool (Local-Runtime Execution)
+### Client-Local Tool (Local-Runtime Execution)
 
-Remote tools are dispatched through the SDK/main local runtime into the Python sidecar daemon:
+Client-local tools use backend catalog stubs for model-facing schema and
+policy, then dispatch executable payloads through the SDK/main local runtime
+into the Python sidecar daemon. Backend-owned remote tools such as `web_search`
+stay in backend services and do not use the sidecar executor.
 
-**Backend Stub** (`backend/src/tools/remote_tools/<domain>.py`):
+**Backend Catalog Stub** (`backend/src/tools/remote_tools/<domain>.py`, a
+historical package name for local-runtime-executed catalog entries):
 
 ```python
 from pydantic import BaseModel, ConfigDict
@@ -307,7 +311,7 @@ class MyRemoteTool(Tool[MyRemoteToolArgs], RemoteToolBase):
         return self._build_remote_result(args, ctx)
 ```
 
-**Frontend Implementation** (`frontend/src/main/python/tools/<domain>/<tool>_tool.py`, registered via `frontend/src/main/python/tools/registry.py`):
+**Local-Runtime Implementation** (`frontend/src/main/python/tools/<domain>/<tool>_tool.py`, registered via `frontend/src/main/python/tools/registry.py`):
 
 ```python
 from typing import Any, Dict

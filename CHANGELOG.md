@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: distinguish client-local local-runtime catalog stubs from
+  backend-owned remote tools in the tool system architecture page; no migration
+  is required because this changes docs/tests only.
 - docs/frontend: align current renderer inventory docs with artifact/display
   helper ownership instead of stale renderer tool-execution service wording; no
   migration is required because this changes docs/tests only.

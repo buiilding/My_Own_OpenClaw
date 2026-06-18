@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 tool architecture remote-vs-local wording
+
+- Finding: the architecture tool-system page labeled the local-runtime stub
+  template as remote-tool execution and said remote tools dispatch through the
+  SDK/main local runtime into the sidecar, which blurred backend-owned remote
+  tools with client-local executable tools.
+- Change: reworded the section as client-local local-runtime execution, noted
+  the historical `remote_tools` package name for backend catalog stubs, and
+  added a boundary guard against routing remote tools through the sidecar.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  remote-dispatch wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; backend
+  catalog classes, client manifests, provider projections, local execution,
+  payloads, credentials, and permissions are unchanged.
+
 ### 2026-06-18 renderer services inventory wording
 
 - Finding: current renderer inventory docs still described
