@@ -1,7 +1,7 @@
 ---
-summary: "Renderer settings config docs sub-hub for frontend config-field filtering, localStorage defaults, and AppConfigProvider merge/apply guards."
+summary: "Renderer settings config docs sub-hub for renderer config-field filtering, localStorage defaults, and AppConfigProvider merge/apply guards."
 read_when:
-  - When changing frontend-owned config field allowlist or local config defaults.
+  - When changing renderer-owned config field allowlist or local config defaults.
   - When debugging config persistence drift between localStorage, disk config load, and backend update-settings sync.
 title: "Renderer Settings Config Docs Hub"
 ---
@@ -10,7 +10,7 @@ title: "Renderer Settings Config Docs Hub"
 
 ## Deep Pages
 
-- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
+- [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 
 ## Related Pages
 

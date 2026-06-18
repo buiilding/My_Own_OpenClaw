@@ -1,14 +1,14 @@
 ---
-summary: "Deep reference for frontend config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config and desktop-assistant-config-version behavior, removed legacy OpenAI selected_model_id migration behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
+summary: "Deep reference for renderer config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config and desktop-assistant-config-version behavior, removed legacy OpenAI selected_model_id migration behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
 read_when:
-  - When changing frontend-owned config keys (`configFilter`) or local fallback defaults (`configStorage`).
+  - When changing renderer-owned config keys (`configFilter`) or local fallback defaults (`configStorage`).
   - When debugging why settings updates are skipped, cross-window storage sync applies unexpectedly, or disk config merges differ from memory state.
   - When resolving stale references to `desktop-assistant-config`, `desktop-assistant-config-version`, `saveConfigToStorage` version arguments, or `Date.now()` storage-version writes.
   - When resolving stale references to removed legacy model id migration behavior, hardcoded OpenAI selected-model ids, `LEGACY_MODEL_ID_MIGRATIONS`, or renderer localStorage selected_model_id rewrites.
-title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
+title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 ---
 
-# Frontend Config Filter, Storage, and Provider Merge Runtime Reference
+# Renderer Config Filter, Storage, and Provider Merge Runtime Reference
 
 ## Canonical Modules
 
@@ -22,7 +22,7 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `tests/frontend/AppConfigProvider.models.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 
-## Frontend-Owned Config Allowlist (`configFilter`)
+## Renderer-Owned Config Allowlist (`configFilter`)
 
 `FRONTEND_CONFIG_FIELDS` currently allows:
 
@@ -53,7 +53,7 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 `filterFrontendConfig(config)` behavior:
 
 - non-object input -> `{}`
-- includes only keys in the frontend-owned allowlist
+- includes only keys in the renderer-owned allowlist
 - ignores extra runtime, backend-owned, or sidecar-owned config fields
 
 ## Local Config Persistence (`configStorage`)
@@ -131,7 +131,7 @@ Electron frontend-config persistence are scrubbed.
 `sanitizeFrontendProviderConfig`:
 
 - returns `{}` for non-plain objects
-- applies the frontend-owned config allowlist
+- applies the renderer-owned config allowlist
 - drops keys whose value is `undefined`
 
 `mergeFrontendProviderConfig(base, patch)`:
@@ -221,7 +221,7 @@ On `window.storage` for `windieos-config`:
 
 ## Drift Hotspots
 
-1. Adding frontend-owned fields in backend validator without updating `FRONTEND_CONFIG_FIELDS` or defaults causes silent drops.
+1. Adding renderer-owned fields in backend validator without updating `FRONTEND_CONFIG_FIELDS` or defaults causes silent drops.
 2. Removing change guards or storage-event write suppression can create write storms to localStorage/disk/backend.
 3. Returning `null` instead of default object from storage loader can break provider assumptions.
 4. Changing storage key names without migration intentionally starts from fresh

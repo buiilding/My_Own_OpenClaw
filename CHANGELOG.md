@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer docs/tests: describe the config filter as renderer-owned local
+  settings persistence instead of frontend-owned runtime settings while keeping
+  existing `filterFrontendConfig` and IPC wire names unchanged.
 - renderer: rename the tool-call card display marker from
   `frontend_execution_skipped` to `execution_skipped` so model-facing recovery
   previews no longer leak the old frontend execution vocabulary.

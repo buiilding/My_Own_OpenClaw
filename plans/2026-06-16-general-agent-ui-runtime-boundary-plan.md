@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer config filter ownership wording boundary
+
+- Finding: the renderer config filter helper still described its local
+  persistence allowlist as a frontend-owned runtime settings subset, even
+  though the active renderer boundary is local UI settings persistence plus
+  desktop settings runtime sync.
+- Change: reworded the renderer config filter comments, renderer skin/config
+  boundary assertion, and renderer settings config docs to say
+  renderer-owned/local settings while preserving existing `filterFrontendConfig`
+  and frontend-config IPC wire names.
+- Validation: focused renderer skin/config boundary coverage, config filter
+  coverage, docs listing, stale renderer-source ownership wording scan, and
+  diff check.
+- Compatibility: no migration required. Config field names, persisted
+  `windieos-config`, disk `frontend-config.json`, IPC channels, provider
+  credentials redaction, and backend patch validation behavior are unchanged.
+
 ### 2026-06-18 renderer tool-call display skipped marker boundary
 
 - Finding: renderer tool-call card state already consumed SDK

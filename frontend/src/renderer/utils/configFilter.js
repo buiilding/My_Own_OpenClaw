@@ -1,10 +1,10 @@
 /**
- * Utility functions for filtering frontend configuration.
- * The renderer only persists the frontend-owned subset of runtime settings.
+ * Utility functions for filtering renderer configuration.
+ * The renderer only persists its local subset of runtime settings.
  */
 
 /**
- * Fields that the frontend is allowed to manage and persist locally.
+ * Fields that the renderer is allowed to manage and persist locally.
  */
 const FRONTEND_CONFIG_FIELDS = [
   'model_mode',
@@ -28,10 +28,10 @@ const FRONTEND_CONFIG_FIELDS = [
 ];
 
 /**
- * Filters a configuration object to only include fields that the frontend manages.
+ * Filters a configuration object to only include fields that the renderer manages.
  * 
  * @param {Object} config - Full runtime settings/config object
- * @returns {Object} - Filtered configuration with only frontend-managed fields
+ * @returns {Object} - Filtered configuration with only renderer-managed fields
  */
 export function filterFrontendConfig(config) {
   if (!config || typeof config !== 'object') {
