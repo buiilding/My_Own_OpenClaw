@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove unused exported Agent conversation helper option aliases for
+  load, clear, edit/retry preparation methods; callers should use the direct
+  method option object shapes, with no runtime, storage, or wire-payload
+  migration required.
 - frontend/renderer: replace stale desktop-agent UI wording in renderer skin
   and SDK facade comments with desktop-runtime wording; no migration is
   required because this changes comments and boundary coverage only.

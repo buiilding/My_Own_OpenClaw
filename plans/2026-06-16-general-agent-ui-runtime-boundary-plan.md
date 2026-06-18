@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK Agent conversation helper option alias removal
+
+- Finding: `LoadConversationOptions`, `AgentClearConversationsOptions`,
+  `AgentPrepareEditAndResendOptions`, and `AgentPrepareRetryTurnOptions` only
+  renamed option object shapes accepted by Agent helper methods, and exact
+  scans found no callers outside the defining module.
+- Change: removed the exported type aliases, inlined the direct option shapes on
+  `loadConversation`, `clearConversations`, `prepareEditAndResend`, and
+  `prepareRetryTurn`, and added package-boundary coverage so the aliases stay
+  removed.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK TypeScript
+  `--noEmit` compile, SDK runtime docs route lookup, and stale alias scan.
+- Compatibility: no repo migration required because there were no internal
+  callers. External SDK callers should type those method option objects
+  directly when needed.
+
 ### 2026-06-18 renderer desktop-runtime UI comment wording
 
 - Finding: renderer skin and SDK facade comments still described the package as a
