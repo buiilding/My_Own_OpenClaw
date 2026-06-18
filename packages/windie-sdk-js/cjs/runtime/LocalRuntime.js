@@ -346,6 +346,9 @@ function normalizeDiscovery(raw) {
         return null;
     }
     const payload = raw;
+    if (Object.prototype.hasOwnProperty.call(payload, 'baseUrl')) {
+        return null;
+    }
     const baseUrl = normalizeDaemonBaseUrl(payload.base_url);
     const token = typeof payload.token === 'string' ? payload.token.trim() : '';
     if (!baseUrl || !token) {

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK local runtime discovery CJS parity
+
+- Finding: the TypeScript local-runtime discovery parser rejected camelCase
+  `baseUrl` metadata, but the checked-in generated CommonJS output was stale
+  and still accepted payloads that should fail at the SDK boundary.
+- Change: regenerated the CommonJS local-runtime output so it matches the
+  TypeScript source and keeps discovery metadata on the canonical `base_url`
+  contract.
+- Validation: `npm.cmd run build:cjs` in `packages/windie-sdk-js`, focused
+  `createAgentLocalRuntimeProvider rejects camelCase discovery metadata`
+  coverage, full `WindieSdkClient.test.ts`, `WindieSdkPrivateExports.test.cjs`,
+  and docs listing.
+- Compatibility: no migration required. Accepted discovery metadata is still
+  snake_case `base_url`; camelCase `baseUrl` remains rejected as a removed SDK
+  input alias.
 ### 2026-06-17 renderer localStorage product keys
 
 - Finding: renderer-local config and memory retrieval preferences still used

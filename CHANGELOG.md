@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: sync generated CommonJS local-runtime discovery output with the
+  TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
+  in CJS builds; no migration is required because accepted discovery metadata
+  continues to use `base_url`.
 - frontend/renderer: replace the old `desktop-assistant-*` localStorage keys with `windieos-*` keys for renderer config and memory retrieval preferences; no localStorage migration is provided, so stale renderer-local values at the removed keys are ignored while Electron disk config still merges when present.
 - sdk/backend: make generated agent-definition defaults use the generic `default`
   mode, normalize legacy `windie_default` backend input, and keep the SDK
@@ -2284,6 +2288,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: sync generated CommonJS local-runtime discovery output with the
+  TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
+  in CJS builds; no migration is required because accepted discovery metadata
+  continues to use `base_url`.
 - sdk/backend: make generated agent-definition defaults use the generic `default`
   mode, normalize legacy `windie_default` backend input, and keep the SDK
   default predicate compatible with old payloads; no migration is required
@@ -4063,6 +4071,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: sync generated CommonJS local-runtime discovery output with the
+  TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
+  in CJS builds; no migration is required because accepted discovery metadata
+  continues to use `base_url`.
 - sdk/backend: make generated agent-definition defaults use the generic `default`
   mode, normalize legacy `windie_default` backend input, and keep the SDK
   default predicate compatible with old payloads; no migration is required
@@ -4497,6 +4509,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: sync generated CommonJS local-runtime discovery output with the
+  TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
+  in CJS builds; no migration is required because accepted discovery metadata
+  continues to use `base_url`.
 - sdk/backend: make generated agent-definition defaults use the generic `default`
   mode, normalize legacy `windie_default` backend input, and keep the SDK
   default predicate compatible with old payloads; no migration is required
@@ -4961,6 +4977,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: sync generated CommonJS local-runtime discovery output with the
+  TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
+  in CJS builds; no migration is required because accepted discovery metadata
+  continues to use `base_url`.
 - sdk/backend: make generated agent-definition defaults use the generic `default`
   mode, normalize legacy `windie_default` backend input, and keep the SDK
   default predicate compatible with old payloads; no migration is required
@@ -7381,6 +7401,10 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 
+- sdk: sync generated CommonJS local-runtime discovery output with the
+  TypeScript source so camelCase `baseUrl` discovery metadata remains rejected
+  in CJS builds; no migration is required because accepted discovery metadata
+  continues to use `base_url`.
 - sdk/backend: make generated agent-definition defaults use the generic `default`
   mode, normalize legacy `windie_default` backend input, and keep the SDK
   default predicate compatible with old payloads; no migration is required
