@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a data-flow ownership wording slice by updating
+  `docs/architecture/data_flow_and_state_ownership.md` so the query flow says
+  the SDK tool coordinator dispatches local tool calls to local-runtime
+  execution and the Python sidecar implementation returns results. This keeps
+  the public architecture trace aligned with the SDK/local-runtime owner while
+  preserving concrete sidecar implementation visibility. Validation: focused
+  modular docs boundary test, docs listing, source scan, and diff checks. No
+  migration required; no code path, payload, storage, IPC, settings, tool
+  schema, credential, permission, or provider-policy behavior changed.
 - 2026-06-18: completed an agent-runtime ownership routing slice by aligning
   `docs/development/agent_runtime_ownership_and_change_routing.md` with the
   browser workflow's local-runtime browser execution plus Python sidecar adapter

@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route the data-flow query step through local-runtime tool
+  execution with the Python sidecar as the current implementation, instead of
+  saying the SDK dispatches directly to the sidecar runtime. No migration
+  required.
 - docs/development: route the agent-facing browser automation ownership row
   through local-runtime browser execution and Python sidecar adapters instead
   of sidecar-runtime peer ownership. No migration required.

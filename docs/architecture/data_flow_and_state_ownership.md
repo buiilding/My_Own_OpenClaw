@@ -39,8 +39,8 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 3. Backend websocket route validates the message and resolves a session.
 4. Backend agent loop builds prompt/tool context and streams events.
 5. SDK normalizes backend events into conversation events.
-6. SDK tool coordinator dispatches local tool calls to the sidecar runtime.
-7. Sidecar returns local tool results to the SDK coordinator.
+6. SDK tool coordinator dispatches local tool calls to local-runtime execution.
+7. The Python sidecar implementation returns local tool results to the SDK coordinator.
 8. SDK returns tool results to backend and appends normalized tool-output events.
 9. Backend ingests tool results, commits history, and continues or completes.
 10. UI renders SDK display projections while rehydrate snapshots are generated from the same normalized events.

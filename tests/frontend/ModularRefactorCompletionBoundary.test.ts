@@ -415,10 +415,12 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
 
     expect(docText).toContain('SDK/main local execution');
+    expect(docText).toContain('local tool calls to local-runtime execution');
     expect(docText).toContain('before local execution');
     expect(docText).not.toContain('sidecar daemon/local executor');
     expect(docText).not.toContain('sidecar execution');
     expect(docText).not.toContain('before sidecar execution');
+    expect(docText).not.toContain('local tool calls to the sidecar runtime');
   });
 
   test('local runtime conversation store keeps diagnostic collection naming generic', async () => {
