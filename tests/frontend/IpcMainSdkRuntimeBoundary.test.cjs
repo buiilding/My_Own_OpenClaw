@@ -61,7 +61,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('sendWakewordDetectedThroughAgentSdkRuntime');
     const wakeCall = source.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
-    expect(wakeCall).toContain('name: mainHostSkin.identity.sdkAgentName');
+    expect(wakeCall).toContain('name: ipcHostCopy.identity.sdkAgentName');
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
     expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
     expect(wakeCall).toContain("mcps: process.env.NODE_ENV === 'test'");

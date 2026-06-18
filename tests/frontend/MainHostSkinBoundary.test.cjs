@@ -274,9 +274,20 @@ describe('main host skin/config boundary', () => {
 
   test('query event builders keep product copy in the host skin', () => {
     const source = fs.readFileSync(ipcQueryEventsPath, 'utf8');
+    const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
 
     expect(source).toContain('copy.sendFailure');
     expect(source).toContain('copy.interruptedAfterAccept');
+    expect(indexSource).toContain('configureIpcHostCopyRuntime({');
+    expect(indexSource).toContain('identity: mainHostSkin.identity');
+    expect(indexSource).toContain('queryEvents: mainHostSkin.queryEvents');
+    expect(ipcSource).toContain('DEFAULT_IPC_HOST_COPY');
+    expect(ipcSource).toContain('ipcHostCopy.identity.sdkAgentName');
+    expect(ipcSource).toContain('ipcHostCopy.identity.mcpClientInfo');
+    expect(ipcSource).toContain('ipcHostCopy.queryEvents');
+    expect(ipcSource).not.toContain('mainHostSkin.identity');
+    expect(ipcSource).not.toContain('mainHostSkin.queryEvents');
     expect(source).not.toContain('WindieOS');
     expect(source).not.toContain("WindieOS isn't connected");
     expect(source).not.toContain('WindieOS lost connection');

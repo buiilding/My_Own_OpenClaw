@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main IPC Host-Copy Boundary
+
+- Finding: `ipc.cjs` still read `mainHostSkin.identity` for SDK wake-up and
+  MCP client metadata, and `mainHostSkin.queryEvents` for query failure and
+  disconnect copy. That kept product copy wired directly inside generic IPC
+  runtime paths.
+- Change: added a small IPC host-copy configuration surface with generic
+  defaults, then configured it from the Electron main composition root with
+  WindieOS identity and query-event copy.
+- Validation: focused SDK IPC boundary, host-skin boundary, query-runtime, and
+  MCP runtime Jest coverage plus CommonJS syntax checks.
+- Compatibility: no migration required. SDK wake-up, MCP refresh/toggle,
+  query send-failure/interruption copy, IPC channels, storage, credentials,
+  provider policy, and local tool execution are unchanged.
+
 ### 2026-06-18 Main IPC Local-Runtime Launch Config Boundary
 
 - Finding: `ipc.cjs` still read `mainHostSkin.bundledRuntime`,

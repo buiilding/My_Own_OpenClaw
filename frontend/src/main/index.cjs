@@ -30,6 +30,7 @@ const {
   getKnownAgentLocalRuntime,
   ensureAgentLocalRuntime,
   getLatestDesktopUiConfig,
+  configureIpcHostCopyRuntime,
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,
@@ -124,6 +125,10 @@ configureAppDiagnosticsStore(mainHostSkin.diagnostics);
 configureLayerLogSink(mainHostSkin.logging);
 configureExtensionManifestRuntime(mainHostSkin.extensions);
 configureMcpRuntime(mainHostSkin.mcp);
+configureIpcHostCopyRuntime({
+  identity: mainHostSkin.identity,
+  queryEvents: mainHostSkin.queryEvents,
+});
 installConsoleLayerLog({
   layer: 'main',
   logPrefix: mainHostSkin.identity.logPrefix,

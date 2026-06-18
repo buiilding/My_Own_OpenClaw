@@ -181,6 +181,17 @@ const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
+const DEFAULT_IPC_HOST_COPY = Object.freeze({
+  identity: Object.freeze({
+    sdkAgentName: 'Desktop Agent',
+    mcpClientInfo: Object.freeze({
+      name: 'Desktop Runtime',
+      version: '0.0.0',
+    }),
+  }),
+  queryEvents: Object.freeze({}),
+});
+let ipcHostCopy = DEFAULT_IPC_HOST_COPY;
 let rendererWindows = new Set();
 let isConnected = false;
 let isFirstQuery = true;
@@ -754,6 +765,17 @@ function buildDesktopLocalRuntimeOptions() {
     : { autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent() };
 }
 
+function configureIpcHostCopyRuntime(copy = {}) {
+  ipcHostCopy = {
+    identity: copy.identity && typeof copy.identity === 'object'
+      ? copy.identity
+      : DEFAULT_IPC_HOST_COPY.identity,
+    queryEvents: copy.queryEvents && typeof copy.queryEvents === 'object'
+      ? copy.queryEvents
+      : DEFAULT_IPC_HOST_COPY.queryEvents,
+  };
+}
+
 function createElectronAgentClient() {
   logMainRuntime(`[Main][SDK] creating_client backend=${backendEndpointState.getHttpUrl()}`);
   return new AgentClient({
@@ -1115,7 +1137,7 @@ function createDirectWakeUpAgentAdapter({
       refreshMcpServersForConfig({
         config,
         localRuntime: agent.localRuntime || null,
-        clientInfo: mainHostSkin.identity.mcpClientInfo,
+        clientInfo: ipcHostCopy.identity.mcpClientInfo,
       })
     ),
     close: () => {
@@ -1141,7 +1163,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
   const client = getAgentClient();
   const agent = await client.wakeUp({
     installAuth: buildDesktopInstallAuth(),
-    name: mainHostSkin.identity.sdkAgentName,
+    name: ipcHostCopy.identity.sdkAgentName,
     workspacePath: resolvedWorkspacePath,
     builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
     mcps: process.env.NODE_ENV === 'test'
@@ -1235,7 +1257,7 @@ async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
   }
   return refreshMcpServersForConfig({
     config,
-    clientInfo: mainHostSkin.identity.mcpClientInfo,
+    clientInfo: ipcHostCopy.identity.mcpClientInfo,
   });
 }
 
@@ -1486,7 +1508,7 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
       currentServerUserId,
       currentUserId,
       accepted: activeQueryContext.accepted,
-      copy: mainHostSkin.queryEvents,
+      copy: ipcHostCopy.queryEvents,
     });
     log(
       `Active query interrupted by backend disconnect `
@@ -1635,7 +1657,7 @@ function initializeIpc(win, options = {}) {
       resolveLocalRuntime: process.env.NODE_ENV === 'test'
         ? null
         : async () => (await ensureAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
-      clientInfo: mainHostSkin.identity.mcpClientInfo,
+      clientInfo: ipcHostCopy.identity.mcpClientInfo,
     });
     if (result?.success === true && process.env.NODE_ENV !== 'test') {
       const agent = await ensureAgent({ reason: 'mcp-manifest-refresh' });
@@ -1809,7 +1831,7 @@ function initializeIpc(win, options = {}) {
       broadcastQuerySendFailureRuntime,
       buildQuerySendFailure: (input) => buildQuerySendFailure({
         ...input,
-        copy: mainHostSkin.queryEvents,
+        copy: ipcHostCopy.queryEvents,
       }),
       traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
     },
@@ -2194,6 +2216,7 @@ module.exports = {
   BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
   getKnownAgentLocalRuntime,
+  configureIpcHostCopyRuntime,
   ensureAgentLocalRuntime,
   getLatestDesktopUiConfig,
   initializeIpc,
