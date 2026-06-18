@@ -720,6 +720,31 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
   });
 
+  test('dashboard shell routes main-window target and user snapshot IPC through app runtime clients', async () => {
+    const dashboardShellSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/components/DashboardShell.jsx'),
+      'utf8',
+    );
+    const sessionClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts'),
+      'utf8',
+    );
+    const windowClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(dashboardShellSource).not.toContain('IpcBridge');
+    expect(dashboardShellSource).not.toContain('INVOKE_CHANNELS');
+    expect(dashboardShellSource).not.toContain('ON_CHANNELS');
+    expect(dashboardShellSource).not.toContain('GET_CLIENT_USER_ID');
+    expect(dashboardShellSource).not.toContain('MAIN_WINDOW_OPEN_TARGET');
+    expect(dashboardShellSource).toContain('DesktopClientSessionRuntimeClient.loadMainSessionSnapshot');
+    expect(dashboardShellSource).toContain('DesktopWindowRuntimeClient.onMainWindowOpenTarget');
+    expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
+    expect(windowClientSource).toContain('ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET');
+  });
+
   test('chat interface routes audio and workspace subscriptions through app runtime clients', async () => {
     const chatInterfaceSource = await fs.readFile(
       path.join(chatRoot, 'components/ChatInterface.jsx'),

@@ -91,9 +91,9 @@ instead of importing desktop IPC channel constants directly.
 commands used by generic runtime flows, such as restoring the chatbox after
 overlay-origin sends, applying startup surface visibility, handling wakeword
 chatbox restore, main-window controls, and minimal chatbox overlay focus, drag,
-hit-test, visual-anchor, text-entry, and hide/show commands. Callers keep UI
-policy and call this runtime client instead of importing window IPC channel
-constants directly.
+hit-test, visual-anchor, text-entry, hide/show commands, and main-window
+open-target fan-out. Callers keep UI policy and call this runtime client instead
+of importing window IPC channel constants directly.
 
 `desktopResponseOverlayRuntimeClient.ts` owns renderer response overlay window
 IPC for responsebox size, hit-test, and visibility fan-out. Response overlay
@@ -110,8 +110,9 @@ constants directly.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
 desktop client/session snapshot and IPC transport status subscription. Chat
-session bootstrap and loop transport projection call this runtime client instead
-of importing `get-client-user-id` or `ipc-status` channel constants directly.
+session bootstrap, loop transport projection, and dashboard user snapshot
+fallback call this runtime client instead of importing `get-client-user-id` or
+`ipc-status` channel constants directly.
 
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,

@@ -168,8 +168,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer minimal response overlay size, hit-test, dismiss, and visibility
   re-report IPC now route through a renderer app response overlay runtime
   client.
+  Renderer dashboard shell main-window target and user snapshot IPC now route
+  through renderer app runtime clients.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Dashboard Shell Runtime Clients Slice
+
+- Worktree was clean after `2ffbd4190`, with `main` ahead of `origin/main` by
+  850 commits.
+- Finding: `DashboardShell` still imported main-window open-target and
+  client-user snapshot IPC channels directly even though adjacent chat/session
+  paths already used renderer app runtime clients.
+- Change: routed dashboard open-target subscription through
+  `DesktopWindowRuntimeClient.onMainWindowOpenTarget` and the snapshot fallback
+  through `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot` while
+  leaving panel routing, dashboard wake animation, and conversation refresh
+  policy in `DashboardShell`.
+- Validation: focused dashboard shell test, renderer chat boundary test,
+  targeted dashboard shell direct IPC scan, docs listing, and diff check.
+- Compatibility: no migration required. Main-window target event payloads,
+  client snapshot shape, panel routing, VM-mode gating, storage, credentials,
+  and provider policy are unchanged.
 
 ### 2026-06-18 Renderer Response Overlay Runtime Client Slice
 

@@ -6,7 +6,8 @@ import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { useChatStore } from '../../chat/stores/chatStore';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
+import { DesktopWindowRuntimeClient } from '../../../app/runtime/desktopWindowRuntimeClient';
 import ModelsSection from './sections/ModelsSection';
 import McpsSection from './sections/McpsSection';
 import SettingsSection from './sections/SettingsSection';
@@ -263,7 +264,7 @@ function DashboardShell({
     if (vmModeEnabled) {
       return undefined;
     }
-    const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
+    const removeListener = DesktopWindowRuntimeClient.onMainWindowOpenTarget((payload) => {
       wakeDashboardShell();
       void loadRecentConversations('main-window-open-target');
       const target = typeof payload?.target === 'string' ? payload.target : '';
@@ -303,7 +304,7 @@ function DashboardShell({
   ]);
 
   useEffect(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+    DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
       .then((payload) => {
         if (typeof payload?.userId === 'string' && payload.userId.trim().length > 0) {
           setSnapshotUserId(payload.userId.trim());

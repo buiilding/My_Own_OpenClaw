@@ -40,6 +40,14 @@ export type MoveChatboxTarget = {
 
 export type WindowRuntimeEventListener = (payload?: unknown) => void;
 
+export type MainWindowOpenTargetPayload = {
+  target?: string;
+};
+
+export type MainWindowOpenTargetListener = (
+  payload?: MainWindowOpenTargetPayload,
+) => void;
+
 export const DesktopWindowRuntimeClient = {
   showChatbox(options: ShowChatboxOptions = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, options);
@@ -75,6 +83,10 @@ export const DesktopWindowRuntimeClient = {
 
   onWakewordSttTrigger(listener: WindowRuntimeEventListener): (() => void) | undefined {
     return IpcBridge.on(ON_CHANNELS.WAKEWORD_STT_TRIGGER, listener);
+  },
+
+  onMainWindowOpenTarget(listener: MainWindowOpenTargetListener): (() => void) | undefined {
+    return IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, listener as WindowRuntimeEventListener);
   },
 
   minimizeWindow(): Promise<unknown> {

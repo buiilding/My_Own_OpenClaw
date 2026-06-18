@@ -130,7 +130,7 @@ Failure behavior:
 
 ## Main-Process Open Target Contract
 
-Shell listens on `ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET`.
+Shell listens through `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)`.
 
 Accepted targets:
 
