@@ -14,6 +14,8 @@ const {
 
 configureLayerLogSink(mainHostSkin.logging);
 
+const DEFAULT_CAPTURE_MAX_BUFFER = 16 * 1024 * 1024;
+
 function commandForPlatform(command, args = []) {
   if (process.platform === 'win32') {
     if (command === 'npm') {
@@ -63,6 +65,7 @@ function capture(command, args = [], options = {}) {
     allowFailure: true,
     stdio: 'pipe',
     encoding: 'utf8',
+    maxBuffer: options.maxBuffer || DEFAULT_CAPTURE_MAX_BUFFER,
   });
   return {
     ok: !result.error && result.status === 0,

@@ -30,6 +30,10 @@ Before coding or answering implementation questions:
   instructions. When repo docs and this file disagree about agent workflow,
   follow this file; use docs and code for implementation details and runtime
   behavior.
+- After every compaction summary, redo this required orientation before
+  continuing: reread this file when available, recheck the live worktree, rerun
+  relevant docs searches, and reinspect recent related commits for the affected
+  subsystem.
 - Search local docs by feature or symptom when orientation is incomplete:
   `<windie> docs search <query>` or the shorthand `<windie> docs <query>`.
   Use `bin\windie.cmd` on Windows PowerShell and `bin/windie.sh` on

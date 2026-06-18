@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- cli/commits: raise the buffered capture capacity used by Windie CLI history
+  scans so `windie commits search` no longer fails with `spawnSync git ENOBUFS`
+  in large repos.
+- cli/history: use the exported desktop user-data root helper for history DB
+  lookups so `windie conversation messages` no longer crashes with
+  `windieUserDataRoot is not a function`.
 - ops/deploy: stream the `.sh` remote backend update script from the GitHub
   Actions deploy workflow so pushes to `main` can update and restart the
   hosted backend after extensionless script shims were removed.
@@ -18,6 +24,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: require agents to redo required orientation after every
+  compaction summary before continuing implementation or analysis.
+- docs/plans: add a shared image-resource materialization goal plan covering
+  renderer, SDK/main, Electron main, backend, and sidecar ownership.
+- docs/plans: remove stale general agent UI runtime boundary execution and
+  compaction planning notes.
 - cli/docs: document the platform wrapper contract across shared command
   examples and guard user-facing docs against stale extensionless wrapper
   commands. No migration required.
