@@ -26,6 +26,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - docs/agents: require agents to redo required orientation after every
   compaction summary before continuing implementation or analysis.
+- docs/plans: add a shared image-resource materialization goal plan covering
+  renderer, SDK/main, Electron main, backend, and sidecar ownership.
 - docs/plans: remove stale general agent UI runtime boundary and compaction
   execution planning notes.
 - main/diagnostics: inject WindieOS app diagnostics database and user-data env
