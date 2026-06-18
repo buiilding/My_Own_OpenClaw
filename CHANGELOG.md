@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat session bootstrap and loop transport status
+  through a renderer app runtime client instead of importing client snapshot and
+  IPC status channels from chat hooks.
 - renderer/runtime: route message artifact image fetches and image context menu
   actions through a renderer app runtime artifact client instead of importing
   artifact IPC channels from message presentation code.

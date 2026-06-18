@@ -151,8 +151,9 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 
 `useChatLoopUiState` reads transport connectivity from:
 
-- `ON_CHANNELS.IPC_STATUS` subscription updates
-- startup invoke `INVOKE_CHANNELS.GET_CLIENT_USER_ID` (best-effort initial status sync)
+- `DesktopClientSessionRuntimeClient.onIpcStatus(...)` subscription updates
+- `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot(...)` for
+  best-effort initial status sync
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 

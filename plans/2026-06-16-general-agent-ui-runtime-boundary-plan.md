@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Client Session Runtime Client
+
+- Finding: chat session bootstrap and loop transport state imported the main
+  client snapshot and IPC status channels directly.
+- Change: added `DesktopClientSessionRuntimeClient` under the renderer app
+  runtime layer and routed main-session snapshot/status subscriptions through it.
+- Validation: focused renderer chat boundary test, chat session bootstrap test,
+  chat loop UI state hook test, targeted direct IPC scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. `get-client-user-id` and `ipc-status`
+  channel strings, payload shapes, reconnect watchdog behavior, transcript
+  session projection, Electron main handlers, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Renderer Artifact Image Runtime Client
 
 - Finding: message screenshot resolution and user screenshot presentation

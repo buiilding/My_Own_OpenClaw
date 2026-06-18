@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { useChatStore } from '../stores/chatStore';
 import {
@@ -15,7 +15,7 @@ export function useChatSessionBootstrap() {
 
   return useCallback(async () => {
     return hydrateConversationSessionFromMainSnapshot({
-      loadMainSessionSnapshot: () => IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID),
+      loadMainSessionSnapshot: DesktopClientSessionRuntimeClient.loadMainSessionSnapshot,
       setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
       setChatConversationRef: setChatActiveConversationRef,
       updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,

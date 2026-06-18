@@ -136,6 +136,10 @@ store/local-runtime internals.
 - pushed `ipc-status` events
 - initial `get-client-user-id` invoke
 
+Chat session bootstrap consumes the same main-session snapshot through
+`DesktopClientSessionRuntimeClient` so chat feature hooks do not import the
+desktop IPC channel constants directly.
+
 ### New turn and user row
 
 `useChatMessageSender`:

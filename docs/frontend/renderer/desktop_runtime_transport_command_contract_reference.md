@@ -15,6 +15,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
+- `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
@@ -94,6 +95,11 @@ authenticated artifact image fetches and native image context-menu actions.
 Message screenshot resolution and user screenshot presentation keep only display
 policy and call this runtime client instead of importing artifact IPC channel
 constants directly.
+
+`desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
+desktop client/session snapshot and IPC transport status subscription. Chat
+session bootstrap and loop transport projection call this runtime client instead
+of importing `get-client-user-id` or `ipc-status` channel constants directly.
 
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to

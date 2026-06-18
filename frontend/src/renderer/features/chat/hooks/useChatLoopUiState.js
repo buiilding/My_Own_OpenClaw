@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useMemo, useReducer } from 'react';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { DesktopClientSessionRuntimeClient } from '../../../app/runtime/desktopClientSessionRuntimeClient';
 
 const CHAT_LOOP_MACHINE_EVENT = Object.freeze({
   SNAPSHOT: 'snapshot',
@@ -121,10 +121,7 @@ export function useChatLoopTransportState({
   }, [isBusy, machineState.transportConnected, snapshotSignature]);
 
   useEffect(() => {
-    if (!ON_CHANNELS?.IPC_STATUS) {
-      return undefined;
-    }
-    const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {
+    const removeListener = DesktopClientSessionRuntimeClient.onIpcStatus((payload) => {
       dispatch({
         type: CHAT_LOOP_MACHINE_EVENT.IPC_STATUS,
         connected: payload?.isConnected === true,
@@ -136,10 +133,7 @@ export function useChatLoopTransportState({
   }, []);
 
   useEffect(() => {
-    if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
-      return;
-    }
-    IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+    DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
       .then((payload) => {
         dispatch({
           type: CHAT_LOOP_MACHINE_EVENT.IPC_STATUS,

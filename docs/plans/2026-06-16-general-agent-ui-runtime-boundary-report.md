@@ -149,8 +149,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer message screenshot resolution and user screenshot presentation now
   route artifact image fetch and native image context-menu calls through a
   renderer app runtime artifact client.
+  Renderer chat session bootstrap and loop transport state now route the main
+  client snapshot and IPC status subscription through a renderer app runtime
+  client.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Client Session Runtime Client Slice
+
+- Worktree was clean after `79058f2e2`, with `main` ahead of `origin/main` by
+  842 commits.
+- Finding: chat session bootstrap and loop transport state imported the main
+  client snapshot and IPC status channels directly.
+- Change: added `DesktopClientSessionRuntimeClient` under the renderer app
+  runtime layer and routed main-session snapshot/status subscriptions through it.
+- Validation: focused renderer chat boundary test, chat session bootstrap test,
+  chat loop UI state hook test, targeted direct IPC scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. `get-client-user-id` and `ipc-status`
+  channel strings, payload shapes, reconnect watchdog behavior, transcript
+  session projection, Electron main handlers, storage, credentials, and provider
+  policy are unchanged.
 
 ### 2026-06-18 Renderer Artifact Image Runtime Client Slice
 

@@ -652,6 +652,32 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
   });
 
+  test('chat session and transport hooks route main session IPC through app runtime client', async () => {
+    const bootstrapSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatSessionBootstrap.ts'),
+      'utf8',
+    );
+    const loopStateSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatLoopUiState.js'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(bootstrapSource).not.toContain('GET_CLIENT_USER_ID');
+    expect(bootstrapSource).not.toContain('IpcBridge.invoke');
+    expect(bootstrapSource).toContain('DesktopClientSessionRuntimeClient.loadMainSessionSnapshot');
+    expect(loopStateSource).not.toContain('GET_CLIENT_USER_ID');
+    expect(loopStateSource).not.toContain('ON_CHANNELS');
+    expect(loopStateSource).not.toContain('IpcBridge.');
+    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onIpcStatus');
+    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadMainSessionSnapshot');
+    expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
+    expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),

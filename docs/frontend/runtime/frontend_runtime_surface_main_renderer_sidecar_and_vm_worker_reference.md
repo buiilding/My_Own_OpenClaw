@@ -104,7 +104,7 @@ Worker behavior:
 `useChatMessageSender.ts` now enforces conversation continuity before first send:
 
 - resolve active conversation ref from transcript/store
-- fallback to main-session snapshot via `GET_CLIENT_USER_ID` invoke
+- fallback to main-session snapshot through `DesktopClientSessionRuntimeClient`
 - only generate new conversation ref when neither local nor main snapshot has one
 
 Send pipeline details:
