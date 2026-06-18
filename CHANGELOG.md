@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime-boundary: clarify local-only deployment and sidecar packaging
+  topology around SDK local runtime and explicit backend provisioning; no
+  migration is required because packaging and runtime behavior are unchanged.
+
 - docs/runtime-boundary: replace sidecar-facing conceptual wording in
   session replay and backend embedding health docs with renderer/local-runtime
   and local-runtime-consumer language; no migration is required.

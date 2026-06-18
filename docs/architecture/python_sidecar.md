@@ -149,7 +149,8 @@ Wakeword detection runs as a separate Python subprocess:
 
 - Runtime build prefetches wakeword models into bundled runtime and verifies required model markers.
 - Runtime bundles browser Python dependencies, but does not preinstall Playwright Chromium.
-- Runtime packaging should assume a hosted backend is available for backend-owned APIs; bundling the sidecar does not imply bundling a local backend.
+- Runtime packaging should assume a hosted backend is available for backend-owned
+  APIs; bundling the sidecar does not imply bundling a backend server.
 - Build is idempotent for bundled assets:
   - If wakeword model assets already exist, prefetch download is skipped.
 - Packaged app disables browser feature-pack runtime auto-install and expects the full sidecar runtime deps to be bundled.
@@ -167,7 +168,7 @@ Wakeword detection runs as a separate Python subprocess:
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
-  - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local sidecar imports)
+  - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local runtime imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:
   - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs` validates SDK local-runtime bootstrap and readiness/status transitions.

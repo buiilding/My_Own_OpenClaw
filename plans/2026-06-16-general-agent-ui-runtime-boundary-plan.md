@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local deployment topology wording cleanup
+
+- Finding: deployment and Python sidecar packaging docs still used local
+  backend/sidecar wording that blurred the SDK local runtime from explicitly
+  provisioned backend servers.
+- Change: described local-only mode as Electron plus SDK local runtime plus
+  explicit local/self-hosted backend provisioning, clarified that sidecar
+  bundling does not bundle a backend server, and guarded the retired phrases.
+- Validation: focused first-read modular boundary test, docs listing, exact
+  retired-phrase scan for the touched docs, and `git diff --check`.
+- Compatibility: no migration required. Packaged assets, backend endpoint
+  resolution, sidecar launch, SDK local-runtime bootstrap, APIs, settings,
+  and persisted data are unchanged.
+
 ### 2026-06-18 conceptual sidecar-facing wording cleanup
 
 - Finding: session/conversation and backend embedding runtime docs still used

@@ -20,7 +20,7 @@ For feature roadmap details, see `../planning/future_plan.md`.
 ## Target Modes
 
 ### Mode A: Local-only (current baseline)
-- Electron app + local Python sidecar + local backend.
+- Electron app + SDK local runtime + explicitly provisioned local/self-hosted backend.
 - Best privacy posture.
 - No cloud account required.
 

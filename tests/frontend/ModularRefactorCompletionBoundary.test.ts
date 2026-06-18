@@ -212,6 +212,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/install/uninstall_reinstall_reset.md'),
       read('docs/frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md'),
       read('docs/getting-started/docs_hub.md'),
+      read('docs/architecture/python_sidecar.md'),
       read('docs/operations/deployment.md'),
       read('docs/security/credentials_and_tokens_matrix.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
@@ -232,6 +233,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('local sidecar-backed tool');
     expect(docText).not.toContain('local sidecar execution');
     expect(docText).not.toContain('sidecar-facing');
+    expect(docText).not.toContain('Electron app + local Python sidecar + local backend');
+    expect(docText).not.toContain('bundling the sidecar does not imply bundling a local backend');
+    expect(docText).not.toContain('client-local sidecar imports');
   });
 
   test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {
