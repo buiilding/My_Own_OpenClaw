@@ -30,6 +30,13 @@ export type VisualResource =
       filename?: string | null;
     }
   | {
+      source: 'trusted_temp_screenshot_path';
+      bytes: Uint8Array;
+      contentType?: string | null;
+      filename?: string | null;
+      captureMeta?: JsonRecord | null;
+    }
+  | {
       source: 'artifact_ref';
       screenshotRef: string;
       screenshotUrl?: string | null;
@@ -129,6 +136,18 @@ function blobFromBase64(input: string, contentType: string): Blob {
   const arrayBuffer = bytes.buffer.slice(
     bytes.byteOffset,
     bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer;
+  return new blobCtor([arrayBuffer], { type: contentType });
+}
+
+function blobFromBytes(input: Uint8Array, contentType: string): Blob {
+  const blobCtor = (globalThis as unknown as { Blob?: typeof Blob }).Blob;
+  if (!blobCtor) {
+    throw new Error('Blob constructor is unavailable');
+  }
+  const arrayBuffer = input.buffer.slice(
+    input.byteOffset,
+    input.byteOffset + input.byteLength,
   ) as ArrayBuffer;
   return new blobCtor([arrayBuffer], { type: contentType });
 }
@@ -238,6 +257,45 @@ async function uploadBase64Resource(input: {
   };
 }
 
+async function uploadByteResource(input: {
+  artifactUploader?: VisualResourceArtifactUploader | null;
+  bytes: Uint8Array;
+  contentType?: string | null;
+  filename?: string | null;
+  captureMeta?: JsonRecord | null;
+}): Promise<MaterializedVisualResource> {
+  if (!input.artifactUploader?.upload) {
+    throw new Error('artifact uploader is unavailable');
+  }
+  if (input.bytes.byteLength <= 0) {
+    throw new Error('empty screenshot bytes');
+  }
+  const contentType = imageContentType(input.contentType);
+  const uploaded = await input.artifactUploader.upload(
+    blobFromBytes(input.bytes, contentType),
+    screenshotFilename(contentType, input.filename),
+  );
+  const artifactId = optionalString(uploaded.artifact_id);
+  if (!artifactId) {
+    throw new Error('artifact upload did not return artifact_id');
+  }
+  const screenshotUrl = optionalString(uploaded.url) ?? input.artifactUploader.url?.(artifactId) ?? null;
+  const resolvedContentType = optionalString(uploaded.content_type) ?? contentType;
+  return {
+    screenshot_ref: artifactId,
+    screenshot_refs: [artifactId],
+    ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
+    screenshot_content_type: resolvedContentType,
+    ...(isJsonRecord(input.captureMeta) ? { capture_meta: input.captureMeta } : {}),
+    ...(optionalString(input.filename) ? { attachment_filenames: [optionalString(input.filename) as string] } : {}),
+    display_metadata: {
+      screenshotRef: artifactId,
+      ...(screenshotUrl ? { screenshotUrl } : {}),
+    },
+    materialization_mode: 'uploaded_inline',
+  };
+}
+
 export async function materializeVisualResource(
   resource: VisualResource,
   options: MaterializeVisualResourceOptions = {},
@@ -259,6 +317,16 @@ export async function materializeVisualResource(
       screenshot: resource.base64,
       contentType: resource.contentType,
       filename: resource.filename,
+    });
+  }
+
+  if (resource.source === 'trusted_temp_screenshot_path') {
+    return uploadByteResource({
+      artifactUploader: options.artifactUploader,
+      bytes: resource.bytes,
+      contentType: resource.contentType,
+      filename: resource.filename,
+      captureMeta: resource.captureMeta,
     });
   }
 

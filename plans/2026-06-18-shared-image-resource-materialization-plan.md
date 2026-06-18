@@ -69,8 +69,9 @@ type VisualResource =
     }
   | {
       source: 'trusted_temp_screenshot_path';
-      path: string;
+      bytes: Uint8Array;
       contentType?: string;
+      filename?: string;
       captureMeta?: Record<string, unknown>;
     }
   | {
@@ -211,3 +212,8 @@ For each completed slice, record:
   the temp-path trust boundary and cleanup. Payload shape remains artifact-ref
   based; no migration required. Validation so far: SDK ESM/CJS builds and
   focused `WindieSdkConversationRuntime` screenshot/tool materialization tests.
+- 2026-06-18: routed Electron main trusted temp screenshot bytes through the
+  same SDK materializer by adding a `trusted_temp_screenshot_path` byte resource
+  variant. Main continues to validate the owned temp namespace, read and delete
+  files, attach upload auth, and fall back to inline payloads if artifact upload
+  fails. Payload shape remains artifact-ref based; no migration required.

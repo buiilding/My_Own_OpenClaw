@@ -75,6 +75,14 @@ function blobFromBase64(input, contentType) {
     const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
     return new blobCtor([arrayBuffer], { type: contentType });
 }
+function blobFromBytes(input, contentType) {
+    const blobCtor = globalThis.Blob;
+    if (!blobCtor) {
+        throw new Error('Blob constructor is unavailable');
+    }
+    const arrayBuffer = input.buffer.slice(input.byteOffset, input.byteOffset + input.byteLength);
+    return new blobCtor([arrayBuffer], { type: contentType });
+}
 function readScreenshotField(data, key) {
     return optionalString(data[key]);
 }
@@ -156,6 +164,35 @@ async function uploadBase64Resource(input) {
         materialization_mode: 'uploaded_inline',
     };
 }
+async function uploadByteResource(input) {
+    if (!input.artifactUploader?.upload) {
+        throw new Error('artifact uploader is unavailable');
+    }
+    if (input.bytes.byteLength <= 0) {
+        throw new Error('empty screenshot bytes');
+    }
+    const contentType = imageContentType(input.contentType);
+    const uploaded = await input.artifactUploader.upload(blobFromBytes(input.bytes, contentType), screenshotFilename(contentType, input.filename));
+    const artifactId = optionalString(uploaded.artifact_id);
+    if (!artifactId) {
+        throw new Error('artifact upload did not return artifact_id');
+    }
+    const screenshotUrl = optionalString(uploaded.url) ?? input.artifactUploader.url?.(artifactId) ?? null;
+    const resolvedContentType = optionalString(uploaded.content_type) ?? contentType;
+    return {
+        screenshot_ref: artifactId,
+        screenshot_refs: [artifactId],
+        ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
+        screenshot_content_type: resolvedContentType,
+        ...(isJsonRecord(input.captureMeta) ? { capture_meta: input.captureMeta } : {}),
+        ...(optionalString(input.filename) ? { attachment_filenames: [optionalString(input.filename)] } : {}),
+        display_metadata: {
+            screenshotRef: artifactId,
+            ...(screenshotUrl ? { screenshotUrl } : {}),
+        },
+        materialization_mode: 'uploaded_inline',
+    };
+}
 async function materializeVisualResource(resource, options = {}) {
     if (resource.source === 'artifact_ref') {
         return materializedFromArtifactRef({
@@ -173,6 +210,15 @@ async function materializeVisualResource(resource, options = {}) {
             screenshot: resource.base64,
             contentType: resource.contentType,
             filename: resource.filename,
+        });
+    }
+    if (resource.source === 'trusted_temp_screenshot_path') {
+        return uploadByteResource({
+            artifactUploader: options.artifactUploader,
+            bytes: resource.bytes,
+            contentType: resource.contentType,
+            filename: resource.filename,
+            captureMeta: resource.captureMeta,
         });
     }
     if (options.rejectCamelCaseScreenshotAliases) {

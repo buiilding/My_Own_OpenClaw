@@ -5,6 +5,9 @@
 const fsPromises = require('fs/promises');
 const os = require('os');
 const path = require('path');
+const {
+  materializeVisualResource,
+} = require('../../../../packages/windie-sdk-js/cjs/runtime/VisualResourceMaterializer.js');
 
 const SCREENSHOT_TEMP_DIR_NAME = 'desktop-runtime-screenshots';
 const SCREENSHOT_TEMP_FILE_PREFIX = 'desktop-runtime-shot-';
@@ -59,30 +62,43 @@ function resolveScreenshotFilename(screenshotPath, contentType) {
   return 'screenshot.jpg';
 }
 
-async function uploadScreenshotArtifactFromPath({
+async function uploadTrustedScreenshotArtifact({
   screenshotPath,
   backendHttpUrl,
   contentType,
   headers,
+  captureMeta,
 }) {
   const resolvedContentType = isImageContentType(contentType) ? contentType : 'image/jpeg';
   const fileBuffer = await fsPromises.readFile(screenshotPath);
-  const blob = new Blob([fileBuffer], { type: resolvedContentType });
-  const form = new FormData();
-  form.append('file', blob, resolveScreenshotFilename(screenshotPath, resolvedContentType));
+  return materializeVisualResource({
+    source: 'trusted_temp_screenshot_path',
+    bytes: fileBuffer,
+    contentType: resolvedContentType,
+    filename: resolveScreenshotFilename(screenshotPath, resolvedContentType),
+    captureMeta: isRecord(captureMeta) ? captureMeta : null,
+  }, {
+    artifactUploader: {
+      async upload(file, filename) {
+        const form = new FormData();
+        form.append('file', file, filename || resolveScreenshotFilename(screenshotPath, resolvedContentType));
 
-  const response = await fetch(`${backendHttpUrl}/api/artifacts/`, {
-    method: 'POST',
-    headers: isRecord(headers) ? headers : undefined,
-    body: form,
+        const response = await fetch(`${backendHttpUrl}/api/artifacts/`, {
+          method: 'POST',
+          headers: isRecord(headers) ? headers : undefined,
+          body: form,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Upload failed (${response.status}): ${errorText}`);
+        }
+
+        return response.json();
+      },
+      url: artifactId => `${backendHttpUrl}/api/artifacts/${artifactId}`,
+    },
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Upload failed (${response.status}): ${errorText}`);
-  }
-
-  return response.json();
 }
 
 async function readScreenshotInlinePayload(screenshotPath) {
@@ -167,28 +183,28 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
     const artifactUploadHeaders = getArtifactUploadHeaders
       ? await getArtifactUploadHeaders()
       : undefined;
-    const uploaded = await uploadScreenshotArtifactFromPath({
+    const materialized = await uploadTrustedScreenshotArtifact({
       screenshotPath,
       backendHttpUrl,
       contentType: resolveScreenshotContentType(data),
       headers: artifactUploadHeaders,
+      captureMeta: data.capture_meta,
     });
-    const artifactId = (
-      uploaded
-      && typeof uploaded === 'object'
-      && typeof uploaded.artifact_id === 'string'
-      && uploaded.artifact_id.trim()
-    ) ? uploaded.artifact_id.trim() : null;
-    const artifactUrl = (
-      uploaded
-      && typeof uploaded === 'object'
-      && typeof uploaded.url === 'string'
-      && uploaded.url.trim()
-    ) ? uploaded.url.trim() : null;
+    const artifactId = typeof materialized?.screenshot_ref === 'string'
+      && materialized.screenshot_ref.trim()
+      ? materialized.screenshot_ref.trim()
+      : null;
+    const artifactUrl = typeof materialized?.screenshot_url === 'string'
+      && materialized.screenshot_url.trim()
+      ? materialized.screenshot_url.trim()
+      : null;
 
     if (artifactId) {
       data.screenshot_ref = artifactId;
       data.screenshot_url = artifactUrl || `${backendHttpUrl}/api/artifacts/${artifactId}`;
+      if (typeof materialized.screenshot_content_type === 'string' && materialized.screenshot_content_type.trim()) {
+        data.screenshot_content_type = materialized.screenshot_content_type.trim();
+      }
     } else {
       data.screenshot = await readScreenshotInlinePayload(screenshotPath);
     }

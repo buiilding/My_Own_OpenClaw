@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
   attachments, query screenshots, and tool screenshots; SDK query resolution
   now requires Electron main to materialize raw screenshot temp paths before
   backend send. No migration required.
+- main/screenshots: route trusted screenshot temp-file bytes through the shared
+  SDK visual-resource materializer after Electron main validates the path, while
+  keeping temp-file cleanup and inline fallback in main. No migration required.
 - main/windows: pass app icon, renderer log prefix, tray tooltip, wakeword,
   runtime path, bundled-runtime, and local-runtime copies into generic window
   runtimes as narrow values instead of forwarding the full WindieOS host skin.

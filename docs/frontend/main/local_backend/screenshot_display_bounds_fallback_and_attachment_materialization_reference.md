@@ -26,7 +26,7 @@ requests mapped by Electron main, Electron main owns two contracts before
 returning to renderer:
 
 1. resolve fallback `display_bounds` for monitor-targeted capture
-2. materialize sidecar `screenshot_path` into durable attachment fields (`screenshot_ref`/`screenshot_url`) or inline fallback (`screenshot`)
+2. validate and read sidecar `screenshot_path`, then materialize it through the SDK/main visual-resource helper into durable attachment fields (`screenshot_ref`/`screenshot_url`) or inline fallback (`screenshot`)
 
 This behavior is local-runtime bridge specific; non-screenshot tools do not run these paths. If a non-screenshot tool returns `screenshot_path`, Electron main strips that local path from the returned payload without reading or deleting it.
 
@@ -79,9 +79,13 @@ Paths that fail this ownership check are rejected before upload, inline fallback
 
 ### Upload path
 
-`uploadScreenshotArtifactFromPath(...)`:
+`uploadTrustedScreenshotArtifact(...)` keeps filesystem trust in Electron main
+and delegates upload result shaping to the shared SDK/main
+`VisualResourceMaterializer`:
 
 - reads file bytes from `screenshot_path`
+- passes only trusted bytes, content type, filename, and capture metadata to
+  `materializeVisualResource({ source: "trusted_temp_screenshot_path", ... })`
 - constructs multipart form upload (`file`) to `${backendHttpUrl}/api/artifacts/`
 - content type resolution precedence:
   1. `screenshot_content_type` (image/*)
@@ -96,6 +100,8 @@ If upload response contains `artifact_id`:
 
 - set `data.screenshot_ref = artifact_id`
 - set `data.screenshot_url` from response `url` or fallback `${backendHttpUrl}/api/artifacts/${artifact_id}`
+- preserve normalized `data.screenshot_content_type` when the materializer
+  resolves one
 
 If upload succeeds but response lacks `artifact_id`, bridge falls back to inline base64 `data.screenshot`.
 

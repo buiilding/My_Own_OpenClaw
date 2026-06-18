@@ -5,8 +5,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeBackendEventToConversationEvent = normalizeBackendEventToConversationEvent;
 const events_js_1 = require("../conversation/events.js");
-const TraceRecorder_js_1 = require("../runtime/TraceRecorder.js");
 const debugEnv_js_1 = require("../runtime/debugEnv.js");
+const TraceRecorder_js_1 = require("../runtime/TraceRecorder.js");
 const toolCorrelationIds_js_1 = require("../tools/toolCorrelationIds.js");
 function payloadOf(event) {
     return (event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload))

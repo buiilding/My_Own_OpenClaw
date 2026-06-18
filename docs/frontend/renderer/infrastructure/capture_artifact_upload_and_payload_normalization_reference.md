@@ -95,14 +95,15 @@ Renderer send code does not upload screenshot or attachment artifacts before
 dispatching a turn. It submits typed SDK resources; SDK/main owns resource
 resolution, screenshot capture, artifact materialization, and backend-bound
 artifact refs. The SDK uses the private `VisualResourceMaterializer` helper for
-user image attachments, query screenshot data, and tool screenshot data before
-backend payload assembly.
+user image attachments, query screenshot data, tool screenshot data, and trusted
+main-process screenshot bytes before backend payload assembly.
 
 Electron main remains the only layer that trusts local screenshot temp paths.
-The SDK resource resolver accepts artifact refs or inline screenshot data from
-the local-runtime bridge; raw `screenshot_path` values are treated as
-unmaterialized local temp paths and are not read, uploaded, deleted, or relayed
-by SDK query resolution.
+It validates ownership, reads the file, deletes the temp file, and passes
+trusted bytes to the shared materializer. SDK query resolution accepts artifact
+refs or inline screenshot data from the local-runtime bridge; raw
+`screenshot_path` values are treated as unmaterialized local temp paths and are
+not read, uploaded, deleted, or relayed by SDK query resolution.
 
 `setRuntimeEndpointHttpUrl(...)`:
 

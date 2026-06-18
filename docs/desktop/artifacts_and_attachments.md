@@ -34,6 +34,8 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 - Preserve screenshot context across edit/resend and retry flows.
 - Materialize user images, query screenshots, and tool screenshots through the
   SDK/main visual-resource materializer before backend payload assembly.
+- Route trusted Electron-main screenshot temp files through the same
+  materializer after main validates and reads the file bytes.
 - Keep raw local screenshot temp-path validation and cleanup in Electron main;
   SDK query resolution does not trust or read `screenshot_path` values directly.
 - Renderer display rows treat `screenshot` as inline image data only; remote
