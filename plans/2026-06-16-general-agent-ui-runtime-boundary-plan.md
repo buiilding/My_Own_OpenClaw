@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 daemon-owned sidecar service lifecycle
+
+- Finding: `local_backend.py` still carried a standalone stdin/stdout run loop,
+  signal handler, and shared `core/runtime_shutdown.py` helper even though the
+  active SDK/Electron local-runtime path starts `sidecar_daemon.py` and routes
+  JSON-RPC through the daemon `/rpc` surface.
+- Change: removed the retired standalone run loop, shutdown helper module, and
+  shutdown-helper tests so `LocalRuntimeService` remains an in-process service
+  owned by `sidecar_daemon.py`; updated sidecar docs and inventory pages to
+  route lifecycle/shutdown validation through daemon tests.
+- Validation: focused sidecar pytest coverage for local backend handlers,
+  daemon lifecycle, JSON-RPC protocol, and stdout framing; Python compile check;
+  docs listing; scoped diff check; and stale `runtime_shutdown` reference scan.
+- Compatibility: no migration required. Electron and SDK launch paths already
+  use the daemon, and this does not change tool schemas, RPC method payloads,
+  credentials, permissions, storage, or persisted data.
+
 ### 2026-06-18 Python-only local runtime launch targets
 
 - Finding: Electron main still accepted stale packaged `sidecar-bin`,

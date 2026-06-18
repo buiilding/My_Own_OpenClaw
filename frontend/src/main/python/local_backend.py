@@ -3,8 +3,7 @@
 Python sidecar runtime service.
 
 Handles tool execution, system state collection, memory operations,
-and wake-word detection. Communicates with Electron main process
-via JSON-RPC 2.0 protocol over stdin/stdout.
+and wake-word detection for the sidecar daemon.
 """
 
 import asyncio
@@ -36,11 +35,6 @@ from core.feature_pack_installer import (
 )
 from core.env_flags import env_flag_enabled
 from core.executors import configure_event_loop_default_executor, shutdown_all_executors
-from core.runtime_shutdown import (
-    handle_shutdown_signal,
-    register_shutdown_signal_handlers,
-    request_stdin_shutdown,
-)
 from core.platform.macos_automation_permission import (
     determine_system_events_automation_permission,
 )
@@ -106,7 +100,6 @@ logging.basicConfig(
     stream=sys.stderr,  # Log to stderr to avoid interfering with stdout protocol
 )
 logger = logging.getLogger(__name__)
-_active_runtime_service: Optional["LocalRuntimeService"] = None
 
 
 class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
@@ -707,42 +700,6 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
             logger.error(f"Failed to get system state: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    async def run(self) -> None:
-        """Run the main event loop."""
-        self.running = True
-        logger.info("Starting Python sidecar runtime main loop...")
-
-        try:
-            while self.running:
-                # Read JSON-RPC message from stdin (one line per message)
-                try:
-                    line = await asyncio.to_thread(sys.stdin.readline)
-                except (OSError, ValueError):
-                    if self._shutdown_requested or not self.running:
-                        break
-                    raise
-
-                if not line:
-                    # EOF - exit
-                    break
-
-                # Process the line
-                response = await self.protocol.process_line(line)
-
-                if response:
-                    self.protocol.send_response(response)
-
-        except KeyboardInterrupt:
-            logger.info("Received keyboard interrupt")
-        except Exception as e:
-            logger.error(f"Error in main loop: {e}", exc_info=True)
-        finally:
-            await self.shutdown()
-
-    def request_shutdown(self, signum: Optional[int] = None) -> None:
-        """Request graceful shutdown, optionally from a signal handler."""
-        request_stdin_shutdown(self, logger, signum)
-
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
         logger.info("Shutting down Python sidecar runtime...")
@@ -767,41 +724,3 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
         shutdown_all_executors(wait=True)
 
         logger.info("Python sidecar runtime shutdown complete")
-
-
-def signal_handler(signum, frame):
-    """Handle system signals for graceful shutdown."""
-    if handle_shutdown_signal(signum, _active_runtime_service, logger):
-        return
-    raise KeyboardInterrupt
-
-
-async def main():
-    """Main entry point."""
-    global _active_runtime_service
-    # Set up signal handlers
-    register_shutdown_signal_handlers(signal_handler)
-
-    # Create and run the service
-    backend = LocalRuntimeService()
-    _active_runtime_service = backend
-
-    try:
-        await backend.initialize()
-        await backend.run()
-    except Exception as e:
-        logger.error(f"Service failed: {e}", exc_info=True)
-        sys.exit(1)
-    finally:
-        _active_runtime_service = None
-
-
-if __name__ == "__main__":
-    # Run the async main function
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("Service terminated by user")
-    except Exception as e:
-        logger.error(f"Service crashed: {e}", exc_info=True)
-        sys.exit(1)

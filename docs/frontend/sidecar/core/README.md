@@ -1,8 +1,8 @@
 ---
-summary: "Frontend sidecar core docs sub-hub for JSON-RPC protocol/error semantics, graceful stdin shutdown handlers, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle."
+summary: "Frontend sidecar core docs sub-hub for JSON-RPC protocol/error semantics, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle."
 read_when:
   - When changing `frontend/src/main/python/core/*` modules.
-  - When debugging sidecar protocol parse/dispatch failures, shutdown hangs, or remote semantic client connectivity.
+  - When debugging sidecar protocol parse/dispatch failures, stdout framing, or remote semantic client connectivity.
 title: "Frontend Sidecar Core Docs Hub"
 ---
 
@@ -10,7 +10,7 @@ title: "Frontend Sidecar Core Docs Hub"
 
 ## Deep Pages
 
-- [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
+- [JSON-RPC Protocol and Stdout Framing Reference](json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Backend Config Env-Precedence, Trailing-Slash Normalization, and Default-URL Contract Reference](backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
 - [Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference](remote_api_client_base_session_lifecycle_timeout_and_error_wrapper_contract_reference.md)
 - [Remote Semantic Client Summarize Payload, Timeout, and Error-Surface Contract Reference](remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
@@ -29,12 +29,10 @@ title: "Frontend Sidecar Core Docs Hub"
 - `frontend/src/main/python/windie/_auth.py`
 - `frontend/src/main/python/windie/_unicode_sanitizer.py`
 - `frontend/src/main/python/core/ipc_protocol.py`
-- `frontend/src/main/python/core/runtime_shutdown.py`
 - `frontend/src/main/python/core/stdout_json.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/executors.py`
 - `tests/sidecar/test_json_rpc_protocol.py`
-- `tests/sidecar/test_runtime_shutdown.py`
 - `tests/sidecar/test_stdout_json.py`
 - `tests/sidecar/test_backend_config.py`
 - `tests/sidecar/test_remote_semantic_client.py`

@@ -1,22 +1,20 @@
 ---
-summary: "Deep reference for sidecar stdin/stdout transport internals: JSON-RPC request validation/dispatch, notification suppression semantics, parse/internal error envelopes, stdout JSON-line writes, and signal-driven graceful shutdown flow."
+summary: "Deep reference for sidecar JSON-RPC internals: request validation/dispatch, notification suppression semantics, parse/internal error envelopes, and stdout JSON-line writes."
 read_when:
-  - When changing `core/ipc_protocol.py`, `core/stdout_json.py`, or `core/runtime_shutdown.py`.
-  - When debugging malformed sidecar request handling, missing notification suppression, or process exit hangs during SIGINT/SIGTERM.
-title: "JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference"
+  - When changing `core/ipc_protocol.py` or `core/stdout_json.py`.
+  - When debugging malformed sidecar request handling, missing notification suppression, or stdout framing.
+title: "JSON-RPC Protocol and Stdout Framing Reference"
 ---
 
-# JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference
+# JSON-RPC Protocol and Stdout Framing Reference
 
 ## Canonical Modules
 
 - `frontend/src/main/python/core/ipc_protocol.py`
 - `frontend/src/main/python/core/stdout_json.py`
-- `frontend/src/main/python/core/runtime_shutdown.py`
 - `frontend/src/main/python/local_backend.py`
 - `tests/sidecar/test_json_rpc_protocol.py`
 - `tests/sidecar/test_stdout_json.py`
-- `tests/sidecar/test_runtime_shutdown.py`
 
 ## Request Validation and Dispatch
 
@@ -101,23 +99,6 @@ Contract:
 - one JSON object/array per line
 - encoding/write errors propagate to caller
 
-## Signal-Driven Graceful Shutdown
-
-`register_shutdown_signal_handlers(handler)` installs handlers for `SIGINT` and `SIGTERM`.
-
-`handle_shutdown_signal(signum, active_service, logger)`:
-
-- logs signal
-- forwards to `active_service.request_shutdown(signum)` when service exists
-- returns bool handled status
-
-`request_stdin_shutdown(service, logger, signum?)`:
-
-- idempotently marks `_shutdown_requested = True`
-- sets `service.running = False`
-- closes `sys.stdin` when open/callable to unblock read loops
-- tolerates missing/already-closed/non-callable/exceptional stdin close path
-
 ## Test-Backed Invariants
 
 `tests/sidecar/test_json_rpc_protocol.py` verifies:
@@ -136,19 +117,12 @@ Contract:
 - array payload support
 - encoding/write failures propagate
 
-`tests/sidecar/test_runtime_shutdown.py` verifies:
-
-- stdin-close shutdown path marks service stop flags
-- idempotent repeated shutdown
-- signal registration for SIGINT/SIGTERM
-- fallback behavior for absent/closed/non-callable/failing stdin close
-
 ## Drift Hotspots
 
 1. changing notification handling to emit responses can violate JSON-RPC notification contract and confuse main-process pending maps.
 2. bypassing signature binding can defer param-shape failures into handler internals and reduce deterministic error envelopes.
 3. removing newline framing or flush in stdout writer can deadlock line-oriented bridge readers.
-4. failing to close stdin on shutdown can leave sidecar stuck in blocking read loops.
+4. reintroducing a standalone stdin loop for `local_backend.py` can create a second `LocalRuntimeService` owner outside the daemon.
 
 ## Related Pages
 

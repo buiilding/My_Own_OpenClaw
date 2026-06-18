@@ -347,7 +347,7 @@ Functionality:
 
 Primary files:
 
-- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,runtime_shutdown,stdout_json,thread_pool,remote_api_client_base,remote_semantic_client}.py`
+- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,stdout_json,thread_pool,remote_api_client_base,remote_semantic_client}.py`
 - `frontend/src/main/python/core/platform/*`
 
 Functionality:

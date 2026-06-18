@@ -128,7 +128,7 @@ Service entrypoints:
 
 Core infrastructure:
 
-- `frontend/src/main/python/core/{ipc_protocol,backend_config,runtime_shutdown,stdout_json,thread_pool,system_state,system_metrics,remote_semantic_client}.py`
+- `frontend/src/main/python/core/{ipc_protocol,backend_config,stdout_json,thread_pool,system_state,system_metrics,remote_semantic_client}.py`
 - Includes additional backend HTTP client module: `remote_api_client_base.py`
 - Platform adapters: `frontend/src/main/python/core/platform/{base,windows,macos,linux}.py`
 

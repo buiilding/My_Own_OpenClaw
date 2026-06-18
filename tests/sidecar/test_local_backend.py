@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import signal
 from pathlib import Path
 
 import pytest
@@ -630,9 +629,12 @@ def test_find_available_browser_binary_prefers_system_browser_over_playwright_ca
     playwright_browser.parent.mkdir(parents=True, exist_ok=True)
     playwright_browser.write_text("")
 
+    def path_key(value):
+        return str(value).replace("\\", "/")
+
     existing_paths = {
         "/usr/bin/google-chrome",
-        str(playwright_browser),
+        path_key(playwright_browser),
     }
 
     monkeypatch.setattr(local_backend_module.platform, "system", lambda: "Linux")
@@ -649,15 +651,18 @@ def test_find_available_browser_binary_prefers_system_browser_over_playwright_ca
     monkeypatch.setattr(
         local_backend_module.Path,
         "exists",
-        lambda self: str(self) in existing_paths,
+        lambda self: path_key(self) in existing_paths,
     )
     monkeypatch.setattr(
         local_backend_module.Path,
         "is_file",
-        lambda self: str(self) in existing_paths,
+        lambda self: path_key(self) in existing_paths,
     )
 
-    assert backend._find_available_browser_binary() == "/usr/bin/google-chrome"
+    assert (
+        path_key(backend._find_available_browser_binary())
+        == "/usr/bin/google-chrome"
+    )
 
 
 @pytest.mark.asyncio
@@ -1583,41 +1588,3 @@ async def test_handle_store_memory_by_embedding_logs_surrogate_field_paths(caplo
 
     assert result["success"] is True
     assert "store_memory_by_embedding.content" in caplog.text
-
-
-def test_signal_handler_requests_shutdown(monkeypatch):
-    backend = LocalRuntimeService()
-    called = []
-
-    def fake_request_shutdown(signum):
-        called.append(signum)
-
-    monkeypatch.setattr(backend, "request_shutdown", fake_request_shutdown)
-    monkeypatch.setattr(local_backend_module, "_active_runtime_service", backend)
-
-    local_backend_module.signal_handler(signal.SIGTERM, None)
-
-    assert called == [signal.SIGTERM]
-
-
-def test_request_shutdown_marks_backend_and_closes_stdin(monkeypatch):
-    backend = LocalRuntimeService()
-
-    class DummyStdin:
-        def __init__(self):
-            self.closed = False
-            self.close_calls = 0
-
-        def close(self):
-            self.closed = True
-            self.close_calls += 1
-
-    dummy_stdin = DummyStdin()
-    monkeypatch.setattr(local_backend_module.sys, "stdin", dummy_stdin)
-
-    backend.request_shutdown(signal.SIGTERM)
-
-    assert backend.running is False
-    assert backend._shutdown_requested is True
-    assert dummy_stdin.closed is True
-    assert dummy_stdin.close_calls == 1

@@ -2,7 +2,7 @@
 summary: "Sidecar service protocol docs sub-hub for wakeword-service length-prefixed binary result framing."
 read_when:
   - When changing stdin/stdout framing contracts between Electron main-process bridges and sidecar service scripts.
-  - When debugging parse mismatches, truncated frames, or shutdown behavior in service subprocess protocols.
+  - When debugging parse mismatches or truncated frames in service subprocess protocols.
 title: "Sidecar Service Protocol Docs Hub"
 ---
 
@@ -22,4 +22,3 @@ title: "Sidecar Service Protocol Docs Hub"
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/python/core/stdout_json.py`
-- `frontend/src/main/python/core/runtime_shutdown.py`
