@@ -1069,8 +1069,8 @@ Send a user query with optional screenshot.
   "text": "User query text",
   "conversation_ref": "conv_123",
   "content": "<episodic_memory>...</episodic_memory><semantic_memory>...</semantic_memory><user_query>...</user_query>", // Optional, built by Electron main process
-  "screenshot": "base64-encoded-screenshot", // Optional (legacy)
-  "screenshot_ref": "uuid.jpg", // Preferred
+  "screenshot_ref": "uuid.jpg", // Optional artifact id
+  "screenshot_refs": ["uuid.jpg"], // Optional ordered artifact ids
   "system_state_internal": { "screen_resolution": "1920x1080" } // Optional backend-only runtime state
 }
 ```
@@ -1312,7 +1312,7 @@ Send tool execution result from frontend.
   "data": {
     "output": "Preformatted tool output text",
     "screenshot_ref": "uuid.jpg", // Optional, computer-use tools only
-    "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use tools only
+    "screenshot": "base64-encoded-screenshot", // Optional inline payload, computer-use tools only
     "capture_meta": { "frame_id": "frame-1" },
     "system_state": { "active_window": "...", "mouse_position": "..." },
     "system_state_internal": { "active_window": "...", "mouse_position": "...", "screen_resolution": "..." } // Optional backend-only runtime state
@@ -1363,7 +1363,7 @@ Result of an atomic tool bundle executed on the frontend.
   "bundle_id": "bundle-123",
   "status": "success", // success | partial_failure | failure
   "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg", // Optional, computer-use bundles only
-  "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use bundles only
+  "screenshot": "base64-encoded-screenshot", // Optional inline payload, computer-use bundles only
   "capture_meta": { "frame_id": "frame-1" },
   "system_state": { "active_window": "...", "mouse_position": "..." },
   "step_results": [

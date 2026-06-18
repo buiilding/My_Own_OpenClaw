@@ -108,7 +108,6 @@ class ManagedAgentSession {
             conversation_ref: payload.conversationRef,
             agent_definition: payload.agentDefinition ?? payload.rawPayload?.agent_definition,
             content: payload.content ?? undefined,
-            screenshot: payload.screenshot ?? undefined,
             screenshot_ref: payload.screenshotRef ?? undefined,
             screenshot_refs: payload.screenshotRefs ?? undefined,
             system_state_internal: payload.systemStateInternal ?? undefined,

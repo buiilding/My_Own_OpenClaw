@@ -59,7 +59,6 @@ type PreparedDesktopChatTurn = {
   metadata: Record<string, unknown> | null;
   model: AgentModelSelection | null;
   resources: TurnInputResource[];
-  screenshot: string | null;
   screenshotRef: string | null;
   screenshotRefs: string[] | null;
   screenshotUrl: string | null;
@@ -302,7 +301,6 @@ export async function prepareDesktopChatSend({
     metadata,
     model: null,
     resources,
-    screenshot: null,
     screenshotRef: null,
     screenshotRefs: null,
     screenshotUrl: null,
@@ -329,7 +327,6 @@ export async function dispatchPreparedDesktopChatTurn(
     screenshotUrl: preparedTurn.screenshotUrl,
     screenshotRefs: preparedTurn.screenshotRefs,
     attachmentFilenames: preparedTurn.attachmentFilenames,
-    screenshot: preparedTurn.screenshot,
     workspacePath: preparedTurn.workspacePath,
     resources: preparedTurn.resources,
     metadata: preparedTurn.metadata,

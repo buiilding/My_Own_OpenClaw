@@ -212,7 +212,6 @@ class AgentSession {
             conversation_ref: payload.conversationRef,
             agent_definition: payload.agentDefinition ?? rawPayload.agent_definition,
             content: payload.content ?? undefined,
-            screenshot: payload.screenshot ?? undefined,
             screenshot_ref: payload.screenshotRef ?? undefined,
             screenshot_refs: payload.screenshotRefs ?? undefined,
             system_state_internal: payload.systemStateInternal ?? undefined,
@@ -291,7 +290,6 @@ function createAgentBackendTransport(session, conversationRef, agentDefinition) 
             rawPayload: payload,
             turnRef: options.messageId ?? null,
             content: typeof payload.content === 'string' ? payload.content : null,
-            screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
             screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
             screenshotRefs: Array.isArray(payload.screenshot_refs)
                 ? payload.screenshot_refs.filter((value) => typeof value === 'string')

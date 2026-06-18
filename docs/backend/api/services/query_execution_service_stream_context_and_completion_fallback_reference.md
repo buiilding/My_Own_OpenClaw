@@ -37,7 +37,7 @@ Service responsibilities:
 - validate query text
 - get/create session
 - seed runtime system state
-- resolve query ingress payload (`image_data`, `capture_meta`, `message_content`, `conversation_ref`)
+- resolve query ingress payload (`image_refs`, `capture_meta`, `message_content`, `conversation_ref`)
 - run agent stream through pipeline
 - synthesize fallback completion when stream is incomplete/silent
 - coordinate TTS session drain/flush at turn end
@@ -48,23 +48,21 @@ Service responsibilities:
 - `text` -> validated by `validate_query_text`
 - `conversation_ref` -> injected into immutable stream context
 - `content` -> forwarded as `message_content` to `agent_instance.process_query(...)`
-- `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
+- `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
 - `capture_meta` -> forwarded to `agent_instance.process_query(...)`
 - `system_state_internal` -> backend-only runtime state seed
 
 ## Screenshot Resolution Semantics
 
-`query_execution_inputs.resolve_query_execution_inputs(...)` uses screenshot input precedence:
+`query_execution_inputs.resolve_query_execution_inputs(...)` uses screenshot ref precedence:
 
-1. if inline `screenshot` exists, return it as `image_data` and skip artifact refs.
-2. else normalize refs from `screenshot_refs[]`; fallback single `screenshot_ref`.
-3. return refs as `image_refs` without loading artifact bytes.
+1. normalize refs from `screenshot_refs[]`; fallback single `screenshot_ref`.
+2. return refs as `image_refs` without loading artifact bytes.
 
 `execute(...)` forwards the split contract:
 
-- inline screenshot -> `image_data` string
 - artifact-backed screenshots -> `image_refs` list
-- none -> both fields `None`
+- none -> `image_refs` is `None`
 
 Prompt construction owns later artifact hydration, image preprocessing, and image-specific size validation.
 
@@ -176,7 +174,6 @@ Within `async with TTSSession(...)`:
 - assistant-full-only path backfills chunk before completion
 - extractor helper precedence and payload/top-level fallback behavior
 - screenshot-ref and screenshot-refs[] load success paths
-- inline screenshot precedence over artifact refs
 - missing artifact refs do not abort query execution
 - `system_state_internal` application into agent runtime state
 - cancelled query path logs active-task cancellation and pending tool-call reconciliation when history returns reconciled IDs

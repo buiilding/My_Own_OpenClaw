@@ -245,7 +245,6 @@ Renderer stream invariants:
 | `screenshot_ref` | Renderer screenshot/artifact pipeline | Main local echo, backend artifact lookup | Preferred image transport for query screenshots. |
 | `screenshot_refs` | Renderer screenshot/artifact pipeline | Backend multi-image loading | Null when empty; normalize before send. |
 | `screenshot_url` | Renderer/main local echo | Renderer display only | Main may derive URLs for local synthetic events; do not rely on it as backend data. |
-| `screenshot` | Renderer fallback | Backend query schema fallback | Use only when artifact upload is unavailable or inline fallback is intended. |
 | `capture_meta` | Renderer screenshot pipeline | Backend query execution | Keep as structured metadata; tests should cover omitted and populated cases. |
 | `attachment_context` | Renderer readable-file helper | Main prompt enrichment | Prompt-only; stripped before backend send as a top-level field. |
 | `attachment_filenames` | Renderer compose | Local synthetic event/display metadata | Normalized and echoed locally; not model-facing context by itself. |
@@ -259,7 +258,7 @@ Renderer stream invariants:
 | --- | --- | --- |
 | User row appears but no backend response | Confirm `DesktopLiveTurnRuntimeClient.sendQuery` fired, `windie:invoke` command `conversation.send` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `desktopLiveTurnRuntimeClient.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
 | First query uses old model/settings | Check `ensureInitialSettingsSync()`, pending ACK map, `settings-updated` event id, and timeout logs. | `ipc_settings_sync.cjs`, app config runtime sync, backend settings handler |
-| Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, inline screenshot fallback, and backend artifact lookup. | query screenshot pipeline, `DesktopLiveTurnRuntimeClient.sendQuery`, backend `QueryExecutionService` |
+| Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, and backend artifact lookup. | query screenshot pipeline, `DesktopLiveTurnRuntimeClient.sendQuery`, backend `QueryExecutionService` |
 | File attachment is visible but ignored by model | Check readable file context generation, SDK enrichment, and `<attached_file_context>` insertion. | renderer file helper, `ipc_query_runtime.cjs`, `ContextEnrichmentPipeline.ts` |
 | Response streams into old dashboard conversation | Check `conversation_ref` creation, transcript-session sync, event `conversation_ref`, and `turn_ref` mapping. | renderer session runtime, `ipc_transcript_session_sync.cjs`, chat stream conversation gate |
 | Minimal pill stuck awaiting | Check SDK `user_message`, first stream chunk, terminal/error event, overlay phase transitions, and disconnect watchdog. | overlay phase state, stream phase state, `useChatLoopUiState` |

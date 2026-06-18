@@ -9,7 +9,6 @@ const BACKEND_PAYLOAD_KEYS_BY_TYPE: Record<string, readonly string[]> = Object.f
     'text',
     'conversation_ref',
     'content',
-    'screenshot',
     'screenshot_ref',
     'screenshot_refs',
     'capture_meta',

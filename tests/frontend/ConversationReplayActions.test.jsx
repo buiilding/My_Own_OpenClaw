@@ -165,7 +165,7 @@ describe('useConversationReplayActions', () => {
     expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
   });
 
-  test('retry replay preserves inline screenshots in transcript rewrite and query send', async () => {
+  test('retry replay drops inline screenshots from query payloads', async () => {
     const inlineScreenshot = 'A'.repeat(256);
     const messages = [
       {
@@ -196,14 +196,10 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      payload: {
-        screenshot: inlineScreenshot,
-      },
+      payload: {},
     }));
     expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
-    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
-      screenshot: inlineScreenshot,
-    }));
+    expect(mockSendQuery.mock.calls[0][0]).not.toHaveProperty('screenshot');
   });
 
   test('edit replay sends the selected user message id', async () => {

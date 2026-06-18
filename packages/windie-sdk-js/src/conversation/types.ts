@@ -476,7 +476,6 @@ export type TurnResourceResolution = {
   kind: TurnInputResourceKind;
   attachmentContext?: string | null;
   attachmentFilenames?: string[] | null;
-  screenshot?: string | null;
   screenshotRef?: string | null;
   screenshotUrl?: string | null;
   screenshotRefs?: string[] | null;

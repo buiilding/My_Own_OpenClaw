@@ -43,7 +43,6 @@ from backend.src.core.events.streaming_events import (
 def _build_message(
     *,
     system_state_internal=None,
-    screenshot=None,
     screenshot_ref=None,
     screenshot_refs=None,
 ):
@@ -55,7 +54,6 @@ def _build_message(
             "text": "hello",
             "conversation_ref": "conv-1",
             "system_state_internal": system_state_internal,
-            "screenshot": screenshot,
             "screenshot_ref": screenshot_ref,
             "screenshot_refs": screenshot_refs,
         },
@@ -409,24 +407,6 @@ def test_resolve_screenshots_keeps_successful_refs_when_one_load_fails():
         "resolved:ok-ref-2",
     ]
     assert calls == ["ok-ref", "bad-ref", "ok-ref-2"]
-
-
-def test_resolve_screenshots_returns_trimmed_inline_without_store():
-    class _ArtifactStore:
-        @classmethod
-        def from_config(cls, _config):
-            raise AssertionError("artifact store should not be initialized")
-
-    message = _build_message(
-        screenshot="  inline-b64  ",
-        screenshot_ref="artifact-ref",
-    )
-
-    assert resolve_screenshots(
-        message,
-        artifact_store_cls=_ArtifactStore,
-        session_manager_config=SimpleNamespace(),
-    ) == ["inline-b64"]
 
 
 def test_resolve_screenshot_returns_none_when_artifact_load_fails():

@@ -58,17 +58,15 @@ Fetch path:
 
 ## Query Screenshot Ingress
 
-`query_execution_runtime.resolve_screenshots(...)` resolution precedence:
+`query_execution_runtime.resolve_screenshots(...)` resolution policy:
 
-1. inline `payload.screenshot`
-2. `payload.screenshot_refs[]` via artifact store base64 load
-3. fallback `payload.screenshot_ref` when no usable multi-ref entries exist
-4. empty list when missing/unresolvable
+1. `payload.screenshot_refs[]` via artifact store base64 load
+2. fallback `payload.screenshot_ref` when no usable multi-ref entries exist
+3. empty list when missing/unresolvable
 
 On query execution, screenshot data is split into the current process-query
 contract:
 
-- inline screenshot data is passed as `image_data`
 - artifact-backed screenshot refs are passed as `image_refs`
 
 In `AgentExecutor.process_query(...)`:

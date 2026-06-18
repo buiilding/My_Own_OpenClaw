@@ -50,7 +50,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 
 `query_execution_inputs.py` owns query payload shaping for agent ingress:
 
-- screenshot input normalization (`image_data` for inline screenshots, `image_refs` for artifact-backed screenshots)
+- screenshot ref normalization (`image_refs` for artifact-backed screenshots)
 - screenshot/capture metadata and payload field resolution for `process_query(...)`
 - stable extraction of `message_content` and `conversation_ref` from query payload
 
@@ -117,15 +117,13 @@ Service merges incoming state over any existing state returned by `agent_instanc
 
 When the session exposes `set_active_stream_context(...)`, query execution records the backend-owned `turn_ref` and `conversation_ref` before streaming starts. The matching `clear_active_stream_context(...)` runs in `finally`. Tool-result canonical echo paths use this runtime context so client-submitted tool-result envelopes cannot spoof the destination conversation or turn for backend-generated `tool-output` events.
 
-## Screenshot Resolution Precedence
+## Screenshot Resolution
 
 Screenshot input policy:
 
-1. if inline `screenshot` exists -> use it and skip artifact refs.
-2. else normalize artifact refs from `screenshot_refs[]` or fallback single `screenshot_ref`.
-3. inline screenshots flow as `image_data`.
-4. artifact-backed screenshots flow as `image_refs`.
-5. prompt construction resolves refs into bounded model image payloads.
+1. normalize artifact refs from `screenshot_refs[]` or fallback single `screenshot_ref`.
+2. artifact-backed screenshots flow as `image_refs`.
+3. prompt construction resolves refs into bounded model image payloads.
 
 This keeps query transport and history ref-based while preserving multimodal model access at the backend prompt boundary.
 
@@ -199,7 +197,6 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 - assistant-full-only path backfills chunk before completion
 - active query cancellation is logged and task map is cleared
 - cancelled query path reconciles staged tool-call ids through history cancellation hook
-- screenshot resolution precedence: inline screenshot beats artifact refs
 - single `screenshot_ref` and multi `screenshot_refs[]` loading paths
 - missing screenshot artifacts log warnings and query still continues
 - `capture_meta` is forwarded to `process_query(...)`

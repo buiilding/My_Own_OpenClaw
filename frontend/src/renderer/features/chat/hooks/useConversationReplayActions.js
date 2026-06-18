@@ -71,7 +71,6 @@ function stringArrayPayloadField(payload, ...keys) {
 function buildReplayPayload({
   screenshotRef,
   screenshotUrl,
-  screenshot,
 }) {
   const payload = {};
   if (screenshotRef) {
@@ -79,9 +78,6 @@ function buildReplayPayload({
   }
   if (screenshotUrl) {
     payload.screenshot_url = screenshotUrl;
-  }
-  if (screenshot) {
-    payload.screenshot = screenshot;
   }
   return payload;
 }
@@ -92,7 +88,6 @@ function buildPreparedReplayDesktopChatTurn({
   deferredQueryModelSelection,
   screenshotRef,
   screenshotUrl,
-  screenshot,
   sessionInfo,
   workspacePath,
 }) {
@@ -108,7 +103,6 @@ function buildPreparedReplayDesktopChatTurn({
     metadata: null,
     model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
     resources: [],
-    screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
     screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
     screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,
     screenshotUrl: preparedReplayTurn.payload?.screenshot_url ?? screenshotUrl ?? null,
@@ -134,7 +128,6 @@ async function executeReplayAction({
   queryText,
   screenshotRef,
   screenshotUrl,
-  screenshot,
   setMessages,
   setThinkingStatus,
   setThinkingSourceEventType,
@@ -169,7 +162,7 @@ async function executeReplayAction({
       userId: sessionInfo.userId,
       messageId,
       text: queryText,
-      payload: buildReplayPayload({ screenshotRef, screenshotUrl, screenshot }),
+      payload: buildReplayPayload({ screenshotRef, screenshotUrl }),
       model: deferredQueryModelSelection || null,
       workspacePath: workspaceBinding.workspacePath || null,
     };
@@ -183,7 +176,6 @@ async function executeReplayAction({
         deferredQueryModelSelection,
         screenshotRef,
         screenshotUrl,
-        screenshot,
         sessionInfo,
         workspacePath: workspaceBinding.workspacePath ?? null,
       }));
@@ -252,7 +244,6 @@ export function useConversationReplayActions({
     const replayConversation = [...replayContextMessages, editUserMessage];
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
-      screenshot: editUserMessage.screenshot || null,
       screenshotRef: editUserMessage.screenshotRef || null,
       screenshotUrl: editUserMessage.screenshotUrl || null,
       screenshotContentType: editUserMessage.screenshotContentType || null,
@@ -265,7 +256,6 @@ export function useConversationReplayActions({
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
-      screenshot: replayScreenshot.screenshot,
       setMessages,
       setThinkingStatus,
       setThinkingSourceEventType,
@@ -311,7 +301,6 @@ export function useConversationReplayActions({
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
-      screenshot: retryUserMessage.screenshot || null,
       screenshotRef: retryUserMessage.screenshotRef || null,
       screenshotUrl: retryUserMessage.screenshotUrl || null,
       screenshotContentType: retryUserMessage.screenshotContentType || null,
@@ -324,7 +313,6 @@ export function useConversationReplayActions({
       queryText: retryUserMessage.text,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
-      screenshot: replayScreenshot.screenshot,
       setMessages,
       setThinkingStatus,
       setThinkingSourceEventType,

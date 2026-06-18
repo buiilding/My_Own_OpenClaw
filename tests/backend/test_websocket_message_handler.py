@@ -467,6 +467,15 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
             },
         },
         {
+            "id": "msg_query_inline_screenshot",
+            "type": "query",
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "screenshot": "inline-base64",
+            },
+        },
+        {
             "id": "msg_bundle_screenshot_url",
             "type": "tool-bundle-result",
             "payload": {
@@ -477,9 +486,9 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
             },
         },
     ],
-    ids=["query", "tool-bundle-result"],
+    ids=["query-screenshot-url", "query-inline-screenshot", "tool-bundle-result"],
 )
-async def test_parse_and_validate_message_rejects_screenshot_url_field(payload: dict) -> None:
+async def test_parse_and_validate_message_rejects_removed_screenshot_fields(payload: dict) -> None:
     message, error = await mh.parse_and_validate_message(
         json.dumps(payload),
         user_id="user_1",
@@ -488,7 +497,7 @@ async def test_parse_and_validate_message_rejects_screenshot_url_field(payload: 
 
     assert message is None
     assert error is not None
-    assert "screenshot_url" in error
+    assert "screenshot" in error
 
 
 @pytest.mark.asyncio

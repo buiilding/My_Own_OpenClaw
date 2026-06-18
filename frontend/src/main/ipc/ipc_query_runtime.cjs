@@ -43,7 +43,6 @@ const BACKEND_QUERY_PAYLOAD_KEYS = Object.freeze([
   'text',
   'conversation_ref',
   'content',
-  'screenshot',
   'screenshot_ref',
   'screenshot_refs',
   'capture_meta',

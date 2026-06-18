@@ -251,7 +251,6 @@ export class Agent {
     });
     const payload: SendInput['payload'] = {
       content: queryInput.content ?? undefined,
-      screenshot: queryInput.screenshot ?? undefined,
       screenshot_ref: queryInput.screenshotRef ?? undefined,
       screenshot_refs: queryInput.screenshotRefs ?? undefined,
       attachment_context: queryInput.attachmentContext ?? undefined,

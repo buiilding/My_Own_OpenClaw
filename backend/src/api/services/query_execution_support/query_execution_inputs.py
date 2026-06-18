@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
-    resolve_inline_screenshot,
     resolve_query_runtime_system_state,
     resolve_query_screenshot_metadata,
     resolve_screenshot_refs,
@@ -21,7 +20,6 @@ if TYPE_CHECKING:
 class QueryExecutionInputs:
     """Normalized query inputs forwarded to agent_instance.process_query."""
 
-    image_data: Optional[Union[str, List[str]]]
     image_refs: Optional[List[str]]
     capture_meta: Optional[dict[str, Any]]
     message_content: str
@@ -42,7 +40,6 @@ def resolve_query_execution_inputs(
 ) -> QueryExecutionInputs:
     """Resolve screenshot/capture metadata and stable payload fields for one query."""
     _ = (artifact_store_cls, session_manager_config, user_id)
-    inline_screenshot = resolve_inline_screenshot(message)
     raw_repo_instruction_messages = getattr(
         message.payload,
         "repo_instruction_messages",
@@ -71,7 +68,6 @@ def resolve_query_execution_inputs(
         ]
 
     return QueryExecutionInputs(
-        image_data=inline_screenshot,
         image_refs=resolve_screenshot_refs(message),
         capture_meta=resolve_query_screenshot_metadata(message),
         message_content=message.payload.content,

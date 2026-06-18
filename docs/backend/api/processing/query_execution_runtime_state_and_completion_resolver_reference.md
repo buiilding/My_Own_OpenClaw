@@ -53,17 +53,15 @@ This state is backend-runtime-only context for tool preparation; it is not promp
 `query_execution_runtime.resolve_screenshots(message, artifact_store_cls, session_manager_config)`
 behavior:
 
-- returns `[payload.screenshot]` when inline screenshot is present
-- if no inline screenshot, resolves refs from:
+- resolves refs from:
   - `payload.screenshot_refs[]` (preferred)
   - fallback `payload.screenshot_ref`
 - returns normalized refs without loading artifact bytes
 
 `query_execution_inputs.resolve_query_execution_inputs(...)` then maps screenshot inputs to:
 
-- inline screenshot -> `image_data`
 - artifact-backed screenshot refs -> `image_refs`
-- no screenshot input -> both fields `None`
+- no screenshot input -> `image_refs` is `None`
 
 Prompt construction later resolves refs into bounded model image payloads. Artifact lookup failure remains non-fatal and skips the unresolved image at prompt projection time.
 

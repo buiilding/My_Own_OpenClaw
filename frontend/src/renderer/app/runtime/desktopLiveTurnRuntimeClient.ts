@@ -39,7 +39,6 @@ type SendConversationQueryInput = {
   captureMeta?: CaptureMeta | null;
   attachmentContext?: string | null;
   attachmentFilenames?: string[] | null;
-  screenshot?: string | null;
   workspacePath?: string | null;
   resources?: TurnInputResource[] | null;
   metadata?: Record<string, unknown> | null;
@@ -95,7 +94,6 @@ export const DesktopLiveTurnRuntimeClient = {
       capture_meta: input.captureMeta ?? null,
       attachment_context: optionalString(input.attachmentContext) ?? null,
       attachment_filenames: optionalStringArray(input.attachmentFilenames) ?? null,
-      screenshot: optionalString(input.screenshot) ?? null,
       workspace_path: optionalString(input.workspacePath) ?? null,
       resources: Array.isArray(input.resources) ? input.resources : [],
       metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)

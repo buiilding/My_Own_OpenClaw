@@ -58,10 +58,6 @@ function applyResolution(target, resolution) {
     if (attachmentFilenames) {
         target.attachment_filenames = attachmentFilenames;
     }
-    const screenshot = optionalString(resolution.screenshot);
-    if (screenshot) {
-        target.screenshot = screenshot;
-    }
     const screenshotRef = optionalString(resolution.screenshotRef);
     if (screenshotRef) {
         target.screenshot_ref = screenshotRef;

@@ -51,14 +51,12 @@ Runtime helper ownership:
 
 - screenshot resolution (`resolve_screenshots`)
 - screenshot ref normalization (`resolve_screenshot_refs`)
-- inline screenshot normalization (`resolve_inline_screenshot`)
 - capture metadata normalization (`resolve_query_screenshot_metadata`)
 - backend runtime state extraction/merge (`resolve_query_runtime_system_state`, `apply_query_runtime_system_state`)
 - stream-context assembly (`build_stream_context`)
 
 Notable behavior:
 
-- inline `payload.screenshot` is trimmed and wins over artifact refs
 - `screenshot_refs` entries are trimmed and blank refs are dropped
 - when `screenshot_refs` has no usable refs, fallback `screenshot_ref` is used
 - artifact refs are not hydrated during query input shaping
@@ -67,17 +65,15 @@ Notable behavior:
 
 `resolve_query_execution_inputs(...)` constructs one immutable dataclass payload:
 
-- `image_data`: inline screenshot `str | None`
 - `image_refs`: normalized artifact refs `list[str] | None`
 - `capture_meta`: dict copy or `None`
 - `message_content`: required payload `content` from the SDK/client-prepared
   model-facing query content
 - `conversation_ref`: pass-through from payload conversation ref
 
-Artifact-backed `screenshot_ref`/`screenshot_refs` are stored as refs and resolved later by prompt construction.
-The module does not keep a separate helper that collapses artifact screenshot
-lists back into `image_data`; inline screenshots and artifact refs stay distinct
-at this boundary.
+Artifact-backed `screenshot_ref`/`screenshot_refs` are stored as refs and
+resolved later by prompt construction. The module does not keep a separate
+helper that collapses artifact screenshot lists back into `image_data`.
 
 ## `query_execution_stream_state.py` Contract
 

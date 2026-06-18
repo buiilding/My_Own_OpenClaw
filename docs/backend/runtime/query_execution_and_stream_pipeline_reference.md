@@ -58,8 +58,7 @@ Core sequence inside `execute(...)`:
 4. build immutable stream context (user/session/conversation/turn refs)
 5. open `TTSSession` context
 6. build `StreamPipeline(tts_processor, response_formatter, transport_sender)`
-7. resolve screenshot source:
-- inline `payload.screenshot` -> `image_data`
+7. normalize query screenshot refs:
 - artifact refs via `screenshot_ref` / `screenshot_refs` -> `image_refs`
 - prompt construction later resolves refs into bounded model image payloads
 8. iterate `agent_instance.process_query(...)`

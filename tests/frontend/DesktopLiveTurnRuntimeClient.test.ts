@@ -44,7 +44,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       captureMeta: { source: 'chat' },
       attachmentContext: ' file context ',
       attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
-      screenshot: ' inline-shot ',
       workspacePath: ' /workspace/WindieOS ',
       resources: [{
         kind: 'readable_file',
@@ -67,7 +66,6 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       capture_meta: { source: 'chat' },
       attachment_context: 'file context',
       attachment_filenames: ['notes.txt', 'image.png'],
-      screenshot: 'inline-shot',
       workspace_path: '/workspace/WindieOS',
       resources: [{
         kind: 'readable_file',

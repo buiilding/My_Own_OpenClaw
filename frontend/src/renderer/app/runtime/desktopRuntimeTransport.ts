@@ -79,7 +79,6 @@ async function sendQuery(
       conversation_ref: optionalString(payload.conversation_ref) ?? '',
       query_message_id: messageId,
       screenshot_ref: optionalString(payload.screenshot_ref) ?? null,
-      screenshot: optionalString(payload.screenshot) ?? null,
       screenshot_url: optionalString(payload.screenshot_url) ?? null,
       screenshot_refs: optionalStringArray(payload.screenshot_refs) ?? null,
       capture_meta: payload.capture_meta ?? null,

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: remove inline query screenshot compatibility so query payloads
+  use artifact-backed `screenshot_ref`/`screenshot_refs` only; no migration is
+  included because first-party screenshot capture already uploads artifacts
+  before backend send, and backend validation now rejects query `screenshot`.
 - docs/frontend: align the frontend runtime surface reference with SDK-backed
   query/session relay ownership and Python local-runtime execution wording
   instead of stale backend-transport and sidecar ownership shorthand; no

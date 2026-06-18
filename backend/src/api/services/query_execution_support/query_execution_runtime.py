@@ -20,11 +20,7 @@ def resolve_screenshots(
     session_manager_config: Any,
     user_id: Optional[str] = None,
 ) -> Optional[List[str]]:
-    """Resolve screenshots from inline payload and/or artifact references."""
-    screenshot = message.payload.screenshot
-    normalized_inline_screenshot = (
-        screenshot.strip() if isinstance(screenshot, str) else None
-    )
+    """Resolve screenshots from artifact references."""
     screenshot_ref = message.payload.screenshot_ref
     normalized_single_ref = (
         screenshot_ref.strip() if isinstance(screenshot_ref, str) else None
@@ -34,9 +30,6 @@ def resolve_screenshots(
         if isinstance(message.payload.screenshot_refs, list)
         else None
     )
-
-    if normalized_inline_screenshot:
-        return [normalized_inline_screenshot]
 
     normalized_ref_list = [
         ref.strip()
@@ -73,10 +66,6 @@ def resolve_screenshots(
 
 def resolve_screenshot_refs(message: QueryMessage) -> Optional[List[str]]:
     """Return normalized artifact refs without hydrating image bytes."""
-    screenshot = message.payload.screenshot
-    if isinstance(screenshot, str) and screenshot.strip():
-        return None
-
     screenshot_ref = message.payload.screenshot_ref
     normalized_single_ref = (
         screenshot_ref.strip() if isinstance(screenshot_ref, str) else None
@@ -97,15 +86,6 @@ def resolve_screenshot_refs(message: QueryMessage) -> Optional[List[str]]:
         else ([normalized_single_ref] if normalized_single_ref else [])
     )
     return ref_candidates or None
-
-
-def resolve_inline_screenshot(message: QueryMessage) -> Optional[str]:
-    """Return only direct inline screenshot data from the query payload."""
-    screenshot = message.payload.screenshot
-    normalized_inline_screenshot = (
-        screenshot.strip() if isinstance(screenshot, str) else None
-    )
-    return normalized_inline_screenshot or None
 
 
 def resolve_query_screenshot_metadata(

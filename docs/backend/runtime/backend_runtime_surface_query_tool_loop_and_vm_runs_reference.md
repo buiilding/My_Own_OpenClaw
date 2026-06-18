@@ -55,7 +55,7 @@ This means VM run-control APIs are part of the same canonical backend app regist
 
 Important behavior contracts:
 
-- screenshot inputs are resolved in precedence order: inline screenshot -> `screenshot_refs` -> single `screenshot_ref`
+- screenshot inputs are artifact-backed: `screenshot_refs` wins over single `screenshot_ref`
 - artifact loads are best-effort and downgrade to no-image when refs fail to resolve
 - `system_state_internal` is runtime-only; it is merged onto session state but not injected directly as model-facing query text
 - missing terminal event causes deterministic fallback completion emission (same completion helper path as normal terminal flow)

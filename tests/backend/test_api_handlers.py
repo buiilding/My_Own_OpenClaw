@@ -1274,56 +1274,6 @@ async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_query_handler_prefers_inline_screenshot_over_artifact_ref(monkeypatch):
-    websocket = FakeWebSocket()
-    session_manager = DummySessionManager()
-    session_manager.session = DummyCaptureAgent()
-    session_manager.config = AppConfig()
-    handler = QueryMessageHandler(
-        session_manager, DummyTTSManager(), ResponseFormatter()
-    )
-
-    class DummyPipeline:
-        def __init__(self, *_args, **_kwargs):
-            return None
-
-        async def process(self, *_args, **_kwargs):
-            return None
-
-        async def wait_for_pending_tts(self):
-            return None
-
-    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
-    monkeypatch.setattr(
-        query_handler_module.ArtifactStore,
-        "from_config",
-        classmethod(
-            lambda _cls, _cfg: (_ for _ in ()).throw(
-                RuntimeError("should not be called")
-            )
-        ),
-    )
-
-    message = QueryMessage(
-        id="msg_artifact_ref_3",
-        type="query",
-        user_id="user_1",
-        payload={
-            "text": "inline screenshot should win",
-            "conversation_ref": "conv_test",
-            "content": "<user_query>inline screenshot should win</user_query>",
-            "screenshot": "inline-base64",
-            "screenshot_ref": "unused.png",
-        },
-    )
-
-    await handler.handle(message, websocket, "user_1")
-
-    assert len(session_manager.session.calls) == 1
-    assert session_manager.session.calls[0]["image_data"] == "inline-base64"
-
-
-@pytest.mark.asyncio
 async def test_query_handler_applies_runtime_system_state_internal(monkeypatch):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()

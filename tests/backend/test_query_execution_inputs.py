@@ -8,7 +8,6 @@ from backend.src.api.services.query_execution_support.query_execution_inputs imp
 
 def _build_message(
     *,
-    screenshot=None,
     screenshot_ref=None,
     screenshot_refs=None,
     capture_meta=None,
@@ -25,7 +24,6 @@ def _build_message(
         payload={
             "text": "hello",
             "conversation_ref": conversation_ref,
-            "screenshot": screenshot,
             "screenshot_ref": screenshot_ref,
             "screenshot_refs": screenshot_refs,
             "capture_meta": capture_meta,
@@ -64,7 +62,6 @@ def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fiel
         user_id="user-1",
     )
 
-    assert inputs.image_data is None
     assert inputs.image_refs == ["shot-a", "shot-b"]
     assert inputs.capture_meta == {"display": {"width": 1920}}
     assert inputs.message_content == "<user_query>\nhello\n</user_query>"
@@ -74,27 +71,6 @@ def test_resolve_query_execution_inputs_preserves_artifact_refs_and_payload_fiel
         {"role": "user", "content": "Use repo rules"}
     ]
     assert inputs.runtime_system_state == {"active_window": "Terminal"}
-
-
-def test_resolve_query_execution_inputs_prefers_inline_screenshot():
-    class _ArtifactStore:
-        @classmethod
-        def from_config(cls, _config):
-            raise AssertionError(
-                "artifact store should not be initialized for inline screenshot"
-            )
-
-    message = _build_message(screenshot="inline-b64", screenshot_ref="legacy-ref")
-    inputs = resolve_query_execution_inputs(
-        message,
-        artifact_store_cls=_ArtifactStore,
-        session_manager_config=object(),
-    )
-
-    assert inputs.image_data == "inline-b64"
-    assert inputs.image_refs is None
-    assert inputs.repo_instruction_messages is None
-    assert inputs.runtime_system_state is None
 
 
 def test_resolve_query_execution_inputs_preserves_sdk_prepared_content():
