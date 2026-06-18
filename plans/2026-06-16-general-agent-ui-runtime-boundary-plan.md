@@ -9235,3 +9235,17 @@ Each completed slice should report:
   invocation, feature-pack lookup, PTY behavior, wait timing, browser profile
   persistence, JSON-RPC envelopes, IPC channels, hosted backend URLs,
   credentials, permissions, and provider policy are unchanged.
+
+### 2026-06-18 Python shared browser contract wording boundary
+
+- Finding: the shared Python browser contract facade still described the
+  canonical grouped browser contract as shared by backend and sidecar, even
+  though the executable owner is now the reusable local-runtime boundary.
+- Change: reworded the contract facade docstring to backend/local-runtime
+  ownership and extended the focused browser helper source guard.
+- Validation: focused browser registry source guard, Python compile checks,
+  stale wording scan, and diff checks.
+- Compatibility: no migration required. Browser action names, grouped schema
+  exports, backend/local-runtime parity, Browser Use execution, IPC channels,
+  hosted backend URLs, credentials, permissions, and provider policy are
+  unchanged.

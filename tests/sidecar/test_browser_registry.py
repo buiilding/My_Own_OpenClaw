@@ -18,6 +18,13 @@ SIDECAR_TOOL_HELPER_PATHS = [
     / "src"
     / "main"
     / "python"
+    / "windie_shared"
+    / "browser_contract.py",
+    REPO_ROOT
+    / "frontend"
+    / "src"
+    / "main"
+    / "python"
     / "tools"
     / "browser"
     / "browser_use_engine.py",
@@ -128,7 +135,9 @@ def test_sidecar_tool_helper_copy_uses_local_runtime_terms():
     retired_runtime_label = "Python " + "sidecar runtime"
 
     assert "Python local-runtime tool" in sources
+    assert "shared by backend and local runtime" in sources
     assert retired_runtime_label not in sources
+    assert "shared by backend and " + "sidecar" not in sources
     assert "Windie-owned" not in sources
     assert "DEFAULT_WINDIE_CDP" not in sources
     assert "terminate_windie_chrome" not in sources

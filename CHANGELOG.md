@@ -43,6 +43,8 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/tools: align reusable browser, wait, and shell tool copy with
   local-runtime adapter/operation wording instead of sidecar-specific runtime
   ownership. No migration required.
+- sidecar/browser: describe the shared browser contract as owned by backend and
+  local runtime rather than backend and sidecar. No migration required.
 - renderer/app: move shared conversation-session helper rules from the chat
   feature into `desktopConversationSessionRuntime`, removing the last
   app-runtime import of chat feature internals. No migration required.

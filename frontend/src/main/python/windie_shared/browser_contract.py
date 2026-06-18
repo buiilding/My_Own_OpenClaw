@@ -1,4 +1,4 @@
-"""Canonical grouped browser contract shared by backend and sidecar."""
+"""Canonical grouped browser contract shared by backend and local runtime."""
 
 from windie_shared.browser_contract_catalog import (
     BROWSER_ACTION_CONTRACTS,
