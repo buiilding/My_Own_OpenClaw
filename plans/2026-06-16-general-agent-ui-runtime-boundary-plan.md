@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 SDK backend lifecycle wording split
+
+- Finding: SDK docs still grouped reconnect, endpoint fallback, and idle-close lifecycle as `reconnect/fallback/idle` after close metadata moved to `reconnectScheduled`.
+- Change: split that wording in the SDK hub and AgentClient runtime contract so endpoint fallback remains distinct from reconnect scheduling.
+- Validation: stale bundled-phrase scan and scoped diff check.
+- Compatibility: docs-only; SDK APIs, runtime behavior, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 SDK backend close reconnect metadata
 
 - Finding: the SDK managed backend transport exposed close metadata named `fallbackScheduled`, even though the value described whether the session had already scheduled a reconnect after endpoint advance. That blurred reconnect lifecycle state with endpoint fallback notifications.

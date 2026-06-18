@@ -127,7 +127,7 @@ tool-result return, and store wiring.
 Desktop-style agent clients should create one client with managed backend
 connection settings, call `wakeUp(...)`, then create a conversation runtime from
 the returned agent. The SDK owns websocket normalization,
-reconnect/fallback/idle policy, local tool routing, backend result return,
+reconnect, endpoint fallback, idle policy, local tool routing, backend result return,
 conversation projections, retry/edit/rehydrate helpers, model/settings commands,
 and memory/title helpers. The host renders projections and supplies only
 host-specific policies such as Electron window leases.

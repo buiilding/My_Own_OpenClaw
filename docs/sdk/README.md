@@ -82,7 +82,7 @@ user intent, execute model-requested local tools, return tool results, emit
 display/current-turn projections, and expose control commands for connection
 checks, settings sync, model-list requests, rehydrate, manual compaction,
 wakeword notification, stop, and local runtime status. The SDK runtime owns the
-hosted backend websocket, managed reconnect/fallback/idle lifecycle,
+hosted backend websocket, managed reconnect/endpoint-fallback/idle lifecycle,
 conversation runtime state, normalized projections, and local tool result
 return. It delegates local execution through the SDK local runtime, backed by
 the Python sidecar daemon. Host-specific
