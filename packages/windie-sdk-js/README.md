@@ -1,6 +1,6 @@
 # @windie/sdk
 
-TypeScript SDK boundary for waking Windie agents from external clients.
+TypeScript SDK boundary for waking agents from external clients.
 
 This package is intentionally standalone: install and build it from this
 directory without relying on the Electron app's `frontend/node_modules`.

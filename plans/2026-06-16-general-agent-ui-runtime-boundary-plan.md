@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 TypeScript SDK README agent wording
+
+- Finding: the TypeScript SDK README described the package as waking
+  Windie-specific agents even though the public SDK surface is the generic
+  `AgentClient`/`Agent` API.
+- Change: changed the README summary to generic agents and extended the public
+  SDK README boundary guard for the retired product-specific phrase.
+- Validation: focused modular boundary Jest coverage, stale SDK README phrase
+  scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; package
+  name, exports, endpoint resolution, local-runtime behavior, credentials, and
+  payloads are unchanged.
+
 ### 2026-06-18 simple chat CLI endpoint docs
 
 - Finding: the simple chat CLI README still said the SDK defaults to

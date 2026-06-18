@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: describe the TypeScript SDK README as waking generic agents instead
+  of Windie-specific agent types; no migration is required because this changes
+  docs/tests only.
 - docs/examples: align the simple chat CLI README with explicit SDK backend
   endpoint and `WINDIE_INSTALL_TOKEN` requirements instead of hosted fallback
   and `WINDIE_API_KEY` wording; no migration is required because this changes
