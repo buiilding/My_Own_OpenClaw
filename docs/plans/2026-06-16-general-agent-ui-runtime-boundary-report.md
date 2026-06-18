@@ -709,6 +709,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend websocket events, IPC channels, credentials, permissions, and
   provider policy are unchanged.
 
+### 2026-06-18 Tool Workflow SDK/Main Local-Runtime Wording Slice
+
+- Finding: tool-schema workflow, tool troubleshooting, sidecar-tool workflow,
+  and shared parity test comments still used frontend execution wording for
+  SDK/main/local-runtime dispatch, local validation, bundle execution, and
+  client-local schema ownership.
+- Decision: keep real `frontend/src/...` filesystem paths and compatibility
+  names, but describe runtime ownership with SDK/main/local-runtime terms.
+- Change: reworded local-runtime executable payloads, SDK/main validation and
+  dispatch, renderer browser UI setting, local-runtime execution failure, bundle
+  execution, transport preservation, and parity-test comments.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scan, docs listing, and `git diff --check` passed.
+- Compatibility: no migration required. This is docs/comments only; tool
+  schemas, manifests, backend policy, SDK/main dispatch, sidecar execution,
+  renderer display, permissions, credentials, and storage are unchanged.
+
 ## Remaining Findings
 
 - Renderer product naming is now skin-owned in live renderer source, including chat browser-session copy. Fresh inspection found WindieOS product naming only in `windieDesktopSkin.js` under `frontend/src/renderer`.

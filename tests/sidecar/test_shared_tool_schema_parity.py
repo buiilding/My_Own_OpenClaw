@@ -26,7 +26,7 @@ BackendBrowserControlArgs = load_shared_browser_contract().BrowserControlArgs
 
 
 # Exact parity is only valid for models backed by a shared/generated contract.
-# Frontend-owned local executable schemas may intentionally differ from backend
+# Client-local executable schemas may intentionally differ from backend
 # model-facing defaults; manifest tests cover those local tool surfaces.
 SHARED_CONTRACT_MODELS = {
     "browser": (

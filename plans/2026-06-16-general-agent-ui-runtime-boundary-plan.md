@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 tool workflow SDK/main local-runtime wording boundary
+
+- Finding: tool-schema workflow, troubleshooting, sidecar-tool workflow, and
+  shared parity test comments still used frontend execution wording for
+  SDK/main/local-runtime dispatch and validation paths.
+- Change: reworded those docs/comments to local-runtime executable payload,
+  SDK/main dispatch, renderer UI setting, and client-local schema ownership
+  terminology while preserving real `frontend/src/...` paths.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. This is docs/comments only; tool
+  schemas, manifests, backend policy, SDK/main dispatch, sidecar execution,
+  renderer display, permissions, credentials, and storage are unchanged.
+
 ### 2026-06-18 renderer terminal telemetry raw diagnostic boundary
 
 - Finding: the renderer terminal stream handler still knew about SDK

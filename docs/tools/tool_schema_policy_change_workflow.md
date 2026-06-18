@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS model-visible tool schemas, policy gates, provider projection, local-runtime parity, SDK/local execution, and tool-result contracts."
 read_when:
   - When adding, removing, renaming, hiding, exposing, or changing a model-visible WindieOS tool.
-  - When changing tool argument schemas, descriptions, capability gates, profiles, coordinate methods, provider-native projections, frontend executable payloads, or sidecar registry exposure.
+  - When changing tool argument schemas, descriptions, capability gates, profiles, coordinate methods, provider-native projections, local-runtime executable payloads, or sidecar registry exposure.
   - When debugging a tool that is present in code but missing from the prompt, visible to the model but not executable, rejected before dispatch, or mismatched between backend and sidecar schemas.
 title: "Tool Schema and Policy Change Workflow"
 ---
@@ -11,7 +11,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and Python sidecar local executor implementation.
 
-The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas; the Python sidecar owns the concrete local tool implementations. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas; the Python sidecar owns the concrete local tool implementations. Do not make the desktop client or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
@@ -103,7 +103,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 ## Change an Existing Tool Schema
 
 1. Find the model-facing owner from [Tool Catalog Matrix](tool_catalog_matrix.md).
-2. For client-local tools, edit the frontend/sidecar manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
+2. For client-local tools, edit the client/local-runtime manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
 3. Decide whether the sidecar runtime arguments must match:
    - exact parity local tools: update the client manifest and sidecar schema together
    - grounded tools: update backend preparation so model-facing fields are stripped or resolved before dispatch
@@ -127,7 +127,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
    - provider projection
 2. Update `ToolPolicy` or `agent_capability_policy.py` rather than hiding tools in prompt construction ad hoc.
 3. Update method-level validation if the policy controls allowed coordinate methods.
-4. Keep browser visibility tied to the accepted client/backend tool surface plus browser capability state, not the frontend `browser_automation_enabled` UI setting.
+4. Keep browser visibility tied to the accepted client/backend tool surface plus browser capability state, not the renderer `browser_automation_enabled` UI setting.
 5. Keep web-search exposure tied to native provider support or Brave fallback availability.
 6. Add tests for visible, hidden, disabled, unavailable, and client capability intersection cases.
 7. Update [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md).
@@ -157,7 +157,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm provider projection did not drop it.
 - Confirm prompt metadata/tool-schema transparency events reflect the final filtered set.
 
-### Tool Is Visible but Frontend Cannot Execute It
+### Tool Is Visible but Local Runtime Cannot Execute It
 
 - Confirm `tests/backend/test_remote_tool_contract.py` covers the tool name parity with sidecar exposure.
 - Confirm `frontend/src/main/python/tools/manifest.py` includes the tool if it is local-runtime executed.
@@ -168,7 +168,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ### Tool Args Are Rejected
 
 - For backend-executed tools, confirm backend `args_model` matches the model-facing schema.
-- For local-runtime executed tools, inspect the frontend/local-runtime validation error and the accepted client manifest schema.
+- For local-runtime executed tools, inspect the SDK/local-runtime validation error and the accepted client manifest schema.
 - Confirm method-level policy allows the requested coordinate method.
 - Confirm backend preparation is not stripping grounded-only fields too early.
 
@@ -179,12 +179,12 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm `argument_resolution` matches the actual backend preparation path.
 - Confirm exact-parity sidecar schema matches the accepted client schema where expected.
 - Confirm intentional exceptions are documented in parity tests.
-- Confirm renderer/Electron did not mutate or omit fields during transport.
+- Confirm SDK/main transport did not mutate or omit fields during local-runtime execution.
 
 ### Bundle Execution Is Broken
 
 - Confirm `tool-bundle` event payload preserves each tool call and request id.
-- Confirm renderer bundle runner returns one result per bundled call.
+- Confirm SDK/main bundle execution returns one result per bundled call.
 - Confirm backend `tool-bundle-result` route and result processor handle partial failures and cleanup.
 - Confirm history commit code writes tool outputs with correct tool-call ids.
 
@@ -204,7 +204,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ## Review Checklist
 
-- Tool name is consistent across backend catalog, remote tool class, sidecar exposed set, sidecar registry, renderer tests, docs, and prompt transparency expectations.
+- Tool name is consistent across backend catalog, remote tool class, sidecar exposed set, sidecar registry, SDK/main tests, docs, and prompt transparency expectations.
 - Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
 - Built-in client-local tool names use accepted client schemas as the final
   provider-visible local schema. Backend catalog specs are fallback/default
@@ -212,7 +212,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Backend model-facing args and sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
 - Policy gates are centralized in `ToolPolicy` or agent capability policy, not scattered through prompt construction, provider code, or renderer UI.
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.
-- Request ids, tool-call ids, bundle ids, artifact refs, and screenshot refs survive renderer/Electron/sidecar transport.
+- Request ids, tool-call ids, bundle ids, artifact refs, and screenshot refs survive SDK/main/local-runtime transport.
 - Tool-result history has deterministic success, error, timeout, partial failure, and cleanup behavior.
 - Docs identify whether the tool is backend-only, local-runtime executed, provider-native, exact-parity, or grounded/translated before execution.
 

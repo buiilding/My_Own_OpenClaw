@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: align tool-schema troubleshooting and sidecar-tool workflow
+  wording with SDK/main/local-runtime execution ownership instead of stale
+  frontend execution phrasing.
 - renderer: make terminal stream telemetry consume explicit SDK error and
   token-count fields instead of stripping raw backend diagnostic payload fields
   in chat feature code.

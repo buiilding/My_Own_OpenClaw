@@ -36,7 +36,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | 2. Decide executable payload | `frontend/src/main/python/tools` and sidecar registry docs | The sidecar owns what can actually run locally. |
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a sidecar action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | `ToolResultEnvelope`, backend tool-result handler, sidecar tool result models | Backend history needs consistent success/error output. |
-| 5. Add validation | Backend schema tests, SDK/frontend tool-coordinator tests, sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |
+| 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |
 | 6. Update docs | Tool docs, sidecar docs, code-change routing docs | Agents should know where to modify the next related behavior. |
 
 ## Tool Families
@@ -45,7 +45,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | --- | --- | --- | --- |
 | Computer/mouse/keyboard/screenshot/window | `backend/src/tools/computer`, `backend/src/tools/remote_tools` | `frontend/src/main/python/tools/computer`, platform adapters | `tests/backend/test_computer_use_schema_contract.py`, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
 | Browser | `backend/src/tools/browser` | `frontend/src/main/python/tools/browser` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
-| Filesystem and shell | `backend/src/tools/filesystem`, `backend/src/tools/system` | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and renderer tool-execution tests. |
+| Filesystem and shell | `backend/src/tools/filesystem`, `backend/src/tools/system` | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and SDK/main tool-dispatch tests. |
 | Memory | Backend memory routes and prompt context | `frontend/src/main/python/memory`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/sidecar/test_memory_*.py`, memory route and transcript tests |
 | System state and app/window helpers | `backend/src/tools/system`, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `tests/sidecar/test_system_tools.py`, frontend display/window tests |
 
@@ -75,7 +75,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | --- | --- |
 | Backend schema or policy only | Focused backend schema/policy tests and `bin/windie docs list`. |
 | Sidecar implementation only | Focused sidecar tests for the tool plus shared schema parity if exposed. |
-| SDK/main dispatch/envelope | Focused SDK/frontend tool-coordinator tests and backend result handler tests if envelope changes. |
+| SDK/main dispatch/envelope | Focused SDK/main tool-coordinator tests and backend result handler tests if envelope changes. |
 | Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, sidecar tool tests, and `bin/windie docs list`. |
 | Browser tool change | Browser backend tests, sidecar browser tests, and browser runtime docs update. |
 
