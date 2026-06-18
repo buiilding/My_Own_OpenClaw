@@ -9480,3 +9480,15 @@ Each completed slice should report:
 - Compatibility: no migration required. Renderer behavior, IPC channels, SDK
   command names, settings, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-18 renderer workspace runtime doc dedupe
+
+- Finding: the desktop runtime transport contract described
+  `desktopWorkspaceRuntimeClient.ts` ownership twice in the same boundary
+  section.
+- Change: removed the duplicate workspace-client paragraph and added a focused
+  renderer boundary guard so the ownership text stays single-sourced.
+- Validation: focused renderer app-runtime boundary test and diff checks.
+- Compatibility: no migration required. Renderer behavior, workspace IPC
+  channels, SDK commands, settings, storage, credentials, permissions, hosted
+  backend URLs, and provider policy are unchanged.

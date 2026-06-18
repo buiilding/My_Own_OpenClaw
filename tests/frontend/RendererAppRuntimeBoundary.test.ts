@@ -76,6 +76,7 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('Forwarding/helper facade with current boundary value');
     expect(source).toContain('Removed migration shims');
     expect(source).toContain('Do not delete a helper merely because it forwards');
+    expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
   });
 
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {

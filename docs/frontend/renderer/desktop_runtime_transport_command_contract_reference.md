@@ -192,11 +192,6 @@ thresholding, and local error policy while delegating wakeword audio chunks,
 enable/disable sends, wakeword detected/status subscriptions, and app-level
 wakeword-toggle fan-out to this app runtime client.
 
-`desktopWorkspaceRuntimeClient.ts` owns the renderer subscription to workspace
-access update fan-out. `ChatInterface` keeps active-workspace refresh,
-conversation binding, and workspace-picked new-chat policy while delegating the
-channel subscription to this app runtime client.
-
 The previous renderer helper file `windieCommandInvokeClient.ts` and function
 `invokeWindieCommand(...)` were renamed to
 `agentSdkCommandInvokeClient.ts` and `invokeAgentSdkCommand(...)`. Inside that

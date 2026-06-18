@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
   boundaries, desktop-host adapters, state/rule facades, presentation helpers,
   forwarding helpers, or removed migration shims before future cleanup slices.
   No migration required.
+- docs/renderer: remove the duplicate `DesktopWorkspaceRuntimeClient`
+  ownership paragraph from the desktop runtime transport contract. No migration
+  required.
 - docs/plans: clarify the long-running scope for the simple hackable runtime
   goal around structural clarity, diagnostics, deletion, docs, contract tests,
   and explicit stop conditions for unstated product-judgment changes. No
