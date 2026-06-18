@@ -21,7 +21,7 @@ export default function MessageSourceBadge({ message }) {
   const tokenUsageTag = resolveMessageTokenUsageTag(message);
   const sourceTag = resolveSourceTag(sourceEventType, sourceChannel);
   const badgeText = tokenUsageTag
-    ? `${sourceTag} · ${tokenUsageTag}`
+    ? `${sourceTag} / ${tokenUsageTag}`
     : sourceTag;
 
   return (

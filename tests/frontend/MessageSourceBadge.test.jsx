@@ -32,7 +32,7 @@ describe('MessageSourceBadge', () => {
     );
 
     expect(screen.getByText(
-      'local-user-message API · sdk:conversation-event · tokens~ txt:2 img(est):85 total:87',
+      'user message / sdk:conversation-event / tokens~ txt:2 img(est):85 total:87',
     )).toBeInTheDocument();
   });
 
@@ -50,7 +50,7 @@ describe('MessageSourceBadge', () => {
       />,
     );
 
-    expect(screen.getByText('tool-output API · sdk-local-runtime · tokens~ 1')).toBeInTheDocument();
+    expect(screen.getByText('tool output / sdk-local-runtime / tokens~ 1')).toBeInTheDocument();
   });
 
   test('renders provider-reported token usage when attached to an assistant message', () => {
@@ -75,7 +75,7 @@ describe('MessageSourceBadge', () => {
     );
 
     expect(
-      screen.getByText('streaming-complete API · sdk:conversation-event · tokens(provider) out:5 vis:3 think:2 turn:17'),
+      screen.getByText('assistant completion / sdk:conversation-event / tokens(provider) out:5 vis:3 think:2 turn:17'),
     ).toBeInTheDocument();
   });
 

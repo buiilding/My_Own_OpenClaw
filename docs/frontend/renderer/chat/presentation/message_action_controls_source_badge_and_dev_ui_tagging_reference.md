@@ -101,7 +101,9 @@ Badge label is resolved via `resolveSourceTag(sourceEventType, sourceChannel)`:
 - renderer presentation metadata uses `sdk:conversation-event`,
   `sdk:current-turn`, and `sdk:display-rows` for SDK-derived rows; these are
   dev/source labels, not IPC channel names
-- unknown event types use `<event> API` fallback
+- known event labels use renderer/SDK projection terms such as `assistant
+  stream`, `tool output`, and `user message` instead of backend API wording
+- unknown event types use `<event> event` fallback
 - unknown channels use raw normalized channel fallback
 
 Per-message token telemetry tag:

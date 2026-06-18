@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 renderer source badge SDK wording
+
+- Finding: renderer dev-only source badges labeled SDK conversation/display origins as backend-style `* API` strings and joined badge segments with a non-ASCII divider that showed up poorly in shell/test output.
+- Change: changed known source labels to renderer/SDK projection wording such as `assistant stream`, `tool output`, and `user message`, changed unknown event fallback to `<event> event`, and switched source/token separators to ASCII `/`.
+- Validation: focused `MessageSourceBadge` Jest coverage, stale old-label scan, and scoped diff check.
+- Compatibility: dev UI presentation only; SDK projections, IPC channels, runtime behavior, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 SDK backend lifecycle wording split
 
 - Finding: SDK docs still grouped reconnect, endpoint fallback, and idle-close lifecycle as `reconnect/fallback/idle` after close metadata moved to `reconnectScheduled`.

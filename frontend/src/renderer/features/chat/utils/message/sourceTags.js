@@ -9,22 +9,22 @@ import {
 } from './sourceChannels';
 
 const SOURCE_EVENT_LABELS = {
-  'llm-thought': 'thinking-token API',
-  'streaming-response': 'normal-text API',
-  'streaming-complete': 'streaming-complete API',
-  'context-compaction-started': 'context-compaction-started API',
-  'context-compaction-completed': 'context-compaction-completed API',
-  'context-compaction-failed': 'context-compaction-failed API',
-  'tool-call': 'tool-call API',
-  'tool-output': 'tool-output API',
-  'tool-bundle': 'tool-bundle API',
-  'local-user-message': 'local-user-message API',
-  'system-prompt': 'system-prompt API',
-  'user-message-full': 'user-message-full API',
-  'assistant-message-full': 'assistant-message-full API',
-  'token-count': 'token-count API',
-  'tool-schemas': 'tool-schemas API',
-  error: 'error API',
+  'llm-thought': 'thinking token',
+  'streaming-response': 'assistant stream',
+  'streaming-complete': 'assistant completion',
+  'context-compaction-started': 'compaction started',
+  'context-compaction-completed': 'compaction completed',
+  'context-compaction-failed': 'compaction failed',
+  'tool-call': 'tool call',
+  'tool-output': 'tool output',
+  'tool-bundle': 'tool bundle',
+  'local-user-message': 'user message',
+  'system-prompt': 'system prompt',
+  'user-message-full': 'user prompt',
+  'assistant-message-full': 'assistant message',
+  'token-count': 'token count',
+  'tool-schemas': 'tool schemas',
+  error: 'runtime error',
   'renderer-compose': 'renderer-compose',
   'sdk-tool-result': 'sdk-tool-result',
   transcript: 'transcript',
@@ -48,8 +48,8 @@ export function resolveSourceTag(sourceEventType, sourceChannel) {
   const normalizedChannel = typeof sourceChannel === 'string' && sourceChannel.trim()
     ? sourceChannel.trim()
     : 'unknown';
-  const eventLabel = SOURCE_EVENT_LABELS[normalizedEventType] || `${normalizedEventType} API`;
+  const eventLabel = SOURCE_EVENT_LABELS[normalizedEventType] || `${normalizedEventType} event`;
   const channelLabel = SOURCE_CHANNEL_LABELS[normalizedChannel] || normalizedChannel;
 
-  return `${eventLabel} · ${channelLabel}`;
+  return `${eventLabel} / ${channelLabel}`;
 }

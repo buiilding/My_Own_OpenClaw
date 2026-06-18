@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- Updated renderer dev source badges to use SDK/projection wording and an ASCII separator instead of backend API labels.
 - Clarified SDK managed backend docs so reconnect, endpoint fallback, and idle-close policy are described as distinct lifecycle concerns.
 - Renamed SDK managed backend close metadata from `fallbackScheduled` to `reconnectScheduled`, keeping endpoint fallback reporting on the explicit fallback hooks.
 - sidecar/memory: rename chat-event store helper APIs to generic
