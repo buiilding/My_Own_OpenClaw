@@ -157,7 +157,9 @@ describe('local_runtime_bridge RPC handlers', () => {
 
   test('browser warmup sends a valid connect payload with explanation', async () => {
     const { bridge, stdoutHandler } = initBridge({
-      localRuntimeCopy: mainHostSkin.localRuntime,
+      localRuntimeBridgeCopy: {
+        browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation,
+      },
     });
     markReady();
 

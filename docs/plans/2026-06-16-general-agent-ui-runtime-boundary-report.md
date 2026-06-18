@@ -201,9 +201,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 - Finding: `local_runtime_bridge.cjs` still accepted the full host skin and
   reached into `options.mainHostSkin.localRuntime` for browser warmup copy, so
   generic SDK/local-runtime bridge code knew the host-skin shape.
-- Change: routed bridge copy through generic `localRuntimeCopy`/`copy`, passed
-  `mainHostSkin.localRuntime` from the main-window composition root, and made
-  local-runtime bridge upload tests configure their hosted endpoint explicitly.
+- Change: routed bridge copy through a generic copy object, then the later
+  2026-06-18 copy-narrowing slice reduced that handoff to
+  `localRuntimeBridgeCopy.browserWarmupExplanation`; local-runtime bridge upload
+  tests configure their hosted endpoint explicitly.
 - Validation: focused local-runtime bridge, main-window runtime, and host-skin
   boundary Jest coverage, CommonJS syntax checks, docs listing, targeted source
   scan, and diff check.

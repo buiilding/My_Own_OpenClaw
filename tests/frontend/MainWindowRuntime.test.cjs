@@ -539,7 +539,7 @@ describe('main_window_runtime createMainWindow', () => {
       localRuntimeEnv: {
         backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
       },
-      localRuntimeCopy: {
+      localRuntimeBridgeCopy: {
         browserWarmupExplanation: 'Open the desktop browser',
       },
       initializeMainProcessIpc: jest.fn(),
@@ -613,7 +613,7 @@ describe('main_window_runtime createMainWindow', () => {
       isPackaged: false,
       permissionStatePath: '/tmp/desktop-runtime-permission-state.json',
       authStatePath: expect.stringContaining(`${require('path').sep}desktop-runtime${require('path').sep}install-auth.json`),
-      localRuntimeCopy: deps.localRuntimeCopy,
+      localRuntimeBridgeCopy: deps.localRuntimeBridgeCopy,
     }));
     expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
   });

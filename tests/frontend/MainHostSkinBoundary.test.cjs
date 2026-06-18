@@ -170,7 +170,8 @@ describe('main host skin/config boundary', () => {
     expect(indexSource).toContain('runtimePaths: mainHostSkin.runtimePaths');
     expect(indexSource).toContain('wakewordEnv: mainHostSkin.wakeword.env');
     expect(indexSource).toContain('wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers');
-    expect(indexSource).toContain('localRuntimeCopy: mainHostSkin.localRuntime');
+    expect(indexSource).toContain('localRuntimeBridgeCopy: {');
+    expect(indexSource).toContain('browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation');
     expect(bootstrapSource).toContain('runsApiKeyHeader: deps.runsApiKeyHeader');
     expect(bootstrapSource).toContain('vmWorkerEnv: deps.vmWorkerEnv');
     expect(bootstrapSource).not.toContain('deps.mainHostSkin?.hostedBackend');
@@ -495,16 +496,18 @@ describe('main host skin/config boundary', () => {
     const localRuntimeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
 
     expect(localRuntimeSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
-    expect(localRuntimeSource).toContain('localRuntimeCopy.browserWarmupExplanation');
+    expect(localRuntimeSource).toContain('localRuntimeBridgeCopy.browserWarmupExplanation');
     expect(localRuntimeSource).toContain('Agent SDK local runtime resolver is unavailable.');
-    expect(localRuntimeSource).toContain('options.localRuntimeCopy');
+    expect(localRuntimeSource).toContain('options.localRuntimeBridgeCopy');
     expect(localRuntimeSource).not.toContain('options.mainHostSkin?.localRuntime');
     expect(fs.readFileSync(mainWindowRuntimePath, 'utf8'))
-      .toContain('localRuntimeCopy,');
+      .toContain('localRuntimeBridgeCopy,');
     expect(fs.readFileSync(indexPath, 'utf8'))
-      .toContain('localRuntimeCopy: mainHostSkin.localRuntime');
+      .toContain('browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation');
     expect(fs.readFileSync(mainWindowRuntimePath, 'utf8'))
       .not.toContain('mainHostSkin?.localRuntime');
+    expect(fs.readFileSync(indexPath, 'utf8'))
+      .not.toContain('localRuntimeCopy: mainHostSkin.localRuntime');
     expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
     expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
   });

@@ -305,7 +305,9 @@ const {
   localRuntimeEnv: mainHostSkin.localRuntime.env,
   wakewordEnv: mainHostSkin.wakeword.env,
   wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers,
-  localRuntimeCopy: mainHostSkin.localRuntime,
+  localRuntimeBridgeCopy: {
+    browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation,
+  },
   enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
   responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
   initializeIpc,

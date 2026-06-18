@@ -53,7 +53,7 @@ describe('main_process_bootstrap_runtime', () => {
           packagedApp: 'WINDIE_PACKAGED_APP',
         },
         wakewordStderrLogMarkers: ['hey_jarvis'],
-        localRuntimeCopy: {
+        localRuntimeBridgeCopy: {
           browserWarmupExplanation: 'Open the WindieOS browser',
         },
         enableOsToolGhostDebug: false,
@@ -128,7 +128,7 @@ describe('main_process_bootstrap_runtime', () => {
       localRuntimeEnv: deps.localRuntimeEnv,
       wakewordEnv: deps.wakewordEnv,
       wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
-      localRuntimeCopy: deps.localRuntimeCopy,
+      localRuntimeBridgeCopy: deps.localRuntimeBridgeCopy,
     }));
     expect(deps.createMainWindowRuntime.mock.calls[0][0]).not.toHaveProperty('mainHostSkin');
     expect(deps.createMainWindowRuntime.mock.calls[0][0]).not.toHaveProperty(

@@ -215,7 +215,7 @@ function createMainWindow({
   localRuntimeEnv = null,
   wakewordEnv = null,
   wakewordStderrLogMarkers = null,
-  localRuntimeCopy = null,
+  localRuntimeBridgeCopy = null,
   resolveAppIconPath = null,
   resolveAppIcon = resolveAppIconNativeImage,
   log = console.log,
@@ -296,7 +296,7 @@ function createMainWindow({
     isPackaged: app.isPackaged,
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),
-    localRuntimeCopy,
+    localRuntimeBridgeCopy,
   });
   initializeMainProcessIpc();
 

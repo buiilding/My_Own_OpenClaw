@@ -121,6 +121,10 @@ All notable changes to WindieOS will be documented in this file.
 - main/runtime: pass WindieOS local-runtime bridge copy from the main-window
   composition root as generic `localRuntimeCopy` instead of letting the bridge
   read the full host skin.
+- main/runtime: narrow the local-runtime bridge copy to
+  `localRuntimeBridgeCopy.browserWarmupExplanation` so the generic bridge no
+  longer receives the full WindieOS local-runtime skin object. No migration
+  required.
 - main/bootstrap: pass VM worker hosted API header and env config as narrow
   bootstrap dependencies instead of reading them from the full host skin inside
   the generic window bootstrap runtime.

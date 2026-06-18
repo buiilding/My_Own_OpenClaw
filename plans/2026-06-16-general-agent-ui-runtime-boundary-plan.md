@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main Local-Runtime Bridge Copy Narrowing
+
+- Finding: after the bridge stopped reading the full host skin directly, the
+  main-window/bootstrap path still forwarded the entire WindieOS local-runtime
+  skin object as `localRuntimeCopy` even though the bridge only needed browser
+  warmup copy.
+- Change: replaced that handoff with
+  `localRuntimeBridgeCopy.browserWarmupExplanation`, removed the stale
+  `options.copy` bridge alias, and updated main-window/bootstrap/bridge tests
+  to guard the narrower contract.
+- Validation: focused local-runtime bridge, main-window/bootstrap, and
+  host-skin boundary tests plus CommonJS syntax checks, docs listing, and
+  `git diff --check`.
+- Compatibility: no migration required. Browser warmup behavior,
+  local-runtime startup, artifact upload, IPC channels, credentials,
+  permissions, storage, and provider policy are unchanged.
+
 ### 2026-06-18 Main/Renderer Runtime Endpoint Snapshot Boundary
 
 - Finding: main-to-renderer connection snapshots still exposed endpoint fields
@@ -282,10 +299,9 @@ Each completed slice should report:
 - Finding: `local_runtime_bridge.cjs` still accepted the full host skin and
   reached into `options.mainHostSkin.localRuntime` for browser warmup copy,
   even though the bridge is generic SDK/local-runtime host plumbing.
-- Change: made the bridge consume a generic `localRuntimeCopy`/`copy` object,
-  passed `mainHostSkin.localRuntime` from the main-window composition root, and
-  updated the local-runtime bridge harness to configure hosted artifact upload
-  endpoints explicitly instead of relying on ambient endpoint state.
+- Change: made the bridge consume a generic local-runtime copy object, then the
+  later 2026-06-18 copy-narrowing slice reduced that handoff to
+  `localRuntimeBridgeCopy.browserWarmupExplanation`.
 - Validation: focused local-runtime bridge, main-window runtime, and host-skin
   boundary Jest coverage, CommonJS syntax checks, docs listing, targeted source
   scan, and diff-check validation.

@@ -162,7 +162,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     isPackaged: options.isPackaged === true,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
-    localRuntimeCopy: options.localRuntimeCopy,
+    localRuntimeBridgeCopy: options.localRuntimeBridgeCopy,
     sdkLocalToolExecutor: options.sdkLocalToolExecutor,
   });
   return {
