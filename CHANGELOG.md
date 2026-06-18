@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: collapse local-runtime conversation-store producer labels to
+  backend-vs-SDK ownership so non-backend conversation events persist as
+  `producer = "sdk"` instead of retaining a dead sidecar producer branch; no
+  migration is required because `sidecar` was not a valid SDK event source.
 - backend/simulation: remove stale mock browser-client wording that described
   the shared simulation config as unused; no migration is required because this
   changes comments only.

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK conversation-store producer label cleanup
+
+- Finding: `LocalRuntimeConversationStore` still contained a special
+  `producerSource === "sidecar"` branch even though SDK conversation event
+  sources are `backend`, `sdk`, or `ui`, and durable replay should distinguish
+  backend-origin metadata from SDK-owned local events rather than Python
+  implementation details.
+- Change: collapsed non-backend event writes to `producer = "sdk"` in the
+  TypeScript and checked-in CJS store, documented the backend-vs-SDK producer
+  contract, and extended tests/source guards to reject the dead sidecar branch.
+- Validation: focused SDK client/default persistence and modular boundary Jest
+  coverage, source scan for the retired producer branch, docs listing, and diff
+  check.
+- Compatibility: no migration required. `sidecar` was not a valid SDK
+  `ConversationEventSource`; backend producer ids/sequences, event payloads,
+  local-runtime RPC names, storage tables, credentials, and permissions are
+  unchanged.
+
 ### 2026-06-18 backend tool-result ingress wording guard
 
 - Finding: backend runtime and API handler docs still described tool-result

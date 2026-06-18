@@ -322,9 +322,10 @@ adapter. Set `persistence: false` for an in-memory session.
 `LocalRuntimeConversationStore` stores backend producer metadata separately from
 local order. Backend events write `producer = "backend"`,
 `producer_event_id = eventId`, and `producer_sequence =
-payload.backendSequence`. SDK/local-runtime-created events keep SDK-owned event ids.
-The local runtime still assigns `message_index` locally, and display/replay loading
-orders by `message_index` rather than backend sequence.
+payload.backendSequence`. SDK, UI, and local-runtime-created events write
+`producer = "sdk"` and keep SDK-owned event ids. The local runtime still assigns
+`message_index` locally, and display/replay loading orders by `message_index`
+rather than backend sequence.
 
 Electron's local-runtime-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.

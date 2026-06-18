@@ -531,7 +531,7 @@ export class LocalRuntimeConversationStore implements ConversationStore {
       turn_ref: event.turnRef ?? null,
       producer: producerSource === 'backend'
         ? 'backend'
-        : (producerSource === 'sidecar' ? 'sidecar' : 'sdk'),
+        : 'sdk',
       producer_event_id: producerSource === 'backend' ? event.eventId : null,
       producer_sequence: producerSource === 'backend' && typeof event.payload.backendSequence === 'number'
         ? event.payload.backendSequence

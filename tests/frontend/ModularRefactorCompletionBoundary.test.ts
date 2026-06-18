@@ -330,6 +330,7 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(source).toContain('const localRuntimeEvents');
     expect(source).not.toContain('sidecarEvents');
+    expect(source).not.toContain("producerSource === 'sidecar'");
   });
 
   test('tool and security docs describe local tools through local runtime boundary', async () => {

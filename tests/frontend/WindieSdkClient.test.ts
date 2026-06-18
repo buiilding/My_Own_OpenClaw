@@ -1073,6 +1073,7 @@ describe('Agent SDK client behavior', () => {
         conversation_id: 'conv-durable-chat',
         event_type: 'user_message',
         content: 'persist me',
+        producer: 'sdk',
         record_kind: 'chat_event',
       }),
     }));
