@@ -29,7 +29,7 @@ describe('ipc_install_auth_state persistence', () => {
   let userDataPath;
 
   beforeEach(async () => {
-    userDataPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'desktop-agent-install-auth-'));
+    userDataPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'desktop-runtime-install-auth-'));
     app.getPath.mockReturnValue(userDataPath);
   });
 
@@ -42,7 +42,7 @@ describe('ipc_install_auth_state persistence', () => {
     const originalGetPath = app.getPath;
     app.getPath = null;
     try {
-      expect(getInstallAuthStatePath()).toBe(path.join(os.tmpdir(), 'desktop-agent', 'install-auth.json'));
+      expect(getInstallAuthStatePath()).toBe(path.join(os.tmpdir(), 'desktop-runtime', 'install-auth.json'));
     } finally {
       app.getPath = originalGetPath;
     }

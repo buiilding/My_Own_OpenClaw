@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 main install-auth fallback prefix
+
+- Finding: install-auth persistence still used `desktop-agent` for the no-Electron temp fallback directory and related test fixtures after generic main internals moved to desktop-runtime naming.
+- Change: renamed the fallback directory and synthetic bridge/test fixture paths to `desktop-runtime` while leaving Electron userData storage and explicit path overrides untouched.
+- Validation: focused IpcInstallAuthState and MainWindowRuntime Jest coverage, exact stale install-auth fallback scan, and diff checks.
+- Compatibility: no normal runtime migration required. Packaged and dev Electron callers persist install auth under `app.getPath("userData")`; only the no-Electron fallback directory changes.
+
 ### 2026-06-18 browser runtime WindieOS default state boundary
 
 - Finding: the Browser Use integration and browser-owned file store still defaulted to retired `desktop-agent` session/path names, even though this browser state belongs to the WindieOS local sidecar implementation rather than the generic Electron/SDK boundary.

@@ -583,7 +583,7 @@ describe('main_window_runtime createMainWindow', () => {
 
   test('passes the permission state path into local runtime bridge initialization', () => {
     const { deps } = createDeps({
-      permissionStatePath: '/tmp/desktop-agent-permission-state.json',
+      permissionStatePath: '/tmp/desktop-runtime-permission-state.json',
     });
 
     createMainWindow(deps);
@@ -595,8 +595,8 @@ describe('main_window_runtime createMainWindow', () => {
       getKnownLocalRuntime: deps.getKnownLocalRuntime,
       ensureLocalRuntime: deps.ensureLocalRuntime,
       isPackaged: false,
-      permissionStatePath: '/tmp/desktop-agent-permission-state.json',
-      authStatePath: expect.stringContaining(`${require('path').sep}desktop-agent${require('path').sep}install-auth.json`),
+      permissionStatePath: '/tmp/desktop-runtime-permission-state.json',
+      authStatePath: expect.stringContaining(`${require('path').sep}desktop-runtime${require('path').sep}install-auth.json`),
     }));
     expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
   });

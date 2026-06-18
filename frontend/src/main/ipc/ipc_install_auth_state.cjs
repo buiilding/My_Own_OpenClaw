@@ -17,7 +17,7 @@ try {
 const INSTALL_AUTH_FILENAME = 'install-auth.json';
 const INSTALL_AUTH_FILE_MODE = 0o600;
 const INSTALL_AUTH_DIR_MODE = 0o700;
-const DEFAULT_INSTALL_AUTH_FALLBACK_DIR = 'desktop-agent';
+const DEFAULT_INSTALL_AUTH_FALLBACK_DIR = 'desktop-runtime';
 
 function shouldApplyPosixFileModes(platform = process.platform) {
   return platform !== 'win32';
