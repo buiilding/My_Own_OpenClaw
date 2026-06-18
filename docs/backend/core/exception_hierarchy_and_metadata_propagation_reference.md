@@ -1,5 +1,5 @@
 ---
-summary: "Backend core exception reference for the `error_types/*` hierarchy, metadata merge helpers, and trust-boundary scoped error payload conventions."
+summary: "Backend core exception reference for the live `error_types/*` hierarchy, metadata merge helpers, and trust-boundary scoped error payload conventions."
 read_when:
   - When adding/changing exception classes under `backend/src/core/infrastructure/error_types/*`.
   - When debugging missing `error_code`/metadata fields in logs, parser errors, or tool/LLM/session failure propagation.
@@ -11,11 +11,7 @@ title: "Exception Hierarchy and Metadata Propagation Reference"
 ## Canonical Modules
 
 - `backend/src/core/infrastructure/error_types/base.py`
-- `backend/src/core/infrastructure/error_types/configuration.py`
 - `backend/src/core/infrastructure/error_types/llm.py`
-- `backend/src/core/infrastructure/error_types/tooling.py`
-- `backend/src/core/infrastructure/error_types/memory.py`
-- `backend/src/core/infrastructure/error_types/session.py`
 - `backend/src/core/infrastructure/error_types/trust_boundary.py`
 - `tests/backend/test_exceptions.py`
 
@@ -27,7 +23,9 @@ Canonical exception definitions live under the concrete modules in
 Use these first-class import paths:
 
 - base exception class: `backend.src.core.infrastructure.error_types.base`
-- domain-specific implementations: `backend.src.core.infrastructure.error_types.*`
+- live domain-specific implementations:
+  `backend.src.core.infrastructure.error_types.llm` and
+  `backend.src.core.infrastructure.error_types.trust_boundary`
 
 The old `core.infrastructure.exceptions` compatibility facade and the
 `core.infrastructure.error_types` package re-export surface have been removed.
@@ -41,23 +39,18 @@ Base:
 
 Domain branches:
 
-- `ConfigurationError`
 - `LLMError`
   - `LLMAPIError`
   - `LLMRateLimitError`
-- `ToolExecutionError`
-  - `ToolValidationError`
-  - `ToolNotFoundError`
-- `MemoryError`
-  - `MemoryStoreError`
-  - `EmbeddingError`
-- `SessionError`
 - `_TrustBoundaryError`
   - `InputSizeLimitError`
   - `ParseTimeoutError`
   - `ParseValidationError`
 
-`tests/backend/test_exceptions.py` locks this inheritance structure.
+The unused configuration, tooling, memory, and session error modules have been
+removed; runtime callers should use concrete local exceptions or existing
+domain result objects instead of restoring test-only wrappers.
+`tests/backend/test_exceptions.py` locks the live inheritance structure.
 
 ## Base Error Contract (`BaseAppError`)
 
@@ -90,11 +83,6 @@ These helpers are the consistency boundary for error metadata shape across domai
 
 ## Domain-Specific Error Contracts
 
-### Configuration
-
-- `ConfigurationError` always sets `error_code="CONFIG_ERROR"`
-- optional `config_key` is mirrored to `metadata.config_key`
-
 ### LLM
 
 - `LLMError` scope key is `model`
@@ -102,23 +90,6 @@ These helpers are the consistency boundary for error metadata shape across domai
   - `LLMError`: `LLM_ERROR`
   - `LLMAPIError`: `LLM_API_ERROR` (+ optional `status_code`)
   - `LLMRateLimitError`: `LLM_RATE_LIMIT` (+ optional `retry_after`)
-
-### Tooling
-
-- `ToolExecutionError`: `TOOL_EXECUTION_ERROR` (+ optional `tool_name`)
-- `ToolValidationError`: `TOOL_VALIDATION_ERROR`, optional `validation_errors` list metadata
-- `ToolNotFoundError`: `TOOL_NOT_FOUND`, message includes missing tool name
-
-### Memory
-
-- `MemoryError` scope key is `user_id`
-- `MemoryStoreError`: `MEMORY_STORE_ERROR`, optional `operation`
-- `EmbeddingError`: `EMBEDDING_ERROR`
-
-### Session
-
-- `SessionError`: `SESSION_ERROR`
-- optional metadata includes `session_id` and `user_id`
 
 ### Trust Boundary
 
@@ -135,14 +106,13 @@ Common call paths using this surface:
 
 - parser extraction/validation and response limits (`ParseTimeoutError`, `ParseValidationError`, `InputSizeLimitError`)
 - provider and client normalization failures (`LLMAPIError`)
-- tool orchestration lookup/validation failures (`ToolExecutionError`, `ToolNotFoundError`, `ToolValidationError`)
 
 ## Test-Backed Invariants
 
 `tests/backend/test_exceptions.py` validates:
 
-- message/code/metadata defaults for each domain class
-- optional scope/field metadata propagation (`model`, `status_code`, `tool_name`, `validation_errors`, `boundary_name`, etc.)
+- message/code/metadata defaults for each live domain class
+- optional scope/field metadata propagation (`model`, `status_code`, `validation_errors`, `boundary_name`, etc.)
 - inheritance relations from domain subclasses back to `BaseAppError`
 
 ## Drift Hotspots

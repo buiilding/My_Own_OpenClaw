@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend unused exception modules
+
+- Finding: configuration, tooling, memory, and session exception modules under
+  `backend/src/core/infrastructure/error_types/` had no runtime imports; exact
+  scans showed only docs and `tests/backend/test_exceptions.py` exercised them.
+- Change: deleted the unused modules, trimmed exception hierarchy tests to live
+  LLM and trust-boundary errors, added deletion guards, and updated core/error
+  docs plus architecture maps to advertise only the live hierarchy.
+- Validation: py_compile for live error modules and edited tests, focused
+  exception/deletion-guard pytest, docs search routing, exact stale-reference
+  scan, and diff checks.
+- Compatibility: no migration required. Runtime code already used concrete
+  local errors or existing result objects for config/tool/memory/session paths;
+  LLM and parser trust-boundary error payloads are unchanged.
+
 ### 2026-06-17 SDK docs local-runtime public contract wording
 
 - Finding: SDK-facing docs and wakeUp test names still described local execution through sidecar runtime clients, sidecar manifests, or sidecar execution, putting the concrete Python daemon in the public AgentClient contract slot.

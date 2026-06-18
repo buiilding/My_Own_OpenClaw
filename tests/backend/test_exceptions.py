@@ -2,22 +2,10 @@
 import pytest
 
 from backend.src.core.infrastructure.error_types.base import BaseAppError
-from backend.src.core.infrastructure.error_types.configuration import ConfigurationError
 from backend.src.core.infrastructure.error_types.llm import (
     LLMAPIError,
     LLMError,
     LLMRateLimitError,
-)
-from backend.src.core.infrastructure.error_types.memory import (
-    EmbeddingError,
-    MemoryError,
-    MemoryStoreError,
-)
-from backend.src.core.infrastructure.error_types.session import SessionError
-from backend.src.core.infrastructure.error_types.tooling import (
-    ToolExecutionError,
-    ToolNotFoundError,
-    ToolValidationError,
 )
 from backend.src.core.infrastructure.error_types.trust_boundary import (
     InputSizeLimitError,
@@ -74,23 +62,6 @@ class TestBaseAppError:
         assert isinstance(error, Exception)
 
 
-class TestConfigurationError:
-    """Tests for ConfigurationError."""
-
-    def test_init(self):
-        error = ConfigurationError("Invalid config")
-        
-        assert error.message == "Invalid config"
-        assert error.error_code == "CONFIG_ERROR"
-        assert error.config_key is None
-
-    def test_init_with_config_key(self):
-        error = ConfigurationError("Invalid value", config_key="database.host")
-        
-        assert error.config_key == "database.host"
-        assert error.metadata["config_key"] == "database.host"
-
-
 class TestLLMError:
     """Tests for LLMError."""
 
@@ -139,107 +110,6 @@ class TestLLMRateLimitError:
         
         assert error.retry_after == 60
         assert error.metadata["retry_after"] == 60
-
-
-class TestToolExecutionError:
-    """Tests for ToolExecutionError."""
-
-    def test_init(self):
-        error = ToolExecutionError("Tool failed")
-        
-        assert error.message == "Tool failed"
-        assert error.error_code == "TOOL_EXECUTION_ERROR"
-        assert error.tool_name is None
-
-    def test_init_with_tool_name(self):
-        error = ToolExecutionError("Failed", tool_name="read_file")
-        
-        assert error.tool_name == "read_file"
-        assert error.metadata["tool_name"] == "read_file"
-
-
-class TestToolValidationError:
-    """Tests for ToolValidationError."""
-
-    def test_init(self):
-        error = ToolValidationError("Invalid params")
-        
-        assert error.message == "Invalid params"
-        assert error.error_code == "TOOL_VALIDATION_ERROR"
-        assert error.validation_errors == []
-
-    def test_init_with_validation_errors(self):
-        errors = ["Missing required field", "Invalid type"]
-        error = ToolValidationError("Invalid", validation_errors=errors)
-        
-        assert error.validation_errors == errors
-        assert error.metadata["validation_errors"] == errors
-
-
-class TestToolNotFoundError:
-    """Tests for ToolNotFoundError."""
-
-    def test_init(self):
-        error = ToolNotFoundError("unknown_tool")
-        
-        assert error.tool_name == "unknown_tool"
-        assert "unknown_tool" in error.message
-        assert error.error_code == "TOOL_NOT_FOUND"
-
-
-class TestMemoryError:
-    """Tests for MemoryError."""
-
-    def test_init(self):
-        error = MemoryError("Memory operation failed")
-        
-        assert error.message == "Memory operation failed"
-        assert error.error_code == "MEMORY_ERROR"
-
-    def test_init_with_user_id(self):
-        error = MemoryError("Failed", user_id="user123")
-        
-        assert error.user_id == "user123"
-
-
-class TestMemoryStoreError:
-    """Tests for MemoryStoreError."""
-
-    def test_init(self):
-        error = MemoryStoreError("Store failed")
-        
-        assert error.error_code == "MEMORY_STORE_ERROR"
-
-    def test_init_with_operation(self):
-        error = MemoryStoreError("Failed", operation="insert")
-        
-        assert error.operation == "insert"
-
-
-class TestEmbeddingError:
-    """Tests for EmbeddingError."""
-
-    def test_init(self):
-        error = EmbeddingError("Embedding failed")
-        
-        assert error.error_code == "EMBEDDING_ERROR"
-
-
-class TestSessionError:
-    """Tests for SessionError."""
-
-    def test_init(self):
-        error = SessionError("Session error")
-        
-        assert error.error_code == "SESSION_ERROR"
-        assert error.session_id is None
-        assert error.user_id is None
-
-    def test_init_with_ids(self):
-        error = SessionError("Failed", session_id="sess123", user_id="user456")
-        
-        assert error.session_id == "sess123"
-        assert error.user_id == "user456"
 
 
 class TestInputSizeLimitError:
@@ -310,27 +180,9 @@ class TestExceptionInheritance:
         assert isinstance(api_error, LLMError)
         assert isinstance(rate_limit, LLMError)
 
-    def test_tool_errors_inherit_from_tool_execution_error(self):
-        validation = ToolValidationError("Invalid")
-        not_found = ToolNotFoundError("tool")
-        
-        assert isinstance(validation, ToolExecutionError)
-        assert isinstance(not_found, ToolExecutionError)
-
-    def test_memory_errors_inherit_from_memory_error(self):
-        store_error = MemoryStoreError("Failed")
-        embedding = EmbeddingError("Failed")
-        
-        assert isinstance(store_error, MemoryError)
-        assert isinstance(embedding, MemoryError)
-
     def test_all_inherit_from_base_app_error(self):
         errors = [
-            ConfigurationError("Test"),
             LLMError("Test"),
-            ToolExecutionError("Test"),
-            MemoryError("Test"),
-            SessionError("Test"),
             InputSizeLimitError("Test"),
             ParseTimeoutError("Test"),
             ParseValidationError("Test"),

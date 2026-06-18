@@ -523,17 +523,9 @@ Counts tokens for message batches via LiteLLM with a safe fallback estimator.
 ```
 BaseException
 ├── BaseAppError
-│   ├── ConfigurationError
 │   ├── LLMError
 │   │   ├── LLMAPIError
 │   │   └── LLMRateLimitError
-│   ├── ToolExecutionError
-│   │   ├── ToolValidationError
-│   │   └── ToolNotFoundError
-│   ├── MemoryError
-│   │   ├── MemoryStoreError
-│   │   └── EmbeddingError
-│   ├── SessionError
 │   ├── InputSizeLimitError
 │   ├── ParseTimeoutError
 │   └── ParseValidationError

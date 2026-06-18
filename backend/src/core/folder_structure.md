@@ -15,11 +15,7 @@ backend/src/core/
 │   ├── cache_manager.py               # CacheManager - shared caches
 │   └── error_types/                   # Domain exception modules
 │       ├── base.py                    # BaseAppError + shared metadata/init helpers
-│       ├── configuration.py           # ConfigurationError
 │       ├── llm.py                     # LLMError, LLMAPIError, LLMRateLimitError
-│       ├── tooling.py                 # ToolExecutionError, ToolValidationError, ToolNotFoundError
-│       ├── memory.py                  # MemoryError, MemoryStoreError, EmbeddingError
-│       ├── session.py                 # SessionError
 │       └── trust_boundary.py          # InputSizeLimitError, ParseTimeoutError, ParseValidationError
 │
 ├── events/                            # Event system for decoupled communication
