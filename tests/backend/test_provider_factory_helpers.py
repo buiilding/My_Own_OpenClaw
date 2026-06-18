@@ -46,14 +46,10 @@ def test_normalize_base_url_strips_whitespace_and_trailing_slash():
 def test_normalize_provider_name_accepts_current_kimi_forms_only():
     assert providers_module._normalize_provider_name(" kimi-coding ") == "kimi-coding"
     assert providers_module._normalize_provider_name("kimi_coding") == "kimi-coding"
+    assert providers_module._normalize_provider_name(" KIMI_CODE ") == "kimi_code"
+    assert providers_module._normalize_provider_name("kimi-code") == "kimi-code"
     assert providers_module._normalize_provider_name("kimi code") == "kimi code"
     assert providers_module._normalize_provider_name("OpenAI") == "openai"
-
-
-@pytest.mark.parametrize("provider_name", ["KIMI_CODE", "kimi-code"])
-def test_normalize_provider_name_rejects_removed_kimi_spellings(provider_name):
-    with pytest.raises(ValueError, match="Removed Kimi provider name"):
-        providers_module._normalize_provider_name(provider_name)
 
 
 def test_safe_timeout_conversion_enforces_limits_and_defaults():
@@ -153,7 +149,11 @@ def test_get_provider_accepts_current_kimi_provider_key(monkeypatch):
     assert provider is kimi_provider
 
 
-def test_get_provider_rejects_old_kimi_code_alias(monkeypatch):
+@pytest.mark.parametrize("provider_name", ["kimi_code", "kimi-code"])
+def test_get_provider_rejects_unknown_kimi_spellings_without_dedicated_alias_path(
+    monkeypatch,
+    provider_name,
+):
     kimi_provider = object()
     monkeypatch.setattr(
         providers_module,
@@ -161,8 +161,8 @@ def test_get_provider_rejects_old_kimi_code_alias(monkeypatch):
         lambda _cfg: {"kimi-coding": kimi_provider},
     )
 
-    with pytest.raises(ValueError, match="Removed Kimi provider name"):
-        providers_module.get_provider(AppConfig(), "kimi_code")
+    with pytest.raises(ValueError, match=provider_name):
+        providers_module.get_provider(AppConfig(), provider_name)
 
 
 def test_get_provider_rejects_space_separated_provider_name(monkeypatch):

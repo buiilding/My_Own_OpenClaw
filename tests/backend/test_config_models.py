@@ -152,7 +152,7 @@ class TestLLMProviders:
         config = providers.get_provider_config("kimi_coding")
         assert isinstance(config, KimiCodingConfig)
 
-    def test_get_provider_config_rejects_old_kimi_code_alias(self):
+    def test_get_provider_config_rejects_unsupported_kimi_spelling(self):
         providers = LLMProviders()
         with pytest.raises(ValueError, match="Unknown provider: kimi_code"):
             providers.get_provider_config("kimi_code")

@@ -231,8 +231,8 @@ Validate:
 - missing keys produce safe unavailable-provider behavior.
 - enabled overrides beat env only where designed.
 - supported aliases such as `gemini` -> `google` still normalize correctly, and
-  removed aliases such as `kimi-code` / `kimi_code` remain rejected for Kimi
-  provider selection and credential lookup.
+  unsupported Kimi spellings remain unavailable through normal provider
+  selection and credential lookup.
 - model list and provider health reflect the new credential gate.
 
 ### Change frontend-managed provider keys

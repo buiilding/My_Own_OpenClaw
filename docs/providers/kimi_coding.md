@@ -3,7 +3,6 @@ summary: "Kimi Coding provider guide for WindieOS covering Anthropic-compatible 
 read_when:
   - When changing Kimi Coding provider behavior, model prefixes, provider-name forms, base URL normalization, streaming tool-call parsing, or credentials.
   - When debugging Kimi tool calls, thinking streams, or provider factory registration.
-  - When resolving old `kimi_code` / `kimi-code` provider alias rejected errors in config, credential override, provider factory, or prompt-cache-key routing.
 title: "Kimi Coding Provider"
 ---
 
@@ -39,9 +38,8 @@ Current provider names:
 - `kimi-coding`
 - `kimi_coding`
 
-The old provider/config aliases `kimi-code` and `kimi_code` are not accepted by
-config lookup, API-key override lookup, provider factory selection, Kimi
-prompt-cache-key steering, or model-id prefix normalization.
+Other Kimi spellings are not provider aliases. They fall through the same
+unknown-provider path as any unsupported provider key.
 
 Config models use `kimi_coding`; runtime provider keys use `kimi-coding`.
 

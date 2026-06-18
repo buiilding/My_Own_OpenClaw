@@ -17,9 +17,6 @@ from backend.src.llm.providers.openrouter import OpenRouterProvider
 
 logger = logging.getLogger(__name__)
 
-_REMOVED_KIMI_PROVIDER_NAMES = {"kimi_code", "kimi-code"}
-
-
 def _normalize_base_url(base_url: Optional[str], default: str) -> str:
     """Normalize provider URLs for stable cache keys and consistent provider config."""
     candidate = (base_url or "").strip()
@@ -30,11 +27,6 @@ def _normalize_base_url(base_url: Optional[str], default: str) -> str:
 
 def _normalize_provider_name(provider_name: str) -> str:
     normalized = provider_name.lower().strip()
-    if normalized in _REMOVED_KIMI_PROVIDER_NAMES:
-        raise ValueError(
-            "Removed Kimi provider name "
-            f"'{provider_name}'. Use 'kimi-coding' or 'kimi_coding'."
-        )
     if normalized == "kimi_coding":
         return "kimi-coding"
     return normalized

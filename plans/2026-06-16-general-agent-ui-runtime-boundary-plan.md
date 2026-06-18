@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 backend Kimi provider removed-name branch
+
+- Finding: `backend/src/llm/providers/factory.py` still carried a dedicated set
+  and error branch for removed Kimi provider spellings even though unsupported
+  provider keys can fail through the generic unavailable-provider path.
+- Change: removed the special removed-name branch, kept only the current
+  `kimi_coding` -> `kimi-coding` normalization, and updated provider docs/tests
+  to describe unsupported Kimi spellings as normal unavailable provider keys.
+- Validation: py_compile, import-isolated provider factory behavior check,
+  docs search/list routing, stale special-error scans, and diff checks. Focused
+  backend pytest was attempted, but the `jarvis` conda env was unavailable and
+  fallback Python is missing `litellm`.
+- Compatibility: no migration required. Current accepted provider keys,
+  credential fields, config payloads, API payloads, cache keys, and provider
+  routing are unchanged; only an internal historical error branch was removed.
+
 ### 2026-06-17 SDK screenshot trace local-runtime boundary
 
 - Finding: SDK query screenshot resource traces still emitted the capture

@@ -41,8 +41,8 @@ Cache key inputs are primitives only:
 Normalization behaviors:
 
 - Kimi provider names `kimi-coding` and `kimi_coding` collapse to
-  `kimi-coding`; old `kimi-code` / `kimi_code` provider aliases are not
-  accepted and fail in provider-name normalization
+  `kimi-coding`; unsupported Kimi spellings use the same unavailable-provider
+  error path as other unknown provider keys
 - provider names are lowercased and trimmed, but internal whitespace is not
   rewritten into provider-key punctuation
 - base URLs trimmed and trailing slash normalized
