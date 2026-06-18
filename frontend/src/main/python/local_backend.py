@@ -70,6 +70,7 @@ ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = (
     "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
 )
 ENV_PACKAGED_APP = "WINDIE_PACKAGED_APP"
+ENV_AGENT_SIDECAR_LOG_LEVEL = "AGENT_SIDECAR_LOG_LEVEL"
 ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
 CHROMIUM_INSTALL_TIMEOUT_SECONDS = 900
 SEMANTIC_SUMMARIZER_ENV_LABEL = (
@@ -86,7 +87,12 @@ def _env_flag_enabled_any(names: tuple[str, ...], default: bool = True) -> bool:
 
 def _resolve_sidecar_log_level() -> int:
     """Resolve sidecar Python log level from env with warning-safe fallback."""
-    raw = os.getenv(ENV_SIDECAR_LOG_LEVEL)
+    raw = None
+    for name in (ENV_AGENT_SIDECAR_LOG_LEVEL, ENV_SIDECAR_LOG_LEVEL):
+        candidate = os.getenv(name)
+        if candidate is not None:
+            raw = candidate
+            break
     if raw is None:
         return logging.WARNING
     normalized = raw.strip().upper()

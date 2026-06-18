@@ -67,6 +67,8 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/tools: accept generic `AGENT_SHELL_JOB_TTL_SECONDS` finished
   shell/process session retention env configuration while preserving the
   WindieOS sidecar alias.
+- sidecar/runtime: accept generic `AGENT_SIDECAR_LOG_LEVEL` Python sidecar log
+  level configuration while preserving the WindieOS sidecar alias.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.

@@ -272,6 +272,7 @@ class DummySummarizerInit:
 
 
 def test_resolve_sidecar_log_level_defaults_to_warning(monkeypatch):
+    monkeypatch.delenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, raising=False)
     monkeypatch.delenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, raising=False)
 
     assert (
@@ -286,6 +287,16 @@ def test_resolve_sidecar_log_level_accepts_valid_levels(monkeypatch):
     assert (
         local_backend_module._resolve_sidecar_log_level()
         == local_backend_module.logging.INFO
+    )
+
+
+def test_resolve_sidecar_log_level_prefers_agent_env(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "debug")
+    monkeypatch.setenv(local_backend_module.ENV_AGENT_SIDECAR_LOG_LEVEL, "error")
+
+    assert (
+        local_backend_module._resolve_sidecar_log_level()
+        == local_backend_module.logging.ERROR
     )
 
 

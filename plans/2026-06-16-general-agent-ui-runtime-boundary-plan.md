@@ -8281,3 +8281,16 @@ Each completed slice should report:
 - Compatibility: no migration required. Existing WindieOS shell TTL env
   overrides continue to work, generic hosts can use the Agent env name, and
   finished-session pruning defaults/clamping are unchanged.
+
+### 2026-06-18 Python sidecar log-level env alias boundary
+
+- Finding: Python sidecar log-level selection still read only
+  `WINDIE_SIDECAR_LOG_LEVEL`, even though sidecar stderr verbosity is reusable
+  local-runtime behavior rather than WindieOS product policy.
+- Change: made sidecar log-level resolution read generic
+  `AGENT_SIDECAR_LOG_LEVEL` first with the WindieOS alias preserved.
+- Validation: focused sidecar log-level pytest coverage, source scans, docs
+  listing, and `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS log-level overrides
+  continue to work, generic hosts can use the Agent env name, and the default
+  `WARNING` level plus invalid-value fallback remain unchanged.

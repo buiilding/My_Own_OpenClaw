@@ -61,7 +61,7 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 
 | Flag | Effect |
 | --- | --- |
-| `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python sidecar logs. |
+| `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python sidecar logs. Generic hosts can use `AGENT_SIDECAR_LOG_LEVEL`. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1` | Forwards verbose local-runtime stderr through Electron main via the WindieOS host-skin env mapping. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0` | Reduces local-runtime stderr noise; used by packaged reinstall helpers. Generic Electron hosts can use `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` unless they provide their own skin env key. |
 | `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` in WindieOS launches) | Disables semantic summarizer for focused local-runtime debugging; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
@@ -85,7 +85,7 @@ Use [VM Worker Node](../nodes/vm_worker_node.md) and [Runs API Runbook](../autom
 | Flag | Effect |
 | --- | --- |
 | `WINDIE_LOG_FILE=<path>` | Packaged run log path for local reinstall helpers. |
-| `WINDIE_SIDECAR_LOG_LEVEL=<level>` | Sidecar log level used by reinstall helpers. |
+| `WINDIE_SIDECAR_LOG_LEVEL=<level>` | Sidecar log level used by reinstall helpers; generic hosts can use `AGENT_SIDECAR_LOG_LEVEL`. |
 | `WINDIE_BUNDLE_ID=<id>` | Override bundle id in local reinstall flows. |
 | `WINDIE_APP_NAME=<name>` | Override app name in local reinstall flows. |
 
