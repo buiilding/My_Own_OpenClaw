@@ -1,8 +1,8 @@
 ---
 summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and the strict shared browser validation boundary."
 read_when:
-  - When adding/removing browser actions and verifying backend schema, sidecar validation, Browser Use engine dispatch, and runtime handler coverage stay aligned.
-  - When investigating payloads that parse in backend but fail in sidecar runtime enforcement.
+  - When adding/removing browser actions and verifying backend schema, Python sidecar validation, Browser Use engine dispatch, and runtime handler coverage stay aligned.
+  - When investigating payloads that parse in backend but fail in Python sidecar runtime enforcement.
 title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 ---
 
@@ -65,7 +65,7 @@ When changing browser actions, verify four layers:
 `tests/sidecar/tools/test_browser_schemas.py` and the Browser Use engine tests enforce:
 
 - `BrowserControlArgs` enforces the shared strict grouped action contract
-- backend remote-tool validation and sidecar validation stay aligned around the same action surface
+- backend remote-tool validation and Python sidecar validation stay aligned around the same action surface
 - `BrowserUseEngineRuntime` covers the supported Browser Use action set
 
 `tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and strict payload projection behavior.

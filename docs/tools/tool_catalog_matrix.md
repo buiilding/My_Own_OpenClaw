@@ -10,11 +10,11 @@ title: "Tool Catalog Matrix"
 
 WindieOS tools are registered in two places by design:
 
-- Frontend/sidecar manifest: source of truth for client-local model-facing
-  schemas and executable local actions.
+- Desktop client/local-runtime manifest: source of truth for client-local
+  model-facing schemas and executable local actions.
 - Backend catalog: backend-owned tools plus fallback/default model-facing
   entries and tool policy owner.
-- Sidecar registry: executable local action owner.
+- Python sidecar registry: executable local action owner.
 
 Do not import backend tool code into the sidecar to force parity. Keep parity explicit through shared contracts, exposed-name sets, and tests.
 
@@ -56,7 +56,7 @@ Backend fallback and policy owner:
 - `backend/src/tools/schema_registry.py`
 - remote tool classes under `backend/src/tools/remote_tools`
 
-Sidecar executable owner:
+Python sidecar executable owner:
 
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/tools/manifest.py`
@@ -73,7 +73,7 @@ Parity tests should prove:
 
 1. Decide whether the tool is backend-only, local-runtime executed, or provider-native.
 2. Add or update the client/local-runtime manifest for local model-visible tools.
-3. Add sidecar executable registration only when local execution is required.
+3. Add Python sidecar executable registration only when local execution is required.
 4. Add SDK/main tool-router handling only when payload/result envelopes, artifacts, screenshots, or UI display behavior change.
 5. Add policy/profile entries if the tool should appear in `chat`, `coding`, `browser`, `computer`, or `full` profiles.
 6. Add backend schema/catalog registration only for backend-executed tools or fallback/default local exposure.

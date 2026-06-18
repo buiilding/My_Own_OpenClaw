@@ -103,9 +103,31 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   and reference docs now qualify sidecar executor references as Python or
   local-runtime sidecar executor ownership. Tool schema policy validation now
   routes client manifest payload changes to desktop client manifest builder
-  tests instead of frontend manifest wording.
+  tests instead of frontend manifest wording. Browser shared-contract,
+  validation, runtime, and tool catalog docs now qualify Python sidecar
+  validation/runtime and desktop client/local-runtime manifest ownership
+  instead of unqualified sidecar validation/runtime or frontend/sidecar manifest
+  wording.
 
 ## Inspection Log
+
+### 2026-06-18 Browser Contract Python Sidecar Validation Wording Slice
+
+- Worktree had only the in-progress browser/tool-catalog wording docs after
+  `aef481af9`, with `main` ahead of `origin/main` by 824 commits.
+- Finding: browser shared-contract and tool catalog docs still used
+  unqualified sidecar validation/runtime labels and `Frontend/sidecar manifest`
+  in places where the owner is the Python sidecar or desktop
+  client/local-runtime manifest.
+- Change: qualified browser validation/runtime as Python sidecar ownership,
+  reworded the tool catalog manifest and registry owners to desktop
+  client/local-runtime manifest plus Python sidecar registry, and added a
+  modular docs guard for stale labels.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  browser schemas, shared contracts, Python sidecar runtime behavior, backend
+  projection, IPC, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Desktop Client Manifest Validation Wording Slice
 

@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS browser automation across backend schema, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer browser session readiness UI, files, and tests."
+summary: "Workflow for changing WindieOS browser automation across backend schema, shared contract, Python sidecar runtime, CDP launch, Electron bridge, renderer browser session readiness UI, files, and tests."
 read_when:
   - When adding, removing, renaming, or changing browser actions, browser schemas, CDP launch behavior, browser profile isolation, snapshots, refs, extraction, browser files, downloads, browser session readiness, or session controls.
   - When debugging browser actions that parse in the backend but fail in the sidecar, browser UI state that is stale, wrong-profile launches, CDP connection failures, snapshot/ref drift, or browser-local file path issues.
@@ -16,8 +16,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 
 - The backend owns model-facing browser tool exposure and validation.
 - The shared Python browser contract is the schema source used by the backend
-  remote browser tool and sidecar runtime validation.
-- The sidecar owns Browser Use invocation, browser-local file helpers, and WindieOS result normalization.
+  remote browser tool and Python sidecar runtime validation.
+- The Python sidecar owns Browser Use invocation, browser-local file helpers, and WindieOS result normalization.
 - Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric element indexes, snapshots, and browser action mechanics.
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
 - Renderer browser controls call the scoped `RUN_BROWSER_ACTION` IPC channel;
@@ -48,13 +48,13 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 5. SDK/main tool routing receives the remote tool call and invokes the local
    execute-tool runtime directly.
 6. SDK local runtime invokes the Python sidecar executable tool path, with Electron main supplying display/window context.
-7. Sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
+7. Python sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
 9. `BrowserUseEngineRuntime.execute()` maps the canonical action to Browser Use CLI daemon commands.
-10. Browser Use performs CDP/Playwright work and the sidecar normalizes the result into a `ToolResult`.
+10. Browser Use performs CDP/Playwright work and the Python sidecar normalizes the result into a `ToolResult`.
 11. SDK/main relays the result back to the backend tool-result path and renderer receives display projections.
 
-If a payload parses in the backend but fails in the sidecar, compare the shared contract import path, backend schema wrapper, sidecar validation entrypoint, and sidecar runtime supported-action registry before changing renderer code.
+If a payload parses in the backend but fails in the Python sidecar, compare the shared contract import path, backend schema wrapper, Python sidecar validation entrypoint, and Python sidecar runtime supported-action registry before changing renderer code.
 
 ## Change Paths
 
@@ -97,7 +97,7 @@ Edit:
 
 - shared contract model for type/default/validation changes.
 - shared schema builder if JSON schema shape changes.
-- sidecar runtime handler if execution semantics change.
+- Python sidecar runtime handler if execution semantics change.
 - backend tests if model-facing schema output changes.
 - renderer tests only for UI-triggered action payloads such as `connect`, `status`, `get_tabs`, `switch`, or `close`.
 
@@ -106,7 +106,7 @@ Validate:
 - old unsupported fields fail where they should fail.
 - required fields produce clear validation errors.
 - defaulted fields do not make model-facing schema ambiguous.
-- sidecar runtime ignores only intentionally optional fields.
+- Python sidecar runtime ignores only intentionally optional fields.
 
 ### Change CDP launch or dedicated profile behavior
 
@@ -245,22 +245,22 @@ Validate:
 | --- | --- | --- |
 | Model never sees `browser` | tool policy/profile, model-visible schema, provider projection | backend tool catalog/policy |
 | Backend rejects browser payload | action literal, grouped schema, removed fields, model-facing parameters | shared contract/backend schema wrapper |
-| Backend accepts payload but sidecar rejects it | shared contract import drift, sidecar validation entrypoint, runtime supported actions | shared contract or sidecar validation |
+| Backend accepts payload but Python sidecar rejects it | shared contract import drift, Python sidecar validation entrypoint, runtime supported actions | shared contract or Python sidecar validation |
 | `connect` launches wrong profile | CDP URL/port, profile path, Chrome launch args, extension-mode assumptions | sidecar Chrome launcher |
 | `connect` times out | executable detection, port already in use, `/json/version`, feature-pack deps | sidecar Chrome launcher/controller |
 | `status` works but renderer shows disconnected | renderer polling snapshot, stale request id, result normalization | renderer browser session store |
 | `click` or `input` hits wrong element | fresh snapshot, role-ref disambiguation, action executor locator resolution | sidecar snapshot/ref/action executor |
 | snapshot misses interactive elements | DOM/AX collection, ref registry, snapshot limit, page load timing | sidecar enhanced CDP pipeline |
 | browser files land in the wrong path | file-store root, relative path resolution, upload/read action payload | sidecar browser file store |
-| browser action hangs at desktop bridge | Electron execute-tool timeout, sidecar JSON-RPC availability, action runtime hang | Electron bridge or sidecar runtime |
+| browser action hangs at desktop bridge | Electron execute-tool timeout, Python sidecar JSON-RPC availability, action runtime hang | Electron bridge or Python sidecar runtime |
 
 ## Validation Matrix
 
 | Changed boundary | Minimum focused validation |
 | --- | --- |
 | Backend browser schema/tool exposure | `./scripts/python-in-env backend pytest tests/backend/test_browser_remote_tool.py` |
-| Shared browser contract or sidecar validation | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_use_engine_runtime.py` |
-| Sidecar runtime action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
+| Shared browser contract or Python sidecar validation | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_use_engine_runtime.py` |
+| Python sidecar runtime action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
 | CDP launch/session lifecycle | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_use_engine.py` |
 | Snapshot/index behavior | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py` |
 | Renderer browser session UI | `bin/windie test frontend -- ChatBrowserSessionControl.test.jsx` |

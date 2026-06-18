@@ -595,6 +595,34 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Plugin sidecar executors');
   });
 
+  test('browser contract docs qualify Python sidecar validation ownership', async () => {
+    const docs = await Promise.all([
+      read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
+      read('docs/backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md'),
+      read('docs/browser/browser_change_workflow.md'),
+      read('docs/frontend/sidecar/browser/contracts/README.md'),
+      read('docs/frontend/sidecar/browser_action_runtime_reference.md'),
+      read('docs/frontend/sidecar/browser_automation_stack.md'),
+      read('docs/tools/tool_catalog_matrix.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('Python sidecar validation');
+    expect(docText).toContain('Python sidecar runtime');
+    expect(docText).toContain('Desktop client/local-runtime manifest');
+    expect(docText).toContain('Python sidecar registry');
+    expect(docText).not.toContain('Frontend/sidecar manifest');
+    expect(docText).not.toContain('Sidecar registry:');
+    expect(docText).not.toContain('Sidecar executable owner:');
+    expect(docText).not.toMatch(/(?<!Python )sidecar validation entrypoint/);
+    expect(docText).not.toMatch(/(?<!Python )sidecar runtime validation/);
+    expect(docText).not.toMatch(/(?<!Python )sidecar runtime supported-action registry/);
+    expect(docText).not.toMatch(/(?<!Python )sidecar runtime handler/);
+    expect(docText).not.toMatch(/(?<!Python )sidecar runtime action/);
+    expect(docText).not.toMatch(/(?<!Python )sidecar JSON-RPC availability/);
+    expect(docText).not.toContain('fails in the sidecar');
+  });
+
   test('docs use local runtime sidecar labels instead of frontend sidecar labels', async () => {
     const docs = await listMarkdownFiles('docs');
     const offenders: Record<string, string[]> = {};

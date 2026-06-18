@@ -43,7 +43,7 @@ The shared contract module defines:
 Important boundary:
 
 - backend validation and model-facing schema emission derive from the same action catalog
-- sidecar validation imports the same shared contract module instead of importing backend code
+- Python sidecar validation imports the same shared contract module instead of importing backend code
 
 ## RemoteBrowserTool Runtime Semantics
 

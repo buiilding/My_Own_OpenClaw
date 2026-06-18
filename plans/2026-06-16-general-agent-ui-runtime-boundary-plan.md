@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Browser Contract Python Sidecar Validation Wording
+
+- Finding: browser/tool catalog docs still used unqualified sidecar
+  validation/runtime wording and `Frontend/sidecar manifest`.
+- Change: qualified browser validation/runtime as Python sidecar ownership,
+  and tool catalog manifest/registry references as desktop client/local-runtime
+  manifest plus Python sidecar registry.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  browser schemas, shared contracts, Python sidecar runtime behavior, backend
+  projection, IPC, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Desktop Client Manifest Validation Wording
 
 - Finding: the tool schema policy workflow still routed client manifest payload
