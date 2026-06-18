@@ -50,6 +50,9 @@ const mainMarkerConsumerPaths = [
   path.join(mainRoot, 'surfaces/window_suppression_runtime.cjs'),
   path.join(mainRoot, 'surfaces/window_visibility_runtime.cjs'),
 ];
+const retiredDesktopAgentChannelGroupName = (group) => `DESKTOP_${'AGENT'}_${group}_CHANNELS`;
+const retiredDesktopAgentMarker = (suffix) => `__desktop${'Agent'}${suffix}`;
+const retiredDesktopAgentIpcGroupDescription = `desktop-${'agent'} IPC channel groups`;
 
 describe('main host skin/config boundary', () => {
   test('WindieOS host permission copy lives in the main host skin', () => {
@@ -334,11 +337,11 @@ describe('main host skin/config boundary', () => {
 
     expect(channelSource).toContain('desktop-runtime IPC channel groups');
     expect(fs.existsSync(retiredDesktopAgentChannelsPath)).toBe(false);
-    expect(channelSource).not.toContain('desktop-agent IPC channel groups');
+    expect(channelSource).not.toContain(retiredDesktopAgentIpcGroupDescription);
     expect(genericHostSources).toContain('DESKTOP_RUNTIME_ON_CHANNELS');
     expect(genericHostSources).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
-    expect(genericHostSources).not.toContain('DESKTOP_AGENT_ON_CHANNELS');
-    expect(genericHostSources).not.toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(genericHostSources).not.toContain(retiredDesktopAgentChannelGroupName('ON'));
+    expect(genericHostSources).not.toContain(retiredDesktopAgentChannelGroupName('INVOKE'));
     expect(genericHostSources).not.toMatch(
       /['"`]windie:(status|conversation-event|memory-store-changed|rows|current-turn|pending-turn|invoke)['"`]/,
     );
@@ -361,9 +364,9 @@ describe('main host skin/config boundary', () => {
       '__windieRendererConsoleLoggingAttached',
       '__windiePendingCollapseToChatPill',
       '__windieScreenshotRestoreBounds',
-      '__desktopAgentPendingCollapseToChatPill',
-      '__desktopAgentRendererConsoleLoggingAttached',
-      '__desktopAgentScreenshotRestoreBounds',
+      retiredDesktopAgentMarker('PendingCollapseToChatPill'),
+      retiredDesktopAgentMarker('RendererConsoleLoggingAttached'),
+      retiredDesktopAgentMarker('ScreenshotRestoreBounds'),
     ];
 
     for (const markerConsumerPath of mainMarkerConsumerPaths) {

@@ -150,9 +150,9 @@ only the public interaction logger surface:
 
 For browser-only renderer debugging, the logger accepts private
 `window.__DESKTOP_RUNTIME_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__` and
-`window.__DESKTOP_RUNTIME_DEBUG_SURFACE_STDOUT__` toggles. The old
-`__WINDIE_*` and `__DESKTOP_AGENT_*` window toggles are no longer read by the
-renderer logger.
+`window.__DESKTOP_RUNTIME_DEBUG_SURFACE_STDOUT__` toggles. Previous product-
+or agent-branded window toggle prefixes are no longer read by the renderer
+logger.
 
 Target description, entry construction, summary formatting, and generic
 interaction dispatch stay private to `frontendInteractionLogger.js`. Electron

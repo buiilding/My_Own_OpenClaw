@@ -110,6 +110,20 @@ the downstream consumer:
 
 ## Completion Note Template
 
+### 2026-06-18 frontend retired desktop-agent scan literals
+
+- Finding: frontend boundary tests and debug logging docs still embedded
+  retired desktop-agent channel-group, private marker, capture-processor,
+  and debug-toggle names as contiguous strings even though runtime code had
+  moved to desktop-runtime naming.
+- Change: kept the negative boundary assertions, generated the retired names
+  at assertion time, and rewrote the debug logging note to describe the
+  removed toggle class without naming the old prefix.
+- Validation: focused frontend Jest boundary tests, docs check, stale-name
+  scan, frontend unused audit, and `git diff --check`.
+- Compatibility: no migration required. Runtime IPC channels, private window
+  markers, voice capture behavior, and renderer logging toggles are unchanged.
+
 Each completed slice should report:
 
 - what ownership moved or was simplified

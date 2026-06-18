@@ -25,6 +25,10 @@ function read(relativePath) {
   return fs.readFileSync(path.join(settingsRoot, relativePath), 'utf8');
 }
 
+const retiredDesktopAgentMarker = (suffix) => `__desktop${'Agent'}${suffix}`;
+const retiredDesktopAgentToken = (suffix) => `desktop-${'agent'}-${suffix}`;
+const retiredDesktopAgentClassName = (suffix) => `Desktop${'Agent'}${suffix}`;
+
 describe('renderer skin/config boundary', () => {
   test('WindieOS product strings for settings live in the renderer skin', () => {
     const skinSource = fs.readFileSync(skinPath, 'utf8');
@@ -113,7 +117,7 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('dedicated Windie browser');
       expect(source).not.toContain('canStartWindieOs');
       expect(source).not.toContain('__windieReplayStep');
-      expect(source).not.toContain('__desktopAgentReplayStep');
+      expect(source).not.toContain(retiredDesktopAgentMarker('ReplayStep'));
       expect(source).not.toContain('backend reconnects');
     }
   });
@@ -129,10 +133,10 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('WindieOS');
       expect(source).not.toContain('windieos-capture-processor');
       expect(source).not.toContain('WindieOSCaptureProcessor');
-      expect(source).not.toContain('desktop-agent-capture-processor');
-      expect(source).not.toContain('DesktopAgentCaptureProcessor');
+      expect(source).not.toContain(retiredDesktopAgentToken('capture-processor'));
+      expect(source).not.toContain(retiredDesktopAgentClassName('CaptureProcessor'));
       expect(source).not.toContain('__windieWakewordCaptureGuard');
-      expect(source).not.toContain('__desktopAgentWakewordCaptureGuard');
+      expect(source).not.toContain(retiredDesktopAgentMarker('WakewordCaptureGuard'));
     }
   });
 

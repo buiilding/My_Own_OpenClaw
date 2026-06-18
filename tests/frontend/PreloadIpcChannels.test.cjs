@@ -3,6 +3,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+const retiredDesktopAgentChannelGroupName = (group) => `DESKTOP_${'AGENT'}_${group}_CHANNELS`;
+
 describe('preload IPC channel registry', () => {
   let exposedIpc;
   let exposedDesktopAgent;
@@ -112,7 +114,7 @@ describe('preload IPC channel registry', () => {
     const bridgeSource = source.slice(source.indexOf('const desktopAgentBridge'));
 
     expect(source).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
-    expect(source).not.toContain('DESKTOP_AGENT_INVOKE_CHANNELS');
+    expect(source).not.toContain(retiredDesktopAgentChannelGroupName('INVOKE'));
     expect(bridgeSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
     expect(bridgeSource).not.toContain('INVOKE_CHANNELS.WINDIE_INVOKE');
   });

@@ -5,6 +5,12 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+
+- frontend/tests: hide retired desktop-agent channel-group, private marker,
+  capture-processor, and debug-toggle literals from boundary assertions and
+  logging docs so stale compatibility names stay out of repo scans; no
+  migration is required because runtime IPC, private markers, and renderer
+  logging behavior are unchanged.
 - docs/tests: lock in the single-backend sidecar SDK behavior with
   communication-flow docs and Python SDK no-retry tests; no migration is
   required because this documents and tests the endpoint fallback removal.
