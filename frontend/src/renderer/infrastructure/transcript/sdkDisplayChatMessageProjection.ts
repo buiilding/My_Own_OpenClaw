@@ -53,32 +53,58 @@ function recordPayload(message: DisplayMessage): Record<string, unknown> {
 }
 
 function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
-  const raw = row.metadata?.raw;
-  return raw && typeof raw === 'object' && !Array.isArray(raw)
-    ? raw as Record<string, unknown>
-    : {};
+  const metadata = row.metadata;
+  if (!metadata || typeof metadata !== 'object') {
+    return {};
+  }
+  const payload: Record<string, unknown> = {};
+  const raw = metadata.raw && typeof metadata.raw === 'object' && !Array.isArray(metadata.raw)
+    ? metadata.raw as Record<string, unknown>
+    : null;
+  const copyKeys: Array<keyof typeof metadata> = [
+    'reasoningText',
+    'toolName',
+    'requestId',
+    'correlationId',
+    'bundleId',
+    'toolCallId',
+    'modelFacingToolCall',
+    'structuredPayload',
+    'screenshotRef',
+    'screenshotUrl',
+    'screenshotRefs',
+    'screenshot',
+    'screenshotContentType',
+    'rawEventType',
+    'success',
+    'modelId',
+    'modelProvider',
+  ];
+  copyKeys.forEach((key) => {
+    const value = metadata[key];
+    if (value !== undefined && value !== null) {
+      payload[key] = value;
+    }
+  });
+  if (raw) {
+    payload.raw = raw;
+  }
+  return payload;
 }
 
 function displayTextFromRowContent(content: unknown): string {
   return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
 }
 
-function structuredPayload(message: DisplayMessage): Record<string, unknown> {
-  const payload = recordPayload(message).structuredPayload;
-  return payload && typeof payload === 'object' && !Array.isArray(payload)
-    ? payload as Record<string, unknown>
-    : {};
-}
-
 function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
-  const screenshotRef = stringField(payload, 'screenshotRef', 'screenshot_ref');
-  const screenshotUrl = stringField(payload, 'screenshotUrl', 'screenshot_url');
-  const screenshotRefs = stringArrayField(payload, 'screenshotRefs', 'screenshot_refs');
+  const screenshotRef = stringField(payload, 'screenshotRef');
+  const screenshotUrl = stringField(payload, 'screenshotUrl');
+  const screenshotRefs = stringArrayField(payload, 'screenshotRefs');
   const screenshotState = resolveScreenshotAttachmentState({
-    screenshot: stringField(payload, 'screenshot', 'image'),
+    screenshot: stringField(payload, 'screenshot'),
     screenshotRef,
     screenshotUrl,
-    screenshotContentType: stringField(payload, 'screenshotContentType', 'screenshot_content_type'),
+    screenshotContentType: stringField(payload, 'screenshotContentType'),
     preserveInlineScreenshotWithRemote: false,
   });
   const screenshotAttachments = buildRemoteScreenshotAttachments(
@@ -92,21 +118,6 @@ function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<
     ...(screenshotState.screenshotContentType ? { screenshotContentType: screenshotState.screenshotContentType } : {}),
     ...(screenshotAttachments.length > 0 ? { screenshots: screenshotAttachments } : {}),
   };
-}
-
-function firstToolCall(message: DisplayMessage): Record<string, unknown> | null {
-  const payload = recordPayload(message);
-  const structured = structuredPayload(message);
-  const candidate = recordField(payload, 'toolCalls')
-    ?? recordField(payload, 'tool_calls')
-    ?? recordField(structured, 'tool_calls');
-  if (!Array.isArray(candidate)) {
-    return null;
-  }
-  const first = candidate[0];
-  return first && typeof first === 'object' && !Array.isArray(first)
-    ? first as Record<string, unknown>
-    : null;
 }
 
 function recordFromPayloadValue(value: unknown): Record<string, unknown> | null {
@@ -147,7 +158,7 @@ function buildAssistantChatMessage(message: DisplayMessage): ChatMessage {
 
 function buildToolCallMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
-  const toolCall = firstToolCall(message);
+  const toolCall = recordFromPayloadValue(recordField(payload, 'modelFacingToolCall'));
   const args = recordFromPayloadValue(recordField(payload, 'args'));
   const bundleToolCallPayload = message.messageType === 'tool_bundle_call'
     ? recordPayload(message)
@@ -203,10 +214,7 @@ function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
 
 function buildToolProgressMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
-  const rawEvent = recordField(payload, 'rawEvent');
-  const rawEventType = rawEvent && typeof rawEvent === 'object' && !Array.isArray(rawEvent)
-    ? recordField(rawEvent as Record<string, unknown>, 'type')
-    : null;
+  const rawEventType = recordField(payload, 'rawEventType');
   return {
     id: message.id,
     text: message.text,
@@ -265,6 +273,7 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
   }
   if (row.type === 'tool_call') {
     const content = row.content;
+    const modelFacingToolCall = recordFromPayloadValue(row.metadata?.modelFacingToolCall) ?? content;
     return {
       id: row.id,
       conversationRef: row.conversationRef,
@@ -281,8 +290,7 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
       correlationId: row.metadata?.correlationId ?? null,
       metadata: {
         ...payload,
-        model_facing_tool_call: content,
-        tool_calls: [content],
+        modelFacingToolCall,
       },
     };
   }

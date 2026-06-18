@@ -38,8 +38,10 @@ describe('sdkDisplayChatMessageProjection', () => {
           toolName: 'read_file',
           requestId: 'req-1',
           toolCallId: 'call-1',
-          raw: {
-            args: { path: 'package.json' },
+          modelFacingToolCall: {
+            id: 'call-1',
+            name: 'read_file',
+            arguments: { path: 'package.json' },
           },
         },
       },
@@ -56,9 +58,7 @@ describe('sdkDisplayChatMessageProjection', () => {
           toolName: 'read_file',
           requestId: 'req-1',
           toolCallId: 'call-1',
-          raw: {
-            success: true,
-          },
+          success: true,
         },
       },
       {
@@ -118,10 +118,8 @@ describe('sdkDisplayChatMessageProjection', () => {
         metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
-          raw: {
-            screenshotRef: 'artifact-user-1',
-            screenshot: 'inline-shot',
-          },
+          screenshotRef: 'artifact-user-1',
+          screenshot: 'inline-shot',
         },
       },
     ]);
@@ -149,9 +147,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
-          raw: {
-            screenshot_refs: ['artifact-user-1', 'artifact-user-2'],
-          },
+          screenshotRefs: ['artifact-user-1', 'artifact-user-2'],
         },
       },
     ])).toEqual([
@@ -185,10 +181,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         metadata: {
           revisionId: 'rev-1',
           timestamp: '2026-05-15T12:00:00.000Z',
-          raw: {
-            text: 'look at both',
-            screenshot_refs: ['artifact-user-1', 'artifact-user-2'],
-          },
+          screenshotRefs: ['artifact-user-1', 'artifact-user-2'],
         },
       },
     ])).toEqual([
@@ -222,9 +215,7 @@ describe('sdkDisplayChatMessageProjection', () => {
         content: 'Partial answer',
         isStreaming: true,
         metadata: {
-          raw: {
-            reasoningText: 'Thinking through it.',
-          },
+          reasoningText: 'Thinking through it.',
         },
       },
     ])).toEqual([
@@ -257,12 +248,7 @@ describe('sdkDisplayChatMessageProjection', () => {
           toolName: 'web_search',
           requestId: 'req-search-1',
           correlationId: 'corr-search-1',
-          raw: {
-            text: 'Searched example.com',
-            rawEvent: {
-              type: 'web-search-progress',
-            },
-          },
+          rawEventType: 'web-search-progress',
         },
       },
     ])).toEqual([

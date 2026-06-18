@@ -266,31 +266,36 @@ describe('Agent SDK conversation runtime core', () => {
       'assistant_message',
     ]);
     expect(rows.map(row => row.index)).toEqual([0, 1, 2, 3, 4, 5]);
-	    expect(rows[1]).toMatchObject({
-	      role: 'assistant',
-	      type: 'tool_call',
-	      content: {
-	        id: 'call-readme',
-	        name: 'read_file',
-	        arguments: { path: 'README.md' },
-	      },
-	      metadata: {
-	        toolName: 'read_file',
-	        requestId: 'req-readme',
+    expect(rows[1]).toMatchObject({
+      role: 'assistant',
+      type: 'tool_call',
+      content: {
+        id: 'call-readme',
+        name: 'read_file',
+        arguments: { path: 'README.md' },
+      },
+      metadata: {
+        toolName: 'read_file',
+        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+        modelFacingToolCall: {
+          id: 'call-readme',
+          name: 'read_file',
+          arguments: { path: 'README.md' },
+        },
+      },
+    });
+    expect(rows[2]).toMatchObject({
+      role: 'tool',
+      type: 'tool_output',
+      content: 'README contents',
+      metadata: {
+        toolName: 'read_file',
+        requestId: 'req-readme',
         toolCallId: 'call-readme',
       },
     });
-		    expect(rows[2]).toMatchObject({
-		      role: 'tool',
-		      type: 'tool_output',
-		      content: 'README contents',
-	      metadata: {
-	        toolName: 'read_file',
-	        requestId: 'req-readme',
-	        toolCallId: 'call-readme',
-	      },
-			    });
-			  });
+  });
 
   test('SDK display rows project live assistant deltas and settle to the final assistant row', () => {
     const liveEvents = [

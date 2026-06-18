@@ -264,6 +264,11 @@ function stringArrayField(record: JsonRecord, ...keys: string[]): string[] | nul
   return null;
 }
 
+function rawEventTypeFromPayload(payload: JsonRecord): string | null {
+  const rawEvent = recordFromUnknown(payload.rawEvent);
+  return rawEvent ? stringField(rawEvent, 'type') : null;
+}
+
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   const screenshotRef = stringField(event.payload, 'screenshotRef', 'screenshot_ref');
   const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
@@ -281,6 +286,11 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
     screenshotRef,
     screenshotUrl: stringField(event.payload, 'screenshotUrl', 'screenshot_url'),
     screenshotRefs,
+    screenshot: stringField(event.payload, 'screenshot', 'image'),
+    screenshotContentType: stringField(event.payload, 'screenshotContentType', 'screenshot_content_type'),
+    structuredPayload: structuredPayloadFrom(event.payload),
+    rawEventType: rawEventTypeFromPayload(event.payload),
+    success: typeof event.payload.success === 'boolean' ? event.payload.success : null,
     modelId: stringField(event.payload, 'modelId', 'model_id'),
     modelProvider: stringField(event.payload, 'modelProvider', 'model_provider'),
     raw: event.payload,
@@ -396,14 +406,16 @@ function displayRowFromEvent(event: ConversationEvent, index: number): SdkDispla
     };
   }
   if (event.type === 'tool_call') {
+    const modelFacingToolCall = modelFacingToolCallFromPayload(event.payload);
     return {
       ...displayRowBase(event, index),
       role: 'assistant',
       type: 'tool_call',
-      content: modelFacingToolCallFromPayload(event.payload),
+      content: modelFacingToolCall,
       metadata: {
         ...displayRowMetadata(event),
         toolName: toolNameFromPayload(event.payload),
+        modelFacingToolCall,
       },
     };
   }
@@ -522,6 +534,7 @@ function buildStreamingAssistantRow(
     isStreaming: true,
     metadata: {
       ...displayRowMetadata(event),
+      reasoningText,
       raw,
     },
   };
@@ -551,6 +564,7 @@ function buildFinalAssistantRow(
     content: textFromPayload(event.payload),
     metadata: {
       ...displayRowMetadata(event),
+      reasoningText,
       raw,
     },
   };

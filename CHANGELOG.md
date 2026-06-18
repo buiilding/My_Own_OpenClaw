@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/renderer: promote normalized SDK display-row metadata for screenshots,
+  reasoning, tool-call identity, tool progress source type, and tool-output
+  status so renderer chat projection no longer parses raw backend-shaped
+  payload fields for persisted display rows; no migration is required because
+  event storage and backend wire contracts are unchanged.
 - docs/tools: align tool hub and ADR 005 local schema ownership wording with
   the desktop client/local-runtime manifest pipeline plus Python sidecar
   executors; no migration is required because this changes docs/tests only.

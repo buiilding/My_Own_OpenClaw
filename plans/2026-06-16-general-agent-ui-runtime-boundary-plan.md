@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK display-row metadata projection boundary
+
+- Finding: renderer SDK display-row projection still parsed raw
+  backend-shaped fields such as `tool_calls`, `model_facing_tool_call`,
+  `screenshot_ref`, and `rawEvent` from `metadata.raw` even though the SDK
+  already owns durable conversation projections.
+- Change: promoted normalized display metadata for reasoning text, screenshots,
+  model-facing tool calls, structured payloads, progress source types, and
+  tool-output success into SDK display rows; renderer chat projection now
+  consumes those SDK fields and keeps `metadata.raw` only as preserved
+  inspection/debug context.
+- Validation: focused SDK conversation-runtime and renderer display-row
+  projection Jest coverage, plus stale renderer projection scans for retired
+  backend-shaped field parsing.
+- Compatibility: no migration required. Stored conversation events, backend
+  websocket payloads, artifact URLs, and SDK display-row content remain
+  compatible; this tightens internal SDK metadata consumed by the first-party
+  renderer.
+
 ### 2026-06-18 local tool manifest ownership wording
 
 - Finding: the tools hub and ADR 005 still described local schemas as
