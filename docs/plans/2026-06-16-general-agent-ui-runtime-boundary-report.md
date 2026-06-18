@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Agent SDK Runtime Wording In Active Docs
+
+- Worktree was clean after `2bc5e0186`, with `main` ahead of `origin/main` by
+  865 commits.
+- Recent commits and source/docs scans for product-copy, local-backend, and
+  SDK-agent wording were inspected before editing.
+- Finding: active hosted-client, frontend architecture, development, and
+  runtime-node docs still used "SDK agent" labels for runtime concerns such as
+  websocket transport ownership, Electron startup, and backend-bound
+  connections, while the current reusable boundary is Agent SDK runtime/host
+  ownership.
+- Change: reworded those docs to Agent SDK runtime/startup/connection wording
+  and expanded the modular boundary guard to cover the active hosted-client
+  doc plus exact retired phrases.
+- Validation: focused modular boundary Jest coverage, targeted stale wording
+  scans for the touched docs, docs listing, and diff check.
+- Compatibility: no migration required. Documentation and guard coverage only;
+  agent-definition payloads, websocket transport, Electron startup, endpoint
+  selection, and renderer behavior are unchanged.
+
 ### 2026-06-18 Installation Endpoint Fallback Contract
 
 - Worktree was clean after `7b5f1767a`, with `main` ahead of `origin/main` by

@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/install: align first-read endpoint fallback guidance with the current
   explicit local-backend contract instead of claiming hosted failures silently
   switch to local backend candidates.
+- docs/runtime: align hosted client, frontend architecture, development, and
+  node-matrix docs with Agent SDK runtime/startup/connection wording instead
+  of stale SDK-agent runtime labels.
 - tests/main: extend the host-skin boundary guard so the hosted runs API auth
   header remains skin-owned instead of moving back into the generic VM worker
   runtime.

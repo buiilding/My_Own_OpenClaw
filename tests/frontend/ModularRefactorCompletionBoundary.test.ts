@@ -349,6 +349,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/renderer_runtime.md',
       'docs/frontend/renderer/renderer_state_change_workflow.md',
       'docs/frontend/sidecar/browser_automation_stack.md',
+      'docs/sdk/hosted_backend_clients.md',
       'docs/nodes/desktop_and_sidecar_node.md',
       'docs/nodes/runtime_node_matrix.md',
       'docs/reference/code_change_surface_index.md',
@@ -366,7 +367,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Agent SDK tool');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
+    expect(docText).not.toContain('SDK agent runtime concern');
     expect(docText).not.toContain('SDK agent host');
+    expect(docText).not.toContain('SDK agent startup');
+    expect(docText).not.toContain('SDK agent connection');
+    expect(docText).not.toContain('direct SDK agent');
     expect(docText).not.toContain('SDK agent ->');
     expect(docText).not.toContain('SDK agent/conversation runtime');
     expect(docText).not.toContain('SDK agent stream-event module');

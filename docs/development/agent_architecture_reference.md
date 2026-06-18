@@ -251,7 +251,7 @@ WindieOS frontend has four live runtimes:
   active transcript projection, and display-only tool rows.
 - Preload owns the narrow allowlisted IPC bridge exposed to the renderer.
 - Electron main owns desktop shell policy: windows, overlays, menus, lifecycle,
-  IPC handlers, endpoint diagnostics, permission prompts, direct SDK agent
+  IPC handlers, endpoint diagnostics, permission prompts, direct Agent SDK
   startup, sidecar supervision, wakeword supervision, screenshots, and platform
   policy.
 - Python sidecar owns local authority: filesystem, shell/process, computer use,

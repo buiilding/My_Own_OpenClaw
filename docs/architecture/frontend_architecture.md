@@ -324,7 +324,7 @@ Primary modules:
   - Keeps Electron-only side effects in main: install-auth persistence,
     endpoint diagnostics, settings ACK gates, overlay phase changes, renderer
     IPC registration, and native window/screenshot policy.
-  - Opens the SDK agent connection on demand for backend-bound work instead of at app startup.
+  - Opens the Agent SDK connection on demand for backend-bound work instead of at app startup.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.
