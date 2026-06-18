@@ -52,6 +52,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/local-runtime: treat daemon discovery launch contexts as compatibility
   supersets so generic Agent SDK and WindieOS launch keys do not force local
   runtime restart loops.
+- sidecar/runtime: accept generic `AGENT_*` local-runtime feature env names for
+  semantic summarizer, packaged-app, and browser feature-pack flags while
+  preserving WindieOS host-skin aliases.
 - renderer/runtime: route active workspace fetch, request, and restore commands
   through the renderer app workspace runtime client instead of an
   IPC-backed workspace helper imported by chat and dashboard features.

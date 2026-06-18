@@ -298,6 +298,54 @@ def test_resolve_sidecar_log_level_falls_back_on_invalid_value(monkeypatch):
     )
 
 
+def test_local_runtime_feature_flags_prefer_agent_env(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "1")
+    monkeypatch.setenv(
+        local_backend_module.ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        "1",
+    )
+    monkeypatch.setenv(local_backend_module.ENV_PACKAGED_APP, "0")
+    monkeypatch.setenv(
+        local_backend_module.ENV_AGENT_ENABLE_SEMANTIC_SUMMARIZER,
+        "0",
+    )
+    monkeypatch.setenv(
+        local_backend_module.ENV_AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        "0",
+    )
+    monkeypatch.setenv(local_backend_module.ENV_AGENT_PACKAGED_APP, "1")
+
+    backend = LocalRuntimeService()
+
+    assert backend._semantic_summarizer_enabled is False
+    assert backend._browser_feature_pack_autoinstall_enabled is False
+    assert backend._packaged_app is True
+
+
+def test_local_runtime_feature_flags_support_windie_legacy_env(monkeypatch):
+    monkeypatch.delenv(
+        local_backend_module.ENV_AGENT_ENABLE_SEMANTIC_SUMMARIZER,
+        raising=False,
+    )
+    monkeypatch.delenv(
+        local_backend_module.ENV_AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        raising=False,
+    )
+    monkeypatch.delenv(local_backend_module.ENV_AGENT_PACKAGED_APP, raising=False)
+    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "0")
+    monkeypatch.setenv(
+        local_backend_module.ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        "0",
+    )
+    monkeypatch.setenv(local_backend_module.ENV_PACKAGED_APP, "1")
+
+    backend = LocalRuntimeService()
+
+    assert backend._semantic_summarizer_enabled is False
+    assert backend._browser_feature_pack_autoinstall_enabled is False
+    assert backend._packaged_app is True
+
+
 def test_collect_runtime_dependency_warnings_linux_missing_xdotool(monkeypatch):
     monkeypatch.setattr(local_backend_module.platform, "system", lambda: "Linux")
     monkeypatch.setattr(local_backend_module.shutil, "which", lambda _name: None)

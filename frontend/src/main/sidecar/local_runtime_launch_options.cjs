@@ -129,6 +129,9 @@ function buildLocalRuntimeDaemonEnv({
   });
   const envConfig = resolveLocalRuntimeDaemonEnvConfig(localRuntimeEnv);
   const sourceIdentity = resolveLocalRuntimeSourceStamp(launchTarget);
+  const inheritedSemanticSummarizer = typeof process.env[envConfig.semanticSummarizer] === 'string'
+    ? process.env[envConfig.semanticSummarizer]
+    : undefined;
   const backendEnv = withLocalRuntimeNodeOptions({
     ...process.env,
     PYTHONUNBUFFERED: '1',
@@ -136,8 +139,22 @@ function buildLocalRuntimeDaemonEnv({
     ...(envConfig.backendHttpUrl !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.backendHttpUrl
       ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.backendHttpUrl]: endpointConfig.httpUrl }
       : {}),
+    ...(typeof inheritedSemanticSummarizer === 'string'
+      ? {
+          [envConfig.semanticSummarizer]: inheritedSemanticSummarizer,
+          ...(envConfig.semanticSummarizer !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.semanticSummarizer
+            ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.semanticSummarizer]: inheritedSemanticSummarizer }
+            : {}),
+        }
+      : {}),
     [envConfig.packagedApp]: isPackaged ? '1' : '0',
+    ...(envConfig.packagedApp !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.packagedApp
+      ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.packagedApp]: isPackaged ? '1' : '0' }
+      : {}),
     [envConfig.browserFeaturePackAutoinstall]: isPackaged ? '0' : '1',
+    ...(envConfig.browserFeaturePackAutoinstall !== DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.browserFeaturePackAutoinstall
+      ? { [DEFAULT_LOCAL_RUNTIME_DAEMON_ENV.browserFeaturePackAutoinstall]: isPackaged ? '0' : '1' }
+      : {}),
     [envConfig.sourcePath]: sourceIdentity.sourcePath,
     [envConfig.sourceStamp]: sourceIdentity.sourceStamp,
     ...(typeof authStatePath === 'string' && authStatePath.trim()

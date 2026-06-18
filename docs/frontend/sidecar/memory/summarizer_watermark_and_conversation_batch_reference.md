@@ -22,7 +22,9 @@ The sidecar summarizer periodically converts episodic interaction rows into sema
 
 Dev toggle:
 
-- `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` disables summarizer startup in `local_backend.py`.
+- `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` disables summarizer startup in
+  `local_backend.py`; `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` remains the
+  WindieOS host-skin alias.
 - When disabled, episodic writes still persist to local memory; periodic semanticization loop does not run.
 
 ## Settings and Scheduling Model

@@ -179,18 +179,40 @@ describe('desktop local runtime launch options', () => {
   });
 
   test('uses configured host local-runtime daemon env keys in launch context', () => {
-    const plan = createDesktopLocalRuntimeLaunchPlan({
-      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
-      localRuntimeEnv: mainHostSkin.localRuntime.env,
-      authStatePath: '/tmp/auth.json',
-      permissionStatePath: '/tmp/permissions.json',
-    });
+    const originalSemanticSummarizer = process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER;
+    const originalAgentSemanticSummarizer = process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER;
+    let plan;
+    try {
+      process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = '0';
+      process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER = '1';
+      plan = createDesktopLocalRuntimeLaunchPlan({
+        backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+        localRuntimeEnv: mainHostSkin.localRuntime.env,
+        authStatePath: '/tmp/auth.json',
+        permissionStatePath: '/tmp/permissions.json',
+      });
+    } finally {
+      if (typeof originalSemanticSummarizer === 'string') {
+        process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER = originalSemanticSummarizer;
+      } else {
+        delete process.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER;
+      }
+      if (typeof originalAgentSemanticSummarizer === 'string') {
+        process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER = originalAgentSemanticSummarizer;
+      } else {
+        delete process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER;
+      }
+    }
 
     expect(plan.ok).toBe(true);
     expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.env.AGENT_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
+    expect(plan.options.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
+    expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
+    expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
     expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
     expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
+    expect(plan.options.env.WINDIE_ENABLE_SEMANTIC_SUMMARIZER).toBe('0');
     expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
     expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
     expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');

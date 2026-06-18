@@ -60,6 +60,11 @@ except (
     if _LOCAL_MEMORY_STORE_IMPORT_ERROR is None:
         _LOCAL_MEMORY_STORE_IMPORT_ERROR = exc
 
+ENV_AGENT_ENABLE_SEMANTIC_SUMMARIZER = "AGENT_ENABLE_SEMANTIC_SUMMARIZER"
+ENV_AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = (
+    "AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
+)
+ENV_AGENT_PACKAGED_APP = "AGENT_PACKAGED_APP"
 ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
 ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = (
     "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
@@ -67,6 +72,16 @@ ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = (
 ENV_PACKAGED_APP = "WINDIE_PACKAGED_APP"
 ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
 CHROMIUM_INSTALL_TIMEOUT_SECONDS = 900
+SEMANTIC_SUMMARIZER_ENV_LABEL = (
+    f"{ENV_AGENT_ENABLE_SEMANTIC_SUMMARIZER} / {ENV_ENABLE_SEMANTIC_SUMMARIZER}"
+)
+
+
+def _env_flag_enabled_any(names: tuple[str, ...], default: bool = True) -> bool:
+    for name in names:
+        if os.getenv(name) is not None:
+            return env_flag_enabled(name, default=default)
+    return default
 
 
 def _resolve_sidecar_log_level() -> int:
@@ -115,16 +130,25 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
         self._event_sink: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None
         self._summarizer: Optional[MemorySummarizer] = None
         self._runtime_dependency_warnings: list[str] = []
-        self._semantic_summarizer_enabled = env_flag_enabled(
-            ENV_ENABLE_SEMANTIC_SUMMARIZER,
+        self._semantic_summarizer_enabled = _env_flag_enabled_any(
+            (
+                ENV_AGENT_ENABLE_SEMANTIC_SUMMARIZER,
+                ENV_ENABLE_SEMANTIC_SUMMARIZER,
+            ),
             default=True,
         )
-        self._browser_feature_pack_autoinstall_enabled = env_flag_enabled(
-            ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+        self._browser_feature_pack_autoinstall_enabled = _env_flag_enabled_any(
+            (
+                ENV_AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+                ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+            ),
             default=True,
         )
-        self._packaged_app = env_flag_enabled(
-            ENV_PACKAGED_APP,
+        self._packaged_app = _env_flag_enabled_any(
+            (
+                ENV_AGENT_PACKAGED_APP,
+                ENV_PACKAGED_APP,
+            ),
             default=False,
         )
         self._feature_pack_install_lock = asyncio.Lock()
@@ -297,7 +321,7 @@ class LocalRuntimeService(LocalRuntimeMemoryHandlersMixin):
             else:
                 logger.info(
                     "Memory summarizer disabled via %s",
-                    ENV_ENABLE_SEMANTIC_SUMMARIZER,
+                    SEMANTIC_SUMMARIZER_ENV_LABEL,
                 )
         except asyncio.CancelledError:
             if memory_store is not None:

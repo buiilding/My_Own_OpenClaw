@@ -176,7 +176,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Request times out | sidecar readiness, long-running handler, timeout policy, stuck tool/browser/memory call |
 | Sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged sidecar launch target |
 | JSON parse errors in main | Python stdout pollution, non-JSON output, partial/large response parsing |
-| Method works in source but fails packaged | runtime dependency packaging, `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
+| Method works in source but fails packaged | runtime dependency packaging, `AGENT_PACKAGED_APP` / `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
 | Memory command maps wrong user/conversation | SDK local-runtime store params, fallback keys, sidecar memory handler defaults |
 | Tool result shape differs from renderer expectation | `ToolResult`, local tool runtime normalization, screenshot materialization wrapper |
 

@@ -63,7 +63,14 @@ readiness/status broadcasts.
 1. `initializeLocalRuntimeBridge(...)` resolves windows and creates an SDK local runtime provider from desktop launch options.
 2. The bridge must not spawn `local_backend.py` as a standalone Electron-owned process.
 3. Launch target resolution must prefer packaged binaries/runtime paths in packaged mode and source Python paths in development mode.
-4. Startup env must preserve `PYTHONUNBUFFERED=1`, `WINDIE_BACKEND_HTTP_URL`, `WINDIE_BACKEND_AUTH_STATE_PATH` when provided, `WINDIE_PERMISSION_STATE_PATH` when provided, `WINDIE_PACKAGED_APP`, `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`, and packaged Python isolation variables when applicable.
+4. Startup env must preserve `PYTHONUNBUFFERED=1`, the generic local-runtime
+   keys (`AGENT_BACKEND_HTTP_URL`, `AGENT_BACKEND_AUTH_STATE_PATH` when
+   provided, `AGENT_PACKAGED_APP`,
+   `AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`) plus WindieOS skin aliases
+   when configured (`WINDIE_BACKEND_HTTP_URL`, `WINDIE_BACKEND_AUTH_STATE_PATH`,
+   `WINDIE_PERMISSION_STATE_PATH`, `WINDIE_PACKAGED_APP`,
+   `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`), and packaged Python
+   isolation variables when applicable.
 5. The `get-local-runtime-status` bootstrap read is a readiness probe: when a valid SDK local runtime provider exists and no runtime client has been resolved yet, it wakes the SDK local runtime and then returns the current status payload.
 6. A resolved SDK local runtime provider emits `local-runtime-status` with `ready:true` and the full normalized status payload.
 7. SDK provider failures keep `ready:false`, publish `status:"error"` with a short sanitized error, and helper calls fail closed.

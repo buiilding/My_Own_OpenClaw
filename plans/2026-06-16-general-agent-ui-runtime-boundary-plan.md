@@ -8197,3 +8197,21 @@ Each completed slice should report:
   WindieOS launch keys still compare correctly; new discovery files may include
   extra compatibility keys without changing daemon auth, endpoint, or tool
   execution behavior.
+
+### 2026-06-18 Python local-runtime feature env alias boundary
+
+- Finding: generic Electron local-runtime launch plans emitted Agent SDK
+  `AGENT_*` feature flags, but the Python local-runtime service still read only
+  WindieOS env names for semantic summarizer, browser feature-pack
+  autoinstall, and packaged-app mode.
+- Change: made the Python local-runtime service read generic Agent SDK feature
+  env names first with WindieOS aliases preserved, and mirrored WindieOS
+  host-skin feature values into the generic env names during Electron daemon
+  launch so inherited shell env cannot override the configured skin values.
+- Validation: focused Python local-runtime feature flag, summarizer, and
+  browser feature-pack pytest coverage; focused Electron local-runtime launch
+  and main host skin Jest coverage; source scans; docs listing; and
+  `git diff --check`.
+- Compatibility: no migration required. Existing WindieOS env names continue to
+  work, generic host launches now work with `AGENT_*` feature flags, and
+  packaged/browser/summarizer runtime behavior is otherwise unchanged.

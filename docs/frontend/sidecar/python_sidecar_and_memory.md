@@ -43,7 +43,9 @@ Registered methods include:
 Operational behavior:
 
 - initializes memory store + optional summarizer at startup
-- semantic summarizer can be disabled for dev runs with `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0`
+- semantic summarizer can be disabled for dev runs with
+  `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0`; WindieOS Electron launches also accept
+  `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` through the host skin alias
 - keeps single in-process tool registry instance
 - returns structured success/error responses for each RPC method
 
