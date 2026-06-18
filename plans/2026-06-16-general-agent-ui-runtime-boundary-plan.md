@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 main layer log root boundary
+
+- Finding: Electron main and CLI log helpers still defaulted repo-local layer logs to `.desktop-agent/logs`, keeping a retired desktop-agent development path on the generic main host boundary.
+- Change: moved the default layer log root to `.windie/logs` and updated launcher/CLI log docs plus focused tests; explicit `WINDIE_*_LOG_FILE` overrides remain unchanged.
+- Validation: focused LayerLogSink, ElectronLauncher, and WindieCli log Jest coverage, docs listing, exact stale `.desktop-agent/logs` scan, and diff checks.
+- Compatibility: no persisted runtime migration required. The old directory was repo-local scratch log output; existing files are not read as state, and operators can still point overrides at any legacy path.
+
 ### 2026-06-18 renderer permission onboarding storage key boundary
 
 - Finding: permission onboarding persistence still used the retired `desktop-agent-permission-onboarding` namespace after storage-key ownership moved into the WindieOS renderer skin config.

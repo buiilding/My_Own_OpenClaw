@@ -72,6 +72,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie logs main');
     expect(result.stdout).toContain('windie logs renderer [--verbose]');
     expect(result.stdout).toContain('windie logs sidecar');
+    expect(result.stdout).not.toContain('windie logs desktop');
     expect(result.stdout).toContain('windie commits search <query> [--limit <n>] [--json]');
   });
 
@@ -222,7 +223,7 @@ describe('windie CLI', () => {
   });
 
   test('resolves frontend log tail arguments', () => {
-    const defaultLog = path.join(repoRoot, '.desktop-agent', 'logs', 'frontend.log');
+    const defaultLog = path.join(repoRoot, '.windie', 'logs', 'frontend.log');
     expect(resolveFrontendLogFile({})).toBe(defaultLog);
     expect(resolveFrontendLogFile({ WINDIE_FRONTEND_LOG_FILE: '/tmp/frontend.log' }))
       .toBe('/tmp/frontend.log');
@@ -243,15 +244,13 @@ describe('windie CLI', () => {
   });
 
   test('resolves layer-owned log tail arguments', () => {
-    const logsDir = path.join(repoRoot, '.desktop-agent', 'logs');
-    expect(normalizeWindieLogTarget('desktop')).toBe('main');
+    const logsDir = path.join(repoRoot, '.windie', 'logs');
     expect(resolveWindieLogFile('vite', {})).toBe(path.join(logsDir, 'vite.log'));
     expect(resolveWindieLogFile('main', {})).toBe(path.join(logsDir, 'main.log'));
     expect(resolveWindieLogFile('renderer', {})).toBe(path.join(logsDir, 'renderer.log'));
     expect(resolveWindieLogFile('renderer', {}, { verbose: true }))
       .toBe(path.join(logsDir, 'renderer.verbose.log'));
     expect(resolveWindieLogFile('sidecar', {})).toBe(path.join(logsDir, 'sidecar.log'));
-    expect(resolveWindieLogFile('desktop', {})).toBe(path.join(logsDir, 'main.log'));
     expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: '/tmp/sidecar.log' }))
       .toBe('/tmp/sidecar.log');
     expect(resolveWindieLogFile('sidecar', { WINDIE_SIDECAR_LOG_FILE: 'logs/sidecar.log' }))
@@ -268,10 +267,10 @@ describe('windie CLI', () => {
       logFile: path.join(logsDir, 'renderer.verbose.log'),
       tailArgs: ['-n', '20', path.join(logsDir, 'renderer.verbose.log')],
     });
-    expect(buildLayerLogTailArgs('desktop', ['--tail', '5'], {})).toEqual({
-      logFile: path.join(logsDir, 'main.log'),
-      tailArgs: ['-n', '5', '-F', path.join(logsDir, 'main.log')],
-    });
+    expect(() => normalizeWindieLogTarget('desktop'))
+      .toThrow('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
+    expect(() => resolveWindieLogFile('desktop', {}))
+      .toThrow('Usage: windie logs backend|frontend|vite|main|renderer|sidecar');
   });
 
   test('prints current frontend logs without following', () => {

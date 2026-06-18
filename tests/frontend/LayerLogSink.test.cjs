@@ -34,7 +34,7 @@ describe('layer_log_sink', () => {
     const repoRoot = path.resolve(__dirname, '../..');
 
     expect(resolveLayerLogFile('main', {})).toBe(
-      path.join(repoRoot, '.desktop-agent', 'logs', 'main.log'),
+      path.join(repoRoot, '.windie', 'logs', 'main.log'),
     );
     expect(resolveLayerLogFile('renderer', { WINDIE_RENDERER_LOG_FILE: '/tmp/renderer.log' }))
       .toBe('/tmp/renderer.log');

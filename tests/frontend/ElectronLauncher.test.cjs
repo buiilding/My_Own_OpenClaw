@@ -44,7 +44,7 @@ describe('electron-launcher', () => {
 
   test('resolveFrontendLogFile defaults to the repo-local frontend log', () => {
     expect(resolveFrontendLogFile({})).toBe(
-      path.resolve(__dirname, '../../.desktop-agent/logs/frontend.log'),
+      path.resolve(__dirname, '../../.windie/logs/frontend.log'),
     );
   });
 
