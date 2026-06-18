@@ -127,9 +127,10 @@ Each completed slice should report:
   screen-grounding code.
 - Change: rewrote the provider docstring to describe WindieOS screen grounding
   and added a focused source guard in the existing vision provider tests.
-- Validation: `scripts\python-in-env backend pytest tests/backend/test_vision_provider_loader.py -q -k "current_product_wording"`,
-  stale desktop-assistant source scan, and `git diff --check`. The full
-  `test_vision_provider_loader.py` suite was attempted, but fallback Python
+- Validation: provider py_compile, focused
+  `scripts\python-in-env backend pytest tests/backend/test_vision_provider_loader.py -q -k "current_product_wording"`,
+  docs listing, stale desktop-assistant source scan, and `git diff --check`.
+  The full `test_vision_provider_loader.py` suite was attempted, but fallback Python
   lacks vision model dependencies after the `jarvis` conda env was unavailable,
   so existing AutoModel monkeypatch tests fail before this wording guard.
 - Compatibility: no migration required. This changes source comments and test

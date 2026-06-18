@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime-boundary: correct the InternVL product-wording progress note
+  validation list to include the compile check and docs listing that were
+  actually run; no migration is required.
+
 - backend/vision: remove stale desktop-assistant wording from the InternVL
   provider source and guard the provider comment against old product copy; no
   migration is required because vision model loading and screen-grounding
