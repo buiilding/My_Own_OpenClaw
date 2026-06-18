@@ -81,9 +81,10 @@ platform path table. Default paths remain unchanged:
 WindieOS launches can still use `WINDIE_USER_DATA_DIR` for tests and special
 local runs. `AGENT_APP_DIAGNOSTICS_DB` similarly overrides the daemon
 diagnostics database path, with `WINDIE_APP_DIAGNOSTICS_DB` preserved as the
-WindieOS alias. Other Python local-runtime code uses the same helper while
-preserving its existing defaults unless it explicitly opts into daemon-style
-fallbacks.
+WindieOS alias. Tests that need to force platform-specific path behavior should
+prefer `AGENT_TEST_PLATFORM`; `WINDIE_TEST_PLATFORM` remains a compatibility
+alias. Other Python local-runtime code uses the same helper while preserving its
+existing defaults unless it explicitly opts into daemon-style fallbacks.
 
 ## Endpoints
 

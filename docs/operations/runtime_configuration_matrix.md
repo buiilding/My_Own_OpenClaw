@@ -87,6 +87,7 @@ Do not add backend-owned provider internals such as `speech_provider`, `stt_prov
 | `WINDIE_PERMISSION_STATE_PATH` | Sidecar env injected by Electron main through WindieOS host skin | Permission-state path for path resolution helpers. Generic host fallback: `AGENT_PERMISSION_STATE_PATH`. | `frontend/src/main/python/tools/path_resolution.py` |
 | `WINDIE_USER_DATA_DIR` | Sidecar daemon env | Daemon user-data root override for diagnostics/local storage. Generic host fallback: `AGENT_USER_DATA_DIR`. | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/core/user_data_paths.py` |
 | `WINDIE_APP_DIAGNOSTICS_DB` | Sidecar daemon env | Daemon diagnostics database override. Generic host fallback: `AGENT_APP_DIAGNOSTICS_DB`. | `frontend/src/main/python/sidecar_daemon.py` |
+| `WINDIE_TEST_PLATFORM` | Sidecar daemon test env | Test-only platform override for daemon user-data path resolution. Generic test fallback: `AGENT_TEST_PLATFORM`. | `frontend/src/main/python/sidecar_daemon.py`, `tests/sidecar/test_sidecar_daemon.py` |
 | Browser env vars (`WINDIE_BROWSER_CDP_PORT`, `WINDIE_BROWSER_USE_HOME`, `WINDIE_BROWSER_USE_SESSION`, `WINDIE_BROWSER_USE_CLI`, `WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS`, `WINDIE_BROWSER_FILES_DIR`) | Sidecar env | Dedicated browser port, Browser Use daemon settings, and browser file storage behavior. Generic host fallbacks use matching `AGENT_BROWSER_*` names. | `frontend/src/main/python/tools/browser/**` |
 
 ## VM Worker and Runs API Variables

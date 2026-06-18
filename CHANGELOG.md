@@ -79,6 +79,8 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/daemon: accept generic `AGENT_USER_DATA_DIR` and
   `AGENT_APP_DIAGNOSTICS_DB` daemon data-path env aliases while preserving
   WindieOS aliases.
+- sidecar/daemon: accept generic `AGENT_TEST_PLATFORM` for test-only
+  platform-path forcing while preserving the WindieOS test alias.
 - frontend/testing: accept generic `AGENT_MOCK_USER_ID` and `AGENT_USER_ID`
   target-user aliases in the mock-memory seed helper while preserving WindieOS
   aliases.

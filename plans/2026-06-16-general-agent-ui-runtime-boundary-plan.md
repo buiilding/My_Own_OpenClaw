@@ -8369,3 +8369,17 @@ Each completed slice should report:
   continue to work, generic hosts can use `AGENT_WAKEWORD_MODEL_DIR`, and the
   default WindieOS user-data cache location plus model download/bootstrap
   behavior are unchanged.
+
+### 2026-06-18 Python sidecar daemon test-platform env alias boundary
+
+- Finding: the Python sidecar daemon user-data resolver had generic data-path
+  env aliases, but its test-only platform override still read only
+  `WINDIE_TEST_PLATFORM`.
+- Change: made daemon platform-forcing tests and resolver code prefer
+  `AGENT_TEST_PLATFORM` with the WindieOS test alias preserved.
+- Validation: focused sidecar daemon pytest coverage, docs listing, source
+  scans, and `git diff --check`.
+- Compatibility: no migration required. Existing `WINDIE_TEST_PLATFORM` tests
+  continue to work, generic test harnesses can use `AGENT_TEST_PLATFORM`, and
+  default user-data path resolution plus diagnostics storage behavior are
+  unchanged.

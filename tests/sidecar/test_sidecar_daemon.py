@@ -65,9 +65,50 @@ def test_sidecar_daemon_user_data_root_preserves_windie_env_alias(
     tmp_path: Path, monkeypatch
 ):
     windie_root = tmp_path / "windie"
+    monkeypatch.delenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, raising=False)
     monkeypatch.setenv(sidecar_daemon.ENV_USER_DATA_DIR, str(windie_root))
 
     assert sidecar_daemon.app_user_data_root() == windie_root
+
+
+def test_sidecar_daemon_test_platform_prefers_generic_env(monkeypatch, tmp_path):
+    captured = {}
+
+    def fake_user_data_root(**kwargs):
+        captured.update(kwargs)
+        return tmp_path / "root"
+
+    monkeypatch.delenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, raising=False)
+    monkeypatch.delenv(sidecar_daemon.ENV_USER_DATA_DIR, raising=False)
+    monkeypatch.setenv(sidecar_daemon.ENV_AGENT_TEST_PLATFORM, "linux")
+    monkeypatch.setenv(sidecar_daemon.ENV_TEST_PLATFORM, "win32")
+    monkeypatch.setattr(
+        sidecar_daemon, "resolve_app_user_data_root", fake_user_data_root
+    )
+
+    assert sidecar_daemon.app_user_data_root() == tmp_path / "root"
+    assert captured["platform_name"] == "linux"
+
+
+def test_sidecar_daemon_test_platform_preserves_windie_env_alias(
+    monkeypatch, tmp_path
+):
+    captured = {}
+
+    def fake_user_data_root(**kwargs):
+        captured.update(kwargs)
+        return tmp_path / "root"
+
+    monkeypatch.delenv(sidecar_daemon.ENV_AGENT_USER_DATA_DIR, raising=False)
+    monkeypatch.delenv(sidecar_daemon.ENV_USER_DATA_DIR, raising=False)
+    monkeypatch.delenv(sidecar_daemon.ENV_AGENT_TEST_PLATFORM, raising=False)
+    monkeypatch.setenv(sidecar_daemon.ENV_TEST_PLATFORM, "win32")
+    monkeypatch.setattr(
+        sidecar_daemon, "resolve_app_user_data_root", fake_user_data_root
+    )
+
+    assert sidecar_daemon.app_user_data_root() == tmp_path / "root"
+    assert captured["platform_name"] == "win32"
 
 
 def test_sidecar_daemon_diagnostics_path_prefers_generic_env(

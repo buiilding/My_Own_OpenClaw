@@ -36,6 +36,8 @@ ENV_AGENT_USER_DATA_DIR = "AGENT_USER_DATA_DIR"
 ENV_USER_DATA_DIR = "WINDIE_USER_DATA_DIR"
 ENV_AGENT_APP_DIAGNOSTICS_DB = "AGENT_APP_DIAGNOSTICS_DB"
 ENV_APP_DIAGNOSTICS_DB = "WINDIE_APP_DIAGNOSTICS_DB"
+ENV_AGENT_TEST_PLATFORM = "AGENT_TEST_PLATFORM"
+ENV_TEST_PLATFORM = "WINDIE_TEST_PLATFORM"
 LOCAL_RUNTIME_TOKEN_HEADER = "x-agent-local-runtime-token"
 MCP_PROTOCOL_VERSION = "2024-11-05"
 MCP_DISCOVERY_DIAGNOSTICS_PATH = "mcp.discovery"
@@ -207,7 +209,8 @@ def app_user_data_root() -> Path:
     if override:
         return Path(override)
     return resolve_app_user_data_root(
-        platform_name=normalize_string(os.getenv("WINDIE_TEST_PLATFORM")) or None,
+        platform_name=first_env_value(ENV_AGENT_TEST_PLATFORM, ENV_TEST_PLATFORM)
+        or None,
         allow_windows_home_fallback=True,
         honor_xdg_config_home=True,
     )
