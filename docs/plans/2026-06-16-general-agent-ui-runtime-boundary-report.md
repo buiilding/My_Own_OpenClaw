@@ -117,8 +117,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   registry, path-resolution, wait, and PDF dependency diagnostics now qualify
   Python sidecar runtime/tool ownership. Tool authoring, extension, and sidecar
   daemon docs now qualify built-in Python sidecar tool ownership.
+  Voice and wakeword routing hubs now label renderer voice capture and Electron
+  wakeword bridge ownership explicitly instead of broad frontend labels.
 
 ## Inspection Log
+
+### 2026-06-18 Voice Routing Renderer/Electron Owner Labels Slice
+
+- Worktree was clean after `d66b6a092`, with `main` ahead of `origin/main` by
+  830 commits.
+- Finding: voice and wakeword routing docs still labeled renderer voice capture
+  and Electron wakeword bridge references with broad frontend wording.
+- Change: reworded those link labels to Renderer Voice Capture and Electron
+  Wakeword Bridge and added a modular docs guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; voice
+  IPC, wakeword bridge behavior, renderer capture behavior, Python wakeword
+  service behavior, storage, credentials, and provider policy are unchanged.
 
 ### 2026-06-18 Built-In Python Sidecar Tool Docs Wording Slice
 

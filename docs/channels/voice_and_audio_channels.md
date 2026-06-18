@@ -47,7 +47,7 @@ Read next:
 
 - [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Wakeword](../desktop/voice_and_wakeword.md)
-- [Frontend Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Electron Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 
 ## Voice Dictation Channel

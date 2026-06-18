@@ -1014,4 +1014,21 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(offenders).toEqual({});
   });
+
+  test('voice routing docs use renderer and electron owner labels', async () => {
+    const docs = await Promise.all([
+      read('docs/channels/voice_audio_change_workflow.md'),
+      read('docs/channels/voice_and_audio_channels.md'),
+      read('docs/desktop/voice_and_wakeword.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/nodes/runtime_node_matrix.md'),
+      read('docs/README.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('Renderer Voice Capture');
+    expect(docText).toContain('Electron Wakeword Bridge');
+    expect(docText).not.toContain('Frontend Voice Capture');
+    expect(docText).not.toContain('Frontend Wakeword Bridge');
+  });
 });

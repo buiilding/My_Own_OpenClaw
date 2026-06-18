@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Voice Routing Renderer/Electron Owner Labels
+
+- Finding: voice and wakeword routing docs still labeled renderer voice capture
+  and Electron wakeword bridge references with broad frontend wording.
+- Change: reworded those link labels to Renderer Voice Capture and Electron
+  Wakeword Bridge and added a modular docs guard.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only; voice
+  IPC, wakeword bridge behavior, renderer capture behavior, Python wakeword
+  service behavior, storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Built-In Python Sidecar Tool Docs Wording
 
 - Finding: tool authoring, extension, and sidecar daemon docs still used
