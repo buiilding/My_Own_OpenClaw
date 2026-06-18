@@ -273,7 +273,7 @@ Frontend stream flow:
 
 ```text
 backend websocket event
-  -> SDK desktop agent normalization/projection
+  -> SDK agent runtime normalization/projection
   -> Electron main forwards windie:rows + windie:conversation-event + windie:current-turn
   -> renderer projection listener updates live rows
   -> renderer stream side effects persist transcript metadata/events
@@ -301,13 +301,13 @@ portion as the dashboard instead of maintaining a divergent response model.
 
 - Query send: renderer chat sender -> desktop live-turn runtime facade ->
   `windie:invoke` command `conversation.send` -> Electron main query payload
-  builder -> SDK desktop agent -> backend websocket.
+  builder -> SDK agent runtime -> backend websocket.
 - Backend loop: websocket `query` -> query handler/service -> agent session ->
   executor -> interaction loop -> provider call -> final answer or tool calls.
-- Stream receive: backend websocket event -> SDK desktop-agent projection ->
+- Stream receive: backend websocket event -> SDK agent-runtime projection ->
   `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and
   `windie:status` -> renderer projection and transcript side effects.
-- Tool turn: backend model-visible tool call -> SDK desktop-agent tool router ->
+- Tool turn: backend model-visible tool call -> SDK agent-runtime tool router ->
   sidecar executable tool -> SDK result return -> backend history.
 - Conversation history: renderer-visible transcript and local-runtime-backed SDK store
   are durable local authority; backend sessions are inference state that can be

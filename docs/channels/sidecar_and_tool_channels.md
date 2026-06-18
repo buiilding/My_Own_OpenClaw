@@ -15,7 +15,7 @@ Local tools cross every WindieOS runtime boundary. The backend decides what the 
 ```mermaid
 sequenceDiagram
     participant Backend as Backend agent loop
-    participant SDK as SDK desktop agent
+    participant SDK as SDK agent runtime
     participant Main as Electron main
     participant Renderer as Renderer display surfaces
     participant Sidecar as Python sidecar daemon
@@ -82,14 +82,14 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, the SDK desktop agent returns results to the backend
+After sidecar execution, the SDK agent runtime returns results to the backend
 using the normal `/ws` tool-result path. The renderer receives SDK display rows
 for chat/transcript/overlay state from that local execution path. Backend
 ingests local results for model/history continuation only; it does not echo
 local `tool-result` messages back to the UI as `tool-output` events.
 
 The desktop `ChatProvider` is a display consumer. Backend tool-call execution
-belongs to the SDK desktop agent and sidecar daemon.
+belongs to the SDK agent runtime and sidecar daemon.
 
 Result path rules:
 
@@ -118,7 +118,7 @@ Read next:
 | Symptom | Owner to inspect |
 | --- | --- |
 | model never sees tool | backend tool schema/policy |
-| backend emits tool-call but no local action happens | SDK desktop agent local-runtime routing or sidecar daemon bridge |
+| backend emits tool-call but no local action happens | SDK agent runtime local-runtime routing or sidecar daemon bridge |
 | tool card appears twice or looks duplicated | SDK display projection or renderer card rendering |
 | sidecar returns error before action | sidecar tool validation/runtime |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |
@@ -129,7 +129,7 @@ Read next:
 Use the narrowest test set for the changed boundary:
 
 - backend schema/policy/formatter/tool-result tests for model-facing changes
-- SDK desktop-agent tests for backend tool-call routing/result projection changes
+- SDK agent-runtime tests for backend tool-call routing/result projection changes
 - renderer chat-stream tests for display-only event behavior
 - main-process IPC/local-runtime bridge tests for channel mapping changes
 - sidecar pytest tests for executable tool behavior

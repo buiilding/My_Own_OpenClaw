@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs/runtime-boundary: replace conceptual `SDK desktop agent` wording in
+  architecture, channel, frontend IPC, query relay, and tool lifecycle docs
+  with SDK agent-runtime terminology; no migration is required because this is
+  docs/test boundary wording only.
 - frontend/main: rename the private preload IPC channel registry launch
   argument from `--desktop-agent-ipc-channels` to
   `--desktop-runtime-ipc-channels`; no migration is required because the

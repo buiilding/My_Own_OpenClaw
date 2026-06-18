@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 docs SDK agent-runtime topology wording
+
+- Finding: current architecture, channel, query relay, and tool lifecycle docs
+  still described SDK-owned transport/projection/tool routing as the
+  `SDK desktop agent`, which made the SDK runtime sound coupled to the desktop
+  host package.
+- Change: replaced that conceptual wording with SDK agent-runtime / Agent SDK
+  host terminology and expanded docs boundary coverage to keep the old phrase
+  out of current docs.
+- Validation: focused ModularRefactorCompletionBoundary Jest test, docs listing,
+  recent history review, and stale `SDK desktop agent` / `SDK desktop-agent`
+  phrase scan outside historical plan files.
+- Compatibility: no migration required because this is docs/test wording only;
+  runtime behavior, public IPC names, storage, and payload contracts are
+  unchanged.
+
 ### 2026-06-18 preload IPC registry argument wording
 
 - Finding: Electron main and preload still exchanged the private IPC channel
