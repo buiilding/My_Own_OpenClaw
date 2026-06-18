@@ -118,8 +118,12 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('bundledRuntime');
     expect(skinSource).toContain('missingPythonRuntime');
     expect(skinSource).toContain('localRuntime');
+    expect(skinSource).toContain("backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL'");
+    expect(skinSource).toContain("permissionStatePath: 'WINDIE_PERMISSION_STATE_PATH'");
     expect(skinSource).toContain("verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR'");
     expect(skinSource).toContain('browserWarmupExplanation');
+    expect(skinSource).toContain('wakeword');
+    expect(skinSource).toContain("allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
   });
 
   test('shared permission manifest uses generic desktop-runtime descriptions', () => {
@@ -323,6 +327,24 @@ describe('main host skin/config boundary', () => {
     }
   });
 
+  test('wakeword process env names live in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const wakewordSource = fs.readFileSync(
+      path.join(mainRoot, 'wakeword/wakeword_bridge.cjs'),
+      'utf8',
+    );
+    const mainWindowSource = fs.readFileSync(mainWindowRuntimePath, 'utf8');
+
+    expect(skinSource).toContain("packagedApp: 'WINDIE_PACKAGED_APP'");
+    expect(skinSource).toContain("allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
+    expect(wakewordSource).toContain("packagedApp: 'AGENT_PACKAGED_APP'");
+    expect(wakewordSource).toContain("allowRuntimeDownload: 'AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
+    expect(wakewordSource).toContain('resolveWakewordEnvConfig');
+    expect(mainWindowSource).toContain('wakewordEnv: mainHostSkin?.wakeword?.env');
+    expect(wakewordSource).not.toContain('WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD');
+    expect(wakewordSource).not.toContain('WINDIE_PACKAGED_APP');
+  });
+
   test('local runtime launch fallback avoids conda-environment-specific copy', () => {
     const source = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
 
@@ -405,6 +427,27 @@ describe('main host skin/config boundary', () => {
     expect(ipcSource).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
     expect(utilsSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
     expect(launchSource).not.toContain('WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR');
+  });
+
+  test('local runtime daemon transport env names live in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const launchSource = fs.readFileSync(localRuntimeLaunchOptionsPath, 'utf8');
+    const ipcSource = fs.readFileSync(mainIpcPath, 'utf8');
+
+    expect(skinSource).toContain("backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL'");
+    expect(skinSource).toContain("backendAuthStatePath: 'WINDIE_BACKEND_AUTH_STATE_PATH'");
+    expect(skinSource).toContain("semanticSummarizer: 'WINDIE_ENABLE_SEMANTIC_SUMMARIZER'");
+    expect(skinSource).toContain("packagedApp: 'WINDIE_PACKAGED_APP'");
+    expect(skinSource).toContain("browserFeaturePackAutoinstall: 'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL'");
+    expect(skinSource).toContain("sourcePath: 'WINDIE_LOCAL_RUNTIME_SOURCE_PATH'");
+    expect(skinSource).toContain("sourceStamp: 'WINDIE_LOCAL_RUNTIME_SOURCE_STAMP'");
+    expect(skinSource).toContain("permissionStatePath: 'WINDIE_PERMISSION_STATE_PATH'");
+    expect(launchSource).toContain("backendHttpUrl: 'AGENT_BACKEND_HTTP_URL'");
+    expect(launchSource).toContain('resolveLocalRuntimeDaemonEnvConfig');
+    expect(ipcSource).toContain('localRuntimeEnv: mainHostSkin.localRuntime.env');
+    expect(launchSource).not.toContain('WINDIE_BACKEND_HTTP_URL');
+    expect(launchSource).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
+    expect(launchSource).not.toContain('WINDIE_PERMISSION_STATE_PATH');
   });
 
   test('host skin local readiness copy uses local-runtime wording', () => {

@@ -6,6 +6,7 @@ const path = require('path');
 
 const {
   createDesktopLocalRuntimeLaunchPlan,
+  resolveLocalRuntimeDaemonEnvConfig,
 } = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const launchOptionsModule = require('../../frontend/src/main/sidecar/local_runtime_launch_options.cjs');
 const localRuntimeUtilsModule = require('../../frontend/src/main/sidecar/local_runtime_utils.cjs');
@@ -72,13 +73,15 @@ describe('desktop local runtime launch options', () => {
     expect(source).toContain('LOCAL_RUNTIME_SOURCE_STAMP_FILES');
     expect(source).toContain('resolveLocalRuntimeSourceStamp');
     expect(source).toContain('buildLocalRuntimeLaunchContextFromEnv');
-    expect(source).toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
-    expect(source).toContain('WINDIE_LOCAL_RUNTIME_SOURCE_STAMP');
+    expect(source).toContain('AGENT_LOCAL_RUNTIME_SOURCE_PATH');
+    expect(source).toContain('AGENT_LOCAL_RUNTIME_SOURCE_STAMP');
     expect(source).not.toContain('buildSidecarDaemonEnv');
     expect(source).not.toContain('writeSidecarDaemonLogLine');
     expect(source).not.toContain(['SIDECAR', 'SOURCE', 'STAMP', 'FILES'].join('_'));
     expect(source).not.toContain('WINDIE_SIDECAR_SOURCE_PATH');
     expect(source).not.toContain('WINDIE_SIDECAR_SOURCE_STAMP');
+    expect(source).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_PATH');
+    expect(source).not.toContain('WINDIE_LOCAL_RUNTIME_SOURCE_STAMP');
     expect(source).not.toContain(['resolveSidecar', 'SourceStamp'].join(''));
     expect(source).not.toContain(['buildSidecar', 'LaunchContextFromEnv'].join(''));
   });
@@ -145,22 +148,58 @@ describe('desktop local runtime launch options', () => {
     expect(plan.error).not.toContain('Sidecar daemon script not found');
   });
 
-  test('includes source identity in daemon launch context', () => {
+  test('uses generic local-runtime daemon env defaults in launch context', () => {
+    expect(resolveLocalRuntimeDaemonEnvConfig()).toMatchObject({
+      backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
+      backendAuthStatePath: 'AGENT_BACKEND_AUTH_STATE_PATH',
+      packagedApp: 'AGENT_PACKAGED_APP',
+      sourcePath: 'AGENT_LOCAL_RUNTIME_SOURCE_PATH',
+      sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
+    });
     const plan = createDesktopLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });
 
     expect(plan.ok).toBe(true);
+    expect(plan.options.env.AGENT_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.env.AGENT_PACKAGED_APP).toBe('0');
+    expect(plan.options.env.AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
+    expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_PATH)
+      .toBe(plan.launchTarget.resolvedPath);
+    expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP)
+      .toContain('sidecar_daemon.py:');
+    expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP)
+      .toContain('local_backend.py:');
+    expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP)
+      .toContain('local_backend_memory_handlers.py:');
+    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH).toBeUndefined();
+    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP).toBeUndefined();
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBeUndefined();
+    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toBeUndefined();
+  });
+
+  test('uses configured host local-runtime daemon env keys in launch context', () => {
+    const plan = createDesktopLocalRuntimeLaunchPlan({
+      backendEndpoints: { httpUrl: 'https://api.windieos.com' },
+      localRuntimeEnv: mainHostSkin.localRuntime.env,
+      authStatePath: '/tmp/auth.json',
+      permissionStatePath: '/tmp/permissions.json',
+    });
+
+    expect(plan.ok).toBe(true);
+    expect(plan.options.env.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.env.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
+    expect(plan.options.env.WINDIE_PERMISSION_STATE_PATH).toBe('/tmp/permissions.json');
+    expect(plan.options.env.WINDIE_PACKAGED_APP).toBe('0');
+    expect(plan.options.env.WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL).toBe('1');
+    expect(plan.options.launchContext.WINDIE_BACKEND_HTTP_URL).toBe('https://api.windieos.com');
+    expect(plan.options.launchContext.WINDIE_BACKEND_AUTH_STATE_PATH).toBe('/tmp/auth.json');
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_PATH)
       .toBe(plan.launchTarget.resolvedPath);
     expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
       .toContain('sidecar_daemon.py:');
-    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
-      .toContain('local_backend.py:');
-    expect(plan.options.launchContext.WINDIE_LOCAL_RUNTIME_SOURCE_STAMP)
-      .toContain('local_backend_memory_handlers.py:');
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_PATH).toBeUndefined();
-    expect(plan.options.launchContext.WINDIE_SIDECAR_SOURCE_STAMP).toBeUndefined();
+    expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_PATH).toBeUndefined();
+    expect(plan.options.launchContext.AGENT_LOCAL_RUNTIME_SOURCE_STAMP).toBeUndefined();
   });
 
   test('desktop launch owns a fresh local runtime instead of reusing discovered daemons', () => {

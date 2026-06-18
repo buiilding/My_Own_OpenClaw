@@ -20,6 +20,9 @@ jest.mock('electron', () => ({
 }));
 
 const mockAppendWakewordLifecycleDiagnostic = jest.fn();
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 jest.mock('../../frontend/src/main/diagnostics/app_diagnostics_runtime.cjs', () => ({
   appendWakewordLifecycleDiagnostic: (...args) => mockAppendWakewordLifecycleDiagnostic(...args),
@@ -44,7 +47,12 @@ describe('wakeword_bridge', () => {
     jest.restoreAllMocks();
   });
 
-  const initBridge = ({ isPackaged = false, mockExistsSync = null, mainWindow: suppliedMainWindow = null } = {}) => {
+  const initBridge = ({
+    isPackaged = false,
+    mockExistsSync = null,
+    mainWindow: suppliedMainWindow = null,
+    wakewordEnv = undefined,
+  } = {}) => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
@@ -112,7 +120,9 @@ describe('wakeword_bridge', () => {
     };
     const onWakewordDetected = jest.fn();
 
-    bridge.initializeWakewordBridge(mainWindow, onWakewordDetected);
+    bridge.initializeWakewordBridge(mainWindow, onWakewordDetected, {
+      ...(wakewordEnv ? { wakewordEnv } : {}),
+    });
 
     return {
       bridge,
@@ -458,8 +468,8 @@ describe('wakeword_bridge', () => {
 
       const spawnOptions = spawn.mock.calls[0][2];
       expect(spawnOptions.env).toEqual(expect.objectContaining({
-        WINDIE_PACKAGED_APP: '1',
-        WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        AGENT_PACKAGED_APP: '1',
+        AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
         PYTHONDONTWRITEBYTECODE: '1',
       }));
       if (process.platform === 'win32') {
@@ -471,6 +481,40 @@ describe('wakeword_bridge', () => {
         expect(spawnOptions.env.PYTHONNOUSERSITE).toBe('1');
       }
       expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
+    } finally {
+      process.resourcesPath = originalResourcesPath;
+    }
+  });
+
+  test('packaged mode uses configured host wakeword env names', () => {
+    const originalResourcesPath = process.resourcesPath;
+    process.resourcesPath = '/opt/WindieOS/resources';
+    const runtimePython = process.platform === 'win32'
+      ? '/opt/WindieOS/resources/python-runtime/python.exe'
+      : '/opt/WindieOS/resources/python-runtime/bin/python3';
+
+    try {
+      initBridge({
+        isPackaged: true,
+        wakewordEnv: mainHostSkin.wakeword.env,
+        mockExistsSync: (candidate) => {
+          const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
+          return (
+            normalizedCandidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
+            || normalizedCandidate === runtimePython
+          );
+        },
+      });
+      handlers['wakeword-enable']();
+
+      const spawnOptions = spawn.mock.calls[0][2];
+      expect(spawnOptions.env).toEqual(expect.objectContaining({
+        WINDIE_PACKAGED_APP: '1',
+        WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        PYTHONDONTWRITEBYTECODE: '1',
+      }));
+      expect(spawnOptions.env.AGENT_PACKAGED_APP).toBeUndefined();
+      expect(spawnOptions.env.AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD).toBeUndefined();
     } finally {
       process.resourcesPath = originalResourcesPath;
     }

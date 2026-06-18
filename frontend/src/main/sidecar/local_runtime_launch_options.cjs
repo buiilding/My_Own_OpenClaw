@@ -28,15 +28,16 @@ const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
 );
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 10000;
 const DEFAULT_DAEMON_POLL_INTERVAL_MS = 100;
-const DAEMON_LAUNCH_CONTEXT_ENV_KEYS = [
-  'WINDIE_BACKEND_HTTP_URL',
-  'WINDIE_BACKEND_AUTH_STATE_PATH',
-  'WINDIE_ENABLE_SEMANTIC_SUMMARIZER',
-  'WINDIE_PACKAGED_APP',
-  'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
-  'WINDIE_LOCAL_RUNTIME_SOURCE_PATH',
-  'WINDIE_LOCAL_RUNTIME_SOURCE_STAMP',
-];
+const DEFAULT_LOCAL_RUNTIME_DAEMON_ENV = Object.freeze({
+  backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
+  backendAuthStatePath: 'AGENT_BACKEND_AUTH_STATE_PATH',
+  semanticSummarizer: 'AGENT_ENABLE_SEMANTIC_SUMMARIZER',
+  packagedApp: 'AGENT_PACKAGED_APP',
+  browserFeaturePackAutoinstall: 'AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
+  sourcePath: 'AGENT_LOCAL_RUNTIME_SOURCE_PATH',
+  sourceStamp: 'AGENT_LOCAL_RUNTIME_SOURCE_STAMP',
+  permissionStatePath: 'AGENT_PERMISSION_STATE_PATH',
+});
 
 const LOCAL_RUNTIME_SOURCE_STAMP_FILES = [
   'sidecar_daemon.py',
@@ -49,6 +50,36 @@ const LOCAL_RUNTIME_LOG_PREFIXES = [
   '[Tool]',
   '[MCP]',
 ];
+
+function normalizeEnvKey(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function resolveLocalRuntimeDaemonEnvConfig(localRuntimeEnv = {}) {
+  return Object.freeze(Object.fromEntries(
+    Object.entries(DEFAULT_LOCAL_RUNTIME_DAEMON_ENV).map(([key, fallback]) => [
+      key,
+      normalizeEnvKey(localRuntimeEnv?.[key], fallback),
+    ]),
+  ));
+}
+
+function resolveDaemonLaunchContextEnvKeys(localRuntimeEnv = {}) {
+  const envConfig = resolveLocalRuntimeDaemonEnvConfig(localRuntimeEnv);
+  return [
+    envConfig.backendHttpUrl,
+    envConfig.backendAuthStatePath,
+    envConfig.semanticSummarizer,
+    envConfig.packagedApp,
+    envConfig.browserFeaturePackAutoinstall,
+    envConfig.sourcePath,
+    envConfig.sourceStamp,
+  ];
+}
 
 function createMissingCommandError({ isPackaged, copy = {}, runtimePathEnv = {} } = {}) {
   if (isPackaged) {
@@ -88,6 +119,7 @@ function resolveLocalRuntimeSourceStamp(launchTarget) {
 function buildLocalRuntimeDaemonEnv({
   isPackaged = false,
   backendEndpoints,
+  localRuntimeEnv,
   permissionStatePath,
   authStatePath,
   launchTarget,
@@ -95,20 +127,21 @@ function buildLocalRuntimeDaemonEnv({
   const endpointConfig = backendEndpoints || resolveBackendEndpoints(process.env, {
     isPackaged,
   });
+  const envConfig = resolveLocalRuntimeDaemonEnvConfig(localRuntimeEnv);
   const sourceIdentity = resolveLocalRuntimeSourceStamp(launchTarget);
   const backendEnv = withLocalRuntimeNodeOptions({
     ...process.env,
     PYTHONUNBUFFERED: '1',
-    WINDIE_BACKEND_HTTP_URL: endpointConfig.httpUrl,
-    WINDIE_PACKAGED_APP: isPackaged ? '1' : '0',
-    WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: isPackaged ? '0' : '1',
-    WINDIE_LOCAL_RUNTIME_SOURCE_PATH: sourceIdentity.sourcePath,
-    WINDIE_LOCAL_RUNTIME_SOURCE_STAMP: sourceIdentity.sourceStamp,
+    [envConfig.backendHttpUrl]: endpointConfig.httpUrl,
+    [envConfig.packagedApp]: isPackaged ? '1' : '0',
+    [envConfig.browserFeaturePackAutoinstall]: isPackaged ? '0' : '1',
+    [envConfig.sourcePath]: sourceIdentity.sourcePath,
+    [envConfig.sourceStamp]: sourceIdentity.sourceStamp,
     ...(typeof authStatePath === 'string' && authStatePath.trim()
-      ? { WINDIE_BACKEND_AUTH_STATE_PATH: authStatePath.trim() }
+      ? { [envConfig.backendAuthStatePath]: authStatePath.trim() }
       : {}),
     ...(typeof permissionStatePath === 'string' && permissionStatePath.trim()
-      ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath.trim() }
+      ? { [envConfig.permissionStatePath]: permissionStatePath.trim() }
       : {}),
     ...(
       isPackaged
@@ -134,9 +167,9 @@ function buildLocalRuntimeDaemonEnv({
   return backendEnv;
 }
 
-function buildLocalRuntimeLaunchContextFromEnv(env = {}) {
+function buildLocalRuntimeLaunchContextFromEnv(env = {}, localRuntimeEnv = {}) {
   const normalized = {};
-  for (const key of DAEMON_LAUNCH_CONTEXT_ENV_KEYS) {
+  for (const key of resolveDaemonLaunchContextEnvKeys(localRuntimeEnv)) {
     normalized[key] = typeof env[key] === 'string' ? env[key].trim() : '';
   }
   return normalized;
@@ -194,6 +227,7 @@ function createDesktopLocalRuntimeLaunchPlan({
   const env = buildLocalRuntimeDaemonEnv({
     backendEndpoints,
     isPackaged,
+    localRuntimeEnv,
     permissionStatePath,
     authStatePath,
     launchTarget,
@@ -207,7 +241,7 @@ function createDesktopLocalRuntimeLaunchPlan({
       discoveryFile,
       env,
       envMode: 'replace',
-      launchContext: buildLocalRuntimeLaunchContextFromEnv(env),
+      launchContext: buildLocalRuntimeLaunchContextFromEnv(env, localRuntimeEnv),
       reuseExisting: false,
       startTimeoutMs: DEFAULT_DAEMON_START_TIMEOUT_MS,
       pollIntervalMs: DEFAULT_DAEMON_POLL_INTERVAL_MS,
@@ -229,4 +263,5 @@ function createDesktopLocalRuntimeLaunchPlan({
 
 module.exports = {
   createDesktopLocalRuntimeLaunchPlan,
+  resolveLocalRuntimeDaemonEnvConfig,
 };

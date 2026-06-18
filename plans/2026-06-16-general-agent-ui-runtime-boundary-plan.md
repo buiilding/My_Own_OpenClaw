@@ -7825,3 +7825,23 @@ Each completed slice should report:
 - Compatibility: no migration required. WindieOS users keep the documented
   `WINDIE_*` debug flags; generic Electron host modules now use the `AGENT_*`
   defaults unless a host skin injects another env map.
+
+### 2026-06-18 main subprocess env skin boundary
+
+- Finding: Electron main local-runtime and wakeword launch helpers still owned
+  WindieOS subprocess env names such as `WINDIE_BACKEND_HTTP_URL`,
+  `WINDIE_PACKAGED_APP`, `WINDIE_LOCAL_RUNTIME_SOURCE_PATH`,
+  `WINDIE_PERMISSION_STATE_PATH`, and
+  `WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD`, even though those helpers are part
+  of the generic Electron agent host boundary.
+- Change: added generic `AGENT_*` defaults for local-runtime daemon and wakeword
+  subprocess launch env keys, moved the WindieOS mappings into
+  `main_host_skin.localRuntime.env` and `main_host_skin.wakeword.env`, and
+  passed those maps through IPC/main-window launch options.
+- Validation: focused local-runtime launch, wakeword bridge, main-window
+  runtime, and host-skin boundary Jest coverage, source scans, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. The WindieOS skin still injects the
+  existing `WINDIE_*` env names consumed by the Python local-runtime and
+  wakeword services; generic Electron host helpers use `AGENT_*` defaults
+  unless a host skin injects another subprocess env map.

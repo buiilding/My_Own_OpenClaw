@@ -27,6 +27,10 @@ const {
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
 
 const MAX_WAKEWORD_RESULT_FRAME_BYTES = 64 * 1024;
+const DEFAULT_WAKEWORD_ENV = Object.freeze({
+  packagedApp: 'AGENT_PACKAGED_APP',
+  allowRuntimeDownload: 'AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD',
+});
 
 let pythonProcess = null;
 let stderrBuffer = '';
@@ -35,6 +39,24 @@ const wakewordSupervisor = createWakewordSupervisor();
 
 function isIgnorableLogPipeError(error) {
   return error?.code === 'EPIPE' || error?.code === 'ERR_STREAM_DESTROYED';
+}
+
+function normalizeEnvKey(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function resolveWakewordEnvConfig(wakewordEnv = {}) {
+  return Object.freeze({
+    packagedApp: normalizeEnvKey(wakewordEnv?.packagedApp, DEFAULT_WAKEWORD_ENV.packagedApp),
+    allowRuntimeDownload: normalizeEnvKey(
+      wakewordEnv?.allowRuntimeDownload,
+      DEFAULT_WAKEWORD_ENV.allowRuntimeDownload,
+    ),
+  });
 }
 
 function writeWakewordLog(level, ...args) {
@@ -78,6 +100,7 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
     runtimePathEnv: options.runtimePathEnv,
   });
   const packagedApp = Boolean(app && app.isPackaged);
+  const wakewordEnvConfig = resolveWakewordEnvConfig(options.wakewordEnv);
   stderrBuffer = '';
 
   const startErrorMessage = resolveWakewordStartErrorMessage({
@@ -116,8 +139,8 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
   const wakewordEnv = {
     ...process.env,
     PYTHONUNBUFFERED: '1',
-    WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
-    WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: packagedApp ? '0' : '1',
+    [wakewordEnvConfig.packagedApp]: packagedApp ? '1' : '0',
+    [wakewordEnvConfig.allowRuntimeDownload]: packagedApp ? '0' : '1',
     ...(
       packagedApp
       && launchTarget.kind === 'python'
@@ -541,4 +564,5 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected, options = {}) 
 
 module.exports = {
   initializeWakewordBridge,
+  resolveWakewordEnvConfig,
 };

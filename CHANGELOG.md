@@ -26,6 +26,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/debug: inject WindieOS main-process debug env names from the main host
   skin instead of hardcoding them inside generic Electron host trace and
   diagnostics helpers.
+- main/runtime: inject WindieOS local-runtime daemon and wakeword subprocess env
+  key names from the main host skin instead of hardcoding them inside generic
+  Electron launch helpers.
 - main/runtime: inject the WindieOS verbose local-runtime stderr env name from
   the main host skin instead of hardcoding it inside generic local-runtime
   stderr filtering.

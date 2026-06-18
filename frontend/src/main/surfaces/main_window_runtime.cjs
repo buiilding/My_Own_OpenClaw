@@ -275,6 +275,7 @@ function createMainWindow({
   }, {
     bundledRuntimeCopy: mainHostSkin?.bundledRuntime,
     runtimePathEnv: mainHostSkin?.runtimePaths?.env,
+    wakewordEnv: mainHostSkin?.wakeword?.env,
   });
   initializeLocalRuntimeBridge(getWindows, {
     getKnownLocalRuntime,

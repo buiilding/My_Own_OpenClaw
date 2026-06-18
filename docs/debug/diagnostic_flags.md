@@ -64,8 +64,8 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 bin/windie start desktop
 | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python sidecar logs. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1` | Forwards verbose local-runtime stderr through Electron main via the WindieOS host-skin env mapping. |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=0` | Reduces local-runtime stderr noise; used by packaged reinstall helpers. Generic Electron hosts can use `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` unless they provide their own skin env key. |
-| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables semantic summarizer for focused local-runtime debugging. |
-| `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` | Prevents browser feature-pack auto-install while debugging availability. |
+| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables semantic summarizer for focused local-runtime debugging; Electron main injects the Windie key through `main_host_skin.localRuntime.env`. |
+| `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` | Prevents browser feature-pack auto-install while debugging availability; Electron main injects the Windie key through `main_host_skin.localRuntime.env`. |
 
 Sidecar stdout is protocol traffic. Never log debug text to stdout.
 

@@ -177,9 +177,24 @@ const bundledRuntime = Object.freeze({
 
 const localRuntime = Object.freeze({
   env: Object.freeze({
+    backendHttpUrl: 'WINDIE_BACKEND_HTTP_URL',
+    backendAuthStatePath: 'WINDIE_BACKEND_AUTH_STATE_PATH',
+    semanticSummarizer: 'WINDIE_ENABLE_SEMANTIC_SUMMARIZER',
+    packagedApp: 'WINDIE_PACKAGED_APP',
+    browserFeaturePackAutoinstall: 'WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL',
+    sourcePath: 'WINDIE_LOCAL_RUNTIME_SOURCE_PATH',
+    sourceStamp: 'WINDIE_LOCAL_RUNTIME_SOURCE_STAMP',
+    permissionStatePath: 'WINDIE_PERMISSION_STATE_PATH',
     verboseStderr: 'WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR',
   }),
   browserWarmupExplanation: `Open the ${productName} browser for onboarding and profile setup.`,
+});
+
+const wakeword = Object.freeze({
+  env: Object.freeze({
+    packagedApp: 'WINDIE_PACKAGED_APP',
+    allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD',
+  }),
 });
 
 const mainHostSkin = Object.freeze({
@@ -198,6 +213,7 @@ const mainHostSkin = Object.freeze({
   queryEvents,
   bundledRuntime,
   localRuntime,
+  wakeword,
   permissions: Object.freeze({
     browserAutomation,
     macAutomation,
