@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-17 SDK README local-runtime example prose
+
+- Finding: the public TypeScript SDK README used the current `autoLocalRuntime`
+  option, but still described local tool examples as local sidecar execution,
+  sidecar module-tool registration, and sidecar plugin package registration.
+- Change: changed the public README prose to local-runtime execution and
+  registration language, and added boundary coverage so sidecar-facing prose
+  does not return to the public SDK examples.
+- Validation: focused modular SDK refactor boundary Jest coverage, docs
+  listing, stale-prose scan, and diff checks.
+- Compatibility: no migration required. This changes package README copy and
+  tests only; `AgentClient`, auto-local-runtime launch behavior, module-tool
+  schemas, plugin registration, SDK payloads, and daemon startup are unchanged.
+
 ### 2026-06-17 renderer tool acceptance runtime label boundary
 
 - Finding: renderer tool acceptance summaries used skin labels for known execution
