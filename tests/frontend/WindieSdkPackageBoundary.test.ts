@@ -2,6 +2,9 @@
  * Covers Agent SDK package boundary behavior in the frontend test suite.
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 import {
   AgentClient,
   Agent,
@@ -30,7 +33,6 @@ import {
   resolveToolEventCorrelationId,
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
-  type AgentChatSendInput,
   type AgentClientOptions,
   type AgentInstallAuthOptions,
   type AgentHostedBackendClientOptions,
@@ -160,10 +162,15 @@ describe('@windie/sdk package boundary', () => {
     expect(toolSelection.builtins).toEqual(['browser']);
   });
 
-  test('exports generic chat session input aliases', () => {
-    const input: AgentChatSendInput = 'hello';
+  test('uses direct chat session input types without exported aliases', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/AgentChatSession.ts'),
+      'utf8',
+    );
 
-    expect(input).toBe('hello');
+    expect(source).not.toContain('AgentChatSendInput');
+    expect(source).not.toContain('AgentChatEditInput');
+    expect(source).not.toContain('AgentChatRetryInput');
   });
 
   test('exports generic agent API option types', () => {

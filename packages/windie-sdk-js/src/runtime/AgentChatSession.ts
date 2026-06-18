@@ -22,11 +22,7 @@ import type {
   TurnResult,
 } from './ConversationRuntime.js';
 
-export type AgentChatSendInput = string | SendInput;
-export type AgentChatEditInput = EditAndResendInput;
-export type AgentChatRetryInput = RetryTurnInput;
-
-function normalizeSendInput(input: AgentChatSendInput): SendInput {
+function normalizeSendInput(input: string | SendInput): SendInput {
   return typeof input === 'string' ? { text: input } : input;
 }
 
@@ -49,11 +45,11 @@ export class AgentChatSession {
     return (await this.load()).display;
   }
 
-  async send(input: AgentChatSendInput): Promise<TurnResult> {
+  async send(input: string | SendInput): Promise<TurnResult> {
     return this.runtime.send(normalizeSendInput(input));
   }
 
-  async *stream(input: AgentChatSendInput): AsyncIterableIterator<AgentStreamEvent> {
+  async *stream(input: string | SendInput): AsyncIterableIterator<AgentStreamEvent> {
     const seenToolOutputs = new Set<string>();
     for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
       const streamEvents = toAgentStreamEvents(runtimeEvent);
@@ -73,11 +69,11 @@ export class AgentChatSession {
     }
   }
 
-  async editAndResend(input: AgentChatEditInput): Promise<TurnResult> {
+  async editAndResend(input: EditAndResendInput): Promise<TurnResult> {
     return this.runtime.editAndResend(input);
   }
 
-  async retry(input: AgentChatRetryInput = {}): Promise<TurnResult> {
+  async retry(input: RetryTurnInput = {}): Promise<TurnResult> {
     return this.runtime.retryTurn(input);
   }
 

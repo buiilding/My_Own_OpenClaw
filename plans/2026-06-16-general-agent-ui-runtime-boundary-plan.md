@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK chat session input alias removal
+
+- Finding: `AgentChatSession` still exported `AgentChatSendInput`,
+  `AgentChatEditInput`, and `AgentChatRetryInput` aliases that only renamed
+  existing runtime input contracts.
+- Change: removed the duplicate type aliases, made chat-session methods use
+  `string | SendInput`, `EditAndResendInput`, and `RetryTurnInput` directly,
+  documented the replacement types, and added package-boundary coverage that the
+  aliases stay absent.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK docs route lookup,
+  and stale alias scan.
+- Compatibility: repo callers require no migration because exact scans found no
+  usages. External SDK callers using the removed aliases should import the direct
+  runtime input types instead.
+
 ### 2026-06-18 renderer replay error marker runtime key
 
 - Finding: edit/resend and retry replay handling tagged send failures with the

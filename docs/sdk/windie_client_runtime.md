@@ -144,7 +144,9 @@ over `SdkConversationRuntime`. `AgentChatSession.ts` is the canonical chat
 session module; the old Windie-prefixed chat session module has been removed so
 host code uses the `AgentChat*` names directly. Chat-session event subscribers
 use `AgentChatSession.onEvent(...)`; duplicate event-listener method aliases are
-not part of the SDK surface.
+not part of the SDK surface. Chat method parameters use the direct runtime
+input types (`SendInput`, `EditAndResendInput`, and `RetryTurnInput`) instead of
+extra `AgentChat*Input` aliases.
 Likewise, public agent API option and result shapes use generic `Agent*` names
 such as `AgentQueryOptions`, `AgentStopOptions`, `AgentTraceOptions`,
 `AgentMemoryQuery`, and `AgentStoreMemoryInput`. Client-level runtime options

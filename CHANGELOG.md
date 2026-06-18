@@ -5,6 +5,10 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove exported `AgentChatSendInput`, `AgentChatEditInput`, and
+  `AgentChatRetryInput` aliases so `AgentChatSession` methods use the direct
+  runtime input types. SDK callers using the removed aliases should import
+  `SendInput`, `EditAndResendInput`, or `RetryTurnInput` instead.
 - frontend/renderer: rename the private replay send-error marker from
   `__desktopAgentReplayStep` to `__desktopRuntimeReplayStep`; no migration is
   required because the marker is transient renderer error metadata and replay
