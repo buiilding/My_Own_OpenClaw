@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: align tool hub and ADR 005 local schema ownership wording with
+  the desktop client/local-runtime manifest pipeline plus Python sidecar
+  executors; no migration is required because this changes docs/tests only.
 - docs/sdk: describe the TypeScript SDK README as waking generic agents instead
   of Windie-specific agent types; no migration is required because this changes
   docs/tests only.

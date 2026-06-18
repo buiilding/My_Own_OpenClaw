@@ -1,8 +1,8 @@
 ---
-summary: "ADR 005 for the frontend/sidecar executable tool schema source of truth while preserving backend-owned model-facing policy and import-independent parity."
+summary: "ADR 005 for the desktop client/local-runtime executable tool manifest source of truth while preserving backend-owned model-facing policy and import-independent parity."
 read_when:
   - When changing backend tool schemas, sidecar executable tool manifests, schema parity tests, tool catalog generation, or provider-visible tool policy.
-  - When evaluating whether frontend/sidecar should publish executable tool manifests consumed by the backend.
+  - When evaluating whether the desktop client/local-runtime manifest pipeline should publish executable tool manifests consumed by the backend.
 title: "ADR 005: Frontend Tool Schema Source of Truth"
 ---
 
@@ -10,7 +10,9 @@ title: "ADR 005: Frontend Tool Schema Source of Truth"
 
 ## Status
 
-Accepted. Current implementation uses a frontend/sidecar-owned generated built-in client tool manifest for local tools, with backend-owned manifest trust checks, policy filtering, provider projection, and backend-native tools.
+Accepted. Current implementation uses a desktop client/local-runtime generated
+built-in client tool manifest for local tools, with backend-owned manifest trust
+checks, policy filtering, provider projection, and backend-native tools.
 
 ## Context
 
@@ -21,15 +23,19 @@ WindieOS has two related but distinct tool contracts:
 
 Historically, the backend owned the local model-facing tool catalog and emitted tool calls to the frontend. The sidecar owned local tool execution. That left local tools split across two runtimes and made drift easy.
 
-The frontend/sidecar now publishes a versioned executable manifest for local built-in tools. The backend consumes the manifest during handshake, validates it, applies policy/provider projection, and still owns backend-native tools.
+The desktop client/local-runtime pipeline now publishes a versioned executable
+manifest for local built-in tools. The backend consumes the manifest during
+handshake, validates it, applies policy/provider projection, and still owns
+backend-native tools.
 
 ## Decision
 
-Use the frontend/sidecar manifest pipeline for built-in local tools.
+Use the desktop client/local-runtime manifest pipeline for built-in local tools.
 
 Current rules:
 
-- frontend/sidecar owns built-in local tool schemas and executable tool implementation
+- the desktop client/local-runtime manifest pipeline owns built-in local tool
+  schemas, while Python sidecar code owns concrete executable implementations
 - Electron consumes `frontend/src/main/generated/builtin_tool_manifest.json`
 - the generated manifest is produced from `frontend/src/main/python/tools/manifest.py`
 - built-in manifest entries keep `schema` for backend validation/capability
@@ -39,7 +45,7 @@ Current rules:
   provider adaptation, capability narrowing, and backend-native tools
 - backend validates tool arguments only for backend-executed tools; local
   tool payload validation belongs to the SDK/main local execution path
-- frontend/sidecar do not import backend code
+- desktop client/local-runtime and sidecar code do not import backend code
 - drift prevention uses explicit parity tests and generated/shared contracts
 
 ## Alternatives Considered

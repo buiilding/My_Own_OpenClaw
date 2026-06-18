@@ -8,7 +8,9 @@ title: "Tools Hub"
 
 # Tools Hub
 
-WindieOS tools are split between frontend/sidecar-owned local schemas and executable implementations, backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
+WindieOS tools are split between desktop client/local-runtime manifest schemas,
+Python sidecar executable implementations, backend-owned remote tools and
+policy/projection, and SDK/main-process dispatch.
 
 ## Tool Families
 

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local tool manifest ownership wording
+
+- Finding: the tools hub and ADR 005 still described local schemas as
+  frontend/sidecar-owned, which blurred desktop client/local-runtime manifest
+  ownership with the Python sidecar's concrete executor implementation.
+- Change: reworded the tool hub and ADR status/rules around the desktop
+  client/local-runtime manifest pipeline, kept Python sidecar as executable
+  implementation owner, and added a boundary guard for the retired ownership
+  phrasing.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  ownership wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; generated
+  manifests, backend trust checks, provider projection, payloads, credentials,
+  and local execution are unchanged.
+
 ### 2026-06-18 TypeScript SDK README agent wording
 
 - Finding: the TypeScript SDK README described the package as waking
