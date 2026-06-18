@@ -3,12 +3,10 @@
  */
 
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { DesktopConversationSessionRuntimeClient } from './desktopConversationSessionRuntimeClient';
 import {
   type ConversationEvent,
 } from '../../infrastructure/api/agentSdkClient';
-import {
-  applyEventChatConversationProjection,
-} from '../../features/chat/session/conversationSessionRuntime';
 
 type HandleConversationEventIngressDeps = {
   getActiveConversationRef: () => string | null | undefined;
@@ -71,7 +69,7 @@ export function handleConversationEventIngress(
   }
   runBestEffort(() => {
     const activeConversationRef = deps.getActiveConversationRef();
-    applyEventChatConversationProjection({
+    DesktopConversationSessionRuntimeClient.applyEventChatConversationProjection({
       eventType: event.type,
       explicitConversationRef: event.conversationRef,
       resolvedConversationRef: conversationRef,

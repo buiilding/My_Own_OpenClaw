@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: centralize chat-session helper rule access behind
+  `DesktopConversationSessionRuntimeClient`, removing direct chat session
+  runtime imports from chat stream ingress and transcript runtime clients. No
+  migration required.
 - renderer/app: route connection-snapshot transcript user binding through
   `DesktopTranscriptSessionRuntimeClient` so `AppConfigProvider` no longer
   imports chat session runtime internals. No migration required.

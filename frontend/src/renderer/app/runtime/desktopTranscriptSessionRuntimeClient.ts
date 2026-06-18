@@ -3,7 +3,7 @@
  */
 
 import { desktopTranscriptSessionRuntime } from './desktopTranscriptSessionRuntime';
-import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
+import { DesktopConversationSessionRuntimeClient } from './desktopConversationSessionRuntimeClient';
 
 function updateTranscriptSession(
   conversationRef?: string | null,
@@ -32,7 +32,7 @@ export const DesktopTranscriptSessionRuntimeClient = {
   updateTranscriptSession,
 
   bindTranscriptUser(userId: unknown): boolean {
-    return applyTranscriptSessionUserBinding({
+    return DesktopConversationSessionRuntimeClient.bindTranscriptUser({
       userId,
       updateTranscriptSession,
     });

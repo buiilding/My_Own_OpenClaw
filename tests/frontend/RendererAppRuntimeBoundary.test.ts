@@ -8,8 +8,7 @@ import path from 'node:path';
 const appRoot = path.resolve(__dirname, '../../frontend/src/renderer/app');
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const allowedRelativePaths = new Set([
-  'runtime/desktopChatStreamIngressRuntime.ts',
-  'runtime/desktopTranscriptSessionRuntimeClient.ts',
+  'runtime/desktopConversationSessionRuntimeClient.ts',
 ]);
 const allowedSdkOwnedInternalChannelPaths = new Set([
   'infrastructure/ipc/channels.ts',
@@ -204,15 +203,36 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'providers/AppConfigProvider.jsx'),
       'utf8',
     );
-    const clientSource = await fs.readFile(
+    const transcriptClientSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopTranscriptSessionRuntimeClient.ts'),
+      'utf8',
+    );
+    const sessionClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationSessionRuntimeClient.ts'),
       'utf8',
     );
 
     expect(providerSource).toContain('DesktopTranscriptSessionRuntimeClient.bindTranscriptUser');
     expect(providerSource).not.toContain('features/chat/session/conversationSessionRuntime');
     expect(providerSource).not.toContain('applyTranscriptSessionUserBinding');
-    expect(clientSource).toContain('applyTranscriptSessionUserBinding');
+    expect(transcriptClientSource).toContain('DesktopConversationSessionRuntimeClient.bindTranscriptUser');
+    expect(transcriptClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
+    expect(sessionClientSource).toContain('applyTranscriptSessionUserBinding');
+  });
+
+  test('chat stream ingress projects conversation sessions through runtime client', async () => {
+    const ingressSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatStreamIngressRuntime.ts'),
+      'utf8',
+    );
+    const sessionClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationSessionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(ingressSource).toContain('DesktopConversationSessionRuntimeClient.applyEventChatConversationProjection');
+    expect(ingressSource).not.toContain('features/chat/session/conversationSessionRuntime');
+    expect(sessionClientSource).toContain('applyEventChatConversationProjection');
   });
 
   test('app runtime modules do not import chat feature internals', async () => {

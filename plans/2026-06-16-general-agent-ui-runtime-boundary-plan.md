@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Renderer Conversation Session Runtime Facade
+
+- Finding: app-runtime chat stream ingress and transcript session clients both
+  imported chat session helper internals directly, leaving multiple explicit
+  boundary-test exceptions for the same session rule module.
+- Change: added `DesktopConversationSessionRuntimeClient` as the single
+  app-runtime facade for shared conversation session helper rules, then routed
+  ingress conversation projection and transcript user binding through it.
+- Validation: focused chat ingress, conversation-session facade, transcript
+  runtime-client, app-config provider, conversation-session runtime, and
+  renderer app-runtime boundary tests plus frontend typecheck, docs listing,
+  and `git diff --check`.
+- Compatibility: no migration required. SDK conversation events, transcript
+  session updates, active conversation projection, turn mapping, connection
+  snapshots, IPC channels, credentials, permissions, local authority, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Renderer Transcript User Binding Runtime Client
 
 - Finding: `AppConfigProvider` still imported chat session runtime internals to
