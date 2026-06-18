@@ -299,6 +299,12 @@ describe('@windie/sdk package boundary', () => {
   });
 
   test('exports SDK-shaped host command names', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/SdkRuntimeCommands.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('SdkRuntimeCommand');
     expect(SDK_RUNTIME_COMMANDS).toEqual(expect.objectContaining({
       CONVERSATION_SEND: 'conversation.send',
       CONVERSATION_STOP: 'conversation.stop',

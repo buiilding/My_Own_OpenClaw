@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK runtime command type alias removal
+
+- Finding: `SdkRuntimeCommand` only re-exported a type union over
+  `SDK_RUNTIME_COMMANDS`, and exact scans found no callers outside the defining
+  module.
+- Change: removed the unused exported type alias while leaving the command-name
+  constant as the runtime and SDK contract, documented the direct constant
+  surface, and added package-boundary coverage so the alias stays removed.
+- Validation: focused WindieSdkPackageBoundary Jest test, SDK TypeScript
+  `--noEmit` compile, SDK command docs route lookup, and stale alias scan.
+- Compatibility: no repo migration required because there were no internal
+  callers. External SDK callers should use `SDK_RUNTIME_COMMANDS` directly or
+  derive a local value union from the constant if they need one.
+
 ### 2026-06-18 main layer log private guard markers
 
 - Finding: Electron main layer logging still installed console/stream guards on

@@ -36,7 +36,9 @@ Renderer runtime facades and Electron main import command names from the SDK
 package `SDK_RUNTIME_COMMANDS` export. The SDK package owns the string
 constants so first-party renderer facades, main-process handler keys, and
 non-renderer SDK callers use one command vocabulary instead of duplicating
-literals in each facade or IPC handler map.
+literals in each facade or IPC handler map. There is no exported
+`SdkRuntimeCommand` type alias; callers that need a command-name union should
+derive it from `SDK_RUNTIME_COMMANDS` locally.
 
 `desktopRuntimeTransport.ts` calls:
 

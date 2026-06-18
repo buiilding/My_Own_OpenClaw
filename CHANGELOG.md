@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: remove the unused exported `SdkRuntimeCommand` type alias; callers
+  should use the `SDK_RUNTIME_COMMANDS` constant or derive their own value union
+  when needed, with no runtime, storage, or wire-payload migration required.
 - frontend/main: rename private layer-log console guard markers from
   desktop-agent to desktop-runtime names; no migration is required because log
   paths, environment overrides, console mirroring, and runtime behavior are

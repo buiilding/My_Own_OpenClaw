@@ -28,6 +28,3 @@ export const SDK_RUNTIME_COMMANDS = {
   WAKEWORD_DETECTED: 'wakeword.detected',
   DIAGNOSTICS_APPEND: 'diagnostics.append',
 } as const;
-
-export type SdkRuntimeCommand =
-  typeof SDK_RUNTIME_COMMANDS[keyof typeof SDK_RUNTIME_COMMANDS];
