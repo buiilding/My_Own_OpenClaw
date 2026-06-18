@@ -164,7 +164,12 @@ Details panel payload:
 
 1. object `message.toolCallDetails`
 
-This separation keeps default view aligned with model-facing call while preserving raw execution payload in details.
+This separation keeps default view aligned with the SDK-projected
+model-facing call while preserving raw execution payload in details. Recovery
+preview and display-only execution state come from SDK current-turn fields such
+as `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`,
+`toolCallValidationFailed`, and `executionSkipped`, not from backend-shaped
+metadata keys in renderer message helpers.
 
 Tool-call preview content stays in the transcript flow instead of using a nested
 vertical scroll box. Long JSON lines wrap inside the card so the first line is

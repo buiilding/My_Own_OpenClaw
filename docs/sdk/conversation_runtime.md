@@ -124,10 +124,13 @@ UI adapters:
   leak into reusable SDK projections
 - Tool presentation entries carry explicit SDK display fields such as
   `modelFacingToolCall`, `toolArguments`, `toolCallDetails`,
-  `toolOutputDetails`, `toolMetadata`, screenshot refs/URLs, `executionTime`,
-  `success`, and `executionSkipped`. Renderer adapters may preserve `payload`
-  for diagnostics, but should render live tool rows and side effects from these
-  SDK fields rather than decoding raw backend-shaped event payloads.
+  `toolOutputDetails`, `toolMetadata`, `toolDisplayMetadata`, normalized
+  bundled `toolCalls`, recovery fields (`toolCallValidationFailed`,
+  `rawToolCallPreview`, `rawArgumentsPreview`, `parseError`), screenshot
+  refs/URLs, `executionTime`, `success`, and `executionSkipped`. Renderer
+  adapters may preserve `payload` and raw `toolMetadata` for diagnostics, but
+  should render live tool rows and side effects from these SDK fields rather
+  than decoding raw backend-shaped event payloads.
 
 ### Removed Standalone Current Turn Projector
 

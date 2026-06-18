@@ -22,12 +22,12 @@ function cloneArguments(value) {
   return cloned ? { ...cloned } : null;
 }
 
-function sanitizeFallbackArgumentsForDisplay(argumentsValue, metadata) {
+function sanitizeFallbackArgumentsForDisplay(argumentsValue, toolCallValidationFailed) {
   const clonedArguments = cloneArguments(argumentsValue);
   if (!clonedArguments) {
     return null;
   }
-  if (metadata?.llm_tool_call_validation_failed !== true) {
+  if (toolCallValidationFailed !== true) {
     return clonedArguments;
   }
 
@@ -41,7 +41,6 @@ function normalizeToolCallDisplayMetadata(metadata) {
   if (!normalized) {
     return undefined;
   }
-  delete normalized.model_facing_tool_call;
   return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
@@ -63,6 +62,11 @@ function buildNormalizedToolCall({
   fallbackToolCallId = null,
   fallbackArguments = null,
   metadata = null,
+  toolCallValidationFailed = false,
+  rawToolCallPreview = null,
+  rawArgumentsPreview = null,
+  parseError = null,
+  executionSkipped = false,
 }) {
   const toolCall = cloneObject(rawToolCall) || {};
   const resolvedId = normalizeOptionalString(toolCall.id) || normalizeOptionalString(fallbackToolCallId);
@@ -70,16 +74,15 @@ function buildNormalizedToolCall({
   const resolvedArguments = (
     cloneArguments(toolCall.arguments)
     || cloneArguments(toolCall.args)
-    || sanitizeFallbackArgumentsForDisplay(fallbackArguments, metadata)
+    || sanitizeFallbackArgumentsForDisplay(fallbackArguments, toolCallValidationFailed)
     || {}
   );
   const resolvedMetadata = normalizeToolCallDisplayMetadata(metadata);
   const thoughtSignature = resolveThoughtSignature(toolCall, metadata);
-  const rawToolCallPreview = normalizeOptionalString(metadata?.llm_tool_call_raw_tool_call_preview);
-  const rawArgumentsPreview = normalizeOptionalString(metadata?.llm_tool_call_raw_arguments_preview);
-  const parseError = normalizeOptionalString(metadata?.llm_tool_call_parse_error);
-  const frontendExecutionSkipped = metadata?.skip_frontend_execution === true;
-  const isRecoverableParseFailure = metadata?.llm_tool_call_validation_failed === true;
+  const resolvedRawToolCallPreview = normalizeOptionalString(rawToolCallPreview);
+  const resolvedRawArgumentsPreview = normalizeOptionalString(rawArgumentsPreview);
+  const resolvedParseError = normalizeOptionalString(parseError);
+  const isRecoverableParseFailure = toolCallValidationFailed === true;
 
   const normalizedToolCall = {};
 
@@ -98,31 +101,31 @@ function buildNormalizedToolCall({
   if (thoughtSignature) {
     normalizedToolCall.thought_signature = thoughtSignature;
   }
-  if (rawToolCallPreview) {
-    normalizedToolCall.raw_tool_call_preview = rawToolCallPreview;
+  if (resolvedRawToolCallPreview) {
+    normalizedToolCall.raw_tool_call_preview = resolvedRawToolCallPreview;
   }
-  if (rawArgumentsPreview) {
-    normalizedToolCall.raw_arguments_preview = rawArgumentsPreview;
+  if (resolvedRawArgumentsPreview) {
+    normalizedToolCall.raw_arguments_preview = resolvedRawArgumentsPreview;
   }
-  if (parseError) {
-    normalizedToolCall.parse_error = parseError;
+  if (resolvedParseError) {
+    normalizedToolCall.parse_error = resolvedParseError;
   }
-  if (frontendExecutionSkipped) {
+  if (executionSkipped === true) {
     normalizedToolCall.frontend_execution_skipped = true;
   }
 
   return Object.keys(normalizedToolCall).length > 0 ? normalizedToolCall : null;
 }
 
-function resolveToolCallText(rawContent, normalizedToolCall, metadata) {
+function resolveToolCallText(rawContent, normalizedToolCall, rawToolCallPreview, toolCallValidationFailed) {
   if (typeof rawContent === 'string' && rawContent.length > 0) {
     return rawContent;
   }
 
-  if (metadata?.llm_tool_call_validation_failed === true) {
-    const rawToolCallPreview = normalizeOptionalString(metadata?.llm_tool_call_raw_tool_call_preview);
-    if (rawToolCallPreview) {
-      return rawToolCallPreview;
+  if (toolCallValidationFailed === true) {
+    const resolvedRawToolCallPreview = normalizeOptionalString(rawToolCallPreview);
+    if (resolvedRawToolCallPreview) {
+      return resolvedRawToolCallPreview;
     }
   }
 
@@ -136,6 +139,11 @@ export function buildToolCallMessageState({
   fallbackToolCallId = null,
   fallbackArguments = null,
   metadata = null,
+  toolCallValidationFailed = false,
+  rawToolCallPreview = null,
+  rawArgumentsPreview = null,
+  parseError = null,
+  executionSkipped = false,
   toolCallDetails = null,
   correlationId = null,
 }) {
@@ -145,8 +153,18 @@ export function buildToolCallMessageState({
     fallbackToolCallId,
     fallbackArguments,
     metadata,
+    toolCallValidationFailed,
+    rawToolCallPreview,
+    rawArgumentsPreview,
+    parseError,
+    executionSkipped,
   });
-  const text = resolveToolCallText(rawContent, modelFacingToolCall, metadata);
+  const text = resolveToolCallText(
+    rawContent,
+    modelFacingToolCall,
+    rawToolCallPreview,
+    toolCallValidationFailed,
+  );
   const resolvedCorrelationId = (
     normalizeOptionalString(correlationId)
     || normalizeOptionalString(modelFacingToolCall?.id)
@@ -165,18 +183,15 @@ export function buildToolCallMessageState({
 
 export function buildToolBundleMessageState(payload) {
   const bundleId = normalizeOptionalString(payload?.bundleId) || normalizeOptionalString(payload?.bundle_id) || null;
-  const normalizedTools = (Array.isArray(payload?.tools) ? payload.tools : []).map((tool) => (
-    buildNormalizedToolCall({
-      rawToolCall: cloneObject(tool?.metadata?.model_facing_tool_call),
-      fallbackToolName: normalizeOptionalString(tool?.name),
-      fallbackArguments: cloneArguments(tool?.args),
-      metadata: tool?.metadata,
-    }) || {
-      name: normalizeOptionalString(tool?.name) || undefined,
-      arguments: cloneArguments(tool?.args) || {},
-      metadata: normalizeToolCallDisplayMetadata(tool?.metadata),
-    }
-  ));
+  const normalizedTools = (
+    Array.isArray(payload?.toolCalls)
+      ? payload.toolCalls.map((tool) => cloneObject(tool)).filter(Boolean)
+      : (Array.isArray(payload?.tools) ? payload.tools : []).map((tool) => ({
+        name: normalizeOptionalString(tool?.name) || undefined,
+        arguments: cloneArguments(tool?.args) || cloneArguments(tool?.arguments) || {},
+        metadata: normalizeToolCallDisplayMetadata(tool?.metadata),
+      }))
+  );
 
   const text = JSON.stringify(
     {

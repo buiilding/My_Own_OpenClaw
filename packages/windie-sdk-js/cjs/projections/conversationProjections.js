@@ -223,6 +223,10 @@ function stringArrayField(record, ...keys) {
     }
     return null;
 }
+function rawEventTypeFromPayload(payload) {
+    const rawEvent = (0, toolOutputContent_js_1.recordFromUnknown)(payload.rawEvent);
+    return rawEvent ? (0, toolOutputContent_js_1.stringField)(rawEvent, 'type') : null;
+}
 function displayRowMetadata(event) {
     const screenshotRef = (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref');
     const screenshotRefs = stringArrayField(event.payload, 'screenshotRefs', 'screenshot_refs')
@@ -240,6 +244,11 @@ function displayRowMetadata(event) {
         screenshotRef,
         screenshotUrl: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url'),
         screenshotRefs,
+        screenshot: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshot', 'image'),
+        screenshotContentType: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type'),
+        structuredPayload: structuredPayloadFrom(event.payload),
+        rawEventType: rawEventTypeFromPayload(event.payload),
+        success: typeof event.payload.success === 'boolean' ? event.payload.success : null,
         modelId: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelId', 'model_id'),
         modelProvider: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelProvider', 'model_provider'),
         raw: event.payload,
@@ -337,14 +346,16 @@ function displayRowFromEvent(event, index) {
         };
     }
     if (event.type === 'tool_call') {
+        const modelFacingToolCall = modelFacingToolCallFromPayload(event.payload);
         return {
             ...displayRowBase(event, index),
             role: 'assistant',
             type: 'tool_call',
-            content: modelFacingToolCallFromPayload(event.payload),
+            content: modelFacingToolCall,
             metadata: {
                 ...displayRowMetadata(event),
                 toolName: toolNameFromPayload(event.payload),
+                modelFacingToolCall,
             },
         };
     }
@@ -441,6 +452,7 @@ function buildStreamingAssistantRow(event, index, rowId, assistantText, reasonin
         isStreaming: true,
         metadata: {
             ...displayRowMetadata(event),
+            reasoningText,
             raw,
         },
     };
@@ -464,6 +476,7 @@ function buildFinalAssistantRow(event, index, rowId, streamingState) {
         content: textFromPayload(event.payload),
         metadata: {
             ...displayRowMetadata(event),
+            reasoningText,
             raw,
         },
     };
@@ -617,6 +630,82 @@ function statusFromToolPayload(payload) {
     }
     return null;
 }
+function numberField(record, ...keys) {
+    for (const key of keys) {
+        const value = record?.[key];
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+    }
+    return null;
+}
+function toolArgumentsFromPayload(payload, modelFacingToolCall) {
+    const structuredPayload = structuredPayloadFrom(payload);
+    return (0, toolOutputContent_js_1.recordFromUnknown)(modelFacingToolCall?.arguments)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(payload.args)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(payload.parameters)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(structuredPayload?.parameters)
+        ?? null;
+}
+function toolMetadataFromPayload(payload) {
+    const structuredPayload = structuredPayloadFrom(payload);
+    return (0, toolOutputContent_js_1.recordFromUnknown)(structuredPayload?.metadata)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(payload.metadata)
+        ?? null;
+}
+function toolDisplayMetadataFromMetadata(metadata) {
+    if (!metadata) {
+        return null;
+    }
+    const displayMetadata = { ...metadata };
+    delete displayMetadata.model_facing_tool_call;
+    return Object.keys(displayMetadata).length > 0 ? displayMetadata : null;
+}
+function toolExecutionSkippedFromMetadata(metadata) {
+    return metadata?.skip_frontend_execution === true;
+}
+function toolRecoveryFieldsFromMetadata(metadata) {
+    return {
+        toolCallValidationFailed: metadata?.llm_tool_call_validation_failed === true,
+        rawToolCallPreview: (0, toolOutputContent_js_1.stringField)(metadata, 'llm_tool_call_raw_tool_call_preview'),
+        rawArgumentsPreview: (0, toolOutputContent_js_1.stringField)(metadata, 'llm_tool_call_raw_arguments_preview'),
+        parseError: (0, toolOutputContent_js_1.stringField)(metadata, 'llm_tool_call_parse_error'),
+    };
+}
+function bundleToolCallsFromPayload(payload) {
+    const structuredPayload = structuredPayloadFrom(payload);
+    const rawTools = Array.isArray(structuredPayload?.tools)
+        ? structuredPayload.tools
+        : (Array.isArray(payload.tools) ? payload.tools : null);
+    if (!rawTools) {
+        return null;
+    }
+    const toolCalls = rawTools
+        .map((item) => {
+        const tool = (0, toolOutputContent_js_1.recordFromUnknown)(item);
+        if (!tool) {
+            return null;
+        }
+        const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(tool.metadata);
+        const modelFacing = (0, toolOutputContent_js_1.recordFromUnknown)(metadata?.model_facing_tool_call);
+        const argumentsValue = (0, toolOutputContent_js_1.recordFromUnknown)(tool.args)
+            ?? (0, toolOutputContent_js_1.recordFromUnknown)(tool.arguments)
+            ?? {};
+        if (modelFacing) {
+            return {
+                ...modelFacing,
+                ...((0, toolOutputContent_js_1.recordFromUnknown)(modelFacing.arguments) ? {} : { arguments: argumentsValue }),
+            };
+        }
+        const name = (0, toolOutputContent_js_1.stringField)(tool, 'name', 'toolName', 'tool_name');
+        return {
+            ...(name ? { name } : {}),
+            arguments: argumentsValue,
+        };
+    })
+        .filter((tool) => Boolean(tool && Object.keys(tool).length > 0));
+    return toolCalls.length > 0 ? toolCalls : null;
+}
 function currentTurnToolEventFrom(event) {
     if (event.type !== 'tool_call'
         && event.type !== 'tool_bundle_call'
@@ -633,6 +722,13 @@ function currentTurnToolEventFrom(event) {
     const outputText = event.type === 'tool_output' || event.type === 'tool_bundle_output'
         ? (event.type === 'tool_bundle_output' ? bundleDisplayTextFromPayload(event.payload) : displayTextFromPayload(event.payload))
         : textFromPayload(event.payload);
+    const structuredPayload = structuredPayloadFrom(event.payload);
+    const modelFacingToolCall = event.type === 'tool_call'
+        ? modelFacingToolCallFromPayload(event.payload)
+        : null;
+    const toolMetadata = toolMetadataFromPayload(event.payload);
+    const recoveryFields = toolRecoveryFieldsFromMetadata(toolMetadata);
+    const success = typeof event.payload.success === 'boolean' ? event.payload.success : null;
     return {
         id: event.eventId,
         kind,
@@ -640,8 +736,24 @@ function currentTurnToolEventFrom(event) {
         requestId: (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId'),
         correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId'),
         bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId'),
+        modelFacingToolCall,
+        toolCalls: event.type === 'tool_bundle_call' ? bundleToolCallsFromPayload(event.payload) : null,
+        toolArguments: toolArgumentsFromPayload(event.payload, modelFacingToolCall),
+        toolCallDetails: structuredPayload ?? event.payload,
+        toolOutputDetails: structuredPayload ?? event.payload,
+        toolMetadata,
+        toolDisplayMetadata: toolDisplayMetadataFromMetadata(toolMetadata),
+        ...recoveryFields,
+        screenshot: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshot', 'image'),
+        screenshotRef: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref'),
+        screenshotUrl: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url'),
+        screenshotContentType: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotContentType', 'screenshot_content_type'),
+        executionTime: numberField(event.payload, 'executionTime', 'execution_time')
+            ?? numberField(structuredPayload, 'executionTime', 'execution_time'),
         ...(outputText ? { text: outputText } : {}),
         status: statusFromToolPayload(event.payload),
+        success,
+        executionSkipped: toolExecutionSkippedFromMetadata(toolMetadata),
         payload: event.payload,
     };
 }
@@ -741,6 +853,24 @@ function buildLiveTurnPresentation(projection) {
             requestId: toolEvent.requestId ?? null,
             correlationId: toolEvent.correlationId ?? null,
             bundleId: toolEvent.bundleId ?? null,
+            modelFacingToolCall: toolEvent.modelFacingToolCall ?? null,
+            toolCalls: toolEvent.toolCalls ?? null,
+            toolArguments: toolEvent.toolArguments ?? null,
+            toolCallDetails: toolEvent.toolCallDetails ?? null,
+            toolOutputDetails: toolEvent.toolOutputDetails ?? null,
+            toolMetadata: toolEvent.toolMetadata ?? null,
+            toolDisplayMetadata: toolEvent.toolDisplayMetadata ?? null,
+            toolCallValidationFailed: toolEvent.toolCallValidationFailed ?? null,
+            rawToolCallPreview: toolEvent.rawToolCallPreview ?? null,
+            rawArgumentsPreview: toolEvent.rawArgumentsPreview ?? null,
+            parseError: toolEvent.parseError ?? null,
+            screenshot: toolEvent.screenshot ?? null,
+            screenshotRef: toolEvent.screenshotRef ?? null,
+            screenshotUrl: toolEvent.screenshotUrl ?? null,
+            screenshotContentType: toolEvent.screenshotContentType ?? null,
+            executionTime: toolEvent.executionTime ?? null,
+            success: toolEvent.success ?? null,
+            executionSkipped: toolEvent.executionSkipped ?? null,
             payload: toolEvent.payload,
         });
     });

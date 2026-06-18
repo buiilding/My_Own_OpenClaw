@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/renderer: expose tool-call recovery display fields, display-safe
+  metadata, and normalized bundled tool calls on current-turn tool events and
+  live presentation entries so renderer tool-call message helpers no longer
+  decode backend recovery metadata; no migration is required because backend
+  events and stored payloads remain unchanged.
 - main: rename the settings-sync source emitted by the SDK command bridge from
   `renderer-sdk-command` to `agent-sdk-command`, keeping Electron main as the
   Agent SDK host boundary; no migration is required because this changes only

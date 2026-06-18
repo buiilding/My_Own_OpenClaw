@@ -93,11 +93,17 @@ Transport guarantee:
 - `ToolCallEventFormatter` forwards `request_id` + `metadata`
 - `ToolOutputEventFormatter` forwards `metadata`
 
-Frontend outcome:
+SDK projection outcome:
 
-- chat shows tool-call/tool-output narrative
-- `useChatStream` stores a dedicated tool-call display string on the chat message, so tool-call cards no longer depend on generic `message.text` for invalid-call transparency rendering
-- tool-call cards prefer `llm_tool_call_raw_tool_call_preview` when present; otherwise they render preserved `metadata.model_facing_tool_call` for pre-dispatch validation failures instead of a synthesized normalized fallback
+- current-turn tool events and live presentation entries expose
+  `executionSkipped`, `toolCallValidationFailed`, `rawToolCallPreview`,
+  `rawArgumentsPreview`, `parseError`, `toolDisplayMetadata`, and normalized
+  bundled `toolCalls`
+- renderer chat shows tool-call/tool-output narrative from those SDK-shaped
+  fields
+- tool-call cards prefer `rawToolCallPreview` when present; otherwise they
+  render preserved `modelFacingToolCall` for pre-dispatch validation failures
+  instead of a synthesized normalized fallback
 - SDK tool coordinator skips local execution for synthetic call
 - stream can continue to next model turn
 

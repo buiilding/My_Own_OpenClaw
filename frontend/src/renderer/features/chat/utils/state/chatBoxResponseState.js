@@ -34,7 +34,7 @@ function buildProjectedToolCallMessage({
   payload,
 }) {
   const toolCallDetails = asObject(toolEvent.toolCallDetails) || payload;
-  const metadata = asObject(toolEvent.toolMetadata);
+  const metadata = asObject(toolEvent.toolDisplayMetadata) || asObject(toolEvent.toolMetadata);
   const args = asObject(toolEvent.toolArguments);
   const toolName = readString(toolEvent.toolName) || '';
   const requestId = readString(toolEvent.requestId);
@@ -44,6 +44,7 @@ function buildProjectedToolCallMessage({
     const bundlePayload = {
       ...toolCallDetails,
       ...payload,
+      toolCalls: readArray(toolEvent.toolCalls),
       tools: readArray(payload.tools) || toolCallDetails.tools,
     };
     const bundleState = buildToolBundleMessageState(bundlePayload);
@@ -65,6 +66,11 @@ function buildProjectedToolCallMessage({
     fallbackToolCallId: requestId,
     fallbackArguments: args,
     metadata,
+    toolCallValidationFailed: toolEvent.toolCallValidationFailed === true,
+    rawToolCallPreview: readString(toolEvent.rawToolCallPreview),
+    rawArgumentsPreview: readString(toolEvent.rawArgumentsPreview),
+    parseError: readString(toolEvent.parseError),
+    executionSkipped: toolEvent.executionSkipped === true,
     toolCallDetails,
     correlationId,
   });

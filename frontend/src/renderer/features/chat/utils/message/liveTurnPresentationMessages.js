@@ -93,6 +93,7 @@ function buildToolCallMessage(entry, currentTurnProjection) {
     const bundlePayload = {
       ...toolDetails,
       ...payload,
+      toolCalls: Array.isArray(entry.toolCalls) ? entry.toolCalls : null,
       tools: Array.isArray(payload.tools) ? payload.tools : toolDetails.tools,
     };
     const bundleState = buildToolBundleMessageState(bundlePayload);
@@ -106,7 +107,7 @@ function buildToolCallMessage(entry, currentTurnProjection) {
   }
 
   const args = asRecord(entry.toolArguments) || null;
-  const metadata = asRecord(entry.toolMetadata);
+  const metadata = asRecord(entry.toolDisplayMetadata) || asRecord(entry.toolMetadata);
   const toolCallState = buildToolCallMessageState({
     rawToolCall: asRecord(entry.modelFacingToolCall),
     fallbackToolName: toolName,
@@ -114,6 +115,11 @@ function buildToolCallMessage(entry, currentTurnProjection) {
       || entry.id,
     fallbackArguments: args,
     metadata,
+    toolCallValidationFailed: entry.toolCallValidationFailed === true,
+    rawToolCallPreview: normalizeOptionalText(entry.rawToolCallPreview),
+    rawArgumentsPreview: normalizeOptionalText(entry.rawArgumentsPreview),
+    parseError: normalizeOptionalText(entry.parseError),
+    executionSkipped: entry.executionSkipped === true,
     toolCallDetails: toolDetails,
     correlationId: normalizeOptionalText(entry.correlationId),
   });

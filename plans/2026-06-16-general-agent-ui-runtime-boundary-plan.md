@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 SDK tool-call recovery display boundary
+
+- Finding: renderer tool-call display helpers still interpreted backend-shaped
+  recovery metadata keys such as skipped execution, validation failure,
+  raw-preview fields, parse errors, and bundled `model_facing_tool_call`
+  metadata when building visible tool-call cards.
+- Change: promoted normalized recovery display fields, display-safe metadata,
+  and bundled tool-call lists into SDK current-turn tool events and live
+  presentation entries, then changed renderer helpers and fixtures to consume
+  those SDK-shaped fields.
+- Validation: focused SDK current-turn, renderer tool-call state,
+  presentation-pipeline, chat-box response fallback, and metadata Jest
+  coverage; CJS SDK build; exact renderer stale-key scan.
+- Compatibility: no migration required. Backend websocket events, stored
+  conversation payloads, local execution/skip semantics, IPC channels,
+  credentials, permissions, and provider policy are unchanged; this tightens
+  the SDK projection consumed by renderer display adapters.
+
 ### 2026-06-18 main SDK command settings source label
 
 - Finding: the Electron main SDK command allowlist still sent settings updates

@@ -19,7 +19,6 @@ describe('toolCallMessageState', () => {
       fallbackToolCallId: 'request-1',
       metadata: {
         source: 'backend',
-        model_facing_tool_call: { ignored: true },
       },
       toolCallDetails: {
         tool_name: 'browser.open',
@@ -59,10 +58,11 @@ describe('toolCallMessageState', () => {
       },
       fallbackToolName: 'shell',
       metadata: {
-        llm_tool_call_validation_failed: true,
-        llm_tool_call_raw_tool_call_preview: 'shell("pwd")',
-        llm_tool_call_parse_error: 'bad json',
+        source: 'backend-recovery',
       },
+      toolCallValidationFailed: true,
+      rawToolCallPreview: 'shell("pwd")',
+      parseError: 'bad json',
     });
 
     expect(messageState.text).toBe('shell("pwd")');
@@ -71,9 +71,7 @@ describe('toolCallMessageState', () => {
       id: 'call-2',
       name: 'shell',
       metadata: {
-        llm_tool_call_validation_failed: true,
-        llm_tool_call_raw_tool_call_preview: 'shell("pwd")',
-        llm_tool_call_parse_error: 'bad json',
+        source: 'backend-recovery',
       },
       parse_error: 'bad json',
       raw_tool_call_preview: 'shell("pwd")',
@@ -83,16 +81,11 @@ describe('toolCallMessageState', () => {
   test('normalizes bundle payloads with consistent tool display structure', () => {
     expect(buildToolBundleMessageState({
       bundle_id: 'bundle-1',
-      tools: [
+      toolCalls: [
         {
+          id: 'call-3',
           name: 'browser.open',
-          args: { url: 'https://example.com' },
-          metadata: {
-            model_facing_tool_call: {
-              id: 'call-3',
-              name: 'browser.open',
-            },
-          },
+          arguments: { url: 'https://example.com' },
         },
       ],
     })).toEqual({
@@ -122,16 +115,11 @@ describe('toolCallMessageState', () => {
       ],
       toolCallDetails: {
         bundle_id: 'bundle-1',
-        tools: [
+        toolCalls: [
           {
+            id: 'call-3',
             name: 'browser.open',
-            args: { url: 'https://example.com' },
-            metadata: {
-              model_facing_tool_call: {
-                id: 'call-3',
-                name: 'browser.open',
-              },
-            },
+            arguments: { url: 'https://example.com' },
           },
         ],
       },

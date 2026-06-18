@@ -879,7 +879,14 @@ describe('Agent SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-read',
         correlationId: 'corr-read',
-        metadata: { skip_frontend_execution: true },
+        metadata: {
+          skip_frontend_execution: true,
+          model_facing_tool_call: { id: 'call-read', name: 'read_file' },
+          llm_tool_call_validation_failed: true,
+          llm_tool_call_raw_tool_call_preview: '{"name":"read_file"}',
+          llm_tool_call_raw_arguments_preview: '{"path":"README.md"}',
+          llm_tool_call_parse_error: 'bad arguments',
+        },
       }),
       event('tool_output', {
         toolName: 'read_file',
@@ -905,6 +912,13 @@ describe('Agent SDK conversation runtime core', () => {
           requestId: 'req-read',
           correlationId: 'corr-read',
           executionSkipped: true,
+          toolCallValidationFailed: true,
+          rawToolCallPreview: '{"name":"read_file"}',
+          rawArgumentsPreview: '{"path":"README.md"}',
+          parseError: 'bad arguments',
+          toolDisplayMetadata: expect.not.objectContaining({
+            model_facing_tool_call: expect.anything(),
+          }),
           modelFacingToolCall: expect.objectContaining({
             name: 'read_file',
           }),
@@ -1006,10 +1020,26 @@ describe('Agent SDK conversation runtime core', () => {
     });
   });
 
-  test('current-turn projection renders tool-bundle-output step content', () => {
+  test('current-turn projection renders tool-bundle calls and output step content', () => {
     const events = [
       event('turn_started', {}),
       event('user_message', { text: 'inspect files' }),
+      event('tool_bundle_call', {
+        bundleId: 'bundle-read',
+        tools: [
+          {
+            name: 'read_file',
+            args: { path: 'README.md' },
+            metadata: {
+              model_facing_tool_call: {
+                id: 'call-readme',
+                name: 'read_file',
+                arguments: { path: 'README.md' },
+              },
+            },
+          },
+        ],
+      }),
       event('tool_bundle_output', {
         bundleId: 'bundle-read',
         status: 'success',
@@ -1039,13 +1069,20 @@ describe('Agent SDK conversation runtime core', () => {
 
 	    expect(projection.toolEvents).toEqual([
 	      expect.objectContaining({
+	        kind: 'tool_call',
+	        toolName: 'tool_bundle',
+	        toolCalls: [
+	          expect.objectContaining({ id: 'call-readme', name: 'read_file' }),
+	        ],
+	      }),
+	      expect.objectContaining({
 	        kind: 'tool_output',
 	        toolName: 'tool_bundle',
 	        text: expect.stringContaining('README model contents'),
 	        status: 'success',
 	      }),
 	    ]);
-    expect(projection.toolEvents[0].text).toContain('package contents');
+    expect(projection.toolEvents[1].text).toContain('package contents');
   });
 
   test('current-turn projection ignores recoverable display-only backend errors', () => {

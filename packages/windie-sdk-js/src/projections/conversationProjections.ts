@@ -769,8 +769,64 @@ function toolMetadataFromPayload(payload: JsonRecord): JsonRecord | null {
     ?? null;
 }
 
-function toolExecutionSkippedFromPayload(payload: JsonRecord): boolean {
-  return toolMetadataFromPayload(payload)?.skip_frontend_execution === true;
+function toolDisplayMetadataFromMetadata(metadata: JsonRecord | null): JsonRecord | null {
+  if (!metadata) {
+    return null;
+  }
+  const displayMetadata = { ...metadata };
+  delete displayMetadata.model_facing_tool_call;
+  return Object.keys(displayMetadata).length > 0 ? displayMetadata : null;
+}
+
+function toolExecutionSkippedFromMetadata(metadata: JsonRecord | null): boolean {
+  return metadata?.skip_frontend_execution === true;
+}
+
+function toolRecoveryFieldsFromMetadata(metadata: JsonRecord | null): Pick<
+  CurrentTurnToolEvent,
+  'toolCallValidationFailed' | 'rawToolCallPreview' | 'rawArgumentsPreview' | 'parseError'
+> {
+  return {
+    toolCallValidationFailed: metadata?.llm_tool_call_validation_failed === true,
+    rawToolCallPreview: stringField(metadata, 'llm_tool_call_raw_tool_call_preview'),
+    rawArgumentsPreview: stringField(metadata, 'llm_tool_call_raw_arguments_preview'),
+    parseError: stringField(metadata, 'llm_tool_call_parse_error'),
+  };
+}
+
+function bundleToolCallsFromPayload(payload: JsonRecord): JsonRecord[] | null {
+  const structuredPayload = structuredPayloadFrom(payload);
+  const rawTools = Array.isArray(structuredPayload?.tools)
+    ? structuredPayload.tools
+    : (Array.isArray(payload.tools) ? payload.tools : null);
+  if (!rawTools) {
+    return null;
+  }
+  const toolCalls = rawTools
+    .map((item): JsonRecord | null => {
+      const tool = recordFromUnknown(item);
+      if (!tool) {
+        return null;
+      }
+      const metadata = recordFromUnknown(tool.metadata);
+      const modelFacing = recordFromUnknown(metadata?.model_facing_tool_call);
+      const argumentsValue = recordFromUnknown(tool.args)
+        ?? recordFromUnknown(tool.arguments)
+        ?? {};
+      if (modelFacing) {
+        return {
+          ...modelFacing,
+          ...(recordFromUnknown(modelFacing.arguments) ? {} : { arguments: argumentsValue }),
+        };
+      }
+      const name = stringField(tool, 'name', 'toolName', 'tool_name');
+      return {
+        ...(name ? { name } : {}),
+        arguments: argumentsValue,
+      };
+    })
+    .filter((tool): tool is JsonRecord => Boolean(tool && Object.keys(tool).length > 0));
+  return toolCalls.length > 0 ? toolCalls : null;
 }
 
 function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEvent | null {
@@ -793,6 +849,8 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
   const modelFacingToolCall = event.type === 'tool_call'
     ? modelFacingToolCallFromPayload(event.payload)
     : null;
+  const toolMetadata = toolMetadataFromPayload(event.payload);
+  const recoveryFields = toolRecoveryFieldsFromMetadata(toolMetadata);
   const success = typeof event.payload.success === 'boolean' ? event.payload.success : null;
   return {
     id: event.eventId,
@@ -802,10 +860,13 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
     correlationId: stringField(event.payload, 'correlationId'),
     bundleId: stringField(event.payload, 'bundleId'),
     modelFacingToolCall,
+    toolCalls: event.type === 'tool_bundle_call' ? bundleToolCallsFromPayload(event.payload) : null,
     toolArguments: toolArgumentsFromPayload(event.payload, modelFacingToolCall),
     toolCallDetails: structuredPayload ?? event.payload,
     toolOutputDetails: structuredPayload ?? event.payload,
-    toolMetadata: toolMetadataFromPayload(event.payload),
+    toolMetadata,
+    toolDisplayMetadata: toolDisplayMetadataFromMetadata(toolMetadata),
+    ...recoveryFields,
     screenshot: stringField(event.payload, 'screenshot', 'image'),
     screenshotRef: stringField(event.payload, 'screenshotRef', 'screenshot_ref'),
     screenshotUrl: stringField(event.payload, 'screenshotUrl', 'screenshot_url'),
@@ -815,7 +876,7 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
     ...(outputText ? { text: outputText } : {}),
     status: statusFromToolPayload(event.payload),
     success,
-    executionSkipped: toolExecutionSkippedFromPayload(event.payload),
+    executionSkipped: toolExecutionSkippedFromMetadata(toolMetadata),
     payload: event.payload,
   };
 }
@@ -936,10 +997,16 @@ function buildLiveTurnPresentation(
       correlationId: toolEvent.correlationId ?? null,
       bundleId: toolEvent.bundleId ?? null,
       modelFacingToolCall: toolEvent.modelFacingToolCall ?? null,
+      toolCalls: toolEvent.toolCalls ?? null,
       toolArguments: toolEvent.toolArguments ?? null,
       toolCallDetails: toolEvent.toolCallDetails ?? null,
       toolOutputDetails: toolEvent.toolOutputDetails ?? null,
       toolMetadata: toolEvent.toolMetadata ?? null,
+      toolDisplayMetadata: toolEvent.toolDisplayMetadata ?? null,
+      toolCallValidationFailed: toolEvent.toolCallValidationFailed ?? null,
+      rawToolCallPreview: toolEvent.rawToolCallPreview ?? null,
+      rawArgumentsPreview: toolEvent.rawArgumentsPreview ?? null,
+      parseError: toolEvent.parseError ?? null,
       screenshot: toolEvent.screenshot ?? null,
       screenshotRef: toolEvent.screenshotRef ?? null,
       screenshotUrl: toolEvent.screenshotUrl ?? null,
