@@ -8,9 +8,9 @@ title: "Transcript and Replay"
 
 # Transcript and Replay
 
-Renderer transcript rows are visible projections. Canonical client-runtime state is stored in the sidecar `conversation_events` table and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
+Renderer transcript rows are visible projections. Canonical client-runtime state is stored in SDK local-runtime `conversation_events` storage, backed by the Python sidecar SQLite store, and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
 
-For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK store/display projections, sidecar event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
+For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK store/display projections, local-runtime event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
 
 ## Code Ownership
 
@@ -28,7 +28,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 
 ## Write Flow
 
-Live sends, assistant turns, tool rows, compaction events, and replay rewrites are stored as SDK conversation events through the desktop conversation store factory and sidecar `conversation_events` storage. Renderer chat handlers project those SDK events for live display; durable replay and dashboard state are rebuilt from the canonical event log.
+Live sends, assistant turns, tool rows, compaction events, and replay rewrites are stored as SDK conversation events through the desktop conversation store factory and local-runtime `conversation_events` storage. Renderer chat handlers project those SDK events for live display; durable replay and dashboard state are rebuilt from the canonical event log.
 
 Transcript session identity includes:
 
@@ -41,7 +41,7 @@ Do not invent a second conversation id in a component. Use the transcript sessio
 
 SDK projections convert stored conversation events back into chat messages for renderer display. Rehydrate converts those events into backend-compatible state so an active backend session can continue.
 
-SDK-owned conversation state uses a dedicated sidecar chat-event table:
+SDK-owned conversation state uses a dedicated local-runtime chat-event table:
 
 - `conversation_events`: normalized SDK event log for runtime/load/rehydrate/display
 - `attachments`: normalized image attachment records extracted from user-message screenshots, screenshot refs/URLs, artifact refs, and tool-output screenshot payloads
@@ -51,15 +51,15 @@ SDK callers should read display and rehydrate state through SDK projections over
 chat events. The desktop runtime does not write hidden replay rows
 or fall back to visible transcript rows for runtime truth.
 
-Edit/resend and try-again rewrites cut the canonical sidecar chat-event log at
+Edit/resend and try-again rewrites cut the canonical local-runtime chat-event log at
 the preserved event boundary. The renderer/SDK sends only the cutoff event id,
-the new revision id, and one `conversation_rewritten` event; the sidecar deletes
+the new revision id, and one `conversation_rewritten` event; the local runtime deletes
 rows after the cutoff and inserts the rewrite marker in one SQLite transaction.
 This keeps prior history in SQLite instead of copying a shortened transcript
-back through the renderer-to-sidecar request path.
+back through the renderer-to-local-runtime request path.
 
 Live sends use one stable turn/message id across the pending renderer row and
-the SDK query turn. Replay matches canonical sidecar events by event/payload id;
+the SDK query turn. Replay matches canonical local-runtime events by event/payload id;
 renderer-only transcript IDs are not a replay contract.
 
 After a compact edit/resend or retry cut, the replay dispatch must persist the

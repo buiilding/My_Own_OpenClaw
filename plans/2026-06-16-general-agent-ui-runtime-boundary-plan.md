@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 transcript replay local-runtime event wording
+
+- Finding: memory replay docs described canonical replay state as sidecar events,
+  a sidecar chat-event log, and a sidecar event store path even though SDK
+  projections and the local-runtime store are the reusable replay contract.
+- Change: reworded transcript replay and session identity docs to local-runtime
+  event-log/storage ownership while retaining the Python sidecar SQLite store as
+  the backing implementation detail where useful.
+- Validation: focused modular docs boundary coverage, exact stale replay phrase
+  scan, docs listing, and scoped diff check.
+- Compatibility: no migration required. This changes docs/tests only; SDK event
+  rows, SQLite tables, replay rewrites, dashboard loading, backend rehydrate
+  payloads, storage, and persisted data are unchanged.
+
 ### 2026-06-18 preload Agent SDK browser global cleanup
 
 - Finding: preload still exposed SDK-shaped renderer commands through the

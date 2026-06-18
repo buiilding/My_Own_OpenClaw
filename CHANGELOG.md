@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/memory: describe transcript replay and conversation identity storage as
+  SDK local-runtime event-log ownership instead of canonical sidecar events; no
+  migration is required because this changes docs and boundary guards only,
+  leaving event rows, SQLite storage, replay behavior, and persisted data
+  unchanged.
 - frontend/preload: remove the `window.desktopAgent` browser-global command
   bridge and expose SDK-shaped renderer commands only through
   `window.agentSdk`; no persisted-data migration is required because the
