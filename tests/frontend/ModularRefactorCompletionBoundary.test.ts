@@ -1289,6 +1289,7 @@ describe('modular sdk refactor completion boundary', () => {
         'The sidecar owns local-machine actions',
         'The Python sidecar owns host OS automation',
         'The Python sidecar owns host-window discovery',
+        'Python sidecar owns method registration',
         'Python sidecar owns local authority',
         'Python sidecar owns local execution',
         'The sidecar owns local episodic',

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/jsonrpc: route local-runtime JSON-RPC boundary-rule ownership through
+  local runtime while preserving Python sidecar handler implementation detail.
+  No migration required.
 - docs/sidecar: route sidecar workflow, daemon manifest, topology, and
   cross-layer owner-table wording through local-runtime implementation labels
   while keeping Python sidecar source paths and tests visible. No migration

@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a local-runtime JSON-RPC boundary-rule owner-label
+  slice by changing the JSON-RPC workflow to name local runtime as the owner of
+  method registration, handler signatures, validation, tool dispatch, memory,
+  system-state, and utility-call boundaries while keeping Python sidecar as the
+  current handler implementation. The modular stale guard now rejects the
+  retired `Python sidecar owns method registration` wording. Validation:
+  focused modular docs boundary test, docs listing, exact stale JSON-RPC owner
+  phrase scan, and diff checks. No migration required; no code path, payload,
+  storage, IPC, settings, tool schema, credential, permission, hosted URL,
+  provider-policy, JSON-RPC protocol, handler signature, memory, system-state,
+  or tool-dispatch behavior changed.
 - 2026-06-18: completed a sidecar docs owner-label slice by updating the
   sidecar workflow, daemon runtime reference, Python source-map reference,
   cross-layer contract tables, filesystem/shell tool table, backend tool-turn

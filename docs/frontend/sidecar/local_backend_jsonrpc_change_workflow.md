@@ -21,7 +21,7 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 
 - Renderer code must call SDK-shaped `window.agentSdk.invoke(...)` commands or typed host IPC channels; it must not talk to the Python sidecar directly.
 - Electron main owns scoped host channel registration, request correlation, process readiness, timeouts, and screenshot/artifact wrappers.
-- Python sidecar owns method registration, handler signatures, local validation, tool dispatch, memory storage, system-state collection, and local utility calls.
+- The local runtime owns method registration, handler signatures, local validation, tool dispatch, memory storage, system-state collection, and local utility calls; the Python sidecar currently implements those handlers.
 - Backend owns model-facing tool schemas and prompt policy. Do not import backend code into the sidecar to reuse those schemas.
 - JSON-RPC method params must be JSON objects. Arrays, strings, and other non-object params are rejected by `JSONRPCProtocol`.
 - Return JSON-serializable values only. Convert local exceptions into explicit JSON-RPC errors or `{ success:false, error }` envelopes at the right boundary.
