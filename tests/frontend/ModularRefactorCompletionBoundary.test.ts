@@ -208,7 +208,10 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/getting-started/installation.md'),
       read('docs/help/doctor_checklist.md'),
       read('docs/install/uninstall_reinstall_reset.md'),
+      read('docs/frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md'),
       read('docs/getting-started/docs_hub.md'),
+      read('docs/operations/deployment.md'),
+      read('docs/security/credentials_and_tokens_matrix.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
     ]);
     const docText = docs.join('\n');

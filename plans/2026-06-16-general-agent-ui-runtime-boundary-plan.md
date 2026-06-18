@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 public local-sidecar wording cleanup
+
+- Finding: credential, hosted-deployment, and synthetic tool-event recovery
+  docs still used local-sidecar phrasing for public runtime concepts after
+  the SDK local-runtime boundary became the public local contract.
+- Change: rewrote those surfaces to say local-runtime or desktop local runtime
+  while leaving concrete Python sidecar implementation docs untouched, and
+  expanded the first-read boundary guard to include the touched docs.
+- Validation: focused first-read modular boundary test, docs listing, stale
+  local-sidecar phrase scan for the touched docs, and `git diff --check`.
+- Compatibility: no migration required. Auth headers, hosted/local OCR
+  fallback behavior, SDK tool-event skip execution, transcript rendering,
+  APIs, settings, and persisted data are unchanged.
+
 ### 2026-06-18 InternVL product wording cleanup
 
 - Finding: the InternVL provider source still described the implementation as

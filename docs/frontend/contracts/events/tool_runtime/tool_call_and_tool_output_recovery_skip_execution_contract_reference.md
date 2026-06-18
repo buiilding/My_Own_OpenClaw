@@ -58,7 +58,8 @@ Consumes tool events for execution/control plane:
 - sends `tool-result` / `tool-bundle-result` to backend
 - applies stale-turn and skip-execution gates before execution
 
-This split allows synthetic or non-executable tool protocol events to be visible in chat while remaining non-executable in local sidecar.
+This split allows synthetic or non-executable tool protocol events to be
+visible in chat while remaining non-executable in the SDK local runtime.
 
 ## Skip-Execution Metadata Contract
 

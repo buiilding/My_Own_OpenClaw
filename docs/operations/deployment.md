@@ -162,7 +162,7 @@ Current in-process OCR/vision path is great for single-user local mode, but host
 
 ### Rollout sequence
 1. Keep local inference default.
-2. Add hosted OCR endpoint with fallback to local sidecar.
+2. Add hosted OCR endpoint with fallback to the desktop local runtime.
 3. Add hosted vision endpoint + rate limiting.
 4. Add autoscaling based on queue depth + latency SLO.
 5. Add per-tier dedicated capacity options.

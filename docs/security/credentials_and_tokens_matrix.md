@@ -1,5 +1,5 @@
 ---
-summary: "Credential and token handling matrix for WindieOS install auth, runs keys, provider API keys, OAuth state, frontend config, and local sidecar remote clients."
+summary: "Credential and token handling matrix for WindieOS install auth, runs keys, provider API keys, OAuth state, frontend config, and local-runtime remote clients."
 read_when:
   - When changing install tokens, runs API keys, provider credentials, OAuth state, frontend settings, or remote sidecar clients.
   - When debugging 401s, missing provider keys, token persistence, SDK auth, or credential leakage risk.
