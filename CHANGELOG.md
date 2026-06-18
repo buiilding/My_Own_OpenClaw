@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: rename SDK-generated local tool output event ids from `sidecar-tool-*` to `local-tool-*`; no migration is required because existing stored events keep their ids while new SDK-local tool output rows use generic local-runtime naming.
 - frontend/main: stop the internal SDK stop bridge from accepting the removed camelCase `turnRef` alias; no migration is required because canonical `turn_ref` remains supported and removed alias payloads now produce a null turn ref instead of reviving compatibility behavior.
 - frontend/main: reject removed camelCase `conversation.stop` transport aliases at the SDK command boundary and stop accepting `turnRef` in the direct wake-up stop adapter; no migration is required for supported clients because canonical `conversation_ref` and `turn_ref` payloads continue to work unchanged.
 - docs/tools: move public tool troubleshooting, catalog, policy, browser, computer, filesystem/shell, and SDK conversation-runtime wording from sidecar-execution/result labels to local-runtime/local-execution labels; no migration is required because this changes docs and boundary coverage only, leaving runtime behavior, IPC, storage, tool schemas, settings, credentials, permissions, and event payloads unchanged.

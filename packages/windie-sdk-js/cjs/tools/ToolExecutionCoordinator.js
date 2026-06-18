@@ -566,7 +566,7 @@ class ToolExecutionCoordinator {
                 : null;
             const eventResult = payload?.data ?? { output: deliveryErrorMessage ?? 'Tool result delivery failed' };
             await this.options.store?.appendEvent((0, events_js_1.createConversationEvent)({
-                eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-output-${call.requestId}`,
+                eventId: `${event.turnRef ?? event.conversationRef}-local-tool-output-${call.requestId}`,
                 type: 'tool_output',
                 conversationRef: event.conversationRef,
                 revisionId: event.revisionId,
@@ -719,7 +719,7 @@ class ToolExecutionCoordinator {
                 ? `Tool bundle result delivery failed: ${errorMessage(deliveryError)}`
                 : null;
             await this.options.store?.appendEvent((0, events_js_1.createConversationEvent)({
-                eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-bundle-output-${bundleId}`,
+                eventId: `${event.turnRef ?? event.conversationRef}-local-tool-bundle-output-${bundleId}`,
                 type: 'tool_bundle_output',
                 conversationRef: event.conversationRef,
                 revisionId: event.revisionId,

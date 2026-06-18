@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 SDK local tool event ids
+
+- Finding: `ToolExecutionCoordinator` generated stored local tool output event ids with `sidecar-tool-output` and `sidecar-tool-bundle-output`, leaking the Python executor implementation into SDK-owned conversation event identity.
+- Change: renamed those generated ids to `local-tool-output` and `local-tool-bundle-output` in TypeScript and checked-in CommonJS output, and updated the tool lifecycle docs plus focused coordinator assertions.
+- Validation: focused `WindieSdkConversationRuntime` Jest coverage for provider-safe single-tool output and backend-compatible bundle output, SDK TypeScript no-emit check, exact stale-id scan, and scoped diff check.
+- Compatibility: existing stored rows keep their historical event ids; new SDK-generated local output rows use generic local-runtime id prefixes. Runtime payload shape, source enum, tool schemas, IPC, settings, credentials, permissions, and persisted data formats are otherwise unchanged.
+
 ### 2026-06-18 internal stop bridge turnRef alias removal
 
 - Finding: after the SDK command boundary rejected removed camelCase `conversation.stop` aliases, the internal `stopQueryThroughSdkAgent(...)` bridge still read `turnRef` as a fallback when composing backend stop payloads.

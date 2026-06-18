@@ -68,7 +68,7 @@ Single-tool path:
   not claimed.
 - Backend stream `event_id` identifies the transport event row only. It is not
   the tool-call correlation id. SDK sidecar outputs use SDK-owned local event
-  ids such as `{turnRef}-sidecar-tool-output-{requestId}` and link back to the
+  ids such as `{turnRef}-local-tool-output-{requestId}` and link back to the
   backend call through `request_id`, provider `tool_call_id`, `correlation_id`,
   or `bundle_id`.
 - failed SDK tool results keep `success: false`, include `error`, and carry raw

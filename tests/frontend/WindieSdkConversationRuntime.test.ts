@@ -2933,6 +2933,7 @@ describe('Agent SDK conversation runtime core', () => {
     }));
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
       expect.objectContaining({
+        eventId: 'turn-1-local-tool-output-req-read',
         type: 'tool_output',
         payload: expect.objectContaining({
           requestId: 'req-read',
@@ -3543,8 +3544,10 @@ describe('Agent SDK conversation runtime core', () => {
   });
 
   test('tool coordinator sends backend-compatible bundle step statuses', async () => {
+    const store = new InMemoryConversationStore();
     const sendToolBundleResult = jest.fn(async () => undefined);
     const coordinator = new ToolExecutionCoordinator({
+      store,
       localRuntime: {
         executeTool: jest
           .fn()
@@ -3574,6 +3577,16 @@ describe('Agent SDK conversation runtime core', () => {
       status: 'error',
       output: { output: 'failed-two' },
     });
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        eventId: 'turn-1-local-tool-bundle-output-bundle-read',
+        type: 'tool_bundle_output',
+        payload: expect.objectContaining({
+          bundleId: 'bundle-read',
+          status: 'partial_failure',
+        }),
+      }),
+    ]);
   });
 
   test('tool coordinator captures bundle screenshot after skipped invalid step', async () => {
