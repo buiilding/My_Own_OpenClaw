@@ -50,7 +50,7 @@ Covers:
 - [Core Observability Docs Hub](core/observability/README.md)
 - [Trust-Boundary Metrics and Enforcement Reference](core/observability/trust_boundary_metrics_and_enforcement_reference.md)
 - [Core Validation Docs Hub](core/validation/README.md)
-- [Input Validation and Frontend Patch Guard Reference](core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](core/validation/input_validation_and_frontend_patch_guard_reference.md)
 - [Core Messages Docs Hub](core/messages/README.md)
 - [Stored Message LLM Serialization, Tool-Call Normalization, and Multimodal Image Contract Reference](core/messages/stored_message_llm_serialization_tool_call_normalization_and_multimodal_image_contract_reference.md)
 - [Content Converter Parsing and Multi-Image Preservation Reference](core/messages/content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)

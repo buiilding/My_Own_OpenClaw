@@ -63,7 +63,7 @@ title: "Frontend Renderer Docs Hub"
 - [Tool Ghost Cursor Markup and Label A11y Contract Reference](chat/presentation/response_overlay/tool_ghost_cursor_markup_and_label_a11y_contract_reference.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Model Settings Change Workflow](settings/model_settings_change_workflow.md)
-- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
+- [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [Transcript Session and Rehydrate Reference](transcript_session_and_rehydrate_reference.md)
 - [Frontend Renderer Transcript Docs Hub](transcript/README.md)
 - [Renderer Transcript Contracts Docs Hub](transcript/contracts/README.md)

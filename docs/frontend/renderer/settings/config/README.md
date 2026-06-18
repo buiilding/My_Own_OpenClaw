@@ -16,7 +16,7 @@ title: "Renderer Settings Config Docs Hub"
 
 - [Frontend Renderer Settings Docs Hub](../README.md)
 - [Config Sync and Settings Lifecycle Reference](../../../runtime/config_sync_and_settings_lifecycle_reference.md)
-- [Input Validation and Frontend Patch Guard Reference](../../../../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](../../../../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
 
 ## Code Scope
 

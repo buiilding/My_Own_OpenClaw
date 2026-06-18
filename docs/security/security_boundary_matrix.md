@@ -17,7 +17,7 @@ Use this matrix to route a security-sensitive change to its owner. Security issu
 | Runs API key | optional shared key for `/api/runs/*` | `backend/src/api/routes/runs/support.py` | HTTP `401` on runs endpoints | runs route tests |
 | WebSocket schema validation | handshake and incoming message shape | `backend/src/api/schemas/*`, `backend/src/api/routes/websocket/*` | policy close, validation error envelope | schema/handler tests |
 | Error sanitization | safe client-visible backend errors | `backend/src/api/infrastructure/errors.py` | unsafe detail leakage or overly generic validation errors | `tests/backend/test_api_errors.py` |
-| Frontend config patch guard | renderer can update only frontend-owned settings | `backend/src/core/validation/settings_update_rules.py`, `validators.py`, `backend/src/api/handlers/settings.py` | unknown setting dropped, invalid update rejected | validation/settings tests |
+| Client settings patch guard | renderer can update only allowed client settings | `backend/src/core/validation/settings_update_rules.py`, `validators.py`, `backend/src/api/handlers/settings.py` | unknown setting dropped, invalid update rejected | validation/settings tests |
 | Preload allowlist | renderer sees only approved IPC methods/channels | `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json` | invalid channel ignored/rejected | preload/bridge validation tests |
 | Main IPC handlers | privileged actions stay in Electron main | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/*`, `frontend/src/main/*_runtime.cjs` | unhandled invoke/send, wrong window/permission behavior | main-process IPC tests |
 | Permission probes | OS-level screen/input/mic/browser capability checks | `frontend/src/main/permission*`, renderer onboarding/settings | permission stuck/misreported | permission/onboarding tests |
@@ -42,7 +42,7 @@ Frontend boundaries should:
 
 - keep renderer sandboxed behind preload allowlists.
 - route privileged work through typed IPC.
-- keep local config patches scoped to frontend-owned fields.
+- keep local config patches scoped to allowed client settings fields.
 - avoid direct backend-code imports.
 - preserve request ids and conversation/session refs when relaying tool results.
 

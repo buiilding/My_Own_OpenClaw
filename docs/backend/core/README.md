@@ -15,7 +15,7 @@ title: "Backend Core Infrastructure Docs Hub"
 - [Core Observability Docs Hub](observability/README.md)
 - [Trust-Boundary Metrics and Enforcement Reference](observability/trust_boundary_metrics_and_enforcement_reference.md)
 - [Core Validation Docs Hub](validation/README.md)
-- [Input Validation and Frontend Patch Guard Reference](validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](validation/input_validation_and_frontend_patch_guard_reference.md)
 - [Core Messages Docs Hub](messages/README.md)
 - [Stored Message LLM Serialization, Tool-Call Normalization, and Multimodal Image Contract Reference](messages/stored_message_llm_serialization_tool_call_normalization_and_multimodal_image_contract_reference.md)
 - [Content Converter Parsing and Multi-Image Preservation Reference](messages/content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)

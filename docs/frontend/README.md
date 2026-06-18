@@ -120,7 +120,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Permission Onboarding Gate and Manifest Version Runtime Reference](renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Permission Store Action Liveness and Active Consumer Map Reference](renderer/permissions/permission_store_action_liveness_and_active_consumer_map_reference.md)
 - [Permission Status Badge Rendering Reference](renderer/permissions/permission_status_badge_row_rendering_and_reason_visibility_reference.md)
-- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
+- [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [Transcript Session and Rehydrate Reference](renderer/transcript_session_and_rehydrate_reference.md)
 - [Frontend Renderer Transcript Docs Hub](renderer/transcript/README.md)
 - [Transcript Type Contract Reference](renderer/transcript/contracts/transcript_entry_type_contract_reference.md)

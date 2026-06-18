@@ -53,7 +53,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | `/api/runs/*` returns `401` only | Runs API key mismatch. |
 | Model provider unavailable or missing key | Provider API key/config. |
 | Remote embedding/semantic client returns auth error | Sidecar remote client did not forward install token or backend auth state is missing. |
-| UI setting saves but backend ignores field | Frontend config patch guard or unsupported config field. |
+| UI setting saves but backend ignores field | Client settings patch guard or unsupported config field. |
 | Token appears in logs/test snapshots | Logging/test fixture leak; remove and add redaction coverage. |
 
 ## Review Checklist

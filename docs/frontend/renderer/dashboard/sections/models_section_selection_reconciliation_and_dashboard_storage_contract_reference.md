@@ -145,4 +145,4 @@ Persistence/sync remains owned by AppConfig provider pipeline.
 - [Dashboard Sections Docs Hub](README.md)
 - [Renderer Dashboard Docs Hub](../README.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](../../providers/app_provider_coordinator_and_save_status_runtime_reference.md)
-- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](../../settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
+- [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](../../settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)

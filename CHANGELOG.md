@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/main tests/docs: rename desktop UI config test helpers and routing
+  docs away from stale frontend config ownership while preserving the
+  `load-frontend-config` / `save-frontend-config` IPC channels and
+  `frontend-config.json` filename.
 - renderer: rename the config filter helper from `filterFrontendConfig` to
   `filterRendererConfig` and remove the stale frontend-named export; no
   migration is required because renderer config fields, storage keys, IPC

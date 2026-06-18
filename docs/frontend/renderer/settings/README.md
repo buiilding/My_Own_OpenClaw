@@ -17,7 +17,7 @@ title: "Frontend Renderer Settings Docs Hub"
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate and Manifest Version Runtime Reference](../permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Renderer Settings Config Docs Hub](config/README.md)
-- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
+- [Renderer Config Filter, Storage, and Provider Merge Runtime Reference](config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 
 ## Related Pages
 

@@ -262,12 +262,12 @@ assigns `message_index` as local append order for display and replay.
   - If the dashboard asks for models before the backend WebSocket is fully open, Electron main queues that request and the SDK runtime flushes it after connect/handshake so selector state does not fall back to raw model ids during startup races.
 
 **`load-settings`**
-- Purpose: Request frontend-owned settings snapshot from backend session/default config.
+- Purpose: Request client settings snapshot from backend session/default config.
 - Payload: `{}`
 - Response: `settings-loaded`
 
 **`update-settings`**
-- Purpose: Apply frontend-owned config fields to the active backend session.
+- Purpose: Apply allowed client settings fields to the active backend session.
 - Response: `settings-updated`
 
 **`wakeword-detected`**
@@ -379,7 +379,7 @@ Identity notes:
 - Usage: Electron main process gates first `query`/`wakeword-detected` until this ACK (or timeout fallback) to avoid tool-whitelist races.
 
 **`settings-loaded`**
-- Purpose: Return frontend-owned config snapshot for the current session/default config.
+- Purpose: Return client settings snapshot for the current session/default config.
 - Usage: Response to `load-settings`.
 
 **`models-listed`**

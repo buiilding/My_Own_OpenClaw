@@ -500,14 +500,14 @@ Read:
 - [Backend Config Runtime Policy](../backend/config/config_fields_and_runtime_policy.md)
 - [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md)
 - [Settings Surface Change Workflow](../frontend/renderer/settings/settings_surface_change_workflow.md)
-- [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
+- [Renderer Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Frontend Settings + Models ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md)
 
 Likely code:
 
 - `backend/src/core/config/**`
 - `backend/src/api/handlers/settings.py`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/renderer/features/settings/**`
 

@@ -19,8 +19,8 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 | --- | --- | --- | --- | --- |
 | add backend policy field, timeout, provider mode, inference route, or limit | backend `AppConfig` | `backend/src/core/config`, `backend/src/core/container/config_updater.py` | [Runtime Configuration Matrix](runtime_configuration_matrix.md), [Backend Config Docs Hub](../backend/config/README.md) | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, `tests/backend/test_config_manager.py`, `tests/backend/test_config_service.py` |
 | make settings update rewire sessions correctly | backend session config service | `backend/src/agent/session/config_runtime.py`, `backend/src/agent/session/session_config_service.py`, `backend/src/api/handlers/settings.py` | [Backend Session Runtime and Config Rewire Reference](../backend/agent/session_runtime_and_config_rewire_reference.md) | `tests/backend/test_session_config_service.py`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_settings_payload_builder.py` |
-| change model picker or frontend settings toggle | renderer config/settings | `frontend/src/renderer/features/settings`, `frontend/src/renderer/app/providers`, `frontend/src/renderer/utils/configFilter.js`, `frontend/src/renderer/utils/configStorage.js` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md), [Frontend Config Sync Lifecycle](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md) | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
-| first query ignores latest settings | Electron main settings ACK gate | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_frontend_config.cjs` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/AppStatusProvider.test.tsx` |
+| change model picker or renderer settings toggle | renderer config/settings | `frontend/src/renderer/features/settings`, `frontend/src/renderer/app/providers`, `frontend/src/renderer/utils/configFilter.js`, `frontend/src/renderer/utils/configStorage.js` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md), [Renderer Config Sync Lifecycle](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md) | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
+| first query ignores latest settings | Electron main settings ACK gate | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_desktop_ui_config.cjs` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/AppStatusProvider.test.tsx` |
 | endpoint defaults or hosted/local URL selection changed | Electron endpoint resolver and sidecar env propagation | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/windie/_backend_config.py` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) | `tests/frontend/BackendEndpoints.test.cjs`, `tests/sidecar/test_backend_config.py` |
 | provider key, OAuth, or secret behavior changed | env var loader and credential boundary | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py`, provider runtime files, renderer provider settings only for user-entered overrides | [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md), [Provider Credentials](../providers/credentials.md) | backend config/provider tests plus frontend provider settings tests |
 | sidecar local tool runtime variable changed | SDK local-runtime launch env and sidecar runtime reader | `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/python/core`, `frontend/src/main/python/tools` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md) | `tests/sidecar/test_backend_config.py`, focused sidecar tool tests |
@@ -31,7 +31,7 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 
 - Backend config owns enforceable backend policy: providers, model defaults, auth, timeouts, inference routing, artifacts, capability gates, and API limits.
 - Electron main owns desktop process defaults: backend endpoint resolution, SDK local-runtime launch env facts, disk config, runtime mode, and package-mode behavior.
-- Renderer owns user-facing settings state and presentation. It persists only frontend-owned fields.
+- Renderer owns user-facing settings state and presentation. It persists only renderer-managed fields.
 - Sidecar owns local execution variables and backend URLs needed by sidecar memory/API clients.
 - Release/CI owns signing, notarization, package targets, and bundled runtime build variables.
 - Secrets must come from environment variables or user-entered secure config surfaces. Do not commit real keys.
@@ -96,7 +96,7 @@ Primary files:
 - `frontend/src/renderer/utils/configFilter.js`
 - `frontend/src/renderer/utils/configStorage.js`
 - `frontend/src/renderer/features/settings/**`
-- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 
 Validation:
@@ -176,7 +176,7 @@ Validation:
 
 - The setting has a single owner.
 - Defaults are documented next to the owner.
-- Renderer persistence includes only frontend-owned fields.
+- Renderer persistence includes only renderer-managed fields.
 - Secrets are not committed or serialized into logs/tests/docs.
 - Session config rewire behavior is tested when backend session settings change.
 - First-query settings sync still waits for the backend ACK when required.

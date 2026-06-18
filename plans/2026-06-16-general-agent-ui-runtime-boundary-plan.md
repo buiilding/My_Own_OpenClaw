@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 desktop UI config test/docs helper boundary
+
+- Finding: focused renderer/main tests still used frontend-config helper names
+  for Electron desktop UI config disk responses and fixture files, and routing
+  docs still pointed at the removed `ipc_frontend_config.cjs` module path or
+  called renderer-managed fields frontend-owned.
+- Change: renamed the test helpers to desktop UI config terminology, updated
+  docs routing/link text to renderer config and the live
+  `ipc_desktop_ui_config.cjs` module, and preserved the legacy IPC channel
+  names plus `frontend-config.json` storage filename where those are real
+  compatibility contracts.
+- Validation: focused AppConfigProvider storage/IPC and IPC lifecycle Jest
+  tests, docs listing, stale helper/path/ownership-label scan, and diff check
+  passed. `WindieDocsIndex` was attempted in both combined and standalone
+  runs, but timed out before producing output in this shell; direct inspection
+  found no assertions tied to the updated link text.
+- Compatibility: no migration required. Test helper names and docs changed
+  only; persisted filename, IPC channels, payloads, renderer settings,
+  credentials, permissions, backend settings validation, and SDK projections
+  are unchanged.
+
 ### 2026-06-18 renderer config filter exported helper boundary
 
 - Finding: `configFilter.js` had moved to renderer-managed config wording, but

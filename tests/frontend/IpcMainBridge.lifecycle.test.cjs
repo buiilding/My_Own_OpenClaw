@@ -87,11 +87,11 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     }));
   }
 
-  async function invokeLoadFrontendConfig(handlers) {
+  async function invokeLoadDesktopUiConfig(handlers) {
     return handlers['load-frontend-config']();
   }
 
-  function mockFrontendConfigFile(fs, content) {
+  function mockDesktopUiConfigFile(fs, content) {
     fs.existsSync.mockReturnValue(true);
     fs.promises.readFile.mockResolvedValue(content);
     fs.readFileSync.mockReturnValue(content);
@@ -797,22 +797,22 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('load-frontend-config returns null when file missing', async () => {
     const { handlers } = initIpc();
-    const result = await invokeLoadFrontendConfig(handlers);
+    const result = await invokeLoadDesktopUiConfig(handlers);
     expect(result).toBeNull();
   });
 
   test('load-frontend-config returns parsed config when file exists', async () => {
     const { handlers, fs } = initIpc();
-    mockFrontendConfigFile(fs, '{"model_mode":"offline"}');
+    mockDesktopUiConfigFile(fs, '{"model_mode":"offline"}');
 
-    const result = await invokeLoadFrontendConfig(handlers);
+    const result = await invokeLoadDesktopUiConfig(handlers);
 
     expect(result).toEqual({ model_mode: 'offline' });
   });
 
   test('load-frontend-config redacts provider secrets and drops stale OAuth from disk config', async () => {
     const { handlers, fs } = initIpc();
-    mockFrontendConfigFile(fs, JSON.stringify({
+    mockDesktopUiConfigFile(fs, JSON.stringify({
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-disk-openai' },
       },
@@ -826,7 +826,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       },
     }));
 
-    const result = await invokeLoadFrontendConfig(handlers);
+    const result = await invokeLoadDesktopUiConfig(handlers);
 
     expect(result).toEqual({
       provider_api_keys: {
@@ -837,18 +837,18 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('load-frontend-config returns null for invalid JSON', async () => {
     const { handlers, fs } = initIpc();
-    mockFrontendConfigFile(fs, '{bad json');
+    mockDesktopUiConfigFile(fs, '{bad json');
 
-    const result = await invokeLoadFrontendConfig(handlers);
+    const result = await invokeLoadDesktopUiConfig(handlers);
 
     expect(result).toBeNull();
   });
 
   test('load-frontend-config returns null for non-object payload', async () => {
     const { handlers, fs } = initIpc();
-    mockFrontendConfigFile(fs, '[]');
+    mockDesktopUiConfigFile(fs, '[]');
 
-    const result = await invokeLoadFrontendConfig(handlers);
+    const result = await invokeLoadDesktopUiConfig(handlers);
 
     expect(result).toBeNull();
   });
@@ -895,11 +895,11 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const { handlers, fs } = initIpc();
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');
     const configPath = path.join(appDataPath, 'frontend-config.json');
-    mockFrontendConfigFile(fs, JSON.stringify({
+    mockDesktopUiConfigFile(fs, JSON.stringify({
       speech_mode_enabled: false,
       agent_enabled_mcp_servers: ['mcp:cua-driver'],
     }));
-    await invokeLoadFrontendConfig(handlers);
+    await invokeLoadDesktopUiConfig(handlers);
     fs.promises.writeFile.mockClear();
     fs.promises.rename.mockClear();
 
@@ -923,7 +923,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const { handlers, fs } = initIpc();
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');
     const configPath = path.join(appDataPath, 'frontend-config.json');
-    mockFrontendConfigFile(fs, JSON.stringify({
+    mockDesktopUiConfigFile(fs, JSON.stringify({
       model_mode: 'online',
       agent_enabled_mcp_servers: ['mcp:cua-driver'],
     }));

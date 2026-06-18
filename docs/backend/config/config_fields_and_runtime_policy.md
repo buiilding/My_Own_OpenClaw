@@ -163,13 +163,13 @@ From `load_api_key_for_provider(...)`:
 - Frontend-managed provider API-key overrides are resolved before environment variables when enabled and non-empty.
 - Kimi Coding reads the configured `KIMI_API_KEY` env var only.
 
-## Frontend-Owned Update Scope (`update-settings`)
+## Client Settings Update Scope (`update-settings`)
 
 Validated by `ClientSettingsPatch` in `backend/src/core/validation/validators.py`.
 
 Deep validation reference:
 
-- [Input Validation and Frontend Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md)
 
 Allowed patch keys only:
 

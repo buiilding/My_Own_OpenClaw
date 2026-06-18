@@ -1216,7 +1216,7 @@ Request current application settings.
 
 **Response**: `settings-loaded`
 
-**Status**: Handled by the backend. Returns frontend-owned settings from the active session config (or global defaults if no session exists). Provider API key entries are included only in redacted form; raw `api_key` values are never returned by this response.
+**Status**: Handled by the backend. Returns client settings from the active session config (or global defaults if no session exists). Provider API key entries are included only in redacted form; raw `api_key` values are never returned by this response.
 
 **Example**:
 ```json

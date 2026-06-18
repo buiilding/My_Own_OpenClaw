@@ -18,7 +18,7 @@ import {
   registerAppConfigProviderSuiteLifecycle,
   renderAppConfigContext,
   setClientUserIdResponse,
-  setLoadFrontendConfigResponse,
+  setLoadDesktopUiConfigResponse,
 } from './AppConfigProvider.testUtils';
 import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
@@ -26,7 +26,7 @@ registerAppConfigProviderSuiteLifecycle();
 
 describe('AppConfigProvider storage + IPC status handling', () => {
   test('skips disk-sync writes when disk config matches stored config', async () => {
-    setLoadFrontendConfigResponse({ speech_mode_enabled: false });
+    setLoadDesktopUiConfigResponse({ speech_mode_enabled: false });
 
     renderAppConfigContext();
     await flushAsyncEffects();
@@ -36,7 +36,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   });
 
   test('applies disk config when it differs from stored config without syncing before connection', async () => {
-    setLoadFrontendConfigResponse({
+    setLoadDesktopUiConfigResponse({
       speech_mode_enabled: true,
       selected_model_id: 'model-x',
       model_provider: 'openai',
@@ -57,7 +57,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
   test('syncs loaded disk config when runtime is already connected', async () => {
     setClientUserIdResponse({ isConnected: true });
-    setLoadFrontendConfigResponse({
+    setLoadDesktopUiConfigResponse({
       speech_mode_enabled: true,
       selected_model_id: 'model-x',
       model_provider: 'openai',

@@ -22,7 +22,7 @@ title: "Backend API Memory Docs Hub"
 
 - [Backend API Docs Hub](../README.md)
 - [Memory Route Validation and Fallback Reference](../memory_route_validation_and_fallback_reference.md)
-- [Input Validation and Frontend Patch Guard Reference](../../core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard Reference](../../core/validation/input_validation_and_frontend_patch_guard_reference.md)
 
 ## Code Scope
 

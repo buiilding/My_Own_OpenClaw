@@ -46,7 +46,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient'
 export const listeners = new Map<string, (data: any) => void>();
 
 let removeIpcListener: jest.Mock;
-let loadFrontendConfigResponse: any = null;
+let loadDesktopUiConfigResponse: any = null;
 let clientUserIdResponse: any = null;
 
 export const mockUseSettingsManagement = useSettingsManagement as jest.Mock;
@@ -66,8 +66,8 @@ export function renderAppConfigContext() {
   return renderHook(() => useAppConfigContext(), { wrapper });
 }
 
-export function setLoadFrontendConfigResponse(response: any) {
-  loadFrontendConfigResponse = response;
+export function setLoadDesktopUiConfigResponse(response: any) {
+  loadDesktopUiConfigResponse = response;
 }
 
 export function setClientUserIdResponse(response: any) {
@@ -97,7 +97,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
       __desktop_runtime_models_list_requested__?: boolean;
     }).__desktop_runtime_models_list_requested__;
     removeIpcListener = jest.fn();
-    loadFrontendConfigResponse = null;
+    loadDesktopUiConfigResponse = null;
     clientUserIdResponse = null;
 
     mockLoadConfigFromStorage.mockReturnValue({ speech_mode_enabled: false });
@@ -113,7 +113,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
     });
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
       if (channel === INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG) {
-        return loadFrontendConfigResponse;
+        return loadDesktopUiConfigResponse;
       }
       if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
         return clientUserIdResponse;

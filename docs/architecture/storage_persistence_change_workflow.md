@@ -103,7 +103,7 @@ Validate:
 - legacy local storage still loads.
 - undefined values are stripped instead of persisted.
 - settings save status reflects backend ACK behavior.
-- frontend-owned config does not become a broad backend config write surface.
+- renderer-managed config does not become a broad backend config write surface.
 
 ### Change Electron user-data files
 

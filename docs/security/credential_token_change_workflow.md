@@ -239,14 +239,14 @@ Read:
 
 - [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md)
 - [Provider Change Workflow](../providers/provider_change_workflow.md)
-- [Input Validation and Frontend Patch Guard](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Input Validation and Client Settings Patch Guard](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
 
 Edit:
 
 - `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx` for visible controls.
 - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js` for provider entries/default normalization.
 - `frontend/src/renderer/app/providers/appConfigPersistence.js` and config storage/filter helpers for local persistence.
-- backend config and validation code only for explicit frontend-owned fields.
+- backend config and validation code only for explicit client settings patch fields.
 
 Validate:
 
