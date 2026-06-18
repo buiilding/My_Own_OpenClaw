@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend provider usage request-local state
+
+- Finding: `LLMProvider` still kept provider-instance last usage and normalized
+  stream payload fields as a diagnostics fallback, which could expose stale
+  cross-request state outside the request-local provider context.
+- Change: provider diagnostics now read only request-local `ContextVar` state,
+  report missing usage as `provider_usage_unavailable`, and regression coverage
+  asserts an independent context cannot read another request's usage or payload.
+- Validation: backend provider/client pytest collection was attempted but the
+  fallback Python environment is missing `litellm`; the owning commit validated
+  `backend/src/llm/providers/base.py` with `py_compile` and diff checks.
+- Compatibility: no migration required. This narrows backend diagnostics state
+  only; provider credentials, IPC, permissions, websocket payloads, storage, and
+  local tool execution paths are unchanged.
+
 ### 2026-06-18 renderer command playbook runtime wording
 
 - Finding: the frontend change-path playbook and renderer source folder map
