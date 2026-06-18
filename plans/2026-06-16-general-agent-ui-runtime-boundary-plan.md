@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main GPU Env Skin Boundary
+
+- Finding: `gpu_runtime.cjs` still hardcoded
+  `WINDIE_FORCE_SOFTWARE_RENDERING` even though the runtime itself is a generic
+  Electron host configuration helper.
+- Change: added configurable GPU env keys with a generic
+  `AGENT_FORCE_SOFTWARE_RENDERING` fallback, moved the WindieOS env name into
+  `mainHostSkin.gpu.env`, and passed that skin config at app startup.
+- Validation: focused GPU runtime Jest coverage, main host skin boundary Jest
+  coverage, targeted source scan, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_FORCE_SOFTWARE_RENDERING`; hardware acceleration defaults and Linux
+  software-rendering env side effects are unchanged.
+
 ### 2026-06-18 Main Runtime Python Env Skin Boundary
 
 - Finding: `runtime_paths.cjs` still hardcoded `WINDIE_PYTHON_PATH` while

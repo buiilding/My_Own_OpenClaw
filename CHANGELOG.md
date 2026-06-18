@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/runtime: inject the WindieOS Python executable override env name from
   the main host skin instead of hardcoding it inside generic runtime path
   resolution.
+- main/runtime: inject the WindieOS GPU software-rendering override env name
+  from the main host skin instead of hardcoding it inside generic GPU runtime
+  configuration.
 - main/runtime: inject WindieOS hosted backend default endpoint override env
   names from the main host skin instead of hardcoding them inside the generic
   backend endpoint resolver.

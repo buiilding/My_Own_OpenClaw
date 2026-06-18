@@ -59,6 +59,12 @@ const runtimePaths = Object.freeze({
   }),
 });
 
+const gpu = Object.freeze({
+  env: Object.freeze({
+    forceSoftwareRendering: 'WINDIE_FORCE_SOFTWARE_RENDERING',
+  }),
+});
+
 const logging = Object.freeze({
   logDirSegments: Object.freeze(['.windie', 'logs']),
 });
@@ -147,6 +153,7 @@ const mainHostSkin = Object.freeze({
   assets,
   dataPaths,
   runtimePaths,
+  gpu,
   logging,
   hostedBackend,
   vmWorker,

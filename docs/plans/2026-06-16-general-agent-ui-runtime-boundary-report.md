@@ -173,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main GPU Env Skin Boundary
+
+- Worktree was clean after `4315644fb`, with `main` ahead of `origin/main` by
+  875 commits.
+- Main-process product/env coupling scans were inspected after the runtime
+  Python env-key slice.
+- Finding: `gpu_runtime.cjs` still hardcoded
+  `WINDIE_FORCE_SOFTWARE_RENDERING` even though the runtime itself is a generic
+  Electron host configuration helper.
+- Change: added configurable GPU env keys with a generic
+  `AGENT_FORCE_SOFTWARE_RENDERING` fallback, moved the WindieOS env name into
+  `mainHostSkin.gpu.env`, and passed that skin config at app startup.
+- Validation: focused GPU runtime Jest coverage, main host skin boundary Jest
+  coverage, targeted source scan, docs listing, and diff check.
+- Compatibility: no migration required. WindieOS still honors
+  `WINDIE_FORCE_SOFTWARE_RENDERING`; hardware acceleration defaults and Linux
+  software-rendering env side effects are unchanged.
+
 ### 2026-06-18 Main Runtime Python Env Skin Boundary
 
 - Worktree was clean after `7029d77e9`, with `main` ahead of `origin/main` by

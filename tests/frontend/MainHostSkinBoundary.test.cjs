@@ -10,6 +10,7 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
+const gpuRuntimePath = path.join(mainRoot, 'app/gpu_runtime.cjs');
 const runtimePathsPath = path.join(mainRoot, 'app/runtime_paths.cjs');
 const runtimeModePath = path.join(mainRoot, 'app/runtime_mode.cjs');
 const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
@@ -69,6 +70,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("userDataDir: 'WINDIE_USER_DATA_DIR'");
     expect(skinSource).toContain('runtimePaths');
     expect(skinSource).toContain("pythonPath: 'WINDIE_PYTHON_PATH'");
+    expect(skinSource).toContain('gpu');
+    expect(skinSource).toContain("forceSoftwareRendering: 'WINDIE_FORCE_SOFTWARE_RENDERING'");
     expect(skinSource).toContain('logging');
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain('sdkAgentName');
@@ -292,6 +295,18 @@ describe('main host skin/config boundary', () => {
     expect(runtimePathsSource).not.toContain('WINDIE_PYTHON_PATH');
     expect(ipcSource).toContain('runtimePathEnv: mainHostSkin.runtimePaths.env');
     expect(mainWindowSource).toContain('runtimePathEnv: mainHostSkin?.runtimePaths?.env');
+  });
+
+  test('GPU software rendering env name lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const gpuSource = fs.readFileSync(gpuRuntimePath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
+
+    expect(skinSource).toContain("forceSoftwareRendering: 'WINDIE_FORCE_SOFTWARE_RENDERING'");
+    expect(gpuSource).toContain("forceSoftwareRendering: 'AGENT_FORCE_SOFTWARE_RENDERING'");
+    expect(gpuSource).toContain('resolveGpuEnvConfig');
+    expect(gpuSource).not.toContain('WINDIE_FORCE_SOFTWARE_RENDERING');
+    expect(indexSource).toContain('gpuEnv: mainHostSkin.gpu.env');
   });
 
   test('local runtime helpers consume host copy with generic defaults', () => {

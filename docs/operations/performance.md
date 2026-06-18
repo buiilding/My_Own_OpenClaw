@@ -39,7 +39,7 @@ read_when:
 - **Shared artifact image metadata normalization**: chat send, tool execution upload, and chat message rendering paths now use one image content-type/extension helper, reducing duplicate string parsing and keeping screenshot handling consistent.
 - **Stable tool routing lifecycle**: SDK/main keeps one managed runtime across model-config updates and reads model metadata through runtime state, reducing service churn while preserving transcript attribution.
 - **PlayerService cleanup hardening**: audio playback stop/cleanup now cancels active sources and invalidates stale playback callbacks to avoid race-driven queue continuation after stop.
-- **GPU acceleration default-on for Electron UI**: frontend no longer forces software rendering by default; set `WINDIE_FORCE_SOFTWARE_RENDERING=1` only as a fallback for GPU-driver-specific crashes.
+- **GPU acceleration default-on for Electron UI**: frontend no longer forces software rendering by default. WindieOS supplies `WINDIE_FORCE_SOFTWARE_RENDERING` through the main host skin; set `WINDIE_FORCE_SOFTWARE_RENDERING=1` only as a fallback for GPU-driver-specific crashes.
 
 ## Sidecar
 

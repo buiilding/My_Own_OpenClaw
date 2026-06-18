@@ -111,7 +111,11 @@ installConsoleLayerLog({
   layer: 'main',
   logPrefix: mainHostSkin.identity.logPrefix,
 });
-configureGpuRuntime({ app, env: process.env });
+configureGpuRuntime({
+  app,
+  env: process.env,
+  gpuEnv: mainHostSkin.gpu.env,
+});
 
 const WAKEWORD_HOTKEY = process.platform === 'win32'
   ? 'CommandOrControl+Alt+W'

@@ -2,7 +2,11 @@
 
 const {
   configureGpuRuntime,
+  resolveGpuEnvConfig,
 } = require('../../frontend/src/main/app/gpu_runtime.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('gpu_runtime configureGpuRuntime', () => {
   test('keeps hardware acceleration enabled by default', () => {
@@ -19,7 +23,7 @@ describe('gpu_runtime configureGpuRuntime', () => {
 
   test('forces software rendering when explicit env toggle is enabled', () => {
     const app = { disableHardwareAcceleration: jest.fn() };
-    const env = { WINDIE_FORCE_SOFTWARE_RENDERING: '1' };
+    const env = { AGENT_FORCE_SOFTWARE_RENDERING: '1' };
 
     const result = configureGpuRuntime({ app, env });
 
@@ -33,7 +37,7 @@ describe('gpu_runtime configureGpuRuntime', () => {
     'treats truthy env value "%s" as enabled',
     (flagValue) => {
       const app = { disableHardwareAcceleration: jest.fn() };
-      const env = { WINDIE_FORCE_SOFTWARE_RENDERING: flagValue };
+      const env = { AGENT_FORCE_SOFTWARE_RENDERING: flagValue };
 
       const result = configureGpuRuntime({ app, env });
 
@@ -41,4 +45,24 @@ describe('gpu_runtime configureGpuRuntime', () => {
       expect(app.disableHardwareAcceleration).toHaveBeenCalledTimes(1);
     },
   );
+
+  test('uses configured host software rendering env key', () => {
+    const app = { disableHardwareAcceleration: jest.fn() };
+    const env = { WINDIE_FORCE_SOFTWARE_RENDERING: '1' };
+
+    const result = configureGpuRuntime({
+      app,
+      env,
+      gpuEnv: mainHostSkin.gpu.env,
+    });
+
+    expect(result).toEqual({ softwareRenderingForced: true });
+    expect(app.disableHardwareAcceleration).toHaveBeenCalledTimes(1);
+  });
+
+  test('exports generic GPU env defaults', () => {
+    expect(resolveGpuEnvConfig()).toEqual({
+      forceSoftwareRendering: 'AGENT_FORCE_SOFTWARE_RENDERING',
+    });
+  });
 });
