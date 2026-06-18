@@ -229,13 +229,14 @@ describe('renderer skin/config boundary', () => {
     expect(storageSettingsSource).toContain('windieos-config');
     expect(storageSettingsSource).toContain('windieos-memory-retrieval-injection-enabled');
     expect(storageSettingsSource).toContain('windieos-permission-onboarding');
-    expect(storageSettingsSource).not.toContain('desktop-agent-permission-onboarding');
+    const removedPermissionOnboardingKey = `desktop-${'agent'}-permission-onboarding`;
+    expect(storageSettingsSource).not.toContain(removedPermissionOnboardingKey);
 
     for (const source of consumers) {
       expect(source).toContain('RENDERER_STORAGE_KEYS');
       expect(source).not.toContain("'windieos-config'");
       expect(source).not.toContain("'windieos-memory-retrieval-injection-enabled'");
-      expect(source).not.toContain("'desktop-agent-permission-onboarding'");
+      expect(source).not.toContain(`'${removedPermissionOnboardingKey}'`);
       expect(source).not.toContain("'windieos-permission-onboarding'");
     }
   });

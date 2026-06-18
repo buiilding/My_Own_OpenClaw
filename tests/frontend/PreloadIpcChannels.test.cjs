@@ -241,7 +241,7 @@ describe('preload IPC channel registry', () => {
     );
   });
 
-  test('does not keep the removed desktop-agent preload argument alias', () => {
+  test('does not keep the removed preload argument alias', () => {
     const source = fs.readFileSync(
       path.join(__dirname, '../../frontend/src/preload.js'),
       'utf8',

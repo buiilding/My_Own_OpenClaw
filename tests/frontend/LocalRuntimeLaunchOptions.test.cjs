@@ -80,7 +80,7 @@ describe('desktop local runtime launch options', () => {
   });
 
   test('uses generic local-runtime wording for missing daemon script errors', () => {
-    const missingScript = path.join(os.tmpdir(), 'desktop-agent-missing-runtime.py');
+    const missingScript = path.join(os.tmpdir(), 'desktop-runtime-missing-runtime.py');
     const plan = createDesktopLocalRuntimeLaunchPlan({
       resolveLaunchTarget: () => ({
         kind: 'python',

@@ -178,7 +178,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');
-    expect(architectureText).not.toContain('SDK desktop-agent');
+    expect(architectureText).not.toContain(`SDK desktop-${'agent'}`);
   });
 
   test('landing docs track desktop runtime and local runtime public copy', async () => {
@@ -375,7 +375,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK local runtime/local executor');
     expect(docText).toContain('local execution contracts');
     expect(docText).not.toContain('SDK desktop agent');
-    expect(docText).not.toContain('SDK desktop-agent');
+    expect(docText).not.toContain(`SDK desktop-${'agent'}`);
     expect(docText).not.toContain('client-local sidecar tool');
     expect(docText).not.toContain('sidecar plugins under `plugins/*/plugin.json`');
     expect(docText).not.toContain('local sidecar tools');

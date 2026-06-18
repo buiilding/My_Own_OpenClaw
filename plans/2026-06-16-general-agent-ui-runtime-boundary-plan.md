@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 retired desktop-agent test literal hygiene
+
+- Finding: frontend and sidecar boundary tests still embedded retired `desktop-agent` names in test titles, negative assertions, fixture ids, and no-migration checks after active runtime/source surfaces had moved away from that namespace.
+- Change: switched SDK passthrough fixtures to neutral `custom-agent` copy and constructed retired literals inside negative assertions so exact stale-name scans surface only intentional migration docs.
+- Validation: focused WindieSdkClient agent-definition Jest coverage, affected frontend Jest suites, browser file-store pytest, docs listing, exact retired-name scan, and scoped diff check.
+- Compatibility: no migration required. This changes tests only; runtime code, public APIs, IPC, storage keys, sidecar file roots, settings, credentials, and persisted data are unchanged.
+
 ### 2026-06-18 sidecar LocalRuntimeService symbol boundary
 
 - Finding: the Python sidecar JSON-RPC service still exposed `LocalBackend` / `LocalBackendMemoryHandlersMixin` as live internal symbols after the sidecar daemon, SDK, and Electron host had moved to local-runtime terminology.

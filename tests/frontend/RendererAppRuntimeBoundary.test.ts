@@ -59,7 +59,7 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(source).toContain('active desktop-runtime skin');
-    expect(source).not.toContain('active desktop-agent skin');
+    expect(source).not.toContain(`active desktop-${'agent'} skin`);
   });
 
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {

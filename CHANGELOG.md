@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tests: move remaining retired `desktop-agent` literals in boundary assertions and SDK fixtures behind neutral custom-agent or constructed-string coverage so active stale-name scans only report intentional migration docs.
 - sidecar: rename the internal Python JSON-RPC service and memory mixin from `LocalBackend` to `LocalRuntimeService` / `LocalRuntimeMemoryHandlersMixin` while preserving the `local_backend.py` launch module, daemon `/rpc` contract, JSON-RPC method names, tool schemas, storage, and package targets.
 - sdk/js: replace the `desktop-agents` package keyword with `agent-runtime` so SDK package metadata matches the generic Agent runtime boundary; no migration is required because runtime exports, package name, dependency graph, and published files are unchanged.
 - frontend/main/sidecar: rename the local-runtime screenshot temp directory and filename prefix from `desktop-agent-*` to `desktop-runtime-*`; no migration is required because these screenshots are transient temp artifacts and unowned/retired paths remain rejected without read, upload, or deletion.

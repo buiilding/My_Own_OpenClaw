@@ -178,8 +178,8 @@ describe('Agent SDK client behavior', () => {
 
   test('builds data-only agent definitions with capability metadata', () => {
     const definition = buildAgentDefinition({
-      id: 'desktop-agent',
-      name: 'Desktop Agent',
+      id: 'custom-agent',
+      name: 'Custom Agent',
       systemPrompt: 'Follow the desktop contract.',
       clientToolManifest: {
         version: 1,
@@ -206,8 +206,8 @@ describe('Agent SDK client behavior', () => {
 
     expect(definition).toMatchObject({
       version: 1,
-      id: 'desktop-agent',
-      name: 'Desktop Agent',
+      id: 'custom-agent',
+      name: 'Custom Agent',
       mode: 'default_plus_overrides',
       system_prompt: {
         mode: 'replace',

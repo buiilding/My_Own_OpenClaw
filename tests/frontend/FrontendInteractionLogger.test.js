@@ -176,7 +176,7 @@ describe('frontendInteractionLogger', () => {
     delete window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
   });
 
-  test('ignores retired desktop-agent interaction message-text diagnostic flag', () => {
+  test('ignores retired interaction message-text diagnostic flag', () => {
     window[retiredDesktopAgentFlag('ENABLE_INTERACTION_MESSAGE_TEXT_LOGS')] = true;
 
     logUserSentMessage({
@@ -225,7 +225,7 @@ describe('frontendInteractionLogger', () => {
     delete window.__WINDIE_DEBUG_SURFACE_STDOUT__;
   });
 
-  test('ignores retired desktop-agent debug stdout diagnostic flag', () => {
+  test('ignores retired debug stdout diagnostic flag', () => {
     window[retiredDesktopAgentFlag('DEBUG_SURFACE_STDOUT')] = true;
 
     logUserSentMessage({

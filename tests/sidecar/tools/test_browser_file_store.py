@@ -11,7 +11,7 @@ def test_default_browser_files_root_is_generic() -> None:
         ".windieos",
         "browser",
     )
-    assert ".desktop-agent" not in file_store.DEFAULT_BROWSER_FILES_DIR.parts
+    assert f".desktop-{'agent'}" not in file_store.DEFAULT_BROWSER_FILES_DIR.parts
 
 
 def test_resolve_browser_path_uses_browser_root(

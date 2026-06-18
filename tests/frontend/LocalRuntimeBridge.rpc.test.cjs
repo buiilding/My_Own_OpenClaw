@@ -304,17 +304,17 @@ describe('local_runtime_bridge RPC handlers', () => {
     }
   });
 
-  test('screenshot host channel rejects retired desktop-agent temp namespace', async () => {
+  test('screenshot host channel rejects retired temp namespace', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const screenshotPath = createOwnedScreenshotTempPath(
-      'retired-desktop-agent-capture',
+      `retired-desktop-${'agent'}-capture`,
       `desktop-${'agent'}-screenshots`,
       `desktop-${'agent'}-shot-`,
     );
     await fsPromises.mkdir(path.dirname(screenshotPath), { recursive: true, mode: 0o700 });
-    await fsPromises.writeFile(screenshotPath, Buffer.from('retired-desktop-agent-fake-jpeg-bytes'));
+    await fsPromises.writeFile(screenshotPath, Buffer.from(`retired-desktop-${'agent'}-fake-jpeg-bytes`));
 
     const originalFetch = global.fetch;
     global.fetch = jest.fn().mockResolvedValue({

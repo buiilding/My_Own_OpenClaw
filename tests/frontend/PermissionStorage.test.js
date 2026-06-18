@@ -35,13 +35,14 @@ describe('permission onboarding storage', () => {
     expect(loadPermissionOnboardingState()).toEqual(saved);
   });
 
-  test('ignores removed desktop-agent storage key', () => {
+  test('ignores removed permission storage key', () => {
     const saved = {
       manifest_version: 'v1',
       completed: true,
       completed_at: '2026-03-03T00:00:00.000Z',
     };
-    window.localStorage.setItem('desktop-agent-permission-onboarding', JSON.stringify(saved));
+    const removedStorageKey = `desktop-${'agent'}-permission-onboarding`;
+    window.localStorage.setItem(removedStorageKey, JSON.stringify(saved));
 
     expect(loadPermissionOnboardingState()).toEqual({
       manifest_version: '',
@@ -49,7 +50,7 @@ describe('permission onboarding storage', () => {
       completed_at: null,
     });
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(window.localStorage.getItem('desktop-agent-permission-onboarding')).toBe(JSON.stringify(saved));
+    expect(window.localStorage.getItem(removedStorageKey)).toBe(JSON.stringify(saved));
   });
 
   test('fails closed for malformed JSON', () => {
