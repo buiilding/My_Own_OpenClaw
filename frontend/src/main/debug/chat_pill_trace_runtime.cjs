@@ -2,10 +2,14 @@
  * Coordinates the chat pill trace runtime for the Electron main process.
  */
 
+const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
+
 function isTraceEnabled() {
   return (
-    process.env.WINDIE_DEBUG_CHAT_PILL === '1'
-    || process.env.WINDIE_DEBUG_STREAM_EVENTS === '1'
+    isDebugFlagEnabled('chatPill')
+    || isDebugFlagEnabled('streamEvents')
   );
 }
 

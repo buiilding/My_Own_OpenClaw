@@ -81,6 +81,10 @@ fallback env prefix is `AGENT_`.
 
 Important main-process flags:
 
+WindieOS maps these public flags through `main_host_skin.debug.env`; the
+generic Electron host helper defaults to matching `AGENT_*` names when no skin
+override is provided.
+
 | Flag | Effect |
 | --- | --- |
 | `WINDIE_DEV_UI=1` | Set by `bin/windie start desktop`; enables developer UI/transparency paths. |

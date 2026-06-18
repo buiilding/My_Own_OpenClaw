@@ -18,6 +18,10 @@ const {
 } = require('./app/backend_endpoints.cjs');
 const { mainHostSkin } = require('./app/main_host_skin.cjs');
 const {
+  configureDebugEnvRuntime,
+  isDebugFlagEnabled,
+} = require('./app/debug_env.cjs');
+const {
   createBackendEndpointState,
 } = require('./ipc/ipc_backend_endpoint_state.cjs');
 const {
@@ -169,6 +173,7 @@ const backendEndpointState = createBackendEndpointState({
   resolveBackendEndpoints,
   env: process.env,
 });
+configureDebugEnvRuntime(mainHostSkin.debug);
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
@@ -416,7 +421,7 @@ function advanceToNextBackendEndpoint() {
 }
 
 function log(message) {
-  if (process.env.WINDIE_DEBUG_IPC_STDOUT === '1') {
+  if (isDebugFlagEnabled('ipcStdout')) {
     console.log(`[Main][IPC] ${message}`);
   }
 }
@@ -843,7 +848,7 @@ function createDirectWakeUpAgentAdapter({
         source: 'conversation-runtime',
         displayRowCount: Array.isArray(snapshot.displayRows) ? snapshot.displayRows.length : 0,
       });
-      if (process.env.WINDIE_DEBUG_STREAM_EVENTS === '1') {
+      if (isDebugFlagEnabled('streamEvents')) {
         currentTurnTraceLogger.trace(snapshot.currentTurn);
       }
       if (syncSdkLiveTurnSurfaceIntent) {

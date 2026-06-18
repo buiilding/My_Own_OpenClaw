@@ -27,6 +27,10 @@ LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose bin/windie start backend
 
 ## Electron Main and Renderer
 
+WindieOS maps these public flags through `main_host_skin.debug.env`. The
+generic Electron host debug helper defaults to matching `AGENT_*` flag names for
+non-Windie skins.
+
 | Flag | Effect |
 | --- | --- |
 | `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `bin/windie start desktop`. |

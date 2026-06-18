@@ -111,7 +111,12 @@ const {
 const {
   configureMcpRuntime,
 } = require('./extensions/mcp_runtime.cjs');
+const {
+  configureDebugEnvRuntime,
+  isDebugFlagEnabled,
+} = require('./app/debug_env.cjs');
 
+configureDebugEnvRuntime(mainHostSkin.debug);
 configureLayerLogSink(mainHostSkin.logging);
 configureExtensionManifestRuntime(mainHostSkin.extensions);
 configureMcpRuntime(mainHostSkin.mcp);
@@ -133,10 +138,10 @@ const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'onboardin
 const RESPONSE_OVERLAY_CHAT_GAP = 8;
 const CHATBOX_VISUAL_ANCHOR_HEIGHT = 64;
 const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
-const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
-const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
-const ENABLE_DEBUG_STREAM_TRACE = process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
-const ENABLE_DEBUG_TOOL_SCREENSHOT = process.env.WINDIE_DEBUG_TOOL_SCREENSHOT === '1';
+const ENABLE_OS_TOOL_GHOST_DEBUG = isDebugFlagEnabled('ghostOverlay');
+const ENABLE_DEV_TRANSPARENCY_UI = isDebugFlagEnabled('devUi');
+const ENABLE_DEBUG_STREAM_TRACE = isDebugFlagEnabled('streamEvents');
+const ENABLE_DEBUG_TOOL_SCREENSHOT = isDebugFlagEnabled('toolScreenshot');
 const VM_MODE_ENABLED = isVmModeEnabled(
   process.env,
   mainHostSkin.vmWorker.env,

@@ -7,6 +7,9 @@ const { syncVisibleSurfaceDisplayAffinity } = require('../surfaces/display_affin
 const {
   appendDesktopStartupDiagnostic: appendDesktopStartupDiagnosticRuntime,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
+const {
+  isDebugFlagEnabled,
+} = require('./debug_env.cjs');
 
 const DEFAULT_SECOND_INSTANCE_FOCUS_COOLDOWN_MS = 1000;
 
@@ -93,7 +96,7 @@ function logStartupMetricsSnapshot(label, deps = {}) {
     utilityProcessCount: summary.utility,
     appWorkingSetMb: summary.totalWorkingSetMb,
   });
-  if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+  if (isDebugFlagEnabled('startupStdout')) {
     log(
       `[Main][StartupMetrics] ${label} pid=${pid} rss_mb=${rssMb ?? 'n/a'} ` +
         `heap_used_mb=${heapUsedMb ?? 'n/a'} app_processes=${summary.processes} ` +
@@ -236,7 +239,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     vmMode: Boolean(vmMode),
   });
   if (!singleInstanceLockAcquired) {
-    if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+    if (isDebugFlagEnabled('startupStdout')) {
       log('[Main] Existing instance detected, exiting duplicate process.');
     }
     quitApp();
@@ -260,7 +263,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
         reason: 'focus-cooldown',
         focusCooldownMs,
       });
-      if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+      if (isDebugFlagEnabled('startupStdout')) {
         log('[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.');
       }
       return;
@@ -274,7 +277,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       focusCooldownMs,
     });
     log(`[Main][App] second_instance focus=true suppressed=false cooldown_ms=${focusCooldownMs}`);
-    if (process.env.WINDIE_DEBUG_STARTUP_STDOUT === '1') {
+    if (isDebugFlagEnabled('startupStdout')) {
       log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
     }
     focusPrimarySurface();

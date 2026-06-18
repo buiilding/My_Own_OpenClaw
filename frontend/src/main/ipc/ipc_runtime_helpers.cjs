@@ -8,13 +8,16 @@ const {
 const {
   broadcastTypedBackendEvent,
 } = require('./ipc_backend_event_channels.cjs');
+const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
 
 function isDebugStreamTraceEnabled() {
-  return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
+  return isDebugFlagEnabled('streamEvents');
 }
 
 function isDebugToolScreenshotEnabled() {
-  return process.env.WINDIE_DEBUG_TOOL_SCREENSHOT === '1';
+  return isDebugFlagEnabled('toolScreenshot');
 }
 
 function logToolShotDebug(stage, payload) {

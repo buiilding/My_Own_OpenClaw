@@ -5,12 +5,19 @@ const {
   logLiveSurfaceTrace,
   summarizeCurrentTurn,
 } = require('../../frontend/src/main/debug/live_surface_trace_runtime.cjs');
+const {
+  configureDebugEnvRuntime,
+} = require('../../frontend/src/main/app/debug_env.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 describe('live_surface_trace_runtime', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    configureDebugEnvRuntime(mainHostSkin.debug);
     delete process.env.WINDIE_DEBUG_LIVE_SURFACE;
     delete process.env.WINDIE_DEV_UI;
     delete process.env.WINDIE_DEBUG_CHAT_PILL;
@@ -18,6 +25,7 @@ describe('live_surface_trace_runtime', () => {
   });
 
   afterEach(() => {
+    configureDebugEnvRuntime();
     process.env = originalEnv;
   });
 

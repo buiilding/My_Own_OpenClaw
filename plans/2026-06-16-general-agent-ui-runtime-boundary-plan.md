@@ -7808,3 +7808,20 @@ Each completed slice should report:
 - Compatibility: no migration required. WindieOS users keep
   `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR`; generic hosts can use the
   `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR` fallback unless they inject another key.
+
+### 2026-06-18 main debug env skin boundary
+
+- Finding: main-process trace and diagnostic helpers still read WindieOS debug
+  env names directly across generic Electron host modules, including stream,
+  chat-pill, live-surface, IPC stdout, startup stdout, wakeword stdout,
+  local-runtime stdout, surface stdout, tool screenshot, dev UI, and ghost
+  overlay toggles.
+- Change: added a generic debug env resolver with `AGENT_*` defaults, moved the
+  WindieOS debug env key map into `main_host_skin.debug.env`, and configured
+  the debug resolver from the main composition root and IPC entrypoint.
+- Validation: focused debug env, live-surface trace, overlay responsebox, SDK
+  live-turn surface, assistant trace, and host-skin boundary Jest coverage,
+  source scans, docs listing, and `git diff --check`.
+- Compatibility: no migration required. WindieOS users keep the documented
+  `WINDIE_*` debug flags; generic Electron host modules now use the `AGENT_*`
+  defaults unless a host skin injects another env map.

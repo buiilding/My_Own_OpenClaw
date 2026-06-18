@@ -8,6 +8,9 @@ const {
   resolveBackendEndpoints,
 } = require('../app/backend_endpoints.cjs');
 const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
+const {
   createWindowResolvers,
 } = require('./local_runtime_window_visibility.cjs');
 const {
@@ -551,7 +554,7 @@ function initializeLocalRuntimeBridge(getWindows, options = {}) {
     status: 'succeeded',
     ...buildLocalRuntimeDiagnosticData(),
   });
-  if (process.env.WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT === '1') {
+  if (isDebugFlagEnabled('localRuntimeStdout')) {
     console.log(`${LOCAL_RUNTIME_BRIDGE_LOG_PREFIX} initialized`);
   }
 }

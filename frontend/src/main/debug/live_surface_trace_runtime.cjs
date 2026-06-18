@@ -2,10 +2,14 @@
  * Coordinates the live surface trace runtime for the Electron main process.
  */
 
+const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
+
 function isLiveSurfaceTraceEnabled() {
   return (
-    process.env.WINDIE_DEBUG_LIVE_SURFACE === '1'
-    || process.env.WINDIE_DEBUG_CHAT_PILL === '1'
+    isDebugFlagEnabled('liveSurface')
+    || isDebugFlagEnabled('chatPill')
   );
 }
 

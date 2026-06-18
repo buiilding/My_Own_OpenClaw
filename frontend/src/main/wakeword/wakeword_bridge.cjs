@@ -11,6 +11,9 @@ const {
   resolveLocalRuntimeLaunchTarget,
 } = require('../app/runtime_paths.cjs');
 const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
+const {
   emitWakewordEvent,
   emitWakewordStatus,
   handleWakewordStderrLine,
@@ -35,7 +38,7 @@ function isIgnorableLogPipeError(error) {
 }
 
 function writeWakewordLog(level, ...args) {
-  if (process.env.WINDIE_DEBUG_WAKEWORD_STDOUT !== '1') {
+  if (!isDebugFlagEnabled('wakewordStdout')) {
     return;
   }
   const sink = console?.[level];

@@ -23,6 +23,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/logging: inject WindieOS layer log and renderer verbose log env names
   from the main host skin instead of hardcoding them inside the generic layer
   log sink.
+- main/debug: inject WindieOS main-process debug env names from the main host
+  skin instead of hardcoding them inside generic Electron host trace and
+  diagnostics helpers.
 - main/runtime: inject the WindieOS verbose local-runtime stderr env name from
   the main host skin instead of hardcoding it inside generic local-runtime
   stderr filtering.

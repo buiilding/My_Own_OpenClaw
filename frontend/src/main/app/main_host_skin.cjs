@@ -85,6 +85,22 @@ const logging = Object.freeze({
   }),
 });
 
+const debug = Object.freeze({
+  env: Object.freeze({
+    chatPill: 'WINDIE_DEBUG_CHAT_PILL',
+    devUi: 'WINDIE_DEV_UI',
+    ghostOverlay: 'WINDIE_DEBUG_GHOST_OVERLAY',
+    ipcStdout: 'WINDIE_DEBUG_IPC_STDOUT',
+    liveSurface: 'WINDIE_DEBUG_LIVE_SURFACE',
+    localRuntimeStdout: 'WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT',
+    startupStdout: 'WINDIE_DEBUG_STARTUP_STDOUT',
+    streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS',
+    surfaceStdout: 'WINDIE_DEBUG_SURFACE_STDOUT',
+    toolScreenshot: 'WINDIE_DEBUG_TOOL_SCREENSHOT',
+    wakewordStdout: 'WINDIE_DEBUG_WAKEWORD_STDOUT',
+  }),
+});
+
 const browserAutomation = Object.freeze({
   localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -176,6 +192,7 @@ const mainHostSkin = Object.freeze({
   extensions,
   mcp,
   logging,
+  debug,
   hostedBackend,
   vmWorker,
   queryEvents,

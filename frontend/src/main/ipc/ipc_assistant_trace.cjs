@@ -5,6 +5,9 @@
 const {
   appendIpcBridgeDiagnostic: appendIpcBridgeDiagnosticRuntime,
 } = require('../diagnostics/app_diagnostics_runtime.cjs');
+const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
 
 const COMPACT_BACKEND_EVENT_TYPES = new Set([
   'query-accepted',
@@ -239,7 +242,7 @@ function createElectronMainTraceLogger({
   log,
   maxTrackedTurns = 64,
   appendIpcBridgeDiagnostic = appendIpcBridgeDiagnosticRuntime,
-  stdoutEnabled = process.env.WINDIE_DEBUG_IPC_STDOUT === '1',
+  stdoutEnabled = isDebugFlagEnabled('ipcStdout'),
 } = {}) {
   const seenBackendTurns = new Map();
 

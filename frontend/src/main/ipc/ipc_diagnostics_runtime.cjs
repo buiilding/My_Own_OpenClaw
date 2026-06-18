@@ -9,6 +9,9 @@ const {
   appendLayerLogLine,
   formatConsoleArgs,
 } = require('../logging/layer_log_sink.cjs');
+const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
 
 const INTERACTION_SCHEMA_VERSION = 1;
 const MESSAGE_TEXT_REDACTION = '[redacted]';
@@ -95,13 +98,13 @@ function handleRendererLog(payload = {}, {
     const entry = normalizeRendererInteractionEntry(payload.entry || {}, diagnosticsOptions);
     appendRendererInteractionDiagnostic(entry);
     writeRendererLogLine('renderer', `[Renderer][interaction] ${formatRendererInteractionSummary(entry)}`);
-    if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1') {
+    if (isDebugFlagEnabled('surfaceStdout')) {
       log(`[RendererInteraction][renderer] ${formatRendererInteractionSummary(entry)}`);
     }
     return true;
   }
   writeRendererLogLine('renderer', `[Renderer][ipc] ${formatConsoleArgs([payload])}`);
-  if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1') {
+  if (isDebugFlagEnabled('surfaceStdout')) {
     log('[RendererLog]', payload);
   }
   return true;

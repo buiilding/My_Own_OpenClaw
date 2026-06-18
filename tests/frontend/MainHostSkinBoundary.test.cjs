@@ -10,6 +10,7 @@ const indexPath = path.join(mainRoot, 'index.cjs');
 const mainIpcPath = path.join(mainRoot, 'ipc.cjs');
 const skinPath = path.join(mainRoot, 'app/main_host_skin.cjs');
 const backendEndpointsPath = path.join(mainRoot, 'app/backend_endpoints.cjs');
+const debugEnvPath = path.join(mainRoot, 'app/debug_env.cjs');
 const gpuRuntimePath = path.join(mainRoot, 'app/gpu_runtime.cjs');
 const runtimePathsPath = path.join(mainRoot, 'app/runtime_paths.cjs');
 const runtimeModePath = path.join(mainRoot, 'app/runtime_mode.cjs');
@@ -82,6 +83,9 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("logDirSegments: Object.freeze(['.windie', 'logs'])");
     expect(skinSource).toContain("layerLogFilePrefix: 'WINDIE'");
     expect(skinSource).toContain("rendererVerboseLogFile: 'WINDIE_RENDERER_VERBOSE_LOG_FILE'");
+    expect(skinSource).toContain('debug');
+    expect(skinSource).toContain("streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS'");
+    expect(skinSource).toContain("toolScreenshot: 'WINDIE_DEBUG_TOOL_SCREENSHOT'");
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -278,6 +282,34 @@ describe('main host skin/config boundary', () => {
     expect(source).not.toContain(".windie");
   });
 
+  test('main debug env names live in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const debugEnvSource = fs.readFileSync(debugEnvPath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
+    const mainIpcSource = fs.readFileSync(mainIpcPath, 'utf8');
+    const genericDebugSources = [
+      debugEnvSource,
+      fs.readFileSync(path.join(mainRoot, 'debug/chat_pill_trace_runtime.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'debug/live_surface_trace_runtime.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'ipc/ipc_runtime_helpers.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'ipc/ipc_renderer_windows.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'ipc/ipc_assistant_trace.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'ipc/ipc_diagnostics_runtime.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'surfaces/surface_runtime.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'app/main_process_lifecycle_runtime.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'wakeword/wakeword_bridge.cjs'), 'utf8'),
+      fs.readFileSync(path.join(mainRoot, 'sidecar/local_runtime_bridge.cjs'), 'utf8'),
+    ].join('\n');
+
+    expect(skinSource).toContain("streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS'");
+    expect(debugEnvSource).toContain("streamEvents: 'AGENT_DEBUG_STREAM_EVENTS'");
+    expect(debugEnvSource).toContain('configureDebugEnvRuntime');
+    expect(indexSource).toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
+    expect(mainIpcSource).toContain('configureDebugEnvRuntime(mainHostSkin.debug)');
+    expect(genericDebugSources).not.toContain('WINDIE_DEBUG_');
+    expect(genericDebugSources).not.toContain('WINDIE_DEV_UI');
+  });
+
   test('bundled runtime helpers use generic defaults instead of product reinstall copy', () => {
     const sources = [
       fs.readFileSync(wakewordRuntimePath, 'utf8'),
@@ -410,7 +442,8 @@ describe('main host skin/config boundary', () => {
   test('main sidecar adapter debug stdout flag uses local-runtime wording', () => {
     const bridgeSource = fs.readFileSync(localRuntimeBridgePath, 'utf8');
 
-    expect(bridgeSource).toContain('WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT');
+    expect(bridgeSource).toContain("isDebugFlagEnabled('localRuntimeStdout')");
+    expect(bridgeSource).not.toContain('WINDIE_DEBUG_LOCAL_RUNTIME_STDOUT');
     expect(bridgeSource).not.toContain('WINDIE_DEBUG_LOCAL_BACKEND_STDOUT');
   });
 

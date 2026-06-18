@@ -5,9 +5,12 @@
 const {
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('./ipc_desktop_runtime_channels.cjs');
+const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
 
 function isDebugStreamTraceEnabled() {
-  return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
+  return isDebugFlagEnabled('streamEvents');
 }
 
 function trackRendererWindow({

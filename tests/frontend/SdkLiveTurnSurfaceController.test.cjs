@@ -9,6 +9,12 @@ const {
   handleSdkLiveTurnSurfaceIntent,
   resolveOverlayIntent,
 } = require('../../frontend/src/main/surfaces/live_turn_surface_controller.cjs');
+const {
+  configureDebugEnvRuntime,
+} = require('../../frontend/src/main/app/debug_env.cjs');
+const {
+  mainHostSkin,
+} = require('../../frontend/src/main/app/main_host_skin.cjs');
 
 function createWindow({ visible = false } = {}) {
   let isVisible = visible;
@@ -364,6 +370,7 @@ describe('sdk_live_turn_surface_controller', () => {
   test('logs SDK typing transition once for show and once for hide on a turn', () => {
     const originalEnv = process.env;
     process.env = { ...originalEnv, WINDIE_DEBUG_LIVE_SURFACE: '1' };
+    configureDebugEnvRuntime(mainHostSkin.debug);
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     const surfaceState = createSdkLiveTurnSurfaceState();
     const awaitingTurn = {
@@ -422,6 +429,7 @@ describe('sdk_live_turn_surface_controller', () => {
       }));
     } finally {
       logSpy.mockRestore();
+      configureDebugEnvRuntime();
       process.env = originalEnv;
     }
   });

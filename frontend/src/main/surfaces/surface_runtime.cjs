@@ -8,6 +8,9 @@ const {
   isStreamingResponseOverlayPhase,
 } = require('./response_overlay_phase_handler.cjs');
 const {
+  isDebugFlagEnabled,
+} = require('../app/debug_env.cjs');
+const {
   broadcastResponseOverlayVisibility: broadcastResponseOverlayVisibilityRuntime,
   emitWakewordSttTrigger: emitWakewordSttTriggerRuntime,
   setResponseOverlayVisibilityState: setResponseOverlayVisibilityStateRuntime,
@@ -966,7 +969,7 @@ function logChatPillVisibilityDecision(event = {}, deps = {}) {
       : null,
   };
   appendSurfaceVisibilityDiagnostic(payload);
-  if (process.env.WINDIE_DEBUG_SURFACE_STDOUT === '1' && typeof log === 'function') {
+  if (isDebugFlagEnabled('surfaceStdout') && typeof log === 'function') {
     log(`[ChatPillVisibility][main] ${formatChatPillVisibilityDecision(payload)}`);
   }
   if (payload.action === 'show-applied') {
