@@ -14,7 +14,7 @@
     "windie",
     "windieos",
     "agents",
-    "desktop-agents",
+    "agent-runtime",
     "computer-use"
   ],
   "exports": {

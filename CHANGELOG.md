@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- sdk/js: replace the `desktop-agents` package keyword with `agent-runtime` so SDK package metadata matches the generic Agent runtime boundary; no migration is required because runtime exports, package name, dependency graph, and published files are unchanged.
 - frontend/main/sidecar: rename the local-runtime screenshot temp directory and filename prefix from `desktop-agent-*` to `desktop-runtime-*`; no migration is required because these screenshots are transient temp artifacts and unowned/retired paths remain rejected without read, upload, or deletion.
 - sdk/main/sidecar: rename the default local-runtime daemon discovery temp directory from `desktop-agent` to `desktop-runtime`; no persisted-data migration is required because the discovery file is transient and explicit `discoveryFile` / `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` overrides remain supported.
 - frontend/main: rename the install-auth no-Electron fallback directory from `desktop-agent` to `desktop-runtime`; no normal runtime migration is required because Electron userData storage and explicit bridge paths remain unchanged.

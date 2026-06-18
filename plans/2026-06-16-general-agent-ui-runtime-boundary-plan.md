@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 SDK package keyword boundary
+
+- Finding: the reusable TypeScript SDK package metadata still advertised `desktop-agents`, even though SDK runtime classes, agent definitions, and local-runtime contracts are now generic Agent runtime surfaces usable outside the Electron desktop host.
+- Change: replaced the package keyword with `agent-runtime` while leaving the Windie package name, public exports, files, and runtime behavior unchanged.
+- Validation: package JSON parse/assertion smoke, exact SDK package stale-name scan, docs listing, and scoped diff check.
+- Compatibility: no migration required. This changes package metadata only; npm package identity, exported APIs, dependency graph, runtime payloads, storage, settings, credentials, and generated outputs are unchanged.
+
 ### 2026-06-18 screenshot temp desktop-runtime boundary
 
 - Finding: the local-runtime screenshot bridge and Python screenshot producer still treated `${os.tmpdir()}/desktop-agent-screenshots` plus `desktop-agent-shot-` filenames as the canonical owned temp screenshot namespace after other main/SDK temp boundaries moved to desktop-runtime naming.
