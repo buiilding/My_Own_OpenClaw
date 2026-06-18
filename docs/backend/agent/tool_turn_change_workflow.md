@@ -62,7 +62,7 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 3. Inspect focused tests before editing.
 4. Preserve request ID and tool-call ID correlation across every stage.
 5. Keep `tool-call` before `tool-output` for synthetic and failed-tool paths.
-6. Keep backend-executed and frontend-executed lanes explicit.
+6. Keep backend-executed and SDK/main local-runtime lanes explicit.
 7. Update frontend/sidecar tests if executable payloads change.
 8. Update tool contract docs and the changelog in the same commit.
 

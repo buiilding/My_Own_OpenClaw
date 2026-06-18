@@ -29,7 +29,7 @@ For per-tool preparation failures, sender requires `request_id` to synthesize a 
 
 ## Single-Call Preparation Failure Path
 
-When a tool call fails before frontend dispatch:
+When a tool call fails before SDK/main local-runtime dispatch:
 
 1. sender builds synthetic failure `ToolResult` via `SyntheticResultFactory`
 2. sender stores it in pending storage (`session.register_pending_tool_result(request_id, result)`)
@@ -56,7 +56,7 @@ When `PreparationResult` contains both `errors` and `bundle_id`:
 4. sender attempts immediate future resolution through `ToolResultStorage.resolve_bundle_future(...)`
 5. sender returns early
 
-This keeps bundle execution atomic: no partial frontend dispatch when preparation fails.
+This keeps bundle execution atomic: no partial SDK/main local-runtime dispatch when preparation fails.
 
 ## Model-Facing Tool Call Identity
 
@@ -75,7 +75,7 @@ Sender writes directly into wait-layer storage primitives:
 - `register_pending_tool_result` for synthetic single-call failures
 - `store_bundled_result` + `resolve_bundle_future` for bundle failures
 
-Wait/orchestrator layers then observe these results without requiring frontend round-trip events.
+Wait/orchestrator layers then observe these results without requiring local-runtime round-trip events.
 
 ## Test-Backed Invariants
 
@@ -96,5 +96,5 @@ Wait/orchestrator layers then observe these results without requiring frontend r
 ## Related Pages
 
 - [Backend Tool Sender Docs Hub](README.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](../tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](../tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Tool Result Orchestrator Bundle Detection and Wait Path Reference](../tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)

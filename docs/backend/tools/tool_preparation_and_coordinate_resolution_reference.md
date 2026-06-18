@@ -1,7 +1,7 @@
 ---
-summary: "Backend tool-preparation runtime reference for mouse coordinate resolution, execution refs, metadata contracts, and frontend dispatch behavior for single and bundle tool calls."
+summary: "Backend tool-preparation runtime reference for mouse coordinate resolution, execution refs, metadata contracts, and SDK/main local-runtime dispatch behavior for single and bundle tool calls."
 read_when:
-  - When changing `ToolPreparer` behavior, coordinate normalization, or tool-call metadata emitted to frontend.
+  - When changing `ToolPreparer` behavior, coordinate normalization, or tool-call metadata emitted for SDK/main local-runtime dispatch.
   - When debugging coordinate-resolution failures, stale-screen safety stops, or bundle preparation short-circuit behavior.
 title: "Tool Preparation and Coordinate Resolution Reference"
 ---
@@ -26,7 +26,7 @@ title: "Tool Preparation and Coordinate Resolution Reference"
 
 ## Preparation Stage Ownership
 
-`ToolPreparer` is the resolver/orchestration layer before frontend execution.
+`ToolPreparer` is the resolver/orchestration layer before SDK/main local-runtime execution.
 
 Responsibilities:
 
@@ -160,7 +160,7 @@ Bundle:
 - if the full bundle prepares without errors, each resolved step is stored in session runtime under `<bundle_id>:step:<1-based-index>`
 - bundle steps intentionally do not receive `request_id`, preserving atomic bundle detection and `bundle_id` wait routing
 
-## Frontend Dispatch Behavior (`ToolSender`)
+## Local-Runtime Dispatch Behavior (`ToolSender`)
 
 After preparation:
 
@@ -171,7 +171,7 @@ On preparation error:
 
 - emits synthetic `ToolCallEvent` + `ToolOutputEvent` pair for failed single calls
 - marks metadata `coordinate_resolution_failed` and `skip_frontend_execution`
-- stores synthetic pending result so orchestration loop can proceed without frontend round-trip
+- stores synthetic pending result so orchestration loop can proceed without a local-runtime round trip
 - validation-backed failures include backend-generated guidance when the model-facing wrapper shape is wrong (for example missing top-level `system_use.explanation` or malformed `computer_use` metadata), so the synthetic tool output tells the model how to re-emit the call
 
 Bundle preparation failure:
@@ -186,7 +186,7 @@ Bundle preparation failure:
 - compares `coordinate_resolution_screenshot_id` in resolved metadata vs current session screenshot id
 - mismatch returns immediate failure result (`frame changed, re-ground required`) to prevent dangerous clicks on changed UI
 
-This guard is independent of frontend behavior and protects local automation safety.
+This guard is independent of renderer behavior and protects local automation safety.
 Manual calls always participate because preparation writes
 `coordinate_resolution_screenshot_id` from the current frame. Tool args must
 not provide `screenshot_id`.
@@ -219,7 +219,7 @@ If OCR says text was not found:
 2. select one of those `candidate_id` values
 3. retry with `find_coordinates_by='ocr'` and `candidate_id`
 
-If prepared call never reaches frontend:
+If prepared call never reaches the SDK/main local-runtime lane:
 
 1. inspect preparation errors from `ToolSender`
 2. check `coordinate_resolution_failed` metadata flags

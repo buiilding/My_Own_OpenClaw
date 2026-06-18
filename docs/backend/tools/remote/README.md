@@ -1,5 +1,5 @@
 ---
-summary: "Backend remote-tools docs sub-hub for domain-specific stub behavior, payload shaping differences, and request-id propagation semantics before frontend execution."
+summary: "Backend remote-tools docs sub-hub for domain-specific stub behavior, payload shaping differences, and request-id propagation semantics before SDK/main local-runtime execution."
 read_when:
   - When adding or changing remote tool stub classes under `backend/src/tools/remote_tools/*`.
   - When debugging request-id correlation or payload field differences between backend remote stubs and sidecar expectations.

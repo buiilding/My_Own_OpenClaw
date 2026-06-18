@@ -1,5 +1,5 @@
 ---
-summary: "Backend tool surface that is schema-driven and frontend-executed, including policy filtering and sidecar parity constraints."
+summary: "Backend tool surface that is schema-driven and dispatched through SDK/main local-runtime execution, including policy filtering and local-runtime parity constraints."
 read_when:
   - When adding/removing tools across backend and sidecar.
   - When changing tool allowlist or agent capability behavior.

@@ -357,7 +357,7 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 - resolves tool-output correlation id fallback via the SDK correlation helper
   imported through `agentSdkClient`
 - normalizes screenshot attachment from `payload.screenshot_ref`
-- routes transcript `tool-output` writes through `ConversationRuntime.ts` so backend-stream and frontend-executed tool outputs share one output-detail persistence contract
+- routes transcript `tool-output` writes through `ConversationRuntime.ts` so backend-stream and local-runtime tool outputs share one output-detail persistence contract
 
 Model metadata contract:
 

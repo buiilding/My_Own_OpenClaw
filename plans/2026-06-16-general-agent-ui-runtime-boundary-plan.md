@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend tool local-runtime dispatch docs cleanup
+
+- Finding: backend remote-tool stubs and docs still used the retired local
+  executor target name and old dispatch-page wording, and described prepared
+  tools, synthetic bundle failures, result ingress, registry parity, and
+  architecture flows as renderer-owned execution even though the owning boundary
+  is SDK/main local-runtime dispatch with Python sidecar execution below that
+  boundary.
+- Change: changed backend remote-tool stubs to `execution_target =
+  "local_runtime"`, renamed the ToolSender reference to local-runtime dispatch,
+  updated backend tool hubs and related references, and aligned source
+  comments/docs to SDK/main local-runtime execution while retaining the existing
+  `skip_frontend_execution` wire metadata name where it is the actual contract.
+- Validation: focused ToolSender/result-helper and ToolPreparer/remote-tool
+  pytest coverage, docs listing, focused stale dispatch wording scan, and diff
+  check.
+- Compatibility: no migration required. Current client manifests already use
+  `local_runtime`; tool schemas, websocket event payloads, metadata keys,
+  storage, credentials, permissions, and local-runtime execution behavior are
+  unchanged.
+
 ### 2026-06-18 backend trace-event payload alias cleanup
 
 - Finding: SDK backend-event normalization still accepted snake_case aliases

@@ -27,9 +27,9 @@ def resolve_tool(session: "AgentSession", tool_name: str) -> Optional[Tool]:
 
 def resolve_execution_target(tool: Optional[Tool]) -> str:
     if tool is None:
-        return "frontend"
-    target = getattr(tool, "execution_target", "frontend")
-    return target if isinstance(target, str) and target.strip() else "frontend"
+        return "local_runtime"
+    target = getattr(tool, "execution_target", "local_runtime")
+    return target if isinstance(target, str) and target.strip() else "local_runtime"
 
 
 def bundle_contains_backend_tool(
@@ -199,7 +199,7 @@ def store_failed_bundle_result(
     failed_call = errors[0][0] if errors else None
     failed_tool_name = failed_call.tool_name if failed_call else "unknown"
     skipped_reason = (
-        "Skipped because bundle preparation failed before frontend dispatch"
+        "Skipped because bundle preparation failed before local-runtime dispatch"
     )
     step_results = []
     for call in tool_calls:

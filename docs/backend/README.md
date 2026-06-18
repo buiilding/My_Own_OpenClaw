@@ -177,7 +177,7 @@ Covers:
 - [Tool Security Policy Reference](tools/tool_security_policy_and_executor_reference.md)
 - [Policy Permissions, Audit Sanitization, and Removed Executor Registry Reference](tools/security/policy_permissions_audit_and_executor_registry_reference.md)
 - [Tool Result Ingress and Storage Reference](tools/tool_result_ingress_and_storage_reference.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](tools/execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](tools/execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Tool Result Orchestrator Bundle Detection and Wait Path Reference](tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
 - [Tool Result Receiver and Router Shared Route-Mode Reference](tools/waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)
 - [Tool Result Storage Future Lifecycle and Cleanup Reference](tools/waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md)

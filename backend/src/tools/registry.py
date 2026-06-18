@@ -2,8 +2,9 @@
 Backend tool registry.
 
 This module manages the registration and provision of tool schemas for the LLM.
-In the current architecture, most tools are executed on the frontend, and the
-backend provides canonical model-facing tool specs plus remote stubs.
+In the current architecture, most client-local tools are executed through the
+SDK/main local-runtime lane, and the backend provides canonical model-facing
+tool specs plus remote stubs.
 """
 
 import logging

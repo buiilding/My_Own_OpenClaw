@@ -15,7 +15,7 @@ title: "Backend Tool Sender Docs Hub"
 ## Related Pages
 
 - [Backend Tools Execution Docs Hub](../README.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](../tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](../tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Backend Tools Waiting Docs Hub](../../waiting/README.md)
 
 ## Code Scope

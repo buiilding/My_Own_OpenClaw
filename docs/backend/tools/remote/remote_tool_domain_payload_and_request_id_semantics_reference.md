@@ -32,7 +32,7 @@ They provide:
 
 - validated args model binding (Pydantic)
 - schema declarations for tool-calling
-- remote execution envelope (`RemoteToolResult`) passed to frontend/sidecar
+- remote execution envelope (`RemoteToolResult`) passed to the SDK/main local-runtime lane
 
 ## Base Result Contract
 
@@ -162,7 +162,7 @@ Integration consequence:
 remote stubs live in the matching `backend/src/tools/remote_tools/<domain>.py`
 module instead of a package-level re-export surface.
 
-Contract test (`test_remote_tool_contract.py`) ensures names exactly match frontend sidecar exposed tool set.
+Contract test (`test_remote_tool_contract.py`) ensures names exactly match the local-runtime sidecar exposed tool set.
 
 ## Args Model Enforcement Boundary
 

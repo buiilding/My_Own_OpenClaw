@@ -28,7 +28,7 @@ event router.
 4. The model emits one or more tool calls.
 5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
-7. Backend sends `tool-call` or `tool-bundle` websocket events to the frontend.
+7. Backend sends `tool-call` or `tool-bundle` websocket events to the SDK client.
 8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the configured local executor.
 9. The local runtime invokes the Python sidecar daemon or JSON-RPC tool registry behind that local-executor boundary.
 10. The Python sidecar executes the local action and returns a normalized `ToolResult`.
@@ -49,7 +49,7 @@ event router.
 | Policy filtering | Backend | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/tool_selection.py`, `backend/src/tools/provider_health.py` |
 | Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
 | Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
-| Frontend dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
+| Local-runtime dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
 | SDK runtime execution | SDK runtime | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts` |
 | Electron host bridge | Electron main | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
 | Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |

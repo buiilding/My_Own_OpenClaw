@@ -69,7 +69,7 @@ For bundle preparation failures:
 - sender resolves bundle future immediately if already registered
 - sender emits no `ToolBundleEvent`/`ToolCallEvent` for partial bundle execution
 
-This keeps atomic-bundle semantics: all-or-nothing frontend dispatch.
+This keeps atomic-bundle semantics: all-or-nothing SDK/main local-runtime dispatch.
 
 ## Tool-Output Text Shape Coupling
 
@@ -91,11 +91,11 @@ Result:
 - synthetic single-call failures emit exactly two events in protocol order
 - both events carry `coordinate_resolution_failed` and `skip_frontend_execution`
 - synthetic result is present in pending result storage under request id
-- bundle preparation failure path stores synthetic bundle result without dispatching frontend events
+- bundle preparation failure path stores synthetic bundle result without dispatching SDK/main local-runtime events
 
 ## Drift Hotspots
 
-1. changing event order can break frontend request/response state machine assumptions.
+1. changing event order can break SDK/main and renderer tool-state assumptions.
 2. skipping `register_pending_tool_result` can reintroduce wait-path timeouts for backend-generated failures.
 3. changing synthetic `data` keys can break error diagnostics relying on `tool_name` and `error`.
 4. dispatching partial bundle events on preparation failure can desynchronize bundle wait handling.
@@ -104,5 +104,5 @@ Result:
 
 - [Backend Tools Processing Docs Hub](README.md)
 - [Result Transformer and Tool Result Formatting Contract Reference](result_transformer_and_tool_result_formatting_contract_reference.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](../execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](../execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)

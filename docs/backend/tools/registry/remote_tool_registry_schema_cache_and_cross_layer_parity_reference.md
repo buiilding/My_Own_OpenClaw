@@ -20,7 +20,7 @@ This page covers backend tool registry internals in:
 
 ## Backend Role in Tooling
 
-Backend mostly provides tool schemas and waits for frontend-executed results.
+Backend mostly provides tool schemas and waits for SDK/main local-runtime results.
 
 `ToolRegistry` is therefore a schema + metadata registry for remote tool stubs, plus a small backend-only registry path for tools such as `web_search`.
 
@@ -187,12 +187,12 @@ override into `_build_remote_result(...)`.
 `tests/backend/test_remote_tool_contract.py` enforces exact parity between:
 
 - backend remote tool names (`get_all_remote_tool_classes().keys()`)
-- frontend sidecar exposed set (`frontend/src/main/python/tools/registry.py:ToolRegistry.get_exposed_tool_names()`)
+- local-runtime sidecar exposed set (`frontend/src/main/python/tools/registry.py:ToolRegistry.get_exposed_tool_names()`)
 
 The test loads the sidecar `tools.registry` module inside an isolated import
 window and restores both `sys.path` and top-level `tools.*` entries in
 `sys.modules` afterward, so backend test order cannot be affected by the
-frontend sidecar package root.
+local-runtime sidecar package root.
 
 Failure modes surfaced by this test:
 

@@ -11,7 +11,7 @@ title: "Backend Tools Execution Docs Hub"
 ## Deep Pages
 
 - [Backend Tool Sender Docs Hub](sender/README.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Request-ID Extraction and Failed-Bundle Storage Reference](sender/request_id_extraction_and_failed_bundle_result_storage_reference.md)
 - [Tool Result Orchestrator Bundle Detection and Wait Path Reference](tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
 

@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are executed in the frontend Python sidecar, while backend-owned tools such as `web_search` execute entirely in backend Python.
+The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are dispatched through the SDK/main local runtime into the Python sidecar daemon, while backend-owned tools such as `web_search` execute entirely in backend Python.
 
 Current runtime note:
 
@@ -68,9 +68,9 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 
 ## Tool Types
 
-### Remote Tools (Frontend Execution)
+### Remote Tools (Local-Runtime Execution)
 
-Most tools are executed on the frontend Python sidecar:
+Most tools are dispatched through the SDK/main local runtime into the Python sidecar daemon:
 
 - **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`
 - **System/Filesystem Tools**: `run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`
@@ -129,7 +129,7 @@ The backend:
 - Builds tool schemas and passes them to LiteLLM via native request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
 - Emits tool schemas as a transparency event (`tool-schemas`)
 - Resolves coordinates and screenshots with frame-local metadata (`capture_meta` + internal frame identity)
-- Waits for results from the frontend sidecar for frontend-executed tools
+- Waits for results from SDK/main local-runtime execution for client-local tools
 - Executes backend-owned tools directly when a tool declares backend execution
 - Augments provider-native web-search responses with normalized source/progress metadata
 - Keeps tool schemas focused on action/parameter contracts while placing cross-tool operational strategy (grounding, timing, verification, sequencing) in the global system prompt
@@ -209,10 +209,10 @@ Direct tool contract before execution:
 
 Tool calls are sent by the agent tool sender. Execution now has two lanes:
 
-- Frontend lane: the backend emits a `tool-call` or `tool-bundle` event and the frontend sidecar executes the tool.
+- Local-runtime lane: the backend emits a `tool-call` or `tool-bundle` event and SDK/main dispatches execution through the local runtime.
 - Backend lane: the backend validates args, creates tool context, executes the tool immediately, can optionally emit auxiliary progress events mid-run, then emits the corresponding `tool-output`.
 
-**ToolResultOrchestrator** (`tools/orchestrator.py`) waits for frontend results and assembles `ToolResult` objects:
+**ToolResultOrchestrator** (`tools/orchestrator.py`) waits for local-runtime results and assembles `ToolResult` objects:
 
 1. SDK runtime receives and normalizes the backend `tool-call` or `tool-bundle`.
 2. `ToolExecutionCoordinator` claims executable local events and calls the SDK local-runtime client.
@@ -277,9 +277,9 @@ class MyTool(Tool[MyToolArgs]):
         }
 ```
 
-### Remote Tool (Frontend Execution)
+### Remote Tool (Local-Runtime Execution)
 
-Remote tools are executed on the frontend Python sidecar:
+Remote tools are dispatched through the SDK/main local runtime into the Python sidecar daemon:
 
 **Backend Stub** (`backend/src/tools/remote_tools/<domain>.py`):
 

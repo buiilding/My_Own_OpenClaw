@@ -6,9 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- backend/tools: replace stale frontend-executed tool wording in backend source
-  comments with the current local-runtime/backend execution split; no migration
-  is required because this changes comments only.
+- backend/tools: rename the remote-tool execution target from `frontend` to
+  `local_runtime`, rename the ToolSender dispatch reference away from frontend
+  dispatch wording, and align backend tool/memory docs with SDK/main
+  local-runtime execution ownership; no migration is required because public
+  manifests already accept only `local_runtime` or `backend` and the emitted
+  websocket/tool result payloads are unchanged.
 - sdk/backend: narrow SDK normalization for backend-origin `trace-event`
   payloads to the backend API schema's camelCase trace fields and top-level
   event identity; no migration is required because stored SDK `trace_event`

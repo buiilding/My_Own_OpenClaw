@@ -21,7 +21,7 @@ class ToolResultStorage:
     Centralized storage for tool execution results.
 
     Manages:
-    - Pending tool results (waiting for frontend execution)
+    - Pending tool results (waiting for SDK/main local-runtime execution)
     - Tool result futures (for async waiting)
     - Bundled results (combined results from tool bundles)
 

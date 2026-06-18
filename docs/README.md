@@ -331,12 +331,12 @@ contracts.
 ### Core Systems
 - [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
 - [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
-- [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for frontend-executed tools
+- [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for SDK/main local-runtime tools
 - [**Backend Tools Registry Docs Hub**](backend/tools/registry/README.md) - Sub-hub for remote tool registration, canonical schema caching, and backend/frontend tool-name parity contracts
 - [**Backend Browser Tools Docs Hub**](backend/tools/browser/README.md) - Sub-hub for browser remote schema surface and OpenClaw compatibility-field boundaries
 - [**Backend Browser Schema Docs Hub**](backend/tools/browser/schema/README.md) - Sub-hub for BrowserControlArgs schema layering, compatibility-field mixins, and backend-sidecar validation boundary mapping
 - [**Backend Tools Policy Docs Hub**](backend/tools/policy/README.md) - Sub-hub for interaction allowlist + dev tool-selection filtering and mouse method startup gating semantics
-- [**Backend Remote Tools Docs Hub**](backend/tools/remote/README.md) - Sub-hub for domain-specific remote stub payload and request-id behavior before frontend execution
+- [**Backend Remote Tools Docs Hub**](backend/tools/remote/README.md) - Sub-hub for domain-specific remote stub payload and request-id behavior before SDK/main local-runtime execution
 - [**Backend Tools Execution Docs Hub**](backend/tools/execution/README.md) - Sub-hub for send-path dispatch rules, bundle detection branching, and single/bundle wait orchestration semantics
 - [**Backend Tools Preparation Docs Hub**](backend/tools/preparation/README.md) - Sub-hub for active screenshot/OCR state lifecycle and resolved-call storage contracts used across preparation and execution
 - [**Backend Tools Waiting Docs Hub**](backend/tools/waiting/README.md) - Sub-hub for frontend tool-result receive/route internals and centralized pending/future storage cleanup semantics
@@ -347,7 +347,7 @@ contracts.
 - [**Backend Tool Security Policy**](backend/tools/tool_security_policy_and_executor_reference.md) - Active vs planned tool-security boundary: ToolPolicy filtering, fail-closed permission checks, audit-log hardening, and removed executor-registry behavior
 - [**Backend Policy Permissions + Audit Sanitization + Removed Executor Registry**](backend/tools/security/policy_permissions_audit_and_executor_registry_reference.md) - `core/security` fail-closed permission rules, path/resource checks, bounded audit-log sanitization semantics, and removed runtime executor swap behavior
 - [**Backend Tool Result Ingress Reference**](backend/tools/tool_result_ingress_and_storage_reference.md) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
-- [**Backend Tool Sender Dispatch + Synthetic Error Runtime**](backend/tools/execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md) - Preparation-result branching, synthetic failure event ordering, and model-facing metadata contracts for frontend dispatch
+- [**Backend Tool Sender Dispatch + Synthetic Error Runtime**](backend/tools/execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md) - Preparation-result branching, synthetic failure event ordering, and model-facing metadata contracts for SDK/main local-runtime dispatch
 - [**Backend Tool Result Orchestrator Bundle + Wait Runtime**](backend/tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md) - Atomic bundle detection rules, session-required execution routing, per-tool/bundle futures, and stale-screen safety guard behavior
 - [**Backend Tool Result Receiver + Router Shared Route-Mode**](backend/tools/waiting/tool_result_receiver_and_router_shared_route_mode_reference.md) - Single-vs-bundle shared routing path, bundle success normalization, screenshot-ref decode flow, and session system-state refresh behavior
 - [**Backend Tool Result Storage Future Lifecycle + Cleanup**](backend/tools/waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md) - Pending/future map ownership, sync/async future creation, TTL cleanup semantics, and request-id targeted cleanup guarantees

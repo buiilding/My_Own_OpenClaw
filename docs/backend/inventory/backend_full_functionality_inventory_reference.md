@@ -207,7 +207,7 @@ Functionality:
   - screenshot management and OCR coordination.
   - coordinate resolution and resolved-call storage.
 - Sending:
-  - emits `tool-call` or `tool-bundle` events for frontend execution.
+  - emits `tool-call` or `tool-bundle` events for SDK/main local-runtime execution.
   - emits synthetic immediate tool-output for pre-send failures.
 - Waiting:
   - waits on result futures for individual requests or bundles.
@@ -227,7 +227,7 @@ Functionality:
 
 - Maintains backend-visible remote tool registry/schemas.
 - Filters tool availability by policy/interaction mode.
-- Waits for frontend-executed tool results and adapts them for agent loop.
+- Waits for SDK/main local-runtime tool results and adapts them for agent loop.
 - Supports atomic bundle wait path and single-tool wait path.
 - Defines browser/system/filesystem/computer schema surfaces.
 

@@ -136,6 +136,6 @@ It supports dict and object-like step payloads via `_step_field(...)`.
 ## Related Pages
 
 - [Backend Tools Execution Docs Hub](README.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
 - [Tool Result Receiver and Router Shared Route-Mode Reference](../waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)

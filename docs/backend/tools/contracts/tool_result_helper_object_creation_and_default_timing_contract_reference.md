@@ -38,7 +38,7 @@ Design intent:
 
 ## Execution-Time Default Semantics
 
-Default `0.1` is a placeholder timing used broadly for frontend-executed tool flows.
+Default `0.1` is a placeholder timing used broadly for externally executed tool flows.
 
 Callers that measure real wait duration can override value explicitly before serialization/diagnostics.
 

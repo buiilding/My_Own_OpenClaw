@@ -21,7 +21,7 @@ title: "Backend Tools Processing Docs Hub"
 - [Backend Agent History Committer and Result-Processor Boundary Reference](../../agent/history/history_committer_and_result_processor_boundary_reference.md)
 - [Backend Tools Execution Docs Hub](../execution/README.md)
 - [Backend Tools Waiting Docs Hub](../waiting/README.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](../execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](../execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
 
 ## Code Scope

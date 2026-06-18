@@ -58,7 +58,7 @@ class DummySession:
 
 
 class _ArgsModelTool:
-    def __init__(self, args_model, execution_target="frontend"):
+    def __init__(self, args_model, execution_target="local_runtime"):
         self.args_model = args_model
         self.execution_target = execution_target
 
@@ -153,13 +153,18 @@ async def test_prepare_single_tool_assigns_request_id():
 
 
 @pytest.mark.asyncio
-async def test_prepare_frontend_tool_skips_backend_arg_validation():
+async def test_prepare_local_runtime_tool_skips_backend_arg_validation():
     preparer = ToolPreparer(
         object(),
         object(),
         object(),
         tool_registry=DummyToolRegistry(
-            {"browser": _ArgsModelTool(BrowserControlArgs, execution_target="frontend")}
+            {
+                "browser": _ArgsModelTool(
+                    BrowserControlArgs,
+                    execution_target="local_runtime",
+                )
+            }
         ),
     )
     tool_call = ParsedToolCall(
@@ -391,7 +396,7 @@ async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_f
 
 
 @pytest.mark.asyncio
-async def test_prepare_single_frontend_mouse_control_shape_is_left_to_local_runtime_validation():
+async def test_prepare_single_local_runtime_mouse_control_shape_is_left_to_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -487,7 +492,7 @@ async def test_prepare_invalid_grounded_scroll_tool_returns_preparation_error():
 
 
 @pytest.mark.asyncio
-async def test_prepare_bundle_frontend_mouse_control_shape_is_left_to_local_runtime_validation():
+async def test_prepare_bundle_local_runtime_mouse_control_shape_is_left_to_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -656,7 +661,7 @@ def test_tool_call_has_manual_coordinates_rejects_bool_coordinates():
 
 
 @pytest.mark.asyncio
-async def test_prepare_allows_frontend_keyboard_tool_shape_for_local_runtime_validation():
+async def test_prepare_allows_local_runtime_keyboard_tool_shape_for_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -682,7 +687,7 @@ async def test_prepare_allows_frontend_keyboard_tool_shape_for_local_runtime_val
 
 
 @pytest.mark.asyncio
-async def test_prepare_allows_frontend_system_tool_shape_for_local_runtime_validation():
+async def test_prepare_allows_local_runtime_system_tool_shape_for_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -710,7 +715,7 @@ async def test_prepare_allows_frontend_system_tool_shape_for_local_runtime_valid
 
 
 @pytest.mark.asyncio
-async def test_prepare_allows_frontend_browser_tool_shape_for_local_runtime_validation():
+async def test_prepare_allows_local_runtime_browser_tool_shape_for_local_runtime_validation():
     preparer = ToolPreparer(
         object(),
         object(),

@@ -155,12 +155,12 @@ Bundle-status reminder:
 
 ## Send-Side Coupling (Why Some Results Pre-Exist)
 
-`ToolSender` can pre-store synthetic results before frontend execution:
+`ToolSender` can pre-store synthetic results before SDK/main local-runtime dispatch:
 
 - coordinate-resolution failures create synthetic result and store pending by request ID
 - failed atomic bundle preparation stores synthetic bundled result and resolves bundle future if waiting
 
-This allows orchestrator wait paths to complete immediately without frontend round-trip in failure scenarios.
+This allows orchestrator wait paths to complete immediately without a local-runtime round trip in failure scenarios.
 
 ## Debug Checklist
 
@@ -185,7 +185,7 @@ If bundle processing mismatches tool count/order:
 ## Related Pages
 
 - [Backend Tools Execution Docs Hub](execution/README.md)
-- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Sender Local-Runtime Dispatch and Synthetic Error Result Reference](execution/tool_sender_local_runtime_dispatch_and_synthetic_error_result_reference.md)
 - [Tool Result Orchestrator Bundle Detection and Wait Path Reference](execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
 - [Backend Tools Processing Docs Hub](processing/README.md)
 - [Tool Result Processor Bundle Formatting and Cleanup Reference](processing/tool_result_processor_bundle_formatting_and_cleanup_reference.md)

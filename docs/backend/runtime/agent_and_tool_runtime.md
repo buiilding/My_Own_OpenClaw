@@ -1,5 +1,5 @@
 ---
-summary: "Detailed backend runtime loop: AgentSession state, interaction loop, and full frontend-executed tool lifecycle."
+summary: "Detailed backend runtime loop: AgentSession state, interaction loop, and full SDK/main local-runtime tool lifecycle."
 read_when:
   - When changing tool execution behavior or agent loop iteration policy.
   - When debugging stuck tool waits, bundle handling, or session state leaks.

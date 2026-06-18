@@ -55,7 +55,8 @@ Protocol invariant:
 Failure metadata contract (both events):
 
 - `coordinate_resolution_failed: true`
-- `skip_frontend_execution: true`
+- `skip_frontend_execution: true` (wire metadata name retained for backend
+  synthetic failures that must not be sent to the SDK/main local-runtime lane)
 - `request_id`
 
 Failure message contract:
@@ -98,7 +99,7 @@ If `errors` exists and `bundle_id` is present:
 - sender resolves bundle future if already created
 - sender returns without emitting `ToolBundleEvent` or `ToolCallEvent`
 
-This prevents partial frontend dispatch for atomic bundles.
+This prevents partial SDK/main local-runtime dispatch for atomic bundles.
 
 ## Test-Backed Invariants
 
@@ -112,7 +113,7 @@ This prevents partial frontend dispatch for atomic bundles.
 
 ## Drift Hotspots
 
-1. changing event order for synthetic failures can break frontend state machine assumptions.
+1. changing event order for synthetic failures can break SDK/main and renderer tool-state assumptions.
 2. removing pending-result storage for synthetic failures can cause unnecessary wait timeouts.
 3. allowing partial bundle dispatch on preparation failure can desynchronize bundle wait handling.
 4. changing `model_facing_tool_call` shape can break transparency UI consumers.

@@ -161,7 +161,7 @@ Compaction events:
 
 SDK current-turn tool events:
 
-- clear transient thinking state for frontend-executed tool rows. Backend-owned
+- clear transient thinking state for executable local-runtime tool rows. Backend-owned
   synthetic tool calls marked with `metadata.skip_frontend_execution === true`
   still record tool-call tracking, but they do not clear the current typing or
   thinking state as if a renderer-executed local tool had started.
