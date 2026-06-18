@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align the architecture settings/model sync row with Agent SDK
+  host runtime wording.
 - main: rename internal query/settings/model IPC helpers and failure copy from
   SDK-agent wording to Agent SDK runtime wording.
 - main: build synthetic query send-failure broadcasts as SDK conversation

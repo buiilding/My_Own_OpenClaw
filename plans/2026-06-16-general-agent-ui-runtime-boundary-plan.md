@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Frontend Architecture Agent SDK Host Runtime Wording
+
+- Finding: the active frontend architecture settings/model sync row still said
+  Electron main sent through the "SDK agent host" for settings/model commands.
+- Change: reworded that row to Agent SDK host runtime wording and extended the
+  modular boundary guard to reject the stale phrase.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  settings/model IPC commands, SDK calls, backend ACK gates, credentials,
+  permissions, storage, and provider policy are unchanged.
+
 ### 2026-06-18 Agent SDK Runtime IPC Helper Naming
 
 - Finding: Electron main query/settings/model IPC helpers and failure copy

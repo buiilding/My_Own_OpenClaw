@@ -365,6 +365,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Agent SDK tool');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
+    expect(docText).not.toContain('SDK agent host');
     expect(docText).not.toContain('SDK main runtime');
   });
 

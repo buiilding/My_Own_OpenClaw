@@ -97,9 +97,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   helper instead of importing backend event normalization for a synthetic local
   failure. Electron main query/settings/model IPC helper names and user-visible
   send-failure copy now use Agent SDK runtime wording instead of SDK-agent
-  wording for generic runtime command routing.
+  wording for generic runtime command routing. The active frontend architecture
+  settings/model sync row now uses Agent SDK host runtime wording instead of the
+  stale SDK-agent-host label.
 
 ## Inspection Log
+
+### 2026-06-18 Frontend Architecture Agent SDK Host Runtime Wording Slice
+
+- Worktree was clean after `77eb1594e`, with `main` ahead of `origin/main` by
+  821 commits.
+- Finding: the active frontend architecture settings/model sync row still said
+  Electron main sent through the "SDK agent host" for settings/model commands.
+- Change: reworded the row to Agent SDK host runtime wording and extended the
+  modular boundary guard to reject the stale phrase.
+- Validation: focused modular boundary Jest test, targeted stale phrase scan,
+  docs listing, and diff check.
+- Compatibility: no migration required. This is docs/test guardrail only;
+  settings/model IPC commands, SDK calls, backend ACK gates, credentials,
+  permissions, storage, and provider policy are unchanged.
 
 ### 2026-06-18 Agent SDK Runtime IPC Helper Naming Slice
 
