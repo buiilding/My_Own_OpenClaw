@@ -388,7 +388,7 @@ the dashboard consumes SDK display rows. OpenAI-native web-search progress is
 retained as dashboard display transparency, while SDK rehydrate normalizes
 progress-only native search into a synthetic paired Windie `web_search` history
 entry. The SDK main runtime routes executable local tools through Electron main
-and the sidecar daemon.
+and the SDK local runtime.
 
 Renderer display contract:
 
@@ -401,11 +401,12 @@ Renderer display contract:
 Execution contract:
 
 - SDK main runtime receives backend tool events and owns local execution state
-- SDK local runtime starts/reuses the sidecar daemon and unwraps daemon JSON-RPC
+- SDK local runtime starts/reuses the local runtime daemon and unwraps daemon JSON-RPC
   responses before callers see them
 - Electron main supplies desktop launch options and host-only window, screenshot,
   display-bounds, and artifact behavior
-- sidecar executes filesystem, shell, browser, computer-use, MCP, plugin, and extension tools
+- the local executor runs filesystem, shell, browser, computer-use, MCP, plugin,
+  and extension tools
 - SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
 
 For execution bugs, start with the SDK main runtime and local-runtime bridge. For

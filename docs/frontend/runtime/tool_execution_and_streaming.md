@@ -1,5 +1,5 @@
 ---
-summary: "Renderer streaming and SDK-owned local tool execution runtime: event handling, display projection, sidecar routing, bundle flow, and backend result handoff."
+summary: "Renderer streaming and SDK-owned local tool execution runtime: event handling, display projection, local-runtime routing, bundle flow, and backend result handoff."
 read_when:
   - When changing tool-call event handling, display projection, SDK/local tool routing, or bundle execution semantics.
   - When debugging stale-turn tool outputs, streaming phase transitions, missing local tool results, or missing captures/artifacts.
@@ -44,10 +44,11 @@ Runtime path:
 1. Backend emits `tool-call` or `tool-bundle`.
 2. SDK conversation/tool runtime normalizes the event, preserves backend IDs, and claims local execution only when a local runtime can execute it.
 3. SDK `ToolExecutionCoordinator` invokes the Electron local-tool lifecycle hook
-   before sidecar execution.
+   before local execution.
 4. Electron main applies only the scoped desktop surface lease required by that
-   tool call, then routes the request to the sidecar daemon/local bridge.
-5. Python sidecar executes the filesystem, shell, browser, computer-use, MCP, plugin, or extension tool.
+   tool call, then routes the request to the SDK local runtime.
+5. The configured local executor runs the filesystem, shell, browser,
+   computer-use, MCP, plugin, or extension tool.
 6. SDK conversation/tool runtime sends exactly one `tool-result` or `tool-bundle-result` to backend.
 7. Renderer receives display-only events and renders the visible transcript projection.
 
@@ -75,12 +76,12 @@ Renderer bundle code should only render and replay bundle projections.
 
 Surface/capture orchestration is split:
 
-- SDK owns sidecar daemon startup/reuse, local runtime client semantics, and
+- SDK owns local runtime daemon startup/reuse, local runtime client semantics, and
   tool-result return to backend.
 - Electron main owns artifact upload plumbing, window authority, screenshot
   hiding, and display bounds for desktop-local tool execution.
 - Electron main owns computer-use surface prep for SDK/main tool execution,
-  including dashboard-to-minimal-pill handoff before sidecar execution.
+  including dashboard-to-minimal-pill handoff before local execution.
 - Renderer send prepares typed screenshot resource requests; SDK/main owns
   screenshot capture and artifact materialization before backend dispatch.
 - Backend result payload construction for local tool results belongs to SDK/main, not renderer services.

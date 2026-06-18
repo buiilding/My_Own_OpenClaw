@@ -268,6 +268,23 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar-backed');
   });
 
+  test('renderer runtime docs describe local tool execution through SDK local runtime', async () => {
+    const docs = await Promise.all([
+      read('docs/frontend/README.md'),
+      read('docs/frontend/runtime/tool_execution_and_streaming.md'),
+      read('docs/frontend/renderer/chat_stream_and_tool_execution_reference.md'),
+      read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('SDK local runtime');
+    expect(docText).toContain('local runtime daemon startup/reuse');
+    expect(docText).not.toContain('routes tool events to the sidecar daemon');
+    expect(docText).not.toContain('through Electron main and the sidecar daemon');
+    expect(docText).not.toContain('before sidecar execution');
+    expect(docText).not.toContain('sidecar daemon startup/reuse');
+  });
+
   test('local runtime conversation store keeps diagnostic collection naming generic', async () => {
     const source = await read('packages/windie-sdk-js/src/stores/LocalRuntimeConversationStore.ts');
 

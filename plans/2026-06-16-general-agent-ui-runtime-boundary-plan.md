@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 renderer local-runtime tool docs
+
+- Finding: frontend renderer runtime docs still routed local tool execution through sidecar-daemon wording even though renderer surfaces should describe the SDK local runtime as the public execution boundary.
+- Change: rewrote the renderer runtime, transcript, and frontend hub docs to name the SDK local runtime/local executor path, and expanded modular boundary coverage so retired sidecar-daemon execution phrases cannot return there.
+- Validation: focused `ModularRefactorCompletionBoundary` Jest coverage, exact stale-phrase scan, and scoped diff check.
+- Compatibility: docs and boundary-test coverage only; renderer behavior, SDK APIs, IPC, persisted data, storage, tool schemas, settings, credentials, permissions, and event payloads are unchanged.
+
 ### 2026-06-18 renderer retired sidecar discovery literal
 
 - Finding: the renderer conversation-library boundary test still embedded the retired `timed out waiting for sidecar daemon discovery` error string as a contiguous literal, even though runtime code already uses local-runtime availability wording and rejects the old phrase as transient.

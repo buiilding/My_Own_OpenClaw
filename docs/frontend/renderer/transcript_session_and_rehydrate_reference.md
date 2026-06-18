@@ -154,7 +154,7 @@ store/local-runtime internals.
 
 - consumes SDK-normalized conversation events
 - updates active-turn display through SDK current-turn projections
-- keeps tool execution owned by Electron main, SDK runtime, and the sidecar daemon
+- keeps tool execution owned by Electron main, SDK runtime, and the SDK local runtime
 
 Renderer transcript rows remain visible projections and do not execute tools.
 

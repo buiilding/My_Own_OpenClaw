@@ -239,7 +239,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 3. Main process forwards query through the SDK runtime.
 4. Backend streams events back through the SDK runtime; main relays display events to renderer.
 5. Renderer stream hook updates chat state and transcript.
-6. SDK runtime routes tool events to the sidecar daemon and posts tool results back to backend.
+6. SDK runtime routes tool events to the SDK local runtime and posts tool results back to backend.
 7. Renderer receives SDK-owned tool events as display-only chat/transcript events.
 
 ## Evidence Notes
