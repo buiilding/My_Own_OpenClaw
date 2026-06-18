@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Main VM Worker Bootstrap Config Boundary
+
+- Finding: `main_process_bootstrap_runtime.cjs` still reached into
+  `deps.mainHostSkin.hostedBackend` and `deps.mainHostSkin.vmWorker` when
+  constructing VM worker runtime options, even though the bootstrap runtime is
+  generic window/startup orchestration.
+- Change: passed `runsApiKeyHeader` and `vmWorkerEnv` from the Electron main
+  composition root as narrow bootstrap dependencies, while leaving host-skin
+  handoff to window/tray runtimes intact where UI shell copy/assets are still
+  consumed.
+- Validation: focused main-process bootstrap, host-skin boundary, and VM worker
+  Jest coverage, CommonJS syntax checks, docs listing, targeted source scan, and
+  diff-check validation.
+- Compatibility: no migration required. VM worker run API auth header, env key
+  resolution, worker startup behavior, IPC, storage, credentials, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Main Local-Runtime Bridge Copy Boundary
 
 - Finding: `local_runtime_bridge.cjs` still accepted the full host skin and

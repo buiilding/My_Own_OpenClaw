@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main VM Worker Bootstrap Config Boundary
+
+- Worktree was clean after `f32d8d819`, with `main` ahead of `origin/main` by
+  53 commits.
+- Main-process bootstrap runtime, VM worker startup tests, and host-skin
+  boundary coverage were inspected after the local-runtime bridge copy slice.
+- Finding: the generic window bootstrap runtime still reached into
+  `deps.mainHostSkin.hostedBackend` and `deps.mainHostSkin.vmWorker` to build VM
+  worker options.
+- Change: passed `runsApiKeyHeader` and `vmWorkerEnv` as narrow dependencies
+  from the Electron main composition root, while preserving host-skin handoff to
+  window/tray runtimes that still own UI shell copy/assets.
+- Validation: focused bootstrap, host-skin boundary, and VM worker Jest
+  coverage, CommonJS syntax checks, docs listing, targeted source scan, and
+  diff check.
+- Compatibility: no migration required. VM worker hosted API auth header, env
+  key resolution, worker startup behavior, IPC, storage, credentials, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Main Local-Runtime Bridge Copy Boundary
 
 - Worktree was clean after `92e59867d`, with `main` ahead of `origin/main` by

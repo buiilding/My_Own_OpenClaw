@@ -32,14 +32,13 @@ describe('main_process_bootstrap_runtime', () => {
         enableDebugToolScreenshot: false,
         vmMode: false,
         vmWorkerMode: false,
+        runsApiKeyHeader: 'x-windie-runs-key',
+        vmWorkerEnv: {
+          workspaceId: 'WINDIE_VM_WORKSPACE_ID',
+        },
         mainHostSkin: {
-          hostedBackend: {
-            runsApiKeyHeader: 'x-windie-runs-key',
-          },
-          vmWorker: {
-            env: {
-              workspaceId: 'WINDIE_VM_WORKSPACE_ID',
-            },
+          identity: {
+            trayTooltip: 'WindieOS',
           },
         },
         enableOsToolGhostDebug: false,

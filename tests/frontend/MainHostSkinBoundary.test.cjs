@@ -15,6 +15,7 @@ const gpuRuntimePath = path.join(mainRoot, 'app/gpu_runtime.cjs');
 const runtimePathsPath = path.join(mainRoot, 'app/runtime_paths.cjs');
 const runtimeModePath = path.join(mainRoot, 'app/runtime_mode.cjs');
 const vmWorkerRuntimePath = path.join(mainRoot, 'app/vm_worker_runtime.cjs');
+const mainProcessBootstrapRuntimePath = path.join(mainRoot, 'app/main_process_bootstrap_runtime.cjs');
 const ipcQueryEventsPath = path.join(mainRoot, 'ipc/ipc_query_events.cjs');
 const desktopRuntimeChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_runtime_channels.cjs');
 const retiredDesktopAgentChannelsPath = path.join(mainRoot, 'ipc/ipc_desktop_agent_channels.cjs');
@@ -150,10 +151,18 @@ describe('main host skin/config boundary', () => {
     const backendEndpointSource = fs.readFileSync(backendEndpointsPath, 'utf8');
     const runtimeModeSource = fs.readFileSync(runtimeModePath, 'utf8');
     const vmWorkerRuntimeSource = fs.readFileSync(vmWorkerRuntimePath, 'utf8');
+    const bootstrapSource = fs.readFileSync(mainProcessBootstrapRuntimePath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
 
     expect(backendEndpointSource).toContain('configureBackendEndpointRuntime');
     expect(backendEndpointSource).not.toContain('mainHostSkin');
     expect(fs.readFileSync(mainIpcPath, 'utf8')).toContain('configureBackendEndpointRuntime(mainHostSkin.hostedBackend)');
+    expect(indexSource).toContain('runsApiKeyHeader: mainHostSkin.hostedBackend.runsApiKeyHeader');
+    expect(indexSource).toContain('vmWorkerEnv: mainHostSkin.vmWorker.env');
+    expect(bootstrapSource).toContain('runsApiKeyHeader: deps.runsApiKeyHeader');
+    expect(bootstrapSource).toContain('vmWorkerEnv: deps.vmWorkerEnv');
+    expect(bootstrapSource).not.toContain('deps.mainHostSkin?.hostedBackend');
+    expect(bootstrapSource).not.toContain('deps.mainHostSkin?.vmWorker');
     expect(backendEndpointSource).not.toContain('https://api.windieos.com');
     expect(backendEndpointSource).not.toContain('wss://api.windieos.com/ws');
     expect(backendEndpointSource).not.toContain('WINDIE_DEFAULT_BACKEND_HTTP_URL');

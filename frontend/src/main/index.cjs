@@ -286,6 +286,8 @@ const {
   enableDebugToolScreenshot: ENABLE_DEBUG_TOOL_SCREENSHOT,
   vmMode: VM_MODE_ENABLED,
   vmWorkerMode: VM_WORKER_MODE_ENABLED,
+  runsApiKeyHeader: mainHostSkin.hostedBackend.runsApiKeyHeader,
+  vmWorkerEnv: mainHostSkin.vmWorker.env,
   enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
   responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
   mainHostSkin,

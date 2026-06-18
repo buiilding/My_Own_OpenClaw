@@ -74,6 +74,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/runtime: pass WindieOS local-runtime bridge copy from the main-window
   composition root as generic `localRuntimeCopy` instead of letting the bridge
   read the full host skin.
+- main/bootstrap: pass VM worker hosted API header and env config as narrow
+  bootstrap dependencies instead of reading them from the full host skin inside
+  the generic window bootstrap runtime.
 - main/wakeword: inject the WindieOS wakeword stderr log marker from the main
   host skin instead of hardcoding it inside the generic wakeword bridge runtime.
 - sdk/python: accept generic `AGENT_BACKEND_HTTP_URL` and
