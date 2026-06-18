@@ -29,7 +29,7 @@ projection, transcript-session binding, and handler dispatch for a resolved
 
 It does not:
 
-- validate raw backend websocket event shape (handled by the SDK backend-event
+- validate backend-wire websocket event shape (handled by the SDK backend-event
   guard and normalizer)
 - write transcript rows
 - mutate chat store state

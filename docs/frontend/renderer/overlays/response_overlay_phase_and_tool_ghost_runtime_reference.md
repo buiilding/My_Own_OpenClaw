@@ -104,7 +104,7 @@ Contract ownership:
   row and sending state visible through early SDK startup projections, but it
   must not create transcript rows, execute tools, or become a second completion
   path.
-- renderer raw backend stream handlers are transcript/history side-effect paths.
+- renderer backend-wire stream handlers are transcript/history side-effect paths.
   They must not suppress, replace, or duplicate live
   assistant/tool row construction and commit the projected turn into message
   history on terminal events.

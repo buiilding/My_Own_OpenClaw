@@ -267,7 +267,7 @@ describe('useChatStream state + stream handling', () => {
     expect(state.thinkingSourceEventType).toBeNull();
   });
 
-  test('does not track streaming response chunks from raw backend events', () => {
+  test('does not track streaming response chunks from backend-wire events', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {

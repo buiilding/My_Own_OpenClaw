@@ -27,9 +27,9 @@ for SDK `ConversationEvent` payloads received on `windie:conversation-event`:
 - transcript session sync
 - final SDK conversation-event dispatch
 
-Raw backend event validation and SDK conversation-event normalization happen
+Backend-wire event validation and SDK conversation-event normalization happen
 upstream before renderer chat hooks receive the event. This helper must not
-import raw backend event contracts or repeat backend normalization rules.
+import backend-wire event contracts or repeat backend normalization rules.
 
 It does not:
 
@@ -93,8 +93,8 @@ Listener flow:
 4. ingress dispatches the SDK-normalized conversation event for the
    resolved conversation/turn
 
-This keeps listener-level pre-dispatch behavior deterministic while keeping raw
-backend event contracts out of chat hook modules.
+This keeps listener-level pre-dispatch behavior deterministic while keeping
+backend-wire event contracts out of chat hook modules.
 
 ## Test-Backed Invariants
 
@@ -115,7 +115,7 @@ backend event contracts out of chat hook modules.
 1. Removing fail-safe catches can allow transcript/projection errors to black-hole stream events.
 2. Reordering ingress steps can break turn-map availability for downstream events with missing `conversation_ref`.
 3. Dropping active transcript conversation precedence can desync transcript session routing during background conversation event ingress.
-4. Reintroducing backend event imports in chat hooks splits raw event ownership between feature code and the SDK/main runtime.
+4. Reintroducing backend event imports in chat hooks splits backend-wire event ownership between feature code and the SDK/main runtime.
 
 ## Related Pages
 

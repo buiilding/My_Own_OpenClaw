@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer: dedupe same-turn SDK current-turn tool rows against materialized SDK
+  display tool rows by SDK-shaped tool identity so transient live progress does
+  not appear as duplicate transcript content.
+- docs/tests: align renderer stream and websocket contract wording with
+  backend-wire event ingress and SDK/main command ownership instead of stale
+  raw-backend and frontend/backend labels.
 - docs/tools: align tool-development client-manifest guidance with the
   SDK/Electron desktop host boundary.
 - docs/concepts/sdk: align runtime-model, installation, SDK agent-definition,

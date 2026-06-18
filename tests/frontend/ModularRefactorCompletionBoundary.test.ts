@@ -530,6 +530,37 @@ describe('modular sdk refactor completion boundary', () => {
     expect(offenders).toEqual({});
   });
 
+  test('renderer docs and contract tests use sdk source-event boundary wording', async () => {
+    const boundaryFiles = [
+      'docs/frontend/renderer/chat_stream_and_tool_execution_reference.md',
+      'docs/frontend/renderer/chat/stream/conversation_event_ingress_failsafe_and_dispatch_order_reference.md',
+      'docs/frontend/renderer/chat/stream/conversation_gate_and_active_turn_filtering_reference.md',
+      'docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md',
+      'tests/frontend/FrontendBackendWebsocketContract.test.cjs',
+      'tests/frontend/RendererChatRuntimeBoundary.test.ts',
+      'tests/frontend/ChatInterfaceWiring.test.jsx',
+      'tests/frontend/ChatStreamThinkingStatus.state.test.tsx',
+      'tests/frontend/ConversationSessionRuntime.test.ts',
+      'tests/frontend/WindieDocsIndex.test.cjs',
+    ];
+    const offenders: Record<string, string[]> = {};
+
+    for (const relativePath of boundaryFiles) {
+      const source = await read(relativePath);
+      const staleMentions = [
+        'raw backend',
+        'frontend/backend websocket incoming contract',
+        'frontend outbound payload filter',
+        'frontend command family',
+      ].filter((needle) => source.includes(needle));
+      if (staleMentions.length > 0) {
+        offenders[relativePath] = staleMentions;
+      }
+    }
+
+    expect(offenders).toEqual({});
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

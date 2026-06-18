@@ -225,7 +225,7 @@ describe('windie docs index', () => {
     );
   });
 
-  test('routes removed raw backend IPC channel queries to typed event fan-out docs', () => {
+  test('routes removed backend-wire IPC channel queries to typed event fan-out docs', () => {
     const expectedPath = path.join(
       'docs',
       'frontend',

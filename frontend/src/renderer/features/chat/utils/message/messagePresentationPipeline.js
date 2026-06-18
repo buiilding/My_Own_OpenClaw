@@ -113,6 +113,22 @@ function messageTypesMatch(left, right) {
   return (left || 'llm-text') === (right || 'llm-text');
 }
 
+function resolveToolName(message) {
+  const candidates = [
+    message?.toolName,
+    message?.toolCallDetails?.toolName,
+    message?.toolOutputDetails?.toolName,
+    message?.modelFacingToolCall?.name,
+  ];
+  for (const candidate of candidates) {
+    const normalized = normalizeRef(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
 function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
   const liveId = normalizeRef(liveMessage?.id);
   const liveText = normalizeText(liveMessage?.text);
@@ -142,6 +158,10 @@ function hasMaterializedDuplicateForLiveMessage(messages, liveMessage) {
       return false;
     }
     if (liveMessage?.correlationId && message.correlationId === liveMessage.correlationId) {
+      return true;
+    }
+    const liveToolName = resolveToolName(liveMessage);
+    if (liveToolName && resolveToolName(message) === liveToolName) {
       return true;
     }
     const materializedText = normalizeText(message.text);

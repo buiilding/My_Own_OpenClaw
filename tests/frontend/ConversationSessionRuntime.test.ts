@@ -137,7 +137,7 @@ describe('conversationSessionRuntime', () => {
     expect(setChatConversationRef).toHaveBeenCalledWith('conv-next');
   });
 
-  test('applyEventChatConversationProjection blocks raw backend local-user-message promotion', () => {
+  test('applyEventChatConversationProjection blocks backend-wire local-user-message promotion', () => {
     const setChatConversationRef = jest.fn();
 
     expect(applyEventChatConversationProjection({

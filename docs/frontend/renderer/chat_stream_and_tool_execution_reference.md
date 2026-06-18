@@ -1,5 +1,5 @@
 ---
-summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, backend stream event handling, removed chatStreamTransparency helper behavior, local tool execution boundary, thinking status ownership, SDK-projected tool display semantics, and private mergeRendererAnnotations runtime-projection annotation merge behavior."
+summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, SDK conversation-event handling, removed chatStreamTransparency helper behavior, local tool execution boundary, thinking status ownership, SDK-projected tool display semantics, and private mergeRendererAnnotations runtime-projection annotation merge behavior."
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
@@ -136,7 +136,7 @@ tool-event ids. It is the renderer-side owner for:
 - preserving typing/thinking state for SDK tool events projected with
   `executionSkipped === true`
 
-The utility does not create transcript rows or interpret raw backend events.
+The utility does not create transcript rows or interpret backend-wire events.
 Transcript display still comes from SDK display rows, and conversation-event
 handlers still own metadata, compaction, terminal materialization, and tool-row
 persistence.
@@ -250,11 +250,11 @@ SDK dispatch behavior:
 - SDK `user_message` from backend `local-user-message`: adds user row, resets `streamTracking` for turn
   - the renderer consumes SDK `user_message` payloads directly while keeping
     `local-user-message` as the UI/tracking source label. It does not handle a
-    raw backend `local-user-message` fallback after SDK dispatch.
+    backend-wire `local-user-message` fallback after SDK dispatch.
 - SDK `currentTurn.reasoningText` from the conversation runtime projection: accumulates transient thinking text and records `llm-thought` tracking without creating raw assistant rows
-  - the renderer consumes the SDK current-turn projection directly. It keeps `llm-thought` as the UI/tracking source label, but does not unwrap `payload.rawEvent` back into a backend `llm-thought` event.
+  - the renderer consumes the SDK current-turn projection directly. It keeps `llm-thought` as the UI/tracking source label, but does not fall back to backend-wire `llm-thought` payloads.
 - SDK `currentTurn.assistantText` from the conversation runtime projection: dashboard and response overlay render the live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
-  - raw backend `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
+  - backend-wire `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
 - SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
   - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
   - dashboard and minimal chat pill busy/typing/stop state resolve from SDK
@@ -267,7 +267,7 @@ SDK dispatch behavior:
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
-  - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the desktop runtime facade instead of unwrapping the raw backend event
+  - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the desktop runtime facade instead of unwrapping a backend-wire event
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - SDK `currentTurn.toolEvents` from the conversation runtime projection:
@@ -290,29 +290,29 @@ SDK dispatch behavior:
   - SDK rehydrate groups progress-only OpenAI native search rows into one
     synthetic Windie `web_search` tool-call/tool-output pair for later model
     history.
-  - raw backend `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
+  - backend-wire `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
 - SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not unwrap `payload.rawEvent` back into a backend `tool-call` event.
+  - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not fall back to backend-wire `tool-call` payloads.
 - SDK `tool_output` from backend `tool-output`: persists a transcript tool-output row only. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_output` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as output text, metadata, request ids, and screenshot refs. It does not unwrap `payload.rawEvent` back into a backend `tool-output` event.
+  - the renderer consumes SDK `tool_output` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as output text, metadata, request ids, and screenshot refs. It does not fall back to backend-wire `tool-output` payloads.
 - SDK `tool_bundle_call` from backend `tool-bundle`: persists a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call. Live display comes from `currentTurn.toolEvents`.
-  - the renderer consumes SDK `tool_bundle_call` payloads directly for transcript persistence, using normalized bundle identity fields plus `structuredPayload` for backend detail fields such as `bundle_id` and per-tool metadata. It does not unwrap `payload.rawEvent` back into a backend `tool-bundle` event.
+  - the renderer consumes SDK `tool_bundle_call` payloads directly for transcript persistence, using normalized bundle identity fields plus `structuredPayload` for backend detail fields such as `bundle_id` and per-tool metadata. It does not fall back to backend-wire `tool-bundle` payloads.
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
 - metadata/transparency handlers consume SDK payload fields directly instead of
-  unwrapping raw backend metadata events
+  unwrapping backend-wire metadata events
 - turn-scoped metadata annotations are strict: when `event.turnRef` is present,
   user/system/tool-schema metadata updates only a same-turn user row; missing
   same-turn rows are no-ops rather than sender-only fallbacks
 - SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate the selected user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters
 - terminal handlers consume SDK `turn_error` and `usage_updated` payloads
-  directly. They do not unwrap `payload.rawEvent` back into backend terminal events.
+  directly. They do not fall back to backend-wire terminal payloads.
 - SDK `turn_completed` from backend `streaming-complete`: materialize the SDK-projected same-turn assistant `llm-text` message and write the assistant transcript when needed. Active terminal phase tracking comes from `currentTurn.phase='complete'`.
   - completion transcript writes read identity from SDK event fields:
     `event.conversationRef` and `payload.userId`. They do not unwrap
-    `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
+    backend-wire payloads to recover backend `conversation_ref` or `user_id`.
   - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
   - duplicate completion events do not duplicate assistant transcript writes because transcript recording only runs for not-yet-complete assistant rows
 - SDK `turn_error` from backend `error`: materialize the SDK-projected assistant error row and write the transcript error row unless ignored by the benign/recoverable error filter. Active terminal phase tracking comes from `currentTurn.phase='error'`.

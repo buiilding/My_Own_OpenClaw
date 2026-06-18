@@ -195,7 +195,7 @@ function extractSdkBackendPayloadKeysByType() {
   return keyMap;
 }
 
-describe('frontend/backend websocket incoming contract', () => {
+describe('backend-to-sdk websocket incoming contract', () => {
   test('managed agent session endpoint validation uses generic agent wording', async () => {
     const session = createManagedAgentSession({
       endpoints: [{}],
@@ -210,7 +210,7 @@ describe('frontend/backend websocket incoming contract', () => {
     }
   });
 
-  test('backend-owned fixture covers every frontend command family sent over websocket', () => {
+  test('backend-owned fixture covers every SDK/main command family sent over websocket', () => {
     expect(Object.keys(incomingContract.payloads)).toEqual([
       'query',
       'stop-query',
@@ -228,7 +228,7 @@ describe('frontend/backend websocket incoming contract', () => {
     ))).toBe('incoming_message_contract.json');
   });
 
-  test('frontend outbound payload filter matches backend incoming contract keys', () => {
+  test('main outbound payload filter matches backend incoming contract keys', () => {
     for (const [type, payloadContract] of Object.entries(incomingContract.payloads)) {
       const filtered = filterBackendPayload(type, samplePayloadWithAllContractKeys(type));
 

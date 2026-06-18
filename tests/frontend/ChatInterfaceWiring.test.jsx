@@ -593,7 +593,7 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
   });
 
-  test('subscribes to typed audio chunks without raw backend stream traffic', () => {
+  test('subscribes to typed audio chunks without backend-wire stream traffic', () => {
     mockExtractAudioChunkPayload.mockReturnValue({ audio: 'abc', sample_rate: 24000 });
 
     render(<ChatInterface />);

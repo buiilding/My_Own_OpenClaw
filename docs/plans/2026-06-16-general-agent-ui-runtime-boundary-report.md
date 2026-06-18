@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `79ba0450d` (`docs(backend): align event consumer ownership wording`)
+- Latest inspected plan checkpoint: `afe1d4f4b` (`docs(tools): align client manifest host wording`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -69,9 +69,45 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   planning docs now use Electron desktop app/main, renderer, and SDK
   local-runtime ownership wording instead of broad Electron frontend labels.
   Tool-development guidance now routes the client-manifest handoff through the
-  SDK/Electron desktop host boundary.
+  SDK/Electron desktop host boundary. Renderer stream docs and frontend
+  contract test labels now describe backend-wire event ingress, SDK
+  source-event boundaries, and SDK/main command ownership instead of stale
+  raw-backend and frontend/backend labels. Renderer transcript presentation now
+  dedupes same-turn SDK current-turn tool rows against materialized SDK display
+  tool rows by SDK-shaped tool identity when correlation ids are absent.
 
 ## Inspection Log
+
+### 2026-06-18 Renderer Backend-Wire Boundary and Tool-Row Presentation Slice
+
+- Worktree was clean after `afe1d4f4b` before this slice, with `main` ahead of
+  `origin/main` by 810 commits.
+- Recent commits showed renderer raw-event behavior already removed or guarded,
+  while live renderer docs and a websocket contract test still used stale
+  "raw backend" and "frontend/backend" labels for event ingress and command
+  payload ownership.
+- Finding: those labels made the renderer look closer to backend-wire event
+  contracts than it is; the active path is SDK/main normalization and SDK
+  conversation-event projection before renderer chat hooks. Focused validation
+  also showed the renderer presentation pipeline could inject a live
+  current-turn tool row next to an already-materialized SDK display tool row
+  when the current-turn row had SDK tool identity but no correlation id.
+- Change: reworded renderer stream docs and related test descriptions to
+  backend-wire event ingress, SDK source-event boundaries, and SDK/main command
+  ownership.
+- Change: added a modular boundary guard that checks the current renderer docs
+  and contract tests for the retired labels while preserving the explicit SDK
+  raw-event debug listener test.
+- Change: updated renderer message presentation dedupe to match same-turn tool
+  rows by SDK-shaped tool identity before injecting current-turn live messages.
+- Validation: focused modular boundary test, ChatInterface wiring test,
+  frontend websocket contract test, targeted stale-label scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. Websocket payload schemas, SDK event
+  projections, IPC channels, debug raw-event listener API, credentials,
+  permissions, provider policy, and storage are unchanged. Renderer behavior is
+  narrowed to avoid duplicate visible tool rows when SDK display rows already
+  represent the same same-turn tool event.
 
 ### 2026-06-18 Tool-Development Desktop-Host Wording Slice
 

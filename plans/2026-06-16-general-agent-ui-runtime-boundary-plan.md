@@ -120,6 +120,30 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer backend-wire boundary and tool-row presentation
+
+- Finding: current renderer stream docs and a websocket contract test still
+  used stale "raw backend" and "frontend/backend" labels even though runtime
+  behavior already routes backend-wire events through SDK/main normalization and
+  exposes only SDK conversation events to renderer chat hooks. Focused
+  validation also surfaced that current-turn tool rows could still render next
+  to already-materialized SDK display tool rows when raw-payload fallback
+  removal left the live row without a correlation id.
+- Change: reworded the affected renderer docs and test descriptions to
+  backend-wire event ingress, SDK source-event boundaries, and SDK/main command
+  ownership; added a modular boundary guard for the retired labels in current
+  renderer docs and contract tests; updated renderer presentation dedupe to
+  match same-turn tool rows by SDK-shaped tool identity before injecting
+  current-turn live messages.
+- Validation: focused modular boundary test, ChatInterface wiring test,
+  frontend websocket contract test, targeted stale-label scan, docs listing,
+  and diff check.
+- Compatibility: no migration required. Websocket payload schemas, SDK event
+  projections, IPC channels, debug raw-event listener API, credentials,
+  permissions, provider policy, and storage are unchanged. Renderer behavior is
+  narrowed to avoid duplicate visible tool rows when SDK display rows already
+  represent the same same-turn tool event.
+
 ### 2026-06-18 tool-development desktop-host wording
 
 - Finding: the tool-development guide still said the SDK/Electron frontend

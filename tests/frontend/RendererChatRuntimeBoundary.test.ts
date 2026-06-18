@@ -203,7 +203,7 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer does not own raw backend event contracts', async () => {
+  test('renderer does not own backend-wire event contracts', async () => {
     const backendEventContractPath = path.join(
       path.resolve(__dirname, '../..'),
       'frontend/src/renderer/types/backendEvents.ts',
@@ -291,7 +291,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSideEffectsSource).toContain('streaming-response');
   });
 
-  test('chat stream consumes main-owned SDK conversation events instead of raw backend events', async () => {
+  test('chat stream consumes main-owned SDK conversation events instead of backend-wire events', async () => {
     const streamSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),
       'utf8',
@@ -308,7 +308,7 @@ describe('renderer chat runtime boundary', () => {
     expect(ingressSource).not.toContain('normalizeBackendEventToConversationEvent');
   });
 
-  test('renderer subscriptions do not use raw backend channel for owned app paths', async () => {
+  test('renderer subscriptions do not use backend-wire channel for owned app paths', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
 
@@ -579,7 +579,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
   });
 
-  test('live current-turn presentation does not read raw backend-shaped payload details', async () => {
+  test('live current-turn presentation does not read backend-shaped payload details', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'utils/message/liveTurnPresentationMessages.js'),
       'utf8',
@@ -591,7 +591,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('entry.payload');
   });
 
-  test('current-turn tool-event fallback does not read raw backend-shaped payload details', async () => {
+  test('current-turn tool-event fallback does not read backend-shaped payload details', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
       'utf8',
