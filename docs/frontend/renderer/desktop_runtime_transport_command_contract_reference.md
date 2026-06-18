@@ -21,6 +21,7 @@ title: "Desktop Runtime Transport Command Contract Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopRendererHooksRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
@@ -140,6 +141,12 @@ this client.
 capability event fan-out. Agent settings owns extension/tool presentation,
 tool toggle config patches, and manifest/catalog state projection while
 delegating the desktop event and metadata channels to this client.
+
+`desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
+shared React hook helpers such as `useLatestRef`. App providers and feature
+hooks keep their component/effect policy while importing shared hook helpers
+through this runtime facade instead of reaching into renderer infrastructure
+directly.
 
 `desktopPermissionRuntimeClient.ts` owns renderer permission list, probe,
 request, and batch-check commands. `permissionStore` owns status normalization,

@@ -7,7 +7,7 @@ import { AppConfigProvider } from './AppConfigProvider';
 import { AppStatusProvider } from './AppStatusProvider';
 import { useAppConfigContext } from './AppConfigContext';
 import { useAppStatusContext } from './AppStatusContext';
-import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
+import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import { applyAppearanceTheme } from '../applyAppearanceTheme';
 
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]';

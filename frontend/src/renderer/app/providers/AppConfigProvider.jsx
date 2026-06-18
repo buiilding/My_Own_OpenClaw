@@ -9,7 +9,7 @@ import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configSt
 import { AppConfigContext } from './AppConfigContext';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
-import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
+import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
   applyConfigIfChanged,
   buildRendererConfigPersistencePayload,

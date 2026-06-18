@@ -8541,6 +8541,22 @@ Each completed slice should report:
 - Compatibility: no migration required. The stable ref object behavior and
   render-time `.current` update semantics are unchanged.
 
+### 2026-06-18 renderer app provider hook facade boundary
+
+- Finding: after chat and voice feature hooks moved to
+  `DesktopRendererHooksRuntimeClient`, `AppProvider` and `AppConfigProvider`
+  still imported `useLatestRef` directly from renderer infrastructure.
+- Change: routed app providers through the same renderer hooks runtime facade,
+  keeping provider effect/config policy in the app provider layer and shared
+  hook implementation ownership in renderer infrastructure.
+- Validation: focused renderer app-runtime, app config provider, app provider,
+  and latest-ref Jest coverage, direct provider import scan, docs listing, and
+  diff check.
+- Compatibility: no migration required. The stable ref object behavior,
+  render-time `.current` update semantics, settings persistence, wakeword
+  suppression, shortcut handling, credentials, provider policy, and
+  local-runtime execution are unchanged.
+
 ### 2026-06-18 renderer storage runtime facade boundary
 
 - Finding: permission onboarding storage still imported JSON localStorage

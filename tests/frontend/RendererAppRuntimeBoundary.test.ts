@@ -163,6 +163,24 @@ describe('renderer app runtime boundary', () => {
     expect(clientSource).toContain('logUserSentMessage(details)');
   });
 
+  test('app providers read latest-ref helper through renderer hooks runtime client', async () => {
+    const providerFiles = [
+      'providers/AppProvider.jsx',
+      'providers/AppConfigProvider.jsx',
+    ];
+    const hookClientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopRendererHooksRuntimeClient.ts'),
+      'utf8',
+    );
+
+    for (const providerFile of providerFiles) {
+      const source = await fs.readFile(path.join(appRoot, providerFile), 'utf8');
+      expect(source).toContain('desktopRendererHooksRuntimeClient');
+      expect(source).not.toContain('infrastructure/hooks/useLatestRef');
+    }
+    expect(hookClientSource).toContain('infrastructure/hooks/useLatestRef');
+  });
+
   test('app provider code uses runtime facades for transcript session helpers', async () => {
     const files = await listSourceFiles(appRoot);
     const offenders: string[] = [];

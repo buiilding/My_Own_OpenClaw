@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: route app provider `useLatestRef` usage through
+  `DesktopRendererHooksRuntimeClient` so providers use the same app-runtime
+  facade as chat and voice hooks. No migration required.
 - renderer/app: route startup interaction-logger installation through
   `DesktopInteractionRuntimeClient` so the renderer app entrypoint no longer
   imports diagnostics infrastructure directly. No migration required.
