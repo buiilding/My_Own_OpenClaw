@@ -15,7 +15,7 @@ Current runtime note:
 - the live backend registry and the live sidecar registry both use direct tool names such as `mouse_control` and `run_shell_command`
 - the repo also contains wrapper-shaped reference artifacts for `computer_use` and `system_use` under `model-facing/`, but those names are not registered by `backend/src/tools/registry.py` or `frontend/src/main/python/tools/registry.py`
 
-Frontend-sourced local tool schemas now flow through `client_tool_manifest`.
+Client-local built-in tool schemas now flow through `client_tool_manifest`.
 For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 
 ## Architecture

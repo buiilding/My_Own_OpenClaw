@@ -621,6 +621,7 @@ describe('modular sdk refactor completion boundary', () => {
         'Tool Result Ingress from Frontend',
         'delegates to `session.process_frontend_tool_result(...)`',
         'delegates to `session.process_frontend_tool_bundle_result(...)`',
+        'Tool events execute in frontend/sidecar',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

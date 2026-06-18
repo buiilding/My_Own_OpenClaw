@@ -1164,7 +1164,7 @@ Used when switching or resuming conversations from episodic memory.
 
 ### Client Tool Manifest Handshake
 
-Frontend runtime tool schemas are sent during websocket handshake inside
+Client-local tool schemas are sent during websocket handshake inside
 `agent_definition.tools.client_manifest`. The backend validates the manifest,
 stores accepted/rejected diagnostics on the session, applies tool policy and
 provider projection, and emits the public validation result as

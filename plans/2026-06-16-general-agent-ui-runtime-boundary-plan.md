@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 backend inventory client-local tool wording
+
+- Finding: backend inventory and API/tool-system references still framed local
+  tool execution and manifest submission as frontend/sidecar behavior instead
+  of SDK/main local-runtime dispatch plus client-local manifest ownership.
+- Change: reworded the backend contract checkpoint, API manifest reference, and
+  tool-system note to SDK/local-runtime and client-local wording, then extended
+  the modular boundary guard to reject the stale frontend/sidecar execution
+  phrase.
+- Validation: focused modular boundary Jest coverage, docs listing, stale
+  frontend/sidecar tool-execution wording scan, and diff check.
+- Compatibility: no migration required. This changes docs/tests only; websocket
+  handshake fields, tool-result event names, manifests, storage, credentials,
+  permissions, and local-runtime execution are unchanged.
+
 ### 2026-06-18 SDK conversation-store producer label cleanup
 
 - Finding: `LocalRuntimeConversationStore` still contained a special

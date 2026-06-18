@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/backend: align backend inventory and API/tool-system references with
+  SDK/main local-runtime tool dispatch and client-local manifest ownership; no
+  migration is required because this is docs/test wording only.
 - sdk: collapse local-runtime conversation-store producer labels to
   backend-vs-SDK ownership so non-backend conversation events persist as
   `producer = "sdk"` instead of retaining a dead sidecar producer branch; no

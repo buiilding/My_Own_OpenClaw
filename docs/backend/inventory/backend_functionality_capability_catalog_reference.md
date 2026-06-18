@@ -240,7 +240,7 @@ Capabilities:
 1. WebSocket client connects and sends handshake (`user_id` required).
 2. `query` handler registers active task and delegates query execution service.
 3. Service streams loop events through formatter/transport and optional TTS.
-4. Tool events execute in frontend/sidecar; results return via `tool-result` or `tool-bundle-result`.
+4. Tool events dispatch through SDK/main local runtime; results return via `tool-result` or `tool-bundle-result`.
 5. Backend processes/commits tool outputs into history, then continues or completes turn.
 6. `streaming-complete` is emitted from model stream or backend fallback synthesizer.
 
