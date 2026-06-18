@@ -1,5 +1,5 @@
 /**
- * Defines the WindieOS renderer skin for the generic desktop agent UI.
+ * Defines the WindieOS renderer skin for the generic desktop runtime UI.
  */
 
 const productName = 'WindieOS';

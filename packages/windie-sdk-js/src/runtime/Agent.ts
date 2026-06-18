@@ -137,12 +137,6 @@ function unwrapLocalRuntimeRpcData(response: unknown, fallbackMessage: string): 
   return record;
 }
 
-export type LoadConversationOptions = {
-  conversationRef: string;
-  revisionId?: string;
-  store?: ConversationStore;
-};
-
 export type AgentMemoryType = 'episodic' | 'semantic';
 
 export type AgentMemoryQuery = {
@@ -183,25 +177,9 @@ export type AgentStoreMemoryResult = JsonRecord & {
   memory_type?: string;
 };
 
-export type AgentClearConversationsOptions = {
-  store?: ConversationStore;
-};
-
 export type AgentTraceOptions = {
   conversationRef?: string;
   turnRef?: string | null;
-  store?: ConversationStore;
-};
-
-export type AgentPrepareEditAndResendOptions = EditAndResendInput & {
-  conversationRef: string;
-  revisionId?: string;
-  store?: ConversationStore;
-};
-
-export type AgentPrepareRetryTurnOptions = RetryTurnInput & {
-  conversationRef: string;
-  revisionId?: string;
   store?: ConversationStore;
 };
 
@@ -968,7 +946,7 @@ export class Agent {
     await conversationStore.deleteConversation(deleteOptions.conversationRef);
   }
 
-  async clearConversations(options: AgentClearConversationsOptions = {}): Promise<void> {
+  async clearConversations(options: { store?: ConversationStore } = {}): Promise<void> {
     const conversationStore = options.store ?? this.defaultConversationStore;
     if (typeof conversationStore.clearConversations !== 'function') {
       throw new Error('clearConversations requires a clearable conversation store');
@@ -977,7 +955,11 @@ export class Agent {
   }
 
   async loadConversation(
-    options: string | LoadConversationOptions,
+    options: string | {
+      conversationRef: string;
+      revisionId?: string;
+      store?: ConversationStore;
+    },
   ): Promise<ReturnType<SdkConversationRuntime['load']>> {
     const loadOptions = typeof options === 'string'
       ? { conversationRef: options }
@@ -1024,7 +1006,11 @@ export class Agent {
   }
 
   async prepareEditAndResend(
-    options: AgentPrepareEditAndResendOptions,
+    options: EditAndResendInput & {
+      conversationRef: string;
+      revisionId?: string;
+      store?: ConversationStore;
+    },
   ): Promise<PreparedReplayTurn> {
     const { conversationRef, revisionId, store, ...input } = options;
     return this.conversation({
@@ -1035,7 +1021,11 @@ export class Agent {
   }
 
   async prepareRetryTurn(
-    options: AgentPrepareRetryTurnOptions,
+    options: RetryTurnInput & {
+      conversationRef: string;
+      revisionId?: string;
+      store?: ConversationStore;
+    },
   ): Promise<PreparedReplayTurn> {
     const { conversationRef, revisionId, store, ...input } = options;
     return this.conversation({

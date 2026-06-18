@@ -214,6 +214,10 @@ describe('@windie/sdk package boundary', () => {
     expect(source).not.toContain('RawBackendEventListener');
     expect(source).toContain('options: { replace?: boolean } = {}');
     expect(source).not.toContain('AgentRegisterMcpOptions');
+    expect(source).not.toContain('LoadConversationOptions');
+    expect(source).not.toContain('AgentClearConversationsOptions');
+    expect(source).not.toContain('AgentPrepareEditAndResendOptions');
+    expect(source).not.toContain('AgentPrepareRetryTurnOptions');
     expect(event.state).toBe('thinking');
   });
 

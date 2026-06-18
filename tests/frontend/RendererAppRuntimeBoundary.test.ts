@@ -36,6 +36,22 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer app runtime boundary', () => {
+  test('renderer skin and SDK facade use desktop-runtime UI wording', async () => {
+    const skinSource = await fs.readFile(
+      path.join(appRoot, 'skin/windieDesktopSkin.js'),
+      'utf8',
+    );
+    const sdkFacadeSource = await fs.readFile(
+      path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'),
+      'utf8',
+    );
+
+    expect(skinSource).toContain('generic desktop runtime UI');
+    expect(skinSource).not.toContain('generic desktop agent UI');
+    expect(sdkFacadeSource).toContain('desktop runtime UI');
+    expect(sdkFacadeSource).not.toContain('desktop agent UI');
+  });
+
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),

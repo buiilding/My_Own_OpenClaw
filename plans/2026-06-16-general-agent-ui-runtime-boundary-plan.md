@@ -120,6 +120,18 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 renderer desktop-runtime UI comment wording
+
+- Finding: renderer skin and SDK facade comments still described the package as a
+  generic desktop agent UI even though the renderer boundary is now framed as
+  desktop-runtime UI plus WindieOS skin/config.
+- Change: updated those comments to desktop-runtime wording and added focused
+  renderer boundary coverage to keep the old phrase out.
+- Validation: focused RendererAppRuntimeBoundary Jest test, recent history review,
+  docs route lookup, and stale desktop-agent UI phrase scan.
+- Compatibility: no migration required because this changes comments and test
+  coverage only; runtime behavior, IPC, storage, and persisted data are unchanged.
+
 ### 2026-06-18 renderer new-chat event runtime naming
 
 - Finding: the dashboard-to-chat renderer-only new-chat event still used the

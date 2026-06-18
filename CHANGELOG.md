@@ -5,6 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- frontend/renderer: replace stale desktop-agent UI wording in renderer skin
+  and SDK facade comments with desktop-runtime wording; no migration is
+  required because this changes comments and boundary coverage only.
 - frontend/renderer: rename the renderer-only dashboard new-chat event from
   `desktop-agent:new-chat` to `desktop-runtime:new-chat`; no migration is
   required because the event is in-process renderer state only.
