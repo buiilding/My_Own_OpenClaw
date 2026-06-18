@@ -27,7 +27,7 @@ def count_grouped_memory_results(memories: Dict[str, Any]) -> Dict[str, int]:
     }
 
 
-def build_sidecar_memory_search_trace(
+def build_local_runtime_memory_search_trace(
     *,
     method: str,
     memory_type: Optional[str],
@@ -58,7 +58,7 @@ def _number(value: Any) -> Optional[float]:
     return value if isinstance(value, (int, float)) else None
 
 
-def build_sidecar_screenshot_capture_trace(
+def build_local_runtime_screenshot_capture_trace(
     *,
     capture_payload: Dict[str, Any],
     started_at: float,

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 local-runtime path trace helper names
+
+- Finding: Python path-trace internals still exposed sidecar-named memory
+  search and screenshot capture helper functions even though these traces are
+  produced below the SDK local-runtime boundary.
+- Change: renamed the internal helpers and their memory/screenshot callers to
+  local-runtime names, and added a focused sidecar guard so the old helper
+  names stay removed.
+- Validation: py_compile for the touched Python modules, focused screenshot
+  sidecar pytest, docs listing, stale helper-name scan, and `git diff --check`.
+- Compatibility: no migration required. Trace payload fields, runtime values,
+  screenshot results, memory search response data, JSON-RPC methods, APIs,
+  settings, and persisted data are unchanged.
+
 ### 2026-06-18 runs API demo key fallback removal
 
 - Finding: runs-route auth and VM worker startup still accepted

@@ -1,6 +1,7 @@
 """Covers screenshot tool behavior in the sidecar test suite."""
 
 import sys
+from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
@@ -10,6 +11,15 @@ ensure_frontend_python_path()
 
 from tools.computer import screenshot_tool  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
+
+
+def test_path_trace_helpers_use_local_runtime_names():
+    source = Path("frontend/src/main/python/path_trace.py").read_text(encoding="utf-8")
+
+    assert "build_sidecar_memory_search_trace" not in source
+    assert "build_sidecar_screenshot_capture_trace" not in source
+    assert "build_local_runtime_memory_search_trace" in source
+    assert "build_local_runtime_screenshot_capture_trace" in source
 
 
 async def capture_screenshot(args):

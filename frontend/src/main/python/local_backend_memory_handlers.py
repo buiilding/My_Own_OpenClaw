@@ -12,7 +12,7 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
-from path_trace import build_sidecar_memory_search_trace, monotonic_trace_start
+from path_trace import build_local_runtime_memory_search_trace, monotonic_trace_start
 from memory.operations import (
     build_memory_filters,
     build_store_memory_response_data,
@@ -200,7 +200,7 @@ class LocalBackendMemoryHandlersMixin:
                 "success": True,
                 "data": {
                     "memories": memories,
-                    "trace": build_sidecar_memory_search_trace(
+                    "trace": build_local_runtime_memory_search_trace(
                         method="search_memory_by_embedding",
                         memory_type=normalized["memory_type"],
                         embedding_dimension=len(normalized["embedding"]),

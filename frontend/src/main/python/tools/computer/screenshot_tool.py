@@ -19,7 +19,7 @@ from typing import Dict, Any, Optional
 
 from core.executors import get_interactive_executor
 from path_trace import (
-    build_sidecar_screenshot_capture_trace,
+    build_local_runtime_screenshot_capture_trace,
     monotonic_trace_start,
 )
 from tools.result import ToolResult
@@ -753,7 +753,7 @@ async def capture_screenshot(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.success_result(
             {
                 **capture_payload,
-                "path_trace": build_sidecar_screenshot_capture_trace(
+                "path_trace": build_local_runtime_screenshot_capture_trace(
                     capture_payload=capture_payload,
                     started_at=trace_started_at,
                 ),

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar: rename internal memory and screenshot path-trace helper functions
+  to local-runtime names while preserving trace payload shape; no migration
+  is required.
+
 - backend/runs: remove the `WINDIE_DEMO_API_KEY` fallback from runs API
   auth and VM worker headers so run control uses `WINDIE_RUNS_API_KEY` plus
   optional `WINDIE_VM_RUNS_API_KEY`; deployments using only the removed demo
