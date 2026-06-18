@@ -689,7 +689,7 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
     mcp_tool = next(
         tool for tool in manifest["tools"] if tool["name"] == "mcp_notes__remember"
     )
-    assert mcp_tool["execution_target"] == "sidecar"
+    assert mcp_tool["execution_target"] == "local_runtime"
     assert mcp_tool["argument_resolution"] == "passthrough"
     assert mcp_tool["mcp_server_id"] == "notes"
     assert mcp_tool["mcp_tool_name"] == "remember"

@@ -80,7 +80,9 @@ def test_registry_tool_manifest_contains_builtin_schemas():
     assert "read_file" in tool_names
     assert "mouse_control" in tool_names
     assert all("description" in tool for tool in manifest["tools"])
-    assert all(tool.get("execution_target") == "sidecar" for tool in manifest["tools"])
+    assert all(
+        tool.get("execution_target") == "local_runtime" for tool in manifest["tools"]
+    )
     assert all("schema" in tool for tool in manifest["tools"])
     assert all(tool.get("schema_role") == "backend_validation" for tool in manifest["tools"])
     assert all("executable_schema" in tool for tool in manifest["tools"])

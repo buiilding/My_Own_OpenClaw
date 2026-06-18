@@ -125,7 +125,7 @@ async def test_process_query_traces_client_manifest_validation_and_application()
             {
                 "name": "cua_driver__screenshot",
                 "description": "Capture the screen through CUA.",
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "argument_resolution": "passthrough",
                 "mcp_server_id": "cua-driver",
                 "mcp_tool_name": "screenshot",
@@ -137,7 +137,7 @@ async def test_process_query_traces_client_manifest_validation_and_application()
             },
             {
                 "name": "bad_tool",
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "argument_resolution": "passthrough",
                 "schema": {
                     "type": "object",
@@ -370,7 +370,7 @@ async def test_process_query_extends_existing_allowlist_for_default_plus_client(
             {
                 "name": "cua_driver__list_apps",
                 "description": "List apps through CUA.",
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "argument_resolution": "passthrough",
                 "schema": {
                     "type": "object",
@@ -424,7 +424,7 @@ async def test_process_query_replaces_previous_runtime_client_tool_policy():
             {
                 "name": "cua_driver__list_apps",
                 "description": "List apps through CUA.",
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "argument_resolution": "passthrough",
                 "schema": {
                     "type": "object",
@@ -440,7 +440,7 @@ async def test_process_query_replaces_previous_runtime_client_tool_policy():
             {
                 "name": "plugin_tool",
                 "description": "Run a plugin tool.",
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "argument_resolution": "passthrough",
                 "schema": {
                     "type": "object",
@@ -489,7 +489,7 @@ async def test_config_rewire_preserves_runtime_client_tool_policy():
             {
                 "name": "cua_driver__list_apps",
                 "description": "List apps through CUA.",
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "argument_resolution": "passthrough",
                 "schema": {
                     "type": "object",

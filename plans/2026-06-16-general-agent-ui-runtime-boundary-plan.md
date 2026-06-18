@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 local-runtime execution target contract
+
+- Finding: the client tool manifest contract still used `execution_target: sidecar` as the canonical local execution target across SDK builders, backend validation, generated manifests, plugin/MCP registration, renderer labels, docs, and tests, exposing the Python executor name as a reusable SDK/backend contract value.
+- Change: renamed the canonical local target to `local_runtime`, updated SDK TypeScript/CJS builders, Python SDK/manifests, backend validation, generated built-in manifests, plugin/MCP registration, renderer skin labels, docs, and focused tests; retired `sidecar` target values now fail backend manifest validation instead of being accepted or aliased.
+- Validation: focused frontend Jest contract suites, focused sidecar pytest and py_compile, backend manifest py_compile plus isolated validation smoke, docs listing, exact retired-target scan, and scoped diff check. Full backend pytest remains unavailable in the fallback shell because `jarvis` is missing and fallback Python lacks `fastapi`.
+- Compatibility: no persisted-data migration required. Client tool manifests are handshake/runtime payloads; supported clients should send `execution_target: local_runtime` or `backend`, and retired `sidecar` target payloads now fail closed.
+
 ### 2026-06-18 local-runtime token header boundary
 
 - Finding: the TypeScript SDK local-runtime client, Python SDK client, sidecar daemon auth middleware, tests, and daemon docs still used the product/implementation-named `x-windie-sidecar-token` header on the reusable local-runtime daemon contract.

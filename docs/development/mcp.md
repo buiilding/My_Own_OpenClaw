@@ -26,7 +26,7 @@ into the executable local tool registry, and executes `tools/call` when the mode
 invokes an MCP-backed tool.
 
 The backend does not need MCP-specific tool code. It sees normal client-local
-tools with `execution_target: "sidecar"` and `argument_resolution:
+tools with `execution_target: "local_runtime"` and `argument_resolution:
 "passthrough"`, validates the manifest, and emits tool calls back to the
 frontend.
 

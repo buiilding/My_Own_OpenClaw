@@ -278,7 +278,7 @@ async def test_partial_agent_definition_does_not_clear_existing_client_tools() -
                         {
                             "name": "save_note",
                             "description": "Save a note",
-                            "execution_target": "sidecar",
+                            "execution_target": "local_runtime",
                             "schema": {
                                 "type": "object",
                                 "properties": {"text": {"type": "string"}},
@@ -331,7 +331,7 @@ async def test_set_client_tool_manifest_applies_to_active_and_future_sessions() 
                 {
                     "name": "cua_driver__screenshot",
                     "description": "Capture the screen through CUA.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "argument_resolution": "passthrough",
                     "schema": {
                         "type": "object",

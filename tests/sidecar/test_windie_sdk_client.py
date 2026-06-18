@@ -226,7 +226,7 @@ class FakeLocalRuntime:
                 {
                     "name": "save_note",
                     "description": "Save a note.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": {"type": "object", "properties": {}},
                 }
             ],
@@ -742,7 +742,7 @@ async def test_wake_up_registers_local_tools_plugins_and_mcps():
                 {
                     "name": "save_note",
                     "description": "Save a note.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": {"type": "object", "properties": {}},
                 }
             ],

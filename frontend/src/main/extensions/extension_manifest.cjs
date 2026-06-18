@@ -172,7 +172,7 @@ function readToolContribution(rawTool, pluginDir, pluginId) {
   return {
     name,
     description: normalizeString(rawTool.description) || `Plugin tool from ${pluginId}.`,
-    execution_target: 'sidecar',
+    execution_target: 'local_runtime',
     schema: toolSchema,
     argument_resolution: rawTool.argument_resolution === 'backend_grounding'
       ? 'backend_grounding'

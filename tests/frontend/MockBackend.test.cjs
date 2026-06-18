@@ -58,7 +58,7 @@ describe('mock backend', () => {
               name: 'read_file',
               description: 'Read a file.',
               schema: { type: 'object' },
-              execution_target: 'sidecar',
+              execution_target: 'local_runtime',
               argument_resolution: 'passthrough',
             }],
           },

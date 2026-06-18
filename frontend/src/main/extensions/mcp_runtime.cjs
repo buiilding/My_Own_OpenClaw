@@ -555,7 +555,7 @@ function normalizeDiscoveredTool(server, tool) {
   const manifestTool = {
     name: exposedName,
     description: `[MCP:${server.name}] ${description}`,
-    execution_target: 'sidecar',
+    execution_target: 'local_runtime',
     schema: normalizeMcpSchema(tool.inputSchema || tool.input_schema || tool.schema),
     argument_resolution: 'passthrough',
     extension_id: server.extension_id || `mcp:${server.id}`,

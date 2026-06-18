@@ -74,7 +74,7 @@ describe('AgentSettingsTab', () => {
         payload: {
           accepted: [{
             name: 'read_file',
-            execution_target: 'sidecar',
+            execution_target: 'local_runtime',
             argument_resolution: 'passthrough',
             schema: { type: 'object', properties: { file_path: { type: 'string' } } },
           }],

@@ -316,7 +316,7 @@ def build_sidecar_tool_manifest(
             {
                 "name": tool_name,
                 "description": TOOL_DESCRIPTIONS.get(tool_name, ""),
-                "execution_target": "sidecar",
+                "execution_target": "local_runtime",
                 "schema": schema,
                 "schema_role": "backend_validation",
                 "executable_schema": executable_schema,

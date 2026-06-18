@@ -1189,7 +1189,7 @@ under `agent_definition.tools.client_manifest`.
           {
             "name": "read_file",
             "description": "Read a UTF-8 text file from disk",
-            "execution_target": "sidecar",
+            "execution_target": "local_runtime",
             "schema": {
               "type": "object",
               "properties": {
@@ -2122,7 +2122,7 @@ channel.
     {
       "name": "read_file",
       "description": "Read a UTF-8 text file from disk",
-      "execution_target": "sidecar"
+      "execution_target": "local_runtime"
     }
   ],
   "rejected": [

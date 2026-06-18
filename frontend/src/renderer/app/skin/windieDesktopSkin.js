@@ -53,7 +53,7 @@ export const windieDesktopSkin = Object.freeze({
         argumentResolutionFallback: 'passthrough',
         executionTargetLabels: Object.freeze({
           backend: 'cloud runtime',
-          sidecar: 'local runtime',
+          local_runtime: 'local runtime',
         }),
       }),
     }),

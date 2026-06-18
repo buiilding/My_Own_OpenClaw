@@ -69,7 +69,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "mouse_control",
       "schema": {
         "additionalProperties": false,
@@ -252,7 +252,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "keyboard_control",
       "schema": {
         "additionalProperties": false,
@@ -344,7 +344,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "screenshot",
       "schema": {
         "additionalProperties": false,
@@ -429,7 +429,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "scroll_control",
       "schema": {
         "additionalProperties": false,
@@ -549,7 +549,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "switch_window",
       "schema": {
         "additionalProperties": false,
@@ -609,7 +609,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "wait",
       "schema": {
         "additionalProperties": false,
@@ -654,7 +654,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "get_open_windows",
       "schema": {
         "additionalProperties": false,
@@ -694,7 +694,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "get_system_stats",
       "schema": {
         "additionalProperties": false,
@@ -768,7 +768,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "open_app",
       "schema": {
         "additionalProperties": false,
@@ -885,7 +885,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "run_shell_command",
       "schema": {
         "additionalProperties": false,
@@ -1031,7 +1031,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "process",
       "schema": {
         "additionalProperties": false,
@@ -1151,7 +1151,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "read_file",
       "schema": {
         "additionalProperties": false,
@@ -1229,7 +1229,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "replace",
       "schema": {
         "additionalProperties": false,
@@ -1641,7 +1641,7 @@
         ],
         "type": "object"
       },
-      "execution_target": "sidecar",
+      "execution_target": "local_runtime",
       "name": "browser",
       "schema": {
         "additionalProperties": false,

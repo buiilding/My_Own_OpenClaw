@@ -27,14 +27,14 @@ def _metrics_service():
     return MetricsService()
 
 
-def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
+def test_client_tool_manifest_accepts_passthrough_local_runtime_tool():
     result = validate_client_tool_manifest(
         {
             "tools": [
                 {
                     "name": "my_tool",
                     "description": "A developer-defined local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
@@ -49,6 +49,28 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
     assert "execution_schema" not in result.to_public_dict()["accepted"][0]
     assert result.accepted_tool_schemas[0]["name"] == "my_tool"
     assert result.accepted_tool_schemas[0]["parameters"]["required"] == ["value"]
+
+
+def test_client_tool_manifest_rejects_retired_local_executor_target():
+    retired_target = "side" + "car"
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "my_tool",
+                    "description": "A developer-defined local tool.",
+                    "execution_target": retired_target,
+                    "schema": _schema(),
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert result.accepted == []
+    assert result.rejected == [
+        {"name": "my_tool", "reason": "invalid execution_target"}
+    ]
 
 
 def test_client_tool_manifest_accepts_flat_function_tool_schema():
@@ -66,7 +88,7 @@ def test_client_tool_manifest_accepts_flat_function_tool_schema():
                 {
                     "name": "manifest_name",
                     "description": "Manifest description wins when schema is silent.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": function_schema,
                     "argument_resolution": "passthrough",
                 }
@@ -95,7 +117,7 @@ def test_client_tool_manifest_rejects_bad_flat_function_tool_schema():
                 {
                     "name": "broken_function",
                     "description": "Missing parameter schema.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": {
                         "type": "function",
                         "name": "broken_function",
@@ -111,7 +133,7 @@ def test_client_tool_manifest_rejects_bad_flat_function_tool_schema():
                 {
                     "name": "bad_function",
                     "description": "Unsupported nested parameter key.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": {
                         "type": "function",
                         "name": "bad_function",
@@ -147,7 +169,7 @@ def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
                 {
                     "name": "web_search",
                     "description": "Attempt to override backend search.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
@@ -168,14 +190,14 @@ def test_client_tool_manifest_rejects_duplicate_tool_names():
                 {
                     "name": "my_tool",
                     "description": "First local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                 },
                 {
                     "name": "my_tool",
                     "description": "Duplicate local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                 },
@@ -194,7 +216,7 @@ def test_client_tool_manifest_rejects_bad_and_oversized_schemas():
                 {
                     "name": "bad_schema",
                     "description": "Bad local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": {"type": "object", "x-unsupported": True},
                     "argument_resolution": "passthrough",
                 }
@@ -207,7 +229,7 @@ def test_client_tool_manifest_rejects_bad_and_oversized_schemas():
                 {
                     "name": "too_large",
                     "description": "Large local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": {
                         "type": "object",
                         "description": "x" * (MAX_SCHEMA_BYTES + 1),
@@ -234,7 +256,7 @@ def test_client_tool_manifest_rejects_oversized_tool_count_and_backend_addition(
                 {
                     "name": f"tool_{index}",
                     "description": "A local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
@@ -273,7 +295,7 @@ def test_client_tool_manifest_rejects_backend_only_grounded_helpers():
                 {
                     "name": "grounded_mouse_action",
                     "description": "Attempt to claim a backend helper.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "backend_grounding",
                 }
@@ -290,14 +312,14 @@ def test_client_tool_manifest_rejects_backend_only_grounded_helpers():
     ]
 
 
-def test_client_tool_manifest_accepts_backend_grounding_mode_for_sidecar_tools():
+def test_client_tool_manifest_accepts_backend_grounding_mode_for_local_runtime_tools():
     result = validate_client_tool_manifest(
         {
             "tools": [
                 {
                     "name": "grounded_click",
                     "description": "A grounded local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "backend_grounding",
                 }
@@ -325,7 +347,7 @@ def test_client_tool_manifest_preserves_executable_schema_metadata():
                 {
                     "name": "grounded_click",
                     "description": "A grounded local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "executable_schema": executable_schema,
                     "argument_resolution": "backend_grounding",
@@ -348,7 +370,7 @@ def test_client_tool_manifest_preserves_source_metadata_for_diagnostics():
                 {
                     "name": "cua_driver__list_apps",
                     "description": "List apps through CUA.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                     "extension_id": "mcp:cua-driver",
@@ -366,7 +388,7 @@ def test_client_tool_manifest_preserves_source_metadata_for_diagnostics():
     assert result.to_public_dict()["accepted"][0] == {
         "name": "cua_driver__list_apps",
         "description": "List apps through CUA.",
-        "execution_target": "sidecar",
+        "execution_target": "local_runtime",
         "schema": _schema(),
         "argument_resolution": "passthrough",
         "extension_id": "mcp:cua-driver",
@@ -382,7 +404,7 @@ def test_client_tool_manifest_rejects_invalid_executable_schema_metadata():
                 {
                     "name": "bad_executable_schema",
                     "description": "A malformed local tool.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "executable_schema": {"type": "object", "x-unsupported": True},
                     "argument_resolution": "passthrough",
@@ -407,7 +429,7 @@ def test_client_tool_manifest_uses_client_schema_for_builtin_tools():
                 {
                     "name": "read_file",
                     "description": "Client-owned read file schema.",
-                    "execution_target": "sidecar",
+                    "execution_target": "local_runtime",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }

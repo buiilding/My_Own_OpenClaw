@@ -2135,7 +2135,7 @@ async def test_update_settings_handler_applies_client_tool_manifest():
                         {
                             "name": "cua_driver__get_open_windows",
                             "description": "List currently open windows.",
-                            "execution_target": "sidecar",
+                            "execution_target": "local_runtime",
                             "argument_resolution": "passthrough",
                             "schema": {
                                 "type": "object",
@@ -2183,7 +2183,7 @@ async def test_update_settings_handler_applies_agent_definition():
                             {
                                 "name": "cua_driver__get_open_windows",
                                 "description": "List currently open windows.",
-                                "execution_target": "sidecar",
+                                "execution_target": "local_runtime",
                                 "argument_resolution": "passthrough",
                                 "schema": {
                                     "type": "object",

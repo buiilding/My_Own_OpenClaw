@@ -113,7 +113,7 @@ describe('extension registry loader', () => {
         name: 'save_note',
         plugin_id: 'notes',
         extension_id: 'plugin:notes',
-        execution_target: 'sidecar',
+        execution_target: 'local_runtime',
         schema: expect.objectContaining({
           required: ['note'],
         }),
@@ -156,7 +156,7 @@ describe('extension registry loader', () => {
 
     expect(source).toContain('hasLocalRuntimeEntrypoint');
     expect(source).not.toContain('hasSidecarEntrypoint');
-    expect(source).toContain("execution_target: 'sidecar'");
+    expect(source).toContain("execution_target: 'local_runtime'");
   });
 
   test('returns public registry metadata without executable handlers', () => {

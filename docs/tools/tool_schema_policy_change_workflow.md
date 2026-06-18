@@ -65,7 +65,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 1. Decide whether the tool is a client-local runtime tool, an override of an allowed built-in, or a backend remote tool.
 2. For client-local tools, define `name`, `description`, `schema`, `execution_target`, and `argument_resolution`.
 3. Keep the developer-authored extension field named `schema`; let backend validation normalize it into the flat function schema.
-4. Use `execution_target=sidecar` unless the tool name is a reserved backend tool that the backend already knows how to execute.
+4. Use `execution_target=local_runtime` unless the tool name is a reserved backend tool that the backend already knows how to execute.
 5. Use `argument_resolution=passthrough` when model args are executable as emitted.
 6. Use `argument_resolution=backend_grounding` only when backend preparation has a concrete owner and tests for the transformation.
 7. Add validation for accepted entries, rejected entries, duplicate names, reserved backend names, oversized manifests, unsupported schema keys, and disabled tools.

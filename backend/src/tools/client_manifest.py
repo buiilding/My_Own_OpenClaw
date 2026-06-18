@@ -19,7 +19,7 @@ MAX_MANIFEST_BYTES = 512_000
 MAX_SCHEMA_DEPTH = 12
 TOOL_NAME_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]{0,95}$")
 ARGUMENT_RESOLUTION_MODES = frozenset({"passthrough", "backend_grounding"})
-EXECUTION_TARGETS = frozenset({"sidecar", "backend"})
+EXECUTION_TARGETS = frozenset({"local_runtime", "backend"})
 RESERVED_BACKEND_TOOL_NAMES = frozenset(
     {
         "web_search",
@@ -74,7 +74,7 @@ class ClientToolManifestEntry:
 
     name: str
     description: str
-    execution_target: Literal["sidecar", "backend"]
+    execution_target: Literal["local_runtime", "backend"]
     schema: dict[str, Any]
     argument_resolution: Literal["passthrough", "backend_grounding"]
     executable_schema: dict[str, Any] | None = None
@@ -222,7 +222,7 @@ def _validate_tool_entry(
     if len(description) > MAX_DESCRIPTION_LENGTH:
         return None, {"name": name, "reason": "description exceeds length limit"}
 
-    execution_target = raw_tool.get("execution_target", "sidecar")
+    execution_target = raw_tool.get("execution_target", "local_runtime")
     if execution_target not in EXECUTION_TARGETS:
         return None, {"name": name, "reason": "invalid execution_target"}
     if execution_target == "backend" and name not in RESERVED_BACKEND_TOOL_NAMES:

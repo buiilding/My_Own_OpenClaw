@@ -1410,7 +1410,7 @@ def test_prompt_preview_agent_definition_runtime_tools_reach_provider_schemas(
                         {
                             "name": "cua_driver__list_apps",
                             "description": "List apps through CUA.",
-                            "execution_target": "sidecar",
+                            "execution_target": "local_runtime",
                             "argument_resolution": "passthrough",
                             "schema": {
                                 "type": "object",
@@ -1742,7 +1742,7 @@ async def test_sdk_debug_prompt_preview_applies_agent_definition(
                             {
                                 "name": "save_note",
                                 "description": "Save a note",
-                                "execution_target": "sidecar",
+                                "execution_target": "local_runtime",
                                 "schema": {
                                     "type": "object",
                                     "properties": {

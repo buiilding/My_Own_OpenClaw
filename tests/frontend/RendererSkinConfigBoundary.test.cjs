@@ -146,10 +146,12 @@ describe('renderer skin/config boundary', () => {
 
   test('settings components do not expose local execution targets as user-facing labels', () => {
     const source = read('AgentSettingsTab.jsx');
+    const retiredExecutionTargetFallback = `execution_target || '${'sidecar'}'`;
+    const retiredAcceptedToolFallback = `acceptedTool.execution_target || '${'sidecar'}'`;
 
     expect(source).toContain('formatToolAcceptanceRuntimeSummary');
-    expect(source).not.toContain("execution_target || 'sidecar'");
-    expect(source).not.toContain("acceptedTool.execution_target || 'sidecar'");
+    expect(source).not.toContain(retiredExecutionTargetFallback);
+    expect(source).not.toContain(retiredAcceptedToolFallback);
   });
 
   test('provider credential defaults live in renderer skin config', () => {

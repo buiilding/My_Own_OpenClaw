@@ -408,7 +408,7 @@ def _build_manifest_tool(tool: dict[str, Any]) -> dict[str, Any]:
     return {
         "name": tool.get("name"),
         "description": tool.get("description"),
-        "execution_target": tool.get("execution_target") or "sidecar",
+        "execution_target": tool.get("execution_target") or "local_runtime",
         "argument_resolution": tool.get("argument_resolution") or "passthrough",
         "schema": tool.get("schema")
         or {

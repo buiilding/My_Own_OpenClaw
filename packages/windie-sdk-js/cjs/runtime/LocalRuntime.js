@@ -72,7 +72,7 @@ function buildErrorMessage(status, statusText, bodyText) {
 function moduleTool(tool) {
     return {
         ...tool,
-        execution_target: 'sidecar',
+        execution_target: 'local_runtime',
         argument_resolution: tool.argument_resolution ?? 'passthrough',
     };
 }

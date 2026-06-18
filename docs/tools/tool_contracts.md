@@ -58,7 +58,7 @@ Accepted tool entries normalize to:
 | --- | --- | --- |
 | `name` | string matching `[a-zA-Z][a-zA-Z0-9_-]{0,95}` | unique within the manifest; reserved backend names are rejected unless explicitly overridable |
 | `description` | non-empty string, capped length | becomes the model-facing function description when the schema does not already provide one |
-| `execution_target` | `sidecar` or `backend` | arbitrary client manifests cannot add new backend tools |
+| `execution_target` | `local_runtime` or `backend` | arbitrary client manifests cannot add new backend tools |
 | `schema` | supported JSON Schema subset or full function tool spec | backend-validation schema; dynamic tools convert it into a canonical flat function schema for prompt construction |
 | `executable_schema` | optional supported JSON Schema subset | executable sidecar argument schema after backend preparation; preserved for transparency and diagnostics, not provider projection |
 | `argument_resolution` | `passthrough` or `backend_grounding` | tells reviewers whether backend preparation may transform model args before execution |

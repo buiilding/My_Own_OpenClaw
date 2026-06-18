@@ -50,7 +50,7 @@ describe('Agent SDK mock backend end to end', () => {
         tools: [{
           name: 'save_note',
           description: 'Save a note.',
-          execution_target: 'sidecar',
+          execution_target: 'local_runtime',
           schema: {
             type: 'object',
             properties: {},
@@ -100,7 +100,7 @@ describe('Agent SDK mock backend end to end', () => {
       fetchImpl: jest.fn() as unknown as typeof fetch,
       WebSocketImpl: WebSocket,
       defaultUserId: 'mock-user',
-      sidecar: localRuntime,
+      localRuntime,
     });
     const agent = await client.wakeUp({
       agentId: 'mock-e2e-agent',

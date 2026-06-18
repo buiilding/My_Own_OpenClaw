@@ -45,7 +45,7 @@ describe('MCP runtime', () => {
       expect.objectContaining({
         name: 'mcp_memory__search',
         description: '[MCP:memory] Search project memory.',
-        execution_target: 'sidecar',
+        execution_target: 'local_runtime',
         argument_resolution: 'passthrough',
         mcp_server_id: 'memory',
         mcp_tool_name: 'search',

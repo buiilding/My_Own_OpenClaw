@@ -20,7 +20,7 @@ export type AgentToolDefinition = {
   name: string;
   description?: string;
   schema: JsonRecord;
-  execution_target?: 'sidecar';
+  execution_target?: 'local_runtime';
   argument_resolution?: string;
   module?: string;
   workspacePath?: string;
@@ -156,7 +156,7 @@ function buildErrorMessage(status: number, statusText: string, bodyText: string)
 export function moduleTool(tool: AgentToolDefinition & { module: string }): AgentToolDefinition {
   return {
     ...tool,
-    execution_target: 'sidecar',
+    execution_target: 'local_runtime',
     argument_resolution: tool.argument_resolution ?? 'passthrough',
   };
 }

@@ -2250,7 +2250,7 @@ describe('Agent SDK client behavior', () => {
             {
               name: 'save_note',
               description: 'Save a local note.',
-              execution_target: 'sidecar',
+              execution_target: 'local_runtime',
               schema: {
                 type: 'object',
                 properties: { text: { type: 'string' } },
@@ -2473,7 +2473,7 @@ describe('Agent SDK client behavior', () => {
     const mcpTool = {
       name: 'cua_driver__get_open_windows',
       description: 'List open windows.',
-      execution_target: 'sidecar',
+      execution_target: 'local_runtime',
       mcp_server_id: 'cua-driver',
       mcp_tool_name: 'get_open_windows',
       schema: {
@@ -2531,7 +2531,7 @@ describe('Agent SDK client behavior', () => {
     const mcpTool = {
       name: 'cua_driver__get_open_windows',
       description: 'List open windows.',
-      execution_target: 'sidecar',
+      execution_target: 'local_runtime',
       mcp_server_id: 'cua-driver',
       mcp_tool_name: 'get_open_windows',
       schema: {
@@ -3751,7 +3751,7 @@ describe('Agent SDK client behavior', () => {
           {
             name: 'save_note',
             description: 'Save a local note.',
-            execution_target: 'sidecar',
+            execution_target: 'local_runtime',
             schema: {
               type: 'object',
               properties: { text: { type: 'string' } },
@@ -3841,7 +3841,7 @@ describe('Agent SDK client behavior', () => {
         tools: [
           {
             name: 'save_note',
-            execution_target: 'sidecar',
+            execution_target: 'local_runtime',
             schema: {
               type: 'object',
               properties: { text: { type: 'string' } },
@@ -3925,7 +3925,7 @@ describe('Agent SDK client behavior', () => {
         tools: [
           {
             name: 'save_note',
-            execution_target: 'sidecar',
+            execution_target: 'local_runtime',
             schema: {
               type: 'object',
               properties: { text: { type: 'string' } },

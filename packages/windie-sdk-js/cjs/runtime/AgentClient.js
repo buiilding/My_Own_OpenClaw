@@ -482,7 +482,7 @@ function buildManifestTool(tool) {
     return {
         name: tool.name,
         description: tool.description,
-        execution_target: tool.execution_target ?? 'sidecar',
+        execution_target: tool.execution_target ?? 'local_runtime',
         argument_resolution: tool.argument_resolution ?? 'passthrough',
         schema: tool.schema,
     };

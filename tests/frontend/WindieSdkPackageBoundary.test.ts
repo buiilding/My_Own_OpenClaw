@@ -94,7 +94,7 @@ describe('@windie/sdk package boundary', () => {
       schema: { type: 'object', properties: {} },
     })).toMatchObject({
       name: 'save_note',
-      execution_target: 'sidecar',
+      execution_target: 'local_runtime',
       argument_resolution: 'passthrough',
     });
   });
@@ -279,7 +279,7 @@ describe('@windie/sdk package boundary', () => {
 
     expect(moduleTool(tool as AgentToolDefinition & { module: string })).toMatchObject({
       name: 'save_note',
-      execution_target: 'sidecar',
+      execution_target: 'local_runtime',
       argument_resolution: 'passthrough',
     });
     expect(clientOptions.baseUrl).toBe('http://127.0.0.1:43132');
