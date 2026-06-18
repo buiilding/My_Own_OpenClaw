@@ -146,6 +146,23 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain('DesktopAgentCommandBridge');
   });
 
+  test('renderer app startup installs interaction logging through app runtime client', async () => {
+    const mainSource = await fs.readFile(
+      path.join(appRoot, 'main.jsx'),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopInteractionRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('DesktopInteractionRuntimeClient.installInteractionLogger');
+    expect(mainSource).not.toContain('infrastructure/interaction/rendererInteractionLogger');
+    expect(mainSource).not.toContain('installRendererInteractionLogger');
+    expect(clientSource).toContain('installRendererInteractionLogger()');
+    expect(clientSource).toContain('logUserSentMessage(details)');
+  });
+
   test('app provider code uses runtime facades for transcript session helpers', async () => {
     const files = await listSourceFiles(appRoot);
     const offenders: string[] = [];

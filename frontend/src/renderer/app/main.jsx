@@ -8,12 +8,12 @@ import App from './App';
 import MinimalChatPillApp from './MinimalChatPillApp';
 import MinimalResponseOverlayApp from './MinimalResponseOverlayApp';
 import ToolGhostDebugApp from './ToolGhostDebugApp';
-import { installRendererInteractionLogger } from '../infrastructure/interaction/rendererInteractionLogger';
+import { DesktopInteractionRuntimeClient } from './runtime/desktopInteractionRuntimeClient';
 
 // This is the standard entry point for a React application.
 // StrictMode causes double rendering in development - disable in production for performance
 const isDev = import.meta.env.DEV;
-installRendererInteractionLogger();
+DesktopInteractionRuntimeClient.installInteractionLogger();
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const view = new URLSearchParams(window.location.search).get('view');
 const RootComponent = view === 'minimal-chat-pill'

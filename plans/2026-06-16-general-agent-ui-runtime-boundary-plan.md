@@ -8381,6 +8381,23 @@ Each completed slice should report:
   message text redaction defaults, diagnostic toggles, capture-phase
   click/change listener, and send-message breadcrumb fields are unchanged.
 
+### 2026-06-18 renderer interaction logger install boundary
+
+- Finding: after send-message diagnostics moved behind
+  `DesktopInteractionRuntimeClient`, the renderer app entrypoint still imported
+  `rendererInteractionLogger.js` directly to install capture-phase click/change
+  logging.
+- Change: widened `DesktopInteractionRuntimeClient` with
+  `installInteractionLogger()` and routed `app/main.jsx` through that app
+  runtime client while leaving DOM listener ownership and diagnostic dispatch
+  inside the infrastructure logger.
+- Validation: focused renderer app/runtime boundary and interaction logger Jest
+  coverage, direct app-entrypoint import scan, docs listing, and diff check.
+- Compatibility: no migration required. The `renderer-log` IPC payload shape,
+  click/change capture behavior, message text redaction defaults, diagnostic
+  toggles, credentials, provider policy, and local-runtime execution are
+  unchanged.
+
 ### 2026-06-18 renderer screenshot artifact presentation facade
 
 - Finding: chat screenshot presentation, replay, stream event helpers, and data

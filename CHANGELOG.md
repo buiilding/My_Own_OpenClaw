@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/app: route startup interaction-logger installation through
+  `DesktopInteractionRuntimeClient` so the renderer app entrypoint no longer
+  imports diagnostics infrastructure directly. No migration required.
 - renderer/settings: rename the extension metadata/capability event runtime
   facade from `DesktopAgentExtensionRuntimeClient` to
   `DesktopExtensionRuntimeClient`, keeping agent settings on a generic desktop

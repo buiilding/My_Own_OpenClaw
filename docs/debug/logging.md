@@ -155,12 +155,12 @@ Renderer interaction logging is intentionally narrow. Feature code should use
 the renderer app runtime client instead of importing the infrastructure logger
 directly:
 
-- `installRendererInteractionLogger()` installs the document-level click/change
-  listener from the renderer app entrypoint.
+- `DesktopInteractionRuntimeClient.installInteractionLogger()` installs the
+  document-level click/change listener from the renderer app entrypoint.
 - `DesktopInteractionRuntimeClient.logUserSentMessage(...)` records the explicit
   send-message breadcrumb used by the chat send path, while
   `rendererInteractionLogger.js` keeps target description, redaction, dispatch,
-  and the lower-level `logUserSentMessage(...)` implementation private to the
+  and the lower-level install/send-message implementations private to the
   diagnostics infrastructure.
 
 For browser-only renderer debugging, the logger accepts private

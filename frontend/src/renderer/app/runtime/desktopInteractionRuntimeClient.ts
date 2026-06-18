@@ -2,7 +2,10 @@
  * Coordinates renderer interaction diagnostics for feature clients.
  */
 
-import { logUserSentMessage } from '../../infrastructure/interaction/rendererInteractionLogger';
+import {
+  installRendererInteractionLogger,
+  logUserSentMessage,
+} from '../../infrastructure/interaction/rendererInteractionLogger';
 
 export type UserSentMessageInteraction = {
   conversationRef?: string | null;
@@ -15,6 +18,10 @@ export type UserSentMessageInteraction = {
 };
 
 export const DesktopInteractionRuntimeClient = {
+  installInteractionLogger(): (() => void) {
+    return installRendererInteractionLogger();
+  },
+
   logUserSentMessage(details: UserSentMessageInteraction = {}): void {
     logUserSentMessage(details);
   },
