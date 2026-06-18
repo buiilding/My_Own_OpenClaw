@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-18 Main Local-Runtime Bridge Copy Boundary
+
+- Worktree was clean after `92e59867d`, with `main` ahead of `origin/main` by
+  52 commits.
+- Local-runtime bridge initialization, main-window composition, and bridge RPC
+  tests were inspected after the permission-copy boundary slice.
+- Finding: `local_runtime_bridge.cjs` still accepted the full host skin and
+  reached into `options.mainHostSkin.localRuntime` for browser warmup copy, so
+  generic SDK/local-runtime bridge code knew the host-skin shape.
+- Change: routed bridge copy through generic `localRuntimeCopy`/`copy`, passed
+  `mainHostSkin.localRuntime` from the main-window composition root, and made
+  local-runtime bridge upload tests configure their hosted endpoint explicitly.
+- Validation: focused local-runtime bridge, main-window runtime, and host-skin
+  boundary Jest coverage, CommonJS syntax checks, docs listing, targeted source
+  scan, and diff check.
+- Compatibility: no migration required. Browser warmup copy, local-runtime
+  readiness behavior, artifact upload endpoints, tool execution, IPC channels,
+  storage, credentials, and provider policy are unchanged.
+
 ### 2026-06-18 Main Permission Copy Boundary
 
 - Worktree was clean after `c467eb884`, with `main` ahead of `origin/main` by

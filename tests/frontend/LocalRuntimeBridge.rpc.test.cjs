@@ -156,7 +156,9 @@ describe('local_runtime_bridge RPC handlers', () => {
   });
 
   test('browser warmup sends a valid connect payload with explanation', async () => {
-    const { bridge, stdoutHandler } = initBridge({ mainHostSkin });
+    const { bridge, stdoutHandler } = initBridge({
+      localRuntimeCopy: mainHostSkin.localRuntime,
+    });
     markReady();
 
     const promise = bridge.warmBrowserAutomation();
@@ -195,6 +197,7 @@ describe('local_runtime_bridge RPC handlers', () => {
 
   test('screenshot host channel uploads temp-path responses and returns artifact refs', async () => {
     const { handlers, stdoutHandler } = initBridge({
+      backendHttpUrl: 'https://api.windieos.com',
       getArtifactUploadHeaders: async () => ({
         Authorization: 'Bearer test-install-token',
       }),
@@ -694,6 +697,7 @@ describe('local_runtime_bridge RPC handlers', () => {
 
   test('screenshot host channel falls back to inline screenshot when artifact upload fails', async () => {
     const { handlers, stdoutHandler } = initBridge({
+      backendHttpUrl: 'https://api.windieos.com',
       getArtifactUploadHeaders: async () => ({
         Authorization: 'Bearer test-install-token',
       }),

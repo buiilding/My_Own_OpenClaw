@@ -596,6 +596,7 @@ describe('main_window_runtime createMainWindow', () => {
       isPackaged: false,
       permissionStatePath: '/tmp/desktop-runtime-permission-state.json',
       authStatePath: expect.stringContaining(`${require('path').sep}desktop-runtime${require('path').sep}install-auth.json`),
+      localRuntimeCopy: deps.mainHostSkin?.localRuntime,
     }));
     expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
   });

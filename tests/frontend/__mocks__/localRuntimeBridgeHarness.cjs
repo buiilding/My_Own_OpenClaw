@@ -131,6 +131,9 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
   if (typeof options.mockExistsSync === 'function') {
     fs.existsSync.mockImplementation(options.mockExistsSync);
   }
+  if (typeof options.backendHttpUrl === 'string') {
+    process.env.BACKEND_HTTP_URL = options.backendHttpUrl;
+  }
   configureSpawn(spawn);
   ipcMain.handle.mockImplementation((channel, handler) => {
     handlers[channel] = handler;
@@ -159,7 +162,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
     isPackaged: options.isPackaged === true,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
-    mainHostSkin: options.mainHostSkin,
+    localRuntimeCopy: options.localRuntimeCopy,
     sdkLocalToolExecutor: options.sdkLocalToolExecutor,
   });
   return {

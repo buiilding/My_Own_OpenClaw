@@ -71,6 +71,9 @@ All notable changes to WindieOS will be documented in this file.
 - main/permissions: pass WindieOS permission copy from the IPC composition root
   as generic `permissionCopy` instead of letting individual permission services
   read the full host skin.
+- main/runtime: pass WindieOS local-runtime bridge copy from the main-window
+  composition root as generic `localRuntimeCopy` instead of letting the bridge
+  read the full host skin.
 - main/wakeword: inject the WindieOS wakeword stderr log marker from the main
   host skin instead of hardcoding it inside the generic wakeword bridge runtime.
 - sdk/python: accept generic `AGENT_BACKEND_HTTP_URL` and

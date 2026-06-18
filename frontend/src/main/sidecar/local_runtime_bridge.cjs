@@ -387,7 +387,7 @@ async function loadArtifactUploadHeaders() {
 
 function initializeLocalRuntimeBridge(getWindows, options = {}) {
   const isPackaged = options.isPackaged === true;
-  const nextLocalRuntimeCopy = options.mainHostSkin?.localRuntime || options.copy || {};
+  const nextLocalRuntimeCopy = options.localRuntimeCopy || options.copy || {};
   localRuntimeCopy = Object.freeze({
     browserWarmupExplanation: (
       nextLocalRuntimeCopy.browserWarmupExplanation

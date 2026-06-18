@@ -449,6 +449,10 @@ describe('main host skin/config boundary', () => {
     expect(localRuntimeSource).toContain('DEFAULT_BROWSER_WARMUP_EXPLANATION');
     expect(localRuntimeSource).toContain('localRuntimeCopy.browserWarmupExplanation');
     expect(localRuntimeSource).toContain('Agent SDK local runtime resolver is unavailable.');
+    expect(localRuntimeSource).toContain('options.localRuntimeCopy');
+    expect(localRuntimeSource).not.toContain('options.mainHostSkin?.localRuntime');
+    expect(fs.readFileSync(mainWindowRuntimePath, 'utf8'))
+      .toContain('localRuntimeCopy: mainHostSkin?.localRuntime');
     expect(localRuntimeSource).not.toContain('Windie SDK local runtime');
     expect(localRuntimeSource).not.toContain('Open the WindieOS browser');
   });
