@@ -23,7 +23,7 @@ policy/projection, and SDK/main-process dispatch.
 - [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures to the right owner.
 - [Computer Tools](computer.md) covers mouse, keyboard, screenshot, scroll, window switching, and local OS control.
 - [Browser Tool](browser.md) covers the dedicated Windie browser runtime, browser action schemas, snapshots, and backend-sidecar parity.
-- [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests.
+- [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, local-runtime execution, Python sidecar adapters, CDP launch, Electron bridge, renderer controls, files, and tests.
 - [Filesystem and Shell Tools](filesystem_shell.md) covers `read_file`, `replace`, shell/process execution, and output formatting.
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) routes file/shell changes across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests.
 
@@ -56,7 +56,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 4. Use [Browser Change Workflow](../browser/browser_change_workflow.md) for browser-specific schema, CDP, snapshot, ref, file, or renderer-session changes.
 5. Use [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) for file read/edit, shell command, background process, sudo, working-directory, and local output-shaping changes.
 6. Update the owning schema source first: client/local-runtime manifest for local tools, backend catalog/schema for backend-executed tools.
-7. Update sidecar runtime argument handling if the local payload changes.
+7. Update Python sidecar executable argument handling if the local payload changes.
 8. Update SDK/main tool routing and Electron bridge payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
 9. Update formatter/outgoing schemas if the visible stream event changes.
 10. Add or update backend, SDK/main, renderer, and sidecar tests for the changed boundary.

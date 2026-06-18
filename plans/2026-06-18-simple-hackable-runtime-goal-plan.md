@@ -305,6 +305,15 @@ For each completed slice, record:
   settings-sync runtime tests, docs listing, diff checks, and exact source scan.
   No migration required; no payload, storage, IPC, settings, tool schema,
   credential, permission, or provider-policy behavior changed.
+- 2026-06-18: completed a browser-tool public wording slice by routing
+  `docs/tools/browser.md` and the tools hub through local-runtime execution and
+  Python sidecar adapter/executor terminology instead of unqualified
+  sidecar-runtime ownership. This preserves the recent local-runtime naming
+  direction while still keeping concrete Python sidecar implementation paths
+  visible for debugging. Validation: focused modular docs boundary test, docs
+  listing, source scan, and diff checks. No migration required; no code path,
+  payload, storage, IPC, settings, tool schema, credential, permission, or
+  provider-policy behavior changed.
 - 2026-06-18: plan created after reviewing `AGENTS.md`, runtime ownership docs,
   the existing general runtime-boundary plan, and recent commits around
   local-runtime naming, renderer app-runtime facades, SDK runtime helper

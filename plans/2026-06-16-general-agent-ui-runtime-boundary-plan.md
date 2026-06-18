@@ -9507,3 +9507,17 @@ Each completed slice should report:
 - Compatibility: no migration required. Wire commands, websocket payloads,
   settings payload filtering, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-18 browser tool local-runtime wording
+
+- Finding: public browser-tool docs still described the reusable execution
+  boundary as sidecar runtime ownership, while the current owner-correct path is
+  SDK/main local-runtime execution backed by Python sidecar adapters.
+- Change: updated the Browser Tool and Tools Hub wording to route through
+  local-runtime execution and Python sidecar adapter/executor terminology, and
+  added a focused docs boundary assertion for the retired unqualified wording.
+- Validation: focused modular docs boundary test, docs listing, source scan,
+  and diff checks.
+- Compatibility: no migration required. Runtime code, schemas, IPC channels,
+  tool payloads/results, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.

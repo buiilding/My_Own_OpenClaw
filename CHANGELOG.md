@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route public browser-tool wording through local-runtime execution
+  and Python sidecar adapters instead of unqualified sidecar-runtime ownership.
+  No migration required.
 - main/ipc: name query and settings connection-gate state/failures as Agent SDK
   runtime readiness in Electron main helper code and debug docs, instead of
   implying the host owns backend connection semantics directly. No migration
