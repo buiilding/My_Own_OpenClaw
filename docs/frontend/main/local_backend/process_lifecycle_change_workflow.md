@@ -37,7 +37,7 @@ readiness/status broadcasts.
 
 | Surface | Code | Role |
 | --- | --- | --- |
-| Bridge composition | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | Wires SDK local runtime provider access, status broadcasts, host helper IPC, and sidecar RPC mappers. |
+| Bridge composition | `frontend/src/main/sidecar/local_runtime_bridge.cjs` | Wires SDK local runtime provider access, status broadcasts, host helper IPC, and local-runtime RPC helpers. |
 | Supervisor state | `frontend/src/main/sidecar/local_runtime_supervisor.cjs` | Tracks renderer-visible daemon status, ready flag, generation, and last error. |
 | Launch options | `frontend/src/main/sidecar/local_runtime_launch_options.cjs` | Resolves desktop daemon command/args/cwd/env/launch context before passing them to the SDK. |
 | Timeout policy | `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |

@@ -191,7 +191,7 @@ $mem = Join-Path $env:APPDATA "windieos\\memory"; Remove-Item -Force `
 
 The Electron renderer reads local data through SDK-shaped `windie.invoke(...)`
 commands. Electron main allowlists those commands and calls public SDK APIs on
-the live agent/runtime. The SDK owns sidecar RPC unwrapping and returns
+the live agent/runtime. The SDK owns local-runtime RPC unwrapping and returns
 renderer-facing payload shapes.
 
 - `memories.list` lists completed interaction memories or semantic memories

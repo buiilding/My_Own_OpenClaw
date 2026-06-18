@@ -9434,3 +9434,18 @@ Each completed slice should report:
   commands, SDK local-runtime calls, Python handler modules, SQLite/FAISS
   schemas, summarizer behavior, IPC channels, credentials, permissions, hosted
   backend URLs, and provider policy are unchanged.
+
+### 2026-06-18 architecture docs local-runtime memory RPC boundary
+
+- Finding: storage, architecture, IPC-contract, lifecycle, inventory, and
+  summarizer docs still used sidecar-memory hub labels or sidecar-RPC ownership
+  language for reusable local-runtime memory/RPC boundaries.
+- Change: reworded those docs to local-runtime memory/RPC ownership and kept
+  Python sidecar backing-process details only where they identify the current
+  implementation modules.
+- Validation: focused modular-boundary guard, docs listing, exact stale scan,
+  and diff checks.
+- Compatibility: no migration required. JSON-RPC method names, SDK provider
+  behavior, renderer commands, Python sidecar daemon and handler modules,
+  storage schemas, IPC channels, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged.

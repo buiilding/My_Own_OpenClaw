@@ -1,5 +1,5 @@
 ---
-summary: "Sidecar memory summarizer deep reference: run-loop gating, per-user conversation batching, semantic dedupe hash behavior, interaction-row chunking rules, and watermark updates."
+summary: "Local-runtime memory summarizer deep reference: run-loop gating, per-user conversation batching, semantic dedupe hash behavior, interaction-row chunking rules, and watermark updates."
 read_when:
   - When changing `MemorySummarizer` thresholds, chunking, or backoff behavior.
   - When debugging semanticization gaps, duplicate summaries, or interaction rows that are not being summarized.
@@ -18,7 +18,7 @@ title: "Summarizer Watermark and Conversation Batch Reference"
 
 ## Runtime Purpose
 
-The sidecar summarizer periodically converts episodic interaction rows into semantic memories while preventing duplicate summaries and uncontrolled background churn.
+The local-runtime memory summarizer periodically converts episodic interaction rows into semantic memories while preventing duplicate summaries and uncontrolled background churn. It is currently backed by Python sidecar modules.
 
 Dev toggle:
 

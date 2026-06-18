@@ -103,7 +103,7 @@ Capabilities:
 - Provides permission list/check/request/probe IPC contracts for onboarding.
 - Sidecar spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
 - Sidecar readiness checks use bounded ping retry (`<=10` attempts, exponential backoff capped at `1000ms`) with stale-generation token guards.
-- Local sidecar RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.
+- Local-runtime RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.
 - Screenshot tool execution currently calls the sidecar task directly; Linux hide/show ownership is SDK/main surface prep and renderer attachment capture orchestration.
 - Wakeword bridge uses length-prefixed binary frame protocol for audio/result streams and clears stale stdout/stderr buffers on restart/exit.
 

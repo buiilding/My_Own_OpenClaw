@@ -51,8 +51,8 @@ Key examples:
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`, `set-active-workspace`
 - `show-main-window` supports optional `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`
 
-Internal local-runtime mapper names for chat-event store adapters and Python
-sidecar memory implementation details are not direct renderer preload invoke channels.
+Internal local-runtime mapper names for chat-event store adapters and
+local-runtime memory implementation details are not direct renderer preload invoke channels.
 Renderer feature code should use `windie:invoke` SDK commands for user-facing
 conversation and memory actions.
 

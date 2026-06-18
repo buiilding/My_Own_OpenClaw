@@ -135,7 +135,7 @@ The command names are SDK-shaped, for example `conversation.send`,
 and `conversations.clearAll`.
 Electron main owns only the IPC hop and strict command allowlist. The handler
 calls public `Agent` / `ConversationRuntime` methods on the live SDK
-runtime. Renderer code must not call sidecar RPC names or removed direct IPC
+runtime. Renderer code must not call local-runtime JSON-RPC method names or removed direct IPC
 aliases such as
 `clear-chat-history`, `clear-local-memory`, `list-chat-conversations`,
 `conversation_events`, or `conversation_revisions` for user-facing SDK concepts.
