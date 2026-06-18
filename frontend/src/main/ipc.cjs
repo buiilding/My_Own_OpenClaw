@@ -2021,8 +2021,6 @@ function getLatestDesktopUiConfig() {
   return { ...latestDesktopUiConfig };
 }
 
-const getLatestFrontendConfig = getLatestDesktopUiConfig;
-
 function registerBackendMessageObserver(observer) {
   if (typeof observer !== 'function') {
     return () => {};
@@ -2186,7 +2184,6 @@ module.exports = {
   getKnownAgentLocalRuntime,
   ensureAgentLocalRuntime,
   getLatestDesktopUiConfig,
-  getLatestFrontendConfig,
   initializeIpc,
   registerBackendMessageObserver,
   registerRendererWindow,

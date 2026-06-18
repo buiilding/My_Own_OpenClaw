@@ -29,11 +29,8 @@ function copyStringArray(value) {
 
 function createIpcSettingsSyncRuntime({
   getLatestDesktopUiConfig,
-  getLatestFrontendConfig,
   setLatestDesktopUiConfig,
-  setLatestFrontendConfig,
   loadCachedDesktopUiConfig,
-  loadCachedFrontendConfig,
   isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
@@ -45,9 +42,6 @@ function createIpcSettingsSyncRuntime({
   let hasAttemptedInitialSettingsSync = false;
   let pendingSettingsSyncPromise = null;
   const pendingSettingsSyncs = new Map();
-  const getLatestConfig = getLatestDesktopUiConfig || getLatestFrontendConfig;
-  const setLatestConfig = setLatestDesktopUiConfig || setLatestFrontendConfig;
-  const loadCachedConfig = loadCachedDesktopUiConfig || loadCachedFrontendConfig;
 
   function reset() {
     hasAttemptedInitialSettingsSync = false;
@@ -71,7 +65,7 @@ function createIpcSettingsSyncRuntime({
       return { ...config };
     }
 
-    const latestEnabled = copyStringArray(getLatestConfig?.()?.[MCP_ENABLED_CONFIG_KEY]);
+    const latestEnabled = copyStringArray(getLatestDesktopUiConfig?.()?.[MCP_ENABLED_CONFIG_KEY]);
     if (latestEnabled) {
       return {
         ...config,
@@ -80,7 +74,7 @@ function createIpcSettingsSyncRuntime({
     }
 
     try {
-      const cachedConfig = await loadCachedConfig?.();
+      const cachedConfig = await loadCachedDesktopUiConfig?.();
       const cachedEnabled = copyStringArray(cachedConfig?.[MCP_ENABLED_CONFIG_KEY]);
       if (cachedEnabled) {
         return {
@@ -108,7 +102,7 @@ function createIpcSettingsSyncRuntime({
     if (!backendConfig) {
       return Promise.resolve(false);
     }
-    setLatestConfig?.(await preserveLocalOnlyConfigFields(config));
+    setLatestDesktopUiConfig?.(await preserveLocalOnlyConfigFields(config));
 
     if (!isBackendRuntimeConnected?.()) {
       try {
@@ -153,12 +147,12 @@ function createIpcSettingsSyncRuntime({
     }
     hasAttemptedInitialSettingsSync = true;
 
-    let config = getLatestConfig?.();
+    let config = getLatestDesktopUiConfig?.();
     if (!config) {
       try {
-        config = await loadCachedConfig?.();
+        config = await loadCachedDesktopUiConfig?.();
         if (config) {
-          setLatestConfig?.({ ...config });
+          setLatestDesktopUiConfig?.({ ...config });
         }
       } catch (error) {
         log(`Failed to load cached desktop UI config for initial settings sync: ${error?.message || error}`);

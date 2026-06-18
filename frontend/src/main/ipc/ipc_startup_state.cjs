@@ -6,42 +6,34 @@ function initializeIpcStartupState({
   loadInstallAuthStateFromDisk,
   applyInstallAuthState,
   loadCachedDesktopUiConfigFromDisk,
-  loadCachedFrontendConfigFromDisk,
   isValidConfigPayload,
   applyShortcutStatusFallbackToConfig,
   setLatestDesktopUiConfig,
-  setLatestFrontendConfig,
   setGlobalAgentStopShortcutAccelerator,
   setAgentLoopStopShortcutEnabled,
   getResponseOverlayPhase,
   isAgentLoopStopShortcutPhase,
   onDesktopUiConfigLoaded,
-  onFrontendConfigLoaded,
   log,
 }) {
-  const loadCachedConfigFromDisk = loadCachedDesktopUiConfigFromDisk
-    || loadCachedFrontendConfigFromDisk;
-  const setLatestConfig = setLatestDesktopUiConfig || setLatestFrontendConfig;
-  const onConfigLoaded = onDesktopUiConfigLoaded || onFrontendConfigLoaded;
-
   loadInstallAuthStateFromDisk(log)
     .then((state) => {
       applyInstallAuthState(state);
     })
     .catch(() => {});
 
-  loadCachedConfigFromDisk()
+  loadCachedDesktopUiConfigFromDisk()
     .then((config) => {
       if (!isValidConfigPayload(config)) {
         return;
       }
       const nextConfig = applyShortcutStatusFallbackToConfig({ ...config });
-      setLatestConfig(nextConfig);
+      setLatestDesktopUiConfig(nextConfig);
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
         setGlobalAgentStopShortcutAccelerator(nextConfig.global_agent_stop_shortcut);
       }
-      if (typeof onConfigLoaded === 'function') {
-        onConfigLoaded(nextConfig);
+      if (typeof onDesktopUiConfigLoaded === 'function') {
+        onDesktopUiConfigLoaded(nextConfig);
       }
     })
     .catch((error) => {

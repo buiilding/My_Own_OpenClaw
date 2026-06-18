@@ -144,7 +144,7 @@ Current persisted item:
 Current non-persisted items:
 
 - OS permissions (`screen_capture`, `input_control_accessibility`, `microphone`) because they are re-probed from the platform or capability verifier
-- `browser_automation` because enablement is frontend-config owned and runtime readiness is re-verified
+- `browser_automation` because enablement is desktop UI config owned and runtime readiness is re-verified
 
 ## Main IPC Handler Surface (`index.cjs`)
 

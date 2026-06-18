@@ -94,10 +94,6 @@ async function saveDesktopUiConfigToDisk(config, log) {
 module.exports = {
   loadDesktopUiConfigFromDisk,
   loadDesktopUiConfigFromDiskSync,
-  loadFrontendConfigFromDisk: loadDesktopUiConfigFromDisk,
-  loadFrontendConfigFromDiskSync: loadDesktopUiConfigFromDiskSync,
   redactDesktopUiConfigProviderSecrets: redactProviderSecretsFromDesktopUiConfig,
-  redactProviderSecretsFromFrontendConfig: redactProviderSecretsFromDesktopUiConfig,
   saveDesktopUiConfigToDisk,
-  saveFrontendConfigToDisk: saveDesktopUiConfigToDisk,
 };

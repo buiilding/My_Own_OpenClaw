@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 main desktop UI config compatibility alias deletion
+
+- Finding: after the active Electron-main config helpers, handler registration,
+  startup hydration, settings sync, and cache getter moved to desktop UI names,
+  the old frontend-named aliases and fallback dependency slots had no verified
+  source callers.
+- Change: removed the unused helper exports, handler registration alias, cache
+  getter export alias, and frontend-named fallback slots so main-process config
+  modules expose the desktop host boundary directly while preserving the
+  renderer-facing wire names.
+- Validation: focused main config syntax checks, IPC config/startup/settings
+  sync/main-boundary Jest coverage, targeted docs-index coverage, stale alias
+  scan, docs listing, and diff check.
+- Compatibility: no migration required. The persisted filename remains
+  `frontend-config.json`, the IPC channels remain `load-frontend-config` /
+  `save-frontend-config`, and payload shape, shortcut fallback, MCP enablement
+  preservation, redaction, credentials, permissions, and provider policy are
+  unchanged.
+
 ### 2026-06-18 main desktop UI config cache getter boundary
 
 - Finding: Electron main still named its in-memory desktop UI config cache and

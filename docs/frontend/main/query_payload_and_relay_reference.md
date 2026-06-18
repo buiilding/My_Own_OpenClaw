@@ -71,7 +71,7 @@ For typed live chat query invokes and `wakeword-detected`, main calls
 Gate behavior:
 
 1. run once per websocket connection (`hasAttemptedInitialSettingsSync`)
-2. ensure latest frontend config is available (memory cache or disk load fallback)
+2. ensure latest desktop UI config is available (memory cache or disk load fallback)
 3. send `update-settings` with generated message `id`
 4. wait for ACK or timeout (`SETTINGS_SYNC_TIMEOUT_MS=2500`)
 

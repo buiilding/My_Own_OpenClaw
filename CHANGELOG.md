@@ -6,10 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main: remove unused frontend-named Electron-main desktop UI config helper
+  aliases, handler registration alias, cache getter export alias, and fallback
+  dependency slots; no migration is required because `frontend-config.json` and
+  the `load-frontend-config` / `save-frontend-config` IPC wire channels remain
+  unchanged.
 - main: promote `getLatestDesktopUiConfig` and `latestDesktopUiConfig` as the
   active Electron-main config cache/getter names, and remove config getter
-  forwarding from main-window bootstrap; no migration is required because the
-  old getter remains an export alias and runtime payloads are unchanged.
+  forwarding from main-window bootstrap; no migration is required because
+  runtime payloads are unchanged.
 - main: rename internal desktop UI config cache, preservation, and persistence
   helpers in `ipc.cjs` so active main-process config plumbing no longer uses
   frontend-named helper functions; no migration is required because disk
@@ -28,9 +33,9 @@ All notable changes to WindieOS will be documented in this file.
   frontend-named slots; no migration is required because persisted config,
   IPC channels, shortcut fallback, and MCP refresh behavior are unchanged.
 - main: promote desktop UI config IPC handler registration as the canonical
-  Electron-main API while keeping the legacy frontend-named registration export
-  as an alias; no migration is required because `load-frontend-config` /
-  `save-frontend-config` wire channels and payload behavior are unchanged.
+  Electron-main API; no migration is required because
+  `load-frontend-config` / `save-frontend-config` wire channels and payload
+  behavior are unchanged.
 - main: promote desktop UI config disk helpers as the canonical Electron-main
   API while preserving `frontend-config.json` plus the existing
   `load-frontend-config` / `save-frontend-config` IPC wire channels; no

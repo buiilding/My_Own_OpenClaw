@@ -4,7 +4,6 @@
 
 const {
   registerDesktopUiConfigHandlers,
-  registerFrontendConfigHandlers,
 } = require('../../frontend/src/main/ipc/ipc_frontend_config_handlers.cjs');
 
 function createHarness(overrides = {}) {
@@ -43,10 +42,6 @@ function createHarness(overrides = {}) {
 }
 
 describe('desktop UI config IPC handlers', () => {
-  test('keeps frontend-named registration as a compatibility alias', () => {
-    expect(registerFrontendConfigHandlers).toBe(registerDesktopUiConfigHandlers);
-  });
-
   test('load handler applies shortcut fallback and updates latest config', async () => {
     const { handlers, latest, setGlobalAgentStopShortcutAccelerator } = createHarness({
       loadResult: { model_mode: 'offline' },
