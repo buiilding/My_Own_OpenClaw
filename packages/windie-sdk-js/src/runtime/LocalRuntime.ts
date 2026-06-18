@@ -692,7 +692,7 @@ export function createAgentLocalRuntimeProvider<TWakeUpOptions = unknown>(
     const discoveryFile = path.resolve(
       options.discoveryFile
         ?? processEnv.WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE
-        ?? path.join(os.tmpdir(), 'desktop-agent', 'local-runtime-daemon.json'),
+        ?? path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;
     const expectedLaunchContext = normalizeLaunchContext(options.launchContext);

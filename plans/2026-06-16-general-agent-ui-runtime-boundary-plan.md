@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 local-runtime discovery temp directory
+
+- Finding: SDK auto-local-runtime, Electron launch options, the Python daemon, and the Python SDK still defaulted transient daemon discovery to `${TMPDIR}/desktop-agent/local-runtime-daemon.json`, leaving the old desktop-agent namespace on the shared SDK/main/sidecar runtime boundary.
+- Change: renamed the shared default discovery directory to `desktop-runtime` across JS SDK source/CJS, Electron main launch options, Python daemon/Python SDK, docs, and focused tests.
+- Validation: focused LocalRuntimeLaunchOptions and WindieSdkClient Jest coverage, focused sidecar daemon/Python SDK pytest coverage, SDK TypeScript noEmit check, docs listing, exact stale discovery-path scan, and diff checks.
+- Compatibility: no persisted-data migration required. The discovery file is transient startup coordination, and explicit `discoveryFile` plus `WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE` continue to override the default path.
+
 ### 2026-06-18 main install-auth fallback prefix
 
 - Finding: install-auth persistence still used `desktop-agent` for the no-Electron temp fallback directory and related test fixtures after generic main internals moved to desktop-runtime naming.

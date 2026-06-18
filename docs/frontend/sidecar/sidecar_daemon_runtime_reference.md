@@ -31,14 +31,14 @@ The daemon is the single local memory owner. Electron should route legacy local 
 Electron desktop launch discovery path:
 
 ```text
-${TMPDIR}/desktop-agent/local-runtime-daemon.json
+${TMPDIR}/desktop-runtime/local-runtime-daemon.json
 ```
 
 Standalone SDK/Python daemon defaults use the same generic local-runtime
 discovery path:
 
 ```text
-${TMPDIR}/desktop-agent/local-runtime-daemon.json
+${TMPDIR}/desktop-runtime/local-runtime-daemon.json
 ```
 
 Discovery metadata is daemon-authored and snake_case. SDK discovery readers

@@ -2867,7 +2867,7 @@ describe('Agent SDK client behavior', () => {
     );
 
     for (const source of [runtimeSource, runtimeCjsSource]) {
-      expect(source).toContain("path.join(os.tmpdir(), 'desktop-agent', 'local-runtime-daemon.json')");
+      expect(source).toContain("path.join(os.tmpdir(), 'desktop-runtime', 'local-runtime-daemon.json')");
       expect(source).not.toContain("path.join(os.tmpdir(), 'windieos', 'local-runtime-daemon.json')");
       expect(source).not.toContain('WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE');
       expect(source).toContain('WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE');

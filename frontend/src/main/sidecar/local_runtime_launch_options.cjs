@@ -22,7 +22,7 @@ const {
 
 const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
   os.tmpdir(),
-  'desktop-agent',
+  'desktop-runtime',
   'local-runtime-daemon.json',
 );
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 10000;

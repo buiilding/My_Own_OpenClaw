@@ -44,7 +44,7 @@ def test_sidecar_daemon_identity_copy_is_product_neutral():
 
 def test_sidecar_daemon_default_discovery_path_is_generic():
     assert sidecar_daemon.DEFAULT_DISCOVERY_FILE == (
-        Path(tempfile.gettempdir()) / "desktop-agent" / "local-runtime-daemon.json"
+        Path(tempfile.gettempdir()) / "desktop-runtime" / "local-runtime-daemon.json"
     )
 
 
