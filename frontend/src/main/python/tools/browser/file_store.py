@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-DEFAULT_BROWSER_FILES_DIR = Path.home() / ".desktop-agent" / "browser"
+DEFAULT_BROWSER_FILES_DIR = Path.home() / ".windieos" / "browser"
 ENV_BROWSER_FILES_DIR = "WINDIE_BROWSER_FILES_DIR"
 
 

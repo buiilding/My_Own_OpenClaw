@@ -18,7 +18,7 @@ Browser execution is routed through the maintained Browser Use CLI daemon via `f
 - WindieOS owns the dedicated Chrome profile launch and CDP endpoint; Browser Use owns daemon session lifecycle after attaching, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
 - The sidecar invokes Browser Use with `python -m browser_use.skill_cli.main` from the same Python environment.
 - Browser Use daemon files live under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`.
-- The default Browser Use session name is `desktop-agent`; override with `WINDIE_BROWSER_USE_SESSION` for diagnostics or isolated local sessions.
+- The default Browser Use session name is `windieos`; override with `WINDIE_BROWSER_USE_SESSION` for diagnostics or isolated local sessions. Retired `desktop-agent` Browser Use sessions are not migrated.
 - Override the command path with `WINDIE_BROWSER_USE_CLI` only for diagnostics.
 - Override per-command timeout with `WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS`.
 
@@ -26,7 +26,7 @@ Browser execution is routed through the maintained Browser Use CLI daemon via `f
 
 The `browser` tool uses one connect model:
 
-1. **Desktop Runtime Browser Use Session** - a Browser Use daemon session named `desktop-agent` by default.
+1. **Desktop Runtime Browser Use Session** - a Browser Use daemon session named `windieos` by default.
 2. WindieOS launches or reuses its dedicated persistent Chrome profile with CDP.
 3. Browser Use attaches to that CDP endpoint and maintains automation for the session.
 4. `connect` starts or reuses the Browser Use session and returns Browser Use state text.

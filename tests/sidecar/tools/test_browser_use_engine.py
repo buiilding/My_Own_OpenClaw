@@ -32,7 +32,7 @@ def test_parse_cli_json_accepts_prefixed_close_output() -> None:
 
 
 def test_default_browser_use_session_name_is_generic() -> None:
-    assert DEFAULT_SESSION_NAME == "desktop-agent"
+    assert DEFAULT_SESSION_NAME == "windieos"
 
 
 def test_extract_response_data_rejects_non_object_data() -> None:
@@ -493,11 +493,11 @@ async def test_snapshot_include_screenshot_uses_default_screenshot_name() -> Non
             _args({"action": "snapshot", "include_screenshot": True})
         )
 
-    assert result["screenshot_path"] == "/tmp/browser-screenshot.png"
+    assert result["screenshot_path"] == str(Path("/tmp/browser-screenshot.png"))
     assert result["screenshot_content_type"] == "image/png"
     assert run_cli.await_args_list[-1].args == (
         "screenshot",
-        "/tmp/browser-screenshot.png",
+        str(Path("/tmp/browser-screenshot.png")),
     )
 
 

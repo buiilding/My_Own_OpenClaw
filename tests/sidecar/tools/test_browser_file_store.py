@@ -8,10 +8,10 @@ from tools.browser import file_store
 
 def test_default_browser_files_root_is_generic() -> None:
     assert file_store.DEFAULT_BROWSER_FILES_DIR.parts[-2:] == (
-        ".desktop-agent",
+        ".windieos",
         "browser",
     )
-    assert ".windieos" not in file_store.DEFAULT_BROWSER_FILES_DIR.parts
+    assert ".desktop-agent" not in file_store.DEFAULT_BROWSER_FILES_DIR.parts
 
 
 def test_resolve_browser_path_uses_browser_root(

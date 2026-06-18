@@ -133,6 +133,13 @@ Each completed slice should report:
 - migration or compatibility note, including "no migration required"
 
 ## Progress Notes
+### 2026-06-18 browser runtime WindieOS default state boundary
+
+- Finding: the Browser Use integration and browser-owned file store still defaulted to retired `desktop-agent` session/path names, even though this browser state belongs to the WindieOS local sidecar implementation rather than the generic Electron/SDK boundary.
+- Change: changed the default Browser Use session to `windieos`, moved browser-owned files to `~/.windieos/browser`, and updated browser runtime docs/tests to state that retired `desktop-agent` session/files are not migrated.
+- Validation: docs listing, py_compile for the edited browser modules, Python smoke for default session/file root, focused browser file-store pytest, focused changed browser-use tests, exact stale-name scan, and diff checks. Full `test_browser_use_engine.py` printed 30 passed but the local shell returned 137 after completion, so validation used the changed tests plus compile/smoke checks for this slice.
+- Compatibility: no migration is performed. Existing overrides `WINDIE_BROWSER_USE_SESSION`, `WINDIE_BROWSER_USE_HOME`, and `WINDIE_BROWSER_FILES_DIR` still allow operators to reuse or isolate legacy locations explicitly.
+
 ### 2026-06-18 main diagnostics fallback app-data name
 
 - Finding: the diagnostics store still used `desktop-agent` as its generic app-data directory fallback when the host skin is absent, while current main host internals use desktop-runtime wording.

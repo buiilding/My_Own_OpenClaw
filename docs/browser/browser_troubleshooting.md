@@ -113,7 +113,7 @@ Inspect:
 
 Checks:
 
-- Browser-owned paths resolve under `~/.desktop-agent/browser` unless
+- Browser-owned paths resolve under `~/.windieos/browser` unless
   `WINDIE_BROWSER_FILES_DIR` overrides the root.
 - Parent directories are created through `resolve_browser_path(..., ensure_parent=True)`.
 - Download state is not confused with arbitrary filesystem tools.
