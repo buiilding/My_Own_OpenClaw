@@ -150,16 +150,26 @@ describe('renderer settings runtime boundary', () => {
       ),
       'utf8',
     );
+    const permissionRuntimeSource = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js',
+      ),
+      'utf8',
+    );
 
     expect(source).toContain('getPermissionStatusDetailsPresentation');
     expect(source).toContain('getPermissionManifestEntry');
+    expect(source).toContain('getPermissionStatusForId');
     expect(source).toContain('status={effectiveStatus}');
     expect(source).not.toContain('permissions.find');
+    expect(source).not.toContain('statusesByPermissionId[BROWSER_PERMISSION_ID]');
     expect(source).not.toContain('permission?.permission_id');
     expect(source).not.toContain('effectiveStatus?.status');
     expect(source).not.toContain('effectiveStatus?.reason');
     expect(source).not.toContain('effectiveStatus?.details');
     expect(source).not.toContain('details?.remediation');
+    expect(permissionRuntimeSource).toContain('getPermissionStatusForId');
   });
 
   test('global stop shortcut settings and storage route through app runtime client', async () => {

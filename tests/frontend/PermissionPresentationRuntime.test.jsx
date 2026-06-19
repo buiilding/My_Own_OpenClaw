@@ -13,6 +13,7 @@ import {
   getPermissionPill,
   getPermissionStatusValue,
   getPermissionStatusDetailsPresentation,
+  getPermissionStatusForId,
   isPermissionGrantedStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime';
 import PermissionStatusBadge from '../../frontend/src/renderer/features/permissions/components/PermissionStatusBadge';
@@ -100,6 +101,21 @@ describe('desktopPermissionPresentationRuntime', () => {
       label: 'Browser automation',
       access_kind: 'app_capability',
     });
+  });
+
+  test('resolves permission statuses by normalized id', () => {
+    expect(getPermissionStatusForId({
+      browser_automation: { status: 'granted' },
+    }, '  browser_automation  ')).toEqual({ status: 'granted' });
+
+    expect(getPermissionStatusForId({
+      screen_capture: { status: 'needs-action' },
+    }, 'browser_automation')).toBeNull();
+    expect(getPermissionStatusForId([], 'browser_automation')).toBeNull();
+    expect(getPermissionStatusForId(null, 'browser_automation')).toBeNull();
+    expect(getPermissionStatusForId({
+      browser_automation: { status: 'granted' },
+    }, '')).toBeNull();
   });
 
   test('PermissionStatusBadge renders the runtime pill contract', () => {

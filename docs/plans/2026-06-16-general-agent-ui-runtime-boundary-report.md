@@ -174,6 +174,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Browser Permission Status Lookup Boundary
+
+- Finding: `desktopPermissionPresentationRuntime` owned permission manifest
+  lookup, badge projection, and status-detail presentation, but
+  `BrowserSettingsTab` still indexed the raw `statusesByPermissionId` map by
+  browser permission id before rendering the browser permission row.
+- Change: added permission status lookup by normalized id to
+  `desktopPermissionPresentationRuntime`. Browser settings now keeps row
+  layout and browser-open actions while consuming a runtime-provided stored
+  permission status before applying request-time overrides.
+- Validation: passed focused permission presentation runtime, settings
+  section, renderer settings boundary, and docs-index tests plus docs search,
+  related commit search, stale raw browser permission status-map scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Permission status map payload shape,
+  browser permission id, badge labels/classes, status detail text, browser
+  permission request/probe behavior, config update side effects, IPC channels,
+  storage, provider policy, hosted URLs, permissions, credentials, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Agent Tool Toggle Config Boundary
 
 - Finding: `DesktopExtensionRuntimeClient` owned extension metadata,

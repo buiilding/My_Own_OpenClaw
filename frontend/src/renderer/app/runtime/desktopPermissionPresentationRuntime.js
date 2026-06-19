@@ -62,6 +62,19 @@ export function getPermissionManifestEntry(permissions, permissionId, fallback =
   };
 }
 
+export function getPermissionStatusForId(statusesByPermissionId, permissionId) {
+  const normalizedPermissionId = normalizeText(permissionId);
+  if (
+    !normalizedPermissionId
+    || !statusesByPermissionId
+    || typeof statusesByPermissionId !== 'object'
+    || Array.isArray(statusesByPermissionId)
+  ) {
+    return null;
+  }
+  return statusesByPermissionId[normalizedPermissionId] || null;
+}
+
 export function getPermissionStatusDetailsPresentation(status) {
   const reason = normalizeText(status?.reason);
   const statusClassName = `status-${normalizeText(status?.status) || 'unknown'}`;

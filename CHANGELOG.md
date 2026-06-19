@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/permissions: move browser permission status-map lookup into
+  `desktopPermissionPresentationRuntime` so `BrowserSettingsTab` no longer
+  indexes raw `statusesByPermissionId` by permission id before rendering the
+  browser permission row. No migration required.
 - renderer/extensions: move Agent settings local/remote tool enabled-state and
   config-patch construction into `DesktopExtensionRuntimeClient` so
   `AgentSettingsTab` no longer normalizes disabled-tool config arrays or

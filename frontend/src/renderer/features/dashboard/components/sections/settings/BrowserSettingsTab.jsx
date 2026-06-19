@@ -11,6 +11,7 @@ import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desk
 import {
   getPermissionManifestEntry,
   getPermissionStatusDetailsPresentation,
+  getPermissionStatusForId,
 } from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
@@ -38,7 +39,7 @@ function BrowserSettingsTab() {
       access_kind: 'app_capability',
     },
   );
-  const storedStatus = statusesByPermissionId[BROWSER_PERMISSION_ID] || null;
+  const storedStatus = getPermissionStatusForId(statusesByPermissionId, BROWSER_PERMISSION_ID);
   const effectiveStatus = statusOverride || storedStatus;
   const statusDetails = getPermissionStatusDetailsPresentation(effectiveStatus);
 
