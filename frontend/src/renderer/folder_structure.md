@@ -35,6 +35,7 @@ frontend/src/renderer/
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum and phase-group facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
+│   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
@@ -149,8 +150,6 @@ frontend/src/renderer/
 │   │       │   ├── messageTokenUsage.js # messageTokenUsage - Token usage/source label formatting helpers
 │   │       │   ├── messageTransparency.js # messageTransparency - Descriptor builder for transparency sections
 │   │       │   └── sourceTags.js        # sourceTags - Source tag derivation for message badges/thinking labels
-│   │       ├── overlay/                 # overlay - Phase/layout contracts for the response overlay shell
-│   │       │   └── responseOverlayViewContract.ts # responseOverlayViewContract - showResponse/showAwaitingReply/layout contract helper
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module

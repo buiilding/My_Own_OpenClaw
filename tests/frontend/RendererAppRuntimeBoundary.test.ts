@@ -172,8 +172,8 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/utils/state/overlayTurnLifecycleState.js'),
       'utf8',
     );
-    const responseViewSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayViewContract.ts'),
+    const responseViewRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayViewRuntime.ts'),
       'utf8',
     );
     const overlayViewModelSource = await fs.readFile(
@@ -184,13 +184,34 @@ describe('renderer app runtime boundary', () => {
     expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
     expect(lifecycleRuntimeSource).not.toContain('features/chat');
     expect(lifecycleStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
-    expect(responseViewSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(overlayViewModelSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(lifecycleStateSource).not.toContain('overlayTurnLifecycleContract');
-    expect(responseViewSource).not.toContain('overlayTurnLifecycleContract');
+    expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/overlayTurnLifecycleContract.js'),
+    )).rejects.toThrow();
+  });
+
+  test('response overlay view contract stays behind the app runtime facade', async () => {
+    const responseViewRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayViewRuntime.ts'),
+      'utf8',
+    );
+    const chatPillFlowSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/chatPill/chatPillSessionFlow.ts'),
+      'utf8',
+    );
+
+    expect(responseViewRuntimeSource).toContain('resolveResponseOverlayViewContract');
+    expect(responseViewRuntimeSource).toContain('desktopResponseOverlayLayoutRuntime');
+    expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewRuntimeSource).not.toContain('features/chat');
+    expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');
+    expect(chatPillFlowSource).not.toContain('responseOverlayViewContract');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayViewContract.ts'),
     )).rejects.toThrow();
   });
 

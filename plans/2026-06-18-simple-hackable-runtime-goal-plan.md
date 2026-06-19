@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer response-overlay view contract boundary
+  slice by moving `resolveResponseOverlayViewContract` from chat overlay
+  utilities into `app/runtime/desktopResponseOverlayViewRuntime.ts`, routing
+  chat-pill view intent through that app-runtime owner, deleting the old chat
+  utility path, and guarding against it returning. Validation: focused response
+  overlay view contract and renderer app-runtime boundary tests, docs listing,
+  stale old-path scan, and diff checks. No migration required; view visibility
+  decisions, layout-mode values, lifecycle handling, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
 - 2026-06-19: completed a renderer response-overlay lifecycle contract
   boundary slice by moving the renderer turn lifecycle constants and phase
   groups from chat overlay utilities into

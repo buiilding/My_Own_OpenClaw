@@ -174,7 +174,8 @@ Read these files before changing what the user sees:
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
-- `frontend/src/renderer/features/chat/utils/overlay/*`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`
 - `frontend/src/renderer/styles/ChatBox.css`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
 

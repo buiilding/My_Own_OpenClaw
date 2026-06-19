@@ -1,9 +1,12 @@
 /**
- * Defines response overlay view contract contracts for the renderer UI.
+ * Resolves response overlay view intent for renderer runtime consumers.
  */
 
-import { RESPONSE_OVERLAY_LAYOUT_MODE, resolveResponseOverlayLayoutMode } from '../../../../app/runtime/desktopResponseOverlayLayoutRuntime';
-import { OVERLAY_TURN_LIFECYCLE } from '../../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
+import {
+  RESPONSE_OVERLAY_LAYOUT_MODE,
+  resolveResponseOverlayLayoutMode,
+} from './desktopResponseOverlayLayoutRuntime';
+import { OVERLAY_TURN_LIFECYCLE } from './desktopOverlayTurnLifecycleRuntime';
 
 type CurrentTurnPresentationStateLike = {
   showChatboxAwaitingReply?: boolean;

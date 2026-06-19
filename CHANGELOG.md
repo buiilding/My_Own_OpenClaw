@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlays: move the response-overlay view intent resolver from chat
+  overlay utilities into the renderer app-runtime presentation facade used by
+  chat-pill session flow. No migration required.
 - renderer/overlays: move the renderer overlay turn-lifecycle shared JSON
   facade from chat overlay utilities into the app-runtime layer used by chat
   state and the minimal response overlay. No migration required.

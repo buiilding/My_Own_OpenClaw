@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Response Overlay View Runtime Boundary
+
+- Finding: the response-overlay view visibility helper was the remaining
+  response-overlay presentation contract under chat overlay utilities after the
+  phase, layout, and lifecycle facades moved into app runtime.
+- Change: moved `resolveResponseOverlayViewContract` to
+  `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`,
+  routed chat-pill view intent and tests through that app-runtime owner,
+  deleted the old chat utility path, and refreshed docs plus boundary guards.
+- Validation: focused response overlay view contract test, renderer app-runtime
+  boundary, docs listing, stale old-path scan, and diff checks.
+- Compatibility: no migration required. View visibility decisions, layout-mode
+  values, lifecycle handling, IPC payloads, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Response Overlay Lifecycle Runtime Boundary
 
 - Finding: response-overlay lifecycle constants and phase groups came from a

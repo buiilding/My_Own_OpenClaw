@@ -1,8 +1,7 @@
 ---
 summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, removed responseOverlayPhasePayload parser behavior, layout-mode resolution, and frame-size measurement semantics."
 read_when:
-  - When changing `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`, `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`, or `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`.
-  - When changing files under `frontend/src/renderer/features/chat/utils/overlay/*`.
+  - When changing `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`, `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`, `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`, or `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`.
   - When debugging overlay phase payload drops, renderer/main phase-contract drift, or response overlay sizing regressions.
   - When resolving stale references to removed `responseOverlayPhasePayload.js` or `ResponseOverlayPhasePayload.test.js` files.
 title: "Response Overlay Utility Contract Reference"
@@ -17,6 +16,7 @@ title: "Response Overlay Utility Contract Reference"
 - `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `tests/frontend/ResponseOverlayPhaseContract.test.js`

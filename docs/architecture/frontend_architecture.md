@@ -416,7 +416,7 @@ Primary modules:
 - `features/chat/utils/chatPill/chatPillSessionFlow.ts`:
   - Pure renderer contract for chat-pill send lifecycle decisions (`query_send_with_capture` vs `query_send_without_capture`) and current overlay turn/view intent.
   - Gives `useChatMessageSender` and `ChatBoxResponse` one shared place to answer “what should the pill/response overlay do for this turn?”
-- `features/chat/utils/overlay/responseOverlayViewContract.ts`:
+- `renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`:
   - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - Electron main keeps one SDK conversation runtime per active conversation;

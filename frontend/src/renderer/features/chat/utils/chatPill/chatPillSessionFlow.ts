@@ -7,7 +7,7 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from '../../policies/messageSendUiPolicy';
-import { resolveResponseOverlayViewContract } from '../overlay/responseOverlayViewContract';
+import { resolveResponseOverlayViewContract } from '../../../../app/runtime/desktopResponseOverlayViewRuntime';
 import type { ChatMessage } from '../../stores/chatStore';
 
 const CHAT_PILL_SURFACE_REASON = Object.freeze({
