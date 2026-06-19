@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a main conversation terminal status runtime slice by
+  moving SDK terminal event-to-renderer status projection from `ipc.cjs` into
+  `ipc_conversation_status_runtime.cjs` as
+  `buildConversationTerminalStatus(...)`. The IPC relay root keeps SDK
+  subscription, current-turn fan-out, replay clearing, and renderer status
+  broadcast orchestration, while the helper owns `turn_completed`,
+  `turn_stopped`, `turn_error`, and `runtime_error` status objects plus error
+  payload normalization. Validation: focused IPC conversation status runtime
+  and main SDK runtime boundary tests, stale inline error-payload scan, docs
+  search/history checks, and diff checks. No migration required; SDK
+  conversation event shapes, renderer status payloads, websocket behavior, IPC
+  channels, storage, credentials, provider-policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer conversation replay prepared-turn runtime
   slice by moving replay preparation payload construction and prepared replay
   desktop chat turn shaping from `useConversationReplayActions` into

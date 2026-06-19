@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: move SDK conversation terminal-status projection into the IPC
+  conversation status runtime helper before `ipc.cjs` broadcasts renderer
+  status updates. No migration required.
 - renderer/runtime: move replay preparation payload and prepared-turn shaping
   into the desktop conversation replay runtime before replay hooks dispatch.
   No migration required.

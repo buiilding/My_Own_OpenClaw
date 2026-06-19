@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -14,6 +14,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/ipc/ipc_conversation_status_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
@@ -65,6 +66,15 @@ Owns query payload shaping helpers used by renderer query sends and automated VM
 - `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
 - `buildQueryPayload` (backend query field filtering + authenticated user/conversation identity)
 - `prepareAutomatedQueryPayload` (automated query option normalization + validation)
+
+### `ipc_conversation_status_runtime.cjs`
+
+Owns SDK conversation terminal-event to renderer status projection:
+
+- `buildConversationTerminalStatus` maps `turn_completed`, `turn_stopped`,
+  `turn_error`, and `runtime_error` into renderer-facing phase/status objects.
+- `resolveConversationStatusError` keeps SDK error payload interpretation out
+  of the `ipc.cjs` relay root.
 
 ### `ipc_automated_query_dispatcher.cjs`
 
@@ -282,11 +292,12 @@ generic `to-backend` router or direct chat query IPC handlers.
    `ipc_backend_endpoint_state.cjs`.
 10. settings ACK, initial sync, and queued list-models state delegate to
    `ipc_settings_sync_runtime.cjs`.
-11. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-12. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
-13. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
+11. conversation terminal status projection delegates to `ipc_conversation_status_runtime.cjs`.
+12. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+13. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
+14. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.
-14. artifact upload/fetch handler registration delegates to
+15. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
 
 ## Drift Hotspots

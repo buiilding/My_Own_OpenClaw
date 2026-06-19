@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Main Conversation Terminal Status Runtime Boundary
+
+- Finding: `ipc.cjs` subscribed to SDK conversation runtime events, but still
+  owned terminal event-to-renderer status projection inline, including direct
+  `event.payload.error` interpretation for runtime error statuses.
+- Change: added `ipc_conversation_status_runtime.cjs` for terminal status
+  projection and routed `ipc.cjs` through `buildConversationTerminalStatus(...)`.
+  The relay root keeps subscription, current-turn fan-out, replay clearing, and
+  renderer status broadcast orchestration.
+- Validation: focused IPC conversation status runtime and main SDK runtime
+  boundary tests, stale inline error-payload scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. SDK conversation event shapes,
+  renderer status payloads, websocket behavior, IPC channels, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Conversation Replay Prepared-Turn Runtime Boundary
 
 - Finding: `useConversationReplayActions` still built replay preparation

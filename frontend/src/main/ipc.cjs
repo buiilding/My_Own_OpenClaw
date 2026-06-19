@@ -74,6 +74,9 @@ const {
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
 const {
+  buildConversationTerminalStatus,
+} = require('./ipc/ipc_conversation_status_runtime.cjs');
+const {
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
   uploadArtifact,
@@ -693,35 +696,6 @@ function resolveRuntimeConversationRef(input = {}) {
     || null;
 }
 
-function statusFromConversationEvent(event = {}, workspacePath = null) {
-  if (event.type === 'turn_completed') {
-    return {
-      phase: 'ready',
-      conversationRef: event.conversationRef,
-      turnRef: event.turnRef,
-      workspacePath,
-    };
-  }
-  if (event.type === 'turn_stopped') {
-    return {
-      phase: 'stopped',
-      conversationRef: event.conversationRef,
-      turnRef: event.turnRef,
-      workspacePath,
-    };
-  }
-  if (event.type === 'turn_error' || event.type === 'runtime_error') {
-    return {
-      phase: 'error',
-      conversationRef: event.conversationRef,
-      turnRef: event.turnRef,
-      workspacePath,
-      error: typeof event.payload?.error === 'string' ? event.payload.error : null,
-    };
-  }
-  return null;
-}
-
 function buildDesktopInstallAuth() {
   if (!currentInstallToken) {
     return undefined;
@@ -887,7 +861,7 @@ function createDirectWakeUpAgentAdapter({
         }
       }
       broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN, snapshot.currentTurn);
-      const terminalStatus = statusFromConversationEvent(event, workspacePath);
+      const terminalStatus = buildConversationTerminalStatus(event, workspacePath);
       if (terminalStatus) {
         broadcastStatus(terminalStatus);
       }
