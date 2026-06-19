@@ -119,7 +119,8 @@ Infrastructure:
 Types and general utilities:
 
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
-- `frontend/src/renderer/utils/{configFilter,configStorage,displaySelection}.*`
+- `frontend/src/renderer/app/runtime/{desktopRendererConfigFilterRuntime,desktopRendererConfigStorageRuntime}.js`
+- `frontend/src/renderer/utils/normalizeNonEmptyString.ts`
 
 ## Local-Runtime Python File Index
 

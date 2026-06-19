@@ -29,6 +29,9 @@ All notable changes to WindieOS will be documented in this file.
 
 - renderer/voice: move voice audio encoding, capture cleanup, and AudioWorklet
   node helpers into app-runtime voice audio facades. No migration required.
+- docs/inventory: update the frontend module file index to point at current
+  renderer app-runtime config facades and the remaining root renderer utility.
+  No migration required.
 - docs/dashboard: list the recent-conversation load helper in dashboard
   canonical module references and remove a duplicate library-client entry. No
   migration required.

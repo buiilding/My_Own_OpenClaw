@@ -275,6 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer voice audio capture
+  runtime-boundary slice by moving PCM encoding, gateway binary frame
+  construction, capture cleanup, and AudioWorklet processor construction from
+  `frontend/src/renderer/features/voice/utils/{audioEncoding,audioCaptureCleanup,audioProcessorNode}.ts`
+  into
+  `frontend/src/renderer/app/runtime/{desktopVoiceAudioEncodingRuntime,desktopVoiceAudioCaptureCleanupRuntime,desktopVoiceAudioProcessorNodeRuntime}.ts`.
+  Voice mode and wakeword hooks, focused tests, active voice docs, folder
+  structure, app-runtime inventory, and boundary guards now consume the
+  app-runtime owners while the old feature utility paths are deleted.
+  Validation: focused voice audio encoding, cleanup, processor-node, renderer
+  voice runtime boundary, skin/config boundary, docs listing, stale old-path
+  scan, frontend lint, and diff checks. No migration required; PCM conversion,
+  gateway binary frame layout, chunk-size normalization, cleanup semantics,
+  wakeword IPC payloads, transcription gateway path, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+- 2026-06-19: completed a frontend module inventory runtime-path slice by
+  replacing the stale root renderer utility glob
+  `frontend/src/renderer/utils/{configFilter,configStorage,displaySelection}.*`
+  with the current app-runtime config facades and the remaining
+  `frontend/src/renderer/utils/normalizeNonEmptyString.ts` helper. Validation:
+  docs listing, current-file existence scan, stale old-path scan, and diff
+  checks. No migration required; documentation only, with no code path,
+  payload, storage, IPC, settings, credentials, permissions, hosted routes,
+  provider policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a renderer permission onboarding storage
   runtime-boundary slice by moving localStorage manifest-completion
   persistence from
