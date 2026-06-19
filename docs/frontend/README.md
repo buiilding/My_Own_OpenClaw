@@ -171,7 +171,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Source Maps Docs Hub](sidecar/source_maps/README.md)
 - [Sidecar System-State Docs Hub](sidecar/system_state/README.md)
 - [Sidecar Tools Docs Hub](sidecar/tools/README.md)
-- [Sidecar Tool Registry Docs Hub](sidecar/tools/registry/README.md)
+- [Local-Runtime Tool Registry Docs Hub](sidecar/tools/registry/README.md)
 - [Sidecar Computer Tools Docs Hub](sidecar/tools/computer/README.md)
 - [Sidecar System Tools Docs Hub](sidecar/tools/system/README.md)
 - [Local Runtime Memory Docs Hub](sidecar/memory/README.md)

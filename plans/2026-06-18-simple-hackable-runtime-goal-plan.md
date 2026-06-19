@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a tool-registry hub local-runtime label slice by
+  renaming first-read registry hub labels and the Python sidecar implementation
+  overview heading to local-runtime tool-registry wording. Python sidecar module
+  paths and sidecar tests remain as concrete implementation evidence.
+  Validation: focused modular boundary guard, docs listing, exact stale
+  registry-hub label scan, and diff checks. No migration required; no tool
+  name, schema, manifest, registry code, IPC channel, JSON-RPC method, storage,
+  credential, permission, hosted route, provider policy, packaging, or local
+  execution behavior changed.
 - 2026-06-19: completed a workflow-route local-runtime label slice by
   renaming the visible sidecar tool workflow to `Local-Runtime Tool Change
   Workflow`, renaming the sidecar runtime workflow to

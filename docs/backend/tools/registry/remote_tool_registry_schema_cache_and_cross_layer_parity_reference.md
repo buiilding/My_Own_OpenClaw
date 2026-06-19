@@ -196,13 +196,13 @@ local-runtime sidecar package root.
 
 Failure modes surfaced by this test:
 
-- backend schema advertises tool missing in sidecar runtime
-- sidecar exposes tool missing in backend schema catalog
+- backend schema advertises a tool missing in local-runtime execution
+- local-runtime implementation exposes a tool missing in backend schema catalog
 
 Operational impact of drift:
 
 - LLM can call a backend-advertised tool that the local runtime cannot execute
-- or sidecar supports a tool never surfaced to model schema generation
+- or local-runtime implementation supports a tool never surfaced to model schema generation
 
 Intentional exclusion from this parity guard:
 

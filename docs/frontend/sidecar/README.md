@@ -22,7 +22,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 - [Local-Runtime Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
 - [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
 - [Filesystem Read and Replace Runtime Reference](tools/filesystem_read_replace_runtime_reference.md)
-- [Sidecar Tool Registry Docs Hub](tools/registry/README.md)
+- [Local-Runtime Tool Registry Docs Hub](tools/registry/README.md)
 - [Sidecar Computer Tools Docs Hub](tools/computer/README.md)
 - [Sidecar System Tools Docs Hub](tools/system/README.md)
 - [Tool Registry Exposed Schema and Result Contract Reference](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)

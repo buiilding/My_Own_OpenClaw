@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Tool Registry Hub Local-Runtime Labels
+
+- Finding: first-read docs and the Python sidecar implementation overview still
+  used Sidecar Tool Registry hub/heading labels even though the reusable
+  registry/result boundary is local-runtime tool execution backed by the
+  Python sidecar registry module.
+- Change: renamed registry hub labels and the implementation overview heading
+  to local-runtime tool-registry wording while preserving Python sidecar module
+  paths and sidecar tests as concrete implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  registry-hub label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  tool names, schemas, manifests, registries, IPC channels, JSON-RPC methods,
+  runtime code, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Workflow Route Local-Runtime Link Labels
 
 - Finding: active backend, browser, frontend, getting-started, operations,

@@ -786,7 +786,9 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar/README.md'),
       read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
+      read('docs/frontend/sidecar/python_sidecar_and_memory.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/tools/registry/README.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/operations/evidence_collection_runbook.md'),
@@ -799,12 +801,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Tool Change Workflow');
     expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
     expect(docText).toContain('Local-Runtime Registry and Result Contract');
+    expect(docText).toContain('Local-Runtime Tool Registry Docs Hub');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
     expect(docText).not.toContain('Sidecar Runtime Change Workflow');
     expect(docText).not.toContain('[Sidecar Registry]');
+    expect(docText).not.toContain('Sidecar Tool Registry Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Docs Hub');
     expect(docText).not.toContain('sidecar ToolResult failures');
+    expect(docText).not.toContain('## Sidecar Tool Registry');
+    expect(docText).not.toContain('missing in sidecar runtime');
     expect(docText).not.toContain('Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');

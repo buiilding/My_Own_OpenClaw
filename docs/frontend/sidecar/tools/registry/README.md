@@ -1,12 +1,12 @@
 ---
-summary: "Local Runtime Sidecar tool-registry docs sub-hub for exposed-tool parity, lazy import registration behavior, and native ToolResult contracts."
+summary: "Local-runtime tool-registry docs sub-hub for exposed-tool parity, lazy import registration behavior, and native ToolResult contracts backed by the Python sidecar implementation."
 read_when:
   - When changing sidecar tool registration/exposure lists or execution result handling.
   - When debugging `Tool not found`, invalid tool return formats, or backend-schema parity drift.
-title: "Local Runtime Sidecar Tool Registry Docs Hub"
+title: "Local-Runtime Tool Registry Docs Hub"
 ---
 
-# Local Runtime Sidecar Tool Registry Docs Hub
+# Local-Runtime Tool Registry Docs Hub
 
 ## Deep Pages
 

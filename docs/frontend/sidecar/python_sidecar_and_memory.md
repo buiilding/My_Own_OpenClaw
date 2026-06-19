@@ -49,7 +49,7 @@ Operational behavior:
 - keeps single in-process tool registry instance
 - returns structured success/error responses for each RPC method
 
-## Sidecar Tool Registry
+## Local-Runtime Tool Registry
 
 Module:
 
@@ -65,7 +65,7 @@ Tool families:
 Registry behavior:
 
 - requires executable tools to return canonical `ToolResult`
-- warns when backend-exposed tool names are missing in sidecar runtime
+- warns when backend-exposed tool names are missing in local-runtime execution
 - handles sync and async tool implementations
 
 ## Sidecar Tool Schemas
