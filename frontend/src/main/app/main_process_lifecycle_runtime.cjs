@@ -106,7 +106,7 @@ function logStartupMetricsSnapshot(label, deps = {}) {
   }
 }
 
-function buildWakewordHotkeyCandidates(wakewordHotkey, platform = process.platform) {
+function buildWakewordHotkeyCandidates(wakewordHotkey, fallbackHotkeys = []) {
   const candidates = [];
   const seen = new Set();
   const pushCandidate = (value) => {
@@ -122,12 +122,10 @@ function buildWakewordHotkeyCandidates(wakewordHotkey, platform = process.platfo
   };
 
   pushCandidate(wakewordHotkey);
-
-  if (platform === 'win32') {
-    // Keep Win-key-free options to avoid OS-reserved accelerator conflicts.
-    pushCandidate('CommandOrControl+Alt+W');
-    pushCandidate('CommandOrControl+Shift+W');
-    pushCandidate('CommandOrControl+Alt+J');
+  if (Array.isArray(fallbackHotkeys)) {
+    for (const fallbackHotkey of fallbackHotkeys) {
+      pushCandidate(fallbackHotkey);
+    }
   }
 
   return candidates;
@@ -149,6 +147,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     screen,
     registerRendererWindow,
     wakewordHotkey,
+    wakewordFallbackHotkeys = [],
     platform = process.platform,
     vmMode = false,
     createWindow,
@@ -335,7 +334,10 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
         }
       };
 
-      const hotkeyCandidates = buildWakewordHotkeyCandidates(wakewordHotkey, platform);
+      const hotkeyCandidates = buildWakewordHotkeyCandidates(
+        wakewordHotkey,
+        wakewordFallbackHotkeys,
+      );
       let registeredHotkey = null;
       for (const candidate of hotkeyCandidates) {
         const registered = globalShortcut.register(candidate, shortcutHandler);

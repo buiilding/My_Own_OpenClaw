@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/lifecycle: move wakeword global-hotkey fallback accelerators into the
+  host skin so the generic Electron lifecycle runtime consumes configured
+  shortcut candidates. No migration required.
 - docs/voice: route remaining voice channel and desktop docs from retired
   feature utility globs to renderer app-runtime voice/wakeword helpers. No
   migration required.

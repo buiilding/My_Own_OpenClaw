@@ -94,6 +94,7 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain("toolScreenshot: 'WINDIE_DEBUG_TOOL_SCREENSHOT'");
     expect(skinSource).toContain('shortcuts');
     expect(skinSource).toContain('wakewordHotkeyByPlatform');
+    expect(skinSource).toContain('wakewordFallbackHotkeysByPlatform');
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -423,13 +424,21 @@ describe('main host skin/config boundary', () => {
 
     expect(skinSource).toContain("win32: 'CommandOrControl+Alt+W'");
     expect(skinSource).toContain("default: 'Super+Alt+W'");
+    expect(skinSource).toContain("'CommandOrControl+Shift+W'");
+    expect(skinSource).toContain("'CommandOrControl+Alt+J'");
     expect(indexSource).toContain('mainHostSkin.shortcuts.wakewordHotkeyByPlatform[process.platform]');
     expect(indexSource).toContain('mainHostSkin.shortcuts.wakewordHotkeyByPlatform.default');
+    expect(indexSource).toContain('mainHostSkin.shortcuts.wakewordFallbackHotkeysByPlatform[process.platform]');
+    expect(indexSource).toContain('mainHostSkin.shortcuts.wakewordFallbackHotkeysByPlatform.default');
+    expect(indexSource).toContain('wakewordFallbackHotkeys: WAKEWORD_FALLBACK_HOTKEYS');
     expect(indexSource).not.toContain("process.platform === 'win32'");
     expect(indexSource).not.toContain("'CommandOrControl+Alt+W'");
     expect(indexSource).not.toContain("'Super+Alt+W'");
     expect(lifecycleSource).toContain('buildWakewordHotkeyCandidates');
-    expect(lifecycleSource).toContain("'CommandOrControl+Alt+W'");
+    expect(lifecycleSource).toContain('wakewordFallbackHotkeys');
+    expect(lifecycleSource).not.toContain("'CommandOrControl+Alt+W'");
+    expect(lifecycleSource).not.toContain("'CommandOrControl+Shift+W'");
+    expect(lifecycleSource).not.toContain("'CommandOrControl+Alt+J'");
   });
 
   test('wakeword stderr product markers live in host skin config', () => {

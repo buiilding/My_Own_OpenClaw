@@ -33,6 +33,7 @@ function createRuntimeDeps(overrides = {}) {
     registerRendererWindow: jest.fn(),
     platform: 'linux',
     wakewordHotkey: 'Super+Alt+W',
+    wakewordFallbackHotkeys: [],
     createWindow: jest.fn(),
     createChatWindow: jest.fn(),
     createResponseWindow: jest.fn(),
@@ -282,6 +283,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     const { deps } = createRuntimeDeps({
       platform: 'win32',
       wakewordHotkey: 'Super+Alt+W',
+      wakewordFallbackHotkeys: ['CommandOrControl+Alt+W'],
       globalShortcut: {
         register,
         unregisterAll: jest.fn(),
@@ -303,6 +305,11 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     const { deps } = createRuntimeDeps({
       platform: 'win32',
       wakewordHotkey: 'Super+Alt+W',
+      wakewordFallbackHotkeys: [
+        'CommandOrControl+Alt+W',
+        'CommandOrControl+Shift+W',
+        'CommandOrControl+Alt+J',
+      ],
       globalShortcut: {
         register,
         unregisterAll: jest.fn(),

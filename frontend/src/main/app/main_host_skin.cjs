@@ -119,6 +119,14 @@ const shortcuts = Object.freeze({
     win32: 'CommandOrControl+Alt+W',
     default: 'Super+Alt+W',
   }),
+  wakewordFallbackHotkeysByPlatform: Object.freeze({
+    win32: Object.freeze([
+      'CommandOrControl+Alt+W',
+      'CommandOrControl+Shift+W',
+      'CommandOrControl+Alt+J',
+    ]),
+    default: Object.freeze([]),
+  }),
 });
 
 const browserAutomation = Object.freeze({

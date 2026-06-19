@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Main Wakeword Hotkey Fallback Host-Skin Boundary
+
+- Finding: the primary wakeword hotkey had moved into the WindieOS main host
+  skin, but the generic Electron lifecycle runtime still owned the Windows
+  fallback accelerator list.
+- Change: added `wakewordFallbackHotkeysByPlatform` to
+  `main_host_skin.cjs`, passed the configured list from the composition root,
+  and made `main_process_lifecycle_runtime.cjs` consume injected fallback
+  candidates instead of hard-coded accelerators.
+- Validation: focused main lifecycle and host-skin boundary tests, docs
+  listing, stale accelerator scan, frontend lint, and diff checks.
+- Compatibility: no migration required. The active WindieOS primary and
+  fallback hotkey order is unchanged; IPC channels, persisted settings,
+  permissions, packaging, hosted routes, provider policy, local-runtime
+  launch, and wakeword behavior are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Recent Conversation Load Runtime Boundary
 
 - Finding: dashboard recent-conversation list normalization, pinned-reference

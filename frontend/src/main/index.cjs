@@ -147,6 +147,10 @@ const WAKEWORD_HOTKEY = (
   mainHostSkin.shortcuts.wakewordHotkeyByPlatform[process.platform]
   || mainHostSkin.shortcuts.wakewordHotkeyByPlatform.default
 );
+const WAKEWORD_FALLBACK_HOTKEYS = (
+  mainHostSkin.shortcuts.wakewordFallbackHotkeysByPlatform[process.platform]
+  || mainHostSkin.shortcuts.wakewordFallbackHotkeysByPlatform.default
+);
 const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
 const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'onboarding', 'settings']);
 const RESPONSE_OVERLAY_CHAT_GAP = 8;
@@ -383,6 +387,7 @@ initializeMainProcessLifecycleRuntime({
   screen,
   registerRendererWindow,
   wakewordHotkey: WAKEWORD_HOTKEY,
+  wakewordFallbackHotkeys: WAKEWORD_FALLBACK_HOTKEYS,
   platform: process.platform,
   vmMode: VM_MODE_ENABLED,
   createWindow,

@@ -173,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Wakeword Hotkey Fallback Host-Skin Boundary
+
+- Worktree was clean after `1be48c1bf`, with `main` ahead of `origin/main` by
+  266 commits.
+- Electron main host-skin docs, lifecycle runtime, and recent wakeword hotkey
+  host-skin history were inspected after the renderer runtime slices.
+- Finding: the primary wakeword hotkey lived in the host skin, but the generic
+  lifecycle runtime still owned WindieOS's Windows fallback accelerator list.
+- Change: added `wakewordFallbackHotkeysByPlatform` to the WindieOS host skin,
+  passed those candidates through `index.cjs`, and made the lifecycle runtime
+  consume injected fallback accelerators.
+- Validation: focused main lifecycle and host-skin boundary tests, docs
+  listing, stale accelerator scan, frontend lint, and diff check.
+- Compatibility: no migration required. WindieOS keeps the same primary and
+  fallback accelerator order; IPC channels, persisted settings, permissions,
+  packaging, hosted routes, provider policy, local-runtime launch, and wakeword
+  behavior are unchanged.
+
 ### 2026-06-18 Main VM Worker Bootstrap Config Boundary
 
 - Worktree was clean after `f32d8d819`, with `main` ahead of `origin/main` by
