@@ -1,16 +1,16 @@
 /**
- * Provides the new chat session module for the renderer UI.
+ * Orchestrates renderer new-chat session reset and local conversation creation.
  */
 
-import type { TokenCounts } from '../../stores/chatStore';
-import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
 import {
   applyRendererConversationSelection,
   createConversationRef,
   initializeLocalConversationSession,
-} from '../../../../app/runtime/desktopConversationSessionRuntime';
-import { resetActiveChatSession } from '../../../../app/runtime/desktopActiveChatSessionRuntime';
+} from './desktopConversationSessionRuntime';
+import { resetActiveChatSession } from './desktopActiveChatSessionRuntime';
+import type { TokenCounts } from './desktopChatMessageTypes';
 
 type NewChatSessionOptions = {
   clearMessages: (conversationRef?: string | null) => void;

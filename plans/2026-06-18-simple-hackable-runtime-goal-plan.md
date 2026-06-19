@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer new-chat session runtime-boundary slice by
+  moving new-chat reset, local conversation creation, transcript session
+  selection, and workspace binding orchestration from
+  `frontend/src/renderer/features/chat/utils/session/newChatSession.ts` to
+  `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`.
+  `ChatInterface`, focused tests, active docs, folder structure, and renderer
+  boundary guards now consume the app-runtime owner, and the old chat utility
+  path is deleted. Validation: focused new-chat session runtime, renderer chat
+  boundary, renderer app-runtime boundary, docs listing, stale old-path scan,
+  frontend lint, and diff checks. No migration required; reset ordering,
+  conversation-ref format, transcript session update, workspace binding,
+  active-conversation projection, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer chat-stream model-context
   runtime-boundary slice by collapsing the type-only
   `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts` and

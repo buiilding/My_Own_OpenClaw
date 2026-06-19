@@ -55,6 +55,7 @@ frontend/src/renderer/
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 │   │   ├── desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 │   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
+│   │   ├── desktopNewChatSessionRuntime.ts # Renderer new-chat reset, conversation creation, and workspace binding facade
 │   │   ├── desktopThreadFindRuntime.js # Renderer thread-find match projection facade
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
 │   │   ├── desktopTranscriptionRegionRuntime.ts # Renderer transcription-region edit reconciliation facade
@@ -153,8 +154,6 @@ frontend/src/renderer/
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── messageSender/            # messageSender - Payload normalization and SDK turn resource handle utilities
 │   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
-│   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
-│   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution

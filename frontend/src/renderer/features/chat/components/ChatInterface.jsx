@@ -23,7 +23,7 @@ import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRunt
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
-import { startNewChatSession } from '../utils/session/newChatSession';
+import { startNewChatSession } from '../../../app/runtime/desktopNewChatSessionRuntime';
 import {
   buildChatModelOptions,
   buildChatProviderOptions,

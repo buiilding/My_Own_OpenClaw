@@ -597,7 +597,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
     const newChatSessionSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/session/newChatSession.ts'),
+      path.join(appRoot, 'runtime/desktopNewChatSessionRuntime.ts'),
       'utf8',
     );
 
@@ -607,10 +607,14 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardShellSource).toContain('desktopActiveChatSessionRuntime');
     expect(dashboardConversationSource).toContain('desktopActiveChatSessionRuntime');
     expect(newChatSessionSource).toContain('desktopActiveChatSessionRuntime');
+    expect(newChatSessionSource).not.toContain('features/chat');
     expect(dashboardShellSource).not.toContain('chat/utils/session/resetActiveChatSession');
     expect(dashboardConversationSource).not.toContain('chat/utils/session/resetActiveChatSession');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/session/resetActiveChatSession.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/session/newChatSession.ts'),
     )).rejects.toThrow();
   });
 

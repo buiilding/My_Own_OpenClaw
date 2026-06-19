@@ -71,7 +71,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
+- `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`

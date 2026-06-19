@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/session: move new-chat reset and local conversation creation
+  orchestration into `desktopNewChatSessionRuntime`. No migration required.
 - renderer/chat-stream: collapse transcript model/provider and thinking-capable
   stream context types into `desktopChatStreamModelContextRuntime`. No
   migration required.

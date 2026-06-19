@@ -33,7 +33,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
-- `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
+- `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 

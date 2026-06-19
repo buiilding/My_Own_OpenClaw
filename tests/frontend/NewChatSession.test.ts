@@ -2,7 +2,7 @@
  * Covers new chat session. behavior in the frontend test suite.
  */
 
-import { startNewChatSession } from '../../frontend/src/renderer/features/chat/utils/session/newChatSession';
+import { startNewChatSession } from '../../frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 

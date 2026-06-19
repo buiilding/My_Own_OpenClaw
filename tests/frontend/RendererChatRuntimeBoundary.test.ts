@@ -1365,7 +1365,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
     const newChatSessionSource = await fs.readFile(
-      path.join(chatRoot, 'utils/session/newChatSession.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts'),
       'utf8',
     );
     const sendPreparationSource = await fs.readFile(
@@ -1424,6 +1424,7 @@ describe('renderer chat runtime boundary', () => {
     expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
     expect(newChatSessionSource).toContain('desktopConversationSessionRuntime');
     expect(newChatSessionSource).not.toContain('utils/session/conversationRef');
+    expect(newChatSessionSource).not.toContain('features/chat');
     expect(sendPreparationSource).toContain('desktopConversationSessionRuntime');
     expect(sendPreparationSource).not.toContain('utils/session/conversationRef');
     expect(conversationSessionRuntimeSource).toContain('createConversationRef');
@@ -1444,6 +1445,9 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/session/conversationRef.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/session/newChatSession.ts'),
     )).rejects.toThrow();
   });
 
@@ -1741,7 +1745,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('chat and dashboard active-session reset share app runtime rules', async () => {
     const newChatSessionSource = await fs.readFile(
-      path.join(chatRoot, 'utils/session/newChatSession.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts'),
       'utf8',
     );
     const dashboardHookSource = await fs.readFile(
@@ -1761,11 +1765,15 @@ describe('renderer chat runtime boundary', () => {
       expect(source).toContain('desktopActiveChatSessionRuntime');
       expect(source).not.toContain('features/chat/utils/session/resetActiveChatSession');
     }
+    expect(newChatSessionSource).not.toContain('features/chat');
     expect(activeSessionRuntimeSource).toContain('resetActiveChatSession');
     expect(activeSessionRuntimeSource).toContain('applyRendererConversationSelection');
     expect(activeSessionRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.updateTranscriptSession');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/session/resetActiveChatSession.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/session/newChatSession.ts'),
     )).rejects.toThrow();
   });
 
