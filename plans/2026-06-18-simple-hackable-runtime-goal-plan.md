@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer message transparency runtime-boundary slice
+  by moving system prompt, tool-schema, full-user-message, and
+  full-assistant-message section descriptor helpers from
+  `frontend/src/renderer/features/chat/utils/message/messageTransparency.js`
+  into
+  `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`.
+  MessageList, MessageTransparencySections, MinimalResponseOverlay, docs,
+  focused tests, and renderer chat boundary guards now route through the
+  app-runtime owner, and the old chat message utility path is deleted.
+  Validation: focused desktop message transparency runtime, transparency
+  sections, renderer chat boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks. No migration required; transparency section order,
+  tool-schema normalization, conversation-level schema fallback, dev-UI gating,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer current-turn presentation
   runtime-boundary slice by moving chat-loop UI state, response-overlay
   awaiting-reply stream-phase predicates, and current-turn chatbox/reply

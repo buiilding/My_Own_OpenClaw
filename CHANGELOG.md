@@ -60,9 +60,10 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/token-tags: move dev token-usage badge formatting from chat message
   utilities into the renderer app-runtime presentation facade used by message
   source badges. No migration required.
-- renderer/transparency: move message transparency section descriptor assembly
-  from chat message utilities into the renderer app-runtime facade shared by
-  chat and minimal response overlay surfaces. No migration required.
+- renderer/transparency: move system prompt, tool schema, and full-message
+  transparency section descriptors into the renderer app-runtime presentation
+  facade shared by chat and minimal response overlay surfaces. No migration
+  required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration
