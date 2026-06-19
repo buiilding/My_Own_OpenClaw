@@ -174,6 +174,44 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Permission External Grant Watch Boundary
+
+- Finding: `desktopPermissionGrantEffectsRuntime` owned cross-surface
+  permission post-grant effects, but `useOnboardingPermissionActions` still
+  read raw status fields such as `details.media_status`, `granted`, and
+  `status` to decide whether to keep probing after OS settings opens.
+- Change: moved external-grant watch eligibility and interval-polling policy
+  into the permission grant effects runtime. The onboarding hook now keeps
+  pending/waiting state, timers, focus rechecks, and cleanup while consuming
+  runtime-owned permission watch decisions.
+- Validation: passed focused onboarding permission actions, permission grant
+  effects, renderer app boundary, and docs-index tests plus docs search,
+  related commit search, stale raw status-field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Permission IPC channel names, status
+  payload shape, grant-effect config update behavior, recheck interval and
+  timeout values, onboarding waiting state, storage, provider policy, hosted
+  URLs, permissions, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer App Status Save Action Boundary
+
+- Finding: `DesktopAppConfigRuntimeClient` owned settings-event normalization
+  and settings-update error classification, but `AppStatusProvider` still
+  switched on normalized event `type` and `isSettingsUpdateError` fields before
+  updating the save-status state machine.
+- Change: added value-level settings save-status action resolution and
+  subscription to the app config runtime client. `AppStatusProvider` now keeps
+  timer cleanup and save-status transitions while consuming only `success` or
+  `error` actions.
+- Validation: passed focused desktop app config runtime client,
+  AppStatusProvider, renderer settings boundary, and docs-index tests plus
+  docs search, related commit search, stale raw settings-event field scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Backend settings-event channel names,
+  raw event payload shape, settings-update error text matching, save-status UI
+  timing, config persistence, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission Status Value Boundary
 
 - Finding: `DesktopPermissionRuntimeClient` owned permission IPC command

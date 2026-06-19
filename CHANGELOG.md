@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move onboarding external permission grant watch policy into
+  `desktopPermissionGrantEffectsRuntime` so onboarding actions no longer read
+  raw permission status `details`, `granted`, or `status` fields to decide
+  macOS-style recheck polling. No migration required.
+- renderer/runtime: expose settings save-status updates as value-level app
+  config runtime actions so `AppStatusProvider` no longer switches on raw
+  settings event `type` or settings-update error fields. No migration
+  required.
 - renderer/runtime: normalize permission status values in
   `DesktopPermissionRuntimeClient` so `permissionStore` no longer reads raw
   status `permission_id`, `granted`, `checked_at`, or `details` fields. No

@@ -4,29 +4,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { applyPermissionGrantEffects } from '../../../app/runtime/desktopPermissionGrantEffectsRuntime';
+import {
+  applyPermissionGrantEffects,
+  shouldPollPermissionGrantByInterval,
+  shouldWatchExternalPermissionGrantCompletion,
+} from '../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { isPermissionGrantedStatus } from '../../../app/runtime/desktopPermissionPresentationRuntime';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 
-const MACOS_INTERVAL_RECHECK_PERMISSION_IDS = new Set([
-  'screen_capture',
-  'input_control_accessibility',
-  'system_events_automation',
-  'microphone',
-]);
 const PERMISSION_RECHECK_INTERVAL_MS = 1000;
 const PERMISSION_RECHECK_TIMEOUT_MS = 2 * 60 * 1000;
-
-function shouldWatchExternalGrantCompletion(permissionId, status) {
-  if (permissionId === 'screen_capture' && status?.details?.media_status === 'granted') {
-    return false;
-  }
-  return (
-    MACOS_INTERVAL_RECHECK_PERMISSION_IDS.has(permissionId)
-    && status?.granted !== true
-    && status?.status === 'needs-action'
-  );
-}
 
 function stopWatchingPermission({
   watchedPermissionIdRef,
@@ -87,7 +74,7 @@ export function useOnboardingPermissionActions() {
       return;
     }
 
-    const shouldPollByInterval = MACOS_INTERVAL_RECHECK_PERMISSION_IDS.has(permissionId);
+    const shouldPollByInterval = shouldPollPermissionGrantByInterval(permissionId);
     stopWatchingPermission({
       watchedPermissionIdRef,
       recheckIntervalRef,
@@ -159,7 +146,7 @@ export function useOnboardingPermissionActions() {
     try {
       const status = await requestPermission(permissionId);
       applyPermissionGrantEffects({ permissionId, status, updateConfig });
-      if (shouldWatchExternalGrantCompletion(permissionId, status)) {
+      if (shouldWatchExternalPermissionGrantCompletion(permissionId, status)) {
         startWatchingPermission(permissionId);
       } else if (isPermissionGrantedStatus(status) && watchedPermissionIdRef.current === permissionId) {
         stopWatchingPermission({

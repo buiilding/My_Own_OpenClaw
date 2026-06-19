@@ -36,33 +36,24 @@ export function AppStatusProvider({ children }) {
     }, 3000);
   }, [clearTimer]);
 
-  const onSettingsEvent = useCallback((data) => {
-    switch (data.type) {
-      case 'settings-updated':
-        clearTimer(saveTimeoutId);
-        setSaveStatus('success');
-        scheduleIdleReset();
-        break;
-      case 'error':
-        if (data.isSettingsUpdateError) {
-          clearTimer(saveTimeoutId);
-          setSaveStatus('error');
-          scheduleIdleReset();
-        }
-        break;
-      default:
-        break;
+  const onSettingsSaveStatusAction = useCallback((status) => {
+    if (status === 'success' || status === 'error') {
+      clearTimer(saveTimeoutId);
+      setSaveStatus(status);
+      scheduleIdleReset();
     }
   }, [clearTimer, scheduleIdleReset]);
 
   useEffect(() => {
-    const removeListener = DesktopAppConfigRuntimeClient.onSettingsEvent(onSettingsEvent);
+    const removeListener = DesktopAppConfigRuntimeClient.onSettingsSaveStatusAction(
+      onSettingsSaveStatusAction,
+    );
     return () => {
       removeListener?.();
       clearTimer(saveTimeoutId);
       clearTimer(resetTimeoutId);
     };
-  }, [onSettingsEvent, clearTimer]);
+  }, [onSettingsSaveStatusAction, clearTimer]);
 
   const setSaving = useCallback(() => {
     clearTimer(saveTimeoutId);

@@ -216,7 +216,9 @@ constants directly.
 settings-event fan-out/normalization for app-level config/status providers.
 It classifies settings-update failure events into normalized status fields so
 providers do not import config persistence, settings-event channel constants,
-or host-shaped settings error payload details directly.
+or host-shaped settings error payload details directly. It also exposes
+value-level save-status actions so `AppStatusProvider` owns timer/state
+transitions without switching on settings-event payload fields.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
 desktop client/session snapshot and IPC transport status subscription, including
@@ -282,10 +284,11 @@ permission transport and raw status field parsing to this client.
 
 `desktopPermissionGrantEffectsRuntime.js` owns renderer post-grant permission
 effects that update app config, such as enabling browser automation after the
-dedicated browser capability is granted. Onboarding and settings UI pass
-permission status plus config updater callbacks into this runtime helper
-instead of keeping cross-surface config side effects under the permissions
-feature.
+dedicated browser capability is granted, and external-grant watch policy for
+permissions that require a follow-up probe after the OS settings surface opens.
+Onboarding and settings UI pass permission status plus config updater callbacks
+into this runtime helper instead of keeping cross-surface config side effects
+or raw permission status-field checks under the permissions feature.
 
 `desktopPermissionPresentationRuntime.js` owns renderer permission status and
 presentation mapping shared by onboarding and settings: access-kind labels,

@@ -769,8 +769,15 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(grantEffectsSource).toContain('browser_automation_enabled');
+    expect(grantEffectsSource).toContain('shouldPollPermissionGrantByInterval');
+    expect(grantEffectsSource).toContain('shouldWatchExternalPermissionGrantCompletion');
     expect(grantEffectsSource).not.toContain('features/permissions');
     expect(onboardingActionsSource).toContain('desktopPermissionGrantEffectsRuntime');
+    expect(onboardingActionsSource).toContain('shouldPollPermissionGrantByInterval');
+    expect(onboardingActionsSource).toContain('shouldWatchExternalPermissionGrantCompletion');
+    expect(onboardingActionsSource).not.toContain('status?.details');
+    expect(onboardingActionsSource).not.toContain('status?.granted');
+    expect(onboardingActionsSource).not.toContain('status?.status');
     expect(browserSettingsSource).toContain('desktopPermissionGrantEffectsRuntime');
     expect(onboardingActionsSource).not.toContain('permissions/utils/permissionGrantEffects');
     expect(browserSettingsSource).not.toContain('permissions/utils/permissionGrantEffects');

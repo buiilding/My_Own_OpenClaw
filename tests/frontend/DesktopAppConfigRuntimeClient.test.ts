@@ -27,6 +27,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import {
   DesktopAppConfigRuntimeClient,
   normalizeDesktopSettingsEvent,
+  resolveDesktopSettingsSaveStatusAction,
 } from '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient';
 
 describe('DesktopAppConfigRuntimeClient', () => {
@@ -55,6 +56,28 @@ describe('DesktopAppConfigRuntimeClient', () => {
     });
   });
 
+  test('resolves settings save status actions at the runtime boundary', () => {
+    expect(resolveDesktopSettingsSaveStatusAction({
+      type: 'settings-updated',
+      payload: {},
+    })).toBe('success');
+
+    expect(resolveDesktopSettingsSaveStatusAction({
+      type: 'error',
+      payload: { message: 'Failed to update settings: write failed' },
+    })).toBe('error');
+
+    expect(resolveDesktopSettingsSaveStatusAction({
+      type: 'error',
+      payload: { message: 'Database timeout' },
+    })).toBeNull();
+
+    expect(resolveDesktopSettingsSaveStatusAction({
+      type: 'models-listed',
+      payload: {},
+    })).toBeNull();
+  });
+
   test('settings event subscriptions emit normalized settings events', () => {
     const events: unknown[] = [];
     const unsubscribe = DesktopAppConfigRuntimeClient.onSettingsEvent(event => {
@@ -71,6 +94,31 @@ describe('DesktopAppConfigRuntimeClient', () => {
       payload: {},
       isSettingsUpdateError: false,
     }]);
+
+    unsubscribe?.();
+    expect(settingsListener).toBeNull();
+  });
+
+  test('settings save status subscriptions emit value-level actions only', () => {
+    const events: unknown[] = [];
+    const unsubscribe = DesktopAppConfigRuntimeClient.onSettingsSaveStatusAction(status => {
+      events.push(status);
+    });
+
+    settingsListener?.({
+      type: 'settings-updated',
+      payload: {},
+    });
+    settingsListener?.({
+      type: 'models-listed',
+      payload: {},
+    });
+    settingsListener?.({
+      type: 'error',
+      payload: { message: 'Failed to update settings: write failed' },
+    });
+
+    expect(events).toEqual(['success', 'error']);
 
     unsubscribe?.();
     expect(settingsListener).toBeNull();

@@ -77,8 +77,10 @@ Important guardrails:
 Tracks transient save state machine:
 
 - `saving` set when UI triggers config update callback
-- transitions to `success` when backend emits `settings-updated`
-- transitions to `error` on runtime-normalized settings-update failure events
+- transitions to `success` when the app config runtime client emits a
+  save-status success action
+- transitions to `error` when the app config runtime client emits a
+  save-status error action for runtime-normalized settings-update failures
 - auto-resets to `idle` after timeout window
 
 ## Renderer Persistence Layers
@@ -192,10 +194,11 @@ value-level `{ enabled }` updates for `AppConfigProvider`.
 
 - `models-listed` -> available model list update
 
-`AppStatusProvider` separately listens on the settings event channel for:
+`AppStatusProvider` separately consumes
+`DesktopAppConfigRuntimeClient.onSettingsSaveStatusAction(...)` for:
 
-- `settings-updated`
-- settings-related `error` normalized by `DesktopAppConfigRuntimeClient`
+- save-status `success` actions derived from `settings-updated`
+- save-status `error` actions derived from settings-related `error` events
 
 This split keeps model-list behavior independent from save-status UX behavior.
 

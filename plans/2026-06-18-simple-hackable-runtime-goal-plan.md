@@ -275,6 +275,32 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission external grant watch boundary
+  slice by moving external-grant watch eligibility and interval-polling policy
+  into `desktopPermissionGrantEffectsRuntime`. `useOnboardingPermissionActions`
+  now keeps pending/waiting state, timers, focus rechecks, and cleanup while
+  consuming runtime-owned permission watch decisions instead of reading raw
+  status `details`, `granted`, or `status` fields. Validation passed for
+  focused onboarding permission actions, permission grant effects, renderer app
+  boundary, and docs-index tests plus docs search, related commit search,
+  stale raw status-field scan, docs listing, and diff checks. No migration
+  required; permission IPC channel names, status payload shape, grant-effect
+  config update behavior, recheck interval and timeout values, onboarding
+  waiting state, storage, provider policy, hosted URLs, permissions, and local
+  execution behavior are unchanged.
+
+- 2026-06-19: completed a renderer app-status save action boundary slice by
+  adding value-level settings save-status action resolution and
+  `onSettingsSaveStatusAction(...)` to `DesktopAppConfigRuntimeClient`.
+  `AppStatusProvider` now keeps timer cleanup and save-status state
+  transitions while consuming only `success` or `error` actions. Validation:
+  passed focused desktop app config runtime client, AppStatusProvider,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw settings-event field scan, docs listing, and diff
+  checks. No migration required; backend settings-event channel names, raw
+  event payload shape, settings-update error text matching, save-status UI
+  timing, config persistence, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer permission status value boundary slice by
   moving permission status normalization and id-indexing into
   `DesktopPermissionRuntimeClient`. `permissionStore` now keeps manifest

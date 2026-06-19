@@ -2,6 +2,13 @@
  * Coordinates renderer permission post-grant effects shared by onboarding and settings UI.
  */
 
+const EXTERNAL_GRANT_WATCH_PERMISSION_IDS = new Set([
+  'screen_capture',
+  'input_control_accessibility',
+  'system_events_automation',
+  'microphone',
+]);
+
 export function applyPermissionGrantEffects({ permissionId, status, updateConfig }) {
   if (
     permissionId === 'browser_automation'
@@ -10,4 +17,19 @@ export function applyPermissionGrantEffects({ permissionId, status, updateConfig
   ) {
     updateConfig({ browser_automation_enabled: true });
   }
+}
+
+export function shouldPollPermissionGrantByInterval(permissionId) {
+  return EXTERNAL_GRANT_WATCH_PERMISSION_IDS.has(permissionId);
+}
+
+export function shouldWatchExternalPermissionGrantCompletion(permissionId, status) {
+  if (permissionId === 'screen_capture' && status?.details?.media_status === 'granted') {
+    return false;
+  }
+  return (
+    shouldPollPermissionGrantByInterval(permissionId)
+    && status?.granted !== true
+    && status?.status === 'needs-action'
+  );
 }

@@ -134,7 +134,9 @@ Shared commit path:
 `AppConfigProvider` and `AppStatusProvider` own renderer state machines only.
 Desktop host transport is routed through app runtime clients:
 
-- `DesktopAppConfigRuntimeClient` owns renderer config disk persistence and normalized settings-event fan-out, including settings-update failure classification for save-status consumers.
+- `DesktopAppConfigRuntimeClient` owns renderer config disk persistence,
+  normalized settings-event fan-out, settings-update failure classification,
+  and value-level save-status actions for status-provider consumers.
 - `desktopSettingsUpdateErrorRuntime.ts` owns the shared settings-update failure text classifier used by settings-event normalization and chat stream error suppression.
 - `DesktopClientSessionRuntimeClient` owns main-session snapshots and
   value-level IPC status fan-out for transcript user id, connection state, and
@@ -159,8 +161,8 @@ State values:
 Transitions:
 
 - `setSaving()` -> `saving`, with 10s timeout fallback to `error`
-- backend `settings-updated` -> `success`, then auto-reset to `idle` after 3s
-- normalized settings-update error event -> `error`, then auto-reset after 3s
+- runtime save-status `success` action -> `success`, then auto-reset to `idle` after 3s
+- runtime save-status `error` action -> `error`, then auto-reset after 3s
 
 Cleanup:
 
@@ -201,7 +203,7 @@ Net effect:
 If settings button shows perpetual saving:
 
 1. verify `registerSaveStatusCallback` is called by coordinator
-2. verify the settings runtime emits `settings-updated` or a failure event classified by `DesktopAppConfigRuntimeClient`
+2. verify the settings runtime emits a save-status action through `DesktopAppConfigRuntimeClient`
 3. inspect timeout path in `AppStatusProvider` and timer cleanup
 
 If updates appear in UI but not backend:
