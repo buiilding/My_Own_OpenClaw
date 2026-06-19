@@ -2,7 +2,7 @@
 summary: "Python sidecar runtime architecture: JSON-RPC local runtime, tool registry, memory stores, semantic consolidation, and wakeword service."
 read_when:
   - When changing sidecar tools, local-runtime memory persistence/search, or subprocess protocol behavior.
-  - When debugging sidecar readiness, request correlation, or memory summarization cadence.
+  - When debugging local-runtime/Python sidecar readiness, request correlation, or memory summarization cadence.
 title: "Python Sidecar and Memory"
 ---
 

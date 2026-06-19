@@ -890,6 +890,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Browser Docs Hub');
     expect(docText).toContain('Local-Runtime Browser Contracts Docs Hub');
     expect(docText).toContain('local-runtime bridge readiness');
+    expect(docText).toContain('local-runtime readiness');
+    expect(docText).toContain('local-runtime diagnostic status');
     expect(docText).toContain('Local-runtime Python sidecar');
     expect(docText).toContain('SDK/main local-runtime dispatch or Python sidecar implementation');
     expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
@@ -913,6 +915,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('websocket state, sidecar readiness');
+    expect(docText).not.toContain('sidecar readiness, long-running handler');
+    expect(docText).not.toContain('sidecar status never becomes ready');
+    expect(docText).not.toContain('Returns sidecar diagnostic status');
     expect(docText).not.toContain('| Sidecar | JSON-RPC method');
     expect(docText).not.toContain('| Sidecar tool/runtime |');
     expect(docText).not.toContain('| Query streams but local tool fails | Electron bridge or Python sidecar |');
@@ -1106,6 +1111,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/contracts/backend_event_consumer_matrix_reference.md',
       'docs/frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md',
       'docs/frontend/renderer/dashboard/dashboard_change_workflow.md',
+      'docs/frontend/renderer/dashboard/README.md',
       'docs/frontend/renderer/dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md',
       'docs/frontend/renderer/dashboard/shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md',
       'docs/frontend/renderer/dashboard/shell/dashboard_recent_conversation_loader_retry_and_title_visibility_poll_runtime_reference.md',
@@ -1489,6 +1495,7 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend runtime event guards',
         'features/dashboard/utils/*',
         'frontend/src/renderer/features/dashboard/utils/*',
+        'dashboard utility ownership',
         'frontend or sidecar impact',
         'Frontend consumer',
         'Frontend/sidecar owners',

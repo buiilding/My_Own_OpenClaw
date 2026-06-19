@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Local-Runtime Readiness and Dashboard-Hub Label Boundary
+
+- Finding: JSON-RPC workflow docs, Python sidecar memory docs, and packaged
+  release troubleshooting still used broad sidecar readiness/status/log labels,
+  while the dashboard hub summary still used removed utility ownership wording.
+- Change: reworded those readiness/status/log labels through SDK local runtime,
+  Electron main local-runtime bridge, packaged local-runtime status, and
+  Python sidecar implementation detail, and changed the dashboard hub summary
+  to app-runtime facade ownership. Extended the modular guard for the retired
+  sidecar-readiness/status and dashboard-utility labels.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. JSON-RPC methods, readiness behavior,
+  packaged runtime behavior, dashboard docs routing, IPC, credentials, provider
+  policy, local runtime execution, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 Operations Evidence Local-Runtime Label Boundary
 
 - Finding: the operations evidence runbook still used broad sidecar-readiness,

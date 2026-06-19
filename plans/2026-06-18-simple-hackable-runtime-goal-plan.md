@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a local-runtime readiness/dashboard-hub label slice by
+  routing JSON-RPC workflow readiness/status, Python sidecar memory routing,
+  packaged app local-runtime status, and dashboard hub summary wording through
+  SDK local runtime, Electron main local-runtime bridge, packaged local-runtime
+  status, Python sidecar implementation details, and renderer app-runtime
+  facade ownership. The modular guard now rejects the retired broad
+  sidecar-readiness/status and dashboard-utility labels. Validation: focused
+  modular boundary test, docs listing, stale phrase scan, and diff checks. No
+  migration required; documentation/test only, with no JSON-RPC method,
+  readiness behavior, packaged runtime behavior, dashboard route, IPC,
+  credential, provider-policy, backend API, storage, or local execution change.
+
 - 2026-06-19: completed a dashboard section runtime-facade docs slice by
   replacing stale removed-dashboard-utility guidance in the desktop dashboard
   guide and renderer state workflow with section components plus renderer

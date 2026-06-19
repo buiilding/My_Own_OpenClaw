@@ -1,5 +1,5 @@
 ---
-summary: "Renderer dashboard docs sub-hub for shell/sidebar/search behavior, panel section runtime contracts, and dashboard utility ownership."
+summary: "Renderer dashboard docs sub-hub for shell/sidebar/search behavior, panel section runtime contracts, and app-runtime facade ownership."
 read_when:
   - When changing `DashboardShell.jsx` panel routing behavior.
   - When modifying sidebar/search UX or section components under `features/dashboard/components/sections`.

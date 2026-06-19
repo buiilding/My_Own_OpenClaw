@@ -25,7 +25,8 @@ This workflow is narrower than the general [Local-Runtime Python Implementation 
 - Backend owns model-facing tool schemas and prompt policy. Do not import backend code into the sidecar to reuse those schemas.
 - JSON-RPC method params must be JSON objects. Arrays, strings, and other non-object params are rejected by `JSONRPCProtocol`.
 - Return JSON-serializable values only. Convert local exceptions into explicit JSON-RPC errors or `{ success:false, error }` envelopes at the right boundary.
-- Keep stdout reserved for JSON-RPC responses. Logs belong on stderr through the sidecar logger.
+- Keep stdout reserved for JSON-RPC responses. Logs belong on stderr through
+  the Python sidecar logger.
 
 ## Fast Owner Map
 
@@ -35,7 +36,7 @@ This workflow is narrower than the general [Local-Runtime Python Implementation 
 | Add a main-only Python helper | main bridge helper plus Python JSON-RPC handler registry | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, Python sidecar handler tests |
 | Change JSON-RPC protocol validation | protocol core | `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_json_rpc_protocol.py` |
 | Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
-| Change Python sidecar readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, Python sidecar daemon tests |
+| Change local-runtime readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, Python sidecar daemon tests |
 | Change memory method payloads | SDK local-runtime store plus Python memory mixin | SDK local-runtime store code, `frontend/src/main/python/local_backend_memory_handlers.py` | SDK local-runtime store tests, Python sidecar memory/conversation tests |
 | Change `execute_tool` behavior | SDK/main local tool runtime plus Python sidecar tool registry | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, Python sidecar tool tests |
 | Change browser runtime install/warmup methods | main bridge helper plus local-runtime browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-runtime tests |
@@ -52,7 +53,7 @@ or local tool runtime code rather than the compiled mapper table.
 | --- | --- | --- | --- |
 | scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs local-runtime tools through the Python sidecar `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
 | `get-system-state` IPC | `get_system_state` | `_handle_get_system_state` | Returns system/window/runtime state; failure normalizes to `null` in main helper paths. |
-| status helper | `get_status` | `_handle_get_status` | Returns sidecar diagnostic status through SDK runtime RPC. |
+| status helper | `get_status` | `_handle_get_status` | Returns local-runtime diagnostic status through SDK runtime RPC. |
 | browser install helper | `install_browser_chromium` | `_handle_install_browser_chromium` | Main helper uses a long timeout for feature-pack/browser provisioning. |
 | permission helper | `determine_macos_system_events_automation_permission` | `_handle_determine_macos_system_events_automation_permission` | Used by permission runtime for macOS System Events automation checks. |
 
@@ -142,11 +143,11 @@ sidecar handler signature, tests, and docs together.
 
 Electron main readiness behavior:
 
-- starts `sidecar_daemon.py` from the resolved sidecar launch target.
+- starts `sidecar_daemon.py` from the resolved local-runtime launch target.
 - passes backend endpoint, install-auth path, permission-state path, packaged-app flags, and Python runtime env.
 - performs repeated `ping` readiness checks.
 - marks the supervisor ready when ping succeeds.
-- rejects all pending requests on sidecar process exit/error.
+- rejects all pending requests on Python sidecar process exit/error.
 - parses stdout line by line; large JSON responses can be parsed in a worker thread.
 - forwards allowed stderr lines with active sidecar daemon, local-runtime, tool,
   and MCP prefixes; retired local-backend-prefixed helper lines are not part of
@@ -172,9 +173,9 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | --- | --- |
 | Renderer says invalid invoke channel | SDK command allowlist, preload channel injection, renderer facade call site |
 | SDK local-runtime call runs but Python JSON-RPC method is not found | SDK local-runtime method name, `LocalRuntimeService._initialize_methods`, method name spelling |
-| Sidecar returns `INVALID_PARAMS` | SDK local-runtime params, handler signature, params object shape |
-| Request times out | sidecar readiness, long-running handler, timeout policy, stuck tool/browser/memory call |
-| Sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged sidecar launch target |
+| Python sidecar returns `INVALID_PARAMS` | SDK local-runtime params, handler signature, params object shape |
+| Request times out | local-runtime readiness, long-running handler, timeout policy, stuck tool/browser/memory call |
+| Python sidecar process exits and requests fail | stderr logs, runtime dependency warnings, packaged local-runtime launch target |
 | JSON parse errors in main | Python stdout pollution, non-JSON output, partial/large response parsing |
 | Method works in source but fails packaged | runtime dependency packaging, `AGENT_PACKAGED_APP` / `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
 | Memory command maps wrong user/conversation | SDK local-runtime store params, fallback keys, Python memory handler defaults |

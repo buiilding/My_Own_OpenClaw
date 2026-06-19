@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: route JSON-RPC readiness/status, packaged app local
+  runtime status, and dashboard hub ownership labels through local-runtime and
+  Python sidecar implementation wording. No migration required.
 - docs/dashboard: route dashboard section guidance through section components
   and renderer app-runtime facades instead of the removed dashboard utility
   glob. No migration required.

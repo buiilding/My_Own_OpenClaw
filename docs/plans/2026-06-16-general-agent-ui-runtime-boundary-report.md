@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Local-Runtime Readiness and Dashboard-Hub Label Boundary
+
+- Local-runtime JSON-RPC workflow docs, Python sidecar memory docs, packaged
+  release troubleshooting, dashboard docs hub, docs search results, and recent
+  local-runtime wording commits were inspected after the dashboard/evidence
+  docs slice.
+- Finding: JSON-RPC workflow docs, Python sidecar memory docs, and packaged
+  release troubleshooting still used broad sidecar readiness/status/log labels,
+  while the dashboard hub summary still used removed utility ownership wording.
+- Change: reworded those readiness/status/log labels through SDK local runtime,
+  Electron main local-runtime bridge, packaged local-runtime status, and
+  Python sidecar implementation detail, and changed the dashboard hub summary
+  to app-runtime facade ownership. Extended the modular guard for the retired
+  sidecar-readiness/status and dashboard-utility labels.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. JSON-RPC methods, readiness behavior,
+  packaged runtime behavior, dashboard docs routing, IPC, credentials, provider
+  policy, local runtime execution, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 Operations Evidence Local-Runtime Label Boundary
 
 - Operations evidence docs, modular boundary guard coverage, and current dirty
