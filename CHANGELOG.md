@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: extend the modular boundary guard to cover active
+  hub/matrix frontend-sidecar and main/renderer/sidecar route labels. No
+  migration required.
 - docs/hubs: route CLI validation, install decision, development boundary,
   frontend inventory, and IPC checklist labels through local-runtime wording
   instead of frontend/sidecar or main/renderer/sidecar routing labels. No
