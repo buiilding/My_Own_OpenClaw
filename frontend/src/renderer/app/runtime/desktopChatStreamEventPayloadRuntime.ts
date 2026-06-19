@@ -148,6 +148,10 @@ export function resolveTerminalErrorPayload(payload: EventPayload | null | undef
   };
 }
 
+export function resolveLocalUserMessageText(payload: EventPayload | null | undefined): string | null {
+  return stringOrNull(payload?.text) ?? stringOrNull(payload?.content);
+}
+
 export function resolveToolSchemasMetadataPayload(payload: EventPayload | null | undefined): EventPayload {
   return {
     ...(payload ?? {}),

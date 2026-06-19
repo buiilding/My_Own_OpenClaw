@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer local-user stream payload runtime slice by
+  moving `user_message` text/content alias normalization into
+  `desktopChatStreamEventPayloadRuntime`. `useChatStreamLocalUserHandler` now
+  consumes `resolveLocalUserMessageText(...)` while keeping model-context
+  capture, thinking-status clearing, and tracking side effects local to the
+  handler. Validation: focused desktop chat stream payload runtime and renderer
+  chat runtime boundary tests, stale local-user raw-payload scan, docs listing,
+  and diff checks. No migration required; SDK `user_message` event payload
+  shapes, text/content alias acceptance, conversation event channel names,
+  transcript/session state, IPC allowlists, storage, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer conversation projection event runtime slice
   by moving SDK current-turn and display-row projection payload validation into
   `desktopConversationRuntimeEventClient`. `useConversationRuntimeProjectionStream`

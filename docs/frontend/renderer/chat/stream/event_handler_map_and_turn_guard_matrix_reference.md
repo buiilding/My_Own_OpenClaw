@@ -94,6 +94,9 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
 
 ## Side-Effect Ownership After Dispatch
 
+- `useChatStreamLocalUserHandler`: seeds local-user turn state and model
+  context from `user_message` events while `desktopChatStreamEventPayloadRuntime.ts`
+  owns `text`/`content` payload alias normalization.
 - `useChatStreamToolHandlers`: persists tool-call/tool-output/tool-bundle transcript rows only, and routes `tool-output` transcript rows through the shared `ConversationRuntime.ts` helper
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update

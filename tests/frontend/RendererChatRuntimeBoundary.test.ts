@@ -972,6 +972,10 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).toContain("event.type !== 'user_message'");
     expect(handlerSource).not.toContain('LocalUserMessageEvent');
     expect(handlerSource).toContain("event.type !== 'user_message'");
+    expect(handlerSource).not.toContain('event.payload?.text');
+    expect(handlerSource).not.toContain('event.payload?.content');
+    expect(handlerSource).not.toContain('function readString');
+    expect(handlerSource).toContain('resolveLocalUserMessageText');
     expect(handlerSource).not.toContain('payload?.screenshotRefs');
     expect(handlerSource).not.toContain('addMessage(');
   });

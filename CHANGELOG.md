@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize local-user stream message text aliases in the
+  chat stream payload runtime before local-user handlers consume them. No
+  migration required.
 - renderer/runtime: normalize SDK current-turn and display-row projection
   events in the desktop conversation runtime event client before chat
   projection hooks consume them. No migration required.

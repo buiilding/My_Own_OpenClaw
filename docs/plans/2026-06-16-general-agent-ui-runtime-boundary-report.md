@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Local-User Stream Payload Runtime Boundary
+
+- Finding: `useChatStreamLocalUserHandler` consumed SDK `user_message` text
+  aliases directly from `event.payload`, even though adjacent stream payload
+  alias handling already lived in `desktopChatStreamEventPayloadRuntime`.
+- Change: moved local-user `text`/`content` alias normalization into
+  `desktopChatStreamEventPayloadRuntime` as `resolveLocalUserMessageText(...)`.
+  The local-user handler now keeps only model-context capture, thinking-status
+  clearing, and tracking side effects.
+- Validation: focused desktop chat stream payload runtime and renderer chat
+  runtime boundary tests, stale local-user raw-payload scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. SDK `user_message` payload shapes,
+  text/content alias acceptance, conversation event channel names,
+  transcript/session state, IPC, storage, credentials, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Conversation Projection Event Runtime Boundary
 
 - Finding: `useConversationRuntimeProjectionStream` subscribed through

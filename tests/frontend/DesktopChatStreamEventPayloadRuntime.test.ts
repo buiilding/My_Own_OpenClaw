@@ -9,6 +9,7 @@ import {
   buildTokenCountsFromPayload,
   getCompactionReplacementHistoryEntries,
   resolveErrorText,
+  resolveLocalUserMessageText,
   resolveTerminalErrorPayload,
   resolveToolSchemasMetadataPayload,
   shouldIgnoreStreamError,
@@ -106,6 +107,13 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
       message: 'message-error',
       content: 'content-error',
     });
+  });
+
+  test('normalizes local-user message text aliases', () => {
+    expect(resolveLocalUserMessageText({ text: 'hello', content: 'fallback' })).toBe('hello');
+    expect(resolveLocalUserMessageText({ content: 'fallback' })).toBe('fallback');
+    expect(resolveLocalUserMessageText({ text: 7, content: null })).toBeNull();
+    expect(resolveLocalUserMessageText(undefined)).toBeNull();
   });
 
   test('normalizes compaction payload aliases for renderer side effects', () => {

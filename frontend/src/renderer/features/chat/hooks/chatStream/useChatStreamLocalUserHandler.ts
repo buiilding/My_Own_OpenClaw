@@ -5,6 +5,7 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import { GENERIC_THINKING_STATUS } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
+import { resolveLocalUserMessageText } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { type TranscriptModelContext } from '../../../../app/runtime/desktopChatStreamModelContextRuntime';
 
@@ -15,10 +16,6 @@ type UseChatStreamLocalUserHandlerDeps = {
   setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
   setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
 };
-
-function readString(value: unknown): string | null {
-  return typeof value === 'string' ? value : null;
-}
 
 export function useChatStreamLocalUserHandler({
   modelContextRef,
@@ -31,7 +28,7 @@ export function useChatStreamLocalUserHandler({
     if (event.type !== 'user_message') {
       return;
     }
-    const text = readString(event.payload?.text) ?? readString(event.payload?.content);
+    const text = resolveLocalUserMessageText(event.payload);
     if (!text) {
       return;
     }
