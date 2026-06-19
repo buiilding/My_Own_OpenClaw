@@ -17,6 +17,7 @@ from backend.src.llm.models.models_config import (
     LOCAL_VISION_MODELS,
     ONLINE_MODELS,
     REASONING_MODE_ORDER,
+    SCRIPTED_DEV_MODELS,
     THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
     get_model_card_metadata,
 )
@@ -77,22 +78,14 @@ def _select_default_family_model(
         return non_thinking_model
 
     none_reasoning_model = next(
-        (
-            model
-            for model in models
-            if _resolve_entry_reasoning_mode(model) == "none"
-        ),
+        (model for model in models if _resolve_entry_reasoning_mode(model) == "none"),
         None,
     )
     if none_reasoning_model is not None:
         return none_reasoning_model
 
     medium_reasoning_model = next(
-        (
-            model
-            for model in models
-            if _resolve_entry_reasoning_mode(model) == "medium"
-        ),
+        (model for model in models if _resolve_entry_reasoning_mode(model) == "medium"),
         None,
     )
     if medium_reasoning_model is not None:
@@ -148,7 +141,9 @@ def _derive_family_label(
     if raw_label:
         return _sanitize_family_label(raw_label)
 
-    runtime_model_id = _normalize_string((fallback_source or {}).get("runtime_model_id"))
+    runtime_model_id = _normalize_string(
+        (fallback_source or {}).get("runtime_model_id")
+    )
     return runtime_model_id
 
 
@@ -351,6 +346,9 @@ _ALL_ONLINE_MODELS_CATALOG = tuple(
         key=lambda m: (m["provider"], m.get("supports_thinking", False)),
     )
 )
+_SCRIPTED_DEV_MODELS_CATALOG = _build_catalog(
+    SCRIPTED_DEV_MODELS, supports_thinking=False
+)
 
 
 class ModelService:
@@ -376,6 +374,10 @@ class ModelService:
         Deduplicates models that appear in both lists, preferring the thinking version.
         """
         return _copy_catalog(_ALL_ONLINE_MODELS_CATALOG)
+
+    def get_scripted_dev_models(self) -> List[Dict[str, Any]]:
+        """Return deterministic dev-only scripted models."""
+        return _copy_catalog(_SCRIPTED_DEV_MODELS_CATALOG)
 
     def get_vision_models(self) -> List[Dict[str, Any]]:
         """

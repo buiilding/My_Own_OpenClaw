@@ -45,7 +45,7 @@ tables below use `<windie>` for the active platform shim.
 | `<windie> start backend` | Start the backend dev server. |
 | `<windie> start frontend` | Start the Vite renderer dev server. |
 | `<windie> start desktop` | Start the Electron development app. |
-| `<windie> start dev` | Start the Vite renderer dev server and Electron development app together; Ctrl-C stops both. |
+| `<windie> start dev` | Start the Vite renderer dev server and Electron development app together; Ctrl-C stops both. Also exposes the dev-only Scripted Runtime model in the desktop model picker. |
 | `<windie> start customer` | Start the Vite renderer dev server and Electron customer app together; Ctrl-C stops both. |
 | `<windie> start all` | Start backend, frontend, and Electron development app together. |
 | `<windie> stop` | Stop tracked Windie dev processes when process tracking exists. |

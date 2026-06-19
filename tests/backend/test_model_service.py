@@ -521,3 +521,21 @@ def test_get_online_models_include_card_metadata_for_demo_catalog():
     assert openrouter_auto["context_window"] == 2000000
     assert openrouter_auto["input_price"] == "Free"
     assert openrouter_auto["output_price"] == "Free"
+
+
+def test_get_scripted_dev_models_returns_hidden_dev_catalog_entry():
+    service = ModelService(AppConfig(model_mode="online"))
+
+    models = service.get_scripted_dev_models()
+
+    assert len(models) == 1
+    scripted = models[0]
+    assert scripted["id"] == "scripted-runtime"
+    assert scripted["runtime_model_id"] == "scripted-runtime"
+    assert scripted["provider"] == "scripted"
+    assert scripted["display_name"] == "Scripted Runtime"
+    assert scripted["family_id"] == "scripted::scripted-runtime"
+    assert scripted["default_model_id"] == "scripted-runtime"
+    assert scripted["supports_thinking"] is False
+    assert scripted["supports_native_web_search"] is False
+    assert scripted["capabilities"] == {"supports_native_web_search": False}

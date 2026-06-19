@@ -14,6 +14,7 @@ from backend.src.llm.providers.local import LMStudioProvider, OllamaProvider
 from backend.src.llm.providers.mistral import MistralProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openrouter import OpenRouterProvider
+from backend.src.llm.providers.scripted import ScriptedProvider
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +195,13 @@ def _create_cached_provider_factory(
         )
 
     # Local providers don't require API keys (but may fail at runtime if not running)
+    _register_provider(
+        factory,
+        key="scripted",
+        label="Scripted",
+        provider_cls=ScriptedProvider,
+        timeout=timeout,
+    )
     _register_provider(
         factory,
         key="ollama",

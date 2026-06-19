@@ -26,6 +26,7 @@ Cloud providers require configured credentials before registration. Local provid
 | Provider class | Availability gate |
 | --- | --- |
 | OpenAI, Anthropic, Gemini, OpenRouter, Mistral, Kimi Coding | API key/config presence and constructor validation |
+| Scripted | deterministic dev provider; selectable only when the desktop dev loop exposes it |
 | Ollama, LM Studio | local base URL config; request-time availability depends on local server |
 | OCR/vision/embedding providers | provider-specific health and circuit-breaker state can narrow prompt-visible capabilities |
 | web search | native provider support or configured Brave fallback decides whether logical web search is shown |
@@ -49,6 +50,9 @@ Do not imply that a failed LLM request automatically retries on another provider
 - Add model metadata in `backend/src/llm/models/models_config.py`.
 - Update config loading and credential docs when a provider gets new env vars.
 - Keep provider-specific response normalization inside provider/client layers before events reach the agent loop.
+- Keep the scripted provider dev-only in the model picker. It may be routable in
+  the backend for selected dev sessions, but it should not appear in packaged or
+  customer starts.
 - Treat automatic cross-provider retry as a product/runtime design change, not a small provider patch.
 
 ## Debug Routing

@@ -5,6 +5,11 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+from backend.src.llm.models.scripted import (
+    SCRIPTED_MODEL_ENTRY,
+    SCRIPTED_PROVIDER_ID,
+)
+
 
 def _slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
@@ -767,6 +772,10 @@ ONLINE_MODELS: Dict[str, List[Dict[str, Any]]] = {
     "kimi-coding": KIMI_CODING_PRESETS,
 }
 
+SCRIPTED_DEV_MODELS: Dict[str, List[Dict[str, Any]]] = {
+    SCRIPTED_PROVIDER_ID: [SCRIPTED_MODEL_ENTRY],
+}
+
 ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
     provider: [
         str(model.get("id"))
@@ -783,7 +792,7 @@ THINKING_TEXT_STREAM_UNSUPPORTED_MODELS: Dict[str, List[str]] = {}
 
 _MODEL_PRESET_BY_ID: Dict[str, Dict[str, Any]] = {
     str(model.get("id")): dict(model)
-    for models in ONLINE_MODELS.values()
+    for models in [*ONLINE_MODELS.values(), *SCRIPTED_DEV_MODELS.values()]
     for model in models
     if model.get("id")
 }

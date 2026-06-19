@@ -39,6 +39,11 @@ const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
     strengths: Object.freeze(['Agentic', 'Code', 'Multimodal', 'Long Context']),
   }),
   Object.freeze({
+    patterns: Object.freeze(['scripted']),
+    description: 'Dev-only deterministic runtime for validating streaming, images, and tool calls.',
+    strengths: Object.freeze(['Deterministic', 'Tools', 'Streaming', 'Images']),
+  }),
+  Object.freeze({
     patterns: Object.freeze(['ollama', 'local']),
     description: 'Local model runtime for private on-device workflows.',
     strengths: Object.freeze(['Private', 'Offline', 'Low Latency', 'Customization']),
@@ -48,6 +53,7 @@ const PROVIDER_MODEL_DISPLAY_FALLBACKS = Object.freeze([
 const PROVIDER_LABEL_OVERRIDES = Object.freeze({
   openai: 'OpenAI',
   openrouter: 'OpenRouter',
+  scripted: 'Scripted',
 });
 
 export function formatProviderDisplayLabel(providerValue) {

@@ -206,6 +206,16 @@ describe('windie CLI', () => {
     });
   });
 
+  test('exposes scripted provider model only for start dev children', () => {
+    const devPlan = getSpawnPlan(['start', 'dev']);
+    const customerPlan = getSpawnPlan(['start', 'customer']);
+
+    expect(devPlan.concurrent[0].env.WINDIE_ENABLE_SCRIPTED_PROVIDER).toBe('1');
+    expect(devPlan.concurrent[1].env.WINDIE_ENABLE_SCRIPTED_PROVIDER).toBe('1');
+    expect(customerPlan.concurrent[0].env).toBeUndefined();
+    expect(customerPlan.concurrent[1].env).toBeUndefined();
+  });
+
   test('allows frontend readiness timeout override for cold dev startup', () => {
     const previous = process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS;
     process.env.WINDIE_FRONTEND_READY_TIMEOUT_MS = '120000';

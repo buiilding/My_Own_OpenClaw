@@ -27,6 +27,7 @@ def _patch_factory_provider_classes(monkeypatch):
         "OpenRouterProvider",
         "MistralProvider",
         "KimiCodingProvider",
+        "ScriptedProvider",
         "OllamaProvider",
         "LMStudioProvider",
     ):
@@ -39,8 +40,12 @@ def test_normalize_base_url_strips_whitespace_and_trailing_slash():
         "http://localhost:11434/v1",
     )
     assert normalized == "http://localhost:11434/v1"
-    assert providers_module._normalize_base_url("", "http://default") == "http://default"
-    assert providers_module._normalize_base_url("/", "http://default") == "http://default"
+    assert (
+        providers_module._normalize_base_url("", "http://default") == "http://default"
+    )
+    assert (
+        providers_module._normalize_base_url("/", "http://default") == "http://default"
+    )
 
 
 def test_normalize_provider_name_accepts_current_kimi_forms_only():
@@ -133,7 +138,9 @@ def test_create_provider_factory_cache_key_normalizes_kimi_v1_suffix(monkeypatch
     second_factory = providers_module.create_provider_factory(cfg_without_v1)
 
     assert first_factory is second_factory
-    assert first_factory["kimi-coding"].kwargs["base_url"] == "https://api.kimi.com/coding"
+    assert (
+        first_factory["kimi-coding"].kwargs["base_url"] == "https://api.kimi.com/coding"
+    )
 
 
 def test_get_provider_accepts_current_kimi_provider_key(monkeypatch):
@@ -175,3 +182,11 @@ def test_get_provider_rejects_space_separated_provider_name(monkeypatch):
 
     with pytest.raises(ValueError, match="kimi code"):
         providers_module.get_provider(AppConfig(), "kimi code")
+
+
+def test_get_provider_routes_scripted_provider_without_api_key():
+    providers_module._create_cached_provider_factory.cache_clear()
+
+    provider = providers_module.get_provider(AppConfig(api_key=None), "scripted")
+
+    assert provider.__class__.__name__ == "ScriptedProvider"

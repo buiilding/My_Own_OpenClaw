@@ -4,6 +4,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- backend/provider: add a dev-only `scripted` provider that streams
+  deterministic `@script` replies, tool calls, batch tool calls, and
+  model-visible image counts without paid inference. `<windie> start dev`
+  exposes the Scripted Runtime row in the desktop model picker; packaged and
+  customer starts do not surface it. No migration required.
+
 ### Fixed
 
 - main/ipc: import the private SDK backend-event normalizer from its transport

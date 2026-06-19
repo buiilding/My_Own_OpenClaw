@@ -12,6 +12,27 @@ const {
   isDebugFlagEnabled,
 } = require('../app/debug_env.cjs');
 
+const SCRIPTED_PROVIDER_MODEL = Object.freeze({
+  id: 'scripted-runtime',
+  runtime_model_id: 'scripted-runtime',
+  provider: 'scripted',
+  display_name: 'Scripted Runtime',
+  supports_thinking: false,
+  family_id: 'scripted::scripted-runtime',
+  family_label: 'Scripted Runtime',
+  default_model_id: 'scripted-runtime',
+  capabilities: Object.freeze({
+    supports_native_web_search: false,
+  }),
+  supports_native_web_search: false,
+  context_window: 32768,
+  description: 'Dev-only deterministic model for validating streaming, image, and tool paths.',
+  strengths: Object.freeze(['Deterministic', 'Tools', 'Streaming', 'Images']),
+  latency: 'instant',
+  input_price: 'Free',
+  output_price: 'Free',
+});
+
 function isDebugStreamTraceEnabled() {
   return isDebugFlagEnabled('streamEvents');
 }
@@ -69,6 +90,51 @@ function resolveRendererViewFromWebContents(webContents) {
       return match[1];
     }
   }
+}
+
+function isScriptedProviderDevModelEnabled(env = process.env) {
+  return String(env.WINDIE_ENABLE_SCRIPTED_PROVIDER || '').trim() === '1';
+}
+
+function withScriptedDevModel(data, env = process.env) {
+  if (!isScriptedProviderDevModelEnabled(env)) {
+    return data;
+  }
+  if (!data || typeof data !== 'object' || data.type !== 'models-listed') {
+    return data;
+  }
+  const payload = data.payload && typeof data.payload === 'object' && !Array.isArray(data.payload)
+    ? data.payload
+    : null;
+  if (!payload) {
+    return data;
+  }
+  const onlineKey = Array.isArray(payload.online) ? 'online' : (
+    Array.isArray(payload.online_models) ? 'online_models' : null
+  );
+  if (!onlineKey) {
+    return data;
+  }
+  const onlineModels = payload[onlineKey];
+  const hasScriptedModel = onlineModels.some((model) => (
+    model
+    && typeof model === 'object'
+    && model.provider === SCRIPTED_PROVIDER_MODEL.provider
+    && model.id === SCRIPTED_PROVIDER_MODEL.id
+  ));
+  if (hasScriptedModel) {
+    return data;
+  }
+  return {
+    ...data,
+    payload: {
+      ...payload,
+      [onlineKey]: [
+        ...onlineModels,
+        { ...SCRIPTED_PROVIDER_MODEL },
+      ],
+    },
+  };
 }
 
 async function runBeforeOverlayQueryCapture({
@@ -161,33 +227,34 @@ function processBackendMessageData(data, {
   traceBackendEvent = null,
   log,
 }) {
+  const rendererData = withScriptedDevModel(data);
   if (isDebugStreamTraceEnabled()) {
-    log(`[StreamTrace][main][recv] ${buildBackendEventTraceSummary(data)}`);
+    log(`[StreamTrace][main][recv] ${buildBackendEventTraceSummary(rendererData)}`);
   }
   if (typeof traceBackendEvent === 'function') {
-    traceBackendEvent(data);
+    traceBackendEvent(rendererData);
   }
-  if (data && typeof data === 'object') {
-    if (data.session_id) {
-      setCurrentSessionId(data.session_id);
+  if (rendererData && typeof rendererData === 'object') {
+    if (rendererData.session_id) {
+      setCurrentSessionId(rendererData.session_id);
     }
-    if (data.user_id) {
-      setCurrentServerUserId(data.user_id);
+    if (rendererData.user_id) {
+      setCurrentServerUserId(rendererData.user_id);
     }
-    if (data.conversation_ref) {
-      setCurrentConversationRef(data.conversation_ref);
+    if (rendererData.conversation_ref) {
+      setCurrentConversationRef(rendererData.conversation_ref);
     }
   }
   // Only log errors or important message types
-  if (data.type === 'error') {
-    log(`Error from backend: ${data.payload?.message || 'Unknown error'}`);
+  if (rendererData?.type === 'error') {
+    log(`Error from backend: ${rendererData.payload?.message || 'Unknown error'}`);
   }
-  if (data.type === 'settings-updated' && data.id) {
-    resolveSettingsSync(data.id, true);
-  } else if (data.type === 'error' && data.id) {
-    resolveSettingsSync(data.id, false);
+  if (rendererData?.type === 'settings-updated' && rendererData.id) {
+    resolveSettingsSync(rendererData.id, true);
+  } else if (rendererData?.type === 'error' && rendererData.id) {
+    resolveSettingsSync(rendererData.id, false);
   }
-  const overlayTransition = resolveBackendOverlayPhaseTransition(data, getResponseOverlayPhase());
+  const overlayTransition = resolveBackendOverlayPhaseTransition(rendererData, getResponseOverlayPhase());
   if (overlayTransition) {
     setResponseOverlayPhase(
       overlayTransition.phase,
@@ -195,11 +262,14 @@ function processBackendMessageData(data, {
       overlayTransition.metadata,
     );
   }
-  broadcastTypedBackendEvent(data, broadcastToRenderers);
+  broadcastTypedBackendEvent(rendererData, broadcastToRenderers);
 }
 
 module.exports = {
+  SCRIPTED_PROVIDER_MODEL,
+  isScriptedProviderDevModelEnabled,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
   uploadArtifact,
+  withScriptedDevModel,
 };

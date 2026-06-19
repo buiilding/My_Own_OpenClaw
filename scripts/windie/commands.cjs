@@ -1139,6 +1139,10 @@ async function runDoctor(args) {
 }
 
 function runStart(target) {
+  const scriptedProviderEnv = {
+    ...process.env,
+    WINDIE_ENABLE_SCRIPTED_PROVIDER: '1',
+  };
   if (target === 'backend') {
     return runForeground(script('scripts/run-backend.sh'), [], { cwd: REPO_ROOT });
   }
@@ -1152,11 +1156,12 @@ function runStart(target) {
   }
   if (target === 'dev') {
     return runConcurrent([
-      { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
+      { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite', env: scriptedProviderEnv },
       afterFrontendReady({
         label: 'desktop',
         command: script('scripts/run-frontend-electron.sh'),
         cwd: REPO_ROOT,
+        env: scriptedProviderEnv,
       }),
     ]).then((code) => process.exit(code));
   }
@@ -1669,14 +1674,19 @@ function getSpawnPlan(argv) {
     return { command: script('scripts/run-frontend-electron.sh'), args: [], cwd: REPO_ROOT };
   }
   if (command === 'start' && args[0] === 'dev') {
+    const scriptedProviderEnv = {
+      ...process.env,
+      WINDIE_ENABLE_SCRIPTED_PROVIDER: '1',
+    };
     return {
       concurrent: [
-        { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite' },
+        { label: 'frontend', command: script('scripts/run-frontend-dev.sh'), cwd: REPO_ROOT, logLayer: 'vite', env: scriptedProviderEnv },
         {
           label: 'desktop',
           command: script('scripts/run-frontend-electron.sh'),
           cwd: REPO_ROOT,
           waitFor: frontendReadyPlan(),
+          env: scriptedProviderEnv,
         },
       ],
     };
