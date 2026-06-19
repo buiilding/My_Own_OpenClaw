@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/overlays: add read_when routing for the response-overlay phase and
+  layout app-runtime helpers. No migration required.
 - renderer/overlays: move the renderer response-overlay phase enum, layout
   constants, layout-mode resolver, and frame-size helper from chat utilities
   into the app-runtime layer while preserving shared JSON contracts and

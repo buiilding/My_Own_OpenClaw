@@ -275,6 +275,12 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a response-overlay runtime-doc routing follow-up by
+  adding a `read_when` hint for the new phase and layout app-runtime helpers to
+  the overlay utility reference. Validation: docs listing and diff checks. No
+  migration required; docs changed only, with no phase, layout, IPC, storage,
+  credential, permission, hosted route, provider-policy, packaging, or local
+  execution behavior changed.
 - 2026-06-19: completed a renderer response-overlay presentation contract
   boundary slice by moving the renderer phase enum/preflight guard facade,
   layout constants, layout-mode resolver, and frame-size helper from chat

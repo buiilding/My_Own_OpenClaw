@@ -1,6 +1,7 @@
 ---
 summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, removed responseOverlayPhasePayload parser behavior, layout-mode resolution, and frame-size measurement semantics."
 read_when:
+  - When changing `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js` or `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`.
   - When changing files under `frontend/src/renderer/features/chat/utils/overlay/*`.
   - When debugging overlay phase payload drops, renderer/main phase-contract drift, or response overlay sizing regressions.
   - When resolving stale references to removed `responseOverlayPhasePayload.js` or `ResponseOverlayPhasePayload.test.js` files.
