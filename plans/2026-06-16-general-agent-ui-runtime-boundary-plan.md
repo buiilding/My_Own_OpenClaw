@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Permission Onboarding Storage Runtime Boundary
+
+- Finding: permission onboarding completion persistence lived under the
+  permissions feature utility tree even though the helper already consumed the
+  renderer storage runtime client and skin storage keys as durable app-runtime
+  policy.
+- Change: moved the helper into
+  `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`,
+  routed the permission store and storage tests through the app-runtime owner,
+  and deleted the old
+  `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
+  path.
+- Validation: focused permission storage/store and skin/config boundary tests,
+  docs listing, stale old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. The `windieos-permission-onboarding`
+  key, retired desktop-agent key ignore behavior, default fail-closed state,
+  manifest-version completion rules, IPC payloads, credentials, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer App Config Filter and Storage Runtime Boundary
 
 - Finding: renderer-managed config allowlisting and localStorage fallback
