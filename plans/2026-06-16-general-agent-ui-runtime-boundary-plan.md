@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Permission Grant Effects Runtime Boundary
+
+- Finding: onboarding and browser settings both applied permission post-grant
+  config effects through a helper under the permissions feature, making shared
+  app config side effects read as permission UI ownership.
+- Change: moved the helper to
+  `frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime.js`,
+  updated onboarding/settings consumers, deleted the old permission utility
+  path, and refreshed docs and boundary guards.
+- Validation: focused permission grant effects, onboarding permission actions,
+  browser settings, renderer app-runtime boundary, docs listing, stale old-path
+  scan, and diff checks.
+- Compatibility: no migration required. The `browser_automation_enabled`
+  config field, permission status payloads, config update payloads, IPC
+  channels, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Active Chat Session Reset Runtime Boundary
 
 - Finding: dashboard conversation delete/clear flows imported

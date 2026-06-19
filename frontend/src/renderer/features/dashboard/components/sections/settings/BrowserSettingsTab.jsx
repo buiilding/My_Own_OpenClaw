@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
-import { applyPermissionGrantEffects } from '../../../../permissions/utils/permissionGrantEffects';
+import { applyPermissionGrantEffects } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';

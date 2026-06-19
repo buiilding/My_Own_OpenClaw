@@ -4,8 +4,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
+import { applyPermissionGrantEffects } from '../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
-import { applyPermissionGrantEffects } from '../../permissions/utils/permissionGrantEffects';
 import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';
 
 const MACOS_INTERVAL_RECHECK_PERMISSION_IDS = new Set([

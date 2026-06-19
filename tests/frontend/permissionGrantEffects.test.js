@@ -1,8 +1,8 @@
 /**
- * Covers permission grant effects. behavior in the frontend test suite.
+ * Covers permission grant effects behavior in the frontend test suite.
  */
 
-import { applyPermissionGrantEffects } from '../../frontend/src/renderer/features/permissions/utils/permissionGrantEffects';
+import { applyPermissionGrantEffects } from '../../frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime';
 
 describe('applyPermissionGrantEffects', () => {
   test('enables browser automation in config after a granted browser permission', () => {

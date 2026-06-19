@@ -17,7 +17,7 @@ title: "Permission Onboarding Gate and Manifest Version Runtime Reference"
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
-- `frontend/src/renderer/features/permissions/utils/permissionGrantEffects.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
 - `tests/frontend/DesktopOnboardingSlideshow.test.jsx`
@@ -119,7 +119,7 @@ Permission request handling is split deliberately:
 
 - `usePermissionStore.requestPermission()` remains the shared IPC-backed request primitive
 - `useOnboardingPermissionActions()` owns onboarding-local request pending state
-- `applyPermissionGrantEffects(...)` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
+- `applyPermissionGrantEffects(...)` in `desktopPermissionGrantEffectsRuntime.js` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
 
 ### Settings Permission Status
 

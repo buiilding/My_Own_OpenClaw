@@ -1,5 +1,5 @@
 /**
- * Provides the permission grant effects module for the renderer UI.
+ * Coordinates renderer permission post-grant effects shared by onboarding and settings UI.
  */
 
 export function applyPermissionGrantEffects({ permissionId, status, updateConfig }) {

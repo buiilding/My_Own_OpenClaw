@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission grant-effects boundary slice by
+  moving shared post-grant config side effects from permission feature
+  utilities into `app/runtime/desktopPermissionGrantEffectsRuntime.js`, routing
+  onboarding and browser settings through that app-runtime owner, deleting the
+  old permission utility path, and guarding against the feature-owned helper
+  returning. Validation: focused permission grant effects, onboarding
+  permission actions, browser settings, renderer app-runtime boundary, docs
+  listing, stale old-path scan, and diff checks. No migration required; the
+  `browser_automation_enabled` config field, permission status payloads,
+  config update payloads, IPC channels, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer active chat-session reset boundary slice by
   moving `resetActiveChatSession` from chat feature utilities into
   `app/runtime/desktopActiveChatSessionRuntime.ts`, routing chat new-session

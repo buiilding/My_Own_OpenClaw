@@ -359,6 +359,31 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('permission grant effects are owned by app runtime', async () => {
+    const grantEffectsSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopPermissionGrantEffectsRuntime.js'),
+      'utf8',
+    );
+    const onboardingActionsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/onboarding/hooks/useOnboardingPermissionActions.js'),
+      'utf8',
+    );
+    const browserSettingsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/sections/settings/BrowserSettingsTab.jsx'),
+      'utf8',
+    );
+
+    expect(grantEffectsSource).toContain('browser_automation_enabled');
+    expect(grantEffectsSource).not.toContain('features/permissions');
+    expect(onboardingActionsSource).toContain('desktopPermissionGrantEffectsRuntime');
+    expect(browserSettingsSource).toContain('desktopPermissionGrantEffectsRuntime');
+    expect(onboardingActionsSource).not.toContain('permissions/utils/permissionGrantEffects');
+    expect(browserSettingsSource).not.toContain('permissions/utils/permissionGrantEffects');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/permissions/utils/permissionGrantEffects.js'),
+    )).rejects.toThrow();
+  });
+
   test('app runtime modules do not import chat feature internals', async () => {
     const files = await listSourceFiles(path.join(appRoot, 'runtime'));
     const offenders: string[] = [];
