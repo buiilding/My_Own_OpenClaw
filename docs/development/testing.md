@@ -70,7 +70,7 @@ npm run audit:knip
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/MessageListClasses.test.js`.
 - Screenshot URL/data-URL resolution behavior is covered directly by `tests/frontend/MessageScreenshots.test.js`.
-- Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/MessageTokenUsage.test.js`.
+- Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`.
 - Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.

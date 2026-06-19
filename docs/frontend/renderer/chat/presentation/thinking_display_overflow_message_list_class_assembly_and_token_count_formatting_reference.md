@@ -15,9 +15,11 @@ title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/message/messageListClasses.js`
+- `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListClasses.test.js`
+- `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
 
 ## Thinking Stream Scroll-State Contract
@@ -75,7 +77,8 @@ Important:
 
 - dedicated `TokenCountDisplay` component path is retired in current frontend runtime.
 - token count remains part of stream telemetry/state and may be surfaced by future UI consumers.
-- in `dev_ui=1`, per-message token estimates now render via `MessageSourceBadge`:
+- in `dev_ui=1`, per-message token estimates now render via
+  `MessageSourceBadge` through `desktopMessageTokenUsageRuntime`:
   - user rows show text/image/total estimates
   - tool-call/tool-output rows show payload token estimates
   - all message-level values are approximate and intentionally tagged `tokens~`

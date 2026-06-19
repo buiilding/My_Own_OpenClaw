@@ -1,10 +1,10 @@
 /**
- * Covers message token usage. behavior in the frontend test suite.
+ * Covers desktop message token usage runtime behavior in the frontend test suite.
  */
 
-import { resolveMessageTokenUsageTag } from '../../frontend/src/renderer/features/chat/utils/message/messageTokenUsage';
+import { resolveMessageTokenUsageTag } from '../../frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime';
 
-describe('messageTokenUsage', () => {
+describe('desktopMessageTokenUsageRuntime', () => {
   test('prefers provider-reported token counts when attached to an assistant message', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'assistant',

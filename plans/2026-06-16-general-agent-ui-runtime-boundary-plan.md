@@ -317,6 +317,24 @@ Each completed slice should report:
   credentials, permissions, hosted routes, provider policy, packaging, and
   local execution behavior are unchanged.
 
+### 2026-06-19 Renderer Message Token Usage Runtime Boundary
+
+- Finding: per-message dev token badge formatting lived under chat message
+  utilities even though it is presentation metadata consumed by
+  `MessageSourceBadge` alongside app-runtime source tag labels.
+- Change: moved `resolveMessageTokenUsageTag(...)` to
+  `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`,
+  routed `MessageSourceBadge` and focused tests through that app-runtime
+  facade, deleted the old chat utility path, and refreshed docs plus boundary
+  guards.
+- Validation: focused message token usage runtime, message source badge,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks.
+- Compatibility: no migration required. Provider token usage labels,
+  approximate user/tool token estimates, source badge rendering, dev-UI gating,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

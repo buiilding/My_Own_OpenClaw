@@ -597,7 +597,7 @@ describe('renderer chat runtime boundary', () => {
     expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
   });
 
-  test('message source tags stay behind the app runtime presentation facade', async () => {
+  test('message source and token tags stay behind app runtime presentation facades', async () => {
     const sourceBadgeSource = await fs.readFile(
       path.join(chatRoot, 'components/message/MessageSourceBadge.jsx'),
       'utf8',
@@ -610,15 +610,26 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js'),
       'utf8',
     );
+    const tokenUsageRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js'),
+      'utf8',
+    );
 
     expect(sourceBadgeSource).toContain('desktopMessageSourceTagRuntime');
+    expect(sourceBadgeSource).toContain('desktopMessageTokenUsageRuntime');
     expect(thinkingDisplaySource).toContain('desktopMessageSourceTagRuntime');
     expect(sourceBadgeSource).not.toContain('utils/message/sourceTags');
+    expect(sourceBadgeSource).not.toContain('utils/message/messageTokenUsage');
     expect(thinkingDisplaySource).not.toContain('utils/message/sourceTags');
     expect(sourceTagRuntimeSource).toContain('desktopPresentationSourceChannels');
     expect(sourceTagRuntimeSource).not.toContain('features/chat');
+    expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
+    expect(tokenUsageRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/sourceTags.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageTokenUsage.js'),
     )).rejects.toThrow();
   });
 

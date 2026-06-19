@@ -5,7 +5,7 @@
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
 import { resolveSourceTag } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
-import { resolveMessageTokenUsageTag } from '../../utils/message/messageTokenUsage';
+import { resolveMessageTokenUsageTag } from '../../../../app/runtime/desktopMessageTokenUsageRuntime';
 
 export default function MessageSourceBadge({ message }) {
   if (!isDevUiEnabled()) {

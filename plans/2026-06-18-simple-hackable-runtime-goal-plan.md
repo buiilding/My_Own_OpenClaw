@@ -326,6 +326,19 @@ For each completed slice, record:
   labels, dev-UI gating, message token usage tags, thinking display labels,
   IPC payloads, storage, credentials, permissions, hosted routes, provider
   policy, packaging, and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer message token-usage runtime-boundary slice
+  by moving dev token badge formatting from
+  `frontend/src/renderer/features/chat/utils/message/messageTokenUsage.js` into
+  `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`.
+  Message source badges, docs, focused tests, and renderer chat boundary guards
+  now route through the app-runtime owner, and the old chat message utility
+  path is deleted. Validation: focused message token usage runtime, message
+  source badge, renderer chat boundary, docs listing, stale old-path scan,
+  frontend lint, and diff checks. No migration required; provider token usage
+  labels, approximate user/tool token estimates, source badge rendering,
+  dev-UI gating, IPC payloads, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer tool-output wrapper deletion by removing
   the unused `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
   path after current-turn and stream message paths converged on

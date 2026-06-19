@@ -15,14 +15,14 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/components/message/UserMessageActions.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
-- `frontend/src/renderer/features/chat/utils/message/messageTokenUsage.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
 - `tests/frontend/DesktopMessageSourceTagRuntime.test.js`
 - `tests/frontend/DesktopDevUiRuntime.test.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageSourceBadge.test.jsx`
-- `tests/frontend/MessageTokenUsage.test.js`
+- `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 
 ## Action-Row Render Gating (`MessageList`)
 
@@ -111,7 +111,9 @@ Badge label is resolved via
 
 Per-message token telemetry tag:
 
-- `MessageSourceBadge` appends `resolveMessageTokenUsageTag(message)` output when present.
+- `MessageSourceBadge` appends
+  `desktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag(message)` output
+  when present.
 - tags are intentionally approximate (`tokens~ ...`) and currently emitted for:
   - user rows: `txt:<n> img(est):<n> total:<n>`
     - text source precedence: `fullUserMessage.content` -> `message.text`
@@ -136,7 +138,7 @@ Per-message token telemetry tag:
 
 Coverage note:
 
-- dedicated tests now cover source-badge dev gating + token tag rendering (`MessageSourceBadge.test.jsx`) and token-tag derivation rules (`MessageTokenUsage.test.js`).
+- dedicated tests now cover source-badge dev gating + token tag rendering (`MessageSourceBadge.test.jsx`) and token-tag derivation rules (`DesktopMessageTokenUsageRuntime.test.js`).
 
 ## Drift Hotspots
 

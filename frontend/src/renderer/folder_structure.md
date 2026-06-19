@@ -39,6 +39,7 @@ frontend/src/renderer/
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 │   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
+│   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum, phase groups, and resolver facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
@@ -150,7 +151,6 @@ frontend/src/renderer/
 │   │       │   ├── messageListClasses.js # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers
 │   │       │   ├── messageScreenshots.js # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
-│   │       │   ├── messageTokenUsage.js # messageTokenUsage - Token usage label formatting helpers
 │   │       │   ├── messageTransparency.js # messageTransparency - Descriptor builder for transparency sections
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │

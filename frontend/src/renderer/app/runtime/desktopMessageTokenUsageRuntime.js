@@ -1,5 +1,5 @@
 /**
- * Provides the message token usage module for the renderer UI.
+ * Provides renderer message token usage tags for presentation surfaces.
  */
 
 const APPROX_CHARS_PER_TOKEN = 4;
