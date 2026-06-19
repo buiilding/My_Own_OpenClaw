@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dashboard Conversation Metadata Projection Runtime Boundary
+
+- Finding: recent conversation loading in `useDashboardConversations` rebuilt
+  dashboard row fields from SDK `ConversationMetadata` while
+  `DesktopConversationLibraryClient.searchConversations(...)` carried a
+  parallel private mapper for the same row shape.
+- Change: moved dashboard row projection into
+  `desktopDashboardConversationLoadRuntime` as
+  `metadataToDashboardConversation(...)` and
+  `metadataListToDashboardConversations(...)`. Recent loading and search now
+  share the same app-runtime mapper; the hook keeps request lifecycle, stale
+  response suppression, title polling, and UI state.
+- Validation: focused dashboard conversation load, conversation library client,
+  dashboard hook, and renderer app-runtime boundary tests plus stale dashboard
+  metadata mapper scans, docs search/history checks, and diff checks.
+- Compatibility: no migration required. SDK conversation metadata shapes,
+  dashboard recent/search row shapes, IPC, storage, credentials, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Main Workspace Path Runtime Boundary
 
 - Finding: `ipc.cjs` still resolved Agent SDK workspace paths by reading

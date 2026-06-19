@@ -3,6 +3,8 @@
  */
 
 import {
+  metadataListToDashboardConversations,
+  metadataToDashboardConversation,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
   resolveRecentConversationsRetryDelayMs,
@@ -10,6 +12,33 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 describe('desktopDashboardConversationLoadRuntime', () => {
+  test('metadataToDashboardConversation normalizes SDK metadata for dashboard rows', () => {
+    expect(metadataToDashboardConversation({
+      conversationRef: 'conv-1',
+      title: '',
+      lastMessage: 'last reply',
+      updatedAt: '2026-06-19T12:00:00.000Z',
+      eventCount: 4,
+      workspacePath: '/work/WindieOS',
+      workspaceName: 'WindieOS',
+      snippet: 'matched text',
+      matchedRole: 'assistant',
+    })).toEqual({
+      conversation_id: 'conv-1',
+      record_kind: 'chat_event',
+      title: 'conv-1',
+      last_message: 'last reply',
+      last_timestamp: '2026-06-19T12:00:00.000Z',
+      entry_count: 4,
+      workspace_path: '/work/WindieOS',
+      workspace_name: 'WindieOS',
+      snippet: 'matched text',
+      matched_role: 'assistant',
+    });
+
+    expect(metadataListToDashboardConversations(null)).toEqual([]);
+  });
+
   test('normalizeRecentConversations filters missing ids and sorts newest first', () => {
     const list = normalizeRecentConversations([
       { conversation_id: 'c-old', last_timestamp: '2024-01-01T00:00:00Z' },

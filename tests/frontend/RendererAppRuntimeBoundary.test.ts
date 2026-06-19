@@ -398,9 +398,13 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(runtimeSource).toContain('normalizeRecentConversations');
+    expect(runtimeSource).toContain('metadataListToDashboardConversations');
     expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
     expect(runtimeSource).not.toContain('features/dashboard');
     expect(dashboardHookSource).toContain('desktopDashboardConversationLoadRuntime');
+    expect(dashboardHookSource).toContain('metadataListToDashboardConversations');
+    expect(dashboardHookSource).not.toContain('conversation_id: metadata');
+    expect(dashboardHookSource).not.toContain('workspace_path: metadata');
     expect(dashboardHookSource).not.toContain('utils/dashboardConversationLoad');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/dashboard/utils/dashboardConversationLoad.js'),

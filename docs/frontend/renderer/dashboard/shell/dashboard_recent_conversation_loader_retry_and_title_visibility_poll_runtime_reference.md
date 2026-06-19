@@ -28,6 +28,11 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 - conversation delete and active-session reset behavior
 - transcript-driven title visibility polling
 
+`desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+owns SDK conversation metadata to dashboard row projection for both recent and
+search surfaces. The hook should not spell out `conversation_id`,
+`workspace_path`, or search-snippet field mapping itself.
+
 ## Recent Conversation Load Concurrency and Stale-Response Guard
 
 `loadRecentConversations()` uses two coordination layers:

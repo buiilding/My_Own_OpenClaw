@@ -275,6 +275,22 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard conversation metadata projection
+  slice by moving SDK `ConversationMetadata` to dashboard row mapping into
+  `desktopDashboardConversationLoadRuntime` as
+  `metadataToDashboardConversation(...)` and
+  `metadataListToDashboardConversations(...)`. Recent conversation loading and
+  search now share the same app-runtime projection for `conversation_id`,
+  workspace fields, snippets, and matched roles instead of duplicating row
+  shaping inside `useDashboardConversations` and
+  `DesktopConversationLibraryClient`. Validation: focused dashboard
+  conversation load, conversation library client, dashboard hook, and renderer
+  app-runtime boundary tests plus stale dashboard metadata mapper scans, docs
+  search/history checks, and diff checks. No migration required; SDK
+  conversation metadata shapes, dashboard recent/search row shapes, IPC,
+  storage, credentials, provider-policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: completed a main workspace path runtime slice by moving Agent SDK
   workspace-path fallback resolution from `ipc.cjs` into
   `ipc_workspace_path_runtime.cjs` as
@@ -849,6 +865,18 @@ For each completed slice, record:
   retry timing, transcript title polling, storage, IPC, credentials,
   permissions, hosted routes, provider policy, packaging, and local execution
   behavior are unchanged.
+- 2026-06-19: completed a renderer dashboard metadata row-projection
+  runtime-boundary slice by moving SDK `ConversationMetadata` to dashboard row
+  mapping into
+  `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`.
+  `useDashboardConversations` and `DesktopConversationLibraryClient` now share
+  that app-runtime owner before recent and search surfaces consume rows.
+  Validation: focused dashboard load, conversation library client, renderer
+  app-runtime boundary tests, docs/history searches, stale inline metadata-field
+  scans, docs listing, and diff checks. No migration required; SDK metadata
+  shape, dashboard row fields, recent list sorting, search snippets,
+  matched-role labels, IPC, storage, credentials, provider policy, hosted
+  routes, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer voice audio capture
   runtime-boundary slice by moving PCM encoding, gateway binary frame
   construction, capture cleanup, and AudioWorklet processor construction from

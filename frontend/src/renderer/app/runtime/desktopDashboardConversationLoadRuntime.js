@@ -6,6 +6,26 @@ const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
 const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
 
+export function metadataToDashboardConversation(metadata) {
+  return {
+    conversation_id: metadata?.conversationRef,
+    record_kind: 'chat_event',
+    title: metadata?.title || metadata?.conversationRef || '',
+    last_message: metadata?.lastMessage || '',
+    last_timestamp: metadata?.updatedAt || '',
+    entry_count: metadata?.eventCount || 0,
+    workspace_path: metadata?.workspacePath || '',
+    workspace_name: metadata?.workspaceName || '',
+    snippet: metadata?.snippet || '',
+    matched_role: metadata?.matchedRole || '',
+  };
+}
+
+export function metadataListToDashboardConversations(metadataList) {
+  return (Array.isArray(metadataList) ? metadataList : [])
+    .map(metadataToDashboardConversation);
+}
+
 function isGenericTransientRecentConversationsError(message) {
   if (typeof message !== 'string') {
     return false;

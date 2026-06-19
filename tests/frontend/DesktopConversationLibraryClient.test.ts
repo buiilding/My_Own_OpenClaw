@@ -40,6 +40,9 @@ describe('DesktopConversationLibraryClient', () => {
           updatedAt: '2026-06-05T00:01:00.000Z',
           eventCount: 3,
           snippet: 'matched text',
+          matchedRole: 'user',
+          workspacePath: '/work/WindieOS',
+          workspaceName: 'WindieOS',
         },
         ];
       }
@@ -65,6 +68,9 @@ describe('DesktopConversationLibraryClient', () => {
       expect.objectContaining({
         conversation_id: 'conv-2',
         snippet: 'matched text',
+        matched_role: 'user',
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
       }),
     ]);
     await expect(DesktopConversationLibraryClient.deleteConversation('user-1', 'conv-1')).resolves.toBeUndefined();

@@ -7,6 +7,7 @@ import {
 } from './desktopConversationContinuityService';
 import { SDK_RUNTIME_COMMANDS } from '../../infrastructure/api/agentSdkClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { metadataListToDashboardConversations } from './desktopDashboardConversationLoadRuntime';
 
 const CONVERSATION_METADATA_LIST_DIAGNOSTIC_PATH = 'conversation.metadata.list';
 const LOCAL_RUNTIME_AVAILABILITY_ERROR_PATTERNS = Object.freeze([
@@ -81,21 +82,6 @@ function emitConversationListDiagnostic(context, event) {
       : null,
   };
   void Promise.resolve(invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.DIAGNOSTICS_APPEND, payload)).catch(() => undefined);
-}
-
-function metadataToDashboardConversation(metadata) {
-  return {
-    conversation_id: metadata?.conversationRef,
-    record_kind: 'chat_event',
-    title: metadata?.title || metadata?.conversationRef || '',
-    last_message: metadata?.lastMessage || '',
-    last_timestamp: metadata?.updatedAt || '',
-    entry_count: metadata?.eventCount || 0,
-    workspace_path: metadata?.workspacePath || '',
-    workspace_name: metadata?.workspaceName || '',
-    snippet: metadata?.snippet || '',
-    matched_role: metadata?.matchedRole || '',
-  };
 }
 
 export const DesktopConversationLibraryClient = {
@@ -215,9 +201,7 @@ export const DesktopConversationLibraryClient = {
       query: input.query,
       limit: input.limit,
     });
-    return Array.isArray(metadata)
-      ? metadata.map(metadataToDashboardConversation)
-      : [];
+    return metadataListToDashboardConversations(metadata);
   },
 
   subscribeMetadataInvalidations(listener) {

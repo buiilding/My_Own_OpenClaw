@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: share dashboard conversation metadata row projection through
+  the dashboard conversation load runtime before recent and search surfaces
+  consume SDK metadata. No migration required.
 - main/runtime: move Agent SDK workspace-path fallback resolution into the IPC
   workspace path runtime helper before SDK startup and commands consume it. No
   migration required.
