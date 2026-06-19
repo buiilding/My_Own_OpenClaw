@@ -26,6 +26,22 @@ type DesktopTranscriptionGatewayEvent =
   }
   | { type: 'unknown'; messageType: string | null };
 
+export type TranscriptionGatewayTraceEvent = {
+  path: string | null;
+  stage: string | null;
+  status: string | null;
+  runtime: string | null;
+};
+
+export type TranscriptionGatewayMessageHandlers = {
+  onBinaryMessage?: () => void;
+  onClientId?: (clientId: string) => void;
+  onRealtimeText?: (text: string, isFinal: boolean) => void;
+  onUtteranceEnd?: () => void;
+  onTraceEvent?: (event: TranscriptionGatewayTraceEvent) => void;
+  onUnknownMessage?: (messageType: string | null) => void;
+};
+
 export type WakewordDetectionPayload = {
   model?: string;
   confidence?: unknown;
@@ -178,6 +194,48 @@ export const DesktopVoiceRuntimeClient = {
           type: 'unknown',
           messageType: typeof data.type === 'string' ? data.type : null,
         };
+    }
+  },
+
+  dispatchTranscriptionGatewayMessage(
+    rawData: unknown,
+    handlers: TranscriptionGatewayMessageHandlers,
+  ): void {
+    const event = DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(rawData);
+    if (!event) {
+      handlers.onBinaryMessage?.();
+      return;
+    }
+
+    switch (event.type) {
+      case 'status':
+        if (event.clientId) {
+          handlers.onClientId?.(event.clientId);
+        }
+        return;
+
+      case 'realtime':
+        if (event.text) {
+          handlers.onRealtimeText?.(event.text, event.isFinal);
+        }
+        return;
+
+      case 'utterance_end':
+        handlers.onUtteranceEnd?.();
+        return;
+
+      case 'trace_event':
+        handlers.onTraceEvent?.({
+          path: event.path,
+          stage: event.stage,
+          status: event.status,
+          runtime: event.runtime,
+        });
+        return;
+
+      case 'unknown':
+        handlers.onUnknownMessage?.(event.messageType);
+        return;
     }
   },
 };

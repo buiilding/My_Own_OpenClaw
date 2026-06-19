@@ -174,4 +174,53 @@ describe('DesktopVoiceRuntimeClient', () => {
       DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(new ArrayBuffer(8)),
     ).toBeNull();
   });
+
+  test('dispatches transcription gateway messages to value-level handlers', () => {
+    const handlers = {
+      onBinaryMessage: jest.fn(),
+      onClientId: jest.fn(),
+      onRealtimeText: jest.fn(),
+      onUtteranceEnd: jest.fn(),
+      onTraceEvent: jest.fn(),
+      onUnknownMessage: jest.fn(),
+    };
+
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
+      type: 'status',
+      client_id: 'client-1',
+    }), handlers);
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
+      type: 'realtime',
+      text: 'hello',
+      is_final: true,
+    }), handlers);
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
+      type: 'utterance_end',
+    }), handlers);
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
+      type: 'trace_event',
+      payload: {
+        path: 'voice.transcription',
+        stage: 'decode',
+        status: 'succeeded',
+        runtime: 'backend',
+      },
+    }), handlers);
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(JSON.stringify({
+      type: 'custom',
+    }), handlers);
+    DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(new ArrayBuffer(4), handlers);
+
+    expect(handlers.onClientId).toHaveBeenCalledWith('client-1');
+    expect(handlers.onRealtimeText).toHaveBeenCalledWith('hello', true);
+    expect(handlers.onUtteranceEnd).toHaveBeenCalledTimes(1);
+    expect(handlers.onTraceEvent).toHaveBeenCalledWith({
+      path: 'voice.transcription',
+      stage: 'decode',
+      status: 'succeeded',
+      runtime: 'backend',
+    });
+    expect(handlers.onUnknownMessage).toHaveBeenCalledWith('custom');
+    expect(handlers.onBinaryMessage).toHaveBeenCalledTimes(1);
+  });
 });

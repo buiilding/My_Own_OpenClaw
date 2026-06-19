@@ -45,8 +45,8 @@ They share microphone primitives but have different transport paths:
 Backend ownership detail:
 
 - renderer never chooses the live STT provider
-- renderer obtains the gateway URL, socket factory, language payloads, and
-  inbound normalization through `DesktopVoiceRuntimeClient`
+- renderer obtains the gateway URL, socket factory, language payloads, inbound
+  normalization, and inbound message dispatch through `DesktopVoiceRuntimeClient`
 - backend route `/ws/transcription` owns the app-facing protocol
 - backend config selects `stt_provider="nova"` (proxy to external Nova-Voice) or `stt_provider="openai"` (translate to OpenAI Realtime)
 - when `stt_provider="openai"`, backend connects with `openai_realtime_session_model` and sends `openai_realtime_transcription_model` in `session.update`
@@ -89,9 +89,13 @@ Hook lifecycle:
 
 1. enable -> ask `DesktopVoiceRuntimeClient` to open the gateway WebSocket
 2. `onopen` -> send `{"type":"set_langs","source_language":"en","target_language":"en"}`
-3. `status` message -> store `client_id`
-4. `realtime` message -> use `translation` or `text`, push to transcription callback
-5. `utterance_end` message -> call the session-end callback and send `{"type":"start_over"}`
+3. `DesktopVoiceRuntimeClient` dispatches `status` messages as a client-id
+   value, then the hook stores it
+4. `DesktopVoiceRuntimeClient` dispatches `realtime` messages as
+   `(text, isFinal)` values, then the hook pushes them to the transcription
+   callback
+5. `DesktopVoiceRuntimeClient` dispatches `utterance_end`, then the hook calls
+   the session-end callback and sends `{"type":"start_over"}`
 6. disable/unmount -> stop audio capture + close socket + clear reconnect timers
 
 While enabled, a current non-closed WebSocket covers both `CONNECTING` and

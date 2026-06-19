@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Voice Gateway Message Dispatch Boundary
+
+- Finding: `DesktopVoiceRuntimeClient` parsed transcription gateway messages,
+  but `useVoiceMode` still switched on normalized gateway event types and read
+  protocol-derived fields such as `clientId`, `text`, `isFinal`, trace fields,
+  and unknown message types.
+- Change: added a value-level transcription gateway dispatcher to the voice
+  runtime client. `useVoiceMode` keeps connection, reconnect, capture, and
+  temporary dictation side effects while gateway classification and field
+  extraction stay in the runtime client.
+- Validation: passed focused voice runtime client, voice mode hook, renderer
+  voice boundary, and docs-index tests plus docs search, related commit search,
+  stale gateway field scan, docs listing, and diff checks.
+- Compatibility: no migration required. `/ws/transcription` URL behavior,
+  gateway message shapes, language/start-over payloads, audio framing,
+  reconnect timing, transcription callbacks, wakeword IPC, provider policy,
+  hosted URLs, permissions, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Responsebox Size Payload Boundary
 
 - Finding: `DesktopResponseOverlayRuntimeClient` owned responsebox IPC channel

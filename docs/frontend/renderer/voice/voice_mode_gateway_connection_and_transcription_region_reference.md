@@ -49,9 +49,16 @@ On connect:
 
 Inbound message handling:
 
-- `status`: cache `client_id`
-- `realtime`: read `translation` fallback to `text`, forward to transcription callback with `is_final` flag
-- `utterance_end`: trigger the caller-owned session-end callback, then send `{"type":"start_over"}`
+- `DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(...)` owns
+  gateway message classification and raw field extraction
+- `status`: runtime client emits a client-id value for the hook to cache
+- `realtime`: runtime client emits `(text, isFinal)` values using the
+  `translation` fallback to `text`
+- `utterance_end`: runtime client emits an utterance-end callback; the hook
+  triggers the caller-owned session-end callback, then sends
+  `{"type":"start_over"}`
+- `trace_event` and unknown message diagnostics are routed through value-level
+  callbacks so the hook does not switch on gateway protocol fields
 
 Runtime/provider boundary:
 

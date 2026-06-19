@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: dispatch transcription gateway messages through
+  `DesktopVoiceRuntimeClient` value callbacks so `useVoiceMode` no longer
+  switches on gateway protocol message fields. No migration required.
 - renderer/runtime: assemble responsebox size IPC payloads inside
   `desktopResponseOverlayRuntimeClient` so response overlay hooks report
   value-level size, turn, stale-guard, hover, and dismissal fields. No

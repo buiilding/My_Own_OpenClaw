@@ -105,30 +105,20 @@ export function useVoiceMode(
 
       ws.onmessage = (event) => {
         try {
-          const data = DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(event.data);
-          if (!data) {
-            console.warn('[VoiceMode] Received unexpected binary message');
-            return;
-          }
-
-          switch (data.type) {
-            case 'status':
-              if (data.clientId) {
-                setClientId(data.clientId);
-                logVoiceDebugTrace('voice-gateway-client-id', {
-                  clientId: data.clientId,
-                });
-              }
-              break;
-
-            case 'realtime': {
-              if (data.text && onTranscriptionUpdateRef.current) {
-                onTranscriptionUpdateRef.current(data.text, data.isFinal);
-              }
-              break;
-            }
-
-            case 'utterance_end':
+          DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage(event.data, {
+            onBinaryMessage: () => {
+              console.warn('[VoiceMode] Received unexpected binary message');
+            },
+            onClientId: (nextClientId) => {
+              setClientId(nextClientId);
+              logVoiceDebugTrace('voice-gateway-client-id', {
+                clientId: nextClientId,
+              });
+            },
+            onRealtimeText: (text, isFinal) => {
+              onTranscriptionUpdateRef.current?.(text, isFinal);
+            },
+            onUtteranceEnd: () => {
               // Silence detected; notify the caller to end the temporary dictation session.
               logVoiceDebugTrace('voice-utterance-ended', {});
               if (onUtteranceEndRef.current) {
@@ -138,22 +128,18 @@ export function useVoiceMode(
               if (ws.readyState === WebSocket.OPEN) {
                 DesktopVoiceRuntimeClient.sendTranscriptionStartOver(ws);
               }
-              break;
-
-            case 'trace_event':
+            },
+            onTraceEvent: (traceEvent) => {
               logVoiceDebugTrace('voice-transcription-trace', {
-                path: data.path,
-                stage: data.stage,
-                status: data.status,
-                runtime: data.runtime,
+                ...traceEvent,
               });
-              break;
-
-            default:
+            },
+            onUnknownMessage: (messageType) => {
               logVoiceDebugTrace('voice-gateway-unknown-message', {
-                messageType: data.messageType,
+                messageType,
               });
-          }
+            },
+          });
         } catch (err) {
           console.error('[VoiceMode] Error parsing message:', err);
         }

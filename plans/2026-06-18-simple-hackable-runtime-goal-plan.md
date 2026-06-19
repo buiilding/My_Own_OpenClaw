@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer voice gateway message dispatch boundary
+  slice by adding a value-level transcription gateway dispatcher to
+  `DesktopVoiceRuntimeClient`. `useVoiceMode` now keeps connection, reconnect,
+  capture, temporary dictation, and callback side effects while the runtime
+  client owns gateway message classification and protocol field extraction for
+  client id, realtime text/finality, utterance end, trace diagnostics, unknown
+  messages, and binary-message handling. Validation passed for focused voice
+  runtime client, voice mode hook, renderer voice boundary, and docs-index
+  tests plus docs search, related commit search, stale gateway field scan, docs
+  listing, and diff checks. No migration required; `/ws/transcription` URL behavior, gateway
+  message shapes, language/start-over payloads, audio framing, reconnect
+  timing, transcription callbacks, wakeword IPC, provider policy, hosted URLs,
+  permissions, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer responsebox size payload boundary slice by
   adding a responsebox size payload builder and value-level method to
   `DesktopResponseOverlayRuntimeClient`. Response overlay window-sync and close

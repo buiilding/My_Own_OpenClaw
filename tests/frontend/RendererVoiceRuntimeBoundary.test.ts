@@ -29,7 +29,8 @@ describe('renderer voice runtime boundary', () => {
     const source = await fs.readFile(voiceModeHookPath, 'utf8');
 
     expect(source).toContain('DesktopVoiceRuntimeClient.createTranscriptionWebSocket');
-    expect(source).toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
+    expect(source).toContain('DesktopVoiceRuntimeClient.dispatchTranscriptionGatewayMessage');
+    expect(source).not.toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendDefaultTranscriptionLanguage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOver');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage');
@@ -37,6 +38,11 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('new WebSocket');
     expect(source).not.toContain('websocketRef.current.send');
     expect(source).not.toContain('JSON.parse');
+    expect(source).not.toContain('switch (data.type)');
+    expect(source).not.toContain('data.clientId');
+    expect(source).not.toContain('data.text');
+    expect(source).not.toContain('data.isFinal');
+    expect(source).not.toContain('data.messageType');
   });
 
   test('voice hooks consume app-runtime audio capture helpers', async () => {
