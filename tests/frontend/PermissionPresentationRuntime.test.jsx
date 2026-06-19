@@ -10,6 +10,7 @@ import {
   getPermissionGrantedLabel,
   getPermissionKindLabel,
   getPermissionPill,
+  getPermissionStatusValue,
   getPermissionStatusDetailsPresentation,
   isPermissionGrantedStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime';
@@ -42,12 +43,16 @@ describe('desktopPermissionPresentationRuntime', () => {
 
     expect(getPermissionPill('granted', { access_kind: 'app_capability' }))
       .toEqual({ label: 'Enabled', className: 'granted' });
+    expect(getPermissionPill({ status: 'granted' }, { access_kind: 'runtime_check' }))
+      .toEqual({ label: 'Ready', className: 'granted' });
     expect(getPermissionPill('needs-action', { access_kind: 'os_permission' }))
       .toEqual({ label: 'Needs action', className: 'warning' });
     expect(getPermissionPill('unsupported', { access_kind: 'runtime_check' }))
       .toEqual({ label: 'Unsupported', className: 'warning' });
     expect(getPermissionPill('unknown', { access_kind: 'runtime_check' }))
       .toEqual({ label: 'Not checked', className: '' });
+    expect(getPermissionStatusValue({ status: '  needs-action  ' })).toBe('needs-action');
+    expect(getPermissionStatusValue(null)).toBe('');
   });
 
   test('normalizes permission status detail presentation', () => {

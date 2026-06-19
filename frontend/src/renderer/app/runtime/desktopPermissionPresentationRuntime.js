@@ -57,14 +57,22 @@ export function getPermissionStatusDetailsPresentation(status) {
   };
 }
 
+export function getPermissionStatusValue(status) {
+  if (typeof status === 'string') {
+    return normalizeText(status);
+  }
+  return normalizeText(status?.status);
+}
+
 export function getPermissionPill(status, permission) {
-  if (status === 'granted') {
+  const statusValue = getPermissionStatusValue(status);
+  if (statusValue === 'granted') {
     return { label: getPermissionGrantedLabel(permission), className: 'granted' };
   }
-  if (status === 'needs-action') {
+  if (statusValue === 'needs-action') {
     return { label: 'Needs action', className: 'warning' };
   }
-  if (status === 'unsupported') {
+  if (statusValue === 'unsupported') {
     return { label: 'Unsupported', className: 'warning' };
   }
   return { label: 'Not checked', className: '' };

@@ -132,6 +132,18 @@ export function normalizeWorkspaceAccessUpdatedPayload(
   };
 }
 
+export function areActiveWorkspaceSelectionsEqual(
+  currentWorkspace: unknown,
+  nextWorkspace: unknown,
+): boolean {
+  const current = recordOrEmpty(currentWorkspace);
+  const next = recordOrEmpty(nextWorkspace);
+  return (
+    current.activeWorkspaceName === next.activeWorkspaceName
+    && current.activeWorkspacePath === next.activeWorkspacePath
+  );
+}
+
 export const DesktopWorkspaceRuntimeClient = {
   async fetchActiveWorkspaceSelection(): Promise<DesktopWorkspaceSelectionResult> {
     const result = await IpcBridge.invoke(INVOKE_CHANNELS.CHECK_PERMISSION, {
@@ -189,6 +201,8 @@ export const DesktopWorkspaceRuntimeClient = {
       listener(workspace);
     });
   },
+
+  areActiveWorkspaceSelectionsEqual,
 
   workspaceSelectionToBinding,
 

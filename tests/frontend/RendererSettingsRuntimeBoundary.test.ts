@@ -118,12 +118,16 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('payload?.workspacePath');
     expect(source).not.toContain('payload.workspace');
     expect(source).not.toContain('result.workspace');
+    expect(source).not.toContain('activeWorkspaceName === nextWorkspace');
+    expect(source).not.toContain('activeWorkspacePath === nextWorkspace');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.onActiveWorkspaceUpdated');
+    expect(source).toContain('DesktopWorkspaceRuntimeClient.areActiveWorkspaceSelectionsEqual');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspace');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace');
     expect(workspaceClientSource).toContain('normalizeWorkspaceAccessUpdatedPayload');
     expect(workspaceClientSource).toContain('onWorkspaceAccessUpdated');
     expect(workspaceClientSource).toContain('onWorkspaceSelectionUpdated');
+    expect(workspaceClientSource).toContain('areActiveWorkspaceSelectionsEqual');
     expect(workspaceClientSource).toContain('fetchActiveWorkspaceSelection');
     expect(workspaceClientSource).toContain('requestActiveWorkspaceSelection');
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
@@ -142,6 +146,8 @@ describe('renderer settings runtime boundary', () => {
     );
 
     expect(source).toContain('getPermissionStatusDetailsPresentation');
+    expect(source).toContain('status={effectiveStatus}');
+    expect(source).not.toContain('effectiveStatus?.status');
     expect(source).not.toContain('effectiveStatus?.reason');
     expect(source).not.toContain('effectiveStatus?.details');
     expect(source).not.toContain('details?.remediation');

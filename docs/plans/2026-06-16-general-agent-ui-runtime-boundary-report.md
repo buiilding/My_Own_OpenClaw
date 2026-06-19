@@ -174,6 +174,43 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Workspace Selection Equality Boundary
+
+- Finding: `desktopWorkspaceRuntimeClient` owned workspace selection
+  normalization/subscriptions, but `WorkspaceSettingsTab` still compared raw
+  `activeWorkspaceName` and `activeWorkspacePath` values before applying
+  updates.
+- Change: added active-workspace selection equality to
+  `desktopWorkspaceRuntimeClient`. `WorkspaceSettingsTab` now keeps state and
+  rendering while consuming the runtime equality predicate.
+- Validation: passed focused desktop workspace runtime client, permission
+  presentation runtime, settings section, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale raw workspace
+  equality and permission badge status scans, docs listing, and diff checks.
+- Compatibility: no migration required. Workspace permission payloads, active
+  workspace values, workspace picker behavior, dashboard/chat workspace
+  binding, IPC channels, storage, provider policy, hosted URLs, permissions,
+  credentials, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Browser Permission Badge Status Boundary
+
+- Finding: `desktopPermissionPresentationRuntime` owned permission status
+  detail presentation and badge pill mapping, but `BrowserSettingsTab` still
+  read the raw permission status `status` field before rendering
+  `PermissionStatusBadge`.
+- Change: made permission badge projection accept full permission status
+  objects through `desktopPermissionPresentationRuntime`. Browser settings now
+  passes the effective status object to the badge and leaves status-value
+  extraction to the runtime helper.
+- Validation: passed focused desktop workspace runtime client, permission
+  presentation runtime, settings section, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale raw workspace
+  equality and permission badge status scans, docs listing, and diff checks.
+- Compatibility: no migration required. Permission status payload shapes,
+  badge labels/classes, browser settings rendering, onboarding rendering, IPC
+  channels, storage, provider policy, hosted URLs, permissions, credentials,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Global Stop Shortcut Fallback Persistence Boundary
 
 - Finding: `desktopShortcutRuntimeClient` owned global stop shortcut labels,

@@ -27,6 +27,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopWorkspaceRuntimeClient,
+  areActiveWorkspaceSelectionsEqual,
   normalizeWorkspaceAccessUpdatedPayload,
 } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
@@ -83,6 +84,34 @@ describe('DesktopWorkspaceRuntimeClient', () => {
         selectedPaths: [],
       },
     });
+  });
+
+  test('compares active workspace selections by value-level name and path', () => {
+    expect(areActiveWorkspaceSelectionsEqual(
+      {
+        activeWorkspaceName: 'WindieOS',
+        activeWorkspacePath: '/repo/WindieOS',
+        selectedPaths: ['/repo/WindieOS'],
+      },
+      {
+        activeWorkspaceName: 'WindieOS',
+        activeWorkspacePath: '/repo/WindieOS',
+        selectedPaths: ['/repo/WindieOS', '/ignored'],
+      },
+    )).toBe(true);
+    expect(
+      DesktopWorkspaceRuntimeClient.areActiveWorkspaceSelectionsEqual(
+        {
+          activeWorkspaceName: 'WindieOS',
+          activeWorkspacePath: '/repo/WindieOS',
+        },
+        {
+          activeWorkspaceName: 'frontend',
+          activeWorkspacePath: '/repo/WindieOS/frontend',
+        },
+      ),
+    ).toBe(false);
+    expect(areActiveWorkspaceSelectionsEqual(null, null)).toBe(true);
   });
 
   test('workspace access subscriptions emit normalized workspace selections', () => {

@@ -262,10 +262,11 @@ validity directly.
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out, live
 workspace payload normalization, host-source classification such as
 `isWorkspacePickerSelection`, and value-level workspace selection helpers for
-chat and settings surfaces. Chat owns active-workspace refresh and conversation
-binding policy; workspace settings owns active workspace display and folder
-selection while consuming workspace values from this runtime client instead of
-reading normalized workspace result or event envelopes.
+chat and settings surfaces, including active-workspace selection equality.
+Chat owns active-workspace refresh and conversation binding policy; workspace
+settings owns active workspace display and folder selection while consuming
+workspace values from this runtime client instead of reading normalized
+workspace result or event envelopes or comparing raw workspace name/path fields.
 
 `desktopMemoryRuntimeClient.ts` owns SDK-shaped memory list/delete/clear
 commands plus the desktop memory-store change fan-out. Dashboard memory UI owns
@@ -320,10 +321,11 @@ or raw permission status-field checks under the permissions feature.
 `desktopPermissionPresentationRuntime.js` owns renderer permission status and
 presentation mapping shared by onboarding and settings: access-kind labels,
 granted labels, action-label defaults, granted-status normalization, and badge
-pill label/class projection. It also normalizes permission status detail
-presentation such as reason text, status class names, and remediation text.
-Permission surfaces import this app-runtime facade instead of reaching into
-another feature's utility folder or reading raw status detail fields directly.
+pill label/class projection from either a status value or a full status object.
+It also normalizes permission status detail presentation such as reason text,
+status class names, and remediation text. Permission surfaces import this
+app-runtime facade instead of reaching into another feature's utility folder or
+reading raw status/detail fields directly.
 
 `desktopOnboardingSlideRuntime.js` owns the pure renderer onboarding slide-state
 rules: permission-slide counts, active slide clamping, permission-vs-stop-slide

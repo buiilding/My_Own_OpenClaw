@@ -275,6 +275,32 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved active-workspace selection equality into
+  `desktopWorkspaceRuntimeClient`. `WorkspaceSettingsTab` now keeps state and
+  rendering while consuming a runtime-owned equality predicate instead of
+  comparing raw `activeWorkspaceName` and `activeWorkspacePath` values before
+  applying workspace updates. Validation passed focused desktop workspace
+  runtime client, permission presentation runtime, settings section, renderer
+  settings boundary, and docs-index tests plus docs search, related commit
+  search, stale raw workspace equality and permission badge status scans, docs
+  listing, and diff checks. No migration required; workspace permission
+  payloads, active workspace values, workspace picker behavior, dashboard/chat
+  workspace binding, IPC channels, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
+- 2026-06-19: moved browser permission badge status-value extraction into
+  `desktopPermissionPresentationRuntime`. `BrowserSettingsTab` now passes the
+  effective permission status object to `PermissionStatusBadge` instead of
+  reading the raw `status` field before rendering the badge. Validation passed
+  focused desktop workspace runtime client, permission presentation runtime,
+  settings section, renderer settings boundary, and docs-index tests plus docs
+  search, related commit search, stale raw workspace equality and permission
+  badge status scans, docs listing, and diff checks. No migration required;
+  permission status payload shapes, badge labels/classes, browser settings
+  rendering, onboarding rendering, IPC channels, storage, provider policy,
+  hosted URLs, permissions, credentials, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: moved global stop shortcut fallback persistence resolution into
   `desktopShortcutRuntimeClient`. `AppConfigProvider` now keeps config state and
   persistence orchestration while consuming a runtime-owned fallback accelerator

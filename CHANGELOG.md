@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/workspace: move active-workspace selection equality into
+  `desktopWorkspaceRuntimeClient` so `WorkspaceSettingsTab` no longer compares
+  raw workspace name/path fields before applying workspace updates. No
+  migration required.
+- renderer/permissions: let `desktopPermissionPresentationRuntime` normalize
+  full permission status objects for badge pill presentation so browser
+  settings no longer reads the raw `status` field before rendering
+  `PermissionStatusBadge`. No migration required.
 - renderer/runtime: move global stop shortcut fallback persistence resolution
   into `desktopShortcutRuntimeClient` so `AppConfigProvider` no longer reads raw
   shortcut fallback or registration fields before saving the resolved binding.

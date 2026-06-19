@@ -88,7 +88,7 @@ function BrowserSettingsTab() {
             <span>{browserSettingsSkin.browserName}</span>
             <PermissionStatusBadge
               permission={browserPermission}
-              status={effectiveStatus?.status}
+              status={effectiveStatus}
             />
           </div>
           <p>{browserSettingsSkin.description}</p>

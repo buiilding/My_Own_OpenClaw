@@ -153,6 +153,30 @@ manifest/catalog update values through the runtime client, asks the runtime
 client for remote-tool availability presentation, then keeps presentation state,
 tool-toggle projection, and config patches local to the settings surface.
 
+## Workspace Tab Ownership Model
+
+`WorkspaceSettingsTab` owns active workspace display, folder-pick actions, and
+workspace permission affordances. It consumes active workspace selection values,
+workspace-access subscriptions, folder-pick commands, and active-workspace
+selection equality through `DesktopWorkspaceRuntimeClient`.
+
+The tab should keep rendering and local state synchronization local, but it
+should not compare raw `activeWorkspaceName` or `activeWorkspacePath` fields
+directly before applying workspace updates. The runtime client owns that
+value-level equality predicate so chat and settings surfaces stay aligned on
+which active workspace changes matter.
+
+## Browser Tab Ownership Model
+
+`BrowserSettingsTab` owns browser permission row layout and browser-settings
+config patches. Permission badge labels/classes and status detail presentation
+come from `desktopPermissionPresentationRuntime`.
+
+The tab should pass full effective permission status objects into
+`PermissionStatusBadge` and detail helpers. It should not extract raw
+`status`, `reason`, or `details.remediation` fields before rendering permission
+presentation.
+
 ## Memory Tab Ownership Model
 
 `MemorySettingsTab` owns two destructive local-data actions:

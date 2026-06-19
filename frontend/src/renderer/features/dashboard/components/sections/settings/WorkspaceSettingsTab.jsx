@@ -8,13 +8,6 @@ import { DesktopWorkspaceRuntimeClient } from '../../../../../app/runtime/deskto
 
 const workspaceSettingsSkin = desktopRuntimeSkin.settings.workspace;
 
-function workspaceStateMatches(currentWorkspace, nextWorkspace) {
-  return (
-    currentWorkspace?.activeWorkspaceName === nextWorkspace?.activeWorkspaceName
-    && currentWorkspace?.activeWorkspacePath === nextWorkspace?.activeWorkspacePath
-  );
-}
-
 function WorkspaceSettingsTab() {
   const [activeWorkspace, setActiveWorkspace] = useState(() => ({
     activeWorkspaceName: '',
@@ -29,7 +22,12 @@ function WorkspaceSettingsTab() {
     let cancelled = false;
 
     const applyWorkspace = (nextWorkspace) => {
-      if (workspaceStateMatches(activeWorkspaceRef.current, nextWorkspace)) {
+      if (
+        DesktopWorkspaceRuntimeClient.areActiveWorkspaceSelectionsEqual(
+          activeWorkspaceRef.current,
+          nextWorkspace,
+        )
+      ) {
         return;
       }
       activeWorkspaceRef.current = nextWorkspace;

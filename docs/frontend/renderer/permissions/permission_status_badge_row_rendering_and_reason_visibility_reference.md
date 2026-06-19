@@ -25,7 +25,10 @@ permission control center.
 
 ## Status Pill Mapping Contract
 
-`PermissionStatusBadge` delegates to `getPermissionPill(status, permission)`:
+`PermissionStatusBadge` delegates to `getPermissionPill(status, permission)`.
+The status input may be either the status string or the full permission status
+object; `desktopPermissionPresentationRuntime.js` owns extracting and trimming
+the status value.
 
 - `granted` -> label depends on `permission.access_kind`:
   - `os_permission` -> `Granted`
@@ -65,8 +68,9 @@ It also owns permission status detail presentation:
   empty
 
 Onboarding slides and browser settings consume
-`getPermissionStatusDetailsPresentation(...)` instead of reading raw status
-detail fields directly.
+`getPermissionStatusDetailsPresentation(...)` and pass full status objects to
+badge/detail helpers instead of reading raw status detail or status-value
+fields directly.
 
 ## Drift Hotspots
 
