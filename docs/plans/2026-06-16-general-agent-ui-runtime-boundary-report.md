@@ -174,6 +174,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Send/Stream Runtime Surface Boundary
+
+- Finding: the frontend runtime surface reference still said the renderer owns
+  turn-level UI/send/stream behavior, which could read as feature hooks owning
+  durable send and stream semantics. `useChatStream` also still carried the
+  supported SDK conversation event vocabulary inline before dispatching renderer
+  message updates.
+- Change: moved supported conversation stream event classification into
+  `desktopChatStreamEventRuntime` and rewrote the send/stream section to
+  distinguish renderer UI intent and presentation coordination from
+  SDK/app-runtime-owned send contracts, stale-turn predicates, event
+  normalization, and display projections. Added a modular docs guard for the
+  retired broad renderer send/stream ownership phrasing.
+- Validation: focused desktop chat stream event runtime, renderer chat runtime
+  boundary, and modular docs boundary tests plus docs search, related commit
+  search, stale event-type/source-phrase scans, and diff checks.
+- Compatibility: no migration required. SDK conversation event names and
+  payloads, stream dispatch behavior, IPC, storage, schema, settings,
+  credentials, provider policy, hosted URL, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Stop Target Source Predicate Boundary
 
 - Finding: `useStopTurnHandler` resolved stop targets through

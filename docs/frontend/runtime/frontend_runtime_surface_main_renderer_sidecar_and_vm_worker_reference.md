@@ -1,5 +1,5 @@
 ---
-summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream orchestration, Python local-runtime feature-pack behavior, and VM worker run relay."
+summary: "Frontend runtime surface reference across Electron main composition, renderer send/stream UI consumption, SDK/app-runtime contracts, Python local-runtime feature-pack behavior, and VM worker run relay."
 read_when:
   - When changing frontend runtime boundaries across main, renderer, and the Python local runtime.
   - When modifying VM worker orchestration (`WINDIE_VM_*`), global stop shortcut runtime, or local-runtime browser feature-pack install behavior.
@@ -21,6 +21,10 @@ Canonical files:
 - `frontend/src/main/app/vm_worker_runtime.cjs`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
 - `frontend/src/main/python/sidecar_daemon.py`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/core/feature_pack_installer.py`
@@ -99,28 +103,35 @@ Worker behavior:
 - applies queued stop controls by sending backend stop messages
 - supports API key headers (`WINDIE_VM_RUNS_API_KEY`, fallback `WINDIE_RUNS_API_KEY`)
 
-## Renderer Send and Stream Runtime
+## Renderer Send and Stream UI Boundary
 
-`useChatMessageSender.ts` now enforces conversation continuity before first send:
+`useChatMessageSender.ts` coordinates renderer user intent for sending messages
+while the durable send contract stays behind SDK and app-runtime facades. Before
+the first send, the renderer hook resolves the conversation continuity inputs it
+needs from app-runtime clients:
 
 - resolve active conversation ref from transcript/store
 - fallback to main-session snapshot through `DesktopClientSessionRuntimeClient`
 - only generate new conversation ref when neither local nor main snapshot has one
 
-Send pipeline details:
+Send pipeline ownership:
 
 - SDK-owned `conversation.send` emits `turn_started` and base `user_message`
   before resource resolution
-- renderer submits typed turn resources for readable files, clipboard images,
-  workspace binding, and optional query screenshots instead of resolving them
-  before send
+- renderer submits typed turn-resource intent for readable files, clipboard
+  images, workspace binding, and optional query screenshots instead of resolving
+  them before send
 - SDK turn input pipeline resolves resources through host/local resolvers and
   emits user-message metadata before backend transport
 - deferred model selection (`buildDeferredQueryModelSelection`) sent through `DesktopSettingsRuntimeClient.setModel(...)` immediately before `sendQuery(...)` when needed
 - transcript display renders SDK rows/current-turn projection, not a renderer
   optimistic row
 
-`useChatStream.ts` remains the canonical stream-event state machine and stale-turn guard boundary for renderer message updates.
+`useChatStream.ts` consumes SDK/app-runtime stream projection and coordinates
+renderer message state. Reusable stream-event normalization, stale-turn
+predicates, terminal handoff, message targeting, and payload rules live under
+`frontend/src/renderer/app/runtime/desktopChatStream*` modules and SDK
+projections rather than inside feature components.
 
 ## Python Local Runtime: Feature Pack and Tool Exposure
 
@@ -146,7 +157,10 @@ Tool exposure boundary is defined in `tools/registry.py`:
 Recent runtime changes are about explicit ownership:
 
 - main process owns process/window/lifecycle policy
-- renderer owns turn-level UI/send/stream behavior
+- renderer owns UI intent, presentation state, and local interaction hooks for
+  send/stream surfaces
+- SDK and renderer app-runtime facades own reusable send/stream contracts,
+  event normalization, stale-turn predicates, and display projections
 - Python local runtime owns local execution and memory/runtime dependency bootstrap
 - VM worker mode is an optional polling/relay runtime layered on top of the same backend transport and run APIs
 

@@ -28,6 +28,36 @@ type ConversationTurnRefEvent = {
   turnRef?: string | null;
 };
 
+const SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
+  'user_message',
+  'turn_completed',
+  'tool_call',
+  'tool_output',
+  'tool_bundle_call',
+  'tool_bundle_output',
+  'compaction_started',
+  'compaction_applied',
+  'compaction_skipped',
+  'compaction_failed',
+  'system_prompt',
+  'user_message_metadata',
+  'assistant_message',
+  'tool_schemas_metadata',
+  'turn_error',
+  'usage_updated',
+]);
+
+type ConversationTypeEvent = {
+  type?: string | null;
+};
+
+export function isSupportedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return typeof event?.type === 'string'
+    && SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
+}
+
 function shouldIgnoreForStaleTurn(
   event: TurnRefEvent,
   conversationRef?: string | null,

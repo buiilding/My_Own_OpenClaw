@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer send/stream runtime surface boundary slice
+  by moving supported SDK conversation stream event vocabulary classification
+  into `desktopChatStreamEventRuntime` before `useChatStream` dispatches
+  renderer message updates. The frontend runtime surface reference now describes
+  renderer hooks as owning UI intent, presentation state, and local interaction
+  coordination while SDK and renderer app-runtime facades own reusable
+  send/stream contracts, stale-turn predicates, event normalization, and display
+  projections. A modular docs guard rejects the retired broad renderer
+  send/stream ownership phrasing. Validation: focused desktop chat stream event
+  runtime, renderer chat runtime boundary, and modular docs boundary tests plus
+  docs search, related commit search, stale event-type/source-phrase scans, and
+  diff checks. No migration required; SDK conversation event names and payloads,
+  stream dispatch behavior, IPC, storage, settings, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer stop target source predicate boundary slice
   by adding `isStopTurnTargetFromCurrentTurn` and
   `isStopTurnTargetFromPendingTurn` to `desktopStopTurnRuntime`.

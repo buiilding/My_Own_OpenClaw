@@ -23,6 +23,7 @@ import {
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
+  isSupportedConversationStreamEvent,
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
@@ -137,24 +138,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!event) {
       return false;
     }
-    if (
-      event.type !== 'user_message'
-      && event.type !== 'turn_completed'
-      && event.type !== 'tool_call'
-      && event.type !== 'tool_output'
-      && event.type !== 'tool_bundle_call'
-      && event.type !== 'tool_bundle_output'
-      && event.type !== 'compaction_started'
-      && event.type !== 'compaction_applied'
-      && event.type !== 'compaction_skipped'
-      && event.type !== 'compaction_failed'
-      && event.type !== 'system_prompt'
-      && event.type !== 'user_message_metadata'
-      && event.type !== 'assistant_message'
-      && event.type !== 'tool_schemas_metadata'
-      && event.type !== 'turn_error'
-      && event.type !== 'usage_updated'
-    ) {
+    if (!isSupportedConversationStreamEvent(event)) {
       return false;
     }
     if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {

@@ -1569,6 +1569,8 @@ describe('modular sdk refactor completion boundary', () => {
         'features/dashboard/utils/*',
         'frontend/src/renderer/features/dashboard/utils/*',
         'dashboard utility ownership',
+        'renderer owns turn-level UI/send/stream behavior',
+        'useChatStream.ts` remains the canonical stream-event state machine',
         'frontend/src/renderer/features/permissions/utils/*',
         'frontend or sidecar impact',
         'Frontend consumer',

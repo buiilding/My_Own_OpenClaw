@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify supported SDK conversation stream event types in
+  `desktopChatStreamEventRuntime` before `useChatStream` dispatches renderer
+  message updates, and clarify renderer send/stream ownership docs. No
+  migration required.
 - tests/frontend: scan renderer feature source files for direct app-provider,
   infrastructure/IPC, and backend-wire imports so app-runtime boundary
   regressions are caught repo-wide. No migration required.

@@ -466,14 +466,25 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useChatStream.ts'),
       'utf8',
     );
+    const runtimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).toContain('desktopChatStreamEventRuntime');
+    expect(source).toContain('isSupportedConversationStreamEvent');
+    expect(source).not.toContain("event.type !== 'turn_completed'");
+    expect(source).not.toContain("event.type !== 'tool_call'");
+    expect(source).not.toContain("event.type !== 'usage_updated'");
     expect(source).toContain('desktopChatStreamTrackingRuntime');
     expect(source).not.toContain('chatStreamEventRuntime');
     expect(source).not.toContain('chatStreamConversationGate');
     expect(source).not.toContain('chatStreamTurnGuard');
     expect(source).not.toContain('chatStreamTerminalHandoffGuard');
     expect(source).not.toContain('chatStreamTracking');
+    expect(runtimeSource).toContain('isSupportedConversationStreamEvent');
+    expect(runtimeSource).toContain("'turn_completed'");
+    expect(runtimeSource).toContain("'usage_updated'");
   });
 
   test('chat stream text state is owned by the SDK current-turn projection listener', async () => {
@@ -969,9 +980,14 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/chatStream/useChatStreamLocalUserHandler.ts'),
       'utf8',
     );
+    const runtimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
+      'utf8',
+    );
 
     expect(streamSource).not.toContain("if (event.type === 'local-user-message')");
-    expect(streamSource).toContain("event.type !== 'user_message'");
+    expect(streamSource).not.toContain("event.type !== 'user_message'");
+    expect(runtimeSource).toContain("'user_message'");
     expect(handlerSource).not.toContain('LocalUserMessageEvent');
     expect(handlerSource).toContain("event.type !== 'user_message'");
     expect(handlerSource).not.toContain('event.payload?.text');

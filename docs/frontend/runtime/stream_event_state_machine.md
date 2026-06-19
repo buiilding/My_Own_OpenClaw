@@ -36,7 +36,9 @@ Renderer chat now consumes SDK `ConversationEvent` objects from
 `windie:conversation-event`. Those events are projected from backend websocket
 events by the SDK backend-event normalizer before they reach `useChatStream`.
 
-Handled conversation event types:
+`desktopChatStreamEventRuntime.isSupportedConversationStreamEvent(...)` owns the
+supported SDK conversation event vocabulary consumed by the chat stream
+dispatcher:
 
 - `user_message`
 - `assistant_message`
