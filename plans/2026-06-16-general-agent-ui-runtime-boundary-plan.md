@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 SDK API Reference Local-Runtime Process Wording
+
+- Finding: hosted SDK OCR/vision API docs still told SDK consumers they should
+  not need a "local backend process", even though the current public local
+  contract is SDK local runtime and explicit backend origins are documented
+  separately.
+- Change: reworded the API reference to "local runtime process" and extended
+  the modular docs boundary test so SDK/API docs keep hosted helper routes
+  separate from local-runtime process startup wording.
+- Validation: focused modular docs boundary test plus docs search, related
+  commit search, exact stale phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, hosted SDK route paths,
+  API payloads, endpoint selection, local-runtime process behavior, storage,
+  settings, credentials, permissions, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Message-List Thinking Auto-Scroll Boundary
 
 - Finding: `useMessageListAutoScroll` delegated general message-list scroll

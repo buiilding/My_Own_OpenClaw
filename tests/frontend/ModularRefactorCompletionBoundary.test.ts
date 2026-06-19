@@ -206,6 +206,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/sdk/tool_authoring.md'),
     ]);
     const sdkDocText = sdkDocs.join('\n');
+    const apiReferenceText = await read('docs/reference/api_reference.md');
     const architectureText = await read('docs/development/agent_architecture_reference.md');
 
     expect(sdkDocText).toContain('local-runtime module-tool SDK example');
@@ -213,6 +214,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).toContain('local runtime tool manifest');
     expect(sdkDocText).toContain('local runtime tool-result data');
     expect(sdkDocText).toContain('local-runtime-backed default conversation store');
+    expect(apiReferenceText).toContain('local runtime process just to use hosted OCR or prediction routes');
     expect(sdkDocText).not.toContain('sidecar runtime client');
     expect(sdkDocText).not.toContain('sidecar daemon');
     expect(sdkDocText).not.toContain('sidecar tool manifest');
@@ -228,6 +230,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('Use sidecar tools for local machine control');
     expect(sdkDocText).not.toContain('raw backend');
     expect(sdkDocText).not.toContain('raw-backend');
+    expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');

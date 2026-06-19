@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an SDK API reference local-runtime process wording
+  slice by replacing hosted OCR/vision helper-route mentions of "local backend
+  process" with "local runtime process" and extending the modular docs boundary
+  guard over the API reference. Validation: focused modular docs boundary test
+  plus docs search, related commit search, exact stale phrase scan, and diff
+  checks. No migration required; runtime code, hosted SDK route paths, API
+  payloads, endpoint selection, local-runtime process behavior, storage,
+  settings, credentials, permissions, provider-policy, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: completed a renderer message-list thinking auto-scroll boundary
   slice by moving the same-row assistant thinking-text update predicate into
   `desktopMessageListRuntime` as `shouldAutoScrollForThinkingTextUpdate(...)`.

@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 SDK API Reference Local-Runtime Process Wording
+
+- Finding: `docs/reference/api_reference.md` correctly split hosted backend
+  OCR/vision routes from machine-touching local runtime capabilities, but still
+  said SDK consumers should not need to start or spin up a "local backend
+  process" for hosted SDK perception routes.
+- Change: reworded those SDK API notes to "local runtime process" and extended
+  the modular docs boundary guard so SDK/API docs keep hosted helper routes
+  separate from local-runtime process terminology without reintroducing public
+  local-backend process wording.
+- Validation: focused modular docs boundary test plus docs search, related
+  commit search, exact stale phrase scan, and diff checks.
+- Compatibility: no migration required. Runtime code, hosted SDK route paths,
+  API payloads, endpoint selection, local-runtime process behavior, storage,
+  settings, credentials, permissions, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Message-List Thinking Auto-Scroll Boundary
 
 - Finding: `useMessageListAutoScroll` delegated general message-list scroll

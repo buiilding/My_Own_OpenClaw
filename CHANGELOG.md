@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: route API reference OCR/vision helper-route wording through local
+  runtime process terminology instead of local backend process wording. No
+  migration required.
 - renderer/runtime: classify chat message content render kinds in
   `desktopMessageContentRuntime` so `MessageContent` no longer branches on raw
   message-type strings for tool, error, source, screenshot, or assistant rows.
