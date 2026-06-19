@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat-Loop Transport Status Runtime Boundary
+
+- Finding: `useChatLoopUiState` already routed session/status IPC through
+  `DesktopClientSessionRuntimeClient`, but it still consumed the client/session
+  snapshot shape directly when deciding whether a transport status payload
+  contained a valid connection bit.
+- Change: added a normalized transport-status view to
+  `desktopClientSessionRuntimeClient` so chat-loop recovery consumes
+  `{ isConnected, hasConnectionState }` from `onIpcTransportStatus(...)` and
+  `loadMainTransportStatus(...)`. The hook now keeps only disconnect recovery
+  and watchdog state.
+- Validation: focused desktop client-session runtime client, chat loop UI state
+  hook, and renderer chat runtime boundary tests, stale raw connection payload
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. `get-client-user-id` and `ipc-status`
+  channel names, full session snapshot payloads, endpoint metadata,
+  disconnect/reconnect behavior, IPC allowlists, storage, credentials,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Response Overlay Visibility Runtime Boundary
 
 - Finding: `useResponseOverlayWindowSync` routed visibility fan-out through
