@@ -1,8 +1,8 @@
 /**
- * Provides the message transparency module for the renderer UI.
+ * Provides renderer message transparency section descriptors for presentation surfaces.
  */
 
-import { normalizeToolSchemaList } from '../../../../app/runtime/desktopChatMessageRuntimeClient';
+import { normalizeToolSchemaList } from './desktopChatMessageRuntimeClient';
 
 function resolveMessageToolSchemas(message) {
   const toolSchemas = normalizeToolSchemaList(message?.toolSchemas);

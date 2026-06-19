@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Message Transparency Runtime Boundary
+
+- Finding: chat rows and the minimal response overlay shared system-prompt,
+  tool-schema, and full-message transparency descriptor assembly, but the
+  descriptor builder still lived under chat feature utilities.
+- Change: moved transparency descriptor assembly to
+  `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`,
+  routed chat, overlay, and unit coverage through that app-runtime facade, and
+  removed the old chat utility path.
+- Validation: focused message transparency and renderer chat runtime boundary
+  tests, docs listing, frontend lint, stale old-path scan, and diff checks.
+- Compatibility: no migration required. Transparency section ordering,
+  tool-schema normalization, rendered debug panels, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Debug Trace Local-Runtime JSON-RPC Wording
 
 - Finding: the runtime trace guide still exposed a public "Sidecar JSON-RPC

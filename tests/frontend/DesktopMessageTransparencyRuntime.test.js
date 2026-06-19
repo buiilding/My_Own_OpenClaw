@@ -1,13 +1,13 @@
 /**
- * Covers message transparency. behavior in the frontend test suite.
+ * Covers desktop message transparency runtime behavior in the frontend test suite.
  */
 
 import {
   buildTransparencySectionConfigs,
   resolveConversationToolSchemas,
-} from '../../frontend/src/renderer/features/chat/utils/message/messageTransparency';
+} from '../../frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime';
 
-describe('messageTransparency utils', () => {
+describe('desktopMessageTransparencyRuntime', () => {
   test('returns empty list when message has no transparency payloads', () => {
     expect(buildTransparencySectionConfigs({ text: 'hello' })).toEqual([]);
   });

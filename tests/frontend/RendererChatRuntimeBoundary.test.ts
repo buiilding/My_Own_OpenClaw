@@ -636,7 +636,6 @@ describe('renderer chat runtime boundary', () => {
   test('chat message state helpers route transcript builders through app runtime client', async () => {
     const files = [
       path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
-      path.join(chatRoot, 'utils/message/messageTransparency.js'),
     ];
     const chatMessageClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageRuntimeClient.ts'),
@@ -669,6 +668,36 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
+    )).rejects.toThrow();
+  });
+
+  test('message transparency descriptors are owned by app runtime facade', async () => {
+    const messageListSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageList.jsx'),
+      'utf8',
+    );
+    const transparencySectionsSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/MessageTransparencySections.jsx'),
+      'utf8',
+    );
+    const overlaySource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
+      'utf8',
+    );
+    const transparencyRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js'),
+      'utf8',
+    );
+
+    for (const source of [messageListSource, transparencySectionsSource, overlaySource]) {
+      expect(source).toContain('desktopMessageTransparencyRuntime');
+      expect(source).not.toContain('utils/message/messageTransparency');
+    }
+    expect(transparencyRuntimeSource).toContain('desktopChatMessageRuntimeClient');
+    expect(transparencyRuntimeSource).toContain('normalizeToolSchemaList');
+    expect(transparencyRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageTransparency.js'),
     )).rejects.toThrow();
   });
 

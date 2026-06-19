@@ -15,7 +15,7 @@ import MessageItem from './message/MessageItem';
 import {
   resolveCompactionStatusText,
 } from '../utils/message/messageListState';
-import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
+import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 

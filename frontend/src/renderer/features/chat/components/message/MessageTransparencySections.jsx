@@ -4,7 +4,7 @@
 
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
-import { buildTransparencySectionConfigs } from '../../utils/message/messageTransparency';
+import { buildTransparencySectionConfigs } from '../../../../app/runtime/desktopMessageTransparencyRuntime';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
 import { toolSchemaListPropType } from './toolSchemaPropType';
 

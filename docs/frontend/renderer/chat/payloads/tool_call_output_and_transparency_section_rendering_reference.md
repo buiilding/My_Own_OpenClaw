@@ -5,6 +5,7 @@ read_when:
   - When changing renderer markdown sanitization, markdown rendering, math rendering, or thread-find highlight behavior.
   - When stale code, tests, or docs mention deprecated `document.createElement` usage in renderer markdown HTML container construction; markdown text extraction now prefers `DOMParser` with `createHTMLDocument` fallback.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
+  - When resolving stale references to the removed `features/chat/utils/message/messageTransparency.js` helper path; transparency descriptor assembly now lives in the renderer app runtime facade.
   - When stale code, tests, or docs mention `isSupportedToolSchemaList` or removed renderer tool-schema list helper exports.
   - When resolving stale references to the removed `sanitizeMarkdownHtml` wrapper, markdown sanitizer wrapper, or standalone sanitized-HTML wrapper.
   - When resolving stale references to removed `toolExplanationMessages.js`, `MessageToolMetadata.test.js`, or `MessageScreenshotSrc.test.js` helper paths.
@@ -27,14 +28,14 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
-- `frontend/src/renderer/features/chat/utils/message/messageTransparency.js`
+- `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
 - `frontend/src/renderer/features/chat/utils/message/messageScreenshots.js`
 - `frontend/src/renderer/infrastructure/llmOutputContract.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/LlmOutputContract.test.ts`
 - `tests/frontend/MarkdownRenderer.test.ts`
-- `tests/frontend/MessageTransparency.test.js`
+- `tests/frontend/DesktopMessageTransparencyRuntime.test.js`
 
 ## Message Type Routing in `MessageContent`
 
@@ -185,7 +186,9 @@ Backend contract:
 
 ## Transparency Section Assembly Contract
 
-`buildTransparencySectionConfigs(message, options?)` appends sections in fixed order:
+`buildTransparencySectionConfigs(message, options?)` lives in
+`frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js` and
+appends sections in fixed order:
 
 1. `system-prompt`
 2. `tool-schemas` (for canonical schema shape on the message itself, or from conversation-level tool-schema transparency when rendering later user rows)
@@ -207,10 +210,12 @@ Conversation-level behavior:
 - assistant rows do not inherit conversation-level tool-schema sections
 
 Tool schema list normalization is centralized in
-`frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts`.
-`normalizeToolSchemaList(value)` is the public helper used by chat stream message
-updates and transparency rendering. It accepts only arrays where every entry is
-supported:
+`frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts` and is
+exposed to renderer presentation through
+`frontend/src/renderer/app/runtime/desktopChatMessageRuntimeClient.ts`.
+`normalizeToolSchemaList(value)` is the public runtime helper used by chat
+stream message updates and transparency rendering. It accepts only arrays where
+every entry is supported:
 
 - `type: "computer"` schemas pass through as renderer display schemas
 - canonical function schemas with `function.name` and `function.parameters`
@@ -251,7 +256,7 @@ Metadata panel prints each key/value pair with string coercion.
 - hidden-tool-log presentation rows render subdued explanation text and expandable `View actions`
   summaries
 
-`tests/frontend/MessageTransparency.test.js` verifies:
+`tests/frontend/DesktopMessageTransparencyRuntime.test.js` verifies:
 
 - empty transparency config for messages with no transparency payloads
 - section creation order and descriptor shapes for all supported transparency payloads

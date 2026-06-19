@@ -10,7 +10,7 @@ import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowS
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
 import { selectLiveTurnSurfaceState } from '../../chat/utils/chatSelectors';
 import MessageItem from '../../chat/components/message/MessageItem';
-import { resolveConversationToolSchemas } from '../../chat/utils/message/messageTransparency';
+import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import {
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
