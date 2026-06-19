@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard MCP registry payload runtime
+  slice by moving MCP registry normalization, empty registry defaults, and
+  nested enablement-result registry normalization from `McpsSection` into
+  `desktopMcpRuntimeClient`. The dashboard MCP section now owns loading,
+  toggle presentation, and error display while consuming normalized registry
+  objects from the app-runtime client. Validation: focused MCP runtime client,
+  MCP section, and renderer chat runtime boundary tests; stale MCP section
+  registry-field scan; docs listing; and diff checks. No migration required;
+  MCP registry payloads, enablement persistence, discovery refresh behavior,
+  dashboard rendering, IPC channel names, credentials, provider-policy,
+  storage, hosted URLs, and local-runtime MCP execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer terminal stream payload runtime slice by
   moving token-count filtering, usage/cache enum validation, nullable/finite
   number handling, and terminal error payload shaping from the terminal chat

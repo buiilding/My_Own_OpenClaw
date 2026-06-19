@@ -440,9 +440,16 @@ describe('renderer chat runtime boundary', () => {
     expect(sectionSource).not.toContain('LIST_MCP_SERVERS');
     expect(sectionSource).not.toContain('REFRESH_MCP_SERVERS');
     expect(sectionSource).not.toContain('SET_MCP_SERVER_ENABLED');
+    expect(sectionSource).not.toContain('normalizeMcpRegistry');
+    expect(sectionSource).not.toContain('mcp_errors');
+    expect(sectionSource).not.toContain('enabled_mcp_servers');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.listMcpServers');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.refreshMcpServers');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.setMcpServerEnabled');
+    expect(sectionSource).toContain('EMPTY_DESKTOP_MCP_REGISTRY');
+    expect(clientSource).toContain('normalizeDesktopMcpRegistry');
+    expect(clientSource).toContain('mcp_errors');
+    expect(clientSource).toContain('enabled_mcp_servers');
     expect(clientSource).toContain('INVOKE_CHANNELS.LIST_MCP_SERVERS');
     expect(clientSource).toContain('INVOKE_CHANNELS.REFRESH_MCP_SERVERS');
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_MCP_SERVER_ENABLED');

@@ -8,22 +8,14 @@ import {
   RefreshCcw,
   X,
 } from 'lucide-react';
-import { DesktopMcpRuntimeClient } from '../../../../app/runtime/desktopMcpRuntimeClient';
+import {
+  DesktopMcpRuntimeClient,
+  EMPTY_DESKTOP_MCP_REGISTRY,
+} from '../../../../app/runtime/desktopMcpRuntimeClient';
 import { CloneToggle } from './settings/settingsControls';
 
-function normalizeMcpRegistry(payload) {
-  return {
-    mcps: Array.isArray(payload?.mcps) ? payload.mcps : [],
-    errors: Array.isArray(payload?.errors) ? payload.errors : [],
-    mcp_errors: Array.isArray(payload?.mcp_errors) ? payload.mcp_errors : [],
-    enabled_mcp_servers: Array.isArray(payload?.enabled_mcp_servers)
-      ? payload.enabled_mcp_servers.filter((serverId) => typeof serverId === 'string')
-      : [],
-  };
-}
-
 function McpsSection({ onClose = () => {} }) {
-  const [registry, setRegistry] = useState({ mcps: [], errors: [], mcp_errors: [] });
+  const [registry, setRegistry] = useState(EMPTY_DESKTOP_MCP_REGISTRY);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -32,10 +24,9 @@ function McpsSection({ onClose = () => {} }) {
     setError('');
     setIsLoading(true);
     try {
-      const payload = await DesktopMcpRuntimeClient.listMcpServers();
-      setRegistry(normalizeMcpRegistry(payload));
+      setRegistry(await DesktopMcpRuntimeClient.listMcpServers());
     } catch (loadError) {
-      setRegistry({ mcps: [], errors: [], mcp_errors: [] });
+      setRegistry(EMPTY_DESKTOP_MCP_REGISTRY);
       setError(loadError?.message || 'Unable to load MCP servers.');
     } finally {
       setIsLoading(false);
@@ -50,8 +41,7 @@ function McpsSection({ onClose = () => {} }) {
     setError('');
     setIsRefreshing(true);
     try {
-      const payload = await DesktopMcpRuntimeClient.refreshMcpServers();
-      setRegistry(normalizeMcpRegistry(payload));
+      setRegistry(await DesktopMcpRuntimeClient.refreshMcpServers());
     } catch (refreshError) {
       setError(refreshError?.message || 'Unable to refresh MCP servers.');
     } finally {
@@ -69,8 +59,7 @@ function McpsSection({ onClose = () => {} }) {
       if (payload?.success === false) {
         throw new Error(payload.error || 'Unable to update MCP server.');
       }
-      const nextRegistry = normalizeMcpRegistry(payload?.registry);
-      setRegistry(nextRegistry);
+      setRegistry(payload.registry);
     } catch (toggleError) {
       setError(toggleError?.message || 'Unable to update MCP server.');
     }

@@ -27,11 +27,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move MCP registry list, refresh, and enablement payload
+  normalization behind the desktop MCP runtime client instead of the dashboard
+  section. No migration required.
 - renderer/runtime: move terminal token-count and error payload normalization
   behind the chat stream payload runtime facade. No migration required.
 - docs/packaging: relabel bundled Python runtime and local-runtime lifecycle
   prose away from sidecar-runtime owner wording while preserving command names.
   No migration required.
+- renderer/dashboard: move MCP registry payload normalization behind the
+  desktop MCP runtime client so the dashboard MCP section only handles display
+  and actions. No migration required.
 - renderer/runtime: move chat stream terminal token-count and error payload
   normalization behind the app runtime payload facade. No migration required.
 - renderer/runtime: move chat stream compaction and tool-schema payload alias
