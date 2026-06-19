@@ -663,6 +663,25 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('onboarding slide-state rules are owned by app runtime', async () => {
+    const slideRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopOnboardingSlideRuntime.js'),
+      'utf8',
+    );
+    const slideshowSource = await fs.readFile(
+      path.join(rendererRoot, 'features/onboarding/components/DesktopOnboardingSlideshow.jsx'),
+      'utf8',
+    );
+
+    expect(slideRuntimeSource).toContain('buildOnboardingSlideState');
+    expect(slideRuntimeSource).not.toContain('features/onboarding');
+    expect(slideshowSource).toContain('desktopOnboardingSlideRuntime');
+    expect(slideshowSource).not.toContain('utils/onboardingSlides');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/onboarding/utils/onboardingSlides.js'),
+    )).rejects.toThrow();
+  });
+
   test('chat surface selector projection stays behind app runtime facade', async () => {
     const selectorRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatSurfaceSelectorRuntime.ts'),

@@ -2,7 +2,7 @@
  * Covers onboarding slides. behavior in the frontend test suite.
  */
 
-import { buildOnboardingSlideState } from '../../frontend/src/renderer/features/onboarding/utils/onboardingSlides';
+import { buildOnboardingSlideState } from '../../frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime';
 
 describe('buildOnboardingSlideState', () => {
   test('builds permission slide state for in-range indices', () => {

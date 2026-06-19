@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Onboarding Slide-State Runtime Boundary
+
+- Finding: permission onboarding slide progression and active slide copy lived
+  under the onboarding feature utility tree even though the slideshow consumes
+  it as app startup runtime state.
+- Change: moved `buildOnboardingSlideState(...)` into
+  `frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime.js`, routed
+  the slideshow/tests/docs through the app-runtime owner, and deleted the old
+  `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js` path.
+- Validation: focused onboarding slide-state test, focused renderer app-runtime
+  boundary test, docs listing, stale old-path scan, frontend lint, and diff
+  checks.
+- Compatibility: no migration required. Onboarding slide ordering, copy,
+  permission state, IPC, persisted onboarding flags, credentials, local runtime
+  execution, provider policy, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 SDK Agent Definition Client Manifest Wording Boundary
 
 - Finding: the SDK agent-definition guide still described the removed

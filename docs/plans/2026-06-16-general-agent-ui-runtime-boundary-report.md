@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Onboarding Slide-State Runtime Boundary
+
+- Worktree was clean after `65f8ef867` except for the onboarding slide-state
+  runtime slice, with `main` ahead of `origin/main` by 269 commits.
+- App startup/onboarding docs, related onboarding runtime commits, current
+  imports, and stale utility references were inspected.
+- Finding: permission onboarding slide progression and active slide copy lived
+  under the onboarding feature utility tree even though the slideshow consumes
+  those values as app startup runtime state.
+- Change: moved `buildOnboardingSlideState(...)` into
+  `frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime.js`, routed
+  the slideshow/tests/docs through the app-runtime owner, and deleted the old
+  `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js` path.
+- Validation: focused onboarding slide-state test, focused renderer app-runtime
+  boundary test, docs listing, stale old-path scan, frontend lint, and diff
+  checks.
+- Compatibility: no migration required. Onboarding slide ordering, copy,
+  permission state, IPC, persisted onboarding flags, credentials, local runtime
+  execution, provider policy, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 SDK Agent Definition Client Manifest Wording Boundary
 
 - SDK conversation/runtime docs, agent-definition docs, API reference docs, and

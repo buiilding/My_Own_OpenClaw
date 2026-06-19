@@ -1,5 +1,5 @@
 /**
- * Provides the onboarding slides module for the renderer UI.
+ * Owns renderer onboarding slide-state rules for the app startup runtime.
  */
 
 export function buildOnboardingSlideState({ permissions, activeSlideIndex }) {

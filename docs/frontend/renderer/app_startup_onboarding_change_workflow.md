@@ -39,7 +39,7 @@ gate state, and main-process surface visibility.
 | `view=` route loads wrong renderer app | `frontend/src/renderer/app/main.jsx`, Electron window loader/runtime files | `tests/frontend/MainWindowOverlayRuntime.test.cjs`, renderer provider/view routing tests |
 | VM mode shows onboarding or overlays | `frontend/src/main/app/runtime_mode.cjs`, `frontend/src/main/app/main_process_lifecycle_runtime.cjs`, `frontend/src/renderer/app/runtime/desktopStartupRuntimeClient.ts`, `frontend/src/renderer/infrastructure/runtime/vmMode.js`, `App.jsx` | `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/AppVmMode.test.jsx`, `tests/frontend/startupSurface.test.js` |
 | Onboarding completion does not persist or resets unexpectedly | `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`, `permissionStore.js` | `tests/frontend/PermissionStorage.test.js`, `tests/frontend/permissionStore.test.js` |
-| Permission slides/progression are wrong | `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`, `PermissionOnboardingSlide.jsx`, `StopShortcutOnboardingSlide.jsx`, `utils/onboardingSlides.js` | `tests/frontend/DesktopOnboardingSlideshow.test.jsx`, `tests/frontend/onboardingSlides.test.js` |
+| Permission slides/progression are wrong | `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`, `PermissionOnboardingSlide.jsx`, `StopShortcutOnboardingSlide.jsx`, `frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime.js` | `tests/frontend/DesktopOnboardingSlideshow.test.jsx`, `tests/frontend/onboardingSlides.test.js` |
 | Restart onboarding from Settings opens wrong surface | `SettingsSection.jsx`, `settings/OnboardingSettingsTab.jsx`, main-window open-target IPC | `tests/frontend/SettingsSection.test.jsx`, surface/open-target tests |
 | Wakeword starts during onboarding or starts twice | `frontend/src/renderer/app/App.jsx`, `WakewordController.jsx`, overlay app wrappers | `tests/frontend/AppPermissionGate.test.jsx`, voice/wakeword renderer tests |
 
@@ -149,7 +149,7 @@ Read:
 - `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
-- `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js`
+- `frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/OnboardingSettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 

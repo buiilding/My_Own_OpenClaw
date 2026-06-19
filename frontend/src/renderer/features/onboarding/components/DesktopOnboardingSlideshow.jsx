@@ -10,7 +10,7 @@ import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 import { useOnboardingPermissionActions } from '../hooks/useOnboardingPermissionActions';
-import { buildOnboardingSlideState } from '../utils/onboardingSlides';
+import { buildOnboardingSlideState } from '../../../app/runtime/desktopOnboardingSlideRuntime';
 import PermissionOnboardingSlide from './PermissionOnboardingSlide';
 import StopShortcutOnboardingSlide from './StopShortcutOnboardingSlide';
 

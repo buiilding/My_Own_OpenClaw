@@ -20,7 +20,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 - `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
-- `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js`
+- `frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js`
 - `tests/frontend/AppVmMode.test.jsx`
@@ -110,7 +110,8 @@ Implementation split:
 
 - `AppContent` owns startup-surface IPC handoff (`show-main-window` for onboarding/VM, `show-chatbox` for normal desktop startup)
 - `DesktopOnboardingSlideshow` owns shell routing and footer controls only
-- `buildOnboardingSlideState(...)` is the pure slide-index/slide-kind model
+- `desktopOnboardingSlideRuntime.buildOnboardingSlideState(...)` is the pure
+  app-runtime slide-index/slide-kind model
 - `PermissionOnboardingSlide` renders the active permission card only
 - `StopShortcutOnboardingSlide` renders the keybind-only final slide
 - `useOnboardingPermissionActions()` owns the simple `Grant -> Waiting... -> probe` loop for settings-backed OS permissions plus post-grant permission effects

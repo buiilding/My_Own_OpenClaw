@@ -34,6 +34,9 @@ All notable changes to WindieOS will be documented in this file.
   tool-schema, hosted-default, and built-in local-runtime terminology in SDK and
   API reference docs instead of retired frontend/product wording. No migration
   required.
+- renderer/onboarding: move permission onboarding slide-state rules into the
+  renderer app runtime and delete the feature utility path. No migration
+  required.
 - docs/dashboard: route active conversation list, search, and resume references
   through `DesktopConversationLibraryClient` and SDK-shaped `conversations.*`
   / `conversation.loadDisplay` commands instead of legacy direct conversation
