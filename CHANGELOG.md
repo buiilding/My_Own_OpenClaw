@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/voice: route remaining voice channel and desktop docs from retired
+  feature utility globs to renderer app-runtime voice/wakeword helpers. No
+  migration required.
 - renderer/dashboard: move recent-conversation load normalization and retry
   policy into `desktopDashboardConversationLoadRuntime` and delete the feature
   utility path. No migration required.

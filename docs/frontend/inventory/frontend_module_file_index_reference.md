@@ -101,7 +101,9 @@ Feature slices:
 - Voice:
 - `frontend/src/renderer/features/voice/components/*`
 - `frontend/src/renderer/features/voice/hooks/*`
-- `frontend/src/renderer/features/voice/utils/*`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudio*Runtime.ts`
+- `frontend/src/renderer/app/runtime/desktopWakeword*Runtime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
 - Permissions:
 - `frontend/src/renderer/features/permissions/components/*`
 - `frontend/src/renderer/features/permissions/stores/*`

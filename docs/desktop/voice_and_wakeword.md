@@ -14,7 +14,7 @@ WindieOS voice has three related paths: wakeword detection, transient voice dict
 
 - Wakeword controller: `frontend/src/renderer/app/WakewordController.jsx`
 - Voice hooks: `frontend/src/renderer/features/voice/hooks/*`
-- Voice utilities: `frontend/src/renderer/features/voice/utils/*`
+- Voice/wakeword runtime helpers: `frontend/src/renderer/app/runtime/desktopVoiceAudio*Runtime.ts`, `frontend/src/renderer/app/runtime/desktopWakeword*Runtime.ts`, `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
 - Voice status UI: `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
 - Main wakeword bridge: `frontend/src/main/wakeword/wakeword_bridge*.cjs`
 - Local-runtime wakeword service implementation: `frontend/src/main/python/wakeword_service.py`

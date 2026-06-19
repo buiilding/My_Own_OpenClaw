@@ -16,7 +16,7 @@ WindieOS voice is three channels that share microphone/audio concepts but have d
 | Channel | Purpose | Transport | Owners |
 | --- | --- | --- | --- |
 | Wakeword | Ambient trigger detection | renderer audio chunks -> Electron main IPC -> local-runtime wakeword helper backed by the Python wakeword subprocess | `WakewordController.jsx`, `wakeword_bridge*.cjs`, `wakeword_service.py` |
-| Voice dictation | Turn text entry from microphone | renderer audio -> backend `/ws/transcription` | voice hooks/utils, transcription route/services |
+| Voice dictation | Turn text entry from microphone | renderer audio -> backend `/ws/transcription` | voice hooks, renderer app-runtime voice audio helpers, transcription route/services |
 | TTS playback | Spoken backend response | backend `/ws` `audio-chunk` events -> renderer playback queue | backend TTS manager/session, renderer audio service |
 
 Do not route live dictation through the wakeword subprocess. Do not route wakeword chunks to `/ws/transcription`. Do not treat TTS `audio-chunk` events as transcription responses.
@@ -67,7 +67,9 @@ Main flow:
 Key files:
 
 - `frontend/src/renderer/features/voice/hooks/*`
-- `frontend/src/renderer/features/voice/utils/*`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudio*Runtime.ts`
+- `frontend/src/renderer/app/runtime/desktopWakeword*Runtime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
 - `backend/src/api/routes/transcription/router.py`
 - `backend/src/api/services/transcription/*`
 
