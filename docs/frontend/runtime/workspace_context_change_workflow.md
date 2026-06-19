@@ -104,6 +104,9 @@ Selection rules:
 - `DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace()` returns the
   normalized workspace value only when the permission request resolves granted,
   or `null` when no workspace was granted.
+- `DesktopWorkspaceRuntimeClient.getActiveWorkspacePresentation(...)` returns
+  selected-workspace path and update-success display text for UI surfaces that
+  should not read raw `activeWorkspaceName` or `activeWorkspacePath` fields.
 - `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspacePath)`
   updates the selected workspace
   without re-opening the picker only when that path is already present in the
@@ -120,7 +123,8 @@ private. Renderer callers that need status or event metadata should use
 `DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)`. Chat/settings
 UI that only needs workspace values should prefer `fetchActiveWorkspace()`,
 `requestGrantedActiveWorkspace()`, `onWorkspaceSelectionUpdated(...)`, or
-`onActiveWorkspaceUpdated(...)`. Stale searches
+`onActiveWorkspaceUpdated(...)`; UI that displays the selected workspace should
+prefer `getActiveWorkspacePresentation(...)`. Stale searches
 for exported helper names such as `normalizeWorkspaceAccessPayload`,
 `normalizeActiveWorkspace`, `extractWorkspaceStatus`, or
 `WORKSPACE_ACCESS_PERMISSION_ID` should route to this workflow and not to

@@ -35,6 +35,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move dashboard generated-title poll timing and visibility
+  checks into `desktopDashboardConversationLoadRuntime` so
+  `useDashboardConversations` no longer hard-codes poll constants or checks raw
+  dashboard row ids while waiting for generated titles to appear. No migration
+  required.
+- renderer/workspace: move active-workspace display presentation into
+  `desktopWorkspaceRuntimeClient` so `WorkspaceSettingsTab` no longer reads raw
+  workspace name/path fields while rendering the selected workspace path or
+  update success text. No migration required.
 - renderer/permissions: move browser permission manifest lookup into
   `desktopPermissionPresentationRuntime` so `BrowserSettingsTab` no longer
   scans raw permission `permission_id` fields before rendering the browser

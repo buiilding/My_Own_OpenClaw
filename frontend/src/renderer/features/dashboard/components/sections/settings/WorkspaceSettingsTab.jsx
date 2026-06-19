@@ -8,15 +8,22 @@ import { DesktopWorkspaceRuntimeClient } from '../../../../../app/runtime/deskto
 
 const workspaceSettingsSkin = desktopRuntimeSkin.settings.workspace;
 
+function getWorkspacePresentation(workspace) {
+  return DesktopWorkspaceRuntimeClient.getActiveWorkspacePresentation(workspace, {
+    emptyWorkspaceText: workspaceSettingsSkin.emptyWorkspace,
+    updatedFallbackText: workspaceSettingsSkin.updatedFallback,
+  });
+}
+
 function WorkspaceSettingsTab() {
-  const [activeWorkspace, setActiveWorkspace] = useState(() => ({
-    activeWorkspaceName: '',
-    activeWorkspacePath: '',
-  }));
+  const [activeWorkspace, setActiveWorkspace] = useState(
+    () => DesktopWorkspaceRuntimeClient.getEmptyActiveWorkspaceSelection(),
+  );
   const [isSelectingWorkspace, setIsSelectingWorkspace] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusTone, setStatusTone] = useState('success');
   const activeWorkspaceRef = useRef(activeWorkspace);
+  const activeWorkspacePresentation = getWorkspacePresentation(activeWorkspace);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,10 +49,7 @@ function WorkspaceSettingsTab() {
         }
       } catch (_error) {
         if (!cancelled) {
-          applyWorkspace({
-            activeWorkspaceName: '',
-            activeWorkspacePath: '',
-          });
+          applyWorkspace(DesktopWorkspaceRuntimeClient.getEmptyActiveWorkspaceSelection());
         }
       }
     };
@@ -69,9 +73,7 @@ function WorkspaceSettingsTab() {
         activeWorkspaceRef.current = nextWorkspace;
         setActiveWorkspace(nextWorkspace);
         setStatusTone('success');
-        setStatusMessage(nextWorkspace.activeWorkspaceName
-          ? `Active workspace set to ${nextWorkspace.activeWorkspaceName}.`
-          : workspaceSettingsSkin.updatedFallback);
+        setStatusMessage(getWorkspacePresentation(nextWorkspace).updateSuccessMessage);
       }
     } catch (error) {
       setStatusTone('error');
@@ -90,7 +92,7 @@ function WorkspaceSettingsTab() {
           <span>{workspaceSettingsSkin.activeWorkspaceLabel}</span>
           <p>{workspaceSettingsSkin.description}</p>
           <p className="clone-settings-workspace-path">
-            {activeWorkspace.activeWorkspacePath || workspaceSettingsSkin.emptyWorkspace}
+            {activeWorkspacePresentation.pathText}
           </p>
         </div>
         <button

@@ -39,6 +39,13 @@ owns SDK conversation event type classification for recent-list refresh and
 title-visibility polling. The hook owns the resulting side effects: reload the
 recent list, schedule the per-conversation title poll, or ignore the event.
 
+`desktopDashboardConversationLoadRuntime.getTitleVisibilityPollSchedule(...)`
+and `shouldContinueTitleVisibilityPoll(...)` own the poll interval, maximum
+attempt count, and dashboard-row visibility predicate. The hook owns timer
+creation/cleanup and list reload side effects, but it should not hard-code the
+poll numbers or inspect raw row ids to decide whether a generated title is
+visible.
+
 `DesktopLocalRuntimeStatusRuntimeClient.onReady(...)` owns local-runtime status
 snapshot readiness projection. The dashboard hook owns the reload side effect
 when the runtime becomes ready, but it should not read raw `snapshot.ready`
@@ -104,8 +111,8 @@ Behavior:
 
 Poll contract:
 
-- interval `1250ms`
-- max attempts `240`
+- interval `1250ms`, provided by `getTitleVisibilityPollSchedule(...)`
+- max attempts `240`, enforced by `shouldContinueTitleVisibilityPoll(...)`
 - checks if target conversation is visible in latest recent list
 - per-conversation timer is replaced when a new poll starts
 - cleanup clears all pending timers on unmount

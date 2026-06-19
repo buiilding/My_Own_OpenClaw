@@ -28,6 +28,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import {
   DesktopWorkspaceRuntimeClient,
   areActiveWorkspaceSelectionsEqual,
+  getActiveWorkspacePresentation,
+  getEmptyActiveWorkspaceSelection,
   normalizeWorkspaceAccessUpdatedPayload,
 } from '../../frontend/src/renderer/app/runtime/desktopWorkspaceRuntimeClient';
 
@@ -112,6 +114,37 @@ describe('DesktopWorkspaceRuntimeClient', () => {
       ),
     ).toBe(false);
     expect(areActiveWorkspaceSelectionsEqual(null, null)).toBe(true);
+  });
+
+  test('builds active workspace presentation values at the runtime boundary', () => {
+    expect(getEmptyActiveWorkspaceSelection()).toEqual({
+      activeWorkspaceName: '',
+      activeWorkspacePath: '',
+      selectedPaths: [],
+    });
+
+    expect(getActiveWorkspacePresentation(
+      {
+        activeWorkspaceName: 'WindieOS',
+        activeWorkspacePath: '/repo/WindieOS',
+        selectedPaths: ['/repo/WindieOS'],
+      },
+      {
+        emptyWorkspaceText: 'No workspace selected.',
+        updatedFallbackText: 'Workspace updated.',
+      },
+    )).toEqual({
+      pathText: '/repo/WindieOS',
+      updateSuccessMessage: 'Active workspace set to WindieOS.',
+    });
+
+    expect(DesktopWorkspaceRuntimeClient.getActiveWorkspacePresentation(null, {
+      emptyWorkspaceText: 'No workspace selected.',
+      updatedFallbackText: 'Workspace updated.',
+    })).toEqual({
+      pathText: 'No workspace selected.',
+      updateSuccessMessage: 'Workspace updated.',
+    });
   });
 
   test('workspace access subscriptions emit normalized workspace selections', () => {

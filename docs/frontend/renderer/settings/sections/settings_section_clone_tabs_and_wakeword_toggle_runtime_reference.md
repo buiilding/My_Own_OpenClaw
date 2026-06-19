@@ -162,16 +162,18 @@ patches local to the settings surface.
 
 ## Workspace Tab Ownership Model
 
-`WorkspaceSettingsTab` owns active workspace display, folder-pick actions, and
-workspace permission affordances. It consumes active workspace selection values,
-workspace-access subscriptions, folder-pick commands, and active-workspace
-selection equality through `DesktopWorkspaceRuntimeClient`.
+`WorkspaceSettingsTab` owns active workspace row layout, folder-pick actions,
+and workspace permission affordances. It consumes active workspace selection
+values, display presentation, empty-selection defaults, workspace-access
+subscriptions, folder-pick commands, and active-workspace selection equality
+through `DesktopWorkspaceRuntimeClient`.
 
 The tab should keep rendering and local state synchronization local, but it
-should not compare raw `activeWorkspaceName` or `activeWorkspacePath` fields
-directly before applying workspace updates. The runtime client owns that
-value-level equality predicate so chat and settings surfaces stay aligned on
-which active workspace changes matter.
+should not compare or render raw `activeWorkspaceName` or
+`activeWorkspacePath` fields directly before applying workspace updates or
+displaying the active workspace. The runtime client owns that value-level
+equality predicate and presentation so chat and settings surfaces stay aligned
+on which active workspace changes matter.
 
 ## Browser Tab Ownership Model
 

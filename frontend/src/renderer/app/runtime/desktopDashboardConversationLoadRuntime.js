@@ -5,6 +5,8 @@
 const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
 const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
 const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
+const TITLE_VISIBILITY_POLL_MAX_ATTEMPTS = 240;
+const TITLE_VISIBILITY_POLL_DELAY_MS = 1250;
 
 const RECENT_CONVERSATION_EVENT_ACTION = Object.freeze({
   NONE: 'none',
@@ -121,6 +123,38 @@ export function getRecentConversationsReloadReasonForEventAction(action) {
   return action?.action === RECENT_CONVERSATION_EVENT_ACTION.RELOAD
     ? action.reloadReason || ''
     : '';
+}
+
+export function getTitleVisibilityPollSchedule() {
+  return {
+    delayMs: TITLE_VISIBILITY_POLL_DELAY_MS,
+    maxAttempts: TITLE_VISIBILITY_POLL_MAX_ATTEMPTS,
+  };
+}
+
+export function isConversationVisibleInRecentConversations(
+  recentConversations,
+  conversationRef,
+) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  if (!targetRef) {
+    return false;
+  }
+  return (Array.isArray(recentConversations) ? recentConversations : []).some((conversation) => (
+    normalizeOptionalString(conversation?.conversation_id) === targetRef
+  ));
+}
+
+export function shouldContinueTitleVisibilityPoll({
+  recentConversations,
+  conversationRef,
+  attempts,
+  maxAttempts = TITLE_VISIBILITY_POLL_MAX_ATTEMPTS,
+}) {
+  if (Number(attempts) >= maxAttempts) {
+    return false;
+  }
+  return !isConversationVisibleInRecentConversations(recentConversations, conversationRef);
 }
 
 export function resolveRecentConversationsRetryDelayMs(

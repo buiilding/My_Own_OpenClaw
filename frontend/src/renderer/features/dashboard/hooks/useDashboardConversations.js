@@ -17,12 +17,14 @@ import {
 } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import {
   getRecentConversationsReloadReasonForEventAction,
+  getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
   metadataListToDashboardConversations,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
+  shouldContinueTitleVisibilityPoll,
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
@@ -149,14 +151,16 @@ function useDashboardConversations({
     clearPendingTitlePoll(conversationRef);
 
     let attempts = 0;
-    const maxAttempts = 240;
-    const delayMs = 1250;
+    const { delayMs } = getTitleVisibilityPollSchedule();
 
     const poll = async () => {
       attempts += 1;
       const list = await loadRecentConversations();
-      const isVisible = list.some((conversation) => conversation?.conversation_id === conversationRef);
-      if (isVisible || attempts >= maxAttempts) {
+      if (!shouldContinueTitleVisibilityPoll({
+        recentConversations: list,
+        conversationRef,
+        attempts,
+      })) {
         clearPendingTitlePoll(conversationRef);
         return;
       }

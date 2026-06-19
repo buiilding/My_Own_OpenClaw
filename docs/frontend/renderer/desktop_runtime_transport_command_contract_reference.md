@@ -148,11 +148,12 @@ for SDK memory retrieval injection. Dashboard memory settings and query-send
 runtime clients consume this facade instead of sharing a root renderer utility.
 
 `desktopDashboardConversationLoadRuntime.js` owns recent-conversation row
-normalization, pinned-reference pruning, bounded retry policy, and SDK
-conversation event classification for recent-list reload/title-poll actions.
-`useDashboardConversations` keeps dashboard state, search, title polling,
-open/delete handlers, and grouping orchestration while delegating reusable
-list-load rules to this app-runtime facade.
+normalization, pinned-reference pruning, bounded retry policy, SDK
+conversation event classification for recent-list reload/title-poll actions,
+and title-visibility poll schedule/visibility rules. `useDashboardConversations`
+keeps dashboard state, search, timer side effects, open/delete handlers, and
+grouping orchestration while delegating reusable list-load and title-poll rules
+to this app-runtime facade.
 
 `desktopDashboardConversationGroupRuntime.js` owns dashboard conversation
 time-bucket and workspace grouping rules, including title fallbacks, pinned
@@ -262,11 +263,12 @@ validity directly.
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out, live
 workspace payload normalization, host-source classification such as
 `isWorkspacePickerSelection`, and value-level workspace selection helpers for
-chat and settings surfaces, including active-workspace selection equality.
-Chat owns active-workspace refresh and conversation binding policy; workspace
-settings owns active workspace display and folder selection while consuming
-workspace values from this runtime client instead of reading normalized
-workspace result or event envelopes or comparing raw workspace name/path fields.
+chat and settings surfaces, including active-workspace selection equality,
+empty selection defaults, and selected-workspace display presentation. Chat
+owns active-workspace refresh and conversation binding policy; workspace
+settings owns active workspace row layout and folder selection while consuming
+workspace values and display text from this runtime client instead of reading
+normalized workspace result/event envelopes or raw workspace name/path fields.
 
 `desktopMemoryRuntimeClient.ts` owns SDK-shaped memory list/delete/clear
 commands, active-user resolution for destructive memory settings actions, and

@@ -174,6 +174,46 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Workspace Display Presentation Boundary
+
+- Finding: `desktopWorkspaceRuntimeClient` owned active workspace value
+  normalization, update subscriptions, granted selection requests, and
+  selection equality, but `WorkspaceSettingsTab` still read raw active
+  workspace name/path fields while rendering the selected workspace path and
+  update success text.
+- Change: added empty-selection and active-workspace display presentation
+  helpers to `desktopWorkspaceRuntimeClient`. Workspace settings now keeps row
+  layout, local sync state, and folder-pick actions while consuming
+  runtime-provided empty workspace defaults, path text, and update success
+  text.
+- Validation: passed focused desktop workspace runtime client, settings
+  section, renderer settings boundary, and docs-index tests plus docs search,
+  related commit search, stale raw workspace display-field scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Workspace permission payload shape,
+  active workspace values, workspace picker behavior, dashboard/chat workspace
+  binding, IPC channels, storage, provider policy, hosted URLs, permissions,
+  credentials, local execution behavior, and local-runtime tool workspace
+  defaults are unchanged.
+
+### 2026-06-19 Renderer Dashboard Title Visibility Poll Boundary
+
+- Finding: `desktopDashboardConversationLoadRuntime` owned recent-list
+  projection, retry policy, and SDK event classification, but
+  `useDashboardConversations` still hard-coded generated-title poll timing and
+  checked raw dashboard row ids while deciding when to stop polling.
+- Change: added title-visibility poll schedule, row-visibility, and
+  continue-poll helpers to `desktopDashboardConversationLoadRuntime`. The
+  dashboard hook now keeps timer setup/cleanup and reload side effects while
+  delegating reusable poll rules to the runtime facade.
+- Validation: passed focused dashboard conversation load, dashboard shell,
+  renderer app boundary, and docs-index tests plus docs search, related commit
+  search, stale raw title-poll scan, docs listing, and diff checks.
+- Compatibility: no migration required. Conversation metadata payload shape,
+  title-poll timing and attempt limit, recent-list reload behavior, IPC
+  channels, storage, provider policy, hosted URLs, permissions, credentials,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Browser Permission Manifest Lookup Boundary
 
 - Finding: `desktopPermissionPresentationRuntime` owned permission badge and

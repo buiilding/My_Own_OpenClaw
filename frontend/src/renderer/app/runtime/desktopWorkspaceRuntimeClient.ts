@@ -28,6 +28,16 @@ export type DesktopWorkspaceSelection = {
   selectedPaths: string[];
 };
 
+export type DesktopWorkspacePresentationCopy = {
+  emptyWorkspaceText?: string;
+  updatedFallbackText?: string;
+};
+
+export type DesktopActiveWorkspacePresentation = {
+  pathText: string;
+  updateSuccessMessage: string;
+};
+
 export type DesktopWorkspaceSelectionResult = {
   status: Record<string, unknown> | null;
   workspace: DesktopWorkspaceSelection;
@@ -43,6 +53,14 @@ export type DesktopWorkspaceSelectionUpdateListener = (
 ) => void;
 
 const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';
+
+export function getEmptyActiveWorkspaceSelection(): DesktopWorkspaceSelection {
+  return {
+    activeWorkspaceName: '',
+    activeWorkspacePath: '',
+    selectedPaths: [],
+  };
+}
 
 function getLastPathSegment(pathValue = ''): string {
   if (typeof pathValue !== 'string') {
@@ -66,11 +84,7 @@ function normalizeActiveWorkspace(statusPayload: Record<string, unknown> | null 
       : []
   );
   if (statusPayload?.granted !== true || selectedPaths.length === 0) {
-    return {
-      activeWorkspaceName: '',
-      activeWorkspacePath: '',
-      selectedPaths: [],
-    };
+    return getEmptyActiveWorkspaceSelection();
   }
 
   const activeWorkspacePath = selectedPaths[0];
@@ -144,7 +158,35 @@ export function areActiveWorkspaceSelectionsEqual(
   );
 }
 
+export function getActiveWorkspacePresentation(
+  workspace: unknown,
+  copy: DesktopWorkspacePresentationCopy = {},
+): DesktopActiveWorkspacePresentation {
+  const source = recordOrEmpty(workspace);
+  const activeWorkspaceName = typeof source.activeWorkspaceName === 'string'
+    ? source.activeWorkspaceName.trim()
+    : '';
+  const activeWorkspacePath = typeof source.activeWorkspacePath === 'string'
+    ? source.activeWorkspacePath.trim()
+    : '';
+  const emptyWorkspaceText = typeof copy.emptyWorkspaceText === 'string'
+    ? copy.emptyWorkspaceText
+    : '';
+  const updatedFallbackText = typeof copy.updatedFallbackText === 'string'
+    ? copy.updatedFallbackText
+    : 'Workspace updated.';
+
+  return {
+    pathText: activeWorkspacePath || emptyWorkspaceText,
+    updateSuccessMessage: activeWorkspaceName
+      ? `Active workspace set to ${activeWorkspaceName}.`
+      : updatedFallbackText,
+  };
+}
+
 export const DesktopWorkspaceRuntimeClient = {
+  getEmptyActiveWorkspaceSelection,
+
   async fetchActiveWorkspaceSelection(): Promise<DesktopWorkspaceSelectionResult> {
     const result = await IpcBridge.invoke(INVOKE_CHANNELS.CHECK_PERMISSION, {
       permissionId: WORKSPACE_ACCESS_PERMISSION_ID,
@@ -203,6 +245,8 @@ export const DesktopWorkspaceRuntimeClient = {
   },
 
   areActiveWorkspaceSelectionsEqual,
+
+  getActiveWorkspacePresentation,
 
   workspaceSelectionToBinding,
 

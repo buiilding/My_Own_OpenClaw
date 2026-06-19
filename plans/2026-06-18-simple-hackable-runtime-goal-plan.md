@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved active-workspace display presentation into
+  `desktopWorkspaceRuntimeClient`. `WorkspaceSettingsTab` now keeps row layout,
+  local sync state, and folder-pick actions while consuming runtime-provided
+  empty workspace defaults, path text, and update success text instead of
+  reading raw active workspace name/path fields. Validation passed focused
+  desktop workspace runtime client, settings section, renderer settings
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  raw workspace display-field scan, docs listing, and diff checks. No
+  migration required; workspace permission payload shape, active workspace
+  values, workspace picker behavior, dashboard/chat workspace binding, IPC
+  channels, storage, provider policy, hosted URLs, permissions, credentials,
+  local execution behavior, and local-runtime tool workspace defaults are
+  unchanged.
+
+- 2026-06-19: moved dashboard generated-title poll timing and visibility
+  checks into `desktopDashboardConversationLoadRuntime`.
+  `useDashboardConversations` now keeps timer setup/cleanup and recent-list
+  reload side effects while consuming runtime-provided title-poll schedule and
+  continue/visibility rules instead of hard-coding poll numbers or checking raw
+  dashboard row ids. Validation passed focused dashboard conversation
+  load, dashboard shell, renderer app boundary, and docs-index tests plus docs
+  search, related commit search, stale raw title-poll scan, docs listing, and
+  diff checks. No migration required; conversation metadata payload shape,
+  title-poll timing and attempt limit, recent-list reload behavior, IPC
+  channels, storage, provider policy, hosted URLs, permissions, credentials,
+  and local execution behavior are unchanged.
+
 - 2026-06-19: moved browser permission manifest lookup into
   `desktopPermissionPresentationRuntime`. `BrowserSettingsTab` now keeps row
   layout and browser-open actions while consuming a runtime-provided permission

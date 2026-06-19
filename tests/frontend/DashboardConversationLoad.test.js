@@ -3,13 +3,16 @@
  */
 
 import {
+  getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
+  isConversationVisibleInRecentConversations,
   metadataListToDashboardConversations,
   metadataToDashboardConversation,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
+  shouldContinueTitleVisibilityPoll,
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
@@ -98,6 +101,41 @@ describe('desktopDashboardConversationLoadRuntime', () => {
     expect(resolveRecentConversationsRetryDelayMs(1)).toBe(500);
     expect(resolveRecentConversationsRetryDelayMs(3)).toBe(2000);
     expect(resolveRecentConversationsRetryDelayMs(7)).toBe(2000);
+  });
+
+  test('title visibility poll schedule and visibility rules stay in the runtime', () => {
+    expect(getTitleVisibilityPollSchedule()).toEqual({
+      delayMs: 1250,
+      maxAttempts: 240,
+    });
+
+    expect(isConversationVisibleInRecentConversations([
+      { conversation_id: 'conv-visible' },
+      { conversation_id: ' conv-trimmed ' },
+    ], 'conv-visible')).toBe(true);
+    expect(isConversationVisibleInRecentConversations([
+      { conversation_id: ' conv-trimmed ' },
+    ], 'conv-trimmed')).toBe(true);
+    expect(isConversationVisibleInRecentConversations([
+      { conversation_id: 'conv-other' },
+    ], 'conv-missing')).toBe(false);
+    expect(isConversationVisibleInRecentConversations(null, 'conv-missing')).toBe(false);
+
+    expect(shouldContinueTitleVisibilityPoll({
+      recentConversations: [{ conversation_id: 'conv-other' }],
+      conversationRef: 'conv-target',
+      attempts: 1,
+    })).toBe(true);
+    expect(shouldContinueTitleVisibilityPoll({
+      recentConversations: [{ conversation_id: 'conv-target' }],
+      conversationRef: 'conv-target',
+      attempts: 1,
+    })).toBe(false);
+    expect(shouldContinueTitleVisibilityPoll({
+      recentConversations: [{ conversation_id: 'conv-other' }],
+      conversationRef: 'conv-target',
+      attempts: 240,
+    })).toBe(false);
   });
 
   test('shouldRetryRecentConversationsLoad gates retries by loading/state/error/attempt', () => {
