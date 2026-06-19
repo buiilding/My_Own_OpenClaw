@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Frontend Inventory Local-Runtime Python Section Labels
+
+- Finding: active frontend inventory docs still used sidecar-flavored public
+  section titles and a sidecar-owned backend-helper row label for
+  local-runtime Python implementation and hosted helper client areas.
+- Change: renamed those active section/row labels to Local-Runtime Python and
+  local-runtime hosted helper-client wording while preserving concrete Python
+  sidecar paths as implementation evidence, and added exact modular docs
+  guards for the retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Inventory-only docs changed; no code
+  path, JSON-RPC method, IPC channel, storage, credential, permission, hosted
+  route, provider policy, packaging, or local execution behavior changed.
+
 ### 2026-06-19 Frontend Transcript Store Inventory Local-Runtime Label
 
 - Finding: the frontend IPC/local-runtime contract touchpoint inventory still

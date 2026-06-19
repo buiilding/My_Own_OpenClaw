@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route local-runtime Python inventory section titles and hosted
+  helper-client labels away from Local Runtime Sidecar public wording while
+  keeping concrete Python sidecar paths explicit. No migration required.
 - docs/frontend: route the IPC/local-runtime contract inventory transcript
   store owner through local-runtime wording instead of a Sidecar transcript
   store label while keeping Python sidecar handler paths explicit. No migration

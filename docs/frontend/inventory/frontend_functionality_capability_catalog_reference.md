@@ -199,7 +199,7 @@ Capabilities:
 - Permissions store derives runtime gate state from manifest/status/onboarding metadata, while current renderer startup is not blocked by a permission wizard gate.
 - Voice runtime supports wakeword detection path and Nova voice streaming mode.
 
-## 8) Local Runtime Sidecar Capability Catalog
+## 8) Local-Runtime Python Capability Catalog
 
 Primary files:
 

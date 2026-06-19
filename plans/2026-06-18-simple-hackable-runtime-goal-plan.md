@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a frontend inventory local-runtime Python label slice
+  by routing active inventory section titles and hosted helper-client rows
+  away from Local Runtime Sidecar public wording while keeping concrete Python
+  sidecar paths visible as implementation evidence. Validation: focused
+  modular boundary guard, docs listing, exact stale label scan, and diff
+  checks. No migration required; inventory-only docs changed, with no code
+  path, JSON-RPC method, IPC channel, storage, credential, permission, hosted
+  route, provider policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a frontend transcript-store inventory label slice by
   routing the IPC/local-runtime contract touchpoint inventory through
   Local-runtime transcript store methods instead of a Sidecar transcript store

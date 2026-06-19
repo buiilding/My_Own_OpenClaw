@@ -84,14 +84,14 @@ This matrix maps frontend capabilities to implementation files.
 | Permission onboarding + controls | `frontend/src/renderer/features/permissions/components/*`, `stores/permissionStore.js`, `utils/permission*.js` | Install-time gate and ongoing permission status controls. |
 | Voice capture + wakeword | `frontend/src/renderer/features/voice/hooks/*`, `utils/*`, `components/VoiceStatus.jsx` | Mic capture, wakeword streaming, voice mode websocket runtime. |
 
-## 7) Local Runtime Sidecar Implementation Domains
+## 7) Local-Runtime Python Implementation Domains
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
 | JSON-RPC local-runtime entrypoint | `frontend/src/main/python/local_backend.py` | Primary sidecar runtime implementation for tool/memory/transcript/system RPC. |
 | Wakeword sidecar entrypoint | `frontend/src/main/python/wakeword_service.py` | Wakeword model load + framed output loop. |
 | Core protocol and lifecycle | `frontend/src/main/python/core/{ipc_protocol,stdout_json,thread_pool}.py`, `frontend/src/main/python/sidecar_daemon.py` | Request framing, response writes, executor lifecycle, and daemon shutdown behavior. |
-| Sidecar backend HTTP clients | `frontend/src/main/python/core/{remote_api_client_base,remote_semantic_client}.py` | Shared retry/error policy wrappers for semantic backend calls. |
+| Local-runtime hosted helper clients | `frontend/src/main/python/core/{remote_api_client_base,remote_semantic_client}.py` | Shared retry/error policy wrappers for semantic backend calls. |
 | Platform state and metrics | `frontend/src/main/python/core/{system_state,system_metrics}.py`, `core/platform/*.py` | OS-specific probes and normalized runtime metrics payloads. |
 | Memory persistence and semantic pipeline | `frontend/src/main/python/memory/{local_store,sqlite_store,faiss_index,summarizer,operations,watermark_state,conversation_titles}.py` | Transcript store/search and semantic indexing/summarization. |
 | Tool registry and schemas | `frontend/src/main/python/tools/{registry,schemas,result,base}.py` | Local-runtime tool catalog implementation and standardized result structures. |
