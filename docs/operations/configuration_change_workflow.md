@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for WindieOS configuration changes across backend AppConfig, Electron endpoint/defaults, renderer settings persistence, sidecar env, provider credentials, VM variables, and packaging."
+summary: "Workflow for WindieOS configuration changes across backend AppConfig, Electron endpoint/defaults, renderer settings persistence, local-runtime env, provider credentials, VM variables, and packaging."
 read_when:
   - When adding, removing, renaming, or debugging a runtime config field,
     environment variable, frontend setting, endpoint default, provider
@@ -154,9 +154,10 @@ Start docs:
 - [Provider Credentials](../providers/credentials.md)
 - [Provider Change Workflow](../providers/provider_change_workflow.md)
 
-## Sidecar Env Changes
+## Local-Runtime Implementation Env Changes
 
-Sidecar env changes must be validated in both source and packaged shape when they affect process launch or bundled dependencies.
+Local-runtime implementation env changes must be validated in both source and
+packaged shape when they affect process launch or bundled dependencies.
 
 Primary files:
 

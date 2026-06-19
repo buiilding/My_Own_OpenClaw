@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Configuration Local-Runtime Owner Labels
+
+- Finding: the configuration workflow, runtime configuration matrix,
+  configuration reference, and observability workflow still exposed sidecar env
+  or sidecar runtime labels as public config owners after the launch/config
+  code gained generic local-runtime aliases.
+- Change: routed those labels through local-runtime implementation/env wording
+  while preserving Python sidecar paths, bundled sidecar packaging docs,
+  sidecar-focused tests, and compatibility env aliases as implementation
+  evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  config-label scan, and diff checks.
+- Compatibility: no migration required. Env var names, launch options, runtime
+  payloads, storage, IPC, settings, credentials, hosted URLs, logging, metrics,
+  provider policy, permissions, and local execution behavior are unchanged.
+
 ### 2026-06-18 Debug Failure Local-Runtime Tool Labels
 
 - Finding: the error/failure workflow still used sidecar-tool wording in its
