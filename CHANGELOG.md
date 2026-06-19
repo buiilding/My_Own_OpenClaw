@@ -27,6 +27,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose SDK conversation stream event payload access through
+  `desktopChatStreamEventPayloadRuntime` so chat stream sub-handlers no longer
+  read raw `event.payload` fields directly. No migration required.
+- docs/runtime: record wakeword bridge hook validation in the renderer
+  wakeword-status value-boundary progress notes. No migration required.
 - renderer/runtime: expose wakeword ready/error status as a value-level voice
   runtime subscription so wakeword bridge hooks no longer read raw status event
   `ready` / `error` fields. No migration required.

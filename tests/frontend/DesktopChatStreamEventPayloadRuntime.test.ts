@@ -10,6 +10,7 @@ import {
   getCompactionReplacementHistoryEntries,
   resolveErrorText,
   resolveCompactionErrorText,
+  resolveConversationStreamEventPayload,
   resolveLocalUserMessageText,
   resolveTerminalErrorPayload,
   resolveToolSchemasMetadataPayload,
@@ -97,6 +98,15 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
       cache_status: 'warm',
       cache_hit: 'false',
     })).toEqual({});
+  });
+
+  test('normalizes SDK conversation event payload access', () => {
+    const payload = { content: 'hello' };
+
+    expect(resolveConversationStreamEventPayload({ payload })).toBe(payload);
+    expect(resolveConversationStreamEventPayload({ payload: null })).toBeNull();
+    expect(resolveConversationStreamEventPayload({ payload: ['not-record'] as any })).toBeNull();
+    expect(resolveConversationStreamEventPayload(null)).toBeNull();
   });
 
   test('normalizes terminal error payloads to public message fields', () => {

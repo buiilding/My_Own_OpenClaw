@@ -20,6 +20,7 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
@@ -88,6 +89,12 @@ identity values. Chat stream hooks resolve `conversationRef` and `turnRef`
 through runtime helpers before routing workspace side effects, stale-turn
 checks, row targeting, and tracking updates; feature hooks should not read raw
 event identity fields directly.
+
+`desktopChatStreamEventPayloadRuntime.resolveConversationStreamEventPayload(...)`
+owns record-safe payload access for SDK conversation events. Compaction,
+metadata, local-user, and terminal handlers resolve the payload through that
+runtime before calling payload-specific projection helpers, so handler modules
+keep side effects without reading raw `event.payload` directly.
 
 ## Event Ingress and Conversation Routing
 

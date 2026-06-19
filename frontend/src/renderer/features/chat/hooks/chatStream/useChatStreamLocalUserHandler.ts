@@ -9,7 +9,10 @@ import {
   resolveConversationStreamEventTurnRef,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import { GENERIC_THINKING_STATUS } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
-import { resolveLocalUserMessageText } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+import {
+  resolveConversationStreamEventPayload,
+  resolveLocalUserMessageText,
+} from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { type TranscriptModelContext } from '../../../../app/runtime/desktopChatStreamModelContextRuntime';
 
@@ -32,7 +35,7 @@ export function useChatStreamLocalUserHandler({
     if (!isLocalUserMessageConversationStreamEvent(event)) {
       return;
     }
-    const text = resolveLocalUserMessageText(event.payload);
+    const text = resolveLocalUserMessageText(resolveConversationStreamEventPayload(event));
     if (!text) {
       return;
     }

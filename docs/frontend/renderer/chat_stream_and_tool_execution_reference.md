@@ -348,6 +348,10 @@ Handler composition boundary:
   helpers live in `desktopChatStreamEventRuntime.ts`; sub-handlers use those
   helpers for fail-fast guards, workspace routing, row targeting, and tracking
   updates instead of spelling SDK event names or raw identity fields locally.
+- Stream event payload extraction lives in
+  `desktopChatStreamEventPayloadRuntime.ts`; sub-handlers resolve a payload
+  value through that runtime before calling payload-specific projection helpers
+  instead of reading `event.payload` directly.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
 - SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `desktopCurrentTurnProjectionEffectsRuntime.ts`

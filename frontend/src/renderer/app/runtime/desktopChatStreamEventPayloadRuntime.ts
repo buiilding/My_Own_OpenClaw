@@ -26,6 +26,10 @@ type EventPayload = Record<string, unknown>;
 const USAGE_SOURCE_VALUES = new Set(['provider', 'estimated']);
 const CACHE_STATUS_VALUES = new Set(['hit', 'miss', 'unknown']);
 
+type ConversationStreamEventPayloadEvent = {
+  payload?: EventPayload | null;
+};
+
 type CompactionEvent = ConversationEvent & {
   payload: EventPayload;
 };
@@ -87,6 +91,12 @@ function booleanField(payload: EventPayload, key: string): boolean | null | unde
     return null;
   }
   return typeof payload[key] === 'boolean' ? payload[key] as boolean : undefined;
+}
+
+export function resolveConversationStreamEventPayload(
+  event: ConversationStreamEventPayloadEvent | null | undefined,
+): EventPayload | null {
+  return recordOrNull(event?.payload);
 }
 
 export function buildTokenCountsFromPayload(payload: EventPayload | null | undefined): TokenCounts {

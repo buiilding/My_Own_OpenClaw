@@ -275,14 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer stream event payload access boundary slice
+  by adding `resolveConversationStreamEventPayload(...)` to
+  `desktopChatStreamEventPayloadRuntime` and routing compaction, local-user,
+  metadata, and terminal handlers through that event-level accessor. Chat
+  stream handlers keep side effects and row updates without reading raw SDK
+  `event.payload` fields directly. Validation: passed focused payload runtime,
+  chat stream handler, renderer chat boundary, wakeword hook follow-up,
+  renderer voice boundary, and docs-index tests plus docs search, related
+  commit search, stale raw payload and wakeword status scans, docs listing, and
+  diff checks. No migration required; SDK conversation event payload shapes,
+  Electron IPC channel names, transcript
+  storage, provider policy, hosted URLs, permissions, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer wakeword status value boundary slice by
   adding wakeword ready/error value resolvers and
   `onWakewordReadyStatus(...)` to `desktopVoiceRuntimeClient`.
   `useWakewordBridgeEvents` now keeps cooldown, detection, local capture error
   policy, and UI state updates without reading raw wakeword status event
-  `ready` / `error` fields. Focused voice runtime client, renderer voice
-  boundary, and docs-index tests passed, along with docs listing, stale raw
-  wakeword status scan, and diff check. No migration required; wakeword IPC
+  `ready` / `error` fields. Validation: passed focused desktop voice runtime
+  client, wakeword bridge events hook, renderer voice runtime boundary, and
+  docs-index tests plus docs search, related commit search, stale raw wakeword
+  status scans, docs listing, and diff checks. No migration required; wakeword IPC
   channel names, raw status event payload shape, wakeword enable/disable/audio
   chunk sends, detection cooldown and threshold behavior, local capture error
   stickiness, settings, storage, credentials, permissions, hosted URLs,

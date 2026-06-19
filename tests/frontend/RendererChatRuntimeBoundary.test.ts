@@ -292,9 +292,11 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('replacement_history_preview');
     expect(payloadRuntimeSource).toContain('summary_preview');
     expect(payloadRuntimeSource).toContain('toolSchemas');
+    expect(payloadRuntimeSource).toContain('resolveConversationStreamEventPayload');
     expect(compactionHookSource).toContain('buildCompactionDebugInfo');
     expect(compactionHookSource).toContain('buildCompactedReplaySnapshot');
     expect(compactionHookSource).toContain('resolveCompactionErrorText');
+    expect(compactionHookSource).toContain('resolveConversationStreamEventPayload');
     expect(compactionHookSource).toContain('isCompactionStartedConversationStreamEvent');
     expect(compactionHookSource).toContain('isCompactionCompletedConversationStreamEvent');
     expect(compactionHookSource).toContain('isCompactionSkippedConversationStreamEvent');
@@ -307,7 +309,10 @@ describe('renderer chat runtime boundary', () => {
     expect(metadataHookSource).toContain('isAssistantMessageConversationStreamEvent');
     expect(metadataHookSource).toContain('isToolSchemasMetadataConversationStreamEvent');
     expect(metadataHookSource).toContain('resolveToolSchemasMetadataPayload');
+    expect(metadataHookSource).toContain('resolveConversationStreamEventPayload');
     expect(metadataHookSource).not.toContain('event.type === expectedType');
+    expect(compactionHookSource).not.toContain('event.payload');
+    expect(metadataHookSource).not.toContain('event.payload');
     expect(compactionHookSource).not.toContain('replacement_history_entries');
     expect(compactionHookSource).not.toContain('replacement_history_preview');
     expect(compactionHookSource).not.toContain('summary_preview');
@@ -330,6 +335,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('types/backendEvents');
     expect(source).toContain('buildTokenCountsFromPayload');
     expect(source).toContain('resolveTerminalErrorPayload');
+    expect(source).toContain('resolveConversationStreamEventPayload');
+    expect(source).not.toContain('event.payload');
     expect(source).not.toContain('prompt_tokens');
     expect(source).not.toContain('usage_source');
     expect(source).not.toContain('cache_status');
@@ -361,6 +368,7 @@ describe('renderer chat runtime boundary', () => {
       const source = await fs.readFile(path.join(chatRoot, relativePath), 'utf8');
       expect(source).not.toContain('event.conversationRef');
       expect(source).not.toContain('event.turnRef');
+      expect(source).not.toContain('event.payload');
       expect(
         helperNeedles.some((needle) => source.includes(needle)),
       ).toBe(true);
@@ -1155,7 +1163,9 @@ describe('renderer chat runtime boundary', () => {
     expect(handlerSource).not.toContain("event.type !== 'user_message'");
     expect(handlerSource).not.toContain('event.payload?.text');
     expect(handlerSource).not.toContain('event.payload?.content');
+    expect(handlerSource).not.toContain('event.payload');
     expect(handlerSource).not.toContain('function readString');
+    expect(handlerSource).toContain('resolveConversationStreamEventPayload');
     expect(handlerSource).toContain('resolveLocalUserMessageText');
     expect(handlerSource).not.toContain('payload?.screenshotRefs');
     expect(handlerSource).not.toContain('addMessage(');

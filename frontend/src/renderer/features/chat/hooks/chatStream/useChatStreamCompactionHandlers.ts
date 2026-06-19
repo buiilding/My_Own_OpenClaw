@@ -19,6 +19,7 @@ import {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
   hasCompactionReplacementHistoryEntries,
+  resolveConversationStreamEventPayload,
   resolveCompactionErrorText,
   resolveCompactionSkippedReason,
   resolveCompactionUserId,
@@ -118,7 +119,8 @@ export function useChatStreamCompactionHandlers({
     }
     const conversationRef = resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
-    const skippedReason = resolveCompactionSkippedReason(event.payload);
+    const payload = resolveConversationStreamEventPayload(event);
+    const skippedReason = resolveCompactionSkippedReason(payload);
     if (isCompactionSkippedConversationStreamEvent(event) || skippedReason) {
       const currentSourceEventType = getThinkingSourceEventTypeRef.current?.(conversationRef) ?? null;
       if (
@@ -139,16 +141,16 @@ export function useChatStreamCompactionHandlers({
     );
     setThinkingSourceEventTypeRef.current('context-compaction-completed', conversationRef);
     setCompactionDebugInfoRef.current(
-      buildCompactionDebugInfo(event.payload, skippedReason),
+      buildCompactionDebugInfo(payload, skippedReason),
       conversationRef,
     );
-    const snapshot = hasCompactionReplacementHistoryEntries(event.payload)
+    const snapshot = hasCompactionReplacementHistoryEntries(payload)
       ? buildCompactedReplaySnapshot(event, conversationRef)
       : null;
     if (snapshot) {
       void persistCompactedReplayRef.current(
         snapshot,
-        resolveCompactionUserId(event.payload),
+        resolveCompactionUserId(payload),
       ).catch((error) => {
         console.warn('[useChatStreamCompactionHandlers] Failed to persist compacted replay state:', error);
       });
@@ -169,7 +171,7 @@ export function useChatStreamCompactionHandlers({
     }
     const conversationRef = resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
-    const errorText = resolveCompactionErrorText(event.payload);
+    const errorText = resolveCompactionErrorText(resolveConversationStreamEventPayload(event));
     setThinkingStatusRef.current(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-failed', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);

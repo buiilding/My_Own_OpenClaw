@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import {
   buildTokenCountsFromPayload,
+  resolveConversationStreamEventPayload,
   resolveErrorText,
   resolveTerminalErrorPayload,
   shouldIgnoreStreamError,
@@ -32,7 +33,7 @@ export function useChatStreamTerminalHandlers({
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     const eventConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
     const turnRef = resolveConversationStreamEventTurnRef(event);
-    const tokenCounts = buildTokenCountsFromPayload(event.payload);
+    const tokenCounts = buildTokenCountsFromPayload(resolveConversationStreamEventPayload(event));
     const workspace = useChatStore.getState().getWorkspaceState(eventConversationRef);
     setTokenCounts(tokenCounts, eventConversationRef);
     const assistantMessageId = findLastAssistantLlmTextMessageId(
@@ -52,7 +53,7 @@ export function useChatStreamTerminalHandlers({
   ]);
 
   const handleError = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    const errorPayload = resolveTerminalErrorPayload(event.payload);
+    const errorPayload = resolveTerminalErrorPayload(resolveConversationStreamEventPayload(event));
     if (shouldIgnoreStreamError(errorPayload)) {
       return;
     }

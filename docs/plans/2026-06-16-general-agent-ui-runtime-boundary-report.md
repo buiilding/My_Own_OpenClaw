@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Stream Event Payload Access Boundary
+
+- Finding: stream payload alias normalization and projection helpers already
+  lived in `desktopChatStreamEventPayloadRuntime`, but chat stream feature
+  handlers still extracted raw SDK `event.payload` before calling those
+  helpers.
+- Change: added an event-level payload accessor to the payload runtime and
+  routed compaction, local-user, metadata, and terminal handlers through it.
+  The handlers keep UI side effects and row updates while the runtime owns raw
+  payload access.
+- Validation: passed focused payload runtime, chat stream handler, renderer
+  chat boundary, wakeword hook follow-up, renderer voice boundary, and
+  docs-index tests plus docs search, related commit search, stale raw payload
+  and wakeword status scans, docs listing, and diff checks.
+- Compatibility: no migration required. SDK conversation-event payload shape,
+  renderer IPC channel names, transcript storage, provider policy, hosted URLs,
+  permissions, and local-runtime execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Wakeword Status Value Boundary
 
 - Finding: `desktopVoiceRuntimeClient` owned wakeword bridge IPC, but
@@ -183,9 +201,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `onWakewordReadyStatus(...)` to the voice runtime client. The wakeword bridge
   hook now keeps cooldown, detection, local capture error policy, and UI state
   updates while consuming value-level status from the app runtime facade.
-- Validation: focused voice runtime client, renderer voice boundary, and
-  docs-index tests passed; docs listing, stale raw wakeword status scan, and
-  diff check passed.
+- Validation: passed focused desktop voice runtime client, wakeword bridge
+  events hook, renderer voice runtime boundary, and docs-index tests plus docs
+  search, related commit search, stale raw wakeword status scans, docs listing,
+  and diff checks.
 - Compatibility: no migration required. Wakeword IPC channel names, raw status
   event payload shape, wakeword enable/disable/audio chunk sends, detection
   cooldown and threshold behavior, local capture error stickiness, settings,

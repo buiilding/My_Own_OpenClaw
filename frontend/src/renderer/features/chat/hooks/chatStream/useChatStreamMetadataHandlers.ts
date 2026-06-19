@@ -14,6 +14,7 @@ import {
   resolveConversationStreamEventTurnRefForUpdate,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import {
+  resolveConversationStreamEventPayload,
   resolveToolSchemasMetadataPayload,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
@@ -73,8 +74,9 @@ export function useChatStreamMetadataHandlers({
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
+    const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
-      systemPrompt: buildSystemPromptUpdate(event.payload),
+      systemPrompt: buildSystemPromptUpdate(payload),
     }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
     recordTrackingEvent('system-prompt', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
@@ -88,8 +90,9 @@ export function useChatStreamMetadataHandlers({
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
+    const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
-      fullUserMessage: buildUserMessageFullUpdate(event.payload),
+      fullUserMessage: buildUserMessageFullUpdate(payload),
     }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
     recordTrackingEvent('user-message-full', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
@@ -103,8 +106,9 @@ export function useChatStreamMetadataHandlers({
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
+    const payload = resolveConversationStreamEventPayload(event);
     updateLastAssistantLlmTextMessage({
-      fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
+      fullAssistantMessage: buildAssistantMessageFullUpdate(payload),
     }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
     recordTrackingEvent('assistant-message-full', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
@@ -118,8 +122,9 @@ export function useChatStreamMetadataHandlers({
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
+    const payload = resolveConversationStreamEventPayload(event);
     updateLastMessageBySender('user', {
-      ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(event.payload)),
+      ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(payload)),
     }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
     recordTrackingEvent('tool-schemas', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
