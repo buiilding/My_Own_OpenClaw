@@ -184,8 +184,9 @@ commands used by generic runtime flows, such as restoring the chatbox after
 overlay-origin sends, applying startup surface visibility, handling wakeword
 chatbox restore, main-window controls, and minimal chatbox overlay focus, drag,
 hit-test, visual-anchor, text-entry, hide/show commands, and main-window
-open-target fan-out. Callers keep UI policy and call this runtime client instead
-of importing window IPC channel constants directly.
+open-target fan-out plus open-target payload normalization. Callers keep UI
+policy and call this runtime client instead of importing window IPC channel
+constants or parsing host-shaped window event payloads directly.
 
 `desktopResponseOverlayRuntimeClient.ts` owns renderer response overlay window
 IPC for responsebox size, hit-test, and visibility fan-out. Response overlay
@@ -207,11 +208,13 @@ providers do not import config persistence, settings-event channel constants,
 or host-shaped settings error payload details directly.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
-desktop client/session snapshot and IPC transport status subscription. Chat
-session bootstrap, loop transport projection, dashboard user snapshot
-fallback call this runtime client instead of importing `get-client-user-id` or
-`ipc-status` channel constants directly. App config runtime snapshot handling
-also calls this client for startup and connection-status user context.
+desktop client/session snapshot and IPC transport status subscription, including
+user id normalization while preserving endpoint metadata. Chat session
+bootstrap, loop transport projection, dashboard user snapshot fallback call this
+runtime client instead of importing `get-client-user-id` or `ipc-status`
+channel constants or trimming raw snapshot fields directly. App config runtime
+snapshot handling also calls this client for startup and connection-status user
+context.
 
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out and
 live workspace payload normalization for chat and settings surfaces. Chat owns

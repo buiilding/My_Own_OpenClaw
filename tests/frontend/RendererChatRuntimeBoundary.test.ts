@@ -1405,9 +1405,14 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardShellSource).not.toContain('ON_CHANNELS');
     expect(dashboardShellSource).not.toContain('GET_CLIENT_USER_ID');
     expect(dashboardShellSource).not.toContain('MAIN_WINDOW_OPEN_TARGET');
+    expect(dashboardShellSource).not.toContain('payload?.target');
+    expect(dashboardShellSource).not.toContain('typeof payload?.userId');
+    expect(dashboardShellSource).not.toContain('payload.userId.trim');
     expect(dashboardShellSource).toContain('DesktopClientSessionRuntimeClient.loadMainSessionSnapshot');
     expect(dashboardShellSource).toContain('DesktopWindowRuntimeClient.onMainWindowOpenTarget');
+    expect(sessionClientSource).toContain('normalizeDesktopClientSessionSnapshot');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
+    expect(windowClientSource).toContain('normalizeMainWindowOpenTargetPayload');
     expect(windowClientSource).toContain('ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET');
   });
 

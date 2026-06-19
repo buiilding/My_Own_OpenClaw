@@ -23,6 +23,7 @@ Primary runtime sources:
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
@@ -187,10 +188,10 @@ This prevents stale streaming events from other conversations from mutating curr
 
 ## AppConfigProvider Session Snapshot Sync
 
-`AppConfigProvider` ingests session/user snapshot data from:
+`AppConfigProvider` ingests normalized session/user snapshot data from:
 
-- `IpcBridge.invoke(GET_CLIENT_USER_ID)` on mount
-- ongoing `ipc-status` events
+- `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()` on mount
+- `DesktopClientSessionRuntimeClient.onIpcStatus(...)` for ongoing `ipc-status` events
 
 It then:
 

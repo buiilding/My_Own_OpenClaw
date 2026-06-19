@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard host payload runtime slice by
+  moving main-window open-target payload normalization into
+  `desktopWindowRuntimeClient` and client-session snapshot user-id
+  normalization into `desktopClientSessionRuntimeClient`. `DashboardShell` now
+  keeps panel routing and snapshot state updates while consuming normalized
+  runtime values instead of parsing `payload.target` or trimming raw
+  `payload.userId`. Validation: focused desktop window runtime client,
+  desktop client-session runtime client, dashboard shell, renderer chat runtime
+  boundary tests, stale dashboard raw-payload scan, docs listing, and diff
+  checks. No migration required; main-window target channel names, accepted
+  target strings, startup session snapshot fields, endpoint metadata, dashboard
+  routing behavior, IPC, storage, credentials, provider-policy, hosted URLs,
+  and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer settings status event runtime slice by
   moving settings-update error classification from `AppStatusProvider` into a
   shared `desktopSettingsUpdateErrorRuntime` helper and

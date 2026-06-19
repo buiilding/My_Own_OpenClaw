@@ -267,7 +267,7 @@ function DashboardShell({
     const removeListener = DesktopWindowRuntimeClient.onMainWindowOpenTarget((payload) => {
       wakeDashboardShell();
       void loadRecentConversations('main-window-open-target');
-      const target = typeof payload?.target === 'string' ? payload.target : '';
+      const target = payload.target;
       if (target === 'chat') {
         handleChatSurface({ focusComposer: true });
         return;
@@ -306,8 +306,8 @@ function DashboardShell({
   useEffect(() => {
     DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
       .then((payload) => {
-        if (typeof payload?.userId === 'string' && payload.userId.trim().length > 0) {
-          setSnapshotUserId(payload.userId.trim());
+        if (payload?.userId) {
+          setSnapshotUserId(payload.userId);
         }
       })
       .catch(() => {});

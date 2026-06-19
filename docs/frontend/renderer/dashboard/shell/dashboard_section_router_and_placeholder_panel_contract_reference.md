@@ -133,6 +133,9 @@ Failure behavior:
 ## Main-Process Open Target Contract
 
 Shell listens through `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)`.
+The runtime client normalizes the host event before shell routing, so shell code
+consumes a trimmed `target` string and does not interpret raw
+`main-window-open-target` payload fields directly.
 
 Accepted targets:
 
@@ -146,6 +149,14 @@ Not wired today:
 - `usage` is not handled from `main-window-open-target`; usage is currently opened only from sidebar intent.
 
 Unrecognized targets are ignored.
+
+## Dashboard User Snapshot Contract
+
+Shell loads the fallback dashboard user through
+`DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`. The runtime
+client trims and normalizes `userId` while preserving additive session metadata;
+the shell consumes only the normalized `userId` for recent/search conversation
+loading until transcript session state supplies a current user.
 
 ## Drift Hotspots
 

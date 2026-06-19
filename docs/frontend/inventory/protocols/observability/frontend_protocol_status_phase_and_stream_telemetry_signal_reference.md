@@ -144,10 +144,10 @@ Covered by:
 
 ## AppConfigProvider Signal Consumption
 
-`AppConfigProvider` consumes observability signals through:
+`AppConfigProvider` consumes normalized observability signals through:
 
-- `IpcBridge.on(ON_CHANNELS.IPC_STATUS, ...)`
-- initial `IpcBridge.invoke(GET_CLIENT_USER_ID)`
+- `DesktopClientSessionRuntimeClient.onIpcStatus(...)`
+- initial `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`
 
 Behavior on snapshots:
 

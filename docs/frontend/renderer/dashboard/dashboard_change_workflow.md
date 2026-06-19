@@ -107,10 +107,11 @@ Shell invariants:
   surface.
 - `main-window-open-target` should wake dashboard layout and route only to known
   targets.
-- runtime clients provide dashboard transport and user context snapshots
+- runtime clients provide normalized dashboard transport and user context snapshots
   (`DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)` and
   `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`). Do not
-  duplicate backend connection state in section panels.
+  duplicate host-shaped target/user payload parsing or backend connection state
+  in section panels.
 - Search open should reset stale query/results before displaying the modal.
 
 ### 3. Inspect conversation list, search, and resume

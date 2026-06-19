@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Dashboard Host Payload Runtime Boundary
+
+- Finding: `DashboardShell` still parsed raw main-window open-target payloads
+  and trimmed startup client-session snapshot user ids locally, even though
+  `DesktopWindowRuntimeClient` and `DesktopClientSessionRuntimeClient` already
+  owned the desktop host event/snapshot boundaries.
+- Change: added normalized open-target payloads in
+  `desktopWindowRuntimeClient` and normalized client-session snapshots in
+  `desktopClientSessionRuntimeClient`. DashboardShell now keeps only panel
+  routing and snapshot state updates while consuming normalized runtime values.
+- Validation: focused desktop window runtime client, desktop client-session
+  runtime client, dashboard shell, and renderer chat runtime boundary tests,
+  stale dashboard raw-payload scan, docs listing, and diff checks.
+- Compatibility: no migration required. Main-window target channel names,
+  accepted target strings, startup session snapshot fields, endpoint metadata,
+  dashboard routing behavior, IPC, storage, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Settings Status Event Runtime Boundary
 
 - Finding: `AppStatusProvider` still inspected the raw settings-event error
