@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/security: label the security hub's local execution trust boundary as a
+  local-runtime implementation instead of a sidecar runtime. No migration
+  required.
 - docs/tools: route filesystem and shell implementation labels through
   local-runtime tool wording instead of sidecar shell/filesystem owner labels.
   No migration required.

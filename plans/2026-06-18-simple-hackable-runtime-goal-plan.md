@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a security hub trust-boundary label slice by renaming
+  the `Sidecar runtime` security area to `Local runtime implementation` while
+  keeping the Python sidecar implementation and sidecar docs links visible as
+  concrete evidence. The modular tool/security docs guard now rejects the
+  retired `| Sidecar runtime |` row label. Validation: focused modular docs
+  boundary test, docs listing, exact stale security-row scan, and diff checks.
+  No migration required; no code path, payload, storage, IPC, settings,
+  tool schema, credential, permission, hosted URL, provider-policy, JSON-RPC,
+  local execution, subprocess, browser, filesystem, shell, or computer-use
+  behavior changed.
 - 2026-06-18: completed a filesystem/shell tool docs owner-label slice by
   routing shell execution, path utilities, shell formatter/session registry,
   and filesystem reader workflow labels through local-runtime tool

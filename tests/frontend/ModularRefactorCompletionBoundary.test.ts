@@ -582,6 +582,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime MCP `tools/call` execution');
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
+    expect(docText).toContain('Local runtime implementation');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
     expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('SDK desktop agent');
@@ -639,6 +640,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('Python sidecar owns the concrete local tool implementations');
     expect(toolRoutingDocText).not.toContain('Python sidecar owns local executable tool registry entries');
     expect(toolRoutingDocText).not.toContain('Python sidecar-owned payloads');
+    expect(toolRoutingDocText).not.toContain('| Sidecar runtime |');
     expect(toolRoutingDocText).not.toContain('Local sidecar tool');
     expect(toolRoutingDocText).not.toContain('Sidecar owner');
     expect(toolRoutingDocText).not.toContain('filesystem/system sidecar tool');
