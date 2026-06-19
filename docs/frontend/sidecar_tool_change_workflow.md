@@ -2,12 +2,12 @@
 summary: "Workflow for changing WindieOS local-runtime tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC, and sidecar tests."
 read_when:
   - When adding, changing, or debugging a local executable tool.
-  - When a model-visible tool call reaches the SDK runtime but fails in the sidecar.
+  - When a model-visible tool call reaches the SDK runtime but fails in local-runtime execution.
   - When deciding whether a tool change belongs to backend schema, SDK dispatch, Electron bridge, or Python sidecar code.
-title: "Sidecar Tool Change Workflow"
+title: "Local-Runtime Tool Change Workflow"
 ---
 
-# Sidecar Tool Change Workflow
+# Local-Runtime Tool Change Workflow
 
 WindieOS tool execution crosses four layers:
 
@@ -37,7 +37,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a sidecar action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | `ToolResultEnvelope`, backend tool-result handler, sidecar tool result models | Backend history needs consistent success/error output. |
 | 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, Python sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |
-| 6. Update docs | Tool docs, sidecar docs, code-change routing docs | Agents should know where to modify the next related behavior. |
+| 6. Update docs | Tool docs, local-runtime implementation docs, code-change routing docs | Agents should know where to modify the next related behavior. |
 
 ## Tool Families
 

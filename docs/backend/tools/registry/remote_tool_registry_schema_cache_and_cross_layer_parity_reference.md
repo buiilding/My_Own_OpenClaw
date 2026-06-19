@@ -225,4 +225,4 @@ Field-level shared-schema guard:
 - [Local-Runtime Tool Bridge and Policy](../local_runtime_tool_bridge_and_policy.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
-- [Local Runtime Sidecar Tool Registry Exposed Schema and Result Contract Reference](../../../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](../../../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)

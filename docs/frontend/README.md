@@ -26,7 +26,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [IPC Change Workflow](ipc_change_workflow.md)
 - [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
-- [Sidecar Tool Change Workflow](sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](sidecar_tool_change_workflow.md)
 - [Local-Runtime Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 
@@ -182,7 +182,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
 - [Sidecar Shell and Process Session Runtime Reference](sidecar/tools/shell_and_process_session_runtime_reference.md)
 - [Sidecar Filesystem Read and Replace Runtime Reference](sidecar/tools/filesystem_read_replace_runtime_reference.md)
-- [Sidecar Tool Registry Exposed Schema and Result Contract Reference](sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Sidecar Wait, Window, and Stats Runtime Reference](sidecar/tools/system/wait_window_stats_runtime_reference.md)
 - [Memory Pipeline and Summarization](sidecar/memory_pipeline_and_summarization.md)

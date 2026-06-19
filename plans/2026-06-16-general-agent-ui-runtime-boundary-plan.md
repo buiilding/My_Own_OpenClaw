@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Workflow Route Local-Runtime Link Labels
+
+- Finding: active backend, browser, frontend, getting-started, operations,
+  security, and tool workflow docs still linked to Sidecar Tool/Runtime
+  workflows even when they were routing readers to the local-runtime tool
+  boundary or to Python sidecar implementation details behind that boundary.
+- Change: renamed the visible tool workflow to
+  `Local-Runtime Tool Change Workflow`, renamed the Python implementation
+  workflow to `Local-Runtime Python Implementation Change Workflow`, and
+  updated active links/registry labels while leaving paths stable.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  workflow-label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  file paths, tool names, schemas, manifests, IPC channels, JSON-RPC methods,
+  runtime code, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Debug Error Local-Runtime Failure Labels
 
 - Finding: debug error and symptom playbooks still routed local process/tool

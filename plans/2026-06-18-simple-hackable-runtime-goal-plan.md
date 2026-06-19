@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a workflow-route local-runtime label slice by
+  renaming the visible sidecar tool workflow to `Local-Runtime Tool Change
+  Workflow`, renaming the sidecar runtime workflow to
+  `Local-Runtime Python Implementation Change Workflow`, and updating active
+  backend, browser, frontend, getting-started, operations, security, and tool
+  workflow links/registry labels while keeping file paths stable. Validation:
+  focused modular boundary guard, docs listing, exact stale workflow-label
+  scan, and diff checks. No migration required; no tool name, schema,
+  manifest, IPC channel, JSON-RPC method, runtime code, storage, credential,
+  permission, hosted route, provider policy, packaging, or local execution
+  behavior changed.
 - 2026-06-19: completed a debug-routing local-runtime failure-label slice by
   updating error and symptom playbooks so local-runtime JSON-RPC/process
   failures route to local-runtime lifecycle docs, tool result failures route to

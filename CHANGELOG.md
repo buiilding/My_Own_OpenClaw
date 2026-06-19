@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/workflows: route active sidecar tool/runtime workflow link labels and
+  workflow titles through local-runtime tool and Python implementation wording
+  while keeping Python sidecar paths as implementation evidence. No migration
+  required.
 - docs/debug: route error and symptom playbook local-runtime process/tool
   failure labels through local-runtime lifecycle and registry/result docs
   instead of sidecar runtime or unqualified registry owners. No migration

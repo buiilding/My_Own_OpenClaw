@@ -1,12 +1,12 @@
 ---
-summary: "Workflow for changing WindieOS Python sidecar runtime behavior across JSON-RPC methods, local tools, memory services, browser automation, platform adapters, backend config, system state, and wakeword service boundaries."
+summary: "Workflow for changing WindieOS local-runtime Python implementation behavior across JSON-RPC methods, local tools, memory services, browser automation, platform adapters, backend config, system state, and wakeword service boundaries."
 read_when:
   - When changing `frontend/src/main/python`, sidecar JSON-RPC methods, local tool registry behavior, memory storage/search/summarization, browser runtime internals, system-state probes, platform adapters, backend URL resolution, or wakeword service framing.
   - When a local tool, memory, browser, wakeword, system-state, or sidecar startup failure could belong to Electron main bridge, Python sidecar code, backend-hosted APIs, or renderer projection.
-title: "Sidecar Runtime Change Workflow"
+title: "Local-Runtime Python Implementation Change Workflow"
 ---
 
-# Sidecar Runtime Change Workflow
+# Local-Runtime Python Implementation Change Workflow
 
 Use this workflow when behavior is implemented by the Python sidecar behind the
 local-runtime boundary. The local runtime owns local-machine actions and local
@@ -26,8 +26,8 @@ envelope orchestration.
 | Symptom or request | Local-runtime implementation owner | First source roots | First tests | First docs |
 | --- | --- | --- | --- | --- |
 | Add or change a Python sidecar JSON-RPC method | Python sidecar method registry and protocol | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`, SDK local-runtime caller code when renderer-visible | `tests/sidecar/test_json_rpc_protocol.py`, `tests/sidecar/test_local_backend.py`, focused SDK/local-runtime caller tests | [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md), [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md), [Main Process Change Workflow](../main/main_process_change_workflow.md) |
-| Tool exists in renderer/main but the local runtime rejects or executes it incorrectly | Tool registry and executable tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools`, `frontend/src/main/python/tools/result.py` | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_result.py`, focused tool tests | [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md), [Sidecar Tool Catalog](tool_catalog_and_execution_model.md) |
-| Tool schema parity drift or exposed executable fields change | Local-runtime executable schema/export contract | `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/*` | `tests/sidecar/test_tool_schemas.py`, `tests/sidecar/test_shared_tool_schema_parity.py` | [Tool Registry Exposed Schema](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
+| Tool exists in renderer/main but the local runtime rejects or executes it incorrectly | Tool registry and executable tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools`, `frontend/src/main/python/tools/result.py` | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_result.py`, focused tool tests | [Local-Runtime Tool Change Workflow](../sidecar_tool_change_workflow.md), [Local-Runtime Tool Catalog](tool_catalog_and_execution_model.md) |
+| Tool schema parity drift or exposed executable fields change | Local-runtime executable schema/export contract | `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/*` | `tests/sidecar/test_tool_schemas.py`, `tests/sidecar/test_shared_tool_schema_parity.py` | [Local-Runtime Registry and Result Contract](tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | Filesystem read/replace behavior changes | Filesystem tools and path resolution | `frontend/src/main/python/tools/filesystem/*`, `frontend/src/main/python/tools/path_resolution.py` | `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, filesystem tool tests | [Filesystem Read and Replace](tools/filesystem_read_replace_runtime_reference.md) |
 | Shell/process/open-app/wait/stats behavior changes | System tools and process registry | `frontend/src/main/python/tools/system/*` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py`, `tests/sidecar/test_system_tools.py` | [Shell and Process Session Runtime](tools/shell_and_process_session_runtime_reference.md), [Sidecar System Tools Hub](tools/system/README.md) |
 | Mouse, keyboard, scroll, screenshot, or local window action changes | Computer tools plus platform adapters | `frontend/src/main/python/tools/computer/*`, `frontend/src/main/python/core/platform/*` | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, platform tests | [Computer Tools Runtime](tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md), [System-State Platform Adapter Reference](system_state/platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md) |
@@ -52,7 +52,7 @@ envelope orchestration.
 
 1. **Classify the local-runtime Python surface.** Decide whether the implementation owner is JSON-RPC protocol, method handler, tool registry, specific tool family, memory runtime, browser runtime, platform adapter, backend config client, or wakeword service.
 2. **Check Electron bridge ownership.** If renderer/main payload mapping changes, read [Main Process Change Workflow](../main/main_process_change_workflow.md) and update bridge tests with sidecar tests.
-3. **Keep local-runtime implementation and model-facing contracts aligned deliberately.** For tool changes, read [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
+3. **Keep local-runtime implementation and model-facing contracts aligned deliberately.** For tool changes, read [Local-Runtime Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
 4. **Update the owner module first.** Fix registry/method/tool/storage/platform code at the owner layer before adding tolerance in callers.
 5. **Normalize errors at the boundary.** Convert local exceptions into local-runtime result errors or JSON-RPC errors with useful but non-secret messages.
 6. **Add focused Python sidecar tests.** Prefer unit tests around the exact tool, method, memory helper, browser contract, or platform adapter.
@@ -139,7 +139,7 @@ Before committing sidecar work:
 - [Local Runtime Sidecar Docs Hub](README.md)
 - [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
-- [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md)
+- [Local-Runtime Tool Change Workflow](../sidecar_tool_change_workflow.md)
 - [Local-Runtime Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
 - [Local Runtime Memory Hub](memory/README.md)
 - [Sidecar Browser Hub](browser/README.md)

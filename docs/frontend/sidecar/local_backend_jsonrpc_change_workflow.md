@@ -15,7 +15,7 @@ JSON-RPC envelopes through the SDK local runtime provider to the sidecar daemon
 system-state collection, browser runtime setup, and a small set of local
 permission/runtime utility calls.
 
-This workflow is narrower than the general [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md). Start here when the work is specifically about a JSON-RPC method name, method params, SDK local-runtime caller, request timeout, readiness behavior, or response envelope.
+This workflow is narrower than the general [Local-Runtime Python Implementation Change Workflow](sidecar_runtime_change_workflow.md). Start here when the work is specifically about a JSON-RPC method name, method params, SDK local-runtime caller, request timeout, readiness behavior, or response envelope.
 
 ## Boundary Rules
 
@@ -199,7 +199,7 @@ When a method changes, update the closest docs in the same commit:
 
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
-- [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
+- [Local-Runtime Python Implementation Change Workflow](sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md) when renderer channels change
 - [Local Tool Channels](../../channels/sidecar_and_tool_channels.md) when tool or memory channel behavior changes
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md) for memory-specific payloads
@@ -208,7 +208,7 @@ When a method changes, update the closest docs in the same commit:
 ## Related Docs
 
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
-- [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
+- [Local-Runtime Python Implementation Change Workflow](sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../ipc_change_workflow.md)
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)

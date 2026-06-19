@@ -773,6 +773,40 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('| Sidecar ToolResult/registry |');
   });
 
+  test('workflow route docs use local-runtime labels for sidecar-backed implementation docs', async () => {
+    const docs = await Promise.all([
+      read('docs/backend/agent/tool_turn_change_workflow.md'),
+      read('docs/backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md'),
+      read('docs/backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md'),
+      read('docs/browser/browser_change_workflow.md'),
+      read('docs/README.md'),
+      read('docs/frontend/README.md'),
+      read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md'),
+      read('docs/frontend/renderer/renderer_state_change_workflow.md'),
+      read('docs/frontend/sidecar/README.md'),
+      read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
+      read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar_tool_change_workflow.md'),
+      read('docs/getting-started/docs_hub.md'),
+      read('docs/operations/evidence_collection_runbook.md'),
+      read('docs/security/credential_token_change_workflow.md'),
+      read('docs/tools/filesystem_shell.md'),
+      read('docs/tools/tool_execution_lifecycle.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('Local-Runtime Tool Change Workflow');
+    expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
+    expect(docText).toContain('Local-Runtime Registry and Result Contract');
+    expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
+    expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
+    expect(docText).not.toContain('[Sidecar Registry]');
+    expect(docText).not.toContain('Sidecar Tool Registry Exposed Schema');
+    expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Exposed Schema');
+    expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');
+    expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
+  });
+
   test('browser contract docs route shared validation through the local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/README.md'),

@@ -56,7 +56,7 @@ readiness/status broadcasts.
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
-| Local tool result shape is wrong after Python sidecar executes | Tool execution contract, not lifecycle | [Sidecar Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
+| Local tool result shape is wrong after Python sidecar executes | Tool execution contract, not lifecycle | [Local-Runtime Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
 
 ## Lifecycle Contract
 
@@ -172,6 +172,6 @@ Docs-only changes should run `<windie> docs list`, `git diff --check`, and a foc
 - [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [SDK-Owned Sidecar Lifecycle Reference](../../sidecar/local_backend_process_lifecycle_reference.md)
 - [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
-- [Sidecar Runtime Change Workflow](../../sidecar/sidecar_runtime_change_workflow.md)
+- [Local-Runtime Python Implementation Change Workflow](../../sidecar/sidecar_runtime_change_workflow.md)
 - [IPC Change Workflow](../../ipc_change_workflow.md)
 - [Release and Packaging Change Workflow](../../../operations/release_packaging_change_workflow.md)
