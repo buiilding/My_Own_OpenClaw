@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize MCP enablement result status and error messages
+  in the desktop MCP runtime client before the dashboard MCP section consumes
+  toggle results. No migration required.
 - renderer/runtime: normalize chat-loop transport connection status in the
   desktop client-session runtime client before recovery hooks consume it. No
   migration required.

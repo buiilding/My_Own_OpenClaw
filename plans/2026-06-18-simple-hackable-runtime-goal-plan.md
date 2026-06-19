@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer MCP enablement result runtime slice by
+  moving toggle-result projection from `McpsSection` into
+  `desktopMcpRuntimeClient`. The runtime client now returns
+  `{ ok, errorMessage, registry }` for enablement commands, while the dashboard
+  MCP section keeps loading, toggle presentation, and normalized error display.
+  Validation: focused desktop MCP runtime client, MCP dashboard section, and
+  renderer chat runtime boundary tests, stale MCP result envelope scan, docs
+  listing, and diff checks. No migration required; MCP enablement IPC channel
+  names, main-process result payloads, registry normalization, config
+  persistence, dashboard toggle behavior, storage, credentials,
+  provider-policy, hosted URLs, and local-runtime MCP execution are unchanged.
+
 - 2026-06-19: completed a renderer chat-loop transport status runtime slice by
   adding a normalized transport-status view to
   `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes

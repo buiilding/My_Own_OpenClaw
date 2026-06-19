@@ -56,8 +56,8 @@ function McpsSection({ onClose = () => {} }) {
         id: server.extension_id || server.mcp_id || server.id,
         enabled,
       });
-      if (payload?.success === false) {
-        throw new Error(payload.error || 'Unable to update MCP server.');
+      if (!payload.ok) {
+        throw new Error(payload.errorMessage || 'Unable to update MCP server.');
       }
       setRegistry(payload.registry);
     } catch (toggleError) {

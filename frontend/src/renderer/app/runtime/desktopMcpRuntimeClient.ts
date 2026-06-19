@@ -17,8 +17,8 @@ export type DesktopMcpRegistry = {
 };
 
 export type DesktopMcpEnablementResult = {
-  success?: unknown;
-  error?: unknown;
+  ok: boolean;
+  errorMessage: string | null;
   registry: DesktopMcpRegistry;
 };
 
@@ -52,9 +52,12 @@ export function normalizeDesktopMcpRegistry(payload: unknown): DesktopMcpRegistr
 
 export function normalizeDesktopMcpEnablementResult(payload: unknown): DesktopMcpEnablementResult {
   const source = recordOrEmpty(payload);
+  const errorMessage = typeof source.error === 'string' && source.error.trim()
+    ? source.error.trim()
+    : null;
   return {
-    success: source.success,
-    error: source.error,
+    ok: source.success !== false,
+    errorMessage,
     registry: normalizeDesktopMcpRegistry(source.registry),
   };
 }

@@ -55,13 +55,27 @@ describe('DesktopMcpRuntimeClient', () => {
         enabled_mcp_servers: ['memory', false],
       },
     })).toEqual({
-      success: true,
-      error: undefined,
+      ok: true,
+      errorMessage: null,
       registry: {
         mcps: [{ id: 'memory' }],
         errors: [],
         mcp_errors: [],
         enabled_mcp_servers: ['memory'],
+      },
+    });
+
+    expect(normalizeDesktopMcpEnablementResult({
+      success: false,
+      error: ' Missing MCP server id. ',
+    })).toEqual({
+      ok: false,
+      errorMessage: 'Missing MCP server id.',
+      registry: {
+        mcps: [],
+        errors: [],
+        mcp_errors: [],
+        enabled_mcp_servers: [],
       },
     });
   });
@@ -91,8 +105,8 @@ describe('DesktopMcpRuntimeClient', () => {
       id: 'memory',
       enabled: true,
     })).resolves.toEqual({
-      success: true,
-      error: undefined,
+      ok: true,
+      errorMessage: null,
       registry: {
         mcps: [{ id: 'memory' }],
         errors: [],

@@ -91,4 +91,21 @@ describe('McpsSection', () => {
     });
     expect(await screen.findByText('Ready')).toBeInTheDocument();
   });
+
+  test('shows normalized enablement errors from the runtime client', async () => {
+    mockInvoke
+      .mockResolvedValueOnce(registry())
+      .mockResolvedValueOnce({
+        success: false,
+        error: 'Missing MCP server id.',
+        registry: registry(),
+      });
+
+    render(<McpsSection />);
+
+    expect(await screen.findByText('Memory')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Enable Memory'));
+
+    expect(await screen.findByText('Missing MCP server id.')).toBeInTheDocument();
+  });
 });

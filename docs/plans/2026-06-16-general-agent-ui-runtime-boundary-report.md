@@ -174,6 +174,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer MCP Enablement Result Runtime Boundary
+
+- Finding: `McpsSection` consumed normalized MCP registries from
+  `DesktopMcpRuntimeClient`, but still interpreted the main-process
+  enablement result envelope fields `success` and `error` locally.
+- Change: moved MCP enablement result projection into
+  `desktopMcpRuntimeClient` as `{ ok, errorMessage, registry }`, leaving the
+  dashboard section to display the normalized error message and registry state.
+- Validation: focused desktop MCP runtime client, MCP dashboard section, and
+  renderer chat runtime boundary tests, stale MCP result envelope scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. MCP enablement IPC channel names,
+  main-process `{ success, error, registry }` payloads, registry normalization,
+  config persistence, dashboard toggle behavior, storage, credentials,
+  provider policy, hosted URLs, and local-runtime MCP execution are unchanged.
+
 ### 2026-06-19 Renderer Chat-Loop Transport Status Runtime Boundary
 
 - Finding: `useChatLoopUiState` already routed session/status IPC through
