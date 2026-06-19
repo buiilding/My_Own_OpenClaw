@@ -29,7 +29,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - renderer/session: move active chat-session reset behavior from chat feature
   helpers into the renderer app-runtime layer so chat and dashboard share the
-  same transcript/session reset contract. No migration required.
+  same transcript/session reset contract, with chat-store rotation docs naming
+  the shared app-runtime owner. No migration required.
 - renderer/voice: route transcription gateway audio sends through the desktop
   voice runtime facade instead of calling the WebSocket directly from
   `useVoiceMode`. No migration required.
