@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/attachments: add the attachment presentation runtime test to attachment
+  workflow validation routes. No migration required.
 - renderer/attachments: move shared readable-file preview label formatting from
   chat feature utilities into the renderer app-runtime presentation facade used
   by chat input and the minimal pill preview row. No migration required.
