@@ -4,7 +4,7 @@
 
 import { resolveThinkingCapabilities } from '../../frontend/src/renderer/app/runtime/desktopModelThinkingRuntime';
 
-describe('modelThinkingCapabilities', () => {
+describe('desktopModelThinkingRuntime', () => {
   test('does not infer thinking support when model metadata omits capability flags', () => {
     expect(
       resolveThinkingCapabilities(

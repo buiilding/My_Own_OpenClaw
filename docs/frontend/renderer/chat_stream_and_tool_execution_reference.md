@@ -24,6 +24,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
+- `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
