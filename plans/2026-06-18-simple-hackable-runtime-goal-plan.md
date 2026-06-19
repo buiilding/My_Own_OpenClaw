@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer MCP enablement registry-or-error boundary
+  slice by adding `resolveDesktopMcpEnablementRegistry(...)` and changing
+  `DesktopMcpRuntimeClient.setMcpServerEnabled(...)` to return a normalized
+  registry or throw the normalized enablement error. `McpsSection` now handles
+  toggle presentation, registry state, and error display without branching on
+  normalized result-envelope fields. Validation: focused MCP runtime client,
+  MCP section, renderer chat runtime boundary, stale envelope-field scan,
+  docs-index coverage, and diff checks. No migration required; MCP enablement
+  IPC channels, main-process payloads, registry normalization, storage,
+  settings, credentials, permissions, provider policy, hosted URLs, and
+  local-runtime MCP execution are unchanged.
 - 2026-06-19: completed a renderer response-overlay visibility subscription
   boundary slice by changing
   `DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility(...)` to
@@ -282,11 +293,12 @@ For each completed slice, record:
   now resets cached frame state and schedules visible re-reports from that
   boolean instead of reading host-shaped visibility event fields. Validation:
   focused response-overlay runtime client, chat runtime boundary, response
-  overlay state, docs-index, stale payload-field scans, docs listing, and diff
-  checks. No migration required; response-overlay visibility event
-  names, responsebox size/hit-test payloads, visibility re-report timing, IPC,
-  storage, settings, credentials, permissions, provider policy, hosted URLs,
-  and local execution behavior are unchanged.
+  overlay state, and docs-index tests plus docs search, related commit search,
+  stale payload-field scans, docs listing, and diff checks. No migration
+  required; response-overlay visibility event names, responsebox size/hit-test
+  payloads, visibility re-report timing, IPC, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer thread-presentation current-turn fallback
   boundary slice by moving legacy SDK current-turn projection row derivation
   into `desktopThreadPresentationRuntime`. `ChatInterface` now passes durable

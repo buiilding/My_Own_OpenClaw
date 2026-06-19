@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: resolve MCP enablement results to a registry-or-error
+  contract inside `desktopMcpRuntimeClient` so `McpsSection` no longer branches
+  on normalized enablement envelope fields. No migration required.
 - renderer/runtime: emit response-overlay visibility subscriptions as normalized
   booleans from `desktopResponseOverlayRuntimeClient` so
   `useResponseOverlayWindowSync` no longer receives a host-shaped visibility

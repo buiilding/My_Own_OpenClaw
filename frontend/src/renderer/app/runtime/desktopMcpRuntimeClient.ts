@@ -62,6 +62,14 @@ export function normalizeDesktopMcpEnablementResult(payload: unknown): DesktopMc
   };
 }
 
+export function resolveDesktopMcpEnablementRegistry(payload: unknown): DesktopMcpRegistry {
+  const result = normalizeDesktopMcpEnablementResult(payload);
+  if (!result.ok) {
+    throw new Error(result.errorMessage || 'Unable to update MCP server.');
+  }
+  return result.registry;
+}
+
 export const DesktopMcpRuntimeClient = {
   async listMcpServers(): Promise<DesktopMcpRegistry> {
     return normalizeDesktopMcpRegistry(await IpcBridge.invoke(INVOKE_CHANNELS.LIST_MCP_SERVERS));
@@ -71,8 +79,8 @@ export const DesktopMcpRuntimeClient = {
     return normalizeDesktopMcpRegistry(await IpcBridge.invoke(INVOKE_CHANNELS.REFRESH_MCP_SERVERS));
   },
 
-  async setMcpServerEnabled(input: McpServerEnablementInput): Promise<DesktopMcpEnablementResult> {
-    return normalizeDesktopMcpEnablementResult(
+  async setMcpServerEnabled(input: McpServerEnablementInput): Promise<DesktopMcpRegistry> {
+    return resolveDesktopMcpEnablementRegistry(
       await IpcBridge.invoke(INVOKE_CHANNELS.SET_MCP_SERVER_ENABLED, input),
     );
   },

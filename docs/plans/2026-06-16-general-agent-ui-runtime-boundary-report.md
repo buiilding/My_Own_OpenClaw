@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer MCP Enablement Registry-Or-Error Boundary
+
+- Finding: `desktopMcpRuntimeClient` already normalized MCP enablement results
+  away from the main-process `{ success, error, registry }` payload, but
+  `McpsSection` still interpreted the normalized `{ ok, errorMessage,
+  registry }` envelope in JSX.
+- Change: added `resolveDesktopMcpEnablementRegistry(...)` so
+  `DesktopMcpRuntimeClient.setMcpServerEnabled(...)` returns a normalized
+  registry on success or throws the normalized enablement error. The dashboard
+  MCP section now keeps only toggle presentation, registry state, and error
+  display.
+- Validation: focused MCP runtime client, MCP section, renderer chat runtime
+  boundary, stale MCP envelope-field scan, docs-index coverage, and diff
+  checks.
+- Compatibility: no migration required. MCP enablement IPC channel names,
+  main-process payloads, registry normalization, enablement persistence,
+  dashboard rendering, storage, settings, credentials, permissions, provider
+  policy, hosted URLs, and local-runtime MCP execution are unchanged.
+
 ### 2026-06-19 Renderer Response Overlay Visibility Subscription Boundary
 
 - Finding: `DesktopResponseOverlayRuntimeClient` already normalized
@@ -184,8 +203,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   boolean visibility value and routed the overlay window-sync hook through that
   boolean so feature code no longer reads the host-event visibility object.
 - Validation: focused response-overlay runtime client, chat runtime boundary,
-  response overlay state, docs-index, stale payload-field scans, docs listing,
-  and diff checks.
+  response overlay state, and docs-index tests plus docs search, related commit
+  search, stale payload-field scans, docs listing, and diff checks.
 - Compatibility: no migration required. Response-overlay visibility event
   names, responsebox size/hit-test payloads, visibility re-report timing,
   fixed-size/awaiting sizing policy, IPC channels, storage, settings,

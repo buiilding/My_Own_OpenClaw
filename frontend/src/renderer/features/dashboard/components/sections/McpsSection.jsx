@@ -52,14 +52,10 @@ function McpsSection({ onClose = () => {} }) {
   const handleToggle = useCallback(async (server, enabled) => {
     setError('');
     try {
-      const payload = await DesktopMcpRuntimeClient.setMcpServerEnabled({
+      setRegistry(await DesktopMcpRuntimeClient.setMcpServerEnabled({
         id: server.extension_id || server.mcp_id || server.id,
         enabled,
-      });
-      if (!payload.ok) {
-        throw new Error(payload.errorMessage || 'Unable to update MCP server.');
-      }
-      setRegistry(payload.registry);
+      }));
     } catch (toggleError) {
       setError(toggleError?.message || 'Unable to update MCP server.');
     }

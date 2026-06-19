@@ -19,6 +19,7 @@ import {
   DesktopMcpRuntimeClient,
   normalizeDesktopMcpEnablementResult,
   normalizeDesktopMcpRegistry,
+  resolveDesktopMcpEnablementRegistry,
 } from '../../frontend/src/renderer/app/runtime/desktopMcpRuntimeClient';
 
 describe('DesktopMcpRuntimeClient', () => {
@@ -80,6 +81,23 @@ describe('DesktopMcpRuntimeClient', () => {
     });
   });
 
+  test('resolves enablement results to registries or throws normalized errors', () => {
+    expect(resolveDesktopMcpEnablementRegistry({
+      success: true,
+      registry: { mcps: [{ id: 'memory' }], enabled_mcp_servers: ['memory', false] },
+    })).toEqual({
+      mcps: [{ id: 'memory' }],
+      errors: [],
+      mcp_errors: [],
+      enabled_mcp_servers: ['memory'],
+    });
+
+    expect(() => resolveDesktopMcpEnablementRegistry({
+      success: false,
+      error: ' Missing MCP server id. ',
+    })).toThrow('Missing MCP server id.');
+  });
+
   test('list, refresh, and enablement commands return normalized payloads', async () => {
     mockInvoke
       .mockResolvedValueOnce({ mcps: [{ id: 'memory' }], enabled_mcp_servers: ['memory', 1] })
@@ -105,14 +123,10 @@ describe('DesktopMcpRuntimeClient', () => {
       id: 'memory',
       enabled: true,
     })).resolves.toEqual({
-      ok: true,
-      errorMessage: null,
-      registry: {
-        mcps: [{ id: 'memory' }],
-        errors: [],
-        mcp_errors: [],
-        enabled_mcp_servers: ['memory'],
-      },
+      mcps: [{ id: 'memory' }],
+      errors: [],
+      mcp_errors: [],
+      enabled_mcp_servers: ['memory'],
     });
 
     expect(mockInvoke).toHaveBeenNthCalledWith(1, 'list-mcp-servers');
