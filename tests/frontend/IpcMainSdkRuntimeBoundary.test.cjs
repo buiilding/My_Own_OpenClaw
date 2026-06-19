@@ -41,15 +41,24 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_conversation_status_runtime.cjs'),
       'utf8',
     );
+    const workspacePathRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs'),
+      'utf8',
+    );
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('client.wakeUp({');
     expect(source).toContain('agent.conversation({');
     expect(source).toContain('buildConversationTerminalStatus(event, workspacePath)');
+    expect(source).toContain('resolveWorkspacePathForAgentPayload(payload, latestDesktopUiConfig)');
     expect(source).not.toContain('event.payload?.error');
+    expect(source).not.toContain('payload?.workspace_path');
+    expect(source).not.toContain('payload?.workspacePath');
     expect(conversationStatusRuntimeSource).toContain('resolveConversationStatusError');
     expect(conversationStatusRuntimeSource).toContain('event.payload?.error');
+    expect(workspacePathRuntimeSource).toContain('payload?.workspace_path');
+    expect(workspacePathRuntimeSource).toContain('payload?.workspacePath');
     expect(source).toContain('isDefaultAgentDefinition(generatedAgentDefinition)');
     expect(source).not.toContain("generatedAgentDefinition.mode === 'windie_default'");
     expect(source).toContain('localToolLifecycle');

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: move Agent SDK workspace-path fallback resolution into the IPC
+  workspace path runtime helper before SDK startup and commands consume it. No
+  migration required.
 - main/runtime: move SDK conversation terminal-status projection into the IPC
   conversation status runtime helper before `ipc.cjs` broadcasts renderer
   status updates. No migration required.

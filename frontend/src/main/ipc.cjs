@@ -77,6 +77,9 @@ const {
   buildConversationTerminalStatus,
 } = require('./ipc/ipc_conversation_status_runtime.cjs');
 const {
+  resolveWorkspacePathForAgentPayload,
+} = require('./ipc/ipc_workspace_path_runtime.cjs');
+const {
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
   uploadArtifact,
@@ -610,12 +613,7 @@ function normalizeOptionalString(value) {
 }
 
 function resolveWorkspacePathForAgent(payload = {}) {
-  return (
-    normalizeOptionalString(payload?.workspace_path)
-    || normalizeOptionalString(payload?.workspacePath)
-    || normalizeOptionalString(latestDesktopUiConfig?.workspace_path)
-    || normalizeOptionalString(latestDesktopUiConfig?.workspacePath)
-  );
+  return resolveWorkspacePathForAgentPayload(payload, latestDesktopUiConfig);
 }
 
 function handleAgentConnection(event = {}) {

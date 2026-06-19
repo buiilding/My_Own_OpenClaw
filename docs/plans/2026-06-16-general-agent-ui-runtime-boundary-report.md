@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Workspace Path Runtime Boundary
+
+- Finding: `ipc.cjs` still resolved Agent SDK workspace paths by reading
+  command payload `workspace_path` / `workspacePath` and cached desktop UI
+  config fields inline before SDK startup and conversation commands consumed
+  them.
+- Change: added `ipc_workspace_path_runtime.cjs` for workspace-path fallback
+  resolution and routed `ipc.cjs` through `resolveWorkspacePathForAgentPayload(...)`.
+  The relay root keeps latest config state, SDK startup, command dependency
+  injection, and repo-instruction orchestration.
+- Validation: focused IPC workspace path runtime and main SDK runtime boundary
+  tests, stale inline workspace-payload scan, docs listing, and diff checks.
+- Compatibility: no migration required. Accepted workspace payload aliases,
+  cached config fallback behavior, SDK startup, conversation command routing,
+  AGENTS.md lookup, IPC, storage, credentials, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Main Conversation Terminal Status Runtime Boundary
 
 - Finding: `ipc.cjs` subscribed to SDK conversation runtime events, but still

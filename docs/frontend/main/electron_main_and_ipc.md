@@ -58,6 +58,7 @@ Main modules:
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_conversation_status_runtime.cjs`
+- `frontend/src/main/ipc/ipc_workspace_path_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/agent/electron_agent_definition_inputs.cjs`
@@ -86,7 +87,8 @@ Split boundary:
   as injected dependencies.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, SDK terminal
-  status projection, and synthetic query event broadcast paths.
+  status projection, SDK workspace-path fallback resolution, and synthetic
+  query event broadcast paths.
 - `electron_agent_definition_inputs.cjs` owns Electron-only collection of custom
   instructions, extension prompt layers, AGENTS.md layers, workspace path, and
   OS facts. The SDK package owns the final `agent_definition` object shape and

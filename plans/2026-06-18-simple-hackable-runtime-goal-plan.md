@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a main workspace path runtime slice by moving Agent SDK
+  workspace-path fallback resolution from `ipc.cjs` into
+  `ipc_workspace_path_runtime.cjs` as
+  `resolveWorkspacePathForAgentPayload(...)`. The IPC relay root keeps latest
+  desktop config state, SDK startup, command dependency injection, and
+  repo-instruction orchestration while the helper owns `workspace_path` /
+  `workspacePath` command-payload and cached-config fallback semantics.
+  Validation: focused IPC workspace path runtime and main SDK runtime boundary
+  tests, stale inline workspace-payload scan, docs listing, and diff checks. No
+  migration required; accepted workspace payload aliases, cached config fallback
+  behavior, SDK startup, conversation command routing, AGENTS.md lookup, IPC,
+  storage, credentials, provider-policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: completed a main conversation terminal status runtime slice by
   moving SDK terminal event-to-renderer status projection from `ipc.cjs` into
   `ipc_conversation_status_runtime.cjs` as
