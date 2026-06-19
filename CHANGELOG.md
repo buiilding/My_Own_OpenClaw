@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/host: move the primary wakeword/chat-pill hotkey into WindieOS host skin
+  config so the generic Electron host composition root consumes configured
+  shortcut copy while lifecycle runtime still owns fallback registration. No
+  migration required.
 - docs/voice: route renderer voice and audio wakeword bridge links through
   Electron Wakeword Bridge wording instead of Local Runtime Sidecar Wakeword
   public navigation labels while keeping the Python service implementation

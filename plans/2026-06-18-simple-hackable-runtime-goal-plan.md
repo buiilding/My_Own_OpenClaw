@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a main host shortcut boundary slice by moving the
+  primary wakeword/chat-pill hotkey map into the WindieOS main host skin and
+  having the generic Electron composition root consume the configured
+  platform/default accelerator. The lifecycle runtime still owns fallback
+  registration behavior. Validation: focused main host skin boundary coverage,
+  lifecycle hotkey behavior coverage, docs listing, exact source scan, and diff
+  checks. No migration required; shortcut values, fallback order, IPC channels,
+  permissions, storage, credentials, local-runtime launch, hosted backend URLs,
+  provider policy, and packaging behavior are unchanged.
 - 2026-06-19: completed a renderer voice/audio wakeword bridge label slice by
   routing renderer voice and audio related-page links through Electron
   Wakeword Bridge wording instead of Local Runtime Sidecar Wakeword public

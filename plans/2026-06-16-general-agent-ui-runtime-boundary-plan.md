@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Main Wakeword Hotkey Host-Skin Boundary
+
+- Finding: the Electron main composition root still hardcoded the primary
+  wakeword/chat-pill accelerator by platform, making the generic host root own
+  WindieOS shortcut copy instead of consuming configured host-skin behavior.
+- Change: moved the primary wakeword hotkey map into the WindieOS main host
+  skin, made `index.cjs` read the configured platform/default accelerator, and
+  kept fallback registration behavior in `main_process_lifecycle_runtime.cjs`.
+- Validation: focused main host skin boundary coverage, lifecycle hotkey
+  behavior coverage, docs listing, exact source scan, and diff checks.
+- Compatibility: no migration required. Shortcut values, fallback registration
+  order, IPC channels, permissions, storage, credentials, local-runtime launch,
+  hosted backend URLs, provider policy, and packaging behavior are unchanged.
+
 ### 2026-06-19 Code-Surface Local Tool Hub Labels
 
 - Finding: the code-change surface index still routed local tool implementation

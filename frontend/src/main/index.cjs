@@ -143,9 +143,10 @@ configureGpuRuntime({
   gpuEnv: mainHostSkin.gpu.env,
 });
 
-const WAKEWORD_HOTKEY = process.platform === 'win32'
-  ? 'CommandOrControl+Alt+W'
-  : 'Super+Alt+W';
+const WAKEWORD_HOTKEY = (
+  mainHostSkin.shortcuts.wakewordHotkeyByPlatform[process.platform]
+  || mainHostSkin.shortcuts.wakewordHotkeyByPlatform.default
+);
 const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
 const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'onboarding', 'settings']);
 const RESPONSE_OVERLAY_CHAT_GAP = 8;

@@ -92,6 +92,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('debug');
     expect(skinSource).toContain("streamEvents: 'WINDIE_DEBUG_STREAM_EVENTS'");
     expect(skinSource).toContain("toolScreenshot: 'WINDIE_DEBUG_TOOL_SCREENSHOT'");
+    expect(skinSource).toContain('shortcuts');
+    expect(skinSource).toContain('wakewordHotkeyByPlatform');
     expect(skinSource).toContain('sdkAgentName');
     expect(skinSource).toContain('trayTooltip');
     expect(skinSource).toContain('mcpClientInfo');
@@ -409,6 +411,25 @@ describe('main host skin/config boundary', () => {
     expect(mainWindowSource).not.toContain('mainHostSkin?.wakeword?.env');
     expect(wakewordSource).not.toContain('WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD');
     expect(wakewordSource).not.toContain('WINDIE_PACKAGED_APP');
+  });
+
+  test('wakeword primary hotkey lives in host skin config', () => {
+    const skinSource = fs.readFileSync(skinPath, 'utf8');
+    const indexSource = fs.readFileSync(indexPath, 'utf8');
+    const lifecycleSource = fs.readFileSync(
+      path.join(mainRoot, 'app/main_process_lifecycle_runtime.cjs'),
+      'utf8',
+    );
+
+    expect(skinSource).toContain("win32: 'CommandOrControl+Alt+W'");
+    expect(skinSource).toContain("default: 'Super+Alt+W'");
+    expect(indexSource).toContain('mainHostSkin.shortcuts.wakewordHotkeyByPlatform[process.platform]');
+    expect(indexSource).toContain('mainHostSkin.shortcuts.wakewordHotkeyByPlatform.default');
+    expect(indexSource).not.toContain("process.platform === 'win32'");
+    expect(indexSource).not.toContain("'CommandOrControl+Alt+W'");
+    expect(indexSource).not.toContain("'Super+Alt+W'");
+    expect(lifecycleSource).toContain('buildWakewordHotkeyCandidates');
+    expect(lifecycleSource).toContain("'CommandOrControl+Alt+W'");
   });
 
   test('wakeword stderr product markers live in host skin config', () => {

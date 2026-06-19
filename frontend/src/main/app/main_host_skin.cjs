@@ -114,6 +114,13 @@ const debug = Object.freeze({
   }),
 });
 
+const shortcuts = Object.freeze({
+  wakewordHotkeyByPlatform: Object.freeze({
+    win32: 'CommandOrControl+Alt+W',
+    default: 'Super+Alt+W',
+  }),
+});
+
 const browserAutomation = Object.freeze({
   localRuntimeNotReady: `${productName} local runtime is not ready. Wait a moment and retry Enable.`,
   installBrowserPrompt: (
@@ -226,6 +233,7 @@ const mainHostSkin = Object.freeze({
   mcp,
   logging,
   debug,
+  shortcuts,
   hostedBackend,
   vmWorker,
   queryEvents,
