@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose IPC status snapshots as app-config value callbacks
+  so `AppConfigProvider` no longer reads raw `isConnected`, global stop
+  shortcut status, or transcript user-id fields. No migration required.
 - renderer/runtime: expose wakeword-toggle events as value-level voice runtime
   state callbacks so `AppConfigProvider` no longer reads raw bridge `enabled`
   fields. No migration required.

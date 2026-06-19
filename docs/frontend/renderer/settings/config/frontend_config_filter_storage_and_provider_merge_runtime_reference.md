@@ -196,7 +196,8 @@ On `window.storage` for `windieos-config`:
 ## Event Router Boundary (`appConfigEvents`)
 
 - only routes `models-listed` settings events to settings handlers
-- `extractTranscriptUserId` accepts non-empty string only
+- transcript user-id normalization belongs to `DesktopClientSessionRuntimeClient`
+  IPC status value projection
 
 ## Test-Backed Invariants
 

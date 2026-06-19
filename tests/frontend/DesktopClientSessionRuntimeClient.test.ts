@@ -27,6 +27,7 @@ import {
   DesktopClientSessionRuntimeClient,
   normalizeDesktopClientSessionSnapshot,
   normalizeDesktopTransportConnectionStatus,
+  resolveDesktopClientIpcStatusValues,
   resolveDesktopClientSessionUserId,
   resolveObservedDesktopTransportConnection,
 } from '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient';
@@ -108,6 +109,48 @@ describe('DesktopClientSessionRuntimeClient', () => {
     expect(resolveObservedDesktopTransportConnection(null)).toBeNull();
   });
 
+  test('resolves ipc status values for app config consumers', () => {
+    expect(resolveDesktopClientIpcStatusValues({
+      userId: ' ipc-user ',
+      isConnected: true,
+      runtimeHttpUrl: 'http://127.0.0.1:8765',
+      globalAgentStopShortcutStatus: {
+        usingFallback: true,
+        resolvedAccelerator: 'CommandOrControl+Shift+.',
+      },
+    })).toEqual({
+      snapshot: {
+        userId: 'ipc-user',
+        isConnected: true,
+        runtimeHttpUrl: 'http://127.0.0.1:8765',
+        globalAgentStopShortcutStatus: {
+          usingFallback: true,
+          resolvedAccelerator: 'CommandOrControl+Shift+.',
+        },
+      },
+      transcriptUserId: 'ipc-user',
+      isConnected: true,
+      globalAgentStopShortcutStatus: {
+        usingFallback: true,
+        resolvedAccelerator: 'CommandOrControl+Shift+.',
+      },
+    });
+
+    expect(resolveDesktopClientIpcStatusValues({
+      userId: ' ipc-user ',
+      isConnected: 'yes',
+      globalAgentStopShortcutStatus: 'unavailable',
+    })).toEqual({
+      snapshot: {
+        userId: 'ipc-user',
+        globalAgentStopShortcutStatus: 'unavailable',
+      },
+      transcriptUserId: 'ipc-user',
+      isConnected: false,
+      globalAgentStopShortcutStatus: null,
+    });
+  });
+
   test('ipc status subscriptions emit normalized snapshots', () => {
     const events: unknown[] = [];
     const unsubscribe = DesktopClientSessionRuntimeClient.onIpcStatus((event) => {
@@ -124,6 +167,39 @@ describe('DesktopClientSessionRuntimeClient', () => {
       userId: 'ipc-user',
       isConnected: true,
       runtimeHttpUrl: 'http://localhost:8765',
+    }]);
+
+    unsubscribe?.();
+    expect(statusListener).toBeNull();
+  });
+
+  test('ipc status value subscriptions emit normalized app config values', () => {
+    const events: unknown[] = [];
+    const unsubscribe = DesktopClientSessionRuntimeClient.onIpcStatusValues((event) => {
+      events.push(event);
+    });
+
+    statusListener?.({
+      userId: ' ipc-user ',
+      isConnected: true,
+      globalAgentStopShortcutStatus: {
+        usingFallback: false,
+      },
+    });
+
+    expect(events).toEqual([{
+      snapshot: {
+        userId: 'ipc-user',
+        isConnected: true,
+        globalAgentStopShortcutStatus: {
+          usingFallback: false,
+        },
+      },
+      transcriptUserId: 'ipc-user',
+      isConnected: true,
+      globalAgentStopShortcutStatus: {
+        usingFallback: false,
+      },
     }]);
 
     unsubscribe?.();

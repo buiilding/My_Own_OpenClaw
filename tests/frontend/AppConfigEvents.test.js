@@ -3,7 +3,6 @@
  */
 
 import {
-  extractTranscriptUserId,
   routeConfigSettingsEvent,
 } from '../../frontend/src/renderer/app/providers/appConfigEvents';
 
@@ -26,14 +25,4 @@ describe('appConfigEvents', () => {
     expect(handleModelsListed).not.toHaveBeenCalled();
   });
 
-  test('extracts transcript user id only from non-empty string payloads', () => {
-    expect(extractTranscriptUserId({ userId: 'user-1' })).toBe('user-1');
-    expect(extractTranscriptUserId({ userId: '' })).toBeNull();
-    expect(extractTranscriptUserId({ userId: 123 })).toBeNull();
-    expect(extractTranscriptUserId(null)).toBeNull();
-  });
-
-  test('returns raw user id string including whitespace', () => {
-    expect(extractTranscriptUserId({ userId: '   user-2   ' })).toBe('   user-2   ');
-  });
 });

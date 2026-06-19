@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer IPC Status Value Boundary
+
+- Finding: `DesktopClientSessionRuntimeClient` already owned desktop
+  client/session snapshot normalization, but `AppConfigProvider` still read
+  raw `ipc-status` `isConnected`, global stop shortcut status, and transcript
+  user-id fields before applying config-sync and Settings UI state.
+- Change: added value-level IPC status normalization and subscription to the
+  client session runtime client. `AppConfigProvider` now consumes normalized
+  connection, shortcut-status, and transcript user-id values while preserving
+  runtime endpoint snapshot side effects.
+- Validation: passed focused desktop client session runtime client,
+  AppConfigProvider storage/IPC, app config events, renderer settings
+  boundary, and docs-index tests plus docs search, related commit search,
+  stale raw IPC status field scan, docs listing, and diff checks.
+- Compatibility: no migration required. `ipc-status` and
+  `get-client-user-id` channel names, raw snapshot shape, runtime endpoint
+  metadata, transcript binding, shortcut fallback persistence, config sync,
+  storage, provider policy, hosted URLs, permissions, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Wakeword Toggle State Boundary
 
 - Finding: `DesktopVoiceRuntimeClient` owned the wakeword-toggle IPC

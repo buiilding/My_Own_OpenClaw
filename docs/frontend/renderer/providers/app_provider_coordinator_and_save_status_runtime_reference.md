@@ -91,7 +91,7 @@ Initialization/sync inputs:
 1. localStorage (`loadConfigFromStorage`) as initial state seed
 2. renderer view (`window.location.search`) for initial wakeword suppression seed
 3. settings-event listener through `DesktopAppConfigRuntimeClient.onSettingsEvent(...)` for `models-listed`
-4. `DesktopClientSessionRuntimeClient.onIpcStatus(...)` for session/user and runtime HTTP URL snapshot
+4. `DesktopClientSessionRuntimeClient.onIpcStatusValues(...)` for normalized connection, session/user, shortcut-status, and runtime HTTP URL snapshot values
 5. `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()` for startup snapshot
 6. disk config load through `DesktopAppConfigRuntimeClient.loadRendererConfig()`
 7. browser `storage` event cross-window sync
@@ -136,7 +136,9 @@ Desktop host transport is routed through app runtime clients:
 
 - `DesktopAppConfigRuntimeClient` owns renderer config disk persistence and normalized settings-event fan-out, including settings-update failure classification for save-status consumers.
 - `desktopSettingsUpdateErrorRuntime.ts` owns the shared settings-update failure text classifier used by settings-event normalization and chat stream error suppression.
-- `DesktopClientSessionRuntimeClient` owns main-session snapshots and connection status fan-out.
+- `DesktopClientSessionRuntimeClient` owns main-session snapshots and
+  value-level IPC status fan-out for transcript user id, connection state, and
+  global-stop shortcut status.
 - `DesktopConversationSessionRuntimeClient` owns shared session-helper rule routing for runtime clients.
 - `DesktopSettingsEventRuntimeClient` owns model-list settings-event payload handling for providers.
 - `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.

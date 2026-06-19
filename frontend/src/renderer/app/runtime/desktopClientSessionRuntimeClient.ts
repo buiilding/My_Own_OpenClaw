@@ -21,10 +21,23 @@ export type DesktopTransportConnectionStatus = {
   hasConnectionState: boolean;
 };
 
+export type DesktopClientIpcStatusValues = {
+  snapshot: DesktopClientSessionSnapshot;
+  transcriptUserId: string | null;
+  isConnected: boolean;
+  globalAgentStopShortcutStatus: Record<string, unknown> | null;
+};
+
 function recordOrEmpty(value: unknown): Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function recordOrNull(value: unknown): Record<string, unknown> | null {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 }
 
 function normalizeOptionalString(value: unknown): string | null {
@@ -73,7 +86,23 @@ export function resolveObservedDesktopTransportConnection(
   return status.isConnected;
 }
 
+export function resolveDesktopClientIpcStatusValues(payload: unknown): DesktopClientIpcStatusValues {
+  const snapshot = normalizeDesktopClientSessionSnapshot(payload);
+  const source = recordOrEmpty(payload);
+  const shortcutStatus = source.globalAgentStopShortcutStatus;
+  return {
+    snapshot,
+    transcriptUserId: snapshot.userId,
+    isConnected: snapshot.isConnected === true,
+    globalAgentStopShortcutStatus: recordOrNull(shortcutStatus),
+  };
+}
+
 export const DesktopClientSessionRuntimeClient = {
+  resolveIpcStatusValues(payload: unknown): DesktopClientIpcStatusValues {
+    return resolveDesktopClientIpcStatusValues(payload);
+  },
+
   loadMainSessionSnapshot(): Promise<DesktopClientSessionSnapshot | undefined> {
     if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
       return Promise.resolve(undefined);
@@ -97,6 +126,18 @@ export const DesktopClientSessionRuntimeClient = {
     return IpcBridge.on(
       ON_CHANNELS.IPC_STATUS,
       (payload: unknown) => listener(normalizeDesktopClientSessionSnapshot(payload)),
+    );
+  },
+
+  onIpcStatusValues(
+    listener: (values: DesktopClientIpcStatusValues) => void,
+  ): (() => void) | undefined {
+    if (!ON_CHANNELS?.IPC_STATUS) {
+      return undefined;
+    }
+    return IpcBridge.on(
+      ON_CHANNELS.IPC_STATUS,
+      (payload: unknown) => listener(resolveDesktopClientIpcStatusValues(payload)),
     );
   },
 

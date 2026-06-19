@@ -245,10 +245,18 @@ describe('renderer settings runtime boundary', () => {
     );
 
     expect(providerSource).toContain('useDesktopSettingsEventHandlers');
+    expect(providerSource).toContain('DesktopClientSessionRuntimeClient.onIpcStatusValues');
+    expect(providerSource).toContain('DesktopClientSessionRuntimeClient.resolveIpcStatusValues');
     expect(providerSource).toContain('DesktopVoiceRuntimeClient.onWakewordToggleState');
+    expect(providerSource).not.toContain('DesktopClientSessionRuntimeClient.onIpcStatus(');
     expect(providerSource).not.toContain('DesktopVoiceRuntimeClient.onWakewordToggle(');
+    expect(providerSource).not.toContain('data?.isConnected');
+    expect(providerSource).not.toContain('data.isConnected');
+    expect(providerSource).not.toContain('data?.globalAgentStopShortcutStatus');
+    expect(providerSource).not.toContain('data.globalAgentStopShortcutStatus');
     expect(providerSource).not.toContain('data?.enabled');
     expect(providerSource).not.toContain('data.enabled');
+    expect(providerSource).not.toContain('extractTranscriptUserId');
     expect(providerSource).not.toContain('features/settings/hooks/useSettingsManagement');
     expect(providerSource).not.toContain('useSettingsManagement');
     expect(settingsEventClientSource).toContain('handleModelsListed');

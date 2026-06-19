@@ -226,12 +226,14 @@ for dashboard fallback state, a transport-status view that normalizes raw
 `isConnected` payloads into `{ isConnected, hasConnectionState }`, and
 observed-connection helpers that filter snapshots without a boolean connection
 field and emit boolean connection values before chat-loop recovery consumes
-them. Chat session bootstrap, loop transport projection, and dashboard user
-snapshot fallback call this runtime client instead of importing
-`get-client-user-id` or `ipc-status` channel constants, trimming raw snapshot
-fields, or deciding raw connection field validity directly. App config runtime
-snapshot handling also calls this client for startup and connection-status user
-context.
+them. It also exposes app-config IPC status values that pair the preserved
+snapshot with normalized transcript user id, connection, and global stop
+shortcut status fields.
+Chat session bootstrap, loop transport projection, dashboard user snapshot
+fallback, and app config runtime snapshot handling call this runtime client
+instead of importing `get-client-user-id` or `ipc-status` channel constants,
+trimming raw snapshot fields, or deciding raw connection/shortcut field
+validity directly.
 
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out, live
 workspace payload normalization, host-source classification such as

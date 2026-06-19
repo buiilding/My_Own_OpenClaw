@@ -612,4 +612,32 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       }),
     );
   });
+
+  test('clears global stop shortcut status when IPC status omits a status object', async () => {
+    const { result } = renderAppConfigContext();
+    await flushAsyncEffects();
+
+    const ipcStatusHandler = getIpcListener(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({
+        globalAgentStopShortcutStatus: {
+          usingFallback: true,
+          resolvedAccelerator: 'CommandOrControl+Shift+.',
+        },
+      });
+    });
+    expect(result.current.globalAgentStopShortcutStatus).toEqual(expect.objectContaining({
+      usingFallback: true,
+    }));
+
+    act(() => {
+      ipcStatusHandler?.({
+        globalAgentStopShortcutStatus: 'unavailable',
+      });
+    });
+
+    expect(result.current.globalAgentStopShortcutStatus).toBeNull();
+  });
 });

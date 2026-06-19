@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
 import { loadConfigFromStorage, saveConfigToStorage } from '../runtime/desktopRendererConfigStorageRuntime';
 import { AppConfigContext } from './AppConfigContext';
-import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
+import { routeConfigSettingsEvent } from './appConfigEvents';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
   applyConfigIfChanged,
@@ -150,14 +150,15 @@ export function AppConfigProvider({ children }) {
     routeConfigSettingsEvent(data, handlersRef);
   }, [handlersRef]);
 
-  const applyRuntimeConnectionSnapshot = useCallback((data) => {
-    runtimeConnectedRef.current = data?.isConnected === true;
+  const applyRuntimeConnectionSnapshot = useCallback((statusValues) => {
+    const {
+      snapshot,
+      transcriptUserId,
+      isConnected,
+      globalAgentStopShortcutStatus: shortcutStatus,
+    } = statusValues;
+    runtimeConnectedRef.current = isConnected;
 
-    const shortcutStatus = (
-      data?.globalAgentStopShortcutStatus
-      && typeof data.globalAgentStopShortcutStatus === 'object'
-      && !Array.isArray(data.globalAgentStopShortcutStatus)
-    ) ? data.globalAgentStopShortcutStatus : null;
     const previousShortcutStatus = globalAgentStopShortcutStatusRef.current;
     const shortcutStatusChanged = (
       JSON.stringify(previousShortcutStatus || null)
@@ -182,11 +183,10 @@ export function AppConfigProvider({ children }) {
       });
     }
 
-    const transcriptUserId = extractTranscriptUserId(data);
     if (transcriptUserId !== null) {
       DesktopTranscriptSessionRuntimeClient.bindTranscriptUser(transcriptUserId);
     }
-    DesktopRuntimeEndpointClient.syncFromConnectionSnapshot(data);
+    DesktopRuntimeEndpointClient.syncFromConnectionSnapshot(snapshot);
     if (runtimeConnectedRef.current) {
       syncCurrentConfigToRuntime();
     }
@@ -210,9 +210,9 @@ export function AppConfigProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const removeListener = DesktopClientSessionRuntimeClient.onIpcStatus((data) => {
-      applyRuntimeConnectionSnapshot(data);
-    });
+    const removeListener = DesktopClientSessionRuntimeClient.onIpcStatusValues(
+      applyRuntimeConnectionSnapshot,
+    );
     return () => {
       removeListener?.();
     };
@@ -221,7 +221,9 @@ export function AppConfigProvider({ children }) {
   useEffect(() => {
     DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
       .then((result) => {
-        applyRuntimeConnectionSnapshot(result);
+        applyRuntimeConnectionSnapshot(
+          DesktopClientSessionRuntimeClient.resolveIpcStatusValues(result),
+        );
       })
       .catch(() => {});
   }, [applyRuntimeConnectionSnapshot]);

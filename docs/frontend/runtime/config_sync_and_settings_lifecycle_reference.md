@@ -173,11 +173,13 @@ Renderer uses this to:
 - persist resolved global-stop fallback bindings back into local config and Settings UI when the requested accelerator is unavailable
 
 Renderer app-runtime clients normalize this host payload before feature code
-consumes it. `desktopClientSessionRuntimeClient` exposes chat-loop connection
-state through observed `{ isConnected }` updates, while preserving
+consumes it. `desktopClientSessionRuntimeClient` exposes app-config status
+snapshots through value-level `{ snapshot, transcriptUserId, isConnected,
+globalAgentStopShortcutStatus }` updates, exposes chat-loop connection state
+through observed `{ isConnected }` updates, and preserves
 `{ isConnected, hasConnectionState }` normalization for diagnostics and focused
-runtime-client tests, so UI hooks do not inspect raw `ipc-status` payload
-types.
+runtime-client tests. UI hooks and providers do not inspect raw `ipc-status`
+payload types.
 
 Wakeword overlay suppression also flows through a renderer app-runtime client:
 `DesktopVoiceRuntimeClient.onWakewordToggleState(...)` subscribes to the
