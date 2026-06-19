@@ -129,9 +129,9 @@ Each completed slice should report:
   into `desktopConversationRuntimeEventClient` as explicit projection event
   subscriptions. The chat hook now keeps stale-turn policy, projection side
   effects, annotation merging, and store updates.
-- Validation: focused desktop conversation runtime event client and renderer
-  chat runtime boundary tests, stale projection payload guard scan, docs
-  listing, and diff checks.
+- Validation: focused desktop conversation runtime event client, conversation
+  projection stream, and renderer chat runtime boundary tests, stale projection
+  payload guard scan, docs listing, and diff checks.
 - Compatibility: no migration required. Conversation runtime fan-out channel
   names, current-turn and display-row payload shapes, SDK projection contracts,
   chat-store merging behavior, IPC, storage, credentials, provider policy,
