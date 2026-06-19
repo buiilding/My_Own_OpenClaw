@@ -1,8 +1,9 @@
 ---
-summary: "Channel hub for WindieOS desktop, websocket, voice, sidecar, SDK, and VM-run communication paths."
+summary: "Channel hub for WindieOS desktop, websocket, voice, local-runtime, SDK, and VM-run communication paths."
 read_when:
   - When deciding which WindieOS transport or entry channel owns a behavior.
-  - When changing desktop chat, overlay chat, voice/STT/TTS, SDK clients, sidecar tools, or VM run control flows.
+  - When changing desktop chat, overlay chat, voice/STT/TTS, SDK clients,
+    local-runtime tools, or VM run control flows.
 title: "Channels Hub"
 ---
 
@@ -23,7 +24,7 @@ patching the wrong consumer.
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
-| Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> Python sidecar executor | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
+| Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> Python sidecar executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
 | VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
 
@@ -34,7 +35,8 @@ patching the wrong consumer.
 - Use `/api/runs/*` only for VM worker assignment, run control, and run timeline events.
 - Use `/api/sdk/*` for hosted developer introspection and perception routes, not SDK local-runtime execution.
 - Use the SDK local-runtime path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
-- Do not make frontend or sidecar code import backend modules to share channel schemas.
+- Do not make desktop client or Python sidecar implementation code import
+  backend modules to share channel schemas.
 
 ## Common Change Paths
 
@@ -108,7 +110,7 @@ Validate voice hook, wakeword bridge, STT gateway, and TTS stream tests.
 
 Read:
 
-- [Sidecar and Tool Channels](sidecar_and_tool_channels.md)
+- [Local Tool Channels](sidecar_and_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
 
@@ -119,7 +121,7 @@ Likely code:
   `packages/windie-sdk-js/src/runtime/Agent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, and
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- sidecar executable tool under `frontend/src/main/python/tools`
+- executable local tool under `frontend/src/main/python/tools`
 - IPC bridge only when a new local bridge channel is required
 
 Validate backend schema tests, SDK runtime/router tests, Python sidecar tool tests, renderer projection tests, and schema parity tests.
@@ -130,7 +132,7 @@ Validate backend schema tests, SDK runtime/router tests, Python sidecar tool tes
 - [WebSocket Event Contract Change Workflow](websocket_event_contract_change_workflow.md)
 - [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Audio Channels](voice_and_audio_channels.md)
-- [Sidecar and Tool Channels](sidecar_and_tool_channels.md)
+- [Local Tool Channels](sidecar_and_tool_channels.md)
 - [Communication Flow](../architecture/communication_flow.md)
 - [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
 - [HTTP and WebSocket Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md)

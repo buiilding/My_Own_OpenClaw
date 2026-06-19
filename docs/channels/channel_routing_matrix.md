@@ -23,7 +23,7 @@ This matrix maps entry channels to the transport and code that own them. Start h
 | Voice dictation | voice-mode microphone capture | renderer audio -> `/ws/transcription` | transcription route/services/providers | voice hooks/utils | STT gateway tests, voice hook tests |
 | Wakeword | background microphone chunks | renderer IPC -> main wakeword bridge -> sidecar subprocess | optional wakeword activation handler on `/ws` | `wakeword_bridge*.cjs`, `wakeword_service.py`, `WakewordController.jsx` | wakeword bridge and controller tests |
 | TTS playback | backend audio chunk event | `/ws` `audio-chunk` -> renderer playback queue | API TTS manager/session | renderer audio playback service | TTS backend tests, renderer audio tests |
-| Local-runtime tool | model-visible tool call | backend emits tool-call -> SDK/main local runtime executes via Python sidecar daemon and fans out display-only renderer event | backend schema/preparation/waiting/history | SDK/main local runtime, `local_runtime_bridge.cjs`, Python sidecar tools | schema parity, sidecar tool, SDK/IPC router tests |
+| Local-runtime tool | model-visible tool call | backend emits tool-call -> SDK/main local runtime executes via Python sidecar daemon and fans out display-only renderer event | backend schema/preparation/waiting/history | SDK/main local runtime, `local_runtime_bridge.cjs`, Python sidecar executors | schema parity, local-runtime tool, SDK/IPC router tests |
 | SDK hosted query | external SDK client | direct WebSocket `/ws` | same websocket query path | TypeScript/Python SDK clients | SDK client and backend route tests |
 | SDK HTTP routes | external SDK client | direct `/api/sdk/*`, `/api/artifacts/*` | SDK/artifact routes/services | SDK client wrappers | SDK route/client tests |
 | VM run control | dashboard/API caller + VM worker | `/api/runs/*` HTTP plus worker-dispatched `/ws` query | runs router/service | `vm_worker_runtime.cjs` | runs route tests, VM worker tests |
@@ -95,10 +95,10 @@ Use `/api/sdk/*` when:
 | --- | --- | --- |
 | Query never reaches backend | desktop IPC or `/ws` | [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md), [Backend WebSocket Reference](../backend/api/websocket_connection_and_task_lifecycle_reference.md) |
 | Query streams but UI does not update | backend outgoing event or renderer stream consumer | [Backend Contracts Events Hub](../backend/contracts/events/README.md), [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md) |
-| Tool call appears but local action does not run | SDK runtime tool router or Python sidecar executor | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Tool call appears but local action does not run | SDK runtime tool router or Python sidecar executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Voice text does not appear | `/ws/transcription` or voice renderer state | [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword fires repeatedly or not at all | wakeword bridge/subprocess | [Voice and Audio Channels](voice_and_audio_channels.md) |
-| SDK route works but desktop action fails | hosted SDK vs sidecar split | [SDK Hub](../sdk/README.md), [Sidecar and Tool Channels](sidecar_and_tool_channels.md) |
+| SDK route works but desktop action fails | hosted SDK vs local-runtime split | [SDK Hub](../sdk/README.md), [Local Tool Channels](sidecar_and_tool_channels.md) |
 | VM run is created but not executed | `/api/runs/*` or VM worker loop | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
 
 ## Validation Checklist

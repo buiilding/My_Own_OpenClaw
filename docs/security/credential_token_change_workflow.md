@@ -286,7 +286,7 @@ Validate:
 Read:
 
 - [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md)
-- [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)
 
 Edit:

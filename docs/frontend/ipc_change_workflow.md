@@ -188,4 +188,4 @@ Docs-only IPC updates should still run `<windie> docs list`, `git diff --check`,
 - [IPC Channel and Handler Reference](contracts/ipc_channel_and_handler_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
 - [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
-- [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)

@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a channel local-tool label slice by routing channel
+  hub and local-tool channel docs through local-runtime tool/channel wording
+  instead of sidecar-tool owner labels. Python sidecar daemon and executor
+  references remain where they name the implementation. The modular docs guard
+  now rejects retired sidecar-tool channel read_when, IPC-facing, failure-row,
+  validation, and cross-link title phrases. Validation: `bin\windie.cmd test
+  frontend -- ModularRefactorCompletionBoundary --runInBand`,
+  `bin\windie.cmd docs list`, exact stale channel-label scan, and
+  `git diff --check`. No migration required; no channel path, IPC name,
+  SDK/main routing, daemon endpoint, payload, tool schema, tool-result ingress,
+  renderer projection, credential, permission, storage, or local execution
+  behavior changed.
 - 2026-06-18: completed an operations/settings env-label slice by routing
   settings-sync, operations hub, endpoint debugging, and operational
   troubleshooting docs through local-runtime implementation/env owner labels

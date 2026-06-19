@@ -60,7 +60,7 @@ Patch the producer or enforcing node first. Do not normalize malformed data in a
 Read:
 
 - [Desktop and Sidecar Node](desktop_and_sidecar_node.md)
-- [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
 Likely code:

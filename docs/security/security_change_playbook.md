@@ -132,7 +132,7 @@ Read:
 
 - [Tools Hub](../tools/README.md)
 - [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md)
-- [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
 - [Backend Tools Security Docs Hub](../backend/tools/security/README.md)
 
 Likely code:

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Channel Local-Tool Owner Labels
+
+- Finding: channel hub and sidecar/tool channel docs still used sidecar-tool
+  wording in read_when hints, local-tool setup steps, IPC-channel labels,
+  failure-routing rows, validation labels, and cross-link titles after the main
+  channel matrix moved the route to SDK/main local-runtime execution.
+- Change: renamed those public labels to local-runtime tool/channel wording
+  while preserving Python sidecar daemon/executor references as concrete
+  implementation details.
+- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale channel-label scan, and
+  `git diff --check`.
+- Compatibility: no migration required. Channel paths, IPC names, SDK/main
+  routing, daemon endpoints, payloads, tool schemas, tool-result ingress,
+  renderer projections, credentials, permissions, storage, and local execution
+  behavior are unchanged.
+
 ### 2026-06-18 Operations Settings Local-Runtime Env Labels
 
 - Finding: settings-sync, operations hub, endpoint debugging, and operational

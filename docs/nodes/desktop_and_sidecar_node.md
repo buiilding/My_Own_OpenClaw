@@ -138,7 +138,7 @@ For a desktop-sidecar bug, identify the last successful boundary:
 
 - [Runtime Node Matrix](runtime_node_matrix.md)
 - [Channels Hub](../channels/README.md)
-- [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
 - [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 - [Frontend IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
 - [Local Runtime Sidecar Docs Hub](../frontend/sidecar/README.md)

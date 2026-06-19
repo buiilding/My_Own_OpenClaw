@@ -1,12 +1,14 @@
 ---
-summary: "Sidecar and local tool channel guide covering SDK/main local-runtime execution, Python sidecar tools, display-only renderer events, and backend tool-result ingress."
+summary: "Local tool channel guide covering SDK/main local-runtime execution, Python sidecar executors, display-only renderer events, and backend tool-result ingress."
 read_when:
-  - When changing local tool execution, sidecar daemon routing, renderer tool-call display behavior, shell/filesystem/browser/computer actions, or local memory calls.
+  - When changing local tool execution, local-runtime daemon routing, renderer
+    tool-call display behavior, shell/filesystem/browser/computer actions, or
+    local memory calls.
   - When debugging a tool call that is visible in backend streaming but fails before, during, or after SDK local-runtime execution.
-title: "Sidecar and Tool Channels"
+title: "Local Tool Channels"
 ---
 
-# Sidecar and Tool Channels
+# Local Tool Channels
 
 Local tools cross every WindieOS runtime boundary. The backend decides what the model can ask for, the SDK/main local-runtime path owns local execution routing and executable local machine action authority, and the Python sidecar provides the current concrete executors.
 
@@ -40,11 +42,11 @@ sequenceDiagram
 
 ## Main IPC Channels
 
-Sidecar-facing IPC channels are documented in [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md).
+Local-runtime-facing IPC channels are documented in [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md).
 
 Common local channels:
 
-- SDK local tool execution: runs sidecar executable tools through the SDK local
+- SDK local tool execution: runs executable local tools through the SDK local
   runtime rather than a renderer-callable `execute-tool` IPC channel
 - `get-system-state`: collect local OS/window/runtime state
 - conversation and memory actions use SDK-shaped commands such as
@@ -120,7 +122,7 @@ Read next:
 | model never sees tool | backend tool schema/policy |
 | backend emits tool-call but no local action happens | SDK/main local-runtime routing or Python sidecar bridge |
 | tool card appears twice or looks duplicated | SDK display projection or renderer card rendering |
-| sidecar returns error before action | sidecar tool validation/runtime |
+| local-runtime tool returns error before action | local-runtime tool validation or Python sidecar executor |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |
 | screenshot path exists but image missing in chat | artifact upload/materialization path |
 
@@ -132,7 +134,7 @@ Use the narrowest test set for the changed boundary:
 - SDK/main local-runtime tests for backend tool-call routing/result projection changes
 - renderer chat-stream tests for display-only event behavior
 - main-process IPC/local-runtime bridge tests for channel mapping changes
-- sidecar pytest tests for executable tool behavior
-- parity tests when backend schema and sidecar executable payloads must stay aligned
+- sidecar pytest tests for executable local tool behavior
+- parity tests when backend schema and local-runtime executable payloads must stay aligned
 
 Run `<windie> docs list` after docs updates.

@@ -214,7 +214,7 @@ Local-runtime implementation owners:
 Start docs:
 
 - [Sidecar Tool Change Workflow](../../frontend/sidecar_tool_change_workflow.md)
-- [Sidecar and Tool Channels](../../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../../channels/sidecar_and_tool_channels.md)
 - [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md)
 
 ## Review Checklist

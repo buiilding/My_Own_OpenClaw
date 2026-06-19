@@ -34,6 +34,6 @@ Debug payload shape from the boundary that owns it:
 
 Read next:
 
-- [Sidecar and Tool Channels](../../../channels/sidecar_and_tool_channels.md)
+- [Local Tool Channels](../../../channels/sidecar_and_tool_channels.md)
 - [Tool Contracts](../../../tools/tool_contracts.md)
 - [Tool Execution Lifecycle](../../../tools/tool_execution_lifecycle.md)

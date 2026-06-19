@@ -31,7 +31,7 @@ tools.
 | Prompt skills | `skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
 | MCP integrations | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
-| Sidecar built-in tools | `frontend/src/main/python/tools` | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
+| Sidecar built-in tools | `frontend/src/main/python/tools` | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | Renderer feature modules | `frontend/src/renderer/features` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 
 ## Rules
