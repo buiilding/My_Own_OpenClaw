@@ -1,7 +1,7 @@
 ---
 summary: "Matrix mapping WindieOS user/developer channels to transports, payload owners, code roots, docs, and validation targets."
 read_when:
-  - When changing how a request enters WindieOS or deciding whether a behavior belongs to IPC, websocket, HTTP, sidecar JSON-RPC, SDK, voice, or VM runs.
+  - When changing how a request enters WindieOS or deciding whether a behavior belongs to IPC, websocket, HTTP, local-runtime JSON-RPC, SDK, voice, or VM runs.
   - When debugging why a query, control message, tool result, voice event, or SDK request reached the wrong owner.
 title: "Channel Routing Matrix"
 ---
@@ -44,7 +44,7 @@ Desktop client-owned payloads:
 - renderer-local config and settings subset
 - overlay/window control payloads
 - renderer chat state and transcript queue payloads
-- sidecar JSON-RPC request envelopes created by Electron main
+- local-runtime JSON-RPC request envelopes created by SDK/main runtime code
 
 Local-runtime implementation payloads:
 
@@ -77,7 +77,7 @@ Use `/api/runs/*` when:
 - an Electron VM worker polls for assignments
 - a VM worker relays stream events into a run timeline
 
-Use sidecar JSON-RPC when:
+Use local-runtime JSON-RPC when:
 
 - local machine state or control is required
 - browser/computer/filesystem/shell/system/memory tools execute locally

@@ -75,7 +75,7 @@ contracts.
 - [**Frontend Main/Renderer/Contracts/Local-Runtime Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Local-runtime Python process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
-- [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for Electron-to-sidecar JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
+- [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for SDK/main local-runtime JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
 - [**Local-Runtime Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and Python sidecar implementation
 - [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
 - [**Backend LLM Provider Hub**](backend/llm/providers/README.md) - Base provider contract and provider-specific runtime docs for cloud/local integrations
@@ -122,7 +122,7 @@ contracts.
 - [**Gateway Troubleshooting**](gateway/gateway_troubleshooting.md) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
 - [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix
-- [**Desktop and Sidecar Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, sidecar JSON-RPC, local tools, and wakeword ownership
+- [**Desktop and Local Runtime Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, local-runtime JSON-RPC, local tools, and wakeword ownership
 - [**VM Worker Node**](nodes/vm_worker_node.md) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
 - [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, local-runtime memory, semantic routes, and troubleshooting
@@ -430,7 +430,7 @@ contracts.
 - [**Local-Runtime Browser Chrome Docs Hub**](frontend/sidecar/browser/chrome/README.md) - Sub-hub for executable detection and dedicated CDP launch/connect policy
 - [**Local-Runtime Source Maps Docs Hub**](frontend/sidecar/source_maps/README.md) - Sub-hub for Python sidecar implementation folder topology maps and package entrypoint export surfaces
 - [**Local-Runtime Browser Grouped Schema + Action Validation Boundary**](frontend/sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md) - `BrowserControlArgs` grouped validation, strict per-action validators, and schema-vs-runtime enforcement split
-- [**Sidecar Chrome Detection + Launcher + CDP Session**](frontend/sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md) - Cross-platform browser executable detection, dedicated-profile launch args, CDP endpoint checks, and ensure-connect state-machine behavior
+- [**Local-Runtime Chrome Detection + Launcher + CDP Session**](frontend/sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md) - Cross-platform browser executable detection, dedicated-profile launch args, CDP endpoint checks, and ensure-connect state-machine behavior
 - [**Local-Runtime Python Folder Topology + Package Export Surface Runtime**](frontend/sidecar/source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md) - Python sidecar implementation service/tool topology flow and `__init__` compatibility/import-surface contracts
 - [**Local-Runtime System-State Collection + Platform Adapter Runtime**](frontend/sidecar/system_state/system_state_collection_and_platform_adapter_reference.md) - `get-system-state` field semantics, per-OS probes, fallback defaults, and renderer/main/local-runtime integration contracts
 - [**Local-Runtime Tool Registry Docs Hub**](frontend/sidecar/tools/registry/README.md) - Sub-hub for exposed-tool parity, lazy import registration behavior, and result normalization boundaries backed by the Python sidecar implementation

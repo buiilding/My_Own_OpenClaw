@@ -173,6 +173,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Local-Runtime JSON-RPC Public Channel Boundary
+
+- Channel routing, runtime-node, agent-visible pipeline, docs hub, browser
+  backend reference docs, docs search results, and recent sidecar/local-runtime
+  docs commits were inspected after the architecture local-runtime tool
+  ownership slice.
+- Finding: public channel, node, architecture-pipeline, docs hub, and browser
+  reference labels still exposed sidecar JSON-RPC as the reusable channel name,
+  and the desktop node lifecycle diagram still showed renderer-initiated local
+  tool execution instead of SDK/main local-runtime coordination.
+- Change: relabeled those first-read public routing surfaces to local-runtime
+  JSON-RPC, kept Python sidecar JSON-RPC wording where it names the concrete
+  implementation protocol, refreshed the desktop-node local tool lifecycle to
+  SDK/main execution plus renderer SDK projections, and guarded the retired
+  public labels.
+- Validation: focused modular boundary test, docs listing, stale public-label
+  scan, and diff checks.
+- Compatibility: no migration required. JSON-RPC method names, payload shapes,
+  IPC channels, SDK local-runtime execution, Python sidecar behavior, backend
+  tool-result ingress, credentials, provider policy, storage, and hosted URLs
+  are unchanged.
+
 ### 2026-06-19 Architecture Local-Runtime Tool Ownership Boundary
 
 - Architecture agent-system, backend-architecture, and tool-system docs, docs
@@ -3077,3 +3099,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   storage directory.
 - Main OpenAI Codex OAuth callback error prefixes now read from host skin copy,
   with a generic OAuth default in the provider helper.
+- Public channel/node/docs-hub labels now expose local-runtime JSON-RPC as the
+  reusable channel boundary while retaining Python sidecar JSON-RPC wording for
+  concrete implementation protocol references. The desktop-node local tool
+  lifecycle now shows SDK/main local-runtime execution with renderer SDK
+  projection consumption.

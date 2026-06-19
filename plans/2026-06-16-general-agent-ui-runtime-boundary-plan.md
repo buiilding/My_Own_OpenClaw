@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Local-Runtime JSON-RPC Public Channel Boundary
+
+- Finding: public channel, node, architecture-pipeline, docs hub, and browser
+  reference labels still exposed sidecar JSON-RPC as the reusable channel name,
+  and the desktop node lifecycle diagram still showed renderer-initiated local
+  tool execution instead of SDK/main local-runtime coordination.
+- Change: relabeled those first-read public routing surfaces to local-runtime
+  JSON-RPC, kept Python sidecar JSON-RPC wording where it names the concrete
+  implementation protocol, refreshed the desktop-node local tool lifecycle to
+  SDK/main execution plus renderer SDK projections, and guarded the retired
+  public labels.
+- Validation: focused modular boundary test, docs listing, stale public-label
+  scan, and diff checks.
+- Compatibility: no migration required. JSON-RPC method names, payload shapes,
+  IPC channels, SDK local-runtime execution, Python sidecar behavior, backend
+  tool-result ingress, credentials, provider policy, storage, and hosted URLs
+  are unchanged.
+
 ### 2026-06-19 Architecture Local-Runtime Tool Ownership Boundary
 
 - Finding: high-level architecture docs still described backend waiting,

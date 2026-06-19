@@ -117,7 +117,7 @@ Added/expanded in WindieOS:
 - `gateway/`: hosted backend ingress, app assembly, auth, health, edge, and protocol runbooks.
 - `desktop/`: user-facing desktop surfaces and their renderer/main ownership boundaries.
 - `debug/`: symptom-first debugging, runtime trace controls, logs, and validation choices.
-- `channels/`: entry-channel and transport routing docs across IPC, websocket, HTTP, sidecar JSON-RPC, SDK, voice, and VM run control.
+- `channels/`: entry-channel and transport routing docs across IPC, websocket, HTTP, local-runtime JSON-RPC, SDK, voice, and VM run control.
 - `nodes/`: runtime process/service ownership docs. Use for current nodes with code roots and lifecycle hooks; keep planned mobile, edge, scheduler, plugin-marketplace, and one-agent-per-VM nodes in `planning/` until implemented.
 - `security/`: security and trust-boundary routing docs; operations keeps deployment runbooks while this section maps enforcement owners.
 - `plugins/`: current source-owned extension surfaces and explicit future boundaries for marketplace/dynamic plugin work.

@@ -99,4 +99,4 @@ Practical rule:
 - [Browser Schema Docs Hub](schema/README.md)
 - [Browser Control Unified Schema Reference](schema/browser_control_unified_schema_reference.md)
 - [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
-- [Sidecar Browser Action Runtime Reference](../../../frontend/sidecar/browser_action_runtime_reference.md)
+- [Local-Runtime Browser Action Runtime Reference](../../../frontend/sidecar/browser_action_runtime_reference.md)
