@@ -268,7 +268,7 @@ export function useVoiceMode(
           const message = buildGatewayAudioMessage(int16Data, 16000);
 
           try {
-            websocketRef.current.send(message);
+            DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(websocketRef.current, message);
           } catch (err) {
             console.error('[VoiceMode] Error sending audio:', err);
           }

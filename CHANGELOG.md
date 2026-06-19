@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/voice: route transcription gateway audio sends through the desktop
+  voice runtime facade instead of calling the WebSocket directly from
+  `useVoiceMode`. No migration required.
 - renderer/model-selection: move shared model selection reconciliation and
   config patch helpers from dashboard utilities into the renderer app-runtime
   facade used by both chat and dashboard. No migration required.

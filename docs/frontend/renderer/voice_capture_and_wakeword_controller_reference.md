@@ -119,7 +119,7 @@ Reconnect policy:
   - read Float32 input
   - convert to PCM16 (`float32ToPcm16`)
   - frame payload (`buildGatewayAudioMessage`)
-  - send binary payload over WebSocket
+  - send binary payload through `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)`
 
 There is no `ScriptProcessorNode` fallback. If the worklet API or module setup
 is unavailable, capture startup fails explicitly with an AudioWorklet capture

@@ -99,6 +99,10 @@ export const DesktopVoiceRuntimeClient = {
     websocket.send(START_OVER_PAYLOAD);
   },
 
+  sendTranscriptionAudioMessage(websocket: WebSocket, message: Parameters<WebSocket['send']>[0]): void {
+    websocket.send(message);
+  },
+
   normalizeTranscriptionGatewayMessage(rawData: unknown): DesktopTranscriptionGatewayEvent | null {
     if (rawData instanceof ArrayBuffer || rawData instanceof Blob) {
       return null;

@@ -87,7 +87,7 @@ Per audio callback:
 1. read Float32 mono channel data
 2. convert with `float32ToPcm16(...)`
 3. frame with `buildGatewayAudioMessage(...)`
-4. send binary payload to gateway socket
+4. send binary payload through `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)`
 
 ## Binary Framing Contract
 

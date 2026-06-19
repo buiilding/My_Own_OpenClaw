@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Voice Gateway Audio Send Runtime Facade
+
+- Finding: `useVoiceMode` already delegated gateway URL creation, language
+  setup, start-over control messages, and inbound normalization to
+  `DesktopVoiceRuntimeClient`, but still sent framed audio directly through the
+  raw WebSocket.
+- Change: added `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)`,
+  routed voice-mode audio sends through that facade, and updated voice docs and
+  boundary guards so outbound gateway sends stay behind the app-runtime client.
+- Validation: focused voice runtime boundary tests, voice mode hook tests,
+  voice audio encoding tests, docs listing, exact raw-send scan, and diff
+  checks.
+- Compatibility: no migration required. Renderer helper ownership, docs, and
+  tests changed only; websocket URL resolution, gateway payload bytes,
+  language/start-over payloads, transcription events, microphone capture,
+  wakeword IPC, credentials, permissions, hosted routes, provider policy,
+  storage, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Model Selection App-Runtime Facade
 
 - Finding: model selection reconciliation and config patch shaping lived under

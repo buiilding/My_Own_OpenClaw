@@ -32,8 +32,10 @@ describe('renderer voice runtime boundary', () => {
     expect(source).toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendDefaultTranscriptionLanguage');
     expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOver');
+    expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage');
     expect(source).not.toContain('buildTranscriptionWebSocketUrl');
     expect(source).not.toContain('new WebSocket');
+    expect(source).not.toContain('websocketRef.current.send');
     expect(source).not.toContain('JSON.parse');
   });
 

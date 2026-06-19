@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a voice gateway audio-send runtime facade slice by
+  routing `useVoiceMode` framed-audio sends through
+  `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)` instead of
+  calling the raw WebSocket directly from the feature hook. Validation: focused
+  voice runtime boundary tests, voice mode hook tests, voice audio encoding
+  tests, docs listing, exact raw-send scan, and diff checks. No migration
+  required; renderer helper ownership, docs, and tests changed only, with no
+  websocket URL resolution, gateway payload byte, language/start-over payload,
+  transcription event, microphone capture, wakeword IPC, credential,
+  permission, hosted route, provider policy, storage, packaging, or local
+  execution behavior changed.
 - 2026-06-19: completed a renderer model-selection app-runtime facade slice by
   moving shared model selection reconciliation and config patch shaping from
   dashboard utilities into
