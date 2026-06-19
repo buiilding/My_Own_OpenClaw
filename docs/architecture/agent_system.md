@@ -71,7 +71,7 @@ The backend owns the preparation and result handling pipeline:
 
 - **Preparation**: screenshot availability, OCR, coordinate resolution
 - **Sending**: tool calls/bundles to the frontend
-- **Waiting**: wait for tool results from the sidecar
+- **Waiting**: wait for tool results from SDK/main local-runtime dispatch
 - **Processing**: transform tool outputs into history entries
 
 `ToolPreparer` now exposes:

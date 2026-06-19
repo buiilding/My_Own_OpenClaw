@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an architecture local-runtime tool ownership slice by
+  rewording agent-system, backend-architecture, and tool-system docs from
+  sidecar-as-owner labels to SDK/main local-runtime dispatch,
+  local-runtime/provider routes, local-runtime boundary ownership, and Python
+  sidecar registry wiring only where implementation detail matters. The
+  modular boundary guard now reads those architecture pages and rejects the
+  retired sidecar-as-owner phrases. Validation: focused modular boundary test,
+  docs listing, stale phrase scan, and diff checks. No migration required;
+  documentation/test only, with no backend tool waiting, local execution,
+  built-in tool registration, Python sidecar registry behavior, IPC,
+  credential, provider-policy, backend API, storage, or tool-result payload
+  change.
+
 - 2026-06-19: completed a renderer permission platform-code label slice by
   rewording the renderer state workflow from Electron main/sidecar platform
   code to Electron main plus local-runtime platform code for permission

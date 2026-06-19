@@ -517,8 +517,11 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
     const toolRoutingDocText = (await Promise.all([
       read('docs/adr/005-frontend-tool-schema-source-of-truth.md'),
+      read('docs/architecture/agent_system.md'),
+      read('docs/architecture/backend_architecture.md'),
       read('docs/architecture/python_sidecar.md'),
       read('docs/architecture/agent_visible_data_pipeline.md'),
+      read('docs/architecture/tool_system.md'),
       read('docs/backend/agent/tool_turn_change_workflow.md'),
       read('docs/backend/llm/prompts/prompt_context_change_workflow.md'),
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
@@ -664,6 +667,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar result');
     expect(toolRoutingDocText).not.toContain('what the sidecar executed');
     expect(toolRoutingDocText).toContain('SDK/main local-runtime dispatch');
+    expect(toolRoutingDocText).toContain('wait for tool results from SDK/main local-runtime dispatch');
+    expect(toolRoutingDocText).toContain('stay behind the local-runtime boundary');
+    expect(toolRoutingDocText).toContain('local-runtime/provider routes decide where work executes');
     expect(toolRoutingDocText).toContain('local runtime owns executable desktop actions');
     expect(toolRoutingDocText).toContain('local runtime owns actual mouse');
     expect(toolRoutingDocText).toContain('concrete executable tool implementations and dynamic tool registry behind the local-runtime boundary');
@@ -680,6 +686,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
     expect(toolRoutingDocText).not.toContain('dispatches to the sidecar');
+    expect(toolRoutingDocText).not.toContain('wait for tool results from the sidecar');
+    expect(toolRoutingDocText).not.toContain('stay in the sidecar');
+    expect(toolRoutingDocText).not.toContain('sidecar/provider routes decide where work executes');
+    expect(toolRoutingDocText).not.toContain('the sidecar performs local execution');
+    expect(toolRoutingDocText).not.toContain('Add built-in sidecar implementation + sidecar registry wiring');
     expect(toolRoutingDocText).not.toContain('mismatched between backend and sidecar schemas');
     expect(toolRoutingDocText).not.toContain('No sidecar parity is needed');
     expect(toolRoutingDocText).not.toContain('Python sidecar runtime arguments');

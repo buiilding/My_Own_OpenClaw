@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Architecture Local-Runtime Tool Ownership Boundary
+
+- Finding: high-level architecture docs still described backend waiting,
+  local-machine execution, provider routing, and built-in tool registration
+  through sidecar-as-owner wording, even though current ownership routes those
+  contracts through SDK/main local-runtime dispatch and local-runtime
+  executable ownership backed by the Python sidecar implementation.
+- Change: reworded those architecture docs to SDK/main local-runtime dispatch,
+  local-runtime/provider routes, local-runtime boundary ownership, and Python
+  sidecar registry wiring where implementation detail matters. Extended the
+  modular boundary guard to read the affected architecture pages and reject the
+  retired sidecar-as-owner phrases.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. Backend tool waiting, local execution,
+  built-in tool registration, Python sidecar registry behavior, IPC,
+  credentials, provider policy, backend APIs, storage, and tool-result payloads
+  are unchanged.
+
 ### 2026-06-19 Renderer Permission Platform-Code Label Boundary
 
 - Finding: the renderer state workflow still described permission platform

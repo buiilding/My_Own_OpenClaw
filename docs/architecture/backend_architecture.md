@@ -20,19 +20,19 @@ In the intended product topology, the backend is the hosted control plane for Wi
 - session state and tracing
 - hosted REST and WebSocket APIs
 
-The backend is not the local machine executor. Mouse, keyboard, screenshots, browser/runtime control, and local filesystem/process operations stay in the sidecar on the user's computer.
+The backend is not the local machine executor. Mouse, keyboard, screenshots, browser/runtime control, and local filesystem/process operations stay behind the local-runtime boundary on the user's computer.
 
 The backend resolves the model-visible agent surface per effective user/session
 configuration. Registered tools remain process-wide, but prompt schemas,
 parser validation, available-tool metadata, and OCR/vision coordinate-method
 guidance are narrowed by typed agent capability policy before each agent loop.
 This keeps the backend in the control-plane role: policy decides what the
-agent may ask for, while sidecar/provider routes decide where work executes.
+agent may ask for, while local-runtime/provider routes decide where work executes.
 
 Open-source client distributions should assume:
 
 - the SDK calls this backend over HTTP/WebSocket
-- the sidecar performs local execution
+- the local runtime performs local execution through the current Python sidecar implementation
 - end users are not expected to run backend services themselves just to use OCR, prediction, or hosted agent features
 
 ## Core Runtime Refactors (2026-02-11)

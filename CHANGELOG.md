@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route backend tool waiting, local-machine execution, and
+  built-in tool registration wording through SDK/main local-runtime ownership
+  instead of sidecar-as-owner labels. No migration required.
 - docs/renderer: route renderer state permission-probing guidance through
   Electron main and local-runtime platform code instead of sidecar platform
   code labels. No migration required.
