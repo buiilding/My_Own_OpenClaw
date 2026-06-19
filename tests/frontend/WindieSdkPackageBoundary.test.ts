@@ -167,8 +167,12 @@ describe('@windie/sdk package boundary', () => {
     expect(conversationTypesSource).not.toContain('BackendTransport');
     expect(conversationRuntimeSource).toContain('transport?: AgentRuntimeTransport;');
     expect(conversationRuntimeSource).not.toContain('transport?: BackendTransport;');
+    expect(conversationRuntimeSource).not.toContain('requires a backend transport');
+    expect(conversationRuntimeSource).toContain('requires an agent runtime transport');
     expect(continuitySource).toContain("Pick<AgentRuntimeTransport, 'rehydrateConversation'>");
     expect(continuitySource).not.toContain("Pick<BackendTransport, 'rehydrateConversation'>");
+    expect(continuitySource).not.toContain('requires a backend transport');
+    expect(continuitySource).toContain('requires an agent runtime transport');
     expect(frontendArchitectureSource).toContain('ConversationStore` and `AgentRuntimeTransport');
     expect(frontendArchitectureSource).not.toContain('ConversationStore` and `BackendTransport');
 

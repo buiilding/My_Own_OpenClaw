@@ -83,7 +83,7 @@ class ConversationContinuityService {
             workspacePath: input.workspacePath ?? null,
         });
         if (!transport) {
-            throw new Error('Conversation continuity rehydrate requires a backend transport');
+            throw new Error('Conversation continuity rehydrate requires an agent runtime transport');
         }
         const payload = {
             conversation_ref: input.conversationRef,

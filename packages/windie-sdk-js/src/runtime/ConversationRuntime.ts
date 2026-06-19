@@ -1354,7 +1354,7 @@ export class SdkConversationRuntime {
 
   async setModel(selection: AgentModelSelection): Promise<string | void> {
     if (!this.options.transport) {
-      throw new Error('ConversationRuntime.setModel requires a backend transport');
+      throw new Error('ConversationRuntime.setModel requires an agent runtime transport');
     }
     const settings = buildModelSettingsPatch(selection, 'ConversationRuntime.setModel');
     const backendMessageId = await this.updateSettings(settings);

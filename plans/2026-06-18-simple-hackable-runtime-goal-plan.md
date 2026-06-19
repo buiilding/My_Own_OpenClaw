@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an SDK agent runtime transport wording slice by
+  replacing stale "requires a backend transport" errors in
+  `ConversationContinuityService` and `ConversationRuntime.setModel` with
+  agent-runtime-transport wording. TypeScript source, CJS parity, continuity
+  tests, package-boundary guards, and the SDK conversation runtime docs now use
+  the canonical transport name. Validation: focused conversation continuity
+  service, SDK package-boundary, and conversation runtime tests plus stale
+  error-message scans, docs listing, and diff checks. No migration required;
+  public transport types, backend websocket behavior, rehydrate payload shape,
+  model settings updates, IPC, storage, credentials, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer continuity search metadata projection slice
   by routing `DesktopConversationContinuityService.searchConversations(...)`
   through `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`

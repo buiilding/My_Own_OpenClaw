@@ -211,7 +211,7 @@ describe('ConversationContinuityService', () => {
     });
   });
 
-  test('rehydrateFromStore skips backend transport when projection has no provider messages', async () => {
+  test('rehydrateFromStore skips agent runtime transport when projection has no provider messages', async () => {
     const store = createStore({
       loadForRehydrate: jest.fn().mockResolvedValue({
         conversationRef: 'conv-empty',
@@ -236,6 +236,26 @@ describe('ConversationContinuityService', () => {
     });
 
     expect(rehydrateConversation).not.toHaveBeenCalled();
+  });
+
+  test('rehydrateFromStore requires an agent runtime transport when provider messages exist', async () => {
+    const store = createStore({
+      loadForRehydrate: jest.fn().mockResolvedValue({
+        conversationRef: 'conv-provider',
+        revisionId: 'rev-1',
+        messages: [
+          { role: 'user', content: 'hello' },
+        ] as JsonRecord[],
+      }),
+    });
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+    });
+
+    await expect(service.rehydrateFromStore({
+      userId: 'user-1',
+      conversationRef: 'conv-provider',
+    })).rejects.toThrow('Conversation continuity rehydrate requires an agent runtime transport');
   });
 
   test('deleteConversation delegates to store adapter deletion when available', async () => {

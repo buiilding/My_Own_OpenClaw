@@ -466,7 +466,7 @@ store.loadForDisplay(conversationRef)
 
 store.loadForRehydrate(conversationRef)
   -> provider-safe backend rehydrate payload
-  -> backendTransport.rehydrateConversation(...)
+  -> agentRuntimeTransport.rehydrateConversation(...)
 ```
 
 Electron may provide a local-runtime-backed store adapter and agent runtime transport, but

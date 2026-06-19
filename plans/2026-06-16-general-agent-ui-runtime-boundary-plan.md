@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 SDK Agent Runtime Transport Error Wording
+
+- Finding: SDK continuity rehydrate and conversation model-setting failures
+  still said they required a backend transport, even though
+  `AgentRuntimeTransport` is the canonical reusable injection type.
+- Change: updated TypeScript source and CJS parity to report missing agent
+  runtime transport, refreshed continuity tests and SDK package-boundary guards,
+  and aligned the conversation runtime docs flow.
+- Validation: focused conversation continuity service, SDK package-boundary, and
+  conversation runtime tests plus stale error-message scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Public transport types, backend
+  websocket behavior, rehydrate payload shape, model settings updates, IPC,
+  storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Continuity Search Metadata Projection Runtime Boundary
 
 - Finding: `DesktopConversationContinuityService.searchConversations(...)`

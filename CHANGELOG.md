@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: describe missing conversation continuity and model-setting
+  transports as agent runtime transport requirements instead of backend
+  transport requirements. No migration required.
 - renderer/runtime: route desktop conversation continuity search metadata through
   the shared dashboard conversation load runtime mapper instead of carrying a
   second dashboard row projection. No migration required.
