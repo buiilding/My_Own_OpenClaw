@@ -332,9 +332,10 @@ presentation mapping shared by onboarding and settings: access-kind labels,
 granted labels, action-label defaults, granted-status normalization, and badge
 pill label/class projection from either a status value or a full status object.
 It also normalizes permission status detail presentation such as reason text,
-status class names, and remediation text. Permission surfaces import this
-app-runtime facade instead of reaching into another feature's utility folder or
-reading raw status/detail fields directly.
+status class names, remediation text, and permission manifest entry lookup with
+fallback values for focused settings rows. Permission surfaces import this
+app-runtime facade instead of reaching into another feature's utility folder,
+scanning raw permission ids, or reading raw status/detail fields directly.
 
 `desktopOnboardingSlideRuntime.js` owns the pure renderer onboarding slide-state
 rules: permission-slide counts, active slide clamping, permission-vs-stop-slide

@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Browser Permission Manifest Lookup Boundary
+
+- Finding: `desktopPermissionPresentationRuntime` owned permission badge and
+  status-detail presentation, but `BrowserSettingsTab` still scanned raw
+  permission manifest rows by `permission_id` before rendering the browser
+  permission row.
+- Change: added permission manifest entry lookup with fallback values to
+  `desktopPermissionPresentationRuntime`. Browser settings now keeps row
+  layout and browser-open actions while consuming a runtime-provided permission
+  entry for the badge.
+- Validation: passed focused permission presentation runtime, settings section,
+  renderer app boundary, renderer settings boundary, and docs-index tests plus
+  docs search, related commit search, stale raw permission-id scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Permission manifest payload shape,
+  browser permission id, badge labels/classes, status detail text, browser
+  permission request/probe behavior, config update side effects, IPC channels,
+  storage, provider policy, hosted URLs, permissions, credentials, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Agent Skill and MCP Metadata Presentation Boundary
 
 - Finding: `DesktopExtensionRuntimeClient` owned extension metadata loading and

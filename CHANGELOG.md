@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/permissions: move browser permission manifest lookup into
+  `desktopPermissionPresentationRuntime` so `BrowserSettingsTab` no longer
+  scans raw permission `permission_id` fields before rendering the browser
+  permission row. No migration required.
 - renderer/mcp: move MCP registry error presentation into
   `desktopMcpRuntimeClient` so `McpsSection` no longer formats raw registry
   error `kind`/`id`/`reason` fields while rendering MCP diagnostics. No

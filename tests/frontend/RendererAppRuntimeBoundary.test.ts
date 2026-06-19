@@ -811,14 +811,18 @@ describe('renderer app runtime boundary', () => {
     expect(presentationRuntimeSource).toContain('getPermissionPill');
     expect(presentationRuntimeSource).toContain('isPermissionGrantedStatus');
     expect(presentationRuntimeSource).toContain('getPermissionStatusDetailsPresentation');
+    expect(presentationRuntimeSource).toContain('getPermissionManifestEntry');
     expect(presentationRuntimeSource).not.toContain('features/permissions');
     expect(badgeSource).toContain('desktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).toContain('desktopPermissionPresentationRuntime');
     expect(onboardingActionsSource).toContain('desktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).toContain('getPermissionStatusDetailsPresentation');
     expect(browserSettingsSource).toContain('getPermissionStatusDetailsPresentation');
+    expect(browserSettingsSource).toContain('getPermissionManifestEntry');
     expect(onboardingSlideSource).not.toContain('status?.reason');
     expect(onboardingSlideSource).not.toContain('status?.status');
+    expect(browserSettingsSource).not.toContain('permissions.find');
+    expect(browserSettingsSource).not.toContain('permission?.permission_id');
     expect(browserSettingsSource).not.toContain('effectiveStatus?.reason');
     expect(browserSettingsSource).not.toContain('effectiveStatus?.details');
     expect(onboardingSlideSource).not.toContain('permissions/utils/permissionPresentation');

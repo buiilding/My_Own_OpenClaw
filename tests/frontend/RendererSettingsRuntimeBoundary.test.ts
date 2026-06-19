@@ -146,7 +146,10 @@ describe('renderer settings runtime boundary', () => {
     );
 
     expect(source).toContain('getPermissionStatusDetailsPresentation');
+    expect(source).toContain('getPermissionManifestEntry');
     expect(source).toContain('status={effectiveStatus}');
+    expect(source).not.toContain('permissions.find');
+    expect(source).not.toContain('permission?.permission_id');
     expect(source).not.toContain('effectiveStatus?.status');
     expect(source).not.toContain('effectiveStatus?.reason');
     expect(source).not.toContain('effectiveStatus?.details');

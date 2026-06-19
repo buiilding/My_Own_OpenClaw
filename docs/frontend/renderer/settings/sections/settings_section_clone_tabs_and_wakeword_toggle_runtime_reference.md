@@ -176,13 +176,13 @@ which active workspace changes matter.
 ## Browser Tab Ownership Model
 
 `BrowserSettingsTab` owns browser permission row layout and browser-settings
-config patches. Permission badge labels/classes and status detail presentation
-come from `desktopPermissionPresentationRuntime`.
+config patches. Permission manifest lookup, badge labels/classes, and status
+detail presentation come from `desktopPermissionPresentationRuntime`.
 
 The tab should pass full effective permission status objects into
-`PermissionStatusBadge` and detail helpers. It should not extract raw
-`status`, `reason`, or `details.remediation` fields before rendering permission
-presentation.
+`PermissionStatusBadge` and detail helpers. It should not scan raw
+`permission_id` rows or extract raw `status`, `reason`, or
+`details.remediation` fields before rendering permission presentation.
 
 ## Memory Tab Ownership Model
 

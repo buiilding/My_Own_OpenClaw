@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved browser permission manifest lookup into
+  `desktopPermissionPresentationRuntime`. `BrowserSettingsTab` now keeps row
+  layout and browser-open actions while consuming a runtime-provided permission
+  entry for the badge instead of scanning raw `permission_id` rows. Validation
+  passed focused permission presentation runtime, settings section, renderer
+  app boundary, renderer settings boundary, and docs-index tests plus docs
+  search, related commit search, stale raw permission-id scan, docs listing,
+  and diff checks. No migration required; permission manifest payload shape,
+  browser permission id, badge labels/classes, status detail text, browser
+  permission request/probe behavior, config update side effects, IPC channels,
+  storage, provider policy, hosted URLs, permissions, credentials, and local
+  execution behavior are unchanged.
+
 - 2026-06-19: moved agent skill and MCP metadata debug presentation into
   `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps extension
   layout while rendering runtime-provided skill/MCP counts, summaries, and

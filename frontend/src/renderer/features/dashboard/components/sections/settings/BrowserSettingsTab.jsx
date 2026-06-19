@@ -2,13 +2,16 @@
  * Defines browser settings tab configuration for the renderer UI.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { getPermissionStatusDetailsPresentation } from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
+import {
+  getPermissionManifestEntry,
+  getPermissionStatusDetailsPresentation,
+} from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
 const browserSettingsSkin = desktopRuntimeSkin.settings.browser;
@@ -27,13 +30,14 @@ function BrowserSettingsTab() {
   const [statusOverride, setStatusOverride] = useState(null);
   const [openBrowserError, setOpenBrowserError] = useState('');
 
-  const browserPermission = useMemo(() => (
-    permissions.find((permission) => permission?.permission_id === BROWSER_PERMISSION_ID) || {
-      permission_id: BROWSER_PERMISSION_ID,
+  const browserPermission = getPermissionManifestEntry(
+    permissions,
+    BROWSER_PERMISSION_ID,
+    {
       label: 'Browser automation',
       access_kind: 'app_capability',
-    }
-  ), [permissions]);
+    },
+  );
   const storedStatus = statusesByPermissionId[BROWSER_PERMISSION_ID] || null;
   const effectiveStatus = statusOverride || storedStatus;
   const statusDetails = getPermissionStatusDetailsPresentation(effectiveStatus);

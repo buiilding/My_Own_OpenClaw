@@ -46,6 +46,22 @@ function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+function recordsOrEmpty(value) {
+  return Array.isArray(value)
+    ? value.filter((item) => item && typeof item === 'object' && !Array.isArray(item))
+    : [];
+}
+
+export function getPermissionManifestEntry(permissions, permissionId, fallback = {}) {
+  const normalizedPermissionId = normalizeText(permissionId);
+  return recordsOrEmpty(permissions).find(
+    (permission) => normalizeText(permission.permission_id) === normalizedPermissionId,
+  ) || {
+    ...fallback,
+    permission_id: normalizedPermissionId,
+  };
+}
+
 export function getPermissionStatusDetailsPresentation(status) {
   const reason = normalizeText(status?.reason);
   const statusClassName = `status-${normalizeText(status?.status) || 'unknown'}`;

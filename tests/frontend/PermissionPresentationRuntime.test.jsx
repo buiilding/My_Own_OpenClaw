@@ -9,6 +9,7 @@ import {
   getPermissionActionLabel,
   getPermissionGrantedLabel,
   getPermissionKindLabel,
+  getPermissionManifestEntry,
   getPermissionPill,
   getPermissionStatusValue,
   getPermissionStatusDetailsPresentation,
@@ -76,6 +77,28 @@ describe('desktopPermissionPresentationRuntime', () => {
       reason: '',
       statusClassName: 'status-unknown',
       remediation: '',
+    });
+  });
+
+  test('resolves permission manifest entries with fallback values', () => {
+    expect(getPermissionManifestEntry([
+      { permission_id: 'screen_capture', label: 'Screen capture' },
+      { permission_id: '  browser_automation  ', label: 'Browser runtime' },
+    ], 'browser_automation', {
+      label: 'Browser automation',
+      access_kind: 'app_capability',
+    })).toEqual({
+      permission_id: '  browser_automation  ',
+      label: 'Browser runtime',
+    });
+
+    expect(getPermissionManifestEntry([], 'browser_automation', {
+      label: 'Browser automation',
+      access_kind: 'app_capability',
+    })).toEqual({
+      permission_id: 'browser_automation',
+      label: 'Browser automation',
+      access_kind: 'app_capability',
     });
   });
 
