@@ -174,6 +174,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Agent Tool Toggle Config Boundary
+
+- Finding: `DesktopExtensionRuntimeClient` owned extension metadata,
+  capability-event normalization, remote-tool availability, and manifest
+  presentation, but `AgentSettingsTab` still normalized raw
+  `agent_disabled_local_tools` / `agent_disabled_remote_tools` arrays and
+  computed enablement config patches locally.
+- Change: added local/remote tool enabled-state and toggle config-patch helpers
+  to `DesktopExtensionRuntimeClient`. Agent settings now keeps toggle rendering
+  and custom-instruction patches while delegating disabled-list interpretation
+  and tool-toggle config patch construction to the runtime client.
+- Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw disabled-tool config scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Settings key names, disabled-tool list
+  payload shape, local/remote tool toggle behavior, capability events, IPC
+  channels, storage, provider policy, hosted URLs, permissions, credentials,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Conversation Row Action Boundary
 
 - Finding: `desktopDashboardConversationLoadRuntime` owned recent-list

@@ -71,6 +71,10 @@ describe('AgentSettingsTab', () => {
     expect(onConfigChange).toHaveBeenCalledWith({
       agent_disabled_local_tools: ['browser'],
     });
+    fireEvent.click(screen.getByLabelText('Enable web_search'));
+    expect(onConfigChange).toHaveBeenCalledWith({
+      agent_disabled_remote_tools: ['web_search'],
+    });
 
     act(() => {
       capabilityEventHandler({

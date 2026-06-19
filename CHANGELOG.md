@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/extensions: move Agent settings local/remote tool enabled-state and
+  config-patch construction into `DesktopExtensionRuntimeClient` so
+  `AgentSettingsTab` no longer normalizes disabled-tool config arrays or
+  computes tool-toggle patches locally. No migration required.
 - renderer/runtime: move dashboard conversation row identity, rename/delete
   list updates, and pin-state updates into
   `desktopDashboardConversationLoadRuntime` so `useDashboardConversations` no

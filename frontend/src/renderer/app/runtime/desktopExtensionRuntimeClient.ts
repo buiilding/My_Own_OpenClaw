@@ -59,6 +59,11 @@ export type AgentExtensionDebugListPresentation = {
   summary: string;
 };
 
+export type AgentToolToggleConfigPatch = {
+  agent_disabled_local_tools?: unknown[];
+  agent_disabled_remote_tools?: unknown[];
+};
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -101,6 +106,26 @@ function stringOrEmpty(value: unknown): string {
 
 function recordsOrEmpty(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.map(recordOrEmpty) : [];
+}
+
+function arrayOrEmpty(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function toggleDisabledToolValue(
+  values: unknown,
+  toolName: unknown,
+  shouldDisable: boolean,
+): unknown[] {
+  const source = arrayOrEmpty(values);
+  const name = stringOrEmpty(toolName);
+  if (!name) {
+    return source;
+  }
+  if (shouldDisable) {
+    return source.includes(name) ? source : [...source, name];
+  }
+  return source.filter((item) => item !== name);
 }
 
 export function normalizeAgentExtensionRuntime(payload: unknown): AgentExtensionRuntimeSnapshot {
@@ -297,6 +322,44 @@ export function getAgentMcpRuntimeMetadataPresentation(
   };
 }
 
+export function isAgentLocalToolEnabled(config: unknown, toolName: unknown): boolean {
+  return !arrayOrEmpty(recordOrEmpty(config).agent_disabled_local_tools)
+    .includes(stringOrEmpty(toolName));
+}
+
+export function isAgentRemoteToolEnabled(config: unknown, toolName: unknown): boolean {
+  return !arrayOrEmpty(recordOrEmpty(config).agent_disabled_remote_tools)
+    .includes(stringOrEmpty(toolName));
+}
+
+export function getAgentLocalToolToggleConfigPatch(
+  config: unknown,
+  toolName: unknown,
+  enabled: boolean,
+): AgentToolToggleConfigPatch {
+  return {
+    agent_disabled_local_tools: toggleDisabledToolValue(
+      recordOrEmpty(config).agent_disabled_local_tools,
+      toolName,
+      !enabled,
+    ),
+  };
+}
+
+export function getAgentRemoteToolToggleConfigPatch(
+  config: unknown,
+  toolName: unknown,
+  enabled: boolean,
+): AgentToolToggleConfigPatch {
+  return {
+    agent_disabled_remote_tools: toggleDisabledToolValue(
+      recordOrEmpty(config).agent_disabled_remote_tools,
+      toolName,
+      !enabled,
+    ),
+  };
+}
+
 export const DesktopExtensionRuntimeClient = {
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
@@ -357,5 +420,29 @@ export const DesktopExtensionRuntimeClient = {
     mcps: unknown,
   ): AgentExtensionDebugListPresentation {
     return getAgentMcpRuntimeMetadataPresentation(mcps);
+  },
+
+  isLocalToolEnabled(config: unknown, toolName: unknown): boolean {
+    return isAgentLocalToolEnabled(config, toolName);
+  },
+
+  isRemoteToolEnabled(config: unknown, toolName: unknown): boolean {
+    return isAgentRemoteToolEnabled(config, toolName);
+  },
+
+  getLocalToolToggleConfigPatch(
+    config: unknown,
+    toolName: unknown,
+    enabled: boolean,
+  ): AgentToolToggleConfigPatch {
+    return getAgentLocalToolToggleConfigPatch(config, toolName, enabled);
+  },
+
+  getRemoteToolToggleConfigPatch(
+    config: unknown,
+    toolName: unknown,
+    enabled: boolean,
+  ): AgentToolToggleConfigPatch {
+    return getAgentRemoteToolToggleConfigPatch(config, toolName, enabled);
   },
 };

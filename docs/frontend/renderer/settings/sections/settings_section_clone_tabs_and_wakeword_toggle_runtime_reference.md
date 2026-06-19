@@ -137,7 +137,7 @@ the app root applies the effective theme to shared dashboard/settings tokens.
 
 - custom instruction config patches
 - extension runtime diagnostics
-- local/remote tool enablement config patches
+- local/remote tool enablement controls
 - accepted/rejected local tool schema display
 - remote tool catalog availability display
 
@@ -151,14 +151,18 @@ Runtime inputs:
 - `DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(...)`
 - `DesktopExtensionRuntimeClient.getRemoteToolPresentation(...)`
 - `DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation(...)`
+- `DesktopExtensionRuntimeClient.isLocalToolEnabled(...)`
+- `DesktopExtensionRuntimeClient.isRemoteToolEnabled(...)`
+- `DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(...)`
+- `DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(...)`
 
 The tab should not import desktop IPC channels directly or branch on raw agent
 capability event type strings. It consumes extension metadata plus direct
 manifest/catalog update values through the runtime client, asks the runtime
 client for plugin metadata display, skill/MCP metadata debug display,
-local-tool manifest status, remote-tool availability, and extension error
-presentation, then keeps presentation state, tool-toggle projection, and config
-patches local to the settings surface.
+local-tool manifest status, remote-tool availability, extension error
+presentation, and tool-toggle enabled state/config patches, then keeps
+presentation state and user-control rendering local to the settings surface.
 
 ## Workspace Tab Ownership Model
 

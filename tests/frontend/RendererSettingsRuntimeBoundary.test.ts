@@ -245,6 +245,7 @@ describe('renderer settings runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient.ts'),
       'utf8',
     );
+    const agentSettingsBodySource = source.split('AgentSettingsTab.propTypes')[0] ?? source;
 
     expect(source).not.toContain('IpcBridge');
     expect(source).not.toContain('INVOKE_CHANNELS');
@@ -258,6 +259,12 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('payload?.accepted');
     expect(source).not.toContain('payload?.rejected');
     expect(source).not.toContain('payload?.remote_tools');
+    expect(source).not.toContain('toggleListValue');
+    expect(source).not.toContain('disabledLocalTools');
+    expect(source).not.toContain('disabledRemoteTools');
+    expect(agentSettingsBodySource).not.toContain('agent_disabled_local_tools:');
+    expect(agentSettingsBodySource).not.toContain('agent_disabled_remote_tools:');
+    expect(source).not.toContain('.includes(toolName)');
     expect(source).not.toContain('extensionRuntime.skills.length');
     expect(source).not.toContain('extensionRuntime.mcps.length');
     expect(source).not.toContain('extensionRuntime.mcps.map');
@@ -294,6 +301,10 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('DesktopExtensionRuntimeClient.getPluginRuntimePresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getSkillRuntimePresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation');
+    expect(source).toContain('DesktopExtensionRuntimeClient.isLocalToolEnabled');
+    expect(source).toContain('DesktopExtensionRuntimeClient.isRemoteToolEnabled');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');
     expect(source).toContain('EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(source).toContain('EMPTY_AGENT_REMOTE_TOOL_CATALOG');
@@ -307,12 +318,20 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).toContain('getAgentPluginRuntimePresentation');
     expect(clientSource).toContain('getAgentSkillRuntimePresentation');
     expect(clientSource).toContain('getAgentMcpRuntimeMetadataPresentation');
+    expect(clientSource).toContain('getAgentLocalToolToggleConfigPatch');
+    expect(clientSource).toContain('getAgentRemoteToolToggleConfigPatch');
+    expect(clientSource).toContain('isAgentLocalToolEnabled');
+    expect(clientSource).toContain('isAgentRemoteToolEnabled');
     expect(clientSource).toContain('getRemoteToolPresentation');
     expect(clientSource).toContain('getExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getLocalToolManifestPresentation');
     expect(clientSource).toContain('getPluginRuntimePresentation');
     expect(clientSource).toContain('getSkillRuntimePresentation');
     expect(clientSource).toContain('getMcpRuntimeMetadataPresentation');
+    expect(clientSource).toContain('getLocalToolToggleConfigPatch');
+    expect(clientSource).toContain('getRemoteToolToggleConfigPatch');
+    expect(clientSource).toContain('isLocalToolEnabled');
+    expect(clientSource).toContain('isRemoteToolEnabled');
     expect(clientSource).toContain('onAgentCapabilityEvent');
     expect(clientSource).toContain('onAgentCapabilityUpdate');
     expect(clientSource).toContain('manifestStatus');

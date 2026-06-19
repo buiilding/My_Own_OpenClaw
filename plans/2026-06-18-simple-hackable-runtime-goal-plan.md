@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved Agent settings local/remote tool enabled-state and
+  disabled-list config patch construction into `DesktopExtensionRuntimeClient`.
+  `AgentSettingsTab` now keeps toggle rendering and custom-instruction patches
+  while consuming runtime helpers instead of normalizing
+  `agent_disabled_local_tools` / `agent_disabled_remote_tools` arrays or
+  computing tool-toggle patches locally. Validation passed focused desktop
+  extension runtime client, agent settings, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale raw
+  disabled-tool config scan, docs listing, and diff checks. No migration
+  required; settings key names, disabled-tool list payload shape, local/remote
+  tool toggle behavior, capability events, IPC channels, storage, provider
+  policy, hosted URLs, permissions, credentials, and local execution behavior
+  are unchanged.
+
 - 2026-06-19: moved dashboard conversation row identity and in-memory row/pin
   updates into `desktopDashboardConversationLoadRuntime`.
   `useDashboardConversations` now keeps user prompts, SDK open/delete calls,

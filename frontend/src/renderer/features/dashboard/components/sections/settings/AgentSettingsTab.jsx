@@ -18,14 +18,6 @@ import { CloneToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
 
-function toggleListValue(values, value, enabled) {
-  const source = Array.isArray(values) ? values : [];
-  if (enabled) {
-    return source.includes(value) ? source : [...source, value];
-  }
-  return source.filter((item) => item !== value);
-}
-
 function AgentSettingsTab({ config, onConfigChange }) {
   const [manifestStatus, setManifestStatus] = useState(EMPTY_AGENT_TOOL_MANIFEST_STATUS);
   const [remoteToolCatalog, setRemoteToolCatalog] = useState(EMPTY_AGENT_REMOTE_TOOL_CATALOG);
@@ -36,12 +28,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
   const mcpsPresentation = DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation(
     extensionRuntime.mcps,
   );
-  const disabledLocalTools = Array.isArray(config?.agent_disabled_local_tools)
-    ? config.agent_disabled_local_tools
-    : [];
-  const disabledRemoteTools = Array.isArray(config?.agent_disabled_remote_tools)
-    ? config.agent_disabled_remote_tools
-    : [];
   useEffect(() => {
     DesktopExtensionRuntimeClient.listAgentExtensions()
       .then(setExtensionRuntime)
@@ -145,14 +131,14 @@ function AgentSettingsTab({ config, onConfigChange }) {
               <div className="clone-settings-tool-toggle">
                 <span>{toolName}</span>
                 <CloneToggle
-                  checked={!disabledLocalTools.includes(toolName)}
-                  onChange={(enabled) => onConfigChange({
-                    agent_disabled_local_tools: toggleListValue(
-                      disabledLocalTools,
+                  checked={DesktopExtensionRuntimeClient.isLocalToolEnabled(config, toolName)}
+                  onChange={(enabled) => onConfigChange(
+                    DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(
+                      config,
                       toolName,
-                      !enabled,
+                      enabled,
                     ),
-                  })}
+                  )}
                   ariaLabel={`Enable ${toolName}`}
                 />
               </div>
@@ -190,14 +176,14 @@ function AgentSettingsTab({ config, onConfigChange }) {
                   ) : null}
                 </span>
                 <CloneToggle
-                  checked={!disabledRemoteTools.includes(toolName)}
-                  onChange={(enabled) => onConfigChange({
-                    agent_disabled_remote_tools: toggleListValue(
-                      disabledRemoteTools,
+                  checked={DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, toolName)}
+                  onChange={(enabled) => onConfigChange(
+                    DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(
+                      config,
                       toolName,
-                      !enabled,
+                      enabled,
                     ),
-                  })}
+                  )}
                   ariaLabel={`Enable ${toolName}`}
                 />
               </div>

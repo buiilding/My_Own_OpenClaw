@@ -29,8 +29,12 @@ import {
   getAgentLocalToolManifestPresentation,
   getAgentMcpRuntimeMetadataPresentation,
   getAgentPluginRuntimePresentation,
+  getAgentLocalToolToggleConfigPatch,
   getAgentRemoteToolPresentation,
+  getAgentRemoteToolToggleConfigPatch,
   getAgentSkillRuntimePresentation,
+  isAgentLocalToolEnabled,
+  isAgentRemoteToolEnabled,
   normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
   normalizeAgentRemoteToolCatalog,
@@ -283,6 +287,42 @@ describe('DesktopExtensionRuntimeClient', () => {
       acceptedTool: null,
       rejectedReason: '',
       status: 'pending',
+    });
+  });
+
+  test('builds agent tool toggle state and config patches', () => {
+    const config = {
+      agent_disabled_local_tools: ['browser', 'extra-local'],
+      agent_disabled_remote_tools: ['web_search'],
+    };
+
+    expect(isAgentLocalToolEnabled(config, 'browser')).toBe(false);
+    expect(DesktopExtensionRuntimeClient.isLocalToolEnabled(config, 'read_file')).toBe(true);
+    expect(isAgentRemoteToolEnabled(config, 'web_search')).toBe(false);
+    expect(DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, 'query_plan')).toBe(true);
+
+    expect(getAgentLocalToolToggleConfigPatch(config, 'browser', true)).toEqual({
+      agent_disabled_local_tools: ['extra-local'],
+    });
+    expect(DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(
+      config,
+      'read_file',
+      false,
+    )).toEqual({
+      agent_disabled_local_tools: ['browser', 'extra-local', 'read_file'],
+    });
+    expect(getAgentRemoteToolToggleConfigPatch(config, 'web_search', true)).toEqual({
+      agent_disabled_remote_tools: [],
+    });
+    expect(DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(
+      config,
+      'query_plan',
+      false,
+    )).toEqual({
+      agent_disabled_remote_tools: ['web_search', 'query_plan'],
+    });
+    expect(getAgentLocalToolToggleConfigPatch(null, 'browser', false)).toEqual({
+      agent_disabled_local_tools: ['browser'],
     });
   });
 
