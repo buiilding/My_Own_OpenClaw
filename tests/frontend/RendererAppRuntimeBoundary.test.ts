@@ -87,6 +87,32 @@ describe('renderer app runtime boundary', () => {
     expect(chatBindingsSource).not.toContain("event.type !== 'audio-chunk'");
   });
 
+  test('chatbox visual-anchor layout rules stay behind the app runtime facade', async () => {
+    const layoutRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatboxLayoutRuntime.js'),
+      'utf8',
+    );
+    const pillSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
+    const bindingsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useMinimalChatPillBindings.js'),
+      'utf8',
+    );
+
+    expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
+    expect(layoutRuntimeSource).toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(layoutRuntimeSource).not.toContain('features/chat');
+    expect(pillSource).toContain('desktopChatboxLayoutRuntime');
+    expect(bindingsSource).toContain('desktopChatboxLayoutRuntime');
+    expect(pillSource).not.toContain('chat/utils/state/chatBoxState');
+    expect(bindingsSource).not.toContain('chat/utils/state/chatBoxState');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/chatBoxState.js'),
+    )).rejects.toThrow();
+  });
+
   test('renderer transport docs classify app-runtime clients before cleanup', async () => {
     const source = await fs.readFile(
       path.resolve(

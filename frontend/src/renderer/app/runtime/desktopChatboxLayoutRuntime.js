@@ -1,5 +1,5 @@
 /**
- * Provides the chat box state module for the renderer UI.
+ * Coordinates renderer chatbox layout constants shared by minimal pill surfaces.
  */
 
 export const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT = 64;

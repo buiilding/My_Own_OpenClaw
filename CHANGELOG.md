@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chatbox: move shared chatbox visual-anchor layout rules from chat
+  feature utilities into the renderer app-runtime facade used by the minimal
+  pill. No migration required.
 - docs/runtime: route docs hub install, packaging, platform, doctor, and
   system-state labels through local-runtime Python wording instead of sidecar
   runtime owner labels. No migration required.

@@ -1181,13 +1181,21 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts'),
       'utf8',
     );
+    const layoutRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js'),
+      'utf8',
+    );
 
     for (const source of [pillSource, bindingsSource]) {
       expect(source).not.toContain('IpcBridge');
       expect(source).not.toContain('INVOKE_CHANNELS');
       expect(source).not.toContain('SEND_CHANNELS');
       expect(source).not.toContain('ON_CHANNELS');
+      expect(source).toContain('desktopChatboxLayoutRuntime');
+      expect(source).not.toContain('chat/utils/state/chatBoxState');
     }
+    expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
+    expect(layoutRuntimeSource).toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.activateChatboxTextEntry');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxHitTestActive');
@@ -1203,6 +1211,9 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('SEND_CHANNELS.MOVE_CHATBOX_TO');
     expect(clientSource).toContain('ON_CHANNELS.CHATBOX_FOCUS');
     expect(clientSource).toContain('ON_CHANNELS.WAKEWORD_STT_TRIGGER');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/state/chatBoxState.js'),
+    )).rejects.toThrow();
   });
 
   test('minimal response overlay routes responsebox IPC through app runtime client', async () => {

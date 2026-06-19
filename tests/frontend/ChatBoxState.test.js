@@ -1,13 +1,13 @@
 /**
- * Covers chat box state. behavior in the frontend test suite.
+ * Covers chatbox layout runtime behavior in the frontend test suite.
  */
 
 import {
   CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
   resolveChatboxVisualAnchorHeight,
-} from '../../frontend/src/renderer/features/chat/utils/state/chatBoxState';
+} from '../../frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime';
 
-describe('chatBoxState', () => {
+describe('desktopChatboxLayoutRuntime', () => {
   test('resolveChatboxVisualAnchorHeight switches by preview mode', () => {
     expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: false })).toBe(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT);
     expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: true })).toBe(116);

@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chatbox layout boundary slice by moving
+  shared visual-anchor constants and sizing rules from chat feature utilities
+  into `app/runtime/desktopChatboxLayoutRuntime.js`, routing minimal pill
+  consumers through that app-runtime owner, deleting the old chat utility path,
+  and guarding against the feature-owned helper returning. Validation: focused
+  chatbox layout runtime, minimal chat pill boundary, renderer app-runtime
+  boundary, docs listing, stale old-path scan, and diff checks. No migration
+  required; visual-anchor constants, measured-shell height math, chatbox IPC
+  payloads, window sizing behavior, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer permission grant-effects boundary slice by
   moving shared post-grant config side effects from permission feature
   utilities into `app/runtime/desktopPermissionGrantEffectsRuntime.js`, routing

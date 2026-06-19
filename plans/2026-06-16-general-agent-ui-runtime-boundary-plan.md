@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chatbox Layout Runtime Boundary
+
+- Finding: minimal chat pill layout code imported visual-anchor constants and
+  sizing rules from chat feature utilities even though the rule is a shared
+  renderer shell layout contract.
+- Change: moved the helper to
+  `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`, updated
+  minimal pill consumers, deleted the old chat utility path, and refreshed docs
+  plus boundary guards.
+- Validation: focused chatbox layout runtime, minimal chat pill boundary,
+  renderer app-runtime boundary, docs listing, stale old-path scan, and diff
+  checks.
+- Compatibility: no migration required. Visual-anchor constants, measured-shell
+  height math, chatbox IPC payloads, window sizing behavior, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Docs Hub Local-Runtime Python Route Labels
 
 - Finding: the docs hub still summarized install, release, platform, doctor,

@@ -30,6 +30,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
+│   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor layout constants and helpers
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
@@ -125,7 +126,6 @@ frontend/src/renderer/
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
 │   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability and thinking text normalization
-│   │       │   ├── chatBoxState.js      # chatBoxState - Visual anchor height helpers for compact/preview chatbox shells
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
 │   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/minimal-pill surface projection helpers
 │   │       │   ├── stopQueryState.js    # stopQueryState - Shared stop target resolver and terminal projection helpers

@@ -17,7 +17,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
-- `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
@@ -96,6 +96,8 @@ compaction behind its loop lock.
 
 - screenshot button toggles query screenshot resource capture for the next send
 - preview lane state (`with-preview`) is driven only by image count
+- visual-anchor layout is resolved through
+  `desktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

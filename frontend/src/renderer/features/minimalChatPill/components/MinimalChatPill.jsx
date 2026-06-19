@@ -20,7 +20,7 @@ import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
 import {
   CHATBOX_WINDOW_FRAME_HEIGHT_PADDING,
   resolveChatboxVisualAnchorHeight,
-} from '../../chat/utils/state/chatBoxState';
+} from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import {
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
