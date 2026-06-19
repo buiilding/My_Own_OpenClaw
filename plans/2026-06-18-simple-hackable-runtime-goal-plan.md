@@ -283,11 +283,12 @@ For each completed slice, record:
   messages, conversation/session state, and dispatches the prepared turn while
   the runtime helper owns screenshot-ref, screenshot-url, multi-image refs, and
   attachment filename payload fields. Validation: focused desktop conversation
-  replay runtime, conversation replay actions, and renderer chat runtime
-  boundary tests plus stale snake-case payload scans, docs search/history
-  checks, and diff checks. No migration required; replay behavior, continuity
-  rewrite payloads, prepared send fields, IPC, storage, credentials,
-  provider-policy, hosted URLs, and local execution behavior are unchanged.
+  replay runtime, conversation replay actions, conversation replay database
+  integration, and renderer chat runtime boundary tests plus stale snake-case
+  payload scans, docs search/history checks, and diff checks. No migration
+  required; replay behavior, continuity rewrite payloads, prepared send fields,
+  IPC, storage, credentials, provider-policy, hosted URLs, and local execution
+  behavior are unchanged.
 
 - 2026-06-19: completed a renderer compaction failure error payload runtime
   slice by moving `compaction_failed` error-text normalization from

@@ -187,8 +187,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `buildPreparedReplayDesktopChatTurn(...)`. The replay hook keeps message
   selection, conversation/session selection, continuity calls, and dispatch.
 - Validation: focused desktop conversation replay runtime, conversation replay
-  actions, and renderer chat runtime boundary tests plus stale snake-case
-  replay payload scans, docs search/history checks, and diff checks.
+  actions, conversation replay database integration, and renderer chat runtime
+  boundary tests plus stale snake-case replay payload scans, docs search/history
+  checks, and diff checks.
 - Compatibility: no migration required. Replay behavior, continuity rewrite
   payloads, prepared send fields, IPC, storage, credentials, provider policy,
   hosted URLs, and local execution behavior are unchanged.
