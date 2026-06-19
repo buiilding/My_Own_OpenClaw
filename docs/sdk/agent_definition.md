@@ -1,10 +1,10 @@
 ---
-summary: "First-class agent definition contract and SDK `buildAgentDefinition` builder for clients that initialize WindieOS agents without the Electron desktop app, including capability metadata stamping, Electron `electron_agent_definition_inputs.cjs` handoff, the current replacement for the old planned post-handshake `frontend-tool-schemas` flow, and the removed top-level `client_tool_manifest` handshake fallback."
+summary: "First-class agent definition contract and SDK `buildAgentDefinition` builder for clients that initialize hosted agents without the Electron desktop app, including capability metadata stamping, Electron `electron_agent_definition_inputs.cjs` handoff, the current replacement for the old planned post-handshake client tool-schema sync, and the removed top-level `client_tool_manifest` handshake fallback."
 read_when:
-  - When building a custom WindieOS UI, TUI, CLI, or hosted client.
+  - When building a custom UI, TUI, CLI, or hosted client.
   - When changing websocket handshake, prompt layers, client tool manifests, skills, AGENTS.md forwarding, or plugin metadata.
   - When changing `packages/windie-sdk-js/src/runtime/AgentDefinition.ts`, the SDK `buildAgentDefinition` export, capability metadata stamping, or Electron main's `electron_agent_definition_inputs.cjs` handoff into the SDK builder.
-  - When searching for planned post-handshake frontend tool schemas, removed top-level `client_tool_manifest` handshake fallback behavior, agent capability handshake behavior, the removed `agent_capability_handshake.cjs` builder, or the removed `AgentCapabilityHandshake.test.cjs`.
+  - When searching for planned post-handshake client tool schemas, removed top-level `client_tool_manifest` handshake fallback behavior, agent capability handshake behavior, the removed `agent_capability_handshake.cjs` builder, or the removed `AgentCapabilityHandshake.test.cjs`.
 ---
 
 # Agent Definition Contract
@@ -27,7 +27,7 @@ The Python SDK mirrors that boundary with generic generated identities:
 `python-agent-*` ids, `Python Agent` display names, and `conv-python-agent`
 conversation defaults when callers omit those values.
 
-If `agent_definition` is omitted, the backend uses the default WindieOS agent:
+If `agent_definition` is omitted, the hosted backend uses its default agent:
 the default backend prompt, built-in tools, backend policy, and normal provider
 projection.
 The backend wire value for that generated default is the generic `default` mode;
@@ -80,9 +80,9 @@ accepted during handshake.
 
 ## No Post-Handshake Tool Schema Sync
 
-Current SDK/Electron clients do not send a separate `frontend-tool-schemas`
-message after handshake. The old planned post-handshake frontend tool schema
-sync is owned by `agent_definition.tools.client_manifest` on the websocket
+Current SDK/Electron clients do not send a separate post-handshake client
+tool-schema message. The old planned post-handshake client tool schema sync is
+owned by `agent_definition.tools.client_manifest` on the websocket
 handshake.
 
 ## No Top-Level Client Tool Manifest Fallback
@@ -119,7 +119,7 @@ definition validation path.
 
 ## Tool Modes
 
-- `default`: use backend/default WindieOS tools.
+- `default`: use backend default tools.
 - `default_plus_client`: use default tools plus accepted client tools.
 - `client_only`: expose accepted client tools and explicitly enabled remote tools.
 - `explicit`: expose `available_tools` plus accepted client tools and explicitly
@@ -128,7 +128,8 @@ definition validation path.
 For SDK-authored agents, omitted `builtins`, `tools`, `mcps`, and `plugins`
 mean no tool schemas. The SDK maps this to `client_only` with an empty client
 manifest. Use `builtins: "default"` or an explicit built-in group list such as
-`builtins: ["filesystem", "shell"]` to expose WindieOS built-in tools.
+`builtins: ["filesystem", "shell"]` to expose built-in local-runtime tool
+groups.
 
 ## Prompt Sources
 
@@ -139,8 +140,8 @@ Clients should resolve local content before sending it:
 - read extension/plugin prompt files locally and send entries in `prompt_layers`
 - send executable tool schemas through `tools.client_manifest`
 
-This keeps hosted WindieOS usable by non-Electron clients without giving the
-backend access to local paths.
+This keeps the hosted backend usable by non-Electron clients without giving
+the backend access to local paths.
 
 ## SDK Debug Routes
 

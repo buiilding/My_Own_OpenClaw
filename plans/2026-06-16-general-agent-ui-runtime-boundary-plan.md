@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 SDK Agent Definition Client Manifest Wording Boundary
+
+- Finding: the SDK agent-definition guide still described the removed
+  post-handshake tool-schema path as `frontend-tool-schemas`, described omitted
+  agent definitions as the default WindieOS agent, and called SDK builtins
+  WindieOS built-in tools even though the SDK contract is client manifest,
+  hosted default policy, and built-in local-runtime tool groups.
+- Change: reworded the agent-definition, API reference, and AgentClient runtime
+  docs to client tool-schema sync, hosted backend defaults, and built-in
+  local-runtime tool-group terminology, and extended the modular docs guard
+  against the retired frontend/product phrases.
+- Validation: focused docs-index route test, focused modular stale-doc guard,
+  docs listing, stale phrase scan, and diff checks.
+- Compatibility: no migration required. This is documentation and guard
+  coverage only; agent-definition payloads, tool modes, client manifest shape,
+  SDK builtins behavior, backend defaults, IPC, credentials, permissions, local
+  execution, provider policy, and storage are unchanged.
+
 ### 2026-06-19 Main Wakeword Hotkey Fallback Host-Skin Boundary
 
 - Finding: the primary wakeword hotkey had moved into the WindieOS main host

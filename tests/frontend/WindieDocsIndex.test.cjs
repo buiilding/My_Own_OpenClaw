@@ -402,7 +402,7 @@ describe('windie docs index', () => {
     expect(findDocs('top-level client_tool_manifest removed')[0].path).toBe(
       expectedPath,
     );
-    expect(findDocs('frontend tool schemas planned post handshake')[0].path).toBe(
+    expect(findDocs('client tool schemas planned post handshake')[0].path).toBe(
       expectedPath,
     );
     expect(findDocs('agent_capability_handshake.cjs removed')[0].path).toBe(

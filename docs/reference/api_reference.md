@@ -1170,9 +1170,9 @@ stores accepted/rejected diagnostics on the session, applies tool policy and
 provider projection, and emits the public validation result as
 `client-tool-manifest`.
 
-Current SDK/Electron clients should not send a post-handshake
-`frontend-tool-schemas` message. Client-local tool manifests must be nested
-under `agent_definition.tools.client_manifest`.
+Current SDK/Electron clients should not send a separate post-handshake client
+tool-schema sync message. Client-local tool manifests must be nested under
+`agent_definition.tools.client_manifest`.
 
 **Handshake excerpt**:
 ```json
@@ -2193,7 +2193,7 @@ If the client has local tool schemas, it sends them in
 `agent_definition.tools.client_manifest` on this handshake. The backend
 validates that manifest during handshake setup and emits a
 `client-tool-manifest` event with accepted/rejected diagnostics. There is no
-current post-handshake `frontend-tool-schemas` sync message.
+current post-handshake client tool-schema sync message.
 
 Current sequence:
 1. Connect WebSocket

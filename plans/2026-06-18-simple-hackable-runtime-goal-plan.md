@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an agent-definition docs wording slice by routing SDK,
+  AgentClient runtime, and API reference client-manifest docs through hosted
+  backend, client tool-schema sync, backend default tools, and built-in
+  local-runtime tool-group terminology instead of retired WindieOS-agent,
+  frontend-tool-schema, and product-specific built-in wording. The modular docs
+  guard now covers the retired `frontend-tool-schemas`, planned post-handshake
+  frontend tool schema, default WindieOS agent, backend/default WindieOS tools,
+  WindieOS built-in tools, hosted WindieOS usable, and WindieOS agents without
+  Electron desktop phrases. Validation: focused modular refactor docs guard,
+  docs-index agent definition routing test, docs listing, stale retired-phrase
+  scan, and diff checks. No migration required; documentation/test only, with
+  no code path, payload, storage, IPC, settings, credentials, permissions,
+  hosted routes, provider policy, packaging, or local execution behavior
+  changed.
 - 2026-06-19: completed a dashboard conversation-library docs follow-up by
   replacing active recent-list, search, resume, and transcript-session
   references to legacy direct conversation IPC labels with the current

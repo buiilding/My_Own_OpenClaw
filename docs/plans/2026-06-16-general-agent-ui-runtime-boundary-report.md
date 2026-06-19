@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 SDK Agent Definition Client Manifest Wording Boundary
+
+- SDK conversation/runtime docs, agent-definition docs, API reference docs, and
+  recent agent-definition boundary commits were inspected after the main
+  host-skin hotkey slice.
+- Finding: the SDK agent-definition guide still routed removed
+  post-handshake tool schemas through `frontend-tool-schemas`, described
+  omitted agent definitions as the default WindieOS agent, and called SDK
+  builtins WindieOS built-in tools.
+- Change: reworded those docs and the API reference to client tool-schema sync,
+  hosted backend defaults, and built-in local-runtime tool groups, then added
+  stale-phrase guard coverage.
+- Validation: focused docs-index route test, focused modular stale-doc guard,
+  docs listing, stale phrase scan, and diff checks.
+- Compatibility: no migration required. This is documentation and guard
+  coverage only; agent-definition payloads, tool modes, client manifest shape,
+  SDK builtins behavior, backend defaults, IPC, credentials, permissions, local
+  execution, provider policy, and storage are unchanged.
+
 ### 2026-06-19 Main Wakeword Hotkey Fallback Host-Skin Boundary
 
 - Worktree was clean after `1be48c1bf`, with `main` ahead of `origin/main` by

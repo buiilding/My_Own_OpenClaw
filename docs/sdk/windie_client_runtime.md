@@ -318,7 +318,7 @@ const agent = await client.wakeUp({
   plugins: []
 });
 
-`builtins` is the only SDK wake-up option for selecting WindieOS built-in tool
+`builtins` is the only SDK wake-up option for selecting built-in local-runtime tool
 groups. Valid current shapes are `"default"`, `"none"`, or an array such as
 `["filesystem", "shell"]`. The old `builtinTools` option is removed and no
 longer has a dedicated wake guard or compatibility error branch in

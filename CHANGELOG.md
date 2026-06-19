@@ -30,6 +30,10 @@ All notable changes to WindieOS will be documented in this file.
 - main/lifecycle: move wakeword global-hotkey fallback accelerators into the
   host skin so the generic Electron lifecycle runtime consumes configured
   shortcut candidates. No migration required.
+- docs/sdk-api: describe agent-definition client manifests with client
+  tool-schema, hosted-default, and built-in local-runtime terminology in SDK and
+  API reference docs instead of retired frontend/product wording. No migration
+  required.
 - docs/dashboard: route active conversation list, search, and resume references
   through `DesktopConversationLibraryClient` and SDK-shaped `conversations.*`
   / `conversation.loadDisplay` commands instead of legacy direct conversation
