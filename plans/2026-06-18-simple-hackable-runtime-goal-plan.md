@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a help diagnostics local-runtime troubleshooting label
+  slice by routing local tool and browser failure guidance away from sidecar
+  JSON-RPC/action compatibility labels and through SDK/main local-runtime
+  dispatch plus local-runtime browser adapter/runtime wording. Validation:
+  focused modular boundary guard, docs listing, exact stale label scan, and
+  diff checks. No migration required; help docs and boundary tests changed
+  only, with no tool schema, browser action payload, JSON-RPC method, IPC
+  channel, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed an install endpoint local backend origin label slice by
   routing endpoint setup and local development docs away from sidecar
   propagation wording and a Local Backend public section label toward explicit

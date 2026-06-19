@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Help Diagnostics Local-Runtime Troubleshooting Labels
+
+- Finding: user-facing diagnostics and troubleshooting docs still described
+  local tool routing as main bridge to sidecar JSON-RPC and browser failures as
+  sidecar action/runtime compatibility, making sidecar read like the public
+  runtime owner rather than the local-runtime implementation.
+- Change: routed the help docs through SDK/main local-runtime dispatch,
+  local-runtime browser adapter/runtime, and bundled local-runtime requirement
+  wording while preserving concrete Python tool registry evidence, and added
+  modular docs guards for the retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Help docs and boundary tests changed
+  only; tool schemas, browser action payloads, JSON-RPC methods, IPC channels,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Install Endpoint Local Backend Origin Labels
 
 - Finding: endpoint setup and local development docs still used sidecar

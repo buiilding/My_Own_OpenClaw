@@ -30,14 +30,14 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 
 - Confirm backend tool schema parses.
 - Confirm the SDK runtime tool router receives and claims the event.
-- Confirm main bridge maps the request to sidecar JSON-RPC.
+- Confirm SDK/main local-runtime dispatch maps the request to the Python JSON-RPC handler.
 - Confirm the tool is registered in `frontend/src/main/python/tools/registry.py`.
 - Read [Tool Contracts](../tools/tool_contracts.md).
 
 ## Browser Tool Fails
 
 - Check whether the dedicated browser is connected/running.
-- Check backend action schema and sidecar action compatibility.
+- Check backend action schema and local-runtime browser adapter compatibility.
 - Check active page/session state before assuming a DOM snapshot issue.
 - Read [Browser Tool](../tools/browser.md).
 

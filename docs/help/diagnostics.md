@@ -1,5 +1,5 @@
 ---
-summary: "Diagnostics guide for isolating WindieOS failures across backend, Electron main, renderer, sidecar, providers, and tools."
+summary: "Diagnostics guide for isolating WindieOS failures across backend, Electron main, renderer, local-runtime implementation, providers, and tools."
 read_when:
   - When triaging failures before changing code.
   - When deciding which logs, commands, or docs to inspect first.
@@ -19,9 +19,9 @@ WindieOS failures are easiest to debug by locating the runtime boundary first.
 | Tool call appears but does not execute | SDK runtime tool router, main local-runtime bridge, `frontend/src/main/python/tools/registry.py` |
 | Tool result reaches frontend but model does not continue | backend tool-result ingestion/waiting/processing modules |
 | Screenshot includes overlay | platform screenshot guard and overlay visibility docs |
-| Browser action fails | backend browser schema first, then sidecar browser runtime |
+| Browser action fails | backend browser schema first, then local-runtime browser adapter/runtime |
 | Memory/search/title issue | local-runtime memory store, backend semantic/title routes, embedding provider health |
-| Packaged app starts but tools fail | bundled Python runtime path, sidecar requirements, install auth, backend URL config |
+| Packaged app starts but tools fail | bundled Python runtime path, local-runtime requirements, install auth, backend URL config |
 
 ## Useful Commands
 

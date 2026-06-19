@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/help: route local tool and browser troubleshooting through SDK/main
+  local-runtime dispatch and local-runtime adapter wording instead of sidecar
+  JSON-RPC or sidecar compatibility labels. No migration required.
 - docs/install: route endpoint setup and local development guidance through
   explicit local backend origin plus local-runtime propagation wording instead
   of sidecar propagation or Local Backend public section labels. No migration
