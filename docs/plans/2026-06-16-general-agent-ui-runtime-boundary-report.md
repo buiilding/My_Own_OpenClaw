@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Wakeword Status Value Boundary
+
+- Finding: `desktopVoiceRuntimeClient` owned wakeword bridge IPC, but
+  `useWakewordBridgeEvents` still interpreted raw wakeword status event
+  `ready` / `error` fields before updating readiness and error UI state.
+- Change: added wakeword ready/error value resolvers and
+  `onWakewordReadyStatus(...)` to the voice runtime client. The wakeword bridge
+  hook now keeps cooldown, detection, local capture error policy, and UI state
+  updates while consuming value-level status from the app runtime facade.
+- Validation: focused voice runtime client, renderer voice boundary, and
+  docs-index tests passed; docs listing, stale raw wakeword status scan, and
+  diff check passed.
+- Compatibility: no migration required. Wakeword IPC channel names, raw status
+  event payload shape, wakeword enable/disable/audio chunk sends, detection
+  cooldown and threshold behavior, local capture error stickiness, settings,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  wakeword service execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Event Identity Value Boundary
 
 - Finding: stream event predicates and stale-turn behavior already lived in

@@ -37,6 +37,11 @@ export type WakewordStatusPayload = {
   error?: string | null;
 };
 
+export type WakewordReadyStatus = {
+  ready: boolean;
+  error: string | null;
+};
+
 export type WakewordTogglePayload = {
   enabled?: unknown;
 };
@@ -47,6 +52,23 @@ function parseBoolean(value: unknown): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function resolveWakewordStatusReady(status: WakewordStatusPayload | null | undefined): boolean {
+  return status?.ready === true;
+}
+
+export function resolveWakewordStatusError(status: WakewordStatusPayload | null | undefined): string | null {
+  return typeof status?.error === 'string' && status.error.length > 0 ? status.error : null;
+}
+
+export function resolveWakewordReadyStatus(
+  status: WakewordStatusPayload | null | undefined,
+): WakewordReadyStatus {
+  return {
+    ready: resolveWakewordStatusReady(status),
+    error: resolveWakewordStatusError(status),
+  };
 }
 
 /**
@@ -75,6 +97,12 @@ export const DesktopVoiceRuntimeClient = {
 
   onWakewordStatus(listener: (payload: WakewordStatusPayload) => void): (() => void) | undefined {
     return IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, listener as (payload: unknown) => void);
+  },
+
+  onWakewordReadyStatus(listener: (payload: WakewordReadyStatus) => void): (() => void) | undefined {
+    return this.onWakewordStatus((payload) => {
+      listener(resolveWakewordReadyStatus(payload));
+    });
   },
 
   onWakewordToggle(listener: (payload: WakewordTogglePayload) => void): (() => void) | undefined {

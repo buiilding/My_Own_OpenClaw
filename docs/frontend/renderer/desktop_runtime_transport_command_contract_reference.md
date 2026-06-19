@@ -329,8 +329,9 @@ app runtime client.
 `desktopVoiceRuntimeClient.ts` owns renderer voice runtime commands and local
 wakeword bridge IPC. Wakeword hooks keep capture lifecycle, cooldown,
 thresholding, and local error policy while delegating wakeword audio chunks,
-enable/disable sends, wakeword detected/status subscriptions, and app-level
-wakeword-toggle fan-out to this app runtime client.
+enable/disable sends, wakeword detected subscriptions, value-level wakeword
+ready/error status projection, and app-level wakeword-toggle fan-out to this
+app runtime client.
 
 `desktopVoiceAudioEncodingRuntime.ts`,
 `desktopVoiceAudioCaptureCleanupRuntime.ts`, and

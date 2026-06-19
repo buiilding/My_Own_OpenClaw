@@ -2,7 +2,12 @@
  * Covers desktop voice runtime client. behavior in the frontend test suite.
  */
 
-import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
+import {
+  DesktopVoiceRuntimeClient,
+  resolveWakewordReadyStatus,
+  resolveWakewordStatusError,
+  resolveWakewordStatusReady,
+} from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 import {
   IpcBridge,
   ON_CHANNELS,
@@ -59,6 +64,36 @@ describe('DesktopVoiceRuntimeClient', () => {
     expect(IpcBridge.send).toHaveBeenCalledWith(SEND_CHANNELS.WAKEWORD_DISABLE, {});
     expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_DETECTED, detectedListener);
     expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_STATUS, statusListener);
+  });
+
+  test('normalizes wakeword status ready and error values', () => {
+    expect(resolveWakewordStatusReady({ ready: true })).toBe(true);
+    expect(resolveWakewordStatusReady({ ready: false })).toBe(false);
+    expect(resolveWakewordStatusReady({})).toBe(false);
+    expect(resolveWakewordStatusError({ error: 'model missing' })).toBe('model missing');
+    expect(resolveWakewordStatusError({ error: '' })).toBeNull();
+    expect(resolveWakewordStatusError({ error: null })).toBeNull();
+    expect(resolveWakewordReadyStatus({ ready: true, error: 'warming up' })).toEqual({
+      ready: true,
+      error: 'warming up',
+    });
+  });
+
+  test('emits value-level wakeword ready status updates', () => {
+    const readyListener = jest.fn();
+    let statusHandler: ((payload: unknown) => void) | undefined;
+    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+      if (channel === ON_CHANNELS.WAKEWORD_STATUS) {
+        statusHandler = handler;
+      }
+      return jest.fn();
+    });
+
+    DesktopVoiceRuntimeClient.onWakewordReadyStatus(readyListener);
+    statusHandler?.({ ready: true, error: '' });
+
+    expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_STATUS, expect.any(Function));
+    expect(readyListener).toHaveBeenCalledWith({ ready: true, error: null });
   });
 
   test('sends transcription gateway protocol setup messages', () => {

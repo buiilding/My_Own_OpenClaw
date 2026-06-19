@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose wakeword ready/error status as a value-level voice
+  runtime subscription so wakeword bridge hooks no longer read raw status event
+  `ready` / `error` fields. No migration required.
 - renderer/runtime: resolve SDK conversation stream event conversation and turn
   identity inside `desktopChatStreamEventRuntime` so chat stream hooks and
   sub-handlers no longer read raw `event.conversationRef` or `event.turnRef`

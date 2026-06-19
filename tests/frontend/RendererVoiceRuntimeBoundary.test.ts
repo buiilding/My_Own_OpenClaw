@@ -84,7 +84,10 @@ describe('renderer voice runtime boundary', () => {
     expect(detectionSource).not.toContain('SEND_CHANNELS');
     expect(detectionSource).not.toContain('IpcBridge.');
     expect(bridgeSource).toContain('DesktopVoiceRuntimeClient.onWakewordDetected');
-    expect(bridgeSource).toContain('DesktopVoiceRuntimeClient.onWakewordStatus');
+    expect(bridgeSource).toContain('DesktopVoiceRuntimeClient.onWakewordReadyStatus');
+    expect(bridgeSource).not.toContain('DesktopVoiceRuntimeClient.onWakewordStatus');
+    expect(bridgeSource).not.toContain('status.ready');
+    expect(bridgeSource).not.toContain('status.error');
     expect(bridgeSource).not.toContain('ON_CHANNELS');
     expect(bridgeSource).not.toContain('IpcBridge.');
   });

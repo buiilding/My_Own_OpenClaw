@@ -161,7 +161,9 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 Hook startup:
 
 1. `useWakewordBridgeEvents` subscribes through `DesktopVoiceRuntimeClient`
-   wakeword event helpers
+   wakeword event helpers. The hook receives wakeword readiness through
+   `DesktopVoiceRuntimeClient.onWakewordReadyStatus(...)`, so bridge event
+   `ready` / `error` payload normalization stays in the app runtime facade.
 2. send wakeword enable through `DesktopVoiceRuntimeClient` to request service activation/status
 3. start microphone capture only when `enabled && isReady`
 
@@ -202,7 +204,8 @@ Missing-device guardrails:
   - verify gateway WebSocket open state and `isRecording` transition
   - verify an active dictation session or wakeword-triggered STT session is running in the renderer
 - no wakeword readiness:
-  - inspect `wakeword-status` events reaching renderer
+  - inspect `wakeword-status` events reaching renderer and the
+    `DesktopVoiceRuntimeClient.onWakewordReadyStatus(...)` value projection
   - verify `wakeword-toggle` suppression is not forcing inactive state
 - stuck microphone:
   - check cleanup path ran (`stopAudioCapture`) and tracks were stopped

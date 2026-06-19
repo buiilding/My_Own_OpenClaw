@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer wakeword status value boundary slice by
+  adding wakeword ready/error value resolvers and
+  `onWakewordReadyStatus(...)` to `desktopVoiceRuntimeClient`.
+  `useWakewordBridgeEvents` now keeps cooldown, detection, local capture error
+  policy, and UI state updates without reading raw wakeword status event
+  `ready` / `error` fields. Focused voice runtime client, renderer voice
+  boundary, and docs-index tests passed, along with docs listing, stale raw
+  wakeword status scan, and diff check. No migration required; wakeword IPC
+  channel names, raw status event payload shape, wakeword enable/disable/audio
+  chunk sends, detection cooldown and threshold behavior, local capture error
+  stickiness, settings, storage, credentials, permissions, hosted URLs,
+  provider policy, and local wakeword service execution behavior are unchanged.
 - 2026-06-19: completed a renderer stream event identity value boundary slice
   by adding normalized conversation/turn identity helpers to
   `desktopChatStreamEventRuntime` and routing chat stream dispatcher plus

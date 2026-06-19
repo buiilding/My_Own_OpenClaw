@@ -90,21 +90,21 @@ export function useWakewordBridgeEvents({
       });
     });
 
-    const statusUnsubscribe = DesktopVoiceRuntimeClient.onWakewordStatus((status: any) => {
+    const statusUnsubscribe = DesktopVoiceRuntimeClient.onWakewordReadyStatus((readyStatus) => {
       setIsReady((prevReady) => {
-        if (prevReady !== status.ready) {
+        if (prevReady !== readyStatus.ready) {
           logVoiceDebugTrace('wakeword-service-status', {
-            ready: status.ready,
-            error: status.error || null,
+            ready: readyStatus.ready,
+            error: readyStatus.error,
           });
         }
-        return status.ready;
+        return readyStatus.ready;
       });
 
-      if (status.error) {
+      if (readyStatus.error) {
         if (enabled) {
-          console.error('[Wakeword] Service error:', status.error);
-          setError(status.error);
+          console.error('[Wakeword] Service error:', readyStatus.error);
+          setError(readyStatus.error);
         } else {
           setError(null);
         }
