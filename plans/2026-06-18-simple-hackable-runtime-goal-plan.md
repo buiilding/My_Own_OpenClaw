@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a tool catalog local-runtime executable label slice by
+  routing first-read frontend/docs hub entries, channel/tool-system summaries,
+  the tools hub, tool catalog matrix, schema-policy workflow, and
+  troubleshooting docs through local-runtime executable ownership instead of
+  Python-sidecar-as-owner labels.
+  Python sidecar paths, registry details, and sidecar tests remain where they
+  identify the concrete implementation. The modular docs guard now rejects the
+  retired Python sidecar executable owner, executor, registry/runtime, and
+  first-read frontend sidecar runtime phrases. Validation: `bin\windie.cmd test
+  frontend -- ModularRefactorCompletionBoundary --runInBand`,
+  `bin\windie.cmd docs list`, exact stale tool-owner label scan, and
+  `git diff --check`. No migration required; no tool name, schema, manifest, IPC,
+  JSON-RPC, parity test, credential, permission, storage, hosted route,
+  provider policy, or local execution behavior changed.
 - 2026-06-18: completed a public runtime route-map label slice by routing
   architecture overview, communication flow, runtime node matrix, backend
   cross-layer inventory, operations triage, main-process workflows, and
@@ -301,6 +315,21 @@ For each completed slice, record:
   `git diff --check`. No migration required; no tool schema, prompt
   construction, provider projection, SDK/main dispatch, IPC, payload,
   credential, permission, storage, or local execution behavior changed.
+- 2026-06-18: completed a frontend local-runtime implementation label slice by
+  routing the frontend architecture runtime notes, frontend hub, and
+  getting-started owner map through local-runtime implementation wording instead
+  of sidecar-as-runtime-owner labels. Python sidecar packaging, source paths,
+  JSON-RPC docs, and implementation links remain visible where they name the
+  concrete process or code path. Validation pending. No migration required; no
+  process launch, IPC, JSON-RPC, tool schema, permission, credential, storage,
+  packaging, or local execution behavior changed.
+- 2026-06-18: completed a tool executor owner-label slice by routing the tools
+  hub, tool catalog matrix, channel docs, and tool-system architecture notes
+  through local-runtime executor labels instead of Python-sidecar executor
+  ownership wording. Python sidecar implementation paths and tests remain where
+  they identify concrete executable code. Validation pending. No migration
+  required; no tool schema, executable registration, SDK/main dispatch, IPC,
+  payload, permission, credential, storage, or local execution behavior changed.
 - 2026-06-18: completed an architecture local-runtime owner-map slice by
   routing failure-domain, runtime-boundary, architecture hub, error/failure,
   platform, help/docs hubs, and tool-system docs through local-runtime

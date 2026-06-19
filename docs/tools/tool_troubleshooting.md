@@ -106,8 +106,8 @@ Read:
 For a tool regression fix, add the narrowest tests that cross the failing boundary:
 
 - policy visibility bug: backend `ToolPolicy` test
-- schema drift: backend schema/registry test and Python sidecar parity test if local execution is involved
-- Python sidecar runtime bug: Python sidecar unit test for the executable tool
+- schema drift: backend schema/registry test and local-runtime executable parity test if local execution is involved
+- local-runtime implementation bug: Python sidecar unit test for the executable tool
 - SDK/main dispatch bug: SDK runtime or IPC tool-router test
 - waiting/result bug: backend result receiver/storage/processor test
 - replay bug: renderer transcript or backend rehydrate/history test

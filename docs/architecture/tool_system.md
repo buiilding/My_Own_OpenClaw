@@ -332,8 +332,8 @@ async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 Tools are automatically registered:
 
 1. **Backend remote stubs**: Declared once in `backend/src/tools/tool_catalog.py`, implemented in concrete `backend/src/tools/remote_tools/*` modules, and instantiated by `backend/src/tools/registry.py`.
-2. **Built-in Python sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
-3. **Plugin Python sidecar executors**: Declared with `entrypoint` in `plugins/<id>/plugin.json` and loaded by `frontend/src/main/python/tools/extension_loader.py`.
+2. **Built-in local-runtime executors**: Registered in `frontend/src/main/python/tools/registry.py` and backed by the Python sidecar implementation.
+3. **Plugin local-runtime executors**: Declared with `entrypoint` in `plugins/<id>/plugin.json` and loaded by `frontend/src/main/python/tools/extension_loader.py`.
 4. **LLM-callable built-in local-runtime subset**: Explicitly declared in `frontend/src/main/python/tools/manifest.py` as `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES`.
 5. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()` or marked non-client-executable in `backend/src/tools/tool_catalog.py`.
    - `web_search` is the current backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.

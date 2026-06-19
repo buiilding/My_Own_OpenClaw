@@ -1,5 +1,5 @@
 ---
-summary: "Local tool channel guide covering SDK/main local-runtime execution, Python sidecar executors, display-only renderer events, and backend tool-result ingress."
+summary: "Local tool channel guide covering SDK/main local-runtime execution, local-runtime executors backed by the Python sidecar, display-only renderer events, and backend tool-result ingress."
 read_when:
   - When changing local tool execution, local-runtime daemon routing, renderer
     tool-call display behavior, shell/filesystem/browser/computer actions, or

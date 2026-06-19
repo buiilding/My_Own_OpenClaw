@@ -161,7 +161,7 @@ contracts.
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract validation
-- [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, Python sidecar executors, policy gates, and tests
+- [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, local-runtime executors, policy gates, and tests
 - [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main runtime, sidecar, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser capability policy, and web-search exposure
 - [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, sidecar, result, artifact, and replay failures

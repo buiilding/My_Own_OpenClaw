@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Tool Catalog Local-Runtime Executable Labels
+
+- Finding: first-read frontend/docs hub entries, channel/tool-system summaries,
+  and tool hub/catalog/schema workflows still used
+  Python-sidecar-as-executable-owner labels for reusable tool ownership after
+  local execution moved behind the SDK/main local-runtime boundary.
+- Change: routed those labels through local-runtime executable ownership while
+  preserving Python sidecar paths, registry details, and sidecar test names as
+  concrete implementation evidence.
+- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale tool-owner label scan,
+  and `git diff --check`.
+- Compatibility: no migration required. Runtime ownership docs changed only;
+  tool names, schemas, manifests, IPC, JSON-RPC, parity tests, credentials,
+  permissions, storage, hosted routes, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-18 Public Runtime Route-Map Local-Runtime Labels
 
 - Finding: architecture overview, communication flow, runtime node matrix,

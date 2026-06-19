@@ -9,14 +9,14 @@ title: "Tools Hub"
 # Tools Hub
 
 WindieOS tools are split between desktop client/local-runtime manifest schemas,
-Python sidecar executable implementations, backend-owned remote tools and
-policy/projection, and SDK/main-process dispatch.
+local-runtime executable implementations backed by the Python sidecar,
+backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
 
 ## Tool Families
 
 - [Tool Contracts](tool_contracts.md) explains local manifest schemas, backend remote schemas, local execution, request ids, bundle results, and parity tests.
 - [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) routes model-visible schema, policy, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract changes.
-- [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to schema owners, Python sidecar executors, use cases, policy gates, and tests.
+- [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to schema owners, local-runtime executors, use cases, policy gates, and tests.
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, local execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.
 - [Web Search Tool](web_search.md) covers backend-owned `web_search`, OpenAI native search, Gemini native grounding, Brave fallback, visibility policy, and result validation.
@@ -46,7 +46,7 @@ Client-local model-visible tools are supplied by the accepted client manifest. T
 - `replace`
 - `browser`
 
-Sidecar executable tools are registered in `frontend/src/main/python/tools/registry.py`. The sidecar registry intentionally mirrors only the executable local actions expected by accepted client-local schemas.
+Local-runtime executable tools are registered in `frontend/src/main/python/tools/registry.py`. The Python sidecar registry intentionally mirrors only the executable local actions expected by accepted client-local schemas.
 
 ## Change Path
 
@@ -56,7 +56,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 4. Use [Browser Change Workflow](../browser/browser_change_workflow.md) for browser-specific schema, CDP, snapshot, ref, file, or renderer-session changes.
 5. Use [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) for file read/edit, shell command, background process, sudo, working-directory, and local output-shaping changes.
 6. Update the owning schema source first: client/local-runtime manifest for local tools, backend catalog/schema for backend-executed tools.
-7. Update Python sidecar executable argument handling if the local payload changes.
+7. Update local-runtime executable argument handling if the local payload changes.
 8. Update SDK/main tool routing and Electron bridge payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
 9. Update formatter/outgoing schemas if the visible stream event changes.
 10. Add or update backend, SDK/main, renderer, and sidecar tests for the changed boundary.
@@ -80,4 +80,4 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 - Tool visibility, dispatch, execution, and result return are separate evidence
   points; prove the failing point before editing schemas.
 - For local tools, keep backend model-facing schema evidence distinct from
-  sidecar executable manifest evidence.
+  local-runtime executable manifest evidence.

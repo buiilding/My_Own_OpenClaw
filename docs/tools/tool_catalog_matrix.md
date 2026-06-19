@@ -1,5 +1,5 @@
 ---
-summary: "Model-visible WindieOS tool catalog matrix with backend owners, Python sidecar executors, use cases, policy gates, and validation routes."
+summary: "Model-visible WindieOS tool catalog matrix with backend owners, local-runtime executors, use cases, policy gates, and validation routes."
 read_when:
   - When adding, removing, renaming, or debugging a model-visible tool.
   - When deciding whether a tool belongs in backend schema, SDK/main dispatch, local execution, UI projection, or provider-native capability routing.
@@ -14,13 +14,13 @@ WindieOS tools are registered in two places by design:
   model-facing schemas and executable local actions.
 - Backend catalog: backend-owned tools plus fallback/default model-facing
   entries and tool policy owner.
-- Python sidecar registry: executable local action owner.
+- Local-runtime executable registry: executable local action owner, currently backed by the Python sidecar.
 
 Do not import backend tool code into the sidecar to force parity. Keep parity explicit through shared contracts, exposed-name sets, and tests.
 
 ## Canonical Catalog
 
-| Tool | Domain | Backend fallback/policy owner | Sidecar executor | Use for | Key docs and tests |
+| Tool | Domain | Backend fallback/policy owner | Local-runtime executor | Use for | Key docs and tests |
 | --- | --- | --- | --- | --- | --- |
 | `mouse_control` | computer | `backend/src/tools/remote_tools/computer.py`, `backend/src/tools/computer/schemas.py` | `frontend/src/main/python/tools/computer/mouse_tool.py` | Click, move, drag, and coordinate-targeted mouse actions | [Computer Tools](computer.md), `tests/backend/test_tool_policy.py`, `tests/sidecar/test_mouse_tool.py` |
 | `keyboard_control` | computer | `backend/src/tools/remote_tools/computer.py`, `backend/src/tools/computer/schemas.py` | `frontend/src/main/python/tools/computer/keyboard_tool.py` | Type text, paste, press keys, and shortcuts | [Computer Tools](computer.md), `tests/sidecar/test_keyboard_tool.py` |
@@ -56,7 +56,7 @@ Backend fallback and policy owner:
 - `backend/src/tools/schema_registry.py`
 - remote tool classes under `backend/src/tools/remote_tools`
 
-Python sidecar executable owner:
+Local-runtime executable owner:
 
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/tools/manifest.py`
@@ -64,7 +64,7 @@ Python sidecar executable owner:
 
 Parity tests should prove:
 
-- every accepted local tool expected by the sidecar exists in the sidecar registry
+- every accepted local tool expected by the local runtime exists in the Python sidecar registry
 - accepted client-local schemas remain model-facing when a client manifest supplies them
 - local results normalize into `ToolResult`
 - browser shared-contract schema stays aligned across backend and local runtime
@@ -73,7 +73,7 @@ Parity tests should prove:
 
 1. Decide whether the tool is backend-only, local-runtime executed, or provider-native.
 2. Add or update the client/local-runtime manifest for local model-visible tools.
-3. Add Python sidecar executable registration only when local execution is required.
+3. Add local-runtime executable registration only when local execution is required.
 4. Add SDK/main tool-router handling only when payload/result envelopes, artifacts, screenshots, or UI display behavior change.
 5. Add policy/profile entries if the tool should appear in `chat`, `coding`, `browser`, `computer`, or `full` profiles.
 6. Add backend schema/catalog registration only for backend-executed tools or fallback/default local exposure.

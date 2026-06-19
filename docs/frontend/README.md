@@ -1,14 +1,14 @@
 ---
-summary: "Frontend documentation hub covering Electron main process, renderer runtime, tool execution services, and Python sidecar behavior."
+summary: "Frontend documentation hub covering Electron main process, renderer runtime, tool execution services, and local-runtime implementation behavior."
 read_when:
-  - When changing frontend architecture across main/renderer/sidecar boundaries.
+  - When changing frontend architecture across main, renderer, local-runtime, or sidecar implementation boundaries.
   - When tracing query/tool message flow from UI to backend and back.
 title: "Frontend Functionality Map"
 ---
 
 # Frontend Functionality Map
 
-This hub documents WindieOS frontend implementation details across Electron main process, React renderer, and Python sidecar runtime.
+This hub documents WindieOS frontend implementation details across Electron main process, React renderer, and the local-runtime implementation backed by the Python sidecar.
 
 ## Full Inventory
 
@@ -229,7 +229,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - `frontend/src/main`: Electron main process, SDK runtime adapter, wakeword bridge, query payload enrichment
 - `frontend/src/preload.js`: sandbox-safe IPC exposure to renderer
 - `frontend/src/renderer`: React app, contexts, feature modules, infrastructure services
-- `frontend/src/main/python`: Python sidecar runtime, memory service, wakeword subprocess, tool implementations
+- `frontend/src/main/python`: local-runtime implementation backed by the Python sidecar, memory service, wakeword subprocess, tool implementations
 - `frontend/src/landing`: standalone landing page entrypoint, section composition, and shared marketing style system
 
 ## End-to-End Runtime Path (Condensed)

@@ -712,7 +712,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Python sidecar executor');
     expect(docText).toContain('local-runtime sidecar executor');
     expect(docText).toContain('Python sidecar registry');
-    expect(docText).toContain('Python sidecar registry/schema/runtime');
+    expect(docText).toContain('Local-runtime registry/schema implementation');
     expect(docText).not.toContain(' or sidecar executor');
     expect(docText).not.toContain('and sidecar executor');
     expect(docText).not.toContain('vs sidecar executor');
@@ -1422,6 +1422,24 @@ describe('modular sdk refactor completion boundary', () => {
         'preserve request correlation and sidecar ownership',
         'Renderer/main/sidecar ownership bug',
         'sidecar tool execution',
+        'Sidecar browser runtime is feature-pack aware',
+        'Sidecar tool contract is direct-name based',
+        'Wrapper artifacts are not live sidecar tool names',
+        'Frontend documentation hub covering Electron main process, renderer runtime, tool execution services, and Python sidecar behavior',
+        'main/renderer/sidecar boundaries',
+        'frontend implementation details across Electron main process, React renderer, and Python sidecar runtime',
+        '| Python sidecar | Local JSON-RPC',
+        'Python sidecar executable implementations',
+        'Python sidecar executors',
+        'Sidecar executable tools',
+        'sidecar executable manifest evidence',
+        'Python sidecar executable owner',
+        '| Sidecar executor |',
+        'expected by the sidecar exists',
+        'Add Python sidecar executable registration',
+        'Python sidecar runtime bug',
+        'Python sidecar says tool not found',
+        'Python sidecar registry/schema/runtime',
         'Python sidecar startup owns local execution variables',
         'sidecar stderr logging or system metrics',
         '| Python sidecar runtime |',

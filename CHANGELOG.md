@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route first-read tool hubs, catalog matrices, frontend docs, and
+  schema-policy workflows through local-runtime executable ownership while
+  keeping Python sidecar paths/tests as implementation evidence. No migration
+  required.
 - docs/runtime: route remaining public architecture, operations, node, and
   frontend workflow owner labels through local-runtime implementation wording
   while preserving Python sidecar implementation breadcrumbs. No migration
@@ -34,6 +38,12 @@ All notable changes to WindieOS will be documented in this file.
 - docs/tools: route public tool-contract and prompt-schema parity labels through
   local-runtime executable wording instead of sidecar parity/schema ownership.
   No migration required.
+- docs/frontend: route frontend hub and architecture runtime-owner labels
+  through local-runtime implementation wording while preserving Python sidecar
+  packaging details. No migration required.
+- docs/tools: route tool hub, catalog, and channel executor-owner labels
+  through local-runtime executor wording while preserving Python sidecar
+  implementation paths. No migration required.
 - docs/concepts: route the runtime model and security hub through local-runtime
   execution and remote-client auth labels instead of sidecar-as-owner wording.
   No migration required.
