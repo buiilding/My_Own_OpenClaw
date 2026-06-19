@@ -13,6 +13,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/chat/utils/session/conversationRef.ts`
+- `frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
@@ -99,14 +100,17 @@ dashboard selector remains scoped to fields rendered by the full interface.
 `startNewChatSession(...)` order:
 
 1. optional `stopActiveQuery()` callback
-2. `clearMessages()`
-3. set `isSending=false`
-4. set `thinkingStatus=null`
-5. set `tokenCounts=null`
-6. create new `conversationRef` via `createConversationRef()`
-7. snapshot the currently selected workspace into the conversation binding map
-8. persist through `setActiveConversationRef(nextConversationRef)`
-8. return new conversation ref
+2. reset the previous active chat through
+   `desktopActiveChatSessionRuntime.resetActiveChatSession(...)`
+3. create new `conversationRef` via `createConversationRef()`
+4. snapshot the currently selected workspace into the conversation binding map
+5. persist through `setActiveConversationRef(nextConversationRef)`
+6. return new conversation ref
+
+`desktopActiveChatSessionRuntime.resetActiveChatSession(...)` owns the shared
+renderer rule for clearing active transcript identity plus chat workspace
+state. Chat new-session and dashboard delete/clear paths call that app-runtime
+facade instead of keeping a chat-feature-only reset helper.
 
 `createConversationRef()` format is deterministic prefix: `conv_${crypto.randomUUID()}`.
 
