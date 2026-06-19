@@ -12,7 +12,7 @@ import {
 } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import {
   logRendererLiveSurfaceTrace,
-  logRendererResponseSurfaceTrace,
+  logRendererResponseSurfaceSizeTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
@@ -75,11 +75,10 @@ export function useResponseOverlayWindowSync({
       }
       lastFrameRef.current = createHiddenFrameState();
       try {
-        logRendererResponseSurfaceTrace({
-          source: 'renderer-response-window-sync',
+        logRendererResponseSurfaceSizeTrace({
           action: 'hide-requested',
           visible: false,
-          layout_mode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
           width: 0,
           height: 0,
         });
@@ -139,16 +138,15 @@ export function useResponseOverlayWindowSync({
     };
 
     try {
-      logRendererResponseSurfaceTrace({
-        source: 'renderer-response-window-sync',
+      logRendererResponseSurfaceSizeTrace({
         action: 'show-or-resize-requested',
         visible: true,
-        layout_mode: layoutMode,
-        show_response: showResponse,
-        thinking_text_length: typeof thinkingText === 'string' ? thinkingText.length : 0,
-        compact_hover: Boolean(compactHover),
-        turn_ref: turnRef,
-        stale_guard_ref: staleGuardRef,
+        layoutMode,
+        showResponse,
+        thinkingText,
+        compactHover: Boolean(compactHover),
+        turnRef,
+        staleGuardRef,
         width,
         height,
       });

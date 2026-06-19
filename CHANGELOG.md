@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize response-overlay stream-trace size payload fields
+  in `desktopRendererTraceRuntime` so `useResponseOverlayWindowSync` no longer
+  assembles diagnostic `layout_mode`, `show_response`, `compact_hover`, or
+  turn-reference field names directly. No migration required.
+- renderer/settings: move `models-listed` settings-event routing into
+  `desktopSettingsEventRuntimeClient` and remove the retired provider-local
+  `appConfigEvents` router so app config providers no longer own raw settings
+  event type dispatch. No migration required.
 - renderer/permissions: normalize permission status reason, remediation, and
   status-class detail presentation in `desktopPermissionPresentationRuntime`
   so onboarding and browser settings no longer read raw status detail fields.

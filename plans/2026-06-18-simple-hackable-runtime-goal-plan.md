@@ -275,6 +275,34 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved response-overlay stream-trace size payload shaping into
+  `desktopRendererTraceRuntime`. `useResponseOverlayWindowSync` now keeps
+  response-window measurement, dedupe, and visibility re-report timing while
+  passing value-level layout, response, thinking, hover, turn, guard, width,
+  and height inputs to the trace runtime instead of assembling diagnostic
+  `layout_mode`, `show_response`, `thinking_text_length`, `compact_hover`,
+  `turn_ref`, and `stale_guard_ref` fields directly. Validation passed focused
+  renderer trace runtime, response overlay, chat boundary, and docs-index tests
+  plus stale trace-field scan, docs search, commit search, docs listing, and
+  diff checks. No migration required; responsebox IPC payload shape,
+  live-surface
+  trace IPC payload shape, stream-trace log labels, overlay measurement/dedupe
+  behavior, storage, provider policy, hosted URLs, permissions, and local
+  execution behavior are unchanged.
+
+- 2026-06-19: moved renderer settings-event type dispatch into
+  `routeDesktopSettingsEvent(...)` in `desktopSettingsEventRuntimeClient` and
+  deleted the retired provider-local `appConfigEvents` router. `AppConfigProvider`
+  now keeps provider state, refs, and subscription cleanup while the settings
+  event runtime owns raw `models-listed` dispatch to model-list handlers.
+  Validation passed focused settings-event runtime, app config provider model,
+  renderer settings boundary, and docs-index tests plus stale router reference
+  scan, docs listing, and diff checks. No migration required; settings-event
+  channel names,
+  `models-listed` payload shapes, available-models state, save-status behavior,
+  config persistence, storage, IPC, provider policy, hosted URLs, permissions,
+  credentials, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer permission status detail presentation
   boundary slice by adding reason/status-class/remediation normalization to
   `desktopPermissionPresentationRuntime`. Onboarding permission slides and

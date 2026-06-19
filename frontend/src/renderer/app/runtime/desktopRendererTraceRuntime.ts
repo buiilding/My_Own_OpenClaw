@@ -24,6 +24,21 @@ type RendererTraceWorkspaceSnapshotResolver = (
   conversationRef: string | null,
 ) => RendererTraceWorkspaceSnapshot;
 
+export type RendererResponseSurfaceSizeTraceValues = {
+  source?: string;
+  action: string;
+  visible: boolean;
+  layoutMode?: string | null;
+  showResponse?: boolean;
+  thinkingText?: unknown;
+  thinkingTextLength?: unknown;
+  compactHover?: boolean;
+  turnRef?: unknown;
+  staleGuardRef?: unknown;
+  width: unknown;
+  height: unknown;
+};
+
 let workspaceSnapshotResolver: RendererTraceWorkspaceSnapshotResolver | null = null;
 
 export function configureRendererTraceWorkspaceSnapshotResolver(
@@ -74,6 +89,58 @@ export function logRendererResponseSurfaceTrace(data: Record<string, unknown>): 
     view: getRendererTraceView(),
     ...data,
   });
+}
+
+function traceString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function traceNumberOrZero(value: unknown): number {
+  const normalized = Number(value);
+  return Number.isFinite(normalized) ? normalized : 0;
+}
+
+function traceTextLength(values: RendererResponseSurfaceSizeTraceValues): number | null {
+  if (typeof values.thinkingTextLength === 'number' && Number.isFinite(values.thinkingTextLength)) {
+    return values.thinkingTextLength;
+  }
+  return typeof values.thinkingText === 'string' ? values.thinkingText.length : null;
+}
+
+export function buildRendererResponseSurfaceSizeTracePayload(
+  values: RendererResponseSurfaceSizeTraceValues,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    source: traceString(values.source) || 'renderer-response-window-sync',
+    action: traceString(values.action) || 'size-report',
+    visible: values.visible === true,
+    layout_mode: traceString(values.layoutMode) || 'hidden',
+    width: traceNumberOrZero(values.width),
+    height: traceNumberOrZero(values.height),
+  };
+  if (typeof values.showResponse === 'boolean') {
+    payload.show_response = values.showResponse;
+  }
+  const thinkingTextLength = traceTextLength(values);
+  if (thinkingTextLength !== null) {
+    payload.thinking_text_length = thinkingTextLength;
+  }
+  if (typeof values.compactHover === 'boolean') {
+    payload.compact_hover = values.compactHover;
+  }
+  if (values.turnRef !== undefined) {
+    payload.turn_ref = traceString(values.turnRef) || null;
+  }
+  if (values.staleGuardRef !== undefined) {
+    payload.stale_guard_ref = traceString(values.staleGuardRef) || null;
+  }
+  return payload;
+}
+
+export function logRendererResponseSurfaceSizeTrace(
+  values: RendererResponseSurfaceSizeTraceValues,
+): void {
+  logRendererResponseSurfaceTrace(buildRendererResponseSurfaceSizeTracePayload(values));
 }
 
 function getRendererPlatform(): string | null {

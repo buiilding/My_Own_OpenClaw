@@ -129,6 +129,10 @@ Contract ownership:
   visibility re-report behavior, delegating responsebox size payload assembly,
   IPC, and visibility payload normalization/boolean subscription projection to
   `DesktopResponseOverlayRuntimeClient`.
+- `desktopRendererTraceRuntime.ts` owns response-surface stream-trace payload
+  field shaping. `useResponseOverlayWindowSync(...)` reports value-level sizing
+  and turn inputs to `logRendererResponseSurfaceSizeTrace(...)`; the trace
+  runtime maps those values to the existing diagnostic fields.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:
@@ -204,6 +208,11 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
 - `useChatMessageSender` logs send start and backend dispatch intent
 - `desktopChatSendPreparation` logs SDK screenshot-resource decision
 - `ChatBoxResponse` logs the resolved overlay view contract each render pass that matters
+- response-window size traces go through
+  `logRendererResponseSurfaceSizeTrace(...)`, so the window-sync hook does not
+  assemble trace fields such as `layout_mode`, `show_response`,
+  `thinking_text_length`, `compact_hover`, `turn_ref`, or `stale_guard_ref`
+  directly
 
 ## Tool-Ghost Status (Current)
 

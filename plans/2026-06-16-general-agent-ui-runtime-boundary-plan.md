@@ -120,6 +120,41 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Response-Surface Trace Payload Boundary
+
+- Finding: `desktopRendererTraceRuntime` owned renderer debug-trace gating and
+  live-surface forwarding, but `useResponseOverlayWindowSync` still assembled
+  response-surface stream-trace fields such as `layout_mode`,
+  `show_response`, `thinking_text_length`, `compact_hover`, `turn_ref`, and
+  `stale_guard_ref` while reporting response-window size changes.
+- Change: added response-surface size trace payload normalization to the trace
+  runtime. The window-sync hook now reports value-level layout, response,
+  thinking, hover, turn, guard, width, and height inputs.
+- Validation: passed focused renderer trace runtime, response overlay, chat
+  boundary, and docs-index tests plus docs search, related commit search,
+  stale trace-field scan, docs listing, and diff checks.
+- Compatibility: no migration required. Responsebox IPC payload shape,
+  live-surface trace IPC payload shape, stream-trace log labels, overlay
+  measurement/dedupe behavior, storage, provider policy, hosted URLs,
+  permissions, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Settings Event Type Dispatch Boundary
+
+- Finding: `DesktopSettingsEventRuntimeClient` owned model-list settings-event
+  payload handling, but `AppConfigProvider` still delegated raw
+  `models-listed` event type dispatch through the provider-local
+  `appConfigEvents` helper.
+- Change: moved settings-event type dispatch into
+  `routeDesktopSettingsEvent(...)` in `desktopSettingsEventRuntimeClient` and
+  deleted the retired provider-local router and test.
+- Validation: passed focused settings-event runtime, app config provider model,
+  renderer settings boundary, and docs-index tests plus stale router reference
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Settings-event channel names,
+  `models-listed` payload shapes, available-models state, save-status behavior,
+  config persistence, storage, IPC, provider policy, hosted URLs, permissions,
+  credentials, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission Status Detail Presentation Boundary
 
 - Finding: `desktopPermissionPresentationRuntime` owned shared permission

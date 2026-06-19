@@ -60,6 +60,12 @@ The runtime client owns conversion from renderer value names to the
 `stale_guard_ref`, and optional `dismissed`). The window-sync hook owns only
 visibility, measurement, dedupe, and re-report timing.
 
+Response-window size stream traces are shaped by
+`desktopRendererTraceRuntime.ts`. The window-sync hook passes camelCase
+value-level fields to `logRendererResponseSurfaceSizeTrace(...)`; it does not
+assemble diagnostic `layout_mode`, `show_response`, `thinking_text_length`,
+`compact_hover`, `turn_ref`, or `stale_guard_ref` fields directly.
+
 Behavior:
 
 - hidden mode sends `{ visible:false, width:0, height:0 }`
@@ -99,6 +105,8 @@ This keeps response HTML sanitation and error rendering behavior deterministic u
 1. Reintroducing dynamic response height measurement can break fixed-shell assumptions in overlay positioning.
 2. Removing visibility-show re-report can leave stale response window bounds after capture hide/show cycles.
 3. Changing bottom-stick threshold without tests can create jumpy scroll behavior for streaming responses.
+4. Rebuilding response-window stream-trace field names in
+   `useResponseOverlayWindowSync(...)` duplicates the trace runtime boundary.
 
 ## Related Pages
 

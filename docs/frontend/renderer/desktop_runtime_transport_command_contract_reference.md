@@ -180,6 +180,14 @@ live-surface trace IPC send channel. Chat stream debug utilities decide whether
 to emit diagnostics and build redacted payloads, then call this runtime client
 instead of importing desktop IPC channel constants directly.
 
+`desktopRendererTraceRuntime.ts` owns renderer debug-trace gating, workspace
+snapshot enrichment, response-surface stream-trace envelope logging, and
+response-overlay size trace field shaping. Response overlay hooks pass
+value-level `layoutMode`, `showResponse`, `thinkingText`, `compactHover`,
+`turnRef`, and `staleGuardRef` inputs; the trace runtime maps those values to
+the existing diagnostic `layout_mode`, `show_response`, `thinking_text_length`,
+`compact_hover`, `turn_ref`, and `stale_guard_ref` fields.
+
 `desktopWindowRuntimeClient.ts` owns renderer adapter calls for desktop window
 commands used by generic runtime flows, such as restoring the chatbox after
 overlay-origin sends, applying startup surface visibility, handling wakeword
@@ -219,6 +227,10 @@ providers do not import config persistence, settings-event channel constants,
 or host-shaped settings error payload details directly. It also exposes
 value-level save-status actions so `AppStatusProvider` owns timer/state
 transitions without switching on settings-event payload fields.
+
+`desktopSettingsEventRuntimeClient.ts` owns model-list settings-event handler
+state and raw `models-listed` type dispatch via `routeDesktopSettingsEvent(...)`
+so `AppConfigProvider` does not parse raw settings-event `type` values directly.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
 desktop client/session snapshot and IPC transport status subscription, including

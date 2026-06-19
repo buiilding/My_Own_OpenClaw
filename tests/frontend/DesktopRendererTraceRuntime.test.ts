@@ -11,10 +11,12 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveSurfaceTraceRuntim
 }));
 
 import {
+  buildRendererResponseSurfaceSizeTracePayload,
   configureRendererTraceWorkspaceSnapshotResolver,
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceTrace,
+  logRendererResponseSurfaceSizeTrace,
 } from '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime';
 
 function setSearch(search: string) {
@@ -92,6 +94,76 @@ describe('desktopRendererTraceRuntime', () => {
     expect(consoleLog).toHaveBeenCalledWith('[StreamTrace][renderer][response-surface]', {
       view: 'response-overlay',
       event: 'resize',
+    });
+  });
+
+  test('builds response-surface size trace payloads from renderer values', () => {
+    expect(buildRendererResponseSurfaceSizeTracePayload({
+      action: 'show-or-resize-requested',
+      visible: true,
+      layoutMode: 'response',
+      showResponse: true,
+      thinkingText: 'thinking',
+      compactHover: false,
+      turnRef: ' turn-1 ',
+      staleGuardRef: ' guard-1 ',
+      width: '320.5',
+      height: 236,
+    })).toEqual({
+      source: 'renderer-response-window-sync',
+      action: 'show-or-resize-requested',
+      visible: true,
+      layout_mode: 'response',
+      show_response: true,
+      thinking_text_length: 8,
+      compact_hover: false,
+      turn_ref: 'turn-1',
+      stale_guard_ref: 'guard-1',
+      width: 320.5,
+      height: 236,
+    });
+
+    expect(buildRendererResponseSurfaceSizeTracePayload({
+      source: ' custom-source ',
+      action: '',
+      visible: false,
+      layoutMode: '',
+      thinkingTextLength: 4,
+      turnRef: '',
+      staleGuardRef: undefined,
+      width: 'bad',
+      height: null,
+    })).toEqual({
+      source: 'custom-source',
+      action: 'size-report',
+      visible: false,
+      layout_mode: 'hidden',
+      thinking_text_length: 4,
+      turn_ref: null,
+      width: 0,
+      height: 0,
+    });
+  });
+
+  test('emits normalized response-surface size traces under the stream debug flag', () => {
+    setSearch('?debug_stream=1&view=response-overlay');
+
+    logRendererResponseSurfaceSizeTrace({
+      action: 'hide-requested',
+      visible: false,
+      layoutMode: 'hidden',
+      width: 0,
+      height: 0,
+    });
+
+    expect(consoleLog).toHaveBeenCalledWith('[StreamTrace][renderer][response-surface]', {
+      view: 'response-overlay',
+      source: 'renderer-response-window-sync',
+      action: 'hide-requested',
+      visible: false,
+      layout_mode: 'hidden',
+      width: 0,
+      height: 0,
     });
   });
 });

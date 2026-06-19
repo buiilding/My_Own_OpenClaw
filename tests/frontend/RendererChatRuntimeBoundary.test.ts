@@ -2004,6 +2004,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts'),
       'utf8',
     );
+    const traceRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
+      'utf8',
+    );
     const layoutRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js'),
       'utf8',
@@ -2019,6 +2023,14 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('overlayFrameSize');
     expect(syncSource).not.toContain('responseOverlayLayoutMode');
     expect(syncSource).not.toContain('responseOverlayLayoutContract');
+    expect(syncSource).not.toContain('logRendererResponseSurfaceTrace');
+    expect(syncSource).toContain('logRendererResponseSurfaceSizeTrace');
+    expect(syncSource).not.toContain('layout_mode');
+    expect(syncSource).not.toContain('show_response');
+    expect(syncSource).not.toContain('thinking_text_length');
+    expect(syncSource).not.toContain('compact_hover');
+    expect(syncSource).not.toContain('turn_ref');
+    expect(syncSource).not.toContain('stale_guard_ref');
     expect(syncSource).not.toContain('payload?.visible');
     expect(syncSource).not.toContain('payload.visible');
     expect(syncSource).toContain('setResponseboxSizeValues');
@@ -2029,6 +2041,8 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('buildResponseboxSizePayload');
     expect(clientSource).toContain('buildResponseboxHitTestPayload');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload(payload).visible');
+    expect(traceRuntimeSource).toContain('buildRendererResponseSurfaceSizeTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererResponseSurfaceSizeTrace');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
     expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT');
