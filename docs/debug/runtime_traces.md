@@ -391,7 +391,7 @@ Use this when the minimal pill, awaiting indicator, or response overlay flickers
 | Main phase IPC | `frontend/src/main/surfaces/response_overlay_phase_handler.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs` | Phase writes and renderer notification. |
 | Main window policy | `frontend/src/main/surfaces/surface_runtime.cjs`, `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/display_affinity_runtime.cjs` | Visibility, capture, content protection, and display affinity. |
 | Renderer view model | `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js` | SDK current-turn projection, awaiting, streaming, complete, and error state transitions. |
-| Chat pill trace | `frontend/src/main/debug/chat_pill_trace_runtime.cjs`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | Main and renderer state snapshots. |
+| Chat pill trace | `frontend/src/main/debug/chat_pill_trace_runtime.cjs`, `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts` | Main and renderer state snapshots. |
 
 Enable:
 
@@ -424,7 +424,7 @@ Renderer trace platform labels are diagnostic metadata only. The renderer trace
 helper no longer reads deprecated `navigator.platform`; it prefers
 `navigator.userAgentData.platform` and falls back to `navigator.userAgent` when
 user-agent data is not available. Stale deprecation-audit searches for
-`navigator.platform` in `chatStreamDebugTrace.ts` should route here.
+`navigator.platform` in `desktopRendererTraceRuntime.ts` should route here.
 
 `ipc.bridge` is the compact Electron main bridge timeline. It stores milestones
 for renderer query send, backend connection state, the first backend event

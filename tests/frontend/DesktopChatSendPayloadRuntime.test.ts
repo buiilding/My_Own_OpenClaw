@@ -5,9 +5,9 @@
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
-} from '../../frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads';
+} from '../../frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime';
 
-describe('chatMessageSenderPayloads', () => {
+describe('desktopChatSendPayloadRuntime', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

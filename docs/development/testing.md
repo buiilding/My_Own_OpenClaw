@@ -74,7 +74,7 @@ npm run audit:knip
 - Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`.
 - Message transparency section descriptor behavior is covered directly by `tests/frontend/DesktopMessageTransparencyRuntime.test.js`.
 - Thread-find match projection behavior is covered directly by `tests/frontend/DesktopThreadFindRuntime.test.js`.
-- Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
+- Chat message sender helper behavior is covered directly by `tests/frontend/DesktopChatSendStateRuntime.test.ts`.
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
 - Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.

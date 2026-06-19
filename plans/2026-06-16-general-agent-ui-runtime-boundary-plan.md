@@ -120,6 +120,45 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Trace Runtime Boundary
+
+- Finding: stream, chat-pill, response-surface, and live-surface diagnostic
+  trace helpers were shared by chat and minimal-pill surfaces but still lived
+  under chat stream utilities.
+- Change: moved renderer trace helpers into
+  `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`, routed
+  chat/minimal-pill callers and debug docs through the app-runtime facade, and
+  injected chat workspace snapshots from ChatProvider so the trace runtime does
+  not import chat feature state.
+- Validation: focused desktop renderer trace runtime, renderer chat boundary,
+  docs listing, stale old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Debug query flags, console labels,
+  live-surface trace IPC forwarding, redacted workspace snapshot fields, trace
+  payload shapes, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Chat Send Payload Runtime Boundary
+
+- Finding: outgoing chat send payload normalization, attachment filename
+  deduping, and first-user-message predicates were SDK send-preparation rules,
+  but they still lived under chat feature message-sender utilities.
+- Change: moved payload normalization into
+  `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts` and
+  first-user-message detection into
+  `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`. The send
+  hook and send preparation now consume those app-runtime facades, and the old
+  chat utility paths are deleted.
+- Validation: focused desktop chat send payload runtime, desktop chat send
+  state runtime, chat message sender, pending-turn live surface integration,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks.
+- Compatibility: no migration required. String/object send payload handling,
+  removed singular `clipboardImage` rejection, clipboard image/readable-file
+  filtering, attachment filename deduping, first-user-message screenshot
+  capture decisions, pending-turn payloads, SDK turn resources, IPC payloads,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Current-Turn Thinking and Compaction Runtime Boundary
 
 - Finding: SDK current-turn cursor side effects, reasoning/assistant delta

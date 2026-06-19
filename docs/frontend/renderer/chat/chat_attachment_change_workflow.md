@@ -40,7 +40,7 @@ flowchart LR
 | Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
-| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `chatMessageSenderPayloads.ts`, `desktopChatSendPreparation.ts`, `ConversationRuntime.ts` | `ChatMessageSenderPayloads.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
+| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparation.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
 | Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `WindieSdkConversationRuntime.test.ts`, artifact tests |
 | Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `WindieSdkContextEnrichment.test.ts` |
@@ -110,7 +110,7 @@ Clipboard image IPC trust boundary:
 | Clipboard image paste/preview/remove | `cd frontend && npm run test -- MessageInput ClipboardImageUtils` |
 | File picker image/readable bucketing | `cd frontend && npm run test -- MessageInput FileAttachmentUtils` |
 | Outgoing composer payload shape | `cd frontend && npm run test -- DesktopMessageInputRuntime MessageInput` |
-| Sender payload normalization | `cd frontend && npm run test -- ChatMessageSenderPayloads ChatMessageSenderUtils` |
+| Sender payload normalization | `cd frontend && npm run test -- DesktopChatSendPayloadRuntime DesktopChatSendStateRuntime` |
 | Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender WindieSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |
 | Backend screenshot/query input resolution | `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py` |
@@ -124,7 +124,7 @@ Clipboard image IPC trust boundary:
 ### Composer Shows an Image but Backend Does Not See It
 
 1. Confirm `MessageInput` sends an object payload with `clipboardImages[]`.
-2. Confirm `chatMessageSenderPayloads.ts` keeps the image after normalization.
+2. Confirm `desktopChatSendPayloadRuntime.ts` keeps the image after normalization.
 3. Confirm `DesktopLiveTurnRuntimeClient.sendQuery` payload includes `clipboard_image` resources.
 4. Confirm `DefaultTurnResourceResolvers` materializes the image into `screenshot_ref` and `screenshot_refs`.
 5. Confirm backend query input resolution can load the artifact ref.

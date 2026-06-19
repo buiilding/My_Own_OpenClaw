@@ -16,7 +16,7 @@ import {
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
-import { logRendererLiveSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
+import { logRendererLiveSurfaceTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../app/runtime/desktopPresentationSourceChannels';
 import {
   applyCurrentTurnProjectionSideEffects,

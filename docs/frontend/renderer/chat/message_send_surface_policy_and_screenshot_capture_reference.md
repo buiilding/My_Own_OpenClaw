@@ -12,8 +12,8 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`

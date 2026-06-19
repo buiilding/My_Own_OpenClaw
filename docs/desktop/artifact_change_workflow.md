@@ -161,7 +161,7 @@ Use this path when backend-bound payloads change.
 
 Primary files:
 
-- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`

@@ -175,7 +175,7 @@ source keeps its trust and timing rules.
 | Slice | Focused validation |
 | --- | --- |
 | SDK query resource materialization | `bin/windie test frontend -- WindieSdkConversationRuntime ArtifactImageUtils` |
-| Renderer resource send path | `bin/windie test frontend -- ChatMessageSender ChatMessageSenderPayloads` |
+| Renderer resource send path | `bin/windie test frontend -- ChatMessageSender DesktopChatSendPayloadRuntime` |
 | Tool screenshot materialization | `bin/windie test frontend -- WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime` |
 | Main trusted temp-path bridge | `bin/windie test frontend -- LocalRuntimeExecuteToolRuntime LocalRuntimeBridge` |
 | Backend artifact-ref contract | `./scripts/python-in-env.sh backend pytest tests/backend/test_query_execution_inputs.py tests/backend/test_api_handlers.py` |

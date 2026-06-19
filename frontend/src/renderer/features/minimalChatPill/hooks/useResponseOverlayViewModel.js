@@ -21,7 +21,7 @@ import {
   normalizeThinkingText,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { resolveChatPillViewIntent } from '../../../app/runtime/desktopChatPillSessionRuntime';
-import { logRendererLiveSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
+import { logRendererLiveSurfaceTrace } from '../../../app/runtime/desktopRendererTraceRuntime';
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)

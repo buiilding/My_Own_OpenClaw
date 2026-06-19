@@ -1148,9 +1148,13 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
-  test('chat stream debug trace routes live-surface IPC through app runtime client', async () => {
+  test('renderer trace runtime routes live-surface IPC through app runtime client', async () => {
     const source = await fs.readFile(
-      path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts'),
+      'utf8',
+    );
+    const chatProviderSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/providers/ChatProvider.jsx'),
       'utf8',
     );
     const clientSource = await fs.readFile(
@@ -1161,7 +1165,13 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('SEND_CHANNELS');
     expect(source).not.toContain('LIVE_SURFACE_TRACE');
     expect(source).not.toContain('IpcBridge');
+    expect(source).not.toContain('features/chat');
+    expect(source).toContain('configureRendererTraceWorkspaceSnapshotResolver');
+    expect(chatProviderSource).toContain('configureRendererTraceWorkspaceSnapshotResolver');
     expect(clientSource).toContain('SEND_CHANNELS.LIVE_SURFACE_TRACE');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),
+    )).rejects.toThrow();
   });
 
   test('chat send preparation routes chatbox window policy through app runtime client', async () => {
@@ -1178,6 +1188,42 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('IpcBridge.invoke');
     expect(source).toContain('DesktopWindowRuntimeClient.showChatbox');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_CHATBOX');
+  });
+
+  test('chat send payload normalization stays behind app runtime facades', async () => {
+    const senderHookSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
+      'utf8',
+    );
+    const sendPreparationSource = await fs.readFile(
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+      'utf8',
+    );
+    const payloadRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts'),
+      'utf8',
+    );
+    const stateRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts'),
+      'utf8',
+    );
+
+    expect(senderHookSource).toContain('desktopChatSendPayloadRuntime');
+    expect(sendPreparationSource).toContain('desktopChatSendPayloadRuntime');
+    expect(sendPreparationSource).toContain('desktopChatSendStateRuntime');
+    expect(sendPreparationSource).not.toContain('chatMessageSenderPayloads');
+    expect(sendPreparationSource).not.toContain('chatMessageSenderUtils');
+    expect(payloadRuntimeSource).toContain('normalizeOutgoingPayload');
+    expect(payloadRuntimeSource).toContain('normalizeAttachmentFilenames');
+    expect(payloadRuntimeSource).not.toContain('features/chat');
+    expect(stateRuntimeSource).toContain('hasUserMessages');
+    expect(stateRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/messageSender/chatMessageSenderPayloads.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/messageSender/chatMessageSenderUtils.ts'),
+    )).rejects.toThrow();
   });
 
   test('chat send preparation routes interaction diagnostics through app runtime client', async () => {

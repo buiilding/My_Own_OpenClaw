@@ -36,10 +36,13 @@ frontend/src/renderer/
 │   │   ├── desktopChatLoopUiRuntime.js # Renderer chat loop UI-state reducer shared by dashboard/minimal surfaces
 │   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
 │   │   ├── desktopChatPillSessionRuntime.ts # Renderer chat-pill send lifecycle and response-overlay view intent facade
+│   │   ├── desktopChatSendPayloadRuntime.ts # Renderer chat send payload and attachment filename normalization facade
+│   │   ├── desktopChatSendStateRuntime.ts # Renderer chat send state predicates facade
 │   │   ├── desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply and chatbox surface projection facade
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
 │   │   ├── desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
+│   │   ├── desktopRendererTraceRuntime.ts # Renderer stream/chat-pill/live-surface diagnostic trace facade
 │   │   ├── desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
 │   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
 │   │   ├── desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
@@ -146,14 +149,11 @@ frontend/src/renderer/
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── messageSender/            # messageSender - Payload normalization and SDK turn resource handle utilities
-│   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
-│   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
 │   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
-│   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
 │   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment and error filtering/text helpers
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers

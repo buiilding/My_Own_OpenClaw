@@ -13,7 +13,7 @@ import {
 import {
   logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceTrace,
-} from '../../chat/utils/chatStream/chatStreamDebugTrace';
+} from '../../../app/runtime/desktopRendererTraceRuntime';
 
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
 

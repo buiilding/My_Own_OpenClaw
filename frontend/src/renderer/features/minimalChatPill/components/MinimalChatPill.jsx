@@ -29,7 +29,7 @@ import {
 import {
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
-} from '../../chat/utils/chatStream/chatStreamDebugTrace';
+} from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
   AttachmentIcon,

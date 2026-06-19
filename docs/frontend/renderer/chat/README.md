@@ -51,8 +51,8 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
@@ -64,6 +64,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
@@ -89,11 +90,14 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
 - `tests/frontend/ChatStore.test.ts`
+- `tests/frontend/DesktopChatSendPayloadRuntime.test.ts`
+- `tests/frontend/DesktopChatSendStateRuntime.test.ts`
 - `tests/frontend/DesktopChatModelOptionsRuntime.test.js`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
 - `tests/frontend/ChatStreamMessageUpdates.test.ts`
 - `tests/frontend/DesktopChatStreamThinkingRuntime.test.ts`
 - `tests/frontend/DesktopCurrentTurnProjectionEffectsRuntime.test.ts`
+- `tests/frontend/DesktopRendererTraceRuntime.test.ts`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`

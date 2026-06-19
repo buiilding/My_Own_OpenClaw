@@ -15,7 +15,7 @@ import {
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceTrace,
-} from '../../chat/utils/chatStream/chatStreamDebugTrace';
+} from '../../../app/runtime/desktopRendererTraceRuntime';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
 

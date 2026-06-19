@@ -176,7 +176,7 @@ the renderer sends the `renderer-interaction` payload through `renderer-log`.
 
 | Trace | Code root | Enablement |
 | --- | --- | --- |
-| Stream trace | `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | URL has `debug_stream=1` or `debug_chat_pill=1` |
+| Stream trace | `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts` | URL has `debug_stream=1` or `debug_chat_pill=1` |
 | Chat pill trace | Same renderer trace module | URL has `debug_stream=1` or `debug_chat_pill=1` |
 | Tool screenshot trace | `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` |
 

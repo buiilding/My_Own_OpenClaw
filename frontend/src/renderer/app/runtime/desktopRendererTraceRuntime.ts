@@ -1,9 +1,36 @@
 /**
- * Provides the chat stream debug trace module for the renderer UI.
+ * Provides renderer diagnostic trace helpers for desktop chat surfaces.
  */
 
-import { useChatStore } from '../../stores/chatStore';
-import { DesktopLiveSurfaceTraceRuntimeClient } from '../../../../app/runtime/desktopLiveSurfaceTraceRuntimeClient';
+import { DesktopLiveSurfaceTraceRuntimeClient } from './desktopLiveSurfaceTraceRuntimeClient';
+
+export type RendererTraceWorkspaceSnapshot = {
+  activeConversationRef?: string | null;
+  workspaceMessageCount?: number;
+  isSending?: boolean;
+  thinkingStatus?: string | null;
+  phase?: string | null;
+  activeTurnRef?: string | null;
+  lastMessage?: {
+    sender?: string | null;
+    type?: string | null;
+    textLength?: number;
+    turnRef?: string | null;
+    sourceEventType?: string | null;
+  } | null;
+};
+
+type RendererTraceWorkspaceSnapshotResolver = (
+  conversationRef: string | null,
+) => RendererTraceWorkspaceSnapshot;
+
+let workspaceSnapshotResolver: RendererTraceWorkspaceSnapshotResolver | null = null;
+
+export function configureRendererTraceWorkspaceSnapshotResolver(
+  resolver: RendererTraceWorkspaceSnapshotResolver | null,
+): void {
+  workspaceSnapshotResolver = typeof resolver === 'function' ? resolver : null;
+}
 
 function getRendererSearch(): string {
   if (typeof window === 'undefined') {
@@ -35,25 +62,8 @@ function getRendererTraceView(): string {
   return params.get('view') || 'main';
 }
 
-function summarizeWorkspaceForTrace(conversationRef: string | null) {
-  const store = useChatStore.getState();
-  const workspace = store.getWorkspaceState(conversationRef);
-  const lastMessage = workspace.messages[workspace.messages.length - 1] || null;
-  return {
-    activeConversationRef: store.activeConversationRef,
-    workspaceMessageCount: workspace.messages.length,
-    isSending: workspace.isSending,
-    thinkingStatus: workspace.thinkingStatus,
-    phase: workspace.streamTracking.phase,
-    activeTurnRef: workspace.streamTracking.activeTurnRef,
-    lastMessage: lastMessage ? {
-      sender: lastMessage.sender,
-      type: lastMessage.type || null,
-      textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-      turnRef: lastMessage.turnRef || null,
-      sourceEventType: lastMessage.sourceEventType || null,
-    } : null,
-  };
+function summarizeWorkspaceForTrace(conversationRef: string | null): RendererTraceWorkspaceSnapshot {
+  return workspaceSnapshotResolver?.(conversationRef) ?? {};
 }
 
 export function logRendererResponseSurfaceTrace(data: Record<string, unknown>): void {

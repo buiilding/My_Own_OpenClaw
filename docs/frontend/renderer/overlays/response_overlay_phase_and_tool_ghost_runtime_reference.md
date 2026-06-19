@@ -26,7 +26,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
+- `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 - `tests/frontend/LiveTurnSurfaceState.test.js`

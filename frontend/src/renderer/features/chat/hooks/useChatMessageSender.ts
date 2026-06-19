@@ -14,7 +14,7 @@ import {
 import { useChatCommonActions } from './useChatCommonActions';
 import {
   type OutgoingUserMessagePayload,
-} from '../utils/messageSender/chatMessageSenderPayloads';
+} from '../../../app/runtime/desktopChatSendPayloadRuntime';
 import { resolveChatPillSendLifecycle } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import {
   dispatchPreparedDesktopChatTurn,

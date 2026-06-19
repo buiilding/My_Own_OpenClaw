@@ -275,6 +275,41 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer trace runtime-boundary slice by moving
+  stream, chat-pill, response-surface, and live-surface diagnostic trace
+  helpers from
+  `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
+  to `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`.
+  Minimal pill, response overlay, current-turn projection, send preparation,
+  debug docs, focused tests, folder structure, and renderer chat boundary
+  guards now route through the app-runtime trace facade, and ChatProvider
+  injects chat workspace snapshots without trace helpers importing chat feature
+  state. Validation: focused desktop renderer trace runtime, renderer chat
+  boundary, docs listing, stale old-path scan, frontend lint, and diff checks.
+  No migration required; debug query flags, console labels, live-surface trace
+  IPC forwarding, redacted workspace snapshot fields, trace payload shapes,
+  storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer chat-send payload runtime-boundary slice by
+  moving outgoing payload normalization and attachment filename deduping from
+  `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
+  to
+  `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`, and by
+  moving the first-user-message predicate from
+  `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
+  to `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`.
+  `useChatMessageSender`, send preparation, focused tests, docs, folder
+  structure, and renderer chat boundary guards now route through the
+  app-runtime owners, and the old chat utility paths are deleted. Validation:
+  focused desktop chat send payload runtime, desktop chat send state runtime,
+  chat message sender, pending-turn live surface integration, renderer chat
+  boundary, docs listing, stale old-path scan, frontend lint, and diff checks.
+  No migration required; string/object send payload handling, removed singular
+  `clipboardImage` rejection, clipboard image/readable-file filtering,
+  attachment filename deduping, first-user-message screenshot capture
+  decisions, pending-turn payloads, SDK turn resources, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
 - 2026-06-19: completed a renderer current-turn projection-effects
   runtime-boundary slice by moving SDK current-turn cursor side effects from
   `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`

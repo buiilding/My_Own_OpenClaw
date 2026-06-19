@@ -1,5 +1,5 @@
 /**
- * Provides the chat message sender payloads module for the renderer UI.
+ * Normalizes renderer chat send payloads into SDK turn input resources.
  */
 
 export type ClipboardImagePayload = {

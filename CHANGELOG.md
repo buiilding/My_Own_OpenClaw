@@ -27,6 +27,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/trace: move stream, chat-pill, response-surface, and live-surface
+  diagnostic trace helpers into a renderer app-runtime facade with injectable
+  chat workspace snapshots. No migration required.
+- renderer/chat-send: move outgoing chat send payload normalization,
+  attachment filename deduping, and first-user-message predicates into
+  renderer app-runtime facades consumed by send preparation. No migration
+  required.
 - renderer/current-turn-effects: move SDK current-turn projection side effects,
   stream thinking/compaction status helpers, and manual compaction command
   orchestration into renderer app-runtime facades consumed by chat stream and

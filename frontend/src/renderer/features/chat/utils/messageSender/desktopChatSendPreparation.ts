@@ -17,18 +17,18 @@ import {
   ensureConversationRefForSend,
   resolveRendererConversationSessionSnapshot,
 } from '../../../../app/runtime/desktopConversationSessionRuntime';
-import { useChatStore } from '../../stores/chatStore';
-import { logRendererChatPillTrace } from '../chatStream/chatStreamDebugTrace';
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
   type ClipboardImagePayload,
   type OutgoingUserMessagePayload,
   type ReadableFilePayload,
-} from './chatMessageSenderPayloads';
+} from '../../../../app/runtime/desktopChatSendPayloadRuntime';
 import {
   hasUserMessages,
-} from './chatMessageSenderUtils';
+} from '../../../../app/runtime/desktopChatSendStateRuntime';
+import { useChatStore } from '../../stores/chatStore';
+import { logRendererChatPillTrace } from '../../../../app/runtime/desktopRendererTraceRuntime';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 

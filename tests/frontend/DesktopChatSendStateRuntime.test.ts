@@ -4,9 +4,9 @@
 
 import {
   hasUserMessages,
-} from '../../frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils';
+} from '../../frontend/src/renderer/app/runtime/desktopChatSendStateRuntime';
 
-describe('chatMessageSenderUtils', () => {
+describe('desktopChatSendStateRuntime', () => {
   test('hasUserMessages detects whether user messages exist', () => {
     expect(hasUserMessages([{ sender: 'assistant' } as any])).toBe(false);
     expect(hasUserMessages([{ sender: 'assistant' } as any, { sender: 'user' } as any])).toBe(true);
