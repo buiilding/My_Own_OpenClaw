@@ -31,7 +31,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 | --- | --- | --- | --- | --- |
 | Visible transcript rows and conversation continuity orchestration | SDK transcript projection/runtime | `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`, `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/ConversationContinuityService.test.ts`, `tests/frontend/DesktopConversationContinuityService.test.ts`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/SdkDisplayChatMessageProjection.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
 | Transcript session identity cache | Renderer transcript session runtime plus Electron sync | `sessionInfoStorage.ts`, `transcriptSessionRuntime.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | `tests/frontend/TranscriptSessionState.test.ts`, `IpcTranscriptSessionSync.test.cjs` | [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
-| Frontend user settings | Renderer config storage and Electron config file | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
+| Frontend user settings | Renderer app-runtime config storage and Electron config file | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) |
 | Local-runtime transcript/memory SQLite | Local-runtime memory store, currently backed by Python sidecar modules | `frontend/src/main/python/memory/local_store.py`, `sqlite_store.py`, `operations.py`, `local_backend_memory_handlers.py` | `tests/sidecar/test_local_store*.py`, `test_local_backend.py`, `test_memory_operations.py` | [Local Runtime Memory](../memory/sidecar_local_memory.md) |
 | Local-runtime FAISS indexes and vector mappings | Local-runtime memory store, currently backed by Python sidecar modules | `frontend/src/main/python/memory/faiss_index.py`, `sqlite_store.py`, `local_store.py` | `tests/sidecar/test_local_store_init.py`, `test_local_store_delete_cleanup.py`, storage tests | [SQLite/FAISS/Watermark Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md) |
@@ -92,8 +92,8 @@ Read:
 
 Edit:
 
-- `frontend/src/renderer/utils/configStorage.js` for local storage defaults and normalization.
-- `frontend/src/renderer/utils/configFilter.js` for renderer-owned field filtering.
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js` for local storage defaults and normalization.
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js` for renderer-owned field filtering.
 - `frontend/src/renderer/app/providers/appConfigPersistence.js` for merge/sanitize behavior.
 - Electron main config persistence only if disk shape changes.
 - backend validation/config only for fields that are intentionally propagated.

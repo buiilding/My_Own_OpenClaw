@@ -29,7 +29,7 @@ Examples:
 
 Relevant files:
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
-- `frontend/src/renderer/utils/configFilter.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/main/ipc.cjs`
 - `backend/src/api/schemas/incoming.py`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`

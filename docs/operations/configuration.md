@@ -202,8 +202,8 @@ that old renderer-local key exists, the UI starts from current defaults and then
 merges the Electron disk config when present.
 
 See:
-- `frontend/src/renderer/utils/configStorage.js`
-- `frontend/src/renderer/utils/configFilter.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/main/ipc.cjs` (`load-frontend-config`, `save-frontend-config`)
 
 ## Changing Configuration

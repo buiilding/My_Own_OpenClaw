@@ -423,7 +423,7 @@ frontend/src/renderer/
            ↓
 3. CONFIG PERSISTENCE
    └─> app/runtime/desktopRendererConfigStorageRuntime.js
-       └─> localStorage.setItem() - Save config and version timestamp
+       └─> localStorage.setItem() - Save config to the renderer config key
 ```
 
 ### Audio Playback Flow (TTS)
