@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 SDK BackendTransport Alias Removal
+
+- Finding: the SDK conversation type surface still exported the legacy
+  backend-named `BackendTransport` compatibility alias after
+  `AgentRuntimeTransport` became the canonical reusable transport boundary for
+  SDK hosts and app builders.
+- Change: removed the `BackendTransport` TypeScript alias, updated SDK docs to
+  tell callers and host adapters to use `AgentRuntimeTransport`, and changed the
+  package-boundary guard from alias-retention to alias-removal.
+- Validation: focused SDK package-boundary guard, exact `BackendTransport`
+  source scan across SDK/docs/tests, docs listing, and diff checks.
+- Compatibility: no runtime or storage migration required. Hosted websocket
+  behavior, `createAgentBackendTransport(...)`, payloads, IPC channels,
+  settings, storage, credentials, permissions, hosted URLs, provider policy,
+  packaging, and local execution behavior are unchanged. TypeScript SDK callers
+  should import `AgentRuntimeTransport` directly.
+
 ### 2026-06-18 Runtime Guide Local-Runtime Tool Labels
 
 - Finding: runtime node, computer screenshot, memory/data-pipeline,
