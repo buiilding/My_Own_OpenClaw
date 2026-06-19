@@ -133,7 +133,7 @@ const {
   createChatQueryHandlers,
 } = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
-  handleAgentSdkInvoke,
+  registerAgentSdkInvokeHandler,
 } = require('./ipc/ipc_agent_sdk_command_handlers.cjs');
 const {
   trackRendererWindow: trackRendererWindowRuntime,
@@ -1687,31 +1687,31 @@ function initializeIpc(win, options = {}) {
     },
   });
 
-  ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE, async (event, payload = {}) => (
-    handleAgentSdkInvoke(event, payload, {
-      handleRendererChatQuery,
-      handleRendererStopQuery,
-      deps: {
-        getState: () => ({
-          currentConversationRef,
-          currentSessionId,
-          currentUserId,
-          isConnected,
-          agent: activeAgent,
-        }),
-        ensureAgent,
-        resolveWorkspacePathForAgent,
-        sendSettingsUpdate,
-        requestModelListThroughAgentSdkRuntime,
-        isBackendRuntimeConnected,
-        ensureBackendConnection,
-        ensureInitialSettingsSync,
-        getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-        sendWakewordDetectedThroughAgentSdkRuntime,
-        appendAppDiagnostic,
-      },
-    })
-  ));
+  registerAgentSdkInvokeHandler({
+    ipcMain,
+    invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE,
+    handleRendererChatQuery,
+    handleRendererStopQuery,
+    deps: {
+      getState: () => ({
+        currentConversationRef,
+        currentSessionId,
+        currentUserId,
+        isConnected,
+        agent: activeAgent,
+      }),
+      ensureAgent,
+      resolveWorkspacePathForAgent,
+      sendSettingsUpdate,
+      requestModelListThroughAgentSdkRuntime,
+      isBackendRuntimeConnected,
+      ensureBackendConnection,
+      ensureInitialSettingsSync,
+      getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
+      sendWakewordDetectedThroughAgentSdkRuntime,
+      appendAppDiagnostic,
+    },
+  });
 
 }
 

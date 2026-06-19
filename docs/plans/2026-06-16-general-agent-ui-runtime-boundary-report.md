@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Agent SDK Invoke Handler Registration Boundary
+
+- Finding: after the pending-turn extraction, the remaining direct
+  `ipcMain.handle(...)` registration in `ipc.cjs` was the SDK-shaped
+  `windie:invoke` command bridge even though command dispatch already lived in
+  `ipc_agent_sdk_command_handlers.cjs`.
+- Change: added `registerAgentSdkInvokeHandler(...)` so
+  `ipc_agent_sdk_command_handlers.cjs` owns `windie:invoke` registration and
+  the strict SDK command handler envelope. `ipc.cjs` still injects Electron-main
+  host state, query/stop handlers, settings gates, diagnostics, and Agent SDK
+  runtime functions.
+- Validation: passed focused main SDK runtime boundary tests plus docs search,
+  related commit search, stale direct `windie:invoke` registration scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. `windie:invoke` channel name, SDK
+  command names, command payloads, query/stop behavior, settings/model/memory
+  command routing, IPC allowlists, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
 ### 2026-06-19 Main Pending Turn IPC Handler Boundary
 
 - Finding: renderer pending-turn send/listen calls were already routed through

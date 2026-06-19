@@ -26,10 +26,11 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 
-## Relay Entry: `ipcMain.handle('windie:invoke', ...)`
+## Relay Entry: `windie:invoke` SDK command handler
 
 Main receives live chat query invokes on the SDK-shaped `windie:invoke` command
-channel with `command: 'conversation.send'`.
+channel with `command: 'conversation.send'` through
+`ipc_agent_sdk_command_handlers.cjs`.
 Electron main is the desktop Agent SDK host: it prepares host-only query
 context, calls the Agent SDK runtime, and forwards SDK projections back to renderer
 windows. There is no generic renderer `to-backend` compatibility relay for SDK

@@ -440,6 +440,24 @@ async function handleAgentSdkInvoke(event, input = {}, dependencies = {}) {
   }
 }
 
+function registerAgentSdkInvokeHandler({
+  ipcMain,
+  invokeChannel,
+  handleRendererChatQuery,
+  handleRendererStopQuery,
+  deps,
+  handleInvoke = handleAgentSdkInvoke,
+}) {
+  ipcMain.handle(invokeChannel, async (event, payload = {}) => (
+    handleInvoke(event, payload, {
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+      deps,
+    })
+  ));
+}
+
 module.exports = {
   handleAgentSdkInvoke,
+  registerAgentSdkInvokeHandler,
 };

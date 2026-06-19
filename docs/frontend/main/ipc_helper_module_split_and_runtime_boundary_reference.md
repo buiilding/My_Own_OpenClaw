@@ -274,8 +274,9 @@ renderer wire channel names:
 
 `ipc_agent_sdk_command_handlers.cjs` owns the strict `windie:invoke` command
 allowlist and routes conversation commands such as `conversation.send` and
-`conversation.stop` into the live SDK runtime. `ipc.cjs` registers the IPC
-handler through `handleAgentSdkInvoke(...)` and injects Electron-main state,
+`conversation.stop` into the live SDK runtime. It also owns the
+`windie:invoke` IPC handler registration through
+`registerAgentSdkInvokeHandler(...)`; `ipc.cjs` injects Electron-main state,
 settings gates, diagnostics, and Agent SDK runtime functions through generic
 dependencies such as `ensureAgent`:
 
@@ -371,8 +372,9 @@ generic `to-backend` router or direct chat query IPC handlers.
 15. pending renderer turn handler registration and payload normalization
    delegate to `ipc_pending_turn_handlers.cjs`.
 16. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
-17. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
-   `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.
+17. SDK-shaped renderer command handler registration delegates to
+   `ipc_agent_sdk_command_handlers.cjs`, which owns the `windie:invoke`
+   allowlist and dispatches to explicit Agent SDK runtime/conversation methods.
 18. extension and MCP registry handler registration delegates to
    `ipc_extension_mcp_handlers.cjs`.
 19. artifact upload/fetch handler registration delegates to

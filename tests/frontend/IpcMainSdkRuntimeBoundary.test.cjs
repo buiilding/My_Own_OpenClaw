@@ -148,8 +148,11 @@ describe('main ipc sdk runtime boundary', () => {
     );
 
     expect(mainSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
-    expect(mainSource).toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
-    expect(mainSource).toContain('handleAgentSdkInvoke(event, payload');
+    expect(mainSource).toContain('registerAgentSdkInvokeHandler({');
+    expect(mainSource).toContain('invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
+    expect(mainSource).not.toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
+    expect(source).toContain('function registerAgentSdkInvokeHandler');
+    expect(source).toContain('handleInvoke(event, payload');
     expect(mainSource).toContain('ensureAgent,');
     expect(mainSource).not.toContain(`ensureAgent: ensure${retiredProductName('Agent')}`);
     expect(mainSource).not.toContain(`getKnown${retiredProductName('LocalRuntime')}`);
@@ -199,11 +202,57 @@ describe('main ipc sdk runtime boundary', () => {
     const sdkCommandModule = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
     expect(sdkCommandModule.buildAgentSdkCommandHandlers).toBeUndefined();
     expect(typeof sdkCommandModule.handleAgentSdkInvoke).toBe('function');
+    expect(typeof sdkCommandModule.registerAgentSdkInvokeHandler).toBe('function');
 
     const memoryHandlers = source.match(/MEMORIES_LIST[\s\S]*?CONVERSATIONS_LIST/)?.[0] || '';
     expect(memoryHandlers).toContain('requireAuthenticatedCommandUserId(deps.getState().currentUserId);');
     expect(memoryHandlers).not.toContain('userId: requireAuthenticatedCommandUserId()');
     expect(memoryHandlers).not.toContain('requireCommandUserId(payload)');
+  });
+
+  test('SDK invoke registration forwards payloads through the strict command handler', async () => {
+    const {
+      registerAgentSdkInvokeHandler,
+    } = require('../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs');
+    const handlers = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+    };
+    const handleInvoke = jest.fn(async () => ({ ok: true, data: 'done' }));
+    const deps = {
+      getState: jest.fn(() => ({ currentUserId: 'user-1' })),
+    };
+    const handleRendererChatQuery = jest.fn();
+    const handleRendererStopQuery = jest.fn();
+
+    registerAgentSdkInvokeHandler({
+      ipcMain,
+      invokeChannel: 'windie:invoke',
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+      deps,
+      handleInvoke,
+    });
+
+    await expect(handlers['windie:invoke']({ sender: 'renderer' }, {
+      command: 'models.list',
+      payload: { userId: 'user-1' },
+    })).resolves.toEqual({ ok: true, data: 'done' });
+
+    expect(handleInvoke).toHaveBeenCalledWith(
+      { sender: 'renderer' },
+      {
+        command: 'models.list',
+        payload: { userId: 'user-1' },
+      },
+      {
+        handleRendererChatQuery,
+        handleRendererStopQuery,
+        deps,
+      },
+    );
   });
 
   test('electron main rejects removed user_id SDK command alias', async () => {

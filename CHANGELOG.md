@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move `windie:invoke` handler registration into
+  `ipc_agent_sdk_command_handlers.cjs` so `ipc.cjs` injects Agent SDK host
+  dependencies while the strict SDK command helper owns the invoke listener.
+  No migration required.
 - main/ipc: move pending renderer turn channel registration and payload
   normalization into `ipc_pending_turn_handlers.cjs` so `ipc.cjs` keeps the
   latest pending-turn cache while a focused helper owns `windie:pending-turn`

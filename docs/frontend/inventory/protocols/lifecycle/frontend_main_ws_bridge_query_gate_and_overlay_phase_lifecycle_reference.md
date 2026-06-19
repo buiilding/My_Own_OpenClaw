@@ -141,8 +141,8 @@ State flow:
 
 ## Query Send Lifecycle
 
-`ipcMain.handle('windie:invoke', ...)` behavior for query/settings/model
-commands:
+`ipc_agent_sdk_command_handlers.cjs` registers the `windie:invoke` handler and
+owns SDK command envelope dispatch for query/settings/model commands:
 
 1. Validate SDK command envelope from `window.agentSdk.invoke(command, payload)`.
 2. Route `settings.update` and `models.list` commands through the Agent SDK

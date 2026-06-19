@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved Electron main `windie:invoke` handler registration into
+  `ipc_agent_sdk_command_handlers.cjs`. `ipc.cjs` now injects Electron-main
+  host state, query/stop handlers, settings gates, diagnostics, and Agent SDK
+  runtime functions into a focused registration helper instead of calling
+  `ipcMain.handle(...)` directly for the SDK command bridge. Validation passed
+  focused main SDK runtime boundary tests plus docs/search, stale direct
+  `windie:invoke` registration scan, docs listing, and diff checks. No
+  migration required; `windie:invoke` wire name, SDK command names, command
+  payloads, query/stop behavior, settings/model/memory command routing, IPC
+  allowlists, storage, credentials, permissions, hosted URLs, provider policy,
+  and local execution behavior are unchanged.
+
 - 2026-06-19: moved Electron main pending renderer turn channel registration
   and payload normalization into `ipc_pending_turn_handlers.cjs`. `ipc.cjs`
   now injects the pending-turn cache setter/clearer and renderer fan-out while
