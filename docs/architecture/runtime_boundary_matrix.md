@@ -1,8 +1,10 @@
 ---
-summary: "Architecture-level runtime boundary matrix for WindieOS backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway/origin services."
+summary: "Architecture-level runtime boundary matrix for WindieOS backend, Electron main, renderer, preload, local runtime, wakeword, VM worker, and gateway/origin services."
 read_when:
   - When routing a cross-runtime feature or bug to the correct process and trust boundary.
-  - When deciding whether a behavior belongs in backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, or hosted operations code.
+  - When deciding whether a behavior belongs in backend, Electron main,
+    renderer, preload, local runtime, wakeword, VM worker, or hosted operations
+    code.
 title: "Runtime Boundary Matrix"
 ---
 
@@ -17,7 +19,7 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 | Electron main | windows, overlays, renderer IPC, direct Agent SDK host startup, endpoint diagnostics, config persistence, permission probes, sidecar lifecycle, wakeword bridge, VM worker runtime | `frontend/src/main` | [Frontend Architecture](frontend_architecture.md), [Frontend Main Docs Hub](../frontend/main/README.md) |
 | preload | context-bridge IPC surface and allowlist | `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json` | [Frontend Preload Docs Hub](../frontend/preload/README.md) |
 | React renderer | dashboard, chat UI, response overlay UI, settings, permissions UI, voice controls, transcript projection, display-only tool state | `frontend/src/renderer` | [Frontend Architecture](frontend_architecture.md), [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
-| Python sidecar | local tools, browser runtime, filesystem/shell/computer actions, local memory DB/FAISS, system state, hosted SDK helper clients | `frontend/src/main/python` | [Python Sidecar](python_sidecar.md), [Local Tool Channels](../channels/sidecar_and_tool_channels.md) |
+| local-runtime implementation | local tools, browser runtime, filesystem/shell/computer actions, local memory DB/FAISS, system state, hosted SDK helper clients | `frontend/src/main/python` | [Python Sidecar](python_sidecar.md), [Local Tool Channels](../channels/sidecar_and_tool_channels.md) |
 | wakeword subprocess | wakeword model/runtime, audio frame handling, detection events | `frontend/src/main/wakeword/wakeword_bridge*.cjs`, `frontend/src/main/python/wakeword_service.py` | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 | VM worker | hosted run heartbeat, assignment, dispatch, event relay, stop controls | `frontend/src/main/app/vm_worker_runtime.cjs`, `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py` | [Automation Hub](../automation/README.md) |
 | Cloudflare/origin | public HTTPS/WebSocket ingress to hosted backend origin | `scripts/cloudflared`, deployment/service config | [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
@@ -28,7 +30,7 @@ Use this architecture-level matrix before searching broadly. It is intentionally
 | --- | --- |
 | backend schema/event | backend contract tests plus renderer consumer tests when UI consumes it |
 | Electron IPC/preload | IPC allowlist and channel parity tests |
-| sidecar tool | sidecar pytest and backend/sidecar parity tests for model-visible tools |
+| local-runtime tool | sidecar pytest and backend/local-runtime parity tests for model-visible tools |
 | platform capture/overlay | frontend overlay/window policy tests |
 | hosted route/auth | backend route/auth tests and gateway docs examples |
 | VM runs | backend runs service/routes plus frontend VM worker tests |

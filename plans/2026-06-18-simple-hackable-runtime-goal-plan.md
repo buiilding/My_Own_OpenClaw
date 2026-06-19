@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed an architecture local-runtime owner-map slice by
+  routing failure-domain, runtime-boundary, architecture hub, error/failure,
+  platform, help/docs hubs, and tool-system docs through local-runtime
+  implementation/tool labels instead of sidecar process/tool/schema owner
+  labels. Python sidecar paths and implementation docs remain where they
+  identify concrete code. The modular docs guard now rejects retired
+  architecture owner labels for sidecar process, sidecar tool registry/schema,
+  sidecar platform adapter, and Python-sidecar-as-boundary rows. Validation:
+  `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale architecture
+  owner-label scan, and `git diff --check`. No migration required; no process
+  launch, IPC, JSON-RPC, tool schema, parity test, permission, credential,
+  storage, hosted route, provider policy, or local execution behavior changed.
 - 2026-06-18: completed a first-read runtime/security owner-label slice by
   routing the conceptual runtime model and security hub through local-runtime
   execution, local-runtime remote-client auth, and local-runtime executable tool

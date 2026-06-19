@@ -1,5 +1,5 @@
 ---
-summary: "Architecture failure-domain map for WindieOS backend, gateway, Electron main, renderer, preload, sidecar, platform, packaging, provider, memory, and VM-run failures."
+summary: "Architecture failure-domain map for WindieOS backend, gateway, Electron main, renderer, preload, local runtime, platform, packaging, provider, memory, and VM-run failures."
 read_when:
   - When a failure crosses runtime boundaries and needs architectural routing before detailed debugging.
   - When deciding whether a symptom is a producer, transport, consumer, platform, provider, packaging, or operations failure.
@@ -19,16 +19,16 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 | provider/capability | missing model/tool/search, provider unavailable, circuit breaker | backend provider/config/capability policy |
 | stream transport | events emitted but UI stale, stale turn, missing settings ACK | backend websocket, SDK runtime adapter, renderer event consumer |
 | IPC/preload | invalid channel, missing `window.ipc`, renderer cannot invoke main | preload/channel allowlist and Electron main IPC |
-| sidecar process | readiness timeout, stdout contamination, import failure | SDK local runtime, Electron launch-option helper, and Python sidecar entrypoint |
-| local tool execution | tool called but OS action fails | SDK runtime tool router, Electron bridge, sidecar tool registry/tool |
-| platform/permission | one OS fails, permission stuck, screenshots include UI | Electron permission/platform policy, sidecar platform adapter |
+| local-runtime process | readiness timeout, stdout contamination, import failure | SDK local runtime, Electron launch-option helper, and Python sidecar entrypoint |
+| local tool execution | tool called but OS action fails | SDK runtime tool router, Electron bridge, local-runtime tool registry/executor |
+| platform/permission | one OS fails, permission stuck, screenshots include UI | Electron permission/platform policy, local-runtime platform adapter |
 | packaging/runtime | source works but installed app fails | Electron Builder config, bundled Python runtime, reinstall helpers |
 | memory/transcript | replay drift, stale memory, wrong conversation | renderer transcript, local-runtime memory, backend history |
 | VM run control | run never picked up or timeline missing events | backend runs API/service and Electron VM worker runtime |
 
 ## Debug Order
 
-1. Identify entry channel: desktop chat, websocket, sidecar tool, SDK, voice, VM run, or hosted API.
+1. Identify entry channel: desktop chat, websocket, local-runtime tool, SDK, voice, VM run, or hosted API.
 2. Identify producer: the runtime that should create the payload/state.
 3. Identify transport: websocket, IPC, JSON-RPC, HTTP, filesystem, or platform API.
 4. Identify consumer: the runtime that should validate/render/execute the payload.
@@ -42,7 +42,7 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 | tool action fails | change backend tool description | check renderer/main/local execution path |
 | macOS permission stuck | change onboarding UI | check OS probe/request and TCC registration |
 | hosted route 502 | change route handler | check Cloudflare/origin process first |
-| packaged app sidecar fails | change source launcher | check bundled runtime path and package contents |
+| packaged app local runtime fails | change source launcher | check bundled runtime path and package contents |
 
 ## Related Docs
 

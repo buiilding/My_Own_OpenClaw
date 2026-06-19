@@ -201,7 +201,7 @@ contracts.
 
 ### Architecture & Design
 - [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, failure domains, and subsystem architecture routes
-- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-level ownership map for backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
+- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-level ownership map for backend, Electron main, renderer, preload, local runtime, wakeword, VM worker, and gateway services
 - [**Agent-Visible Data Pipeline**](architecture/agent_visible_data_pipeline.md) - Trace what the model sees, what transports carry, what the Python sidecar executes, and what transcript/history preserve
 - [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - Query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run state ownership
 - [**Storage and Persistence Change Workflow**](architecture/storage_persistence_change_workflow.md) - Owner routing for renderer storage, Electron user-data files, sidecar SQLite/FAISS, backend artifacts, install-auth SQLite, caches, and restart durability
@@ -320,7 +320,7 @@ contracts.
 - [**Frontend Wakeword IPC Capture + Cooldown Runtime**](frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md) - Readiness-gated wakeword capture, generation-guarded start/stop flow, threshold/cooldown filtering, and retrigger-prevention disable sequence
 - [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, and failure-domain maps
 - [**System Architecture**](architecture/architecture.md) - High-level system design and components
-- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Runtime ownership across backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
+- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Runtime ownership across backend, Electron main, renderer, preload, local runtime, wakeword, VM worker, and gateway services
 - [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - State owners and duplication risks for core runtime flows
 - [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Subsystem routing before code changes
 - [**Failure Domain Map**](architecture/failure_domain_map.md) - Architecture-level failure routing

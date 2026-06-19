@@ -190,8 +190,8 @@ Pre-dispatch model-shape validation notes:
 
 Schema pairing rule:
 
-- backend fallback/tool-policy schemas and sidecar tool schemas are paired contracts, not shared runtime ownership
-- when a local tool contract changes, the client manifest and sidecar schema must both be updated and parity-tested before release
+- backend fallback/tool-policy schemas and local-runtime executable schemas are paired contracts, not shared runtime ownership
+- when a local tool contract changes, the client manifest and local-runtime schema must both be updated and parity-tested before release
 - parity tests are the safety mechanism that catches drift without breaking backend/client runtime boundaries
 
 Execution identity provenance:

@@ -2,7 +2,8 @@
 summary: "User-visible failure triage routes for WindieOS, mapping symptoms to runtime owners, first checks, and deeper docs."
 read_when:
   - When a report describes a visible symptom and the owning runtime is not clear.
-  - When deciding whether to inspect backend, Electron main, renderer, preload, sidecar, platform, provider, packaging, or operations code first.
+  - When deciding whether to inspect backend, Electron main, renderer, preload,
+    local runtime, platform, provider, packaging, or operations code first.
 title: "Triage Routes"
 ---
 
@@ -17,7 +18,7 @@ Use this page before editing code when a bug report starts with a visible sympto
 | app opens but messages do not send | SDK runtime adapter, Electron query preparation, or backend websocket | connection logs and settings ACK | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) |
 | backend responds but model output never appears | backend event stream or renderer event consumer | stream trace and stale-turn filters | [Runtime Traces](../debug/runtime_traces.md), [Streaming and Events](../concepts/streaming_and_events.md) |
 | model list is empty or wrong | backend provider/model catalog or renderer settings ACK | provider factory, catalog, credentials | [Models and LLM Providers](../providers/models.md) |
-| tool call appears but no local action happens | SDK runtime tool router, Electron bridge, or sidecar registry | backend tool event, SDK router handoff, and sidecar JSON-RPC | [Tool Troubleshooting](../tools/tool_troubleshooting.md) |
+| tool call appears but no local action happens | SDK runtime tool router, Electron bridge, or local-runtime registry | backend tool event, SDK router handoff, and local-runtime request | [Tool Troubleshooting](../tools/tool_troubleshooting.md) |
 | screenshot includes WindieOS UI | platform overlay capture policy | Linux hide/restore vs macOS/Windows content protection | [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) |
 | permission is stuck | Electron permission service or stored permission state | platform probe and onboarding visibility | [Platform Permission Matrix](../platforms/permission_matrix.md) |
 | browser action fails | dedicated browser runtime or action compatibility | browser session state and sidecar browser logs | [Browser Troubleshooting](../browser/browser_troubleshooting.md) |
@@ -36,7 +37,7 @@ Ask these in order:
 4. Did the backend emit the expected event?
 5. Did Electron main relay it?
 6. Did the renderer consume it for the current turn/session?
-7. Did the sidecar receive a JSON-RPC request when a local tool was expected?
+7. Did the local runtime receive a request when a local tool was expected?
 8. Is the failure OS-specific?
 9. Is a provider, permission, or capability gate hiding the behavior by design?
 

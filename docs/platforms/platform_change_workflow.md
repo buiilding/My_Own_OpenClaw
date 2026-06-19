@@ -1,9 +1,11 @@
 ---
-summary: "Workflow for platform-specific WindieOS changes across macOS, Windows, Linux permissions, overlays, screenshots, input control, packaging, and sidecar adapters."
+summary: "Workflow for platform-specific WindieOS changes across macOS, Windows, Linux permissions, overlays, screenshots, input control, packaging, and local-runtime adapters."
 read_when:
-  - When changing OS-specific screenshot, overlay, permission, window, input, packaging, or sidecar platform behavior.
+  - When changing OS-specific screenshot, overlay, permission, window, input,
+    packaging, or local-runtime platform behavior.
   - When a bug reproduces on only one operating system.
-  - When deciding whether a platform fix belongs in Electron main, renderer, Python sidecar, packaging scripts, or hosted backend code.
+  - When deciding whether a platform fix belongs in Electron main, renderer,
+    local-runtime implementation, packaging scripts, or hosted backend code.
 title: "Platform Change Workflow"
 ---
 
@@ -12,11 +14,15 @@ title: "Platform Change Workflow"
 Use this workflow before editing platform behavior. WindieOS platform bugs often look like UI bugs, tool bugs, or install bugs, but the owner is usually one of four places:
 
 - Electron main window policy for WindieOS-owned windows and overlays.
-- Python sidecar platform adapters for host OS window discovery and local input execution.
+- Local-runtime platform adapters for host OS window discovery and local input
+  execution.
 - Permission services for OS authority probes and grant flows.
 - Packaging scripts and smoke helpers for installed-app runtime behavior.
 
-Do not route platform fixes through the hosted backend. The backend can own model policy, OCR, vision, and tool schemas, but it cannot own local OS permissions, Electron window capture policy, or sidecar process packaging.
+Do not route platform fixes through the hosted backend. The backend can own
+model policy, OCR, vision, and tool schemas, but it cannot own local OS
+permissions, Electron window capture policy, or local-runtime process
+packaging.
 
 ## Fast Owner Map
 
@@ -39,8 +45,9 @@ Keep these rules explicit in the change, tests, and docs:
 - macOS and Windows should use Electron content protection only during SDK
   screenshot-capture leases, then disable it immediately after capture.
 - Renderer code should consume normalized platform state; it should not shell out to OS commands or probe platform permissions directly.
-- Sidecar platform adapters should not import backend code.
-- Backend tool schemas may describe a capability, but sidecar code owns local execution.
+- Local-runtime platform adapters should not import backend code.
+- Backend tool schemas may describe a capability, but local-runtime code owns
+  local execution.
 - Packaging changes must be verified in an installed app, not only in Vite or Electron dev mode.
 - Permission probes should report authority state; they should not silently perform a tool action to fake success unless that action is the documented OS prompt trigger.
 

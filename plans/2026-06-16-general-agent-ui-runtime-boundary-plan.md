@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Architecture Local-Runtime Owner Maps
+
+- Finding: architecture failure-domain, runtime-boundary, architecture hub,
+  error/failure, platform, help/docs hub, and tool-system docs still used
+  sidecar process/tool/schema owner labels in public owner maps after the
+  local-tool route moved to SDK/main local-runtime execution.
+- Change: routed those owner labels through local-runtime implementation/tool
+  wording while preserving Python sidecar file paths and implementation docs as
+  concrete evidence.
+- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale architecture
+  owner-label scan, and `git diff --check`.
+- Compatibility: no migration required. Runtime ownership docs changed only;
+  process launch, IPC, JSON-RPC, tool schemas, parity tests, permissions,
+  credentials, storage, hosted routes, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-18 Public Local-Tool Owner Labels
 
 - Finding: first-read docs hub, agent-loop conceptual docs, response overlay

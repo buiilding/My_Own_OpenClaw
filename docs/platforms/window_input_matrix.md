@@ -16,7 +16,7 @@ Window and input behavior spans Electron main and the local runtime. Electron ow
 | --- | --- |
 | WindieOS BrowserWindow policy | `frontend/src/main/surfaces/window_platform_policy.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/overlay_*` |
 | overlay topmost/all-workspaces behavior | `frontend/src/main/surfaces/overlay_topmost_runtime.cjs`, `frontend/src/main/surfaces/surface_window_options_runtime.cjs` |
-| sidecar platform abstraction | `frontend/src/main/python/core/platform/__init__.py`, `base.py` |
+| local-runtime platform abstraction | `frontend/src/main/python/core/platform/__init__.py`, `base.py` |
 | macOS window management | `frontend/src/main/python/core/platform/macos.py` |
 | Windows window management | `frontend/src/main/python/core/platform/windows.py` |
 | Linux window management | `frontend/src/main/python/core/platform/linux.py` |
@@ -34,10 +34,11 @@ Window and input behavior spans Electron main and the local runtime. Electron ow
 ## Routing Rules
 
 - Keep WindieOS-owned window visibility, focusability, content protection, and all-workspaces policy in Electron main.
-- Keep host-application window discovery and switching in sidecar platform adapters.
+- Keep host-application window discovery and switching in local-runtime
+  platform adapters.
 - Renderer should consume normalized active-window/context state.
 - Do not add OS-specific subprocess calls in React components.
-- Do not make a sidecar platform adapter depend on backend code.
+- Do not make a local-runtime platform adapter depend on backend code.
 
 ## Debug Checklist
 

@@ -47,9 +47,10 @@ All notable changes to WindieOS will be documented in this file.
 - docs/public: route first-read docs hub, agent-loop, response overlay,
   provider-extension, and agent-development local-tool labels through
   local-runtime tools instead of sidecar tools. No migration required.
-- docs/architecture: route failure-domain and runtime-boundary owner maps
-  through local-runtime implementation/tool labels while preserving Python
-  sidecar implementation paths. No migration required.
+- docs/architecture: route failure-domain, runtime-boundary, platform, error,
+  and architecture hub owner maps through local-runtime implementation/tool
+  labels while preserving Python sidecar implementation paths. No migration
+  required.
 - docs/debug: finish routing error/failure tool-result guidance through
   local-runtime tool wording instead of sidecar-tool failure labels while
   preserving Python sidecar implementation breadcrumbs. No migration required.

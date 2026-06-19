@@ -1,8 +1,11 @@
 ---
 summary: "Architecture hub for WindieOS runtime boundaries, data flow, state ownership, failure domains, and subsystem-specific architecture pages."
 read_when:
-  - When making cross-cutting backend, desktop host, renderer, sidecar, or SDK changes or deciding which runtime owns a behavior.
-  - When adding architecture docs or routing a feature through backend, Electron main, renderer, preload, sidecar, hosted APIs, or VM worker surfaces.
+  - When making cross-cutting backend, desktop host, renderer, local-runtime, or
+    SDK changes or deciding which runtime owns a behavior.
+  - When adding architecture docs or routing a feature through backend,
+    Electron main, renderer, preload, local-runtime, hosted APIs, or VM worker
+    surfaces.
 title: "Architecture Hub"
 ---
 
@@ -34,10 +37,10 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 | Runtime | Owns | Does not own |
 | --- | --- | --- |
 | hosted backend | agent loop, providers, model-facing tool schema, route auth, websocket events, OCR/vision/embedding/TTS services, artifacts, SDK/runs APIs | local mouse/keyboard/files/processes, Electron windows, local permissions |
-| Electron main | desktop window lifecycle, overlay orchestration, SDK runtime adaptation, endpoint selection, local config, permission probes, local-runtime host/status context | model-facing prompt/tool policy, hosted backend websocket primitives, sidecar tool implementation |
+| Electron main | desktop window lifecycle, overlay orchestration, SDK runtime adaptation, endpoint selection, local config, permission probes, local-runtime host/status context | model-facing prompt/tool policy, hosted backend websocket primitives, local-runtime tool implementation |
 | React renderer | dashboard/chat UI, stream presentation, settings UI, onboarding, transcript queue, SDK projection rendering | OS permission probing, backend route auth, local-runtime lifecycle, tool execution orchestration |
 | preload | constrained renderer IPC exposure and channel allowlist | business logic, backend transport, local execution |
-| Python sidecar | local tool execution, browser automation runtime, local memory storage, system state, wakeword service process | backend agent loop, model provider selection, renderer UI |
+| local-runtime implementation | local tool execution, browser automation runtime, local memory storage, system state, wakeword service process | backend agent loop, model provider selection, renderer UI |
 | VM worker mode | hosted run polling and dispatch into normal query path | normal desktop user interaction model |
 
 ## Architecture Rules
@@ -45,7 +48,8 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 - Identify the producer runtime before editing the visible consumer.
 - Keep desktop client and Python sidecar runtime imports independent from backend Python packages.
 - Route schema parity through explicit contracts and tests.
-- Keep local machine authority in the sidecar or Electron main, not hosted REST routes.
+- Keep local machine authority in the local runtime or Electron main, not
+  hosted REST routes.
 - Keep public hosted API behavior documented in gateway/reference/web docs.
 
 ## Related Docs
