@@ -16,7 +16,7 @@ title: "Local Runtime Python Implementation Docs Hub"
 - [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Sidecar Core Docs Hub](core/README.md)
 - [Sidecar Services Docs Hub](services/README.md)
-- [Sidecar System-State Docs Hub](system_state/README.md)
+- [Local-Runtime System-State Docs Hub](system_state/README.md)
 - [Local-Runtime Tools Docs Hub](tools/README.md)
 - [System-State Collection and Platform Adapter Reference](system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Local-Runtime Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)

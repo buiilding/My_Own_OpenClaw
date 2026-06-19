@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 System-State Hub Local-Runtime Labels
+
+- Finding: first-read docs and the local-runtime Python implementation
+  system-state sub-hubs still exposed Sidecar System-State and Sidecar
+  System-State Platform labels for reusable `get-system-state` collection and
+  platform probe routes.
+- Change: renamed those visible hub and reference labels to Local-Runtime
+  System-State wording while preserving stable file paths, Python sidecar code
+  scopes, and sidecar tests as concrete implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  system-state label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  JSON-RPC methods, IPC channels, platform probes, local tool behavior, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Tool Family Hub Local-Runtime Labels
 
 - Finding: first-read docs and local-runtime Python implementation sub-hubs

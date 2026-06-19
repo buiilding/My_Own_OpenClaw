@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a system-state hub local-runtime label slice by routing
+  first-read `get-system-state` and platform-adapter labels through
+  Local-Runtime System-State wording instead of Sidecar System-State public
+  navigation names. Python sidecar code scopes and sidecar tests remain as
+  concrete implementation evidence. Validation: focused modular boundary
+  guard, docs listing, exact stale system-state label scan, and diff checks. No
+  migration required; no JSON-RPC method, IPC channel, platform probe, local
+  tool behavior, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed a tool-family hub local-runtime label slice by routing
   first-read browser, computer, system, filesystem, shell, and tool-catalog
   labels through Local-Runtime wording instead of Sidecar or Local Runtime

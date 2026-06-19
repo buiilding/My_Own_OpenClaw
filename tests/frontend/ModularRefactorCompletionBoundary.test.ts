@@ -788,6 +788,8 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
       read('docs/frontend/sidecar/python_sidecar_and_memory.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/system_state/README.md'),
+      read('docs/frontend/sidecar/system_state/platform/README.md'),
       read('docs/frontend/sidecar/browser/README.md'),
       read('docs/frontend/sidecar/browser/contracts/README.md'),
       read('docs/frontend/sidecar/browser/chrome/README.md'),
@@ -818,6 +820,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Browser Docs Hub');
     expect(docText).toContain('Local-Runtime Browser Contracts Docs Hub');
     expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
+    expect(docText).toContain('Local-Runtime System-State Docs Hub');
+    expect(docText).toContain('Local-Runtime System-State Platform Docs Hub');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
@@ -848,6 +852,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Local Runtime Sidecar Browser Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Browser Contracts Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Browser Chrome Docs Hub');
+    expect(docText).not.toContain('Sidecar System-State Docs Hub');
+    expect(docText).not.toContain('Sidecar System-State Platform Docs Hub');
+    expect(docText).not.toContain('Sidecar System-State Collection and Platform Adapter Reference');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');
     expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
   });

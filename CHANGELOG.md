@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/system-state: route local-runtime system-state and platform-adapter hub
+  labels through local-runtime wording instead of Sidecar System-State public
+  navigation names while keeping Python sidecar implementation paths explicit.
+  No migration required.
 - docs/tools: route browser, computer, system, filesystem, and shell tool hub
   labels through local-runtime wording instead of Sidecar or Local Runtime
   Sidecar public navigation names while keeping Python sidecar implementation
