@@ -18,6 +18,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopPermissionRuntimeClient,
+  mapPermissionStatusesByPermissionId,
+  normalizePermissionStatusValue,
   resolvePermissionManifestResult,
   resolvePermissionStatusResult,
   resolvePermissionStatusesResult,
@@ -51,12 +53,72 @@ describe('DesktopPermissionRuntimeClient', () => {
     expect(resolvePermissionStatusResult({
       success: true,
       data: { status },
-    })).toBe(status);
+    })).toEqual({
+      permission_id: 'screen_capture',
+      status: 'granted',
+      granted: true,
+      reason: '',
+      checked_at: null,
+      details: {},
+    });
 
     expect(resolvePermissionStatusesResult({
       success: true,
       data: { statuses: [status] },
-    })).toEqual([status]);
+    })).toEqual([{
+      permission_id: 'screen_capture',
+      status: 'granted',
+      granted: true,
+      reason: '',
+      checked_at: null,
+      details: {},
+    }]);
+  });
+
+  test('normalizes permission status values and indexes them by permission id', () => {
+    expect(normalizePermissionStatusValue({
+      permission_id: 'microphone',
+      status: 'needs-action',
+      granted: false,
+      reason: 'Microphone access is missing.',
+      checked_at: '2026-06-19T00:00:00.000Z',
+      details: { source: 'system' },
+    })).toEqual({
+      permission_id: 'microphone',
+      status: 'needs-action',
+      granted: false,
+      reason: 'Microphone access is missing.',
+      checked_at: '2026-06-19T00:00:00.000Z',
+      details: { source: 'system' },
+    });
+
+    expect(normalizePermissionStatusValue({
+      permission_id: 'browser_automation',
+      details: 'unavailable',
+    })).toEqual({
+      permission_id: 'browser_automation',
+      status: 'unknown',
+      granted: false,
+      reason: '',
+      checked_at: null,
+      details: {},
+    });
+
+    expect(normalizePermissionStatusValue({ permission_id: '' })).toBeNull();
+    expect(mapPermissionStatusesByPermissionId([
+      { permission_id: 'microphone', granted: true },
+      { permission_id: '', granted: true },
+      null,
+    ])).toEqual({
+      microphone: {
+        permission_id: 'microphone',
+        status: 'unknown',
+        granted: true,
+        reason: '',
+        checked_at: null,
+        details: {},
+      },
+    });
   });
 
   test('throws normalized permission command errors', () => {
@@ -102,11 +164,32 @@ describe('DesktopPermissionRuntimeClient', () => {
       statuses: [status],
     });
     await expect(DesktopPermissionRuntimeClient.runPermissionProbeStatus('browser_automation'))
-      .resolves.toBe(status);
+      .resolves.toEqual({
+        permission_id: 'browser_automation',
+        status: 'granted',
+        granted: true,
+        reason: '',
+        checked_at: null,
+        details: {},
+      });
     await expect(DesktopPermissionRuntimeClient.requestPermissionStatus('browser_automation'))
-      .resolves.toBe(status);
+      .resolves.toEqual({
+        permission_id: 'browser_automation',
+        status: 'granted',
+        granted: true,
+        reason: '',
+        checked_at: null,
+        details: {},
+      });
     await expect(DesktopPermissionRuntimeClient.checkPermissionStatuses(['browser_automation']))
-      .resolves.toEqual([status]);
+      .resolves.toEqual([{
+        permission_id: 'browser_automation',
+        status: 'granted',
+        granted: true,
+        reason: '',
+        checked_at: null,
+        details: {},
+      }]);
 
     expect(mockInvoke).toHaveBeenNthCalledWith(1, 'list-permissions');
     expect(mockInvoke).toHaveBeenNthCalledWith(2, 'run-permission-probe', {

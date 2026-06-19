@@ -185,6 +185,13 @@ describe('permissionStore', () => {
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.runPermissionProbeStatus');
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.requestPermissionStatus');
     expect(storeSource).toContain('DesktopPermissionRuntimeClient.checkPermissionStatuses');
+    expect(storeSource).toContain('mapPermissionStatusesByPermissionId');
+    expect(storeSource).not.toContain('status?.permission_id');
+    expect(storeSource).not.toContain('status?.status');
+    expect(storeSource).not.toContain('status?.granted');
+    expect(storeSource).not.toContain('status?.reason');
+    expect(storeSource).not.toContain('status?.checked_at');
+    expect(storeSource).not.toContain('status?.details');
     expect(storeSource).not.toContain('result?.success');
     expect(storeSource).not.toContain('result.data');
     expect(storeSource).not.toContain('result?.data');
@@ -195,5 +202,7 @@ describe('permissionStore', () => {
     expect(clientSource).toContain('resolvePermissionManifestResult');
     expect(clientSource).toContain('resolvePermissionStatusResult');
     expect(clientSource).toContain('resolvePermissionStatusesResult');
+    expect(clientSource).toContain('normalizePermissionStatusValue');
+    expect(clientSource).toContain('mapPermissionStatusesByPermissionId');
   });
 });

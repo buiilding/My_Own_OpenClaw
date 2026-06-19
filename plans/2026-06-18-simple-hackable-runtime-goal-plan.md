@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission status value boundary slice by
+  moving permission status normalization and id-indexing into
+  `DesktopPermissionRuntimeClient`. `permissionStore` now keeps manifest
+  state, gate derivation, onboarding persistence, and action errors while
+  consuming normalized status maps. Validation: passed focused desktop
+  permission runtime client, permission store, renderer app boundary, and
+  docs-index tests plus docs search, related commit search, stale raw
+  status-field scan, docs listing, and diff checks. No migration required;
+  permission IPC channel names, result envelope shape, normalized status map
+  shape, onboarding gate behavior, persisted onboarding state, storage,
+  provider policy, hosted URLs, permissions, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer IPC status value boundary slice by adding
   value-level status snapshot normalization and `onIpcStatusValues(...)` to
   `DesktopClientSessionRuntimeClient`. `AppConfigProvider` now consumes

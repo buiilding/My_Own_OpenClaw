@@ -3,35 +3,14 @@
  */
 
 import { create } from 'zustand';
-import { DesktopPermissionRuntimeClient } from '../../../app/runtime/desktopPermissionRuntimeClient';
+import {
+  DesktopPermissionRuntimeClient,
+  mapPermissionStatusesByPermissionId,
+} from '../../../app/runtime/desktopPermissionRuntimeClient';
 import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
 } from '../../../app/runtime/desktopPermissionOnboardingStorageRuntime';
-
-function mapStatusesByPermissionId(statuses) {
-  if (!Array.isArray(statuses)) {
-    return {};
-  }
-
-  return statuses.reduce((accumulator, status) => {
-    const permissionId = typeof status?.permission_id === 'string' ? status.permission_id : '';
-    if (!permissionId) {
-      return accumulator;
-    }
-
-    accumulator[permissionId] = {
-      permission_id: permissionId,
-      status: typeof status?.status === 'string' ? status.status : 'unknown',
-      granted: status?.granted === true,
-      reason: typeof status?.reason === 'string' ? status.reason : '',
-      checked_at: typeof status?.checked_at === 'string' ? status.checked_at : null,
-      details: status?.details && typeof status.details === 'object' ? status.details : {},
-    };
-
-    return accumulator;
-  }, {});
-}
 
 function resolveGateState({
   permissions,
@@ -64,7 +43,7 @@ function resolveGateState({
 }
 
 function buildStatusStateUpdate(currentState, statusPayload, options = {}) {
-  const incomingStatuses = mapStatusesByPermissionId(statusPayload);
+  const incomingStatuses = mapPermissionStatusesByPermissionId(statusPayload);
   const statusesByPermissionId = options.replace === true
     ? incomingStatuses
     : {
@@ -112,7 +91,7 @@ export const usePermissionStore = create((set, get) => ({
         ? manifest.manifest_version
         : '';
       const permissions = Array.isArray(manifest.permissions) ? manifest.permissions : [];
-      const statusesByPermissionId = mapStatusesByPermissionId(manifest.statuses);
+      const statusesByPermissionId = mapPermissionStatusesByPermissionId(manifest.statuses);
       const onboardingState = loadPermissionOnboardingState();
       const gateState = resolveGateState({
         permissions,

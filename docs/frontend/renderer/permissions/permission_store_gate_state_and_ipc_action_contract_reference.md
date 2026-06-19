@@ -43,9 +43,11 @@ Current runtime-consumer reality:
 - Browser settings uses focused permission probe/request paths for browser automation
 - `completeOnboarding` remains exported for any future gate-completion surface
 
-## Status Normalization Contract
+## Status Value Contract
 
-`mapStatusesByPermissionId(statuses)` fail-closes malformed payloads and returns an id-indexed map.
+`DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId(statuses)`
+fail-closes malformed payloads and returns an id-indexed map. The permission
+store consumes that value map instead of reading raw status payload fields.
 
 Per-status normalization:
 
@@ -95,9 +97,9 @@ Callers:
 ## Permission Runtime Client Boundary
 
 `permissionStore` owns renderer permission state only: manifest snapshot,
-status normalization, gate derivation, onboarding persistence, and user-facing
-errors. Desktop transport and permission command result-envelope resolution are
-delegated to `DesktopPermissionRuntimeClient`.
+gate derivation, onboarding persistence, and user-facing errors. Desktop
+transport, permission command result-envelope resolution, and raw status value
+normalization are delegated to `DesktopPermissionRuntimeClient`.
 
 Runtime client calls:
 
@@ -107,8 +109,8 @@ Runtime client calls:
 - `checkPermissionStatuses(permissionIds)`
 
 The runtime client keeps lower-level raw command helpers for the IPC channel
-boundary, but store actions consume only manifest/status values or runtime
-client-thrown errors.
+boundary, but store actions consume only manifest/status values, normalized
+status maps, or runtime client-thrown errors.
 
 The store should not import `IpcBridge`, channel constants, or desktop
 permission channel names directly.
@@ -202,7 +204,8 @@ old namespace.
 
 ## Drift Hotspots
 
-1. Changing manifest/status payload shape without updating `mapStatusesByPermissionId`.
+1. Changing manifest/status payload shape without updating
+   `DesktopPermissionRuntimeClient.mapPermissionStatusesByPermissionId`.
 2. Bypassing `buildStatusStateUpdate(...)` and forgetting gate recomputation.
 3. Changing merge-vs-replace behavior can leave stale statuses for removed permissions.
 4. Treating `requestPermission` as removed because current UI does not call it; store/main IPC contract still exposes it.

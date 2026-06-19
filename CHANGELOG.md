@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize permission status values in
+  `DesktopPermissionRuntimeClient` so `permissionStore` no longer reads raw
+  status `permission_id`, `granted`, `checked_at`, or `details` fields. No
+  migration required.
 - renderer/runtime: expose IPC status snapshots as app-config value callbacks
   so `AppConfigProvider` no longer reads raw `isConnected`, global stop
   shortcut status, or transcript user-id fields. No migration required.

@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Permission Status Value Boundary
+
+- Finding: `DesktopPermissionRuntimeClient` owned permission IPC command
+  envelopes, but `permissionStore` still read raw status fields such as
+  `permission_id`, `granted`, `checked_at`, and `details` before deriving gate
+  state.
+- Change: moved permission status value normalization and id-indexing into the
+  permission runtime client. The store now keeps manifest state, gate
+  derivation, onboarding persistence, and action errors while consuming
+  normalized status maps.
+- Validation: passed focused desktop permission runtime client, permission
+  store, renderer app boundary, and docs-index tests plus docs search, related
+  commit search, stale raw status-field scan, docs listing, and diff checks.
+- Compatibility: no migration required. Permission IPC channel names, result
+  envelope shape, normalized status map shape, onboarding gate behavior,
+  persisted onboarding state, storage, provider policy, hosted URLs,
+  permissions, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer IPC Status Value Boundary
 
 - Finding: `DesktopClientSessionRuntimeClient` already owned desktop
