@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: route code-surface lifecycle and packaging owner labels
+  through SDK/local-runtime wording instead of sidecar daemon/runtime ownership
+  while keeping sidecar daemon symptoms and sidecar tests as concrete evidence.
+  No migration required.
 - sdk/runtime: remove the legacy `BackendTransport` compatibility type from
   the TypeScript SDK surface so reusable host adapters use the single
   `AgentRuntimeTransport` conversation-runtime boundary. No runtime or storage

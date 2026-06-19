@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a code-surface owner-label cleanup by routing local
+  runtime readiness and packaged-runtime rows through SDK/local-runtime
+  lifecycle and local-runtime sidecar bundling wording instead of presenting
+  sidecar daemon/runtime as the public owner. Sidecar daemon failure symptoms,
+  Python sidecar paths, and sidecar tests remain as concrete debugging
+  evidence. Validation: focused modular boundary guard, docs listing, stale
+  label scan, and diff checks. No migration required; no code path, payload,
+  IPC, settings, storage, local execution, credentials, permissions, hosted
+  URLs, packaging behavior, or provider policy changed.
 - 2026-06-19: completed an SDK transport compatibility cleanup by removing the
   legacy `BackendTransport` TypeScript alias from the SDK conversation type
   surface and routing SDK docs/tests to the canonical `AgentRuntimeTransport`

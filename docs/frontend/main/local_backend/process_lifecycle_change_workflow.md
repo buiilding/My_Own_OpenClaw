@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS SDK-owned sidecar daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
+summary: "Workflow for changing WindieOS SDK-owned local-runtime daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
 read_when:
   - When changing desktop sidecar daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged sidecar launch options.
   - When debugging sidecar startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK sidecar `/rpc` failures, or packaged app sidecar launch failures.

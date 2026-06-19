@@ -1314,6 +1314,9 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar env propagation',
         'sidecar sees backend URL changes',
         'sidecar runtime, not hosted backend',
+        'SDK-owned sidecar daemon lifecycle',
+        'Packaged app, sidecar runtime, reinstall',
+        'Electron packaging, sidecar bundling',
         'Sidecar or Electron tool bridge issue',
         'main sidecar env injection',
         '`WINDIE_BACKEND_HTTP_URL` in sidecar env',
@@ -1610,6 +1613,18 @@ describe('modular sdk refactor completion boundary', () => {
         'Sidecar browser runtime and Electron session UI',
         'sidecar screenshot/input',
         '| Sidecar local tools,',
+        'Sidecar Registry and Result Contract',
+        'Sidecar Computer Runtime',
+        '[Sidecar Tool Change Workflow]',
+        '[Sidecar Runtime Change Workflow]',
+        'Python sidecar executor',
+        'SDK-owned sidecar daemon lifecycle',
+        'sidecar call forwarding',
+        'built-in Python sidecar tool behavior',
+        'sidecar tools docs for built-in',
+        'sidecar `ToolRegistry.execute_tool`',
+        '| Packaged app, sidecar runtime,',
+        'Electron packaging, sidecar bundling',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
@@ -1617,6 +1632,10 @@ describe('modular sdk refactor completion boundary', () => {
     }
 
     expect(offenders).toEqual({});
+
+    const codeSurfaceIndexText = await read('docs/reference/code_change_surface_index.md');
+    expect(codeSurfaceIndexText).toContain('SDK-owned local-runtime daemon lifecycle');
+    expect(codeSurfaceIndexText).toContain('Electron packaging, local-runtime sidecar bundling');
   });
 
   test('voice routing docs use renderer and electron owner labels', async () => {
