@@ -9,8 +9,8 @@ import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
 } from '../../../../app/runtime/desktopConversationSessionRuntime';
+import { resetActiveChatSession } from '../../../../app/runtime/desktopActiveChatSessionRuntime';
 import { createConversationRef } from './conversationRef';
-import { resetActiveChatSession } from './resetActiveChatSession';
 
 type NewChatSessionOptions = {
   clearMessages: (conversationRef?: string | null) => void;

@@ -65,6 +65,7 @@ npm run audit:knip
 - SDK/main tool routing behavior is covered by `tests/frontend/WindieSdkClient.test.ts`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, and SDK tool-output tests.
 - Transcript/session persistence behavior is covered through SDK projection and transcript-session tests such as `tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.
 - Transcript storage/event and SDK display projection primitives are covered directly by `tests/frontend/TranscriptStorage.test.ts`, `tests/frontend/DesktopConversationStore.test.ts`, and `tests/frontend/SdkDisplayChatMessageProjection.test.ts`.
+- Active chat-session reset behavior shared by chat and dashboard is covered directly by `tests/frontend/ResetActiveChatSession.test.ts`.
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/MessageListClasses.test.js`.

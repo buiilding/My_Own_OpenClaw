@@ -1,8 +1,8 @@
 /**
- * Covers reset active chat session. behavior in the frontend test suite.
+ * Covers reset active chat session behavior in the frontend test suite.
  */
 
-import { resetActiveChatSession } from '../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession';
+import { resetActiveChatSession } from '../../frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({

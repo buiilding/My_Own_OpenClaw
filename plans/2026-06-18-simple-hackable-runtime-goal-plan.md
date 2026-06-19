@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer active chat-session reset boundary slice by
+  moving `resetActiveChatSession` from chat feature utilities into
+  `app/runtime/desktopActiveChatSessionRuntime.ts`, routing chat new-session
+  and dashboard delete/clear consumers through that app-runtime owner, deleting
+  the old chat utility path, and guarding against dashboard importing chat
+  reset helpers again. Validation: focused active-session reset, new-chat,
+  dashboard conversation, renderer app-runtime boundary, docs listing, stale
+  old-path scan, and diff checks. No migration required; conversation refs,
+  transcript-session payloads, chat-store setter behavior, local runtime
+  conversation storage, IPC channels, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a voice gateway audio-send runtime facade slice by
   routing `useVoiceMode` framed-audio sends through
   `DesktopVoiceRuntimeClient.sendTranscriptionAudioMessage(...)` instead of

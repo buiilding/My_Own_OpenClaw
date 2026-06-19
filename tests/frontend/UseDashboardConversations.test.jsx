@@ -54,7 +54,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationSessionRun
   }),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession', () => ({
+jest.mock('../../frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime', () => ({
   resetActiveChatSession: jest.fn(),
 }));
 

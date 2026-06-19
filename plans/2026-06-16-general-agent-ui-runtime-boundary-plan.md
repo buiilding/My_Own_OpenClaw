@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Active Chat Session Reset Runtime Boundary
+
+- Finding: dashboard conversation delete/clear flows imported
+  `resetActiveChatSession` from chat feature utilities even though the helper
+  reset transcript/session state shared by dashboard and chat.
+- Change: moved the reset helper to
+  `frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime.ts`,
+  updated chat and dashboard consumers, removed the old chat utility path, and
+  refreshed docs and boundary guards to keep shared reset policy in app
+  runtime.
+- Validation: focused active-session reset, new-chat, dashboard conversation,
+  renderer app-runtime boundary, docs listing, stale old-path scan, and diff
+  checks.
+- Compatibility: no migration required. Conversation refs, transcript-session
+  payloads, chat-store setter behavior, local runtime conversation storage,
+  IPC channels, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Voice Gateway Audio Send Runtime Facade
 
 - Finding: `useVoiceMode` already delegated gateway URL creation, language

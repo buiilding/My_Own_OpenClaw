@@ -10,7 +10,7 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desk
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import { applyRendererConversationSelection } from '../../../app/runtime/desktopConversationSessionRuntime';
-import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
+import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,

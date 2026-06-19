@@ -46,7 +46,7 @@ the owner map before changing code.
 | Recent chats do not load, retry, group, or show titles | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `utils/dashboardConversationLoad.js`, `utils/conversationGroups.js`, transcript local store | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationGroups.test.js`, `tests/frontend/DashboardSidebar.test.jsx` |
 | Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `desktopConversationLibraryClient.js`, `desktopConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
 | Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `desktopWorkspaceRuntimeClient.ts`, `desktopConversationStore.ts`, `desktopConversationSessionRuntime.ts`, `conversationWorkspaceBinding.js`, Electron main SDK runtime registry | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationWorkspaceBinding.test.js`, `tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs` |
-| Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx` |
+| Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `desktopActiveChatSessionRuntime.ts`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx`, `tests/frontend/ResetActiveChatSession.test.ts` |
 | Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, `DesktopMemoryRuntimeClient`, memory runtime contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory runtime/sidecar tests |
 | Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `app/runtime/desktopModelSelectionRuntime.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
 | Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts` |
@@ -138,8 +138,9 @@ Conversation invariants:
 - Opening a conversation loads the local snapshot, synchronizes workspace
   selection, applies renderer conversation selection, resets sending/thinking
   state, and updates chat messages for that conversation.
-- Delete clears conversation events, transcript state, workspace binding, inference session
-  state, pinned/search/recent rows, and active chat state when deleting the
+- Delete clears conversation events, transcript state, workspace binding,
+  inference session state, pinned/search/recent rows, and active chat state via
+  the `desktopActiveChatSessionRuntime` app-runtime facade when deleting the
   current conversation.
 - Rename and pin are currently local dashboard state operations; do not document
   them as durable backend changes unless persistence is implemented.
@@ -195,7 +196,7 @@ Panel invariants:
 | Recent chats are empty after sending a message | Check `transcript-entry-stored` event, user id snapshot, local conversation list, and title poll. | `useDashboardConversations`, transcript store |
 | Search results lag or show stale query | Check 180ms search debounce cancellation, query length gate, and `searchOpen` reset path. | Search modal and conversation hook |
 | Conversation opens but messages belong to previous chat | Check snapshot loader, `applyRendererConversationSelection`, chat store `conversationRef`, and inference session state. | Conversation handoff |
-| Delete removes row but chat still shows old messages | Check active-conversation delete branch and `resetActiveChatSession`. | Conversation hook and replay state |
+| Delete removes row but chat still shows old messages | Check active-conversation delete branch and `desktopActiveChatSessionRuntime`. | Conversation hook and replay state |
 | Memory delete fails silently | Check IPC invoke result, `runtimeMemoryId`, `runtimeMemoryKind`, and error state handling. | Memory section and memory IPC |
 | Model appears selected but backend uses old model | Check `onConfigChange`, AppConfig persistence, `update-settings` ACK, and backend model catalog. | Models section plus settings sync |
 | Settings save status is stuck | Check AppStatus provider ACK/error routing and settings-error text coupling. | AppConfig/AppStatus and ACK routing |

@@ -1,10 +1,10 @@
 /**
- * Provides the reset active chat session module for the renderer UI.
+ * Coordinates renderer active chat session reset behavior shared by chat and dashboard UI.
  */
 
-import type { TokenCounts } from '../../stores/chatStore';
-import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import { applyRendererConversationSelection } from '../../../../app/runtime/desktopConversationSessionRuntime';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { applyRendererConversationSelection } from './desktopConversationSessionRuntime';
+import type { TokenCounts } from './desktopChatMessageTypes';
 
 type ResetActiveChatSessionOptions = {
   conversationRef?: string | null;

@@ -328,6 +328,37 @@ describe('renderer app runtime boundary', () => {
     expect(sessionClientSource).not.toContain('features/chat/session/conversationSessionRuntime');
   });
 
+  test('active chat-session reset is owned by app runtime', async () => {
+    const resetRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopActiveChatSessionRuntime.ts'),
+      'utf8',
+    );
+    const dashboardShellSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/DashboardShell.jsx'),
+      'utf8',
+    );
+    const dashboardConversationSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+    const newChatSessionSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/session/newChatSession.ts'),
+      'utf8',
+    );
+
+    expect(resetRuntimeSource).toContain('applyRendererConversationSelection');
+    expect(resetRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient');
+    expect(resetRuntimeSource).not.toContain('features/chat');
+    expect(dashboardShellSource).toContain('desktopActiveChatSessionRuntime');
+    expect(dashboardConversationSource).toContain('desktopActiveChatSessionRuntime');
+    expect(newChatSessionSource).toContain('desktopActiveChatSessionRuntime');
+    expect(dashboardShellSource).not.toContain('chat/utils/session/resetActiveChatSession');
+    expect(dashboardConversationSource).not.toContain('chat/utils/session/resetActiveChatSession');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/session/resetActiveChatSession.ts'),
+    )).rejects.toThrow();
+  });
+
   test('app runtime modules do not import chat feature internals', async () => {
     const files = await listSourceFiles(path.join(appRoot, 'runtime'));
     const offenders: string[] = [];

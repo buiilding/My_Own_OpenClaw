@@ -16,7 +16,7 @@ import DashboardSidebar from './DashboardSidebar';
 import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
-import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
+import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';

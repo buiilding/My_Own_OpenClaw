@@ -1279,6 +1279,36 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat and dashboard active-session reset share app runtime rules', async () => {
+    const newChatSessionSource = await fs.readFile(
+      path.join(chatRoot, 'utils/session/newChatSession.ts'),
+      'utf8',
+    );
+    const dashboardHookSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+    const dashboardShellSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/components/DashboardShell.jsx'),
+      'utf8',
+    );
+    const activeSessionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime.ts'),
+      'utf8',
+    );
+
+    for (const source of [newChatSessionSource, dashboardHookSource, dashboardShellSource]) {
+      expect(source).toContain('desktopActiveChatSessionRuntime');
+      expect(source).not.toContain('features/chat/utils/session/resetActiveChatSession');
+    }
+    expect(activeSessionRuntimeSource).toContain('resetActiveChatSession');
+    expect(activeSessionRuntimeSource).toContain('applyRendererConversationSelection');
+    expect(activeSessionRuntimeSource).toContain('DesktopTranscriptSessionRuntimeClient.updateTranscriptSession');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/session/resetActiveChatSession.ts'),
+    )).rejects.toThrow();
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
