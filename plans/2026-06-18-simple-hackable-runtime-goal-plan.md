@@ -283,10 +283,11 @@ For each completed slice, record:
   disconnect/reconnect recovery from that boolean instead of reading normalized
   `isConnected` status objects. Validation: focused client-session runtime
   client, chat-loop hook, renderer chat runtime boundary, docs-index coverage,
-  stale observed-status scans, docs listing, and diff checks. No migration required;
-  `get-client-user-id` and `ipc-status` channels, full session snapshots,
-  transport status helper shape, storage, settings, credentials, permissions,
-  provider policy, hosted URLs, and local execution behavior are unchanged.
+  stale observed-status scans, docs listing, and diff checks. No migration
+  required; `get-client-user-id` and `ipc-status` channels, full session
+  snapshots, transport status helper shape, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer MCP enablement registry-or-error boundary
   slice by adding `resolveDesktopMcpEnablementRegistry(...)` and changing
   `DesktopMcpRuntimeClient.setMcpServerEnabled(...)` to return a normalized
@@ -803,9 +804,10 @@ For each completed slice, record:
   `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes
   observed connection updates, leaving disconnect recovery and watchdog state in
   the hook while the app-runtime client filters raw `ipc-status`/startup
-  snapshots without a boolean connection field. Validation: focused desktop client-session runtime
-  client, chat loop UI state hook, and renderer chat runtime boundary tests,
-  stale raw connection payload/sentinel scans, docs listing, and diff checks.
+  snapshots without a boolean connection field. Validation: focused desktop
+  client-session runtime client, chat loop UI state hook, and renderer chat
+  runtime boundary tests, stale raw connection payload/sentinel scans, docs
+  listing, and diff checks.
   No migration required; `get-client-user-id` and `ipc-status` channel names,
   full session snapshot payloads, endpoint metadata, chat-loop
   disconnect/reconnect behavior, IPC allowlists, storage, credentials,
