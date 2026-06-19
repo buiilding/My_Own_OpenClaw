@@ -3,7 +3,8 @@ summary: "Workflow for renderer settings-sync changes across renderer config sto
 read_when:
   - When changing a user-facing setting, config persistence, model picker, settings ACK behavior, first-query settings sync, or renderer-to-backend settings payload shape.
   - When debugging stale settings, save-status drift, first-query settings races, model list fallback, or config fields that reappear after reload.
-  - When deciding whether a setting belongs in renderer local storage, Electron disk config, backend session config, or sidecar env.
+  - When deciding whether a setting belongs in renderer local storage, Electron
+    disk config, backend session config, or local-runtime env.
 title: "Settings Sync Change Workflow"
 ---
 
@@ -35,19 +36,20 @@ For tab/control ownership, start with [Settings Surface Change Workflow](../rend
 | save indicator is stuck | renderer status provider and backend ACK routing | `frontend/src/renderer/app/providers/AppStatusProvider.jsx`, `frontend/src/renderer/app/providers/appConfigEvents.js`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | [Settings and Model ACK Event Routing Reference](../contracts/events/settings_and_model_ack_event_routing_reference.md) | `tests/frontend/AppStatusProvider.test.tsx`, `tests/frontend/AppConfigEvents.test.js` |
 | model list or model picker is wrong | renderer model settings plus backend model catalog/list-models | `frontend/src/renderer/features/settings`, `frontend/src/renderer/features/chat`, `backend/src/llm/models`, `backend/src/api/handlers/settings.py` | [Model Catalog Change Workflow](../../providers/model_catalog_change_workflow.md), [Model Provider Selection](../../concepts/model_provider_selection.md) | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/ModelsSection.test.jsx`, `tests/backend/test_model_service.py` |
 | backend provider/session does not rewire | backend session config service | `backend/src/agent/session/session_config_service.py`, `backend/src/agent/session/config_runtime.py`, `backend/src/core/config/runtime.py` | [Backend Session Runtime and Config Rewire Reference](../../backend/agent/session_runtime_and_config_rewire_reference.md) | `tests/backend/test_session_config_service.py`, `tests/backend/test_settings_payload_builder.py` |
-| Python sidecar env should change from a setting | SDK local-runtime launch options, not renderer storage alone | `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/python/core`, `frontend/src/main/python/tools` | [Configuration Change Workflow](../../operations/configuration_change_workflow.md) | focused Python sidecar tests and launch/runtime checks |
+| local-runtime implementation env should change from a setting | SDK local-runtime launch options, not renderer storage alone | `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/python/core`, `frontend/src/main/python/tools` | [Configuration Change Workflow](../../operations/configuration_change_workflow.md) | focused Python sidecar tests and launch/runtime checks |
 
 ## Ownership Rules
 
 - Renderer owns local UI state, settings controls, local storage, and model-picker presentation.
 - Electron main owns disk persistence, websocket forwarding, ACK gating, backend endpoint status, and SDK local-runtime launch env facts.
 - Backend owns allowed settings patch fields, session config rewire, provider runtime selection, and model catalog policy.
-- Sidecar owns local tool runtime env and should not read renderer local storage directly.
+- The local-runtime implementation owns local tool runtime env and should not
+  read renderer local storage directly.
 - Renderer should never send backend-owned internal config fields just because they exist in a backend model.
 
 ## Change Sequence
 
-1. Decide whether the setting is renderer-only, backend session config, Electron process config, sidecar env, or release/packaging config.
+1. Decide whether the setting is renderer-only, backend session config, Electron process config, local-runtime env, or release/packaging config.
 2. Update the owner first.
 3. Update `filterRendererConfig(...)` only if the field is renderer-owned or intentionally sent in `update-settings`.
 4. Update storage defaults and migration/cleanup if persisted shape changes.
@@ -155,7 +157,8 @@ Validation:
 - Backend patch validation covers accepted and rejected fields.
 - First-query sync still prevents stale settings from reaching the backend.
 - Model/provider changes update catalog, picker, and provider docs together.
-- Python sidecar env changes are validated through Python sidecar startup or focused Python sidecar tests.
+- Local-runtime implementation env changes are validated through Python sidecar
+  startup or focused Python sidecar tests.
 - Docs and changelog list defaults and propagation behavior.
 
 ## Related Docs

@@ -24,7 +24,10 @@ Electron main owns endpoint selection:
 3. `WINDIE_DEFAULT_BACKEND_HTTP_URL` and `WINDIE_DEFAULT_BACKEND_WS_URL`
 4. hosted default
 
-The Python sidecar process should receive `WINDIE_BACKEND_HTTP_URL` from Electron main. If local-runtime memory/API calls hit a different backend than renderer websocket traffic, inspect main-process env injection before editing local-runtime hosted helper clients.
+The local-runtime Python process should receive `WINDIE_BACKEND_HTTP_URL` from
+Electron main. If local-runtime memory/API calls hit a different backend than
+renderer websocket traffic, inspect main-process env injection before editing
+local-runtime hosted helper clients.
 
 ## Quick Checks
 
@@ -66,7 +69,7 @@ journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 | REST `/api/*` returns `401` | install auth | bearer token from same backend registration |
 | route returns `404` locally | FastAPI route registration | `backend/src/api/routes/__init__.py` |
 | websocket closes with `1008` | auth, handshake, or schema policy | bearer token, first handshake message, backend logs |
-| local-runtime memory route hits wrong backend | main sidecar env injection | `WINDIE_BACKEND_HTTP_URL` in sidecar env |
+| local-runtime memory route hits wrong backend | main local-runtime env injection | `WINDIE_BACKEND_HTTP_URL` in local-runtime env |
 | `/api/runs/*` returns `401` | runs key | `x-windie-runs-key`, `WINDIE_RUNS_API_KEY`, `WINDIE_VM_RUNS_API_KEY` |
 
 ## Related Docs

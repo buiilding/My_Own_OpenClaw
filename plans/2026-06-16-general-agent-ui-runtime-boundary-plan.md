@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Operations Settings Local-Runtime Env Labels
+
+- Finding: settings-sync, operations hub, endpoint debugging, and operational
+  troubleshooting docs still described config/env routing as sidecar env,
+  sidecar runtime, or sidecar/Electron bridge ownership in public owner maps.
+- Change: routed those labels through local-runtime implementation/env wording
+  while preserving Python sidecar files, sidecar startup tests, and bundled
+  sidecar runtime packaging terms where they name the current implementation
+  artifact.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  settings/operations label scan, and diff checks.
+- Compatibility: no migration required. Env var names, launch options,
+  endpoint resolution, storage, IPC, settings payloads, credentials, hosted URL
+  policy, provider policy, permissions, packaging artifacts, and local
+  execution behavior are unchanged.
+
 ### 2026-06-18 Configuration Local-Runtime Owner Labels
 
 - Finding: the configuration workflow, runtime configuration matrix,

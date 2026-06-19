@@ -16,7 +16,7 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 
 | Area | Primary owner | Code and config roots | Start docs |
 | --- | --- | --- | --- |
-| Runtime configuration | Backend config, Electron main endpoint resolution, renderer settings persistence, and sidecar env propagation | `backend/src/core/config`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js`, `frontend/src/main/python/windie/_backend_config.py` | [Configuration Change Workflow](configuration_change_workflow.md), [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
+| Runtime configuration | Backend config, Electron main endpoint resolution, renderer settings persistence, and local-runtime env propagation | `backend/src/core/config`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js`, `frontend/src/main/python/windie/_backend_config.py` | [Configuration Change Workflow](configuration_change_workflow.md), [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
 | Gateway ingress | Hosted FastAPI app assembly, route registration, auth middleware, health checks, and edge troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Runtime nodes | Hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin process ownership | `backend/src`, `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `scripts/cloudflared` | [Runtime Nodes Hub](../nodes/README.md), [Runtime Node Matrix](../nodes/runtime_node_matrix.md) |
 | Hosted backend auth | Backend install-token service plus frontend token propagation | `backend/src/api/auth`, `backend/src/api/routes/websocket`, `frontend/src/main`, `frontend/src/renderer/infrastructure` | [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
@@ -50,7 +50,8 @@ Likely code:
 Validation:
 
 - endpoint resolver tests
-- packaged sidecar env propagation tests when the sidecar sees backend URL changes
+- packaged local-runtime env propagation tests when local-runtime helper clients
+  see backend URL changes
 - `<windie> docs list`
 
 ### Change Hosted Auth or Install Registration
@@ -117,7 +118,8 @@ Likely owners:
 - websocket close code `1008`: handshake/auth/schema failure
 - 409 on `/api/runs/*`: active VM run cap
 - 502 from `api.windieos.com`: Cloudflare Tunnel or origin backend service
-- local tool failure after successful backend query: sidecar runtime, not hosted backend
+- local tool failure after successful backend query: local-runtime
+  implementation, not hosted backend
 
 ### Change VM Worker or Runs API Operations
 

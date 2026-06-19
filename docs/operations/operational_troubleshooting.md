@@ -1,8 +1,10 @@
 ---
-summary: "Symptom-to-owner troubleshooting map for WindieOS hosted backend, packaged desktop, sidecar runtime, Cloudflare Tunnel, auth, and VM worker operations."
+summary: "Symptom-to-owner troubleshooting map for WindieOS hosted backend, packaged desktop, local-runtime implementation, Cloudflare Tunnel, auth, and VM worker operations."
 read_when:
   - When debugging production, packaged-app, hosted-backend, tunnel, install-auth, or VM-worker failures.
-  - When deciding whether an issue belongs to backend operations, Electron endpoint routing, sidecar runtime, release packaging, or platform setup.
+  - When deciding whether an issue belongs to backend operations, Electron
+    endpoint routing, local-runtime implementation, release packaging, or
+    platform setup.
 title: "Operational Troubleshooting"
 ---
 
@@ -18,7 +20,7 @@ Use this page when a problem crosses feature boundaries. The goal is to identify
 | Does `/api/embeddings/health` fail locally on the backend host? | Backend process/config issue. | Continue. |
 | Does local origin work but `https://api.windieos.com/...` fails? | Cloudflare Tunnel/DNS/service issue. | Continue. |
 | Does HTTP work but websocket closes during connect? | Websocket auth/handshake/schema issue. | Continue. |
-| Does backend query stream work but tool execution fails? | Sidecar or Electron tool bridge issue. | Continue. |
+| Does backend query stream work but tool execution fails? | Local-runtime implementation or Electron tool bridge issue. | Continue. |
 | Does only one OS fail? | Platform adapter, permission, packaging, or OS dependency issue. | Use debug docs by subsystem. |
 
 ## Hosted Backend and Tunnel
@@ -149,14 +151,15 @@ Read:
 
 Likely owner:
 
-- Electron main sidecar env injection or local-runtime backend URL resolution.
+- Electron main local-runtime env injection or local-runtime backend URL
+  resolution.
 
 Check:
 
 - `frontend/src/main/app/backend_endpoints.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
-- `WINDIE_BACKEND_HTTP_URL` in sidecar env
+- `WINDIE_BACKEND_HTTP_URL` in local-runtime env
 
 ## Packaged App
 
@@ -267,7 +270,7 @@ Read:
 
 | Changed area | Minimum validation |
 | --- | --- |
-| Endpoint resolver | frontend endpoint tests, sidecar env propagation tests, `<windie> docs list` |
+| Endpoint resolver | frontend endpoint tests, local-runtime env propagation tests, `<windie> docs list` |
 | Install auth | backend auth middleware tests, websocket handshake tests, frontend/SDK token propagation tests |
 | Cloudflare runbook/scripts | shellcheck/manual dry run where possible, origin and hosted health checks |
 | Packaging config | package on target OS, smoke helper, installed-app launch |
