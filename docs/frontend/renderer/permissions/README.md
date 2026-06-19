@@ -27,5 +27,5 @@ title: "Renderer Permissions Docs Hub"
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
-- `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`

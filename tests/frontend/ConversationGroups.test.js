@@ -5,7 +5,7 @@
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
-} from '../../frontend/src/renderer/features/dashboard/utils/conversationGroups';
+} from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime';
 
 function isoDaysAgo(days) {
   const date = new Date();

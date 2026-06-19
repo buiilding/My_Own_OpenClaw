@@ -1,5 +1,5 @@
 /**
- * Provides the permission presentation module for the renderer UI.
+ * Owns renderer permission status and presentation mapping shared by surfaces.
  */
 
 const ACCESS_KIND_LABELS = Object.freeze({
@@ -36,4 +36,21 @@ export function getPermissionActionLabel(permission) {
     return permission.grant_action_label.trim();
   }
   return ACCESS_KIND_ACTION_LABELS[permission?.access_kind] || 'Grant';
+}
+
+export function isPermissionGrantedStatus(status) {
+  return status?.granted === true || status?.status === 'granted';
+}
+
+export function getPermissionPill(status, permission) {
+  if (status === 'granted') {
+    return { label: getPermissionGrantedLabel(permission), className: 'granted' };
+  }
+  if (status === 'needs-action') {
+    return { label: 'Needs action', className: 'warning' };
+  }
+  if (status === 'unsupported') {
+    return { label: 'Unsupported', className: 'warning' };
+  }
+  return { label: 'Not checked', className: '' };
 }

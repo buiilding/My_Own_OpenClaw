@@ -5,8 +5,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { applyPermissionGrantEffects } from '../../../app/runtime/desktopPermissionGrantEffectsRuntime';
+import { isPermissionGrantedStatus } from '../../../app/runtime/desktopPermissionPresentationRuntime';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
-import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';
 
 const MACOS_INTERVAL_RECHECK_PERMISSION_IDS = new Set([
   'screen_capture',

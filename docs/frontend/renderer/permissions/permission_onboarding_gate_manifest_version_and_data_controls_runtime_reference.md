@@ -17,11 +17,12 @@ title: "Permission Onboarding Gate and Manifest Version Runtime Reference"
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
+- `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime.js`
-- `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`
 - `tests/frontend/DesktopOnboardingSlideshow.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
+- `tests/frontend/PermissionPresentationRuntime.test.jsx`
 - `tests/frontend/permissionGrantEffects.test.js`
 
 ## Startup Behavior (`App.jsx`)

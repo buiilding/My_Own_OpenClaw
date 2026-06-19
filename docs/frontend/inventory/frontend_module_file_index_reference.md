@@ -95,7 +95,7 @@ Feature slices:
 - `frontend/src/renderer/features/dashboard/components/*`
 - `frontend/src/renderer/features/dashboard/hooks/*`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
-- `frontend/src/renderer/features/dashboard/utils/*`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - Settings:
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - Voice:
@@ -107,7 +107,7 @@ Feature slices:
 - Permissions:
 - `frontend/src/renderer/features/permissions/components/*`
 - `frontend/src/renderer/features/permissions/stores/*`
-- `frontend/src/renderer/features/permissions/utils/*`
+- `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`
 
 Infrastructure:
 

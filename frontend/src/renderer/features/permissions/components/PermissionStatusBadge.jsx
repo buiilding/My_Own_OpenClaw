@@ -2,7 +2,7 @@
  * Provides the permission status badge module for the renderer UI.
  */
 
-import { getPermissionPill } from '../utils/permissionStatus';
+import { getPermissionPill } from '../../../app/runtime/desktopPermissionPresentationRuntime';
 
 function PermissionStatusBadge({ status, permission }) {
   const pill = getPermissionPill(status, permission);

@@ -12,7 +12,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
-- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
@@ -79,11 +79,12 @@ Hook search policy (active only when `searchOpen=true`):
 - request payload: `{ userId, query, limit: 60 }`
 - cancellation guard prevents stale async writes
 
-Search groups are derived from searched rows using shared bucket utility with metadata enabled.
+Search groups are derived from searched rows using the app-runtime conversation
+grouping facade with metadata enabled.
 
 ## Group Bucket Utility Contract
 
-`buildConversationGroups(conversations, options)` returns:
+`desktopDashboardConversationGroupRuntime.buildConversationGroups(conversations, options)` returns:
 
 - `today`
 - `yesterday`

@@ -70,6 +70,9 @@ frontend/src/renderer/
 │   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
 │   │   ├── desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
 │   │   ├── desktopDashboardConversationLoadRuntime.js # Renderer dashboard recent-conversation normalization and retry facade
+│   │   ├── desktopDashboardConversationGroupRuntime.js # Renderer dashboard time/workspace conversation grouping facade
+│   │   ├── desktopPermissionPresentationRuntime.js # Renderer permission status and presentation mapping facade
+│   │   ├── desktopOnboardingSlideRuntime.js # Renderer onboarding slide-state rules facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
@@ -180,9 +183,6 @@ frontend/src/renderer/
 │   │           ├── memorySectionData.js # memorySectionData - Memory type metadata + normalization helpers
 │   │           ├── providerApiKeys.js   # providerApiKeys - Provider API key defaults/specs + normalization
 │   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
-│   │
-│   │   └── utils/                       # Dashboard presentation helpers
-│   │       └── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
 │   │
 │   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI

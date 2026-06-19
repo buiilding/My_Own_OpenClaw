@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/permissions: move permission status and presentation mapping into
+  `desktopPermissionPresentationRuntime` so onboarding and settings share an
+  app-runtime owner instead of feature utility paths. No migration required.
+- renderer/dashboard: move dashboard conversation grouping and search metadata
+  normalization into `desktopDashboardConversationGroupRuntime` and delete the
+  feature utility path. No migration required.
 - main/lifecycle: move wakeword global-hotkey fallback accelerators into the
   host skin so the generic Electron lifecycle runtime consumes configured
   shortcut candidates. No migration required.

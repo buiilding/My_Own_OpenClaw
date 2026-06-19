@@ -238,8 +238,8 @@ Primary files:
   - `SettingsSection.jsx`, `UsageSection.jsx`
 - Utilities/hooks:
   - `app/runtime/desktopModelSelectionRuntime.js`
+  - `app/runtime/desktopDashboardConversationGroupRuntime.js`
   - `hooks/useDashboardConversations.js`
-  - `utils/conversationGroups.js`
   - transcript session identity is read through `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 
 Functionality:

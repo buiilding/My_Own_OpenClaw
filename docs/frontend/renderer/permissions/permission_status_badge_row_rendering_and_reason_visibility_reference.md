@@ -1,7 +1,7 @@
 ---
 summary: "Renderer permissions presentation contract for `PermissionStatusBadge`: status-pill label and CSS class mapping used by live settings permission rows."
 read_when:
-  - When changing permission status label semantics or CSS class mapping in `permissionStatus.js`.
+  - When changing permission status label semantics or CSS class mapping in `desktopPermissionPresentationRuntime.js`.
   - When changing Browser settings permission status rendering or any future permission surface.
 title: "Permission Status Badge Rendering Reference"
 ---
@@ -11,7 +11,7 @@ title: "Permission Status Badge Rendering Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
-- `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
 
@@ -51,18 +51,23 @@ recreating status keyword-to-label mappings.
 action buttons from `permission.grant_action_label` instead of hard-coding
 `Grant` vs `Enable`.
 
+`desktopPermissionPresentationRuntime.js` owns access-kind labels, granted
+labels, action-label defaults, granted-status normalization, and status-pill
+mapping so onboarding and settings do not import utility paths from each
+other's feature folders.
+
 ## Drift Hotspots
 
 1. Changing status keywords from main/permission service/store without updating `getPermissionPill`.
-2. Adding new `access_kind` values without extending `permissionPresentation.js` and granted-label mapping.
+2. Adding new `access_kind` values without extending `desktopPermissionPresentationRuntime.js` mappings.
 3. Recreating badge label/class mapping directly in a settings or onboarding component.
 4. Renaming CSS class tokens (`permission-pill`) without style updates.
 
 ## Coverage Notes
 
-Current frontend tests cover permission store and IPC/service behavior.
-
-Direct unit coverage for `PermissionStatusBadge` rendering permutations is currently absent.
+`tests/frontend/PermissionPresentationRuntime.test.jsx` covers access-kind
+labels, action-label fallback, granted-status normalization, pill mapping, and
+the `PermissionStatusBadge` rendering contract.
 
 ## Related Pages
 

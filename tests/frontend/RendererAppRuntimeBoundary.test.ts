@@ -407,6 +407,26 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('dashboard conversation grouping rules stay behind app runtime facade', async () => {
+    const runtimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDashboardConversationGroupRuntime.js'),
+      'utf8',
+    );
+    const dashboardHookSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+
+    expect(runtimeSource).toContain('buildConversationGroups');
+    expect(runtimeSource).toContain('buildWorkspaceConversationGroups');
+    expect(runtimeSource).not.toContain('features/dashboard');
+    expect(dashboardHookSource).toContain('desktopDashboardConversationGroupRuntime');
+    expect(dashboardHookSource).not.toContain('utils/conversationGroups');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/dashboard/utils/conversationGroups.js'),
+    )).rejects.toThrow();
+  });
+
   test('chat stream stale-turn guard uses generic runtime packet wording', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatStreamEventRuntime.ts'),
@@ -660,6 +680,41 @@ describe('renderer app runtime boundary', () => {
     expect(browserSettingsSource).not.toContain('permissions/utils/permissionGrantEffects');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/permissions/utils/permissionGrantEffects.js'),
+    )).rejects.toThrow();
+  });
+
+  test('permission presentation rules are owned by app runtime', async () => {
+    const presentationRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopPermissionPresentationRuntime.js'),
+      'utf8',
+    );
+    const badgeSource = await fs.readFile(
+      path.join(rendererRoot, 'features/permissions/components/PermissionStatusBadge.jsx'),
+      'utf8',
+    );
+    const onboardingSlideSource = await fs.readFile(
+      path.join(rendererRoot, 'features/onboarding/components/PermissionOnboardingSlide.jsx'),
+      'utf8',
+    );
+    const onboardingActionsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/onboarding/hooks/useOnboardingPermissionActions.js'),
+      'utf8',
+    );
+
+    expect(presentationRuntimeSource).toContain('getPermissionPill');
+    expect(presentationRuntimeSource).toContain('isPermissionGrantedStatus');
+    expect(presentationRuntimeSource).not.toContain('features/permissions');
+    expect(badgeSource).toContain('desktopPermissionPresentationRuntime');
+    expect(onboardingSlideSource).toContain('desktopPermissionPresentationRuntime');
+    expect(onboardingActionsSource).toContain('desktopPermissionPresentationRuntime');
+    expect(onboardingSlideSource).not.toContain('permissions/utils/permissionPresentation');
+    expect(onboardingSlideSource).not.toContain('permissions/utils/permissionStatus');
+    expect(onboardingActionsSource).not.toContain('permissions/utils/permissionStatus');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/permissions/utils/permissionPresentation.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/permissions/utils/permissionStatus.js'),
     )).rejects.toThrow();
   });
 

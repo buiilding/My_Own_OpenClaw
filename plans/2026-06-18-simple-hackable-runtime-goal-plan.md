@@ -275,6 +275,40 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard conversation-grouping
+  runtime-boundary slice by moving time-bucket grouping, workspace grouping,
+  title fallback, pinned ordering, matched-role labels, and search metadata
+  normalization from
+  `frontend/src/renderer/features/dashboard/utils/conversationGroups.js` into
+  `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`.
+  `useDashboardConversations`, dashboard docs, focused tests, app-runtime
+  inventory, and boundary guards now consume the app-runtime owner while the old
+  feature utility path is deleted. Validation: focused conversation-grouping
+  and renderer app-runtime boundary tests, docs listing, stale old-path scan,
+  frontend lint, and diff checks. No migration required; dashboard grouping
+  buckets, workspace grouping, title fallbacks, pinned ordering, search
+  metadata, matched-role labels, conversation loading, transcript storage,
+  session routing, IPC, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
+- 2026-06-19: completed a renderer permission presentation runtime-boundary
+  slice by moving access-kind labels, granted/action label defaults,
+  granted-status normalization, and permission pill label/class projection from
+  `frontend/src/renderer/features/permissions/utils/permissionStatus.js` and
+  `frontend/src/renderer/features/permissions/utils/permissionPresentation.js`
+  into
+  `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`.
+  Permission status badges, onboarding permission slides, onboarding permission
+  actions, active permission docs, app-runtime inventory, and boundary guards
+  now consume the app-runtime owner while the old feature utility paths are
+  deleted. Validation: focused permission presentation runtime and badge
+  rendering tests, focused onboarding slideshow/actions and renderer app-runtime
+  boundary tests, docs listing, stale old-path scan, frontend lint, and diff
+  checks. No migration required; permission status keywords, labels, CSS class
+  tokens, onboarding action labels, status polling, settings badge rendering,
+  manifest consumption, storage, IPC, credentials, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer onboarding slide-state runtime-boundary
   slice by moving permission-slide counting, active-index clamping,
   permission-vs-stop-slide classification, and onboarding title/body selection

@@ -12,7 +12,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
-- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`

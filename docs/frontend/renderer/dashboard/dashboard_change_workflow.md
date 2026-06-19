@@ -43,7 +43,7 @@ the owner map before changing code.
 | --- | --- | --- |
 | Sidebar open/collapse, navigation buttons, active panel highlighting | `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`, `components/sidebar/*`, `DashboardShell.jsx` | `tests/frontend/DashboardSidebar.test.jsx`, `tests/frontend/DashboardShell.test.jsx` |
 | Main-window target opens wrong dashboard panel | `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`, `frontend/src/main/*open*`, `frontend/src/main/ipc*` | `tests/frontend/DashboardShell.test.jsx`, main-window open-target tests if present |
-| Recent chats do not load, retry, group, or show titles | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `app/runtime/desktopDashboardConversationLoadRuntime.js`, `utils/conversationGroups.js`, transcript local store | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationGroups.test.js`, `tests/frontend/DashboardSidebar.test.jsx` |
+| Recent chats do not load, retry, group, or show titles | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `app/runtime/desktopDashboardConversationLoadRuntime.js`, `app/runtime/desktopDashboardConversationGroupRuntime.js`, transcript local store | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationGroups.test.js`, `tests/frontend/DashboardSidebar.test.jsx` |
 | Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `desktopConversationLibraryClient.js`, `desktopConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
 | Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `desktopWorkspaceRuntimeClient.ts`, `desktopConversationStore.ts`, `desktopConversationSessionRuntime.ts`, `conversationWorkspaceBinding.js`, Electron main SDK runtime registry | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationWorkspaceBinding.test.js`, `tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs` |
 | Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `desktopActiveChatSessionRuntime.ts`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx`, `tests/frontend/ResetActiveChatSession.test.ts` |
@@ -119,7 +119,7 @@ Read these files for recent chats, search, open, rename, pin, or delete work:
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
-- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`

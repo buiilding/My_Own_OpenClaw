@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dashboard Grouping and Permission Presentation Runtime Boundaries
+
+- Finding: dashboard time/workspace conversation grouping and permission
+  status/presentation mapping still lived in feature utility trees even though
+  dashboard hooks, onboarding, and settings consume them as shared renderer
+  app-runtime rules.
+- Change: moved dashboard conversation grouping into
+  `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`,
+  moved permission label/status/pill projection into
+  `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`,
+  routed consumers/tests/docs through those app-runtime owners, and deleted the
+  old dashboard and permission utility paths.
+- Validation: focused conversation-grouping, permission presentation,
+  onboarding, app-runtime boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks passed.
+- Compatibility: no migration required. Dashboard grouping buckets, workspace
+  grouping, search metadata, matched-role labels, permission labels, badge
+  classes, onboarding permission actions, IPC, persisted settings/onboarding
+  state, credentials, local runtime execution, provider policy, backend APIs,
+  and storage are unchanged.
+
 ### 2026-06-19 Renderer Onboarding Slide-State Runtime Boundary
 
 - Finding: permission onboarding slide progression and active slide copy lived

@@ -14,7 +14,7 @@ import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSe
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
-} from '../utils/conversationGroups';
+} from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import {
   normalizeRecentConversations,
   prunePinnedConversationRefs,

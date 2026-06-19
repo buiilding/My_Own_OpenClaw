@@ -7,8 +7,8 @@ import {
   getPermissionActionLabel,
   getPermissionGrantedLabel,
   getPermissionKindLabel,
-} from '../../permissions/utils/permissionPresentation';
-import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';
+  isPermissionGrantedStatus,
+} from '../../../app/runtime/desktopPermissionPresentationRuntime';
 
 function PermissionOnboardingSlide({
   activePermission = null,

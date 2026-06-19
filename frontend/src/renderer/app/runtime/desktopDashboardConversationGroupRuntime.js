@@ -1,5 +1,5 @@
 /**
- * Provides the conversation groups module for the renderer UI.
+ * Owns renderer dashboard conversation grouping rules for the app runtime.
  */
 
 function getConversationTimeBuckets() {
