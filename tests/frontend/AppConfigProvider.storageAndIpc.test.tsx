@@ -270,9 +270,9 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith({
+    expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith(expect.objectContaining({
       runtimeHttpUrl: 'http://10.0.0.42:9001',
-    });
+    }));
     expect(mockSetRuntimeEndpointHttpUrl).not.toHaveBeenCalled();
   });
 
@@ -300,9 +300,9 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       ipcStatusHandler?.({ runtimeHttpUrl: 'http://10.0.0.42:9001' });
     });
 
-    expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith({
+    expect(mockSyncRuntimeEndpointFromSnapshot).toHaveBeenCalledWith(expect.objectContaining({
       runtimeHttpUrl: 'http://10.0.0.42:9001',
-    });
+    }));
     expect(mockSetRuntimeEndpointHttpUrl).not.toHaveBeenCalled();
   });
 

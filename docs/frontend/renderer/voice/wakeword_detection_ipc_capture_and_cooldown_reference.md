@@ -31,7 +31,8 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 `wakewordActive` is computed in `AppConfigProvider`:
 
 - `wakewordEnabled` (persisted `config.wakeword_enabled` user preference)
-- `wakewordSuppressed` (runtime suppression from `wakeword-toggle` channel)
+- `wakewordSuppressed` (runtime suppression from
+  `DesktopVoiceRuntimeClient.onWakewordToggleState(...)`)
 - `wakewordActive = wakewordEnabled && !wakewordSuppressed`
 
 Detection callback behavior:

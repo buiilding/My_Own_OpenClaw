@@ -179,6 +179,11 @@ state through observed `{ isConnected }` updates, while preserving
 runtime-client tests, so UI hooks do not inspect raw `ipc-status` payload
 types.
 
+Wakeword overlay suppression also flows through a renderer app-runtime client:
+`DesktopVoiceRuntimeClient.onWakewordToggleState(...)` subscribes to the
+host `wakeword-toggle` channel, drops non-boolean payloads, and emits
+value-level `{ enabled }` updates for `AppConfigProvider`.
+
 ## Event Handling Notes
 
 `routeConfigSettingsEvent(...)` currently handles:

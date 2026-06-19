@@ -299,10 +299,8 @@ export function AppConfigProvider({ children }) {
   const wakewordEnabled = isWakewordEnabledInConfig(config);
 
   useEffect(() => {
-    const removeListener = DesktopVoiceRuntimeClient.onWakewordToggle((data) => {
-      if (typeof data?.enabled === 'boolean') {
-        setWakewordSuppressed(!data.enabled);
-      }
+    const removeListener = DesktopVoiceRuntimeClient.onWakewordToggleState(({ enabled }) => {
+      setWakewordSuppressed(!enabled);
     });
     return () => {
       removeListener?.();

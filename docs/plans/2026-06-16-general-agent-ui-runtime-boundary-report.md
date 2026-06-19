@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Wakeword Toggle State Boundary
+
+- Finding: `DesktopVoiceRuntimeClient` owned the wakeword-toggle IPC
+  subscription, but `AppConfigProvider` still read the raw bridge `enabled`
+  field before updating wakeword suppression state.
+- Change: added value-level wakeword-toggle state normalization and
+  subscription to the voice runtime client. `AppConfigProvider` now consumes
+  boolean enabled states while keeping app-level suppression policy.
+- Validation: passed focused desktop voice runtime client, AppConfigProvider
+  storage/IPC, renderer settings boundary, renderer voice boundary, and
+  docs-index tests plus docs search, related commit search, stale raw
+  wakeword-toggle field scan, docs listing, and diff checks.
+- Compatibility: no migration required. Wakeword-toggle IPC channel names,
+  payload shape, wakeword preference/suppression behavior, overlay visibility
+  behavior, config persistence, storage, provider policy, hosted URLs,
+  permissions, and local wakeword service execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Wakeword Detection Value Boundary
 
 - Finding: `DesktopVoiceRuntimeClient` owned wakeword bridge IPC and readiness

@@ -56,7 +56,8 @@ Backend ownership detail:
 `AppConfigProvider` owns activation inputs:
 
 - `wakewordEnabled`: persisted wakeword preference from settings UI
-- `wakewordSuppressed`: temporary runtime suppression from main-process `wakeword-toggle`
+- `wakewordSuppressed`: temporary runtime suppression from value-level
+  `DesktopVoiceRuntimeClient.onWakewordToggleState(...)` updates
   - seeded from renderer surface on startup: main dashboard starts unsuppressed, overlay views start suppressed
 - `wakewordActive = wakewordEnabled && !wakewordSuppressed`: input to `WakewordController`
 

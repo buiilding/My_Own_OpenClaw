@@ -48,7 +48,8 @@ Emit points:
 
 Primary renderer consumer:
 
-- `AppConfigProvider` listens on `ON_CHANNELS.WAKEWORD_TOGGLE`
+- `DesktopVoiceRuntimeClient` listens on `ON_CHANNELS.WAKEWORD_TOGGLE` and
+  emits value-level wakeword-toggle state to `AppConfigProvider`
 - persisted preference comes from `config.wakeword_enabled`
 - updates `wakewordSuppressed = !enabled`
 - effective wakeword runtime state is `wakewordActive = wakewordEnabled && !wakewordSuppressed`

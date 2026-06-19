@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer wakeword-toggle state boundary slice by
+  adding value-level toggle normalization and `onWakewordToggleState(...)` to
+  `DesktopVoiceRuntimeClient`. `AppConfigProvider` now consumes boolean
+  enabled states while keeping wakeword suppression policy. Validation: passed
+  focused desktop voice runtime client, AppConfigProvider storage/IPC, renderer
+  settings boundary, renderer voice boundary, and docs-index tests plus docs
+  search, related commit search, stale raw wakeword-toggle field scan, docs
+  listing, and diff checks. No migration
+  required; wakeword-toggle IPC channel names, payload shape, wakeword
+  preference/suppression behavior, overlay visibility behavior, config
+  persistence, storage, provider policy, hosted URLs, permissions, and local
+  wakeword service execution behavior are unchanged.
 - 2026-06-19: completed a renderer wakeword detection value boundary slice by
   adding value-level detection normalization and
   `onWakewordDetectedValues(...)` to `DesktopVoiceRuntimeClient`.

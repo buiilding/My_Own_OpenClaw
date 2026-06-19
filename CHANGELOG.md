@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose wakeword-toggle events as value-level voice runtime
+  state callbacks so `AppConfigProvider` no longer reads raw bridge `enabled`
+  fields. No migration required.
 - renderer/runtime: expose wakeword detection events as value-level voice
   runtime callbacks so wakeword bridge hooks no longer read raw bridge
   `model`, `confidence`, or `score` fields. No migration required.

@@ -140,7 +140,7 @@ Desktop host transport is routed through app runtime clients:
 - `DesktopConversationSessionRuntimeClient` owns shared session-helper rule routing for runtime clients.
 - `DesktopSettingsEventRuntimeClient` owns model-list settings-event payload handling for providers.
 - `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.
-- `DesktopVoiceRuntimeClient` owns wakeword-toggle fan-out.
+- `DesktopVoiceRuntimeClient` owns value-level wakeword-toggle state fan-out.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.
 
 Provider code should not import `IpcBridge`, channel constants, or desktop runtime channel names directly.
@@ -168,13 +168,12 @@ Cleanup:
 
 Runtime listener:
 
-- `DesktopVoiceRuntimeClient.onWakewordToggle(...)`
+- `DesktopVoiceRuntimeClient.onWakewordToggleState(...)`
 
-Payload handling:
+Value handling:
 
-- when `enabled` is boolean:
-  - `wakewordSuppressed = !enabled`
-- non-boolean payload ignored
+- runtime client emits boolean `enabled` states only
+- provider applies `wakewordSuppressed = !enabled`
 
 Net effect:
 

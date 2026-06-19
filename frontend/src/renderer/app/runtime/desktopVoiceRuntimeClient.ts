@@ -69,6 +69,10 @@ export type WakewordTogglePayload = {
   enabled?: unknown;
 };
 
+export type WakewordToggleState = {
+  enabled: boolean;
+};
+
 function parseBoolean(value: unknown): boolean {
   return value === true || value === 'true';
 }
@@ -111,6 +115,16 @@ export function resolveWakewordDetectionValues(
     values.score = score;
   }
   return values;
+}
+
+export function resolveWakewordToggleState(
+  payload: WakewordTogglePayload | null | undefined,
+): WakewordToggleState | null {
+  const source = isRecord(payload) ? payload : {};
+  if (typeof source.enabled !== 'boolean') {
+    return null;
+  }
+  return { enabled: source.enabled };
 }
 
 /**
@@ -163,6 +177,16 @@ export const DesktopVoiceRuntimeClient = {
 
   onWakewordToggle(listener: (payload: WakewordTogglePayload) => void): (() => void) | undefined {
     return IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, listener as (payload: unknown) => void);
+  },
+
+  onWakewordToggleState(listener: (payload: WakewordToggleState) => void): (() => void) | undefined {
+    return this.onWakewordToggle((payload) => {
+      const state = resolveWakewordToggleState(payload);
+      if (!state) {
+        return;
+      }
+      listener(state);
+    });
   },
 
   getTranscriptionGatewayUrl(): string {

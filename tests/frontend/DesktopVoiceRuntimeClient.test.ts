@@ -8,6 +8,7 @@ import {
   resolveWakewordReadyStatus,
   resolveWakewordStatusError,
   resolveWakewordStatusReady,
+  resolveWakewordToggleState,
 } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 import {
   IpcBridge,
@@ -140,6 +141,34 @@ describe('DesktopVoiceRuntimeClient', () => {
 
     expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_STATUS, expect.any(Function));
     expect(readyListener).toHaveBeenCalledWith({ ready: true, error: null });
+  });
+
+  test('normalizes wakeword toggle state values', () => {
+    expect(resolveWakewordToggleState({ enabled: true })).toEqual({ enabled: true });
+    expect(resolveWakewordToggleState({ enabled: false })).toEqual({ enabled: false });
+    expect(resolveWakewordToggleState({ enabled: 'false' })).toBeNull();
+    expect(resolveWakewordToggleState(null)).toBeNull();
+  });
+
+  test('emits value-level wakeword toggle state updates', () => {
+    const toggleListener = jest.fn();
+    let toggleHandler: ((payload: unknown) => void) | undefined;
+    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+      if (channel === ON_CHANNELS.WAKEWORD_TOGGLE) {
+        toggleHandler = handler;
+      }
+      return jest.fn();
+    });
+
+    DesktopVoiceRuntimeClient.onWakewordToggleState(toggleListener);
+    toggleHandler?.({ enabled: false });
+    toggleHandler?.({ enabled: 'yes' });
+    toggleHandler?.({ enabled: true });
+
+    expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_TOGGLE, expect.any(Function));
+    expect(toggleListener).toHaveBeenCalledTimes(2);
+    expect(toggleListener).toHaveBeenNthCalledWith(1, { enabled: false });
+    expect(toggleListener).toHaveBeenNthCalledWith(2, { enabled: true });
   });
 
   test('sends transcription gateway protocol setup messages', () => {
