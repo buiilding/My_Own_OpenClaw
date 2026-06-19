@@ -89,9 +89,9 @@ Notable behavior:
 - `save/load-frontend-config` are registered by
   `ipc_desktop_ui_config_handlers.cjs` and call atomic file helpers in
   `ipc_desktop_ui_config.cjs`
-- `windie:pending-turn` is handled in `ipc.cjs` because it coordinates
-  renderer-composed optimistic user turns with main's latest pending-turn cache,
-  sibling-window fan-out, late-window replay, and current-turn clear semantics
+- `windie:pending-turn` is registered by `ipc_pending_turn_handlers.cjs`;
+  `ipc.cjs` injects the latest pending-turn cache, sibling-window fan-out,
+  late-window replay state, and current-turn clear semantics
 - `ipc_response_overlay_handlers.cjs` / `prime-response-overlay-awaiting` are
   removed; active response phases are driven by SDK/backend current-turn
   projection and overlay phase events, not a renderer invoke preflight handler

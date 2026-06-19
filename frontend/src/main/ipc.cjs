@@ -59,6 +59,11 @@ const {
   registerRendererDiagnosticsHandlers,
 } = require('./ipc/ipc_renderer_diagnostics_handlers.cjs');
 const {
+  clearPendingTurnState,
+  pendingTurnMatchesCurrentTurn,
+  registerPendingTurnHandlers,
+} = require('./ipc/ipc_pending_turn_handlers.cjs');
+const {
   APP_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
@@ -144,7 +149,6 @@ const {
   createIpcEventReplayState,
 } = require('./ipc/ipc_event_replay_state.cjs');
 const {
-  DESKTOP_RUNTIME_SEND_CHANNELS,
   DESKTOP_RUNTIME_INVOKE_CHANNELS,
   DESKTOP_RUNTIME_ON_CHANNELS,
 } = require('./ipc/ipc_desktop_runtime_channels.cjs');
@@ -1307,85 +1311,15 @@ function trackRendererWindow(win) {
   });
 }
 
-function normalizePendingTurnPayload(value) {
-  const source = value && typeof value === 'object' && !Array.isArray(value)
-    ? value
-    : {};
-  const pendingTurn = source.pendingTurn && typeof source.pendingTurn === 'object'
-    ? source.pendingTurn
-    : source;
-  const conversationRef = typeof pendingTurn.conversationRef === 'string'
-    && pendingTurn.conversationRef.trim()
-    ? pendingTurn.conversationRef.trim()
-    : null;
-  const turnRef = typeof pendingTurn.turnRef === 'string' && pendingTurn.turnRef.trim()
-    ? pendingTurn.turnRef.trim()
-    : null;
-  const userMessageId = typeof pendingTurn.userMessageId === 'string'
-    && pendingTurn.userMessageId.trim()
-    ? pendingTurn.userMessageId.trim()
-    : null;
-  const text = typeof pendingTurn.text === 'string' ? pendingTurn.text : null;
-  const timestamp = typeof pendingTurn.timestamp === 'string' && pendingTurn.timestamp.trim()
-    ? pendingTurn.timestamp
-    : null;
-  if (!conversationRef || !turnRef || !userMessageId || text === null || !timestamp) {
-    return null;
-  }
-  const attachmentFilenames = Array.isArray(pendingTurn.attachmentFilenames)
-    ? pendingTurn.attachmentFilenames.filter((entry) => (
-      typeof entry === 'string' && entry.trim()
-    ))
-    : null;
-  return {
-    conversationRef,
-    turnRef,
-    userMessageId,
-    text,
-    timestamp,
-    attachmentFilenames: attachmentFilenames && attachmentFilenames.length > 0
-      ? attachmentFilenames
-      : null,
-  };
-}
-
-function pendingTurnMatchesCurrentTurn(pendingTurn, currentTurn) {
-  return Boolean(
-    pendingTurn
-      && currentTurn
-      && pendingTurn.conversationRef === currentTurn.conversationRef
-      && pendingTurn.turnRef === currentTurn.turnRef,
-  );
-}
-
-function pendingTurnMatchesTarget(pendingTurn, input = {}) {
-  if (!pendingTurn) {
-    return false;
-  }
-  const conversationRef = normalizeOptionalString(input.conversationRef);
-  const turnRef = normalizeOptionalString(input.turnRef);
-  return (
-    (!conversationRef || pendingTurn.conversationRef === conversationRef)
-    && (!turnRef || pendingTurn.turnRef === turnRef)
-  );
-}
-
 function clearLatestPendingTurn(input = {}) {
-  const pendingTurn = latestPendingTurn;
-  if (!pendingTurn || !pendingTurnMatchesTarget(pendingTurn, input)) {
-    return false;
-  }
-  latestPendingTurn = null;
-  if (input.broadcast === true) {
-    broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
-      type: 'clear',
-      conversationRef: normalizeOptionalString(input.conversationRef)
-        || pendingTurn.conversationRef,
-      turnRef: normalizeOptionalString(input.turnRef)
-        || pendingTurn.turnRef,
-    });
-  }
-  return true;
+  return clearPendingTurnState({
+    ...input,
+    getLatestPendingTurn: () => latestPendingTurn,
+    setLatestPendingTurn: (pendingTurn) => {
+      latestPendingTurn = pendingTurn;
+    },
+    broadcastToRenderers,
+  });
 }
 
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
@@ -1682,40 +1616,13 @@ function initializeIpc(win, options = {}) {
     handleRendererLiveSurfaceTrace,
   });
 
-  ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, (_event, payload = {}) => {
-    const source = payload && typeof payload === 'object' && !Array.isArray(payload)
-      ? payload
-      : {};
-    if (source.type === 'clear') {
-      if (
-        Object.prototype.hasOwnProperty.call(source, 'conversation_ref')
-        || Object.prototype.hasOwnProperty.call(source, 'turn_ref')
-      ) {
-        return;
-      }
-      const conversationRef = typeof source.conversationRef === 'string' && source.conversationRef.trim()
-        ? source.conversationRef.trim()
-        : null;
-      const turnRef = typeof source.turnRef === 'string' && source.turnRef.trim()
-        ? source.turnRef.trim()
-        : null;
-      clearLatestPendingTurn({ conversationRef, turnRef });
-      broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
-        type: 'clear',
-        conversationRef,
-        turnRef,
-      });
-      return;
-    }
-    const pendingTurn = normalizePendingTurnPayload(source);
-    if (!pendingTurn) {
-      return;
-    }
-    latestPendingTurn = pendingTurn;
-    broadcastToRenderers(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, {
-      type: 'pending',
-      pendingTurn,
-    });
+  registerPendingTurnHandlers({
+    ipcMain,
+    clearLatestPendingTurn,
+    setLatestPendingTurn: (pendingTurn) => {
+      latestPendingTurn = pendingTurn;
+    },
+    broadcastToRenderers,
   });
 
   const {

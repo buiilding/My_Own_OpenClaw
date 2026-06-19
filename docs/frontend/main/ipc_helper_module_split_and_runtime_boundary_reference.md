@@ -24,6 +24,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs`
+- `frontend/src/main/ipc/ipc_pending_turn_handlers.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -163,6 +164,18 @@ Owns renderer diagnostics IPC handler registration:
   `ipc_diagnostics_runtime.cjs`
 - live-surface trace payloads still normalize and redact through
   `live_surface_trace_runtime.cjs`
+
+### `ipc_pending_turn_handlers.cjs`
+
+Owns pending renderer turn IPC handler registration and payload acceptance:
+
+- `windie:pending-turn`
+- pending-turn payload normalization and required identity checks
+- removed snake_case clear alias rejection
+- pending-turn cache clear/match primitives consumed by `ipc.cjs` stop and
+  SDK current-turn cleanup paths
+- pending/clear broadcasts through the shared desktop runtime pending-turn
+  channel constant
 
 ### `ipc_event_replay_state.cjs`
 
@@ -355,12 +368,14 @@ generic `to-backend` router or direct chat query IPC handlers.
    derivation.
 14. renderer diagnostics handler registration delegates to
    `ipc_renderer_diagnostics_handlers.cjs`.
-15. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
-16. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
+15. pending renderer turn handler registration and payload normalization
+   delegate to `ipc_pending_turn_handlers.cjs`.
+16. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
+17. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.
-17. extension and MCP registry handler registration delegates to
+18. extension and MCP registry handler registration delegates to
    `ipc_extension_mcp_handlers.cjs`.
-18. artifact upload/fetch handler registration delegates to
+19. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
 
 ## Drift Hotspots

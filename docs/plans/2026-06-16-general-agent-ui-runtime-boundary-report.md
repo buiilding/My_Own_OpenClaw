@@ -174,6 +174,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Pending Turn IPC Handler Boundary
+
+- Finding: renderer pending-turn send/listen calls were already routed through
+  renderer runtime clients, but `ipc.cjs` still owned `windie:pending-turn`
+  listener registration, pending-turn payload normalization, removed alias
+  rejection, cache assignment, and clear broadcast construction inline.
+- Change: added `ipc_pending_turn_handlers.cjs` to own pending-turn handler
+  registration, pending payload normalization, clear alias rejection, and
+  pending-turn match/clear helpers. `ipc.cjs` now injects the latest
+  pending-turn cache setter/clearer and renderer fan-out while keeping the
+  cache itself in the SDK host root for stop/current-turn cleanup.
+- Validation: passed focused pending-turn handler, main bridge lifecycle, main
+  SDK runtime boundary, docs-index tests, docs search, related commit search,
+  stale inline pending-turn scan, docs listing, and diff checks.
+- Compatibility: no migration required. `windie:pending-turn` channel names,
+  pending/clear payload shapes, removed alias rejection, pending-turn replay and
+  clear semantics, stop-target behavior, IPC allowlists, storage, provider
+  policy, hosted URLs, permissions, credentials, and local execution behavior
+  are unchanged.
+
 ### 2026-06-19 Main Renderer Diagnostics IPC Handler Boundary
 
 - Finding: renderer diagnostics normalization and redaction already lived in

@@ -63,6 +63,7 @@ Main modules:
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs`
+- `frontend/src/main/ipc/ipc_pending_turn_handlers.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/agent/electron_agent_definition_inputs.cjs`
 
@@ -82,6 +83,9 @@ Responsibilities:
   in `ipc.cjs`.
 - Delegates renderer log and live-surface trace channel registration to a
   focused helper while diagnostics runtimes keep normalization and redaction.
+- Delegates pending renderer turn relay registration to a focused helper while
+  `ipc.cjs` keeps the latest pending-turn cache used by stop/current-turn
+  cleanup.
 - Delegates extension and MCP registry channel registration to a focused helper
   while `ipc.cjs` keeps the Agent SDK host state and MCP startup refresh
   helpers.

@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved Electron main pending renderer turn channel registration
+  and payload normalization into `ipc_pending_turn_handlers.cjs`. `ipc.cjs`
+  now injects the pending-turn cache setter/clearer and renderer fan-out while
+  keeping the cache in the SDK host root for stop/current-turn cleanup.
+  Validation passed focused pending-turn handler, bridge lifecycle, main
+  runtime boundary, docs-index, docs/search, stale inline pending-turn scan,
+  docs listing, and diff checks. No migration required; `windie:pending-turn`
+  wire names, pending/clear payloads, removed alias rejection, replay/clear
+  semantics, stop-target behavior, IPC allowlists, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: moved Electron main renderer diagnostic channel registration
   into `ipc_renderer_diagnostics_handlers.cjs`. `ipc.cjs` now injects the
   existing renderer log and live-surface trace handlers instead of owning those

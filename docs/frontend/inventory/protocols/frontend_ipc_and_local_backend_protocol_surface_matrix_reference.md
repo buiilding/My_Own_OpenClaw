@@ -38,7 +38,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 |---|---|---|
 | `renderer-log` | `main/ipc/ipc_renderer_diagnostics_handlers.cjs` | Receives renderer log envelopes and forwards them into the Electron main logging path |
 | `live-surface-trace` | `main/ipc/ipc_renderer_diagnostics_handlers.cjs` | Receives renderer live-surface trace envelopes for deterministic surface diagnostics |
-| `windie:pending-turn` | `main/ipc.cjs` | Stores, broadcasts, replays, and clears renderer-composed pending user turns until SDK current-turn projection catches up |
+| `windie:pending-turn` | `main/ipc/ipc_pending_turn_handlers.cjs` | Stores, broadcasts, replays, and clears renderer-composed pending user turns until SDK current-turn projection catches up |
 | `transcript-session-sync` | `main/ipc/ipc_client_session_handlers.cjs` | Syncs renderer transcript session/conversation/user identity into main runtime state and rebroadcasts normalized session snapshots |
 | `move-chatbox-to` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |
 | `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` normalizes payload types) | Streams mic PCM chunks to wakeword subprocess |
@@ -99,7 +99,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `windie:memory-store-changed` | `main/ipc.cjs` | SDK memory-store invalidation event emitted from conversation runtime events |
 | `windie:conversation-metadata-invalidated` | `main/ipc.cjs` | Conversation metadata invalidation signal for sidebar/list refreshes |
 | `windie:current-turn` | `main/ipc.cjs` | Current live-turn projection for overlay/runtime presentation |
-| `windie:pending-turn` | `main/ipc.cjs` | Pending renderer user turn replay/clear events for secondary windows and startup handoff |
+| `windie:pending-turn` | `main/ipc/ipc_pending_turn_handlers.cjs` | Pending renderer user turn replay/clear events for secondary windows and startup handoff |
 | `transcript-session-sync` | `main/ipc/ipc_transcript_session_sync.cjs` | Normalized transcript session/conversation/user identity snapshot |
 | `ipc-status` | `main/ipc.cjs` | Backend connection + client/user/session snapshot |
 | `local-runtime-status` | `main/sidecar/local_runtime_bridge.cjs` | Local SDK sidecar process/readiness status |

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move pending renderer turn channel registration and payload
+  normalization into `ipc_pending_turn_handlers.cjs` so `ipc.cjs` keeps the
+  latest pending-turn cache while a focused helper owns `windie:pending-turn`
+  relay/clear listener behavior. No migration required.
 - main/ipc: move renderer diagnostic channel registration into
   `ipc_renderer_diagnostics_handlers.cjs` so `ipc.cjs` delegates
   `renderer-log` and `live-surface-trace` channel bodies while existing

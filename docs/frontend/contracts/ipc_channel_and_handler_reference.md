@@ -46,7 +46,7 @@ Result: unknown channel usage is rejected before Electron main dispatch.
 ### `renderer-log` / `live-surface-trace` / `windie:pending-turn` / `transcript-session-sync`
 
 Owners: `ipc_renderer_diagnostics_handlers.cjs`,
-`ipc_client_session_handlers.cjs`, and `ipc.cjs` for pending-turn relay
+`ipc_client_session_handlers.cjs`, and `ipc_pending_turn_handlers.cjs`
 
 Behavior:
 
