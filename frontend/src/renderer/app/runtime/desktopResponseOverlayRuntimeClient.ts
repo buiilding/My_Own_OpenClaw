@@ -19,12 +19,27 @@ export type ResponseboxHitTestPayload = {
 };
 
 export type ResponseOverlayVisibilityPayload = {
-  visible?: boolean;
+  visible: boolean;
 };
 
 export type ResponseOverlayVisibilityListener = (
-  payload?: ResponseOverlayVisibilityPayload,
+  payload: ResponseOverlayVisibilityPayload,
 ) => void;
+
+function recordOrEmpty(value: unknown): Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+export function normalizeResponseOverlayVisibilityPayload(
+  payload: unknown,
+): ResponseOverlayVisibilityPayload {
+  const source = recordOrEmpty(payload);
+  return {
+    visible: source.visible === true,
+  };
+}
 
 export const DesktopResponseOverlayRuntimeClient = {
   setResponseboxSize(payload: ResponseboxSizePayload): Promise<unknown> {
@@ -38,6 +53,9 @@ export const DesktopResponseOverlayRuntimeClient = {
   onResponseOverlayVisibility(
     listener: ResponseOverlayVisibilityListener,
   ): (() => void) | undefined {
-    return IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, listener as (payload?: unknown) => void);
+    return IpcBridge.on(
+      ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY,
+      (payload: unknown) => listener(normalizeResponseOverlayVisibilityPayload(payload)),
+    );
   },
 };

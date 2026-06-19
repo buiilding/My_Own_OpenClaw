@@ -174,6 +174,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Response Overlay Visibility Runtime Boundary
+
+- Finding: `useResponseOverlayWindowSync` routed visibility fan-out through
+  `DesktopResponseOverlayRuntimeClient` but still interpreted the raw
+  `payload.visible` host event shape locally.
+- Change: added response-overlay visibility payload normalization to
+  `desktopResponseOverlayRuntimeClient` so window-sync hooks receive a boolean
+  `visible` field and keep only sizing, re-report, and cached-frame policy.
+- Validation: focused desktop response overlay runtime client and renderer chat
+  runtime boundary tests, stale optional visibility payload scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Response-overlay visibility event
+  names, responsebox size/hit-test payloads, visibility re-report timing,
+  fixed-size/awaiting sizing policy, IPC, storage, credentials, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Host Payload Runtime Boundary
 
 - Finding: `DashboardShell` still parsed raw main-window open-target payloads

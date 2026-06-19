@@ -189,10 +189,11 @@ policy and call this runtime client instead of importing window IPC channel
 constants or parsing host-shaped window event payloads directly.
 
 `desktopResponseOverlayRuntimeClient.ts` owns renderer response overlay window
-IPC for responsebox size, hit-test, and visibility fan-out. Response overlay
-view-model/window-sync hooks keep overlay selection, stale-turn, sizing,
-re-report, and scroll policy while delegating responsebox channel names to this
-app runtime client.
+IPC for responsebox size, hit-test, visibility fan-out, and visibility payload
+normalization. Response overlay view-model/window-sync hooks keep overlay
+selection, stale-turn, sizing, re-report, and scroll policy while delegating
+responsebox channel names and host-shaped visibility payloads to this app
+runtime client.
 
 `desktopArtifactRuntimeClient.ts` owns renderer adapter calls for desktop
 artifact image commands used by generic message presentation, including

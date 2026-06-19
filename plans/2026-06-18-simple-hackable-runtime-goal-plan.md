@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer response overlay visibility runtime slice by
+  moving visibility fan-out payload normalization into
+  `desktopResponseOverlayRuntimeClient`. `useResponseOverlayWindowSync` now
+  receives a normalized boolean `visible` field while keeping sizing,
+  re-report, and cached-frame policy local. Validation: focused desktop
+  response overlay runtime client and renderer chat runtime boundary tests,
+  stale optional visibility payload scan, docs listing, and diff checks. No
+  migration required; response-overlay visibility event names, responsebox
+  size/hit-test payloads, visibility re-report timing, fixed-size/awaiting
+  sizing policy, IPC, storage, credentials, provider-policy, hosted URLs, and
+  local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer dashboard host payload runtime slice by
   moving main-window open-target payload normalization into
   `desktopWindowRuntimeClient` and client-session snapshot user-id
