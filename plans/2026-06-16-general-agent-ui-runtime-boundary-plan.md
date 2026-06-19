@@ -129,8 +129,9 @@ Each completed slice should report:
   while preserving Python sidecar files, sidecar startup tests, and bundled
   sidecar runtime packaging terms where they name the current implementation
   artifact.
-- Validation: focused modular-boundary guard, docs listing, exact stale
-  settings/operations label scan, and diff checks.
+- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale settings/operations
+  label scan, and `git diff --check`.
 - Compatibility: no migration required. Env var names, launch options,
   endpoint resolution, storage, IPC, settings payloads, credentials, hosted URL
   policy, provider policy, permissions, packaging artifacts, and local

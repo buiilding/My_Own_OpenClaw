@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/ops: route settings-sync, endpoint-debug, and operational
   troubleshooting env owner labels through local-runtime implementation wording
   instead of sidecar env/runtime wording. No migration required.
+- docs/channels: route first-read channel and local-tool failure labels through
+  local-runtime tool wording while preserving Python sidecar executor details.
+  No migration required.
 - docs/debug: finish routing error/failure tool-result guidance through
   local-runtime tool wording instead of sidecar-tool failure labels while
   preserving Python sidecar implementation breadcrumbs. No migration required.

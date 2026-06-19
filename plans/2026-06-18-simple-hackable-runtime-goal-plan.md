@@ -282,9 +282,10 @@ For each completed slice, record:
   tests, and bundled sidecar runtime packaging terms remain where they name the
   current implementation artifact. The modular docs guard now rejects the
   retired settings/operations sidecar env, sidecar endpoint-injection, and
-  sidecar/Electron bridge owner phrases. Validation: focused modular docs
-  boundary test, docs listing, exact stale settings/operations label scan, and
-  diff checks. No migration required; no env var name, launch option,
+  sidecar/Electron bridge owner phrases. Validation: `bin\windie.cmd test
+  frontend -- ModularRefactorCompletionBoundary --runInBand`,
+  `bin\windie.cmd docs list`, exact stale settings/operations label scan, and
+  `git diff --check`. No migration required; no env var name, launch option,
   endpoint resolution, storage, IPC, settings payload, credential, hosted URL
   policy, provider policy, permission, packaging artifact, or local execution
   behavior changed.
