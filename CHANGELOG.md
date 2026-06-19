@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/channels: route first-read channel and local-tool failure labels through
   local-runtime tool wording while preserving Python sidecar executor details.
   No migration required.
+- docs/public: route first-read docs hub, agent-loop, response overlay,
+  provider-extension, and agent-development local-tool labels through
+  local-runtime tools instead of sidecar tools. No migration required.
 - docs/debug: finish routing error/failure tool-result guidance through
   local-runtime tool wording instead of sidecar-tool failure labels while
   preserving Python sidecar implementation breadcrumbs. No migration required.

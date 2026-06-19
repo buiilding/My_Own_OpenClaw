@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a public local-tool label slice by routing the docs
+  hub, agent-loop concept doc, response overlay guide, provider extension guide,
+  and agent-development workflow through local-runtime tool wording instead of
+  sidecar-tool owner labels. Python sidecar daemon/executor wording remains in
+  implementation-specific docs. The modular docs guard now rejects the retired
+  first-read sidecar-tool route labels. Validation: focused modular docs
+  boundary test, docs listing, exact stale public local-tool label scan, and
+  diff checks. No migration required; no tool execution path, IPC name,
+  overlay preview behavior, provider routing, extension contract, payload,
+  schema, credential, permission, storage, or local execution behavior changed.
 - 2026-06-18: completed a channel local-tool label slice by routing channel
   hub and local-tool channel docs through local-runtime tool/channel wording
   instead of sidecar-tool owner labels. Python sidecar daemon and executor

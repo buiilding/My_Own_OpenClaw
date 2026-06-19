@@ -107,12 +107,12 @@ contracts.
 - [**Prompt and Tool Context**](concepts/prompt_and_tool_context.md) - Prompt inputs, repo instruction forwarding, model-visible tool schemas, provider/capability gates, and transparency events
 - [**Model Provider Selection**](concepts/model_provider_selection.md) - Provider runtime selection, catalog metadata, credential gates, local providers, web-search fallback, and failover boundaries
 - [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and billing boundaries
-- [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, sidecar tools, SDK, and VM runs
+- [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, local-runtime tools, SDK, and VM runs
 - [**WebSocket Event Contract Change Workflow**](channels/websocket_event_contract_change_workflow.md) - Change workflow for websocket event names, payloads, formatters, renderer consumers, stream filtering, and terminal/audio event behavior
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
-- [**Sidecar and Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool IPC, sidecar JSON-RPC, executable tools, and tool-result return path
+- [**Local Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool routing, Python sidecar daemon execution, executable tools, and tool-result return path
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
 - [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
 - [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families

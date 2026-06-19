@@ -36,7 +36,7 @@ Start with [Documentation Hub](../getting-started/docs_hub.md), then choose the 
 | websocket route, outgoing event, query loop, prompt metadata | backend API/agent |
 | LLM provider, model catalog, prompt, web search | backend LLM/provider |
 | model-facing tool schema, tool policy, coordinate prep, result processing | backend tools/agent tools |
-| local computer/filesystem/shell/browser execution | sidecar tools |
+| local computer/filesystem/shell/browser execution | local-runtime tools |
 | IPC bridge, sidecar process, windows, overlays, permissions | Electron main |
 | chat/dashboard/settings/memory/model UI | renderer |
 | transcript/replay/local memory | renderer plus local-runtime memory; backend history when live agent state changes |

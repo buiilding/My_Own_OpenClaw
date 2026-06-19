@@ -81,7 +81,7 @@ Validation:
 
 Do not use the provider path for:
 
-- local filesystem/browser/computer actions: use sidecar tools.
+- local filesystem/browser/computer actions: use local-runtime tools.
 - hosted developer introspection routes: use SDK routes.
 - dashboard UI-only behavior: use renderer feature docs.
 - cron/webhook/scheduler behavior: use automation/planning docs.

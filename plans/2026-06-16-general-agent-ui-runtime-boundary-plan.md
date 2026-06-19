@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Public Local-Tool Owner Labels
+
+- Finding: first-read docs hub, agent-loop conceptual docs, response overlay
+  guidance, provider extension guide, and agent-development workflow still
+  routed local tool behavior through sidecar-tool labels instead of the
+  reusable local-runtime tool boundary.
+- Change: reworded those public labels to local-runtime tools while preserving
+  Python sidecar daemon/executor language in implementation-specific docs.
+- Validation: focused modular-boundary guard, docs listing, exact stale public
+  local-tool label scan, and diff checks.
+- Compatibility: no migration required. Tool execution paths, IPC names,
+  overlay preview behavior, provider routing, extension contracts, payloads,
+  schemas, credentials, permissions, storage, and local execution behavior are
+  unchanged.
+
 ### 2026-06-18 Channel Local-Tool Owner Labels
 
 - Finding: channel hub and sidecar/tool channel docs still used sidecar-tool

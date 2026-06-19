@@ -44,7 +44,9 @@ local tool lifecycle leases in Electron main.
 
 ## Tool Ghost
 
-Tool ghost previews visualize target/action intent during local computer-use flows. Keep preview parsing and target mapping in renderer overlay utilities, and keep actual execution in sidecar tools.
+Tool ghost previews visualize target/action intent during local computer-use
+flows. Keep preview parsing and target mapping in renderer overlay utilities,
+and keep actual execution in local-runtime tools.
 
 ## Deep Docs
 

@@ -35,7 +35,8 @@ The WindieOS agent loop is backend-owned, but it depends on SDK/main local execu
 - A malformed model tool call belongs in parser/provider/agent recovery docs, not renderer display code.
 - A missing or stale request id belongs in backend tool waiting/result storage or SDK/main tool-dispatch correlation code.
 - A renderer event that fails type guards belongs in backend outgoing schema/formatter alignment first.
-- A local tool execution error belongs in the sidecar tool implementation or main bridge mapping.
+- A local tool execution error belongs in the local-runtime tool implementation
+  or main bridge mapping.
 
 ## Deep Docs
 
