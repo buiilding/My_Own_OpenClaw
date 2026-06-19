@@ -12,7 +12,6 @@ title: "Settings and Model ACK Event Routing Reference"
 
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
@@ -46,8 +45,9 @@ Flow:
 4. backend `ListModelsHandler` responds with `type: "models-listed"`
 5. `ipc_backend_event_channels.cjs` routes the event to
    `backend-settings-event`
-6. `AppConfigProvider` listener calls `routeConfigSettingsEvent(...)`
-7. `routeConfigSettingsEvent` dispatches `models-listed` to
+6. `AppConfigProvider` listener calls
+   `DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)`
+7. `routeDesktopSettingsEvent(...)` dispatches `models-listed` to
    `handleModelsListed(...)`
 8. `useDesktopSettingsEventHandlers` updates `availableModels` via payload
    passthrough
@@ -107,7 +107,7 @@ If model list never updates:
 
 1. verify the dashboard provider calls `DesktopSettingsRuntimeClient.requestDashboardStartupModelList()` and the `models.list` command reaches main through `windie:invoke`
 2. verify backend emits `models-listed`
-3. verify `routeConfigSettingsEvent(...)` receives event and `handleModelsListed` runs
+3. verify `routeDesktopSettingsEvent(...)` receives event and `handleModelsListed` runs
 
 If save status remains `saving`:
 

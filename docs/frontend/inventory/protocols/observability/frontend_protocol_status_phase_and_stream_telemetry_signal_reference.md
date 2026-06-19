@@ -23,7 +23,7 @@ Primary runtime sources:
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 
 Primary test sources:
 
@@ -155,7 +155,9 @@ Behavior on snapshots:
 - updates artifact backend URL
 - triggers config sync when `isConnected === true`
 
-`appConfigEvents.js` keeps model-listing event routing narrow (`models-listed`) and transcript user-id extraction explicit.
+`desktopSettingsEventRuntimeClient.ts` keeps model-listing event routing narrow
+(`models-listed`) while transcript user-id extraction stays in
+`desktopClientSessionRuntimeClient.ts`.
 
 Covered by:
 

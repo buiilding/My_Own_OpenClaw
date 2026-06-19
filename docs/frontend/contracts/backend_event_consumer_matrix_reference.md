@@ -15,7 +15,7 @@ title: "Backend Event Consumer Matrix Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/main/ipc.cjs`
 
@@ -95,7 +95,7 @@ Note:
 
 - `audio-chunk` is intentionally outside `backendEvents.ts` typed union and is handled by dedicated parser
 
-### Config/model consumer (`appConfigEvents`)
+### Config/model consumer (`DesktopSettingsEventRuntimeClient`)
 
 Consumes `backend-settings-event` payloads:
 

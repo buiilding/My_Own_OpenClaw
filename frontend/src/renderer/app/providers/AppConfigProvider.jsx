@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
 import { loadConfigFromStorage, saveConfigToStorage } from '../runtime/desktopRendererConfigStorageRuntime';
 import { AppConfigContext } from './AppConfigContext';
-import { routeConfigSettingsEvent } from './appConfigEvents';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';
 import {
   applyConfigIfChanged,
@@ -21,7 +20,10 @@ import {
 import { DesktopAppConfigRuntimeClient } from '../runtime/desktopAppConfigRuntimeClient';
 import { DesktopClientSessionRuntimeClient } from '../runtime/desktopClientSessionRuntimeClient';
 import { DesktopRuntimeEndpointClient } from '../runtime/desktopRuntimeEndpointClient';
-import { useDesktopSettingsEventHandlers } from '../runtime/desktopSettingsEventRuntimeClient';
+import {
+  routeDesktopSettingsEvent,
+  useDesktopSettingsEventHandlers,
+} from '../runtime/desktopSettingsEventRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
@@ -147,7 +149,7 @@ export function AppConfigProvider({ children }) {
   }, []);
 
   const onSettingsEvent = useCallback((data) => {
-    routeConfigSettingsEvent(data, handlersRef);
+    routeDesktopSettingsEvent(data, handlersRef.current);
   }, [handlersRef]);
 
   const applyRuntimeConnectionSnapshot = useCallback((statusValues) => {

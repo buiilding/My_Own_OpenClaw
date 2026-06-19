@@ -13,7 +13,10 @@ import {
 } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/AppConfigProvider';
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
-import { useDesktopSettingsEventHandlers } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
+import {
+  routeDesktopSettingsEvent,
+  useDesktopSettingsEventHandlers,
+} from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 import { DesktopRuntimeEndpointClient } from '../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
@@ -54,6 +57,7 @@ let loadDesktopUiConfigResponse: any = null;
 let clientUserIdResponse: any = null;
 
 export const mockUseDesktopSettingsEventHandlers = useDesktopSettingsEventHandlers as jest.Mock;
+export const mockRouteDesktopSettingsEvent = routeDesktopSettingsEvent as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockBindTranscriptUser = DesktopTranscriptSessionRuntimeClient.bindTranscriptUser as jest.Mock;
@@ -110,6 +114,11 @@ export function registerAppConfigProviderSuiteLifecycle() {
     mockDesktopSettingsRequestStartupModels.mockReturnValue(true);
     mockUseDesktopSettingsEventHandlers.mockReturnValue({
       handleModelsListed: jest.fn(),
+    });
+    mockRouteDesktopSettingsEvent.mockImplementation((data, handlers) => {
+      if (data?.type === 'models-listed') {
+        handlers?.handleModelsListed(data);
+      }
     });
 
     jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);

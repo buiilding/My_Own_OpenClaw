@@ -111,7 +111,6 @@ frontend/src/renderer/
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 │       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
-│       ├── appConfigEvents.js           # appConfigEvents - Backend event routing + transcript user-id extraction helpers
 │       ├── appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers
 │       ├── ChatContext.jsx              # ChatContext constants for ChatProvider wiring
 │       ├── ChatProvider.jsx             # ChatProvider - Sets up chat stream hooks and transcript session sync

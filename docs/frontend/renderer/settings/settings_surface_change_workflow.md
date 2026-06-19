@@ -53,7 +53,7 @@ flowchart LR
 | Browser settings opens wrong browser or status is stale | Permission store plus browser permission service | `BrowserSettingsTab.jsx`, `permissionStore.js`, browser permission service, browser runtime docs | permission/browser tests |
 | Memory tab nukes wrong data | Memory settings actions and local-runtime admin path | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js`, main memory IPC, local-runtime memory admin/store | memory reset/delete tests |
 | Onboarding tab shows wrong permission state | Permission onboarding surface | `OnboardingSettingsTab.jsx`, permission store, onboarding permission docs | onboarding/permission tests |
-| Save status gets stuck | App status provider and settings ACK routing | `AppStatusProvider.jsx`, `appConfigEvents.js`, `ipc_settings_sync.cjs` | `AppStatusProvider`/settings ACK tests |
+| Save status gets stuck | App status provider and settings ACK routing | `AppStatusProvider.jsx`, `desktopSettingsEventRuntimeClient.ts`, `ipc_settings_sync.cjs` | `AppStatusProvider`/settings ACK tests |
 
 ## Current Settings Tabs
 

@@ -24,7 +24,7 @@ title: "Renderer Settings Config Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `tests/frontend/configFilter.test.js`
 - `tests/frontend/configStorage.test.js`
 - `tests/frontend/AppConfigProvider.models.test.tsx`

@@ -15,7 +15,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
@@ -151,7 +151,7 @@ Not all renderer-facing backend events use `isBackendEvent`.
 Important untyped paths:
 
 - `audio-chunk`: routed to `audio-chunk` and parsed by `extractDesktopAudioChunkPayload(...)`
-- `models-listed`: routed to `backend-settings-event` and consumed by `routeConfigSettingsEvent(...)`
+- `models-listed`: routed to `backend-settings-event` and consumed by `routeDesktopSettingsEvent(...)`
 - `settings-updated`: routed to `backend-settings-event` and consumed by `AppStatusProvider` listener
 - settings-specific `error`: routed to `backend-settings-event` and normalized by `DesktopAppConfigRuntimeClient`
 
@@ -166,7 +166,7 @@ This means adding events to backend wire protocol may require both:
 - SDK runtime: typed tool subset (`tool-call`, `tool-bundle`) plus
   conversation/turn guard and local execution coordination
 - `ChatInterface` audio listener: untyped `audio-chunk`
-- `appConfigEvents`: untyped `models-listed`
+- `DesktopSettingsEventRuntimeClient`: untyped `models-listed`
 - `DesktopAppConfigRuntimeClient`: settings-specific `error` normalization
 - `AppStatusProvider`: `settings-updated` + normalized settings-specific `error` branch
 

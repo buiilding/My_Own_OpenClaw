@@ -20,7 +20,6 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/providers/configComparison.ts`
 - `tests/frontend/AppProvider.test.tsx`
@@ -143,6 +142,8 @@ Desktop host transport is routed through app runtime clients:
   global-stop shortcut status.
 - `DesktopConversationSessionRuntimeClient` owns shared session-helper rule routing for runtime clients.
 - `DesktopSettingsEventRuntimeClient` owns model-list settings-event payload handling for providers.
+- `routeDesktopSettingsEvent(...)` in `DesktopSettingsEventRuntimeClient` owns
+  raw `models-listed` settings-event type dispatch for app config providers.
 - `DesktopTranscriptSessionRuntimeClient` owns transcript-session binding updates derived from connection snapshots.
 - `DesktopVoiceRuntimeClient` owns value-level wakeword-toggle state fan-out.
 - `DesktopSettingsRuntimeClient` owns SDK settings/model commands.

@@ -4,9 +4,37 @@
 
 import { act, renderHook } from '@testing-library/react';
 
-import { useDesktopSettingsEventHandlers } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
+import {
+  routeDesktopSettingsEvent,
+  useDesktopSettingsEventHandlers,
+} from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
 
-describe('useDesktopSettingsEventHandlers', () => {
+describe('desktopSettingsEventRuntimeClient', () => {
+  test('routes models-listed settings events to settings handler', () => {
+    const handlers = {
+      handleModelsListed: jest.fn(),
+    };
+
+    routeDesktopSettingsEvent(
+      { type: 'models-listed', payload: { local_models: [], online_models: [] } },
+      handlers,
+    );
+
+    expect(handlers.handleModelsListed).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'models-listed' }),
+    );
+  });
+
+  test('ignores unsupported settings event types', () => {
+    const handlers = {
+      handleModelsListed: jest.fn(),
+    };
+
+    routeDesktopSettingsEvent({ type: 'status-updated' }, handlers);
+
+    expect(handlers.handleModelsListed).not.toHaveBeenCalled();
+  });
+
   test('handleModelsListed forwards payload to setAvailableModels', () => {
     const setAvailableModels = jest.fn();
 

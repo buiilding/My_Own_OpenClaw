@@ -95,7 +95,7 @@ Primary files:
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/renderer/features/settings/**`

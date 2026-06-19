@@ -11,6 +11,15 @@ type ListedModelsPayload = {
   online_models?: unknown[];
 };
 
+type DesktopSettingsEvent = {
+  type?: string;
+  payload?: unknown;
+};
+
+type DesktopSettingsEventHandlers = {
+  handleModelsListed: (data: DesktopSettingsEvent) => void;
+};
+
 function isListedModelsPayload(payload: unknown): payload is ListedModelsPayload {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return false;
@@ -23,6 +32,15 @@ function isListedModelsPayload(payload: unknown): payload is ListedModelsPayload
     Array.isArray(modelPayload.local_models)
     && Array.isArray(modelPayload.online_models)
   );
+}
+
+export function routeDesktopSettingsEvent(
+  data: DesktopSettingsEvent,
+  handlers: DesktopSettingsEventHandlers | null | undefined,
+) {
+  if (data?.type === 'models-listed') {
+    handlers?.handleModelsListed(data);
+  }
 }
 
 export function useDesktopSettingsEventHandlers(

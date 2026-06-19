@@ -15,7 +15,6 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
@@ -190,7 +189,8 @@ value-level `{ enabled }` updates for `AppConfigProvider`.
 
 ## Event Handling Notes
 
-`routeConfigSettingsEvent(...)` currently handles:
+`DesktopSettingsEventRuntimeClient.routeDesktopSettingsEvent(...)` currently
+handles:
 
 - `models-listed` -> available model list update
 

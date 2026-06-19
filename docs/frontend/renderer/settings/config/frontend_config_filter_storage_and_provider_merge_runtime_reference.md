@@ -18,7 +18,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `tests/frontend/configFilter.test.js`
 - `tests/frontend/configStorage.test.js`
 - `tests/frontend/AppConfigProvider.models.test.tsx`
@@ -193,9 +193,10 @@ On `window.storage` for `windieos-config`:
 - apply only when changed; `provider_api_keys` uses content-aware comparison so equivalent nested objects from another window are treated as no-ops
 - do not write the applied snapshot back to localStorage, disk, or settings runtime; the storage event is already the persistence broadcast from another renderer
 
-## Event Router Boundary (`appConfigEvents`)
+## Event Router Boundary (`desktopSettingsEventRuntimeClient`)
 
-- only routes `models-listed` settings events to settings handlers
+- `routeDesktopSettingsEvent(...)` only routes `models-listed` settings events
+  to settings handlers
 - transcript user-id normalization belongs to `DesktopClientSessionRuntimeClient`
   IPC status value projection
 

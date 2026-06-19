@@ -25,7 +25,7 @@ title: "Frontend Protocol Observability Hub"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
-- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.state.test.tsx`
