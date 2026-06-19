@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Debug Trace Local-Runtime JSON-RPC Wording
+
+- Finding: the runtime trace guide still exposed a public "Sidecar JSON-RPC
+  Trace" route even though the reusable owner is local-runtime Python execution
+  and the sidecar is the current process implementation.
+- Change: retitled the trace route and test-selection row around
+  local-runtime Python wording while preserving sidecar stdout/stderr and
+  Python sidecar protocol references as concrete implementation facts.
+- Validation: focused modular refactor boundary docs test, docs listing, stale
+  public trace-label scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; trace payloads,
+  diagnostic paths, JSON-RPC, IPC, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Main Local-Runtime Workflow Public Wording
 
 - Finding: main-process workflow docs still described the local-runtime bridge

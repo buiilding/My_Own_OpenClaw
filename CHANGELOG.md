@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route JSON-RPC trace and test-selection labels through
+  local-runtime Python wording instead of a public sidecar trace owner while
+  preserving sidecar stdout/stderr as concrete process details. No migration
+  required.
 - docs/main: align main-process local-runtime workflow wording around the SDK
   local-runtime bridge instead of public main-to-sidecar labels while preserving
   concrete Python sidecar implementation breadcrumbs. No migration required.

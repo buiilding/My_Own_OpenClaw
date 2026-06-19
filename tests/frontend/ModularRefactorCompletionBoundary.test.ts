@@ -587,6 +587,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/browser/README.md'),
       read('docs/getting-started/docs_hub.md'),
     ])).join('\n');
+    const runtimeTraceText = await read('docs/debug/runtime_traces.md');
 
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
@@ -614,6 +615,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local Runtime Python Implementation Docs Hub');
     expect(docText).toContain('Local-runtime boundaries should');
     expect(docText).toContain('Tool Policy or Local-Runtime Execution');
+    expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
+    expect(runtimeTraceText).toContain('Python sidecar protocol');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
     expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('SDK desktop agent');
@@ -642,6 +645,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar boundaries should');
     expect(docText).not.toContain('Tool Policy or Sidecar Execution');
     expect(docText).not.toContain('platform-specific main/sidecar adapters');
+    expect(runtimeTraceText).not.toContain('## Sidecar JSON-RPC Trace');
+    expect(runtimeTraceText).not.toContain('Sidecar executed a registered tool');
     expect(docText).not.toMatch(/(?<!Python )sidecar computer\/browser tool implementations/);
     expect(browserToolOverviewText).not.toContain('sidecar runtime execution');
     expect(browserToolOverviewText).not.toContain('sidecar runtime, CDP launch');

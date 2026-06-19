@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a debug trace local-runtime wording slice by retitling
+  the JSON-RPC trace route and test-selection labels around local-runtime
+  Python ownership instead of a public sidecar trace owner, while preserving
+  sidecar stdout/stderr and Python sidecar protocol references as concrete
+  process details. Validation: focused modular refactor boundary docs test,
+  docs listing, stale public trace-label scan, and diff checks. No migration
+  required; docs changed only, with no trace payload, diagnostic path,
+  JSON-RPC, IPC, storage, credential, permission, hosted route,
+  provider-policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a main local-runtime workflow wording slice by routing
   the main-process change workflow and lifecycle hub language through the SDK
   local-runtime bridge instead of public main-to-sidecar labels, while keeping

@@ -523,15 +523,16 @@ Expected marker:
 
 - `[ToolShotDebug][renderer]`
 
-## Sidecar JSON-RPC Trace
+## Local-Runtime Python JSON-RPC Trace
 
-Sidecar stdout is JSON-RPC only. Debug by combining Electron bridge logs with sidecar stderr logs.
+The current Python sidecar stdout is JSON-RPC only. Debug local-runtime Python
+RPC issues by combining Electron bridge logs with Python sidecar stderr logs.
 
 | Path | Code root |
 | --- | --- |
 | Main bridge process lifecycle | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs` |
 | Main bridge request mapping | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_runtime_tool_args.cjs`, SDK local-runtime store/client code |
-| Sidecar protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
+| Python sidecar protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
 | Tool registry | `frontend/src/main/python/tools/registry.py` |
 
 Enable sidecar debug:
@@ -545,6 +546,6 @@ If a local-runtime result is missing, check for all of these before editing:
 
 - Backend emitted a tool-call event with a request id.
 - SDK runtime accepted the event for the active turn and claimed local execution.
-- Main bridge sent a JSON-RPC request to the sidecar.
-- Sidecar executed a registered tool and returned a JSON-serializable result.
+- Main bridge sent a JSON-RPC request for local-runtime Python execution.
+- Python sidecar executed a registered tool and returned a JSON-serializable result.
 - SDK runtime sent the result back to the backend with the original request id.
