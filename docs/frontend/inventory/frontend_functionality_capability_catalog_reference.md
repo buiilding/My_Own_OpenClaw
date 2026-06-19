@@ -1,8 +1,8 @@
 ---
-summary: "Capability-level frontend catalog across Electron main, preload, renderer, sidecar, and landing ownership."
+summary: "Capability-level frontend catalog across Electron main, preload, renderer, local-runtime Python, and landing ownership."
 read_when:
   - When you need a capability-first frontend map before touching code.
-  - When validating cross-process runtime contracts across renderer/main/sidecar.
+  - When validating cross-process runtime contracts across renderer/main/local-runtime.
 title: "Frontend Functionality Capability Catalog Reference"
 ---
 

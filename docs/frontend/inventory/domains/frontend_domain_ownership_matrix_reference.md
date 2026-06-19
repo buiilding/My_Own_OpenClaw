@@ -1,8 +1,8 @@
 ---
-summary: "Frontend domain ownership matrix mapping responsibilities to main, preload, renderer, sidecar, and landing modules with integration boundaries."
+summary: "Frontend domain ownership matrix mapping responsibilities to main, preload, renderer, local-runtime Python, and landing modules with integration boundaries."
 read_when:
   - When assigning ownership for frontend architecture changes.
-  - When splitting work across renderer/main/sidecar boundaries.
+  - When splitting work across renderer/main/local-runtime boundaries.
 title: "Frontend Domain Ownership Matrix Reference"
 ---
 

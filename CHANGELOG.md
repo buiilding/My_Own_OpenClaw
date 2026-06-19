@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/planning: route future CLI UI-control and mobile capability plans
+  through local-runtime tool/capability wording instead of sidecar runtime,
+  registry, or assumption labels. No migration required.
+- docs/frontend: route active frontend inventory, IPC, JSON-RPC,
+  renderer-state, planning, and reference boundary labels through
+  renderer/main/local-runtime wording instead of renderer/main/sidecar or
+  sidecar-control wording while keeping Python sidecar method references
+  implementation-specific. No migration required.
 - docs/public: route remaining docs hub, prompt/tool-context, and runtime-node
   parity labels through local-runtime executable wording instead of
   sidecar-executable/parity wording. No migration required.

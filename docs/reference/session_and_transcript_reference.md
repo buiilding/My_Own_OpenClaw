@@ -1,5 +1,5 @@
 ---
-summary: "Reference map for WindieOS user, session, conversation, turn, transcript, replay, and rehydrate identifiers across backend, Electron main, renderer, and sidecar."
+summary: "Reference map for WindieOS user, session, conversation, turn, transcript, replay, and rehydrate identifiers across backend, Electron main, renderer, and local runtime."
 read_when:
   - When changing identifier fields, transcript persistence, backend rehydrate payloads, conversation resume, event filtering, or VM run conversation routing.
   - When debugging wrong-conversation, stale-turn, orphan tool-row, or replay/rehydrate issues.
@@ -39,7 +39,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 
 ## Alias Policy
 
-Renderer/main boundaries accept camelCase on JS-facing APIs and snake_case at backend/sidecar boundaries. Normalize names at the boundary and write one canonical internal shape afterward. `sessionId` is backend runtime identity, not a durable chat identity alias.
+Renderer/main boundaries accept camelCase on JS-facing APIs and snake_case at backend/local-runtime boundaries. Normalize names at the boundary and write one canonical internal shape afterward. `sessionId` is backend runtime identity, not a durable chat identity alias.
 
 Examples:
 

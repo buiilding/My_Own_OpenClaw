@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a CLI/mobile planning local-runtime capability label
+  slice by routing future CLI UI-control actions, CLI action tests, mobile V1
+  parity, mobile capability negotiation, and mobile connection acceptance
+  criteria through local-runtime tool/capability wording instead of sidecar
+  runtime, registry, or assumption labels. The modular boundary guard now reads
+  the CLI plan and rejects the retired planning phrases. Validation:
+  `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale planning
+  sidecar-runtime/assumption label scan, and `git diff --check`. No migration
+  required; no runtime code, tool schema, manifest, backend route, mobile API,
+  CLI command, IPC, credential, permission, storage, provider policy, or local
+  execution behavior changed.
+- 2026-06-18: completed a frontend/planning/reference boundary-label slice by
+  routing active frontend inventory, IPC, JSON-RPC workflow, renderer-state
+  workflow, CLI/mobile planning, session/transcript, and docs-structure
+  reference wording through renderer/main/local-runtime boundaries instead of
+  the old sidecar-as-boundary and sidecar-control wording. Python sidecar
+  remains visible only where the text names implementation methods. Validation:
+  `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale frontend/planning/
+  reference sidecar-boundary phrase scan, and `git diff --check`. No migration
+  required; no IPC channel, JSON-RPC method, transcript identifier, runtime
+  code, storage, tool schema, credential, permission, hosted route, provider
+  policy, packaging, or local execution behavior changed.
 - 2026-06-18: completed an extension/tool parity local-runtime label slice by
   routing tool-system helper rewrite text, extension authoring rules, plugin
   surface validation, and CLI validation commands through local-runtime

@@ -1,8 +1,8 @@
 ---
-summary: "Detailed frontend capability-to-file matrix across Electron main, preload, renderer, sidecar, and landing modules."
+summary: "Detailed frontend capability-to-file matrix across Electron main, preload, renderer, local-runtime Python, and landing modules."
 read_when:
   - When implementing frontend changes and choosing exact ownership files.
-  - When tracing regressions across renderer/main/sidecar boundaries.
+  - When tracing regressions across renderer/main/local-runtime boundaries.
 title: "Frontend Capability to File Matrix Reference"
 ---
 

@@ -1,5 +1,5 @@
 ---
-summary: "Frontend change-path playbook mapping common renderer/main/sidecar scenarios to exact modules and validation checks."
+summary: "Frontend change-path playbook mapping common renderer/main/local-runtime scenarios to exact modules and validation checks."
 read_when:
   - When implementing frontend features and needing a concrete cross-process change path.
   - When fixing frontend regressions while keeping ownership boundaries clean.

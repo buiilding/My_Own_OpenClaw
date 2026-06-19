@@ -97,7 +97,7 @@ Added/expanded in WindieOS:
 - `automation/`: current VM run orchestration docs for `/api/runs/*`, worker polling, run timelines, run controls, a VM run-control change workflow with owner-file routing, and explicit boundaries for future cron/webhook/scheduler work.
 - `operations/`: OpenClaw-style operational hub and runbooks for runtime config ownership, configuration-change routing, hosted install auth, deployment, Cloudflare Tunnel, release/packaging change routing, packaging/reinstall flows, evidence collection, incident triage, release, security, performance, and troubleshooting.
 - `backend/`: backend functionality maps and subsystem docs, including API-route, backend-service, prompt-context, backend-config/container, query-lifecycle, and tool-turn workflow guides that route route, websocket, service, prompt, config, DI rebinding, agent-loop, session, formatter, history, and tool orchestration changes to exact owners.
-- `frontend/`: frontend/electron/renderer/sidecar functionality maps plus dashboard, app-startup/onboarding, query-send/stream-relay, workspace-context, overlay-phase/surface, renderer-state, main-process, sidecar-runtime, local-runtime JSON-RPC, IPC, and sidecar-tool change workflows for renderer/preload/main/sidecar boundaries.
+- `frontend/`: frontend/electron/renderer/local-runtime functionality maps plus dashboard, app-startup/onboarding, query-send/stream-relay, workspace-context, overlay-phase/surface, renderer-state, main-process, local-runtime implementation, local-runtime JSON-RPC, IPC, and local-runtime tool change workflows for renderer/preload/main/local-runtime boundaries.
 - `development/`: agent-facing implementation workflow, validation matrix, docs update workflow, review/risk checklist, test-failure triage, commit/changelog workflow, environment setup, testing, contributing, and tool-development guides.
 - `planning/`: current-vs-future boundary, roadmap status matrix, promotion checklist, initiative index, and future-facing plan docs.
 - `adr/`: architecture decision records for durable cross-runtime decisions, including browser extension auto-attach and frontend tool schema source-of-truth proposals.
@@ -134,7 +134,7 @@ Added/expanded in WindieOS:
 - `help/`: diagnostics and troubleshooting.
 - `web/`: hosted API, websocket, SDK, artifact, landing-page web surfaces, and landing-page change routing.
 - `backend/`: implementation-level backend details (API, runtime, tools, config, services).
-- `frontend/`: implementation-level renderer/main/sidecar details.
+- `frontend/`: implementation-level renderer/main/local-runtime details.
 - `development/`: contributor workflows, testing, and local environments.
 - `operations/`: runtime hardening, deployment, release, security, performance.
 - `reference/`: stable interfaces and lookup docs.

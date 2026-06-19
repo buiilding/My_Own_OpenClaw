@@ -50,7 +50,7 @@ or local tool runtime code rather than the compiled mapper table.
 
 | Main-side entry | JSON-RPC method | Sidecar handler | Notes |
 | --- | --- | --- | --- |
-| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs sidecar tools through `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
+| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs local-runtime tools through the Python sidecar `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
 | `get-system-state` IPC | `get_system_state` | `_handle_get_system_state` | Returns system/window/runtime state; failure normalizes to `null` in main helper paths. |
 | status helper | `get_status` | `_handle_get_status` | Returns sidecar diagnostic status through SDK runtime RPC. |
 | browser install helper | `install_browser_chromium` | `_handle_install_browser_chromium` | Main helper uses a long timeout for feature-pack/browser provisioning. |

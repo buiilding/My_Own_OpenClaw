@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS renderer state, chat UI, dashboard sections, settings panels, transcript projection, and provider-owned UI state without crossing backend, Electron main, or sidecar boundaries unnecessarily."
+summary: "Workflow for changing WindieOS renderer state, chat UI, dashboard sections, settings panels, transcript projection, and provider-owned UI state without crossing backend, Electron main, or local-runtime boundaries unnecessarily."
 read_when:
   - When changing renderer chat state, dashboard panels, settings controls, transcript replay/projection, stream presentation, tool-result rendering, permission UI, or provider context behavior.
   - When a UI symptom could belong to renderer state, Electron main IPC, backend stream events, local execution, or transcript persistence and you need to route the owner before editing.

@@ -120,6 +120,40 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Frontend Reference Local-Runtime Boundary Labels
+
+- Finding: active frontend inventory, IPC, renderer-state workflow,
+  session/transcript reference, docs-structure reference, and JSON-RPC workflow
+  docs still used renderer/main/sidecar or sidecar-control labels for public
+  owner boundaries after the reusable boundary moved to renderer/main/local
+  runtime with Python sidecar implementation methods.
+- Change: routed those labels through renderer/main/local-runtime wording while
+  keeping Python sidecar method and registry references only where they name
+  concrete implementation details.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  frontend/reference sidecar-boundary phrase scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; IPC channels,
+  JSON-RPC methods, transcript identifiers, runtime code, storage, tool
+  schemas, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+
+### 2026-06-18 CLI And Mobile Planning Local-Runtime Capability Labels
+
+- Finding: future CLI/UI-control and mobile-client planning docs still routed
+  UI actions, tool registries, V1 parity, and mobile capability negotiation
+  through sidecar runtime/registry/assumption labels even though the reusable
+  contract is local-runtime execution capability.
+- Change: reworded those plans to local-runtime tool paths, local-runtime tool
+  registries, local-runtime executable parity, and `supports_local_runtime`
+  capability naming while keeping desktop Python sidecar implementation
+  references out of the future public contract.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  planning sidecar-runtime/assumption label scan, and diff checks.
+- Compatibility: no migration required. Planning docs changed only; runtime
+  code, tool schemas, manifests, backend routes, mobile APIs, CLI commands,
+  IPC, credentials, permissions, storage, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-18 Extension Tool Parity Local-Runtime Labels
 
 - Finding: tool-system, extension authoring, plugin surface, and validation

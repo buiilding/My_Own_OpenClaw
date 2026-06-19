@@ -25,7 +25,9 @@ WindieOS is currently desktop-first and Electron-coupled:
 - Renderer-backend communication goes through Electron IPC (`window.ipc`) and a Node WebSocket bridge in `frontend/src/main/ipc.cjs`.
 - Tool execution is delegated to the SDK local runtime and local Python sidecar via `frontend/src/main/sidecar/local_runtime_bridge.cjs` and `frontend/src/main/python/local_backend.py`.
 - Wakeword is a dedicated Python subprocess bridge in `frontend/src/main/wakeword/wakeword_bridge.cjs`.
-- Tool schemas are backend-defined remote stubs and currently must match the sidecar-exposed set (see `tests/backend/test_remote_tool_contract.py`).
+- Tool schemas are backend-defined remote stubs and currently must match the
+  local-runtime exposed set backed by Python sidecar implementation tests (see
+  `tests/backend/test_remote_tool_contract.py`).
 - Query payload normalization happens in Electron main (`frontend/src/main/ipc/ipc_query_runtime.cjs`); SDK context enrichment renders memory/attachment/user-query content before `query` is sent.
 
 Mobile blockers from this baseline:
@@ -52,7 +54,7 @@ Include:
 
 Exclude in V1:
 - Desktop computer-control tool execution (`mouse_control`, `keyboard_control`, `switch_window`, etc.).
-- Local sidecar memory/tool runtime on device.
+- Local-runtime memory/tool execution on device.
 - Desktop overlay/chatbox UX.
 
 ### V2+: Capability Expansion
@@ -85,7 +87,8 @@ Deliverables:
 
 Acceptance criteria:
 - Team alignment on V1 scope and protocol strategy.
-- No unresolved architecture decision around sidecar parity for V1.
+- No unresolved architecture decision around local-runtime executable parity for
+  V1.
 
 ### Phase 1: Decouple Renderer from Electron IPC (2-3 weeks)
 
@@ -114,11 +117,13 @@ Acceptance criteria:
 ### Phase 2: Backend Capability Negotiation + Mobile APIs (2-3 weeks)
 
 Goal:
-Allow backend/session behavior to adapt cleanly per client type and remove sidecar assumptions from mobile.
+Allow backend/session behavior to adapt cleanly per client type and remove
+local-runtime execution assumptions from mobile.
 
 Implementation steps:
 1. Add client capability handshake extension.
-   - Example fields: `client_platform`, `tool_capabilities`, `supports_local_sidecar`.
+   - Example fields: `client_platform`, `tool_capabilities`,
+     `supports_local_runtime`.
 2. Add server-side capability filter for tool schema exposure.
    - If mobile lacks tool execution capability, backend should not expose desktop-only tool schemas.
 3. Add backend conversation/memory REST APIs for mobile dashboard/history features.
@@ -135,7 +140,7 @@ Suggested files to extend:
 - `backend/src/main.py` (CORS policy)
 
 Acceptance criteria:
-- Mobile clients can connect without sidecar assumptions.
+- Mobile clients can connect without local-runtime execution assumptions.
 - Tool calls incompatible with mobile are not emitted to mobile clients.
 - Mobile can retrieve history via backend APIs (no sidecar dependency).
 

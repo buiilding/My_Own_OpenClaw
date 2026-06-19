@@ -65,7 +65,7 @@ Design goals:
 - User runs `windie ui click --target "Save button"` or `windie ui type --text "hello"`.
 - CLI requests action preview.
 - User confirms high-risk action.
-- Action executes via existing sidecar tool runtime.
+- Action executes through the existing local-runtime tool path.
 
 3) Agent runtime flow
 - User runs `windie agent run --name planner --profile code`.
@@ -114,7 +114,8 @@ Reuse and extend existing backend contracts:
 ### 4. UI Control Bridge
 
 Command path:
-- `windie ui ...` -> control plane/daemon -> sidecar tool registry -> platform action.
+- `windie ui ...` -> control plane/daemon -> local-runtime tool registry ->
+  platform action.
 
 Action families (v1):
 - `click`, `double-click`, `type`, `hotkey`, `scroll`, `wait`, `screenshot`.
@@ -211,7 +212,7 @@ Exit criteria:
 ### Phase 2: Local UI Control from CLI
 
 Deliverables:
-- `windie ui` commands mapped to existing sidecar control tools.
+- `windie ui` commands mapped to existing local-runtime control tools.
 - Preview + confirmation flow for risky actions.
 - Screenshot/snapshot inspection commands.
 
@@ -269,7 +270,7 @@ Reliability model:
 
 2. Integration tests
 - CLI -> backend route contract tests.
-- CLI -> sidecar UI action tests (mock and live smoke mode).
+- CLI -> local-runtime UI action tests (mock and live smoke mode).
 - Remote connection handshake and policy rejection tests.
 
 3. End-to-end tests
