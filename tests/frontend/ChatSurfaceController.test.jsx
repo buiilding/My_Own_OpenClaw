@@ -14,7 +14,7 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useCurrentTurnPresent
   useCurrentTurnPresentationState: (...args) => mockCurrentTurnPresentationState(...args),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime', () => ({
+jest.mock('../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime', () => ({
   runManualCompaction: (...args) => mockRunManualCompaction(...args),
 }));
 

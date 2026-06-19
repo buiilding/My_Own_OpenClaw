@@ -120,6 +120,33 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Current-Turn Thinking and Compaction Runtime Boundary
+
+- Finding: SDK current-turn cursor side effects, reasoning/assistant delta
+  tracking, thinking/compaction status labels, and manual compaction command
+  orchestration were still split across chat feature utility files even though
+  the behavior is a renderer app-runtime rule consumed by chat hooks.
+- Change: moved current-turn projection side effects into
+  `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+  and moved stream thinking/compaction labels plus thinking text accumulation
+  into
+  `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`,
+  with manual compaction command orchestration routed through
+  `frontend/src/renderer/app/runtime/desktopManualCompactionRuntime.js`.
+  Chat stream projection, local-user, compaction, and surface-controller paths
+  now import the app-runtime owners, and the old chat utility paths are
+  deleted.
+- Validation: focused desktop current-turn projection-effects runtime, desktop
+  chat stream thinking runtime, projection stream, stream compaction handlers,
+  manual compaction runtime, chat surface controller, renderer chat boundary,
+  docs listing, stale old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Current-turn cursor keys,
+  reasoning/assistant delta tracking, typing/send-latch clearing, tool-event
+  phase tracking, thinking/compaction labels, stream-tracking event names,
+  manual compaction model deferral and compact command dispatch, transcript
+  rows, IPC payloads, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Conversation Replay Runtime Boundary
 
 - Finding: replay context reconstruction for matched tool-call/tool-output

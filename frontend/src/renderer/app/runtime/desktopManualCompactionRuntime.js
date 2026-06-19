@@ -2,13 +2,13 @@
  * Coordinates the manual compaction runtime for the renderer UI.
  */
 
-import { buildDeferredQueryModelSelection } from '../../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
-import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
+import { buildDeferredQueryModelSelection } from './desktopRendererConfigRuntimeClient';
+import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
+import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import {
   COMPACTION_FAILED_THINKING_STATUS,
   COMPACTION_THINKING_STATUS,
-} from '../chatStream/chatStreamThinkingStatus';
+} from './desktopChatStreamThinkingRuntime';
 
 function waitForNextPaint() {
   return new Promise((resolve) => {

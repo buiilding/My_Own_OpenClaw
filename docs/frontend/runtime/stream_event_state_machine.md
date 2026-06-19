@@ -12,7 +12,8 @@ title: "Stream Event State Machine"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
-- `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
@@ -114,7 +115,7 @@ Extra error gate:
 
 Transition reducer is centralized in `applyTrackingEvent(...)`. SDK
 current-turn projection deltas are converted into those tracking events by
-`currentTurnProjectionSideEffects.ts`; `useConversationRuntimeProjectionStream`
+`desktopCurrentTurnProjectionEffectsRuntime.ts`; `useConversationRuntimeProjectionStream`
 owns subscription, cursor storage, stale projection acceptance, and display-row
 merging.
 

@@ -24,7 +24,7 @@ import {
   createProjectionCursor,
   shouldAcceptCurrentTurnBeforeLocalSend,
   type ProjectionCursor,
-} from '../utils/state/currentTurnProjectionSideEffects';
+} from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 
 function isCurrentTurnProjection(value: unknown): value is SdkCurrentTurnProjection {
   if (!value || typeof value !== 'object') {

@@ -408,16 +408,33 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
     const projectionSideEffectsSource = await fs.readFile(
-      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts'),
+      'utf8',
+    );
+    const thinkingRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts'),
       'utf8',
     );
 
     expect(streamSource).not.toContain('assistant_delta');
     expect(streamSource).not.toContain('reasoning_delta');
     expect(projectionSource).toContain('SdkCurrentTurnProjection');
+    expect(projectionSource).toContain('desktopCurrentTurnProjectionEffectsRuntime');
     expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
     expect(projectionSideEffectsSource).toContain('streaming-response');
+    expect(projectionSideEffectsSource).toContain('desktopChatStreamThinkingRuntime');
+    expect(projectionSideEffectsSource).not.toContain('features/chat');
+    expect(thinkingRuntimeSource).toContain('GENERIC_THINKING_STATUS');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatStream/chatStreamFormatting.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatStream/chatStreamThinkingStatus.ts'),
+    )).rejects.toThrow();
   });
 
   test('chat stream consumes main-owned SDK conversation events instead of backend-wire events', async () => {
@@ -874,7 +891,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
     const projectionSideEffectsSource = await fs.readFile(
-      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts'),
       'utf8',
     );
 
@@ -895,7 +912,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
     const projectionSideEffectsSource = await fs.readFile(
-      path.join(chatRoot, 'utils/state/currentTurnProjectionSideEffects.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts'),
       'utf8',
     );
 
@@ -1065,12 +1082,16 @@ describe('renderer chat runtime boundary', () => {
 
   test('manual compaction uses the continuity runtime facade', async () => {
     const source = await fs.readFile(
-      path.join(chatRoot, 'utils/session/manualCompactionRuntime.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime.js'),
       'utf8',
     );
 
     expect(source).toContain('DesktopConversationContinuityService.compactHistory');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.compactHistory');
+    expect(source).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/session/manualCompactionRuntime.js'),
+    )).rejects.toThrow();
   });
 
   test('chat send and stop code routes pending-turn IPC through app runtime client', async () => {

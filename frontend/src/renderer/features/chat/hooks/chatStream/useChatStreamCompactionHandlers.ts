@@ -12,7 +12,7 @@ import {
   COMPACTION_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
-} from '../../utils/chatStream/chatStreamThinkingStatus';
+} from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import type {
   StreamTrackingEventType,
   StreamTrackingOptions,

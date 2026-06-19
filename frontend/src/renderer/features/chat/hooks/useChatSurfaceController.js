@@ -4,7 +4,7 @@
 
 import { useCallback } from 'react';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { runManualCompaction as runManualCompactionCommand } from '../utils/session/manualCompactionRuntime';
+import { runManualCompaction as runManualCompactionCommand } from '../../../app/runtime/desktopManualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import {
   resolveLiveTurnPresentationInput,

@@ -4,7 +4,7 @@
 
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import { GENERIC_THINKING_STATUS } from '../../utils/chatStream/chatStreamThinkingStatus';
+import { GENERIC_THINKING_STATUS } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { type TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 

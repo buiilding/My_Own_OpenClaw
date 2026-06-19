@@ -8,8 +8,8 @@ import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/ru
 import {
   COMPACTION_FAILED_THINKING_STATUS,
   COMPACTION_THINKING_STATUS,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
-import { runManualCompaction } from '../../frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
+import { runManualCompaction } from '../../frontend/src/renderer/app/runtime/desktopManualCompactionRuntime';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigRuntimeClient', () => ({
   buildDeferredQueryModelSelection: jest.fn(),

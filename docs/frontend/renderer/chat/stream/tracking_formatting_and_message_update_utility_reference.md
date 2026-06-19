@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for chat stream utility modules: tracking reducer semantics, thinking text accumulation, screenshot/correlation extraction, and message-target resolution rules."
+summary: "Deep reference for chat stream utility modules: tracking reducer semantics, app-runtime thinking text accumulation, screenshot/correlation extraction, and message-target resolution rules."
 read_when:
-  - When changing `desktopChatStreamTrackingRuntime`, `chatStreamFormatting`, `chatStreamEventUtils`, or `chatStreamMessageUpdates`.
+  - When changing `desktopChatStreamTrackingRuntime`, `desktopChatStreamThinkingRuntime`, `chatStreamEventUtils`, or `chatStreamMessageUpdates`.
   - When debugging chunk-append duplication, tool-output correlation IDs, or stream terminal-state timestamps.
 title: "Tracking, Formatting, and Message-Update Utility Reference"
 ---
@@ -11,12 +11,13 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
+- `tests/frontend/DesktopChatStreamThinkingRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 
 ## Stream Tracking Reducer Contract (`desktopChatStreamTrackingRuntime.ts`)
@@ -41,7 +42,7 @@ Core behavior:
 
 `turnRef ?? current.activeTurnRef` is used as the resolved active turn source, so late events without turn IDs still stay attached to current turn context.
 
-## Thinking Formatting (`chatStreamFormatting.ts`)
+## Thinking Formatting (`desktopChatStreamThinkingRuntime.ts`)
 
 - `buildThinkingStatus` appends chunks and caps final string length at 5000 chars (tail-preserving truncation).
 - Tool-call, bundle-call, and tool-output display text is projected through the

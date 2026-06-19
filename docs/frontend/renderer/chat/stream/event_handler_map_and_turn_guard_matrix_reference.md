@@ -17,7 +17,8 @@ title: "Stream Dispatch and Turn Guard Matrix Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
-- `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 
 ## Dispatch Pipeline
@@ -98,10 +99,10 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
   - SDK `usage_updated`: workspace token counter update
   - SDK `turn_error`: materialized assistant error row + transcript error row unless suppressed
 - `useConversationRuntimeProjectionStream`:
-  - listens to SDK current-turn projections and passes accepted projections to `currentTurnProjectionSideEffects.ts`
+  - listens to SDK current-turn projections and passes accepted projections to `desktopCurrentTurnProjectionEffectsRuntime.ts`
   - keeps per-conversation/turn cursors so repeated projections do not duplicate text-delta or tool-event side effects
   - merges SDK display rows with renderer-only annotations for transcript display
-- `currentTurnProjectionSideEffects.ts`:
+- `desktopCurrentTurnProjectionEffectsRuntime.ts`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
   - SDK `currentTurn.toolEvents`: clear send/thinking state for active executable tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking

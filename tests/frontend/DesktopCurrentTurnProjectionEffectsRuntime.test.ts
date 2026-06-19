@@ -2,15 +2,15 @@
  * Covers SDK current-turn projection side effects for chat UI state.
  */
 
-import type { SdkCurrentTurnProjection } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import type { CurrentTurnProjectionEffectsInput } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 import {
   applyCurrentTurnProjectionSideEffects,
   createProjectionCursor,
-} from '../../frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects';
+} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
 
 function projection(
-  overrides: Partial<SdkCurrentTurnProjection> = {},
-): SdkCurrentTurnProjection {
+  overrides: Partial<CurrentTurnProjectionEffectsInput> = {},
+): CurrentTurnProjectionEffectsInput {
   return {
     conversationRef: 'conv-1',
     turnRef: 'turn-1',

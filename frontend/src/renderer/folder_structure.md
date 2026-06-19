@@ -28,6 +28,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
 │   │   ├── desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
 │   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
+│   │   ├── desktopChatStreamThinkingRuntime.ts # Renderer stream thinking/compaction status label and accumulation facade
 │   │   ├── desktopChatStreamTrackingRuntime.ts # Renderer stream phase/counter transition helpers
 │   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
@@ -37,7 +38,9 @@ frontend/src/renderer/
 │   │   ├── desktopChatPillSessionRuntime.ts # Renderer chat-pill send lifecycle and response-overlay view intent facade
 │   │   ├── desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply and chatbox surface projection facade
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
+│   │   ├── desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
+│   │   ├── desktopManualCompactionRuntime.js # Renderer manual compaction command orchestration facade
 │   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
 │   │   ├── desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
 │   │   ├── desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
@@ -148,13 +151,10 @@ frontend/src/renderer/
 │   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
-│   │       ├── state/                   # state - SDK current-turn side-effect projection helpers
-│   │       │   ├── currentTurnProjectionSideEffects.ts # currentTurnProjectionSideEffects - SDK current-turn projection side effects
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
 │   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
 │   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment and error filtering/text helpers
-│   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thinking text accumulation helper
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution

@@ -275,6 +275,29 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer current-turn projection-effects
+  runtime-boundary slice by moving SDK current-turn cursor side effects from
+  `frontend/src/renderer/features/chat/utils/state/currentTurnProjectionSideEffects.ts`
+  to
+  `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
+  and by moving stream thinking/compaction labels plus thinking text
+  accumulation from chat-stream utilities to
+  `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`,
+  with manual compaction command orchestration routed through
+  `frontend/src/renderer/app/runtime/desktopManualCompactionRuntime.js`.
+  Conversation runtime projection hooks, stream compaction/local-user handlers,
+  manual compaction, focused tests, docs, folder structure, and renderer chat
+  boundary guards now route through the app-runtime owners, and the old chat
+  utility paths are deleted. Validation: focused desktop current-turn
+  projection-effects runtime, desktop chat stream thinking runtime, projection
+  stream, stream compaction handlers, manual compaction, renderer chat boundary,
+  docs listing, stale old-path scan, frontend lint, and diff checks. No
+  migration required; current-turn cursor keys, reasoning/assistant delta
+  tracking, typing/send-latch clearing, tool-event phase tracking,
+  thinking/compaction labels, manual compaction model deferral and compact
+  command dispatch, stream-tracking event names, transcript rows, IPC payloads,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer conversation replay runtime-boundary slice
   by moving replay tool-call/tool-output pairing from
   `frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js`

@@ -2,11 +2,12 @@
  * Derives renderer chat UI side effects from SDK current-turn projections.
  */
 
-import type { CurrentTurnToolEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import type { SdkCurrentTurnProjection } from '../../stores/chatStore';
-import { buildThinkingStatus } from '../chatStream/chatStreamFormatting';
-import { GENERIC_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';
-import type { recordTrackingEvent as recordTrackingEventRuntime } from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import type { CurrentTurnToolEvent } from './desktopConversationRuntimeContracts';
+import {
+  buildThinkingStatus,
+  GENERIC_THINKING_STATUS,
+} from './desktopChatStreamThinkingRuntime';
+import type { recordTrackingEvent as recordTrackingEventRuntime } from './desktopChatStreamEventRuntime';
 
 export type ProjectionCursor = {
   assistantLength: number;
@@ -21,6 +22,18 @@ type WorkspaceState = {
   thinkingStatus?: string | null;
 };
 
+export type CurrentTurnProjectionEffectsInput = {
+  assistantText?: string | null;
+  conversationRef?: string | null;
+  lastError?: string | null;
+  phase: string;
+  presentation?: unknown;
+  reasoningText?: string | null;
+  toolEvents: CurrentTurnToolEvent[];
+  turnRef?: string | null;
+  userMessageRowId?: string | null;
+};
+
 type CurrentTurnProjectionSideEffectDeps = {
   getWorkspaceState: (conversationRef?: string | null) => WorkspaceState;
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
@@ -32,7 +45,7 @@ type CurrentTurnProjectionSideEffectDeps = {
 
 type ApplyCurrentTurnProjectionSideEffectsInput = {
   conversationRef: string;
-  currentTurn: SdkCurrentTurnProjection;
+  currentTurn: CurrentTurnProjectionEffectsInput;
   cursor: ProjectionCursor;
   deps: CurrentTurnProjectionSideEffectDeps;
 };
@@ -71,14 +84,14 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function resolveSdkPresentationTypingVisible(currentTurn: SdkCurrentTurnProjection): boolean | null {
+function resolveSdkPresentationTypingVisible(currentTurn: CurrentTurnProjectionEffectsInput): boolean | null {
   const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
   return typeof presentation?.typingVisible === 'boolean'
     ? presentation.typingVisible
     : null;
 }
 
-function resolveSdkPresentationHasVisibleContent(currentTurn: SdkCurrentTurnProjection): boolean {
+function resolveSdkPresentationHasVisibleContent(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
   const presentation = asRecord((currentTurn as { presentation?: unknown }).presentation);
   if (typeof presentation?.hasVisibleContent === 'boolean') {
     return presentation.hasVisibleContent;
@@ -90,7 +103,7 @@ function isExecutionSkippedToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
   return toolEvent.executionSkipped === true;
 }
 
-export function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: SdkCurrentTurnProjection): boolean {
+export function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: CurrentTurnProjectionEffectsInput): boolean {
   return currentTurn.phase === 'awaiting';
 }
 

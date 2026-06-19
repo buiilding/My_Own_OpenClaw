@@ -21,7 +21,7 @@ import {
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
   COMPACTION_THINKING_STATUS,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime';
 
 function sdkEvent(type: string, overrides: Record<string, unknown> = {}) {
   return {

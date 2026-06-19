@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/current-turn-effects: move SDK current-turn projection side effects,
+  stream thinking/compaction status helpers, and manual compaction command
+  orchestration into renderer app-runtime facades consumed by chat stream and
+  surface hooks. No migration required.
 - docs/plans: remove duplicate send-surface runtime-boundary progress notes
   from the long-running runtime plans. No migration required.
 - renderer/overlays: move overlay turn lifecycle resolver helpers into the
