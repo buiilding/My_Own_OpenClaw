@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a frontend IPC/summarizer local-runtime label slice by
+  routing first-read IPC contract-touchpoint and semantic summarizer labels
+  through Local-Runtime wording instead of sidecar public navigation names.
+  Python sidecar JSON-RPC method details remain explicit where the concrete
+  implementation matters. Validation: focused modular boundary guard, docs
+  listing, exact stale frontend IPC/summarizer label scan, and diff checks. No
+  migration required; no IPC channel, JSON-RPC method, memory summarizer
+  behavior, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed an implementation-hub/core/services/source-map
   local-runtime label slice by routing first-read Python implementation hub,
   core, services, service-protocol, source-map, JSON-RPC, lifecycle, and

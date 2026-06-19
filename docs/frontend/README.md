@@ -18,7 +18,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Frontend Capability to File Matrix Reference](inventory/frontend_capability_to_file_matrix_reference.md)
 - [Frontend Runtime Surface Matrix Reference](inventory/frontend_runtime_surface_matrix_reference.md)
 - [Frontend Module File Index Reference](inventory/frontend_module_file_index_reference.md)
-- [Frontend IPC and Sidecar Contract Touchpoints Reference](inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 - [Frontend Inventory Domains Hub](inventory/domains/README.md)
 - [Frontend Inventory Protocols Hub](inventory/protocols/README.md)
 
@@ -186,7 +186,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Local-Runtime Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Local-Runtime Wait, Window, and Stats Runtime Reference](sidecar/tools/system/wait_window_stats_runtime_reference.md)
 - [Memory Pipeline and Summarization](sidecar/memory_pipeline_and_summarization.md)
-- [Sidecar Summarizer Watermark and Conversation Batch Reference](sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md)
+- [Local-Runtime Summarizer Watermark and Conversation Batch Reference](sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md)
 - [Local Runtime Memory Store Embedding, Search, and Memory-Type Routing Reference](sidecar/memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
 - [Local Runtime SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 - [Local-Runtime Browser Docs Hub](sidecar/browser/README.md)

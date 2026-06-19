@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route IPC contract-touchpoint and memory summarizer labels
+  through local-runtime wording instead of sidecar public navigation names while
+  keeping Python sidecar JSON-RPC implementation details explicit. No migration
+  required.
 - docs/core: route local-runtime Python implementation hub, core, services,
   service-protocol, source-map, JSON-RPC, lifecycle, and helper-runtime labels
   through local-runtime wording instead of Sidecar or Local Runtime Sidecar

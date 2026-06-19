@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Frontend IPC and Summarizer Local-Runtime Labels
+
+- Finding: first-read docs and the frontend IPC contract-touchpoint reference
+  still used Sidecar public labels for IPC/local-runtime contract routing and
+  the semantic summarizer deep reference, even though the reusable contract is
+  renderer/main/local-runtime with Python sidecar JSON-RPC as implementation
+  detail.
+- Change: renamed those visible labels to Local-Runtime wording while keeping
+  Python sidecar JSON-RPC method details explicit where the concrete
+  implementation matters.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  frontend IPC/summarizer label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  IPC channels, JSON-RPC methods, memory summarizer behavior, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Implementation Hub Core Services Source-Map Local-Runtime Labels
 
 - Finding: first-read docs and the local-runtime Python implementation hub,

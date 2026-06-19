@@ -96,4 +96,4 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 - [Frontend Functionality Capability Catalog Reference](frontend_functionality_capability_catalog_reference.md)
 - [Frontend Capability to File Matrix Reference](frontend_capability_to_file_matrix_reference.md)
 - [Frontend Module File Index Reference](frontend_module_file_index_reference.md)
-- [Frontend IPC and Sidecar Contract Touchpoints Reference](frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](frontend_ipc_and_sidecar_contract_touchpoints_reference.md)

@@ -784,6 +784,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/README.md'),
       read('docs/frontend/README.md'),
       read('docs/frontend/inventory/README.md'),
+      read('docs/frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md'),
       read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar/README.md'),
@@ -845,6 +846,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime JSON-RPC Protocol');
     expect(docText).toContain('Local-Runtime Python Folder Topology');
     expect(docText).toContain('Local-Runtime Wakeword Service Model');
+    expect(docText).toContain('Frontend IPC and Local-Runtime Contract Touchpoints Reference');
+    expect(docText).toContain('Local-Runtime Summarizer Watermark and Conversation Batch Reference');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
@@ -889,6 +892,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Local Runtime Sidecar Browser Stack');
     expect(docText).not.toContain('Local Runtime Sidecar Docs Hub');
     expect(docText).not.toContain('Sidecar Docs Hub');
+    expect(docText).not.toContain('Frontend IPC and Sidecar Contract Touchpoints');
+    expect(docText).not.toContain('Sidecar Summarizer Watermark');
     expect(docText).not.toContain('Sidecar Process Lifecycle');
     expect(docText).not.toContain('Sidecar JSON-RPC Protocol');
     expect(docText).not.toContain('Sidecar Python Folder Topology');

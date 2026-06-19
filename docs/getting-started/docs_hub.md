@@ -264,7 +264,7 @@ Read:
 - [Streaming and Events](../concepts/streaming_and_events.md)
 - [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md)
 - [Backend Message Schema + Formatter Reference](../backend/contracts/message_schema_and_formatter_reference.md)
-- [Frontend IPC and Sidecar Contract Touchpoints](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 
 Likely code:
 
@@ -559,7 +559,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Frontend Inventory Docs Hub](../frontend/inventory/README.md)
 - [Frontend Capability to File Matrix Reference](../frontend/inventory/frontend_capability_to_file_matrix_reference.md)
 - [Frontend Module File Index Reference](../frontend/inventory/frontend_module_file_index_reference.md)
-- [Frontend IPC and Sidecar Contract Touchpoints Reference](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend IPC and Local-Runtime Contract Touchpoints Reference](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 
 ## Docs by Domain
 

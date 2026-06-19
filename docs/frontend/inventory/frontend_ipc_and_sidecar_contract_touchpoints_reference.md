@@ -1,12 +1,12 @@
 ---
-summary: "Desktop client contract map across renderer IPC channels, main-process handlers, SDK local-runtime callers, sidecar JSON-RPC methods, and backend stream/tool payload boundaries."
+summary: "Desktop client contract map across renderer IPC channels, main-process handlers, SDK local-runtime callers, Python sidecar JSON-RPC methods, and backend stream/tool payload boundaries."
 read_when:
-  - When changing renderer/main/SDK local-runtime/sidecar contracts for query, tool, memory, or voice flows.
-  - When debugging IPC mismatch, missing event handling, or sidecar method payload drift.
-title: "Frontend IPC and Sidecar Contract Touchpoints Reference"
+  - When changing renderer/main/SDK local-runtime/Python sidecar implementation contracts for query, tool, memory, or voice flows.
+  - When debugging IPC mismatch, missing event handling, or Python sidecar method payload drift.
+title: "Frontend IPC and Local-Runtime Contract Touchpoints Reference"
 ---
 
-# Frontend IPC and Sidecar Contract Touchpoints Reference
+# Frontend IPC and Local-Runtime Contract Touchpoints Reference
 
 This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, and backend contract boundaries with their paired modules.
 
@@ -28,7 +28,7 @@ This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, 
 | Settings ACK gating | Settings handlers | `main/ipc.cjs`, backend `api/handlers/settings.py` | First-query sync race or stale config |
 | Conversation/session refs | Query/rehydrate handlers | `main/ipc.cjs`, backend query/rehydrate services | Resume/context mismatches |
 
-## Main <-> Sidecar JSON-RPC Touchpoints
+## Main <-> Local-Runtime JSON-RPC Touchpoints
 
 | Main owner | Local-runtime implementation owner | Contract files | Drift symptoms |
 | --- | --- | --- | --- |
@@ -49,7 +49,7 @@ This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, 
 
 ## Memory + Transcript Touchpoints
 
-| Desktop client owner | Sidecar/backend owner | Contract files | Contract note |
+| Desktop client owner | Local-runtime/backend owner | Contract files | Contract note |
 | --- | --- | --- | --- |
 | SDK transcript projection store | Sidecar transcript store methods | `renderer/app/runtime/desktopConversationContinuityService.ts`, `renderer/app/runtime/desktopConversationLibraryClient.js`, `renderer/infrastructure/transcript/desktopConversationStore.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
 | Memory search/store invokes | Local store + remote clients | Renderer dashboard/memory hooks, `memory/local_store.py`, remote clients | Search quality/latency regressions |
