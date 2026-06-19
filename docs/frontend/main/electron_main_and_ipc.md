@@ -61,6 +61,7 @@ Main modules:
 - `frontend/src/main/ipc/ipc_workspace_path_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/agent/electron_agent_definition_inputs.cjs`
 
@@ -75,6 +76,9 @@ Responsibilities:
 - Gates first query on settings synchronization ACK.
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
+- Delegates client session snapshot and transcript-session sync channel
+  registration to a focused helper while keeping Agent SDK host session state
+  in `ipc.cjs`.
 - Delegates extension and MCP registry channel registration to a focused helper
   while `ipc.cjs` keeps the Agent SDK host state and MCP startup refresh
   helpers.

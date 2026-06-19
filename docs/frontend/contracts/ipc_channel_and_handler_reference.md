@@ -89,7 +89,8 @@ Behavior:
 - `windie:invoke` -> strict SDK-shaped command bridge. Renderer facades and Electron main use the SDK `SDK_RUNTIME_COMMANDS` export for supported user-runtime commands such as `conversation.send`, `conversation.stop`, `settings.update`, `models.list`, `conversation.rehydrate`, `conversation.compact`, `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`, and `wakeword.detected`.
 - `load-frontend-config` -> loads persisted config JSON from userData
 - `save-frontend-config` -> redacted desktop UI config atomic temp-write + rename persistence
-- `get-client-user-id` -> returns websocket user/session endpoint metadata
+- `get-client-user-id` -> returns websocket user/session endpoint metadata via
+  `ipc_client_session_handlers.cjs`
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
 - `fetch-artifact-image` -> authenticated artifact image fetch
 - `copy-image-to-clipboard` -> trusted image clipboard copy
@@ -184,7 +185,8 @@ Local tool runtime nuances:
 - `windie:conversation-metadata-invalidated`: sidebar/list metadata invalidation
 - `windie:current-turn`: SDK current-turn projection for live assistant/tool UI
 - `windie:pending-turn`: main-replayed pending renderer user turn until matching SDK current-turn projection or explicit clear
-- `transcript-session-sync`: normalized transcript session sync snapshots
+- `transcript-session-sync`: normalized transcript session sync snapshots via
+  `ipc_client_session_handlers.cjs`
 - `ipc-status`: websocket connection + endpoint status payload
 - `local-runtime-status`: local SDK sidecar process/readiness status
 - `response-overlay-phase`: phase transitions (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`)

@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: deleted the forwarding-only renderer storage adapter
+  `desktopStorageRuntimeClient.js`. Permission onboarding storage now imports
+  the JSON localStorage helper directly while remaining the purpose-named
+  app-runtime owner consumed by permission feature code. Validation passed
+  focused permission storage, JSON localStorage, renderer app runtime boundary,
+  renderer skin config boundary, and docs-index tests plus docs search, related
+  commit search, stale removed storage-facade scan, docs listing, and diff
+  checks. No migration required; permission onboarding storage key, persisted
+  state shape, malformed JSON behavior, best-effort write behavior, renderer
+  feature import boundaries, storage payloads, settings, IPC, permissions,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: moved extension and MCP registry IPC channel registration into
   `ipc_extension_mcp_handlers.cjs`. `ipc.cjs` now keeps Agent SDK host state
   and injects extension/MCP registry helpers into a focused handler module

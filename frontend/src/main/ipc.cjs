@@ -37,6 +37,9 @@ const {
   registerExtensionMcpHandlers,
 } = require('./ipc/ipc_extension_mcp_handlers.cjs');
 const {
+  registerClientSessionHandlers,
+} = require('./ipc/ipc_client_session_handlers.cjs');
+const {
   clearInstallAuthStateFromDisk,
   loadInstallAuthStateFromDisk,
   registerInstallWithBackend,
@@ -152,9 +155,6 @@ const {
   resolveActiveSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
 } = require('./surfaces/display_affinity_runtime.cjs');
-const {
-  applyTranscriptSessionSync,
-} = require('./ipc/ipc_transcript_session_sync.cjs');
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./shortcuts/agent_stop_shortcut_runtime.cjs');
@@ -1619,17 +1619,28 @@ function initializeIpc(win, options = {}) {
     mcpClientInfo: ipcHostCopy.identity.mcpClientInfo,
   });
 
-  ipcMain.handle('get-client-user-id', async () => {
-    return {
-      userId: currentUserId,
-      conversationRef: currentConversationRef,
-      serverUserId: currentServerUserId,
-      sessionId: currentSessionId,
+  registerClientSessionHandlers({
+    ipcMain,
+    getClientSessionState: () => ({
+      currentUserId,
+      currentConversationRef,
+      currentServerUserId,
+      currentSessionId,
       isConnected,
+      globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
+    }),
+    getRuntimeEndpointSnapshot: () => ({
       runtimeWsUrl: backendEndpointState.getWsUrl(),
       runtimeHttpUrl: backendEndpointState.getHttpUrl(),
-      globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
-    };
+    }),
+    setTranscriptSessionState: ({
+      currentConversationRef: nextConversationRef,
+      currentUserId: nextUserId,
+    }) => {
+      currentConversationRef = nextConversationRef;
+      currentUserId = nextUserId;
+    },
+    broadcastToRenderers,
   });
 
   registerArtifactHandlers({
@@ -1660,22 +1671,6 @@ function initializeIpc(win, options = {}) {
       backendEndpointState.getHttpUrl(),
       ...backendEndpointState.getCandidates().map((candidate) => candidate.httpUrl),
     ],
-  });
-
-  ipcMain.on('transcript-session-sync', (event, payload = {}) => {
-    const syncResult = applyTranscriptSessionSync({
-      payload,
-      sender: event?.sender || null,
-      currentConversationRef,
-      currentUserId,
-      broadcastToRenderers,
-    });
-    if (!syncResult) {
-      return;
-    }
-
-    currentConversationRef = syncResult.nextConversationRef;
-    currentUserId = syncResult.nextUserId;
   });
 
   ipcMain.on('renderer-log', (_event, payload = {}) => {

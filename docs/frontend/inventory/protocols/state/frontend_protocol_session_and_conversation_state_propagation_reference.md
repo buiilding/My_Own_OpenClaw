@@ -89,9 +89,9 @@ This reset is critical to avoid leaking stale conversation identity across recon
 
 ## Client Snapshot State Propagation (`get-client-user-id` + `ipc-status`)
 
-`ipc.cjs` exports a snapshot via:
+Electron main exports a snapshot via:
 
-- `ipcMain.handle('get-client-user-id', ...)` (pull path)
+- `ipc_client_session_handlers.cjs` registering `get-client-user-id` (pull path)
 - `broadcastConnectionStatus(...)` -> `ipc-status` (push path)
 
 Snapshot fields:

@@ -39,7 +39,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `renderer-log` | `main/ipc.cjs` | Receives renderer log envelopes and forwards them into the Electron main logging path |
 | `live-surface-trace` | `main/ipc.cjs` | Receives renderer live-surface trace envelopes for deterministic surface diagnostics |
 | `windie:pending-turn` | `main/ipc.cjs` | Stores, broadcasts, replays, and clears renderer-composed pending user turns until SDK current-turn projection catches up |
-| `transcript-session-sync` | `main/ipc.cjs` | Syncs renderer transcript session/conversation/user identity into main runtime state and rebroadcasts normalized session snapshots |
+| `transcript-session-sync` | `main/ipc/ipc_client_session_handlers.cjs` | Syncs renderer transcript session/conversation/user identity into main runtime state and rebroadcasts normalized session snapshots |
 | `move-chatbox-to` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |
 | `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` normalizes payload types) | Streams mic PCM chunks to wakeword subprocess |
 | `wakeword-enable` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` maps startup/status errors) | Enables wakeword detection / starts service if needed |
@@ -56,7 +56,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `upload-artifact` | `main/ipc.cjs` | Uploads base64 artifact to backend HTTP `/api/artifacts/` |
 | `fetch-artifact-image` | `main/ipc/ipc_artifact_handlers.cjs` | Fetches a backend artifact image through the authenticated artifact handler |
 | `get-system-state` | `main/sidecar/local_runtime_bridge.cjs` | Proxies to sidecar `get_system_state` |
-| `get-client-user-id` | `main/ipc.cjs` | Returns connection/user/session/conversation snapshot |
+| `get-client-user-id` | `main/ipc/ipc_client_session_handlers.cjs` | Returns connection/user/session/conversation snapshot |
 | `copy-image-to-clipboard` | `main/ipc/ipc_clipboard_image.cjs` | Copies a trusted image URL/data payload into the OS clipboard |
 | `show-image-context-menu` | `main/ipc/ipc_image_context_menu.cjs` | Opens the trusted image context menu and clipboard actions |
 | `set-chatbox-visual-anchor-height` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Updates chatbox visual anchor height for overlay positioning |

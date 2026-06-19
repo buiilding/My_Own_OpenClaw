@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: delete the forwarding-only `desktopStorageRuntimeClient.js`
+  adapter and let `desktopPermissionOnboardingStorageRuntime` import the JSON
+  localStorage helper directly as the permission-onboarding storage owner. No
+  migration required.
 - main/ipc: move extension and MCP registry channel registration into
   `ipc_extension_mcp_handlers.cjs` so `ipc.cjs` keeps Agent SDK host state while
   a focused helper owns extension listing, MCP enablement persistence, and

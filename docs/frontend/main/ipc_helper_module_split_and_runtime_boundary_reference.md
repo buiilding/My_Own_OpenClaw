@@ -22,6 +22,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `packages/windie-sdk-js/src/runtime/AgentClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
+- `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -139,6 +140,17 @@ Owns transcript sync payload normalization and next-state derivation:
 
 - `normalizeTranscriptSessionSyncPayload` (alias-key support + trim/null semantics)
 - `applyTranscriptSessionSync` (state advance + sibling-window broadcast)
+
+### `ipc_client_session_handlers.cjs`
+
+Owns client session IPC handler registration:
+
+- `get-client-user-id`
+- `transcript-session-sync`
+- client snapshot payload construction from injected Agent SDK host state and
+  runtime endpoint URLs
+- transcript-session sync state updates through `ipc_transcript_session_sync.cjs`
+  while keeping mutable session state in `ipc.cjs`
 
 ### `ipc_event_replay_state.cjs`
 
@@ -325,7 +337,10 @@ generic `to-backend` router or direct chat query IPC handlers.
    `ipc_settings_sync_runtime.cjs`.
 11. conversation terminal status projection delegates to `ipc_conversation_status_runtime.cjs`.
 12. Agent SDK runtime workspace-path fallback resolution delegates to `ipc_workspace_path_runtime.cjs`.
-13. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+13. client session snapshot and transcript-session-sync handler registration
+   delegate to `ipc_client_session_handlers.cjs`, which uses
+   `ipc_transcript_session_sync.cjs` for payload normalization and next-state
+   derivation.
 14. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
 15. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.

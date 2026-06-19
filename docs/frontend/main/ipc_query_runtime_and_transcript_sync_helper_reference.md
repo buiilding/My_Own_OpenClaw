@@ -12,6 +12,7 @@ title: "IPC Query Runtime and Transcript Sync Helper Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
@@ -131,9 +132,11 @@ Returns:
 
 ### Transcript sync path (`transcript-session-sync`)
 
-1. `applyTranscriptSessionSync(...)` normalizes event and computes next state.
-2. `ipc.cjs` writes returned `nextConversationRef`/`nextUserId`.
-3. normalized envelope is rebroadcast to sibling windows by helper.
+1. `ipc_client_session_handlers.cjs` registers the renderer event listener.
+2. `applyTranscriptSessionSync(...)` normalizes event and computes next state.
+3. `ipc_client_session_handlers.cjs` writes returned
+   `nextConversationRef`/`nextUserId` through injected `ipc.cjs` state setters.
+4. normalized envelope is rebroadcast to sibling windows by helper.
 
 ## Test-Backed Invariants
 

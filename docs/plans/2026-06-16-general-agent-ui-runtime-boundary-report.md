@@ -174,6 +174,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Storage Forwarding Adapter Deletion
+
+- Finding: the renderer app-runtime inventory identified forwarding/helper
+  facades as deletion candidates only after proving the caller and replacement
+  owner. `desktopStorageRuntimeClient.js` only re-exported JSON localStorage
+  helpers, and its sole production caller was
+  `desktopPermissionOnboardingStorageRuntime.js`, another app-runtime module.
+- Change: deleted `desktopStorageRuntimeClient.js` and routed permission
+  onboarding storage directly to the JSON localStorage helper while keeping the
+  purpose-named permission onboarding storage runtime as the feature-facing
+  owner.
+- Validation: passed focused permission storage, JSON localStorage, renderer
+  app runtime boundary, renderer skin config boundary, and docs-index tests
+  plus docs search, related commit search, stale removed storage-facade scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Permission onboarding storage key,
+  persisted state shape, malformed JSON behavior, best-effort write behavior,
+  renderer feature import boundaries, storage payloads, settings, IPC,
+  permissions, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Main Extension MCP IPC Handler Boundary
 
 - Finding: `ipc.cjs` already delegated many Electron main handler groups, but
