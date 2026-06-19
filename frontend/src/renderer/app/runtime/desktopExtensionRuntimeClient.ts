@@ -26,6 +26,11 @@ export type AgentRemoteToolPresentation = {
   unavailableReason: string;
 };
 
+export type AgentExtensionRuntimeErrorPresentation = {
+  key: string;
+  text: string;
+};
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -145,6 +150,19 @@ export function getAgentRemoteToolPresentation(
   };
 }
 
+export function getAgentExtensionRuntimeErrorPresentation(
+  error: unknown,
+): AgentExtensionRuntimeErrorPresentation {
+  const source = recordOrEmpty(error);
+  const kind = stringOrEmpty(source.kind) || 'extension';
+  const id = stringOrEmpty(source.id) || 'unknown';
+  const reason = stringOrEmpty(source.reason);
+  return {
+    key: `${kind}-${id}-${reason}`,
+    text: reason ? `${kind} ${id}: ${reason}` : `${kind} ${id}`,
+  };
+}
+
 export const DesktopExtensionRuntimeClient = {
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
@@ -174,5 +192,11 @@ export const DesktopExtensionRuntimeClient = {
     toolName: unknown,
   ): AgentRemoteToolPresentation {
     return getAgentRemoteToolPresentation(catalog, toolName);
+  },
+
+  getExtensionRuntimeErrorPresentation(
+    error: unknown,
+  ): AgentExtensionRuntimeErrorPresentation {
+    return getAgentExtensionRuntimeErrorPresentation(error);
   },
 };

@@ -256,12 +256,16 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('remoteToolCatalog.remote_tools');
     expect(source).not.toContain('reason_unavailable');
     expect(source).not.toContain('available === false');
+    expect(source).not.toContain('error.kind');
+    expect(source).not.toContain('error.id');
+    expect(source).not.toContain('error.reason');
     expect(source).not.toContain('.find((tool) => tool.name === toolName)');
     expect(source).not.toContain("event?.type === 'client-tool-manifest'");
     expect(source).not.toContain("event?.type === 'remote-tool-catalog'");
     expect(source).toContain('DesktopExtensionRuntimeClient.listAgentExtensions');
     expect(source).toContain('DesktopExtensionRuntimeClient.onAgentCapabilityUpdate');
     expect(source).toContain('DesktopExtensionRuntimeClient.getRemoteToolPresentation');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');
     expect(source).toContain('EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(source).toContain('EMPTY_AGENT_REMOTE_TOOL_CATALOG');
@@ -270,7 +274,9 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).toContain('normalizeAgentCapabilityEvent');
     expect(clientSource).toContain('resolveAgentCapabilityUpdate');
     expect(clientSource).toContain('getAgentRemoteToolPresentation');
+    expect(clientSource).toContain('getAgentExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getRemoteToolPresentation');
+    expect(clientSource).toContain('getExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('onAgentCapabilityEvent');
     expect(clientSource).toContain('onAgentCapabilityUpdate');
     expect(clientSource).toContain('manifestStatus');

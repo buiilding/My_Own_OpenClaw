@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/extensions: move agent extension runtime error presentation into
+  `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer formats raw
+  extension `kind`/`id`/`reason` fields while rendering extension diagnostics.
+  No migration required.
 - renderer/memory: move memory-settings active-user resolution into
   `DesktopMemoryRuntimeClient` so `useMemorySettingsActions` no longer checks
   the `default_user` sentinel before deleting chat history. No migration

@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Agent Extension Error Presentation Boundary
+
+- Finding: `DesktopExtensionRuntimeClient` owned extension runtime payload
+  normalization and settings presentation for remote tool availability, but
+  `AgentSettingsTab` still formatted raw extension runtime error `kind`, `id`,
+  and `reason` fields while rendering diagnostics.
+- Change: added extension runtime error presentation to
+  `DesktopExtensionRuntimeClient`. Agent settings now keeps diagnostics layout
+  while rendering runtime-provided error key/text values.
+- Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw extension-error field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Extension runtime payload shape,
+  diagnostic text for normal error entries, extension metadata display,
+  capability event channels, tool-toggle config keys, settings storage, IPC
+  channels, provider policy, hosted URLs, permissions, credentials, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Memory Settings Active User Boundary
 
 - Finding: `DesktopMemoryRuntimeClient` owned SDK-shaped memory and chat-history

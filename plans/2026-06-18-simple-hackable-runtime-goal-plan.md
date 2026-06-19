@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved agent extension runtime error presentation into
+  `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps diagnostics
+  layout while rendering runtime-provided extension error key/text values
+  instead of formatting raw `kind`, `id`, and `reason` fields. Validation
+  passed focused desktop extension runtime client, agent settings, renderer
+  settings boundary, and docs-index tests plus docs search, related commit
+  search, stale raw extension-error field scan, docs listing, and diff checks.
+  No migration required; extension runtime payload shape, diagnostic text for
+  normal error entries, extension metadata display, capability event channels,
+  tool-toggle config keys, settings storage, IPC channels, provider policy,
+  hosted URLs, permissions, credentials, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: moved memory settings active-user resolution into
   `DesktopMemoryRuntimeClient`. `useMemorySettingsActions` now keeps
   confirmation, pending state, and status copy while the runtime client decides

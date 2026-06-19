@@ -124,11 +124,14 @@ function AgentSettingsTab({ config, onConfigChange }) {
               })), null, 2)}</pre>
             </details>
           ) : null}
-          {extensionRuntime.errors.length > 0 ? extensionRuntime.errors.map((error) => (
-            <p key={`${error.kind || 'extension'}-${error.id || 'unknown'}-${error.reason}`} className="clone-settings-tool-status clone-settings-tool-status-error">
-              {error.kind || 'extension'} {error.id || 'unknown'}: {error.reason}
-            </p>
-          )) : null}
+          {extensionRuntime.errors.length > 0 ? extensionRuntime.errors.map((error) => {
+            const presentation = DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation(error);
+            return (
+              <p key={presentation.key} className="clone-settings-tool-status clone-settings-tool-status-error">
+                {presentation.text}
+              </p>
+            );
+          }) : null}
         </div>
       </div>
 

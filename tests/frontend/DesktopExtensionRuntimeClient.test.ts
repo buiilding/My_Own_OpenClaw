@@ -25,6 +25,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopExtensionRuntimeClient,
+  getAgentExtensionRuntimeErrorPresentation,
   getAgentRemoteToolPresentation,
   normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
@@ -217,6 +218,21 @@ describe('DesktopExtensionRuntimeClient', () => {
       name: 'unknown_tool',
       available: true,
       unavailableReason: '',
+    });
+  });
+
+  test('builds extension runtime error presentation from raw error entries', () => {
+    expect(getAgentExtensionRuntimeErrorPresentation({
+      kind: 'plugin',
+      id: 'broken-plugin',
+      reason: 'manifest failed',
+    })).toEqual({
+      key: 'plugin-broken-plugin-manifest failed',
+      text: 'plugin broken-plugin: manifest failed',
+    });
+    expect(DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation(null)).toEqual({
+      key: 'extension-unknown-',
+      text: 'extension unknown',
     });
   });
 });

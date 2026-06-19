@@ -288,11 +288,12 @@ client.
 runtime payload normalization, and agent capability event fan-out/type
 classification into normalized `manifestStatus` and `remoteToolCatalog` fields
 plus direct manifest/catalog update callbacks and remote-tool catalog
-availability presentation for settings UI. Agent settings owns extension/tool
-layout, tool toggle config patches, and manifest/catalog display state while
-delegating the desktop event, metadata channels, and remote-tool availability
-field interpretation to this client instead of reading normalized event or
-catalog fields.
+availability presentation plus extension runtime error presentation for
+settings UI. Agent settings owns extension/tool layout, tool toggle config
+patches, and manifest/catalog display state while delegating the desktop event,
+metadata channels, remote-tool availability field interpretation, and extension
+diagnostic error formatting to this client instead of reading normalized event,
+catalog, or error fields.
 
 `desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
 shared React hook helpers such as `useLatestRef`. App providers and feature

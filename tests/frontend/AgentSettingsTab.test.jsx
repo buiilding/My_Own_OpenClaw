@@ -26,7 +26,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
         command: 'node',
         tools: [{ name: 'search' }],
       }],
-      errors: [],
+      errors: [{
+        kind: 'plugin',
+        id: 'broken-notes',
+        reason: 'manifest failed',
+      }],
     })),
     on: (_channel, handler) => {
       capabilityEventHandler = handler;
@@ -91,6 +95,7 @@ describe('AgentSettingsTab', () => {
     expect(await screen.findByText('Notes')).toBeInTheDocument();
     expect(screen.getByText(/save_note/)).toBeInTheDocument();
     expect(screen.getAllByText(/search/).length).toBeGreaterThan(0);
+    expect(await screen.findByText('plugin broken-notes: manifest failed')).toBeInTheDocument();
 
     act(() => {
       capabilityEventHandler({
