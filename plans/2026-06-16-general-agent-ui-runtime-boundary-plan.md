@@ -125,16 +125,17 @@ Each completed slice should report:
 - Finding: `AppStatusProvider` still inspected the raw settings-event error
   payload message to decide whether a backend `error` represented a settings
   save failure, even though `DesktopAppConfigRuntimeClient` already owned
-  settings-event fan-out for app-level providers and adjacent stream code used
-  the shared settings-update error classifier.
-- Change: added normalized settings-event projection in
-  `desktopAppConfigRuntimeClient` so provider listeners receive
-  `isSettingsUpdateError` from the app-runtime client. `AppStatusProvider` now
-  keeps only save-status state transitions and no longer parses host-shaped
-  settings error payloads.
-- Validation: focused desktop app-config runtime client, app status provider,
-  and renderer settings boundary tests, stale provider error-string scan, docs
-  listing, and diff checks.
+  settings-event fan-out for app-level providers.
+- Change: added a shared `desktopSettingsUpdateErrorRuntime` classifier plus
+  normalized settings-event projection in `desktopAppConfigRuntimeClient` so
+  provider listeners receive `isSettingsUpdateError` from the app-runtime
+  client. `AppStatusProvider` now keeps only save-status state transitions and
+  no longer parses host-shaped settings error payloads; chat stream error
+  suppression uses the same classifier.
+- Validation: focused desktop settings-update classifier, desktop app-config
+  runtime client, app status provider, renderer settings boundary, and chat
+  stream payload runtime tests, stale provider error-string scan, docs listing,
+  and diff checks.
 - Compatibility: no migration required. Settings event channel names, backend
   error text, save-status UI timing, config persistence, IPC, storage,
   credentials, provider policy, hosted URLs, and local execution behavior are

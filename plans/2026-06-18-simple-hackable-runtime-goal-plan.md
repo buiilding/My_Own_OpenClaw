@@ -276,13 +276,15 @@ For each completed slice, record:
 ## Progress Notes
 
 - 2026-06-19: completed a renderer settings status event runtime slice by
-  moving settings-update error classification from `AppStatusProvider` into
+  moving settings-update error classification from `AppStatusProvider` into a
+  shared `desktopSettingsUpdateErrorRuntime` helper and
   `desktopAppConfigRuntimeClient`, which now emits normalized settings events
   with `isSettingsUpdateError`. The provider keeps only save-status state
-  transitions and the shared settings-update error classifier remains the
-  string-matching authority. Validation: focused desktop app-config runtime
-  client, app status provider, renderer settings boundary tests, stale provider
-  error-string scan, docs listing, and diff checks. No migration required;
+  transitions and chat stream error suppression uses the same app-runtime
+  classifier. Validation: focused desktop settings-update classifier, desktop
+  app-config runtime client, app status provider, renderer settings boundary,
+  and chat stream payload runtime tests, stale provider error-string scan, docs
+  listing, and diff checks. No migration required;
   settings event channel names, backend error text, save-status UI timing,
   config persistence, IPC, storage, credentials, provider-policy, hosted URLs,
   and local execution behavior are unchanged.

@@ -17,6 +17,8 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 
 ## Typed Union Contract
 
@@ -140,7 +142,7 @@ Used by:
 Used by:
 
 - chat stream error row synthesis
-- app-config runtime save-error classification for status providers
+- app-runtime settings-update error classification for save status and chat-error suppression
 
 ## Non-Typed Backend Event Consumers
 
@@ -151,6 +153,7 @@ Important untyped paths:
 - `audio-chunk`: routed to `audio-chunk` and parsed by `extractDesktopAudioChunkPayload(...)`
 - `models-listed`: routed to `backend-settings-event` and consumed by `routeConfigSettingsEvent(...)`
 - `settings-updated`: routed to `backend-settings-event` and consumed by `AppStatusProvider` listener
+- settings-specific `error`: routed to `backend-settings-event` and normalized by `DesktopAppConfigRuntimeClient`
 
 This means adding events to backend wire protocol may require both:
 
@@ -164,7 +167,8 @@ This means adding events to backend wire protocol may require both:
   conversation/turn guard and local execution coordination
 - `ChatInterface` audio listener: untyped `audio-chunk`
 - `appConfigEvents`: untyped `models-listed`
-- `AppStatusProvider`: `settings-updated` + settings-specific `error` branch
+- `DesktopAppConfigRuntimeClient`: settings-specific `error` normalization
+- `AppStatusProvider`: `settings-updated` + normalized settings-specific `error` branch
 
 ## Drift Hotspots
 
