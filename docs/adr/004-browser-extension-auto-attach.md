@@ -10,16 +10,16 @@ title: "ADR 004: Browser Extension Auto-Attach Boundary"
 
 ## Status
 
-Proposed. Current implementation remains dedicated browser control through the sidecar browser runtime and CDP profile ownership.
+Proposed. Current implementation remains dedicated browser control through local-runtime browser execution and CDP profile ownership.
 
 ## Context
 
 WindieOS browser automation currently relies on a dedicated browser runtime:
 
 - dedicated browser profile
-- Browser Use sidecar adapter
+- Python sidecar Browser Use adapter
 - desktop CDP launch/connect flow
-- strict backend/sidecar browser action schema
+- strict backend/local-runtime browser action schema
 - explicit browser availability/permission checks
 
 Some future product ideas involve a browser extension that could auto-attach to an existing user browser session. That would change the trust model because the extension would operate inside a user-managed browser profile with ambient cookies, extensions, and tabs.
@@ -31,9 +31,9 @@ Do not treat extension auto-attach as current browser behavior.
 Current behavior:
 
 - keep dedicated browser runtime and profile ownership
-- use Browser Use through the sidecar adapter
+- use Browser Use through the Python sidecar adapter
 - prefer installed Chrome/Chromium-family browsers through the fixed detection priority
-- keep browser action execution in the sidecar/browser runtime
+- keep browser action execution in the local-runtime browser stack
 
 Future extension mode, if implemented, must be designed as a separate capability with its own:
 
@@ -56,7 +56,7 @@ Future extension mode, if implemented, must be designed as a separate capability
 
 - Browser docs should describe dedicated runtime behavior as current.
 - Extension attachment docs must stay in planning/ADR language until code, permissions, and tests exist.
-- Browser troubleshooting should debug sidecar runtime, CDP, profile, and browser availability before extension assumptions.
+- Browser troubleshooting should debug local-runtime browser execution, CDP, profile, and browser availability before extension assumptions.
 
 ## Validation And Docs Impact
 
@@ -65,5 +65,5 @@ When extension mode is implemented:
 - update [Browser Hub](../browser/README.md)
 - update [Browser Troubleshooting](../browser/browser_troubleshooting.md)
 - update [Security Boundary Matrix](../security/security_boundary_matrix.md)
-- add sidecar/browser extension protocol tests
+- add local-runtime/browser extension protocol tests
 - add permission/onboarding docs for extension mode

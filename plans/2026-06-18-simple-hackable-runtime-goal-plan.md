@@ -275,6 +275,26 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an architecture/browser local-runtime route label slice
+  by routing docs hub architecture routes, browser extension ADR current
+  behavior, safety boundaries, and the doctor checklist away from sidecar
+  runtime/adapter/protocol labels and through local execution, local-runtime
+  SQLite, local-runtime Python maps, Python JSON-RPC registration,
+  local-runtime browser execution/schema/stack, local-runtime execution, and
+  bundled local-runtime Python wording. Validation: focused modular boundary
+  guard, docs listing, exact stale label scan, and diff checks. No migration
+  required; docs and boundary tests changed only, with no browser extension mode
+  implementation, browser action schema, safety policy, packaged runtime path,
+  JSON-RPC method, IPC channel, storage, credential, permission, hosted route,
+  provider policy, packaging, or local execution behavior changed.
+- 2026-06-19: completed an install explicit-backend-origin troubleshooting
+  label slice by routing install troubleshooting and endpoint setup away from
+  local-backend-mode wording and through explicit local backend origin wording.
+  Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks. No migration required; install docs and boundary tests
+  changed only, with no endpoint env var name, backend default, websocket URL,
+  local-runtime env propagation, credential, permission, hosted route, provider
+  policy, packaging, storage, or local execution behavior changed.
 - 2026-06-19: completed a tool-validation local-runtime owner-label slice by
   routing backend browser/computer validation docs and the frontend capability
   matrix away from sidecar runtime enforcement/implementation ownership and

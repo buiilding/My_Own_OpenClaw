@@ -120,6 +120,40 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Architecture And Browser Local-Runtime Route Labels
+
+- Finding: docs hub architecture routes, browser extension ADR current-behavior
+  guidance, safety boundaries, and the doctor checklist still described local
+  execution or packaged runtime checks with sidecar runtime/adapter/protocol
+  labels.
+- Change: routed those labels through local execution, local-runtime SQLite,
+  local-runtime Python maps, Python JSON-RPC method registration,
+  local-runtime browser execution/schema/stack, local-runtime execution, and
+  bundled local-runtime Python wording while preserving concrete Python sidecar
+  implementation facts where useful.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  browser extension mode remains unimplemented, browser action schemas,
+  safety policy, packaged runtime paths, JSON-RPC methods, IPC channels,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
+### 2026-06-19 Install Explicit Backend Origin Troubleshooting Label
+
+- Finding: install troubleshooting and endpoint setup still described local
+  development routing as local backend mode, which could read like a restored
+  local_backend runtime concept instead of an explicit backend origin.
+- Change: routed those install labels through explicit local backend origin
+  wording and added modular docs coverage for the retired mode label while
+  preserving the concrete `BACKEND_HTTP_URL`/`BACKEND_WS_URL` override contract.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Install docs and boundary tests changed
+  only; endpoint env var names, backend defaults, websocket URLs, local-runtime
+  env propagation, credentials, permissions, hosted routes, provider policy,
+  packaging, storage, and local execution behavior are unchanged.
+
 ### 2026-06-19 Tool Validation Local-Runtime Owner Labels
 
 - Finding: backend browser/computer docs and the frontend capability matrix

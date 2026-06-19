@@ -13,7 +13,7 @@ WindieOS defaults to Peter-hosted backend routes when no endpoint override is se
 - HTTP: `https://api.windieos.com`
 - WebSocket: `wss://api.windieos.com/ws`
 
-Source development and packaged installs use the same endpoint-selection contract. Local backend mode is explicit; it is not an automatic fallback.
+Source development and packaged installs use the same endpoint-selection contract. A local backend origin is explicit; it is not an automatic fallback.
 
 ## Override Order
 

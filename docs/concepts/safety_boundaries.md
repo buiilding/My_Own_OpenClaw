@@ -18,7 +18,7 @@ WindieOS safety is split across prompt-visible capabilities, backend validation,
 | Parser/validation | Backend LLM parser and API schemas | Reject malformed or oversized model/API payloads |
 | Frontend relay | Electron main and renderer services | Preserve request ids, session identity, and allowed IPC channels |
 | Permission probes | Electron main permission services and renderer onboarding | Verify local OS capabilities before using screen, input, browser, or microphone flows |
-| Sidecar execution | Python tool registry and tool implementations | Execute only exposed local tools with normalized results |
+| Local-runtime execution | Local runtime with Python tool registry and tool implementations | Execute only exposed local tools with normalized results |
 | Provider health | Backend provider health and capability policy | Disable OCR/vision/embeddings/browser/web-search capability when unavailable |
 
 ## Design Rules

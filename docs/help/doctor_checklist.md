@@ -106,7 +106,7 @@ Check:
 - installed app launches
 - package contains `resources/python-runtime`
 - packaged log path from `WINDIE_LOG_FILE` if set
-- sidecar runtime starts without system Python/conda
+- bundled local-runtime Python starts without system Python/conda
 - backend endpoint snapshot matches expectation
 - one local runtime-backed tool succeeds
 

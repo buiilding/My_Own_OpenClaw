@@ -81,7 +81,7 @@ Check source-only assumptions:
 
 - current shell may not have the expected Python packages unless routed through `./scripts/python-in-env`
 - Vite dev server and Electron dev app are separate commands
-- local backend mode needs explicit endpoint overrides
+- explicit local backend origins need endpoint overrides
 - development may use the hosted backend by default
 - renderer localStorage or Electron user data may still hold previous settings
 

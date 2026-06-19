@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route docs-hub, browser ADR, safety, and doctor checklist
+  ownership labels through local-runtime wording instead of sidecar runtime
+  owner labels. No migration required.
+- docs/install: route install troubleshooting and endpoint setup through
+  explicit local backend origin wording instead of local-backend-mode labels.
+  No migration required.
 - docs/tools: route backend browser/computer validation and frontend inventory
   implementation labels through local-runtime wording instead of sidecar runtime
   owner labels. No migration required.
