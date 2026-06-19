@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for changing WindieOS desktop permissions and local-machine authority across onboarding, Electron main permission services, platform adapters, sidecar tools, and tests."
+summary: "Workflow for changing WindieOS desktop permissions and local-machine authority across onboarding, Electron main permission services, platform adapters, local-runtime tools, and tests."
 read_when:
   - When changing screen capture, input control, microphone, browser, workspace, sudo, or local tool authority.
   - When debugging a permission that is shown as granted/denied incorrectly.
-  - When deciding whether a local authority issue belongs to renderer onboarding, Electron main permission services, platform adapters, or sidecar tools.
+  - When deciding whether a local authority issue belongs to renderer onboarding, Electron main permission services, platform adapters, or local-runtime tools.
 title: "Permissions and Local Authority Workflow"
 ---
 
@@ -20,7 +20,7 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 | Permission services | `frontend/src/main/permissions/permission_service*.cjs` | OS-specific probes and request/open-settings behavior for screen, input, mic, browser, workspace, and automation. |
 | Permission state store | `frontend/src/main/permissions/permission_state_store.cjs` | Main-process cached permission state and notifications. |
 | Renderer onboarding/settings | `frontend/src/renderer/features/onboarding`, `frontend/src/renderer/features/permissions`, `frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts`, `frontend/src/renderer/app/skin` | User-visible permission gates, status rows, request buttons, control center, runtime-client permission commands, and product-specific onboarding shell copy. |
-| Sidecar platform/tools | `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools` | Runtime local execution that may fail when OS permission is missing. |
+| Local-runtime platform/tools | `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools` | Runtime local execution that may fail when OS permission is missing. |
 
 ## Add or Change a Permission
 
@@ -28,7 +28,7 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 2. Add Electron main probe/request/check logic in the focused permission service module.
 3. Register IPC behavior through `permission_ipc_runtime.cjs` only if the renderer needs a new operation.
 4. Update renderer onboarding/control-center display, permission runtime client, or skin copy only after the main service can report truthfully.
-5. Update sidecar tool behavior to fail clearly when the capability is unavailable.
+5. Update local-runtime tool behavior to fail clearly when the capability is unavailable.
 6. Add tests for manifest display, main permission service, renderer state, and sidecar/platform behavior where applicable.
 7. Update platform docs if the behavior differs on macOS, Windows, or Linux.
 
@@ -63,11 +63,11 @@ must not mark shell execution granted.
 | Symptom | First check |
 | --- | --- |
 | Onboarding says permission is missing but OS shows granted | Main permission probe implementation and cached permission state. |
-| UI says granted but tool fails | Sidecar/platform runtime and privileged operation result. |
+| UI says granted but tool fails | Local-runtime platform/tool runtime and privileged operation result. |
 | Permission button does nothing | Renderer action, IPC channel, main permission handler, OS open-settings/request code. |
 | Screen capture hides windows on macOS/Windows | Screenshot overlay policy; hide/restore should be Linux-specific unless requirements change. |
 | Input tool works on one OS only | Platform adapter and OS docs, not backend schema. |
-| Linux sudo command does not show an OS prompt | Sidecar shell sudo rewrite and `pkexec` availability. |
+| Linux sudo command does not show an OS prompt | Local-runtime shell sudo rewrite and `pkexec` availability. |
 
 ## Test Targets
 

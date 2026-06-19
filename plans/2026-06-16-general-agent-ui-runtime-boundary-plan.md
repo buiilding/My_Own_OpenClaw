@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Permission Local-Authority Local-Runtime Tool Labels
+
+- Finding: the permission/local-authority workflow still routed local authority
+  issues, unavailable-capability handling, tool failures, and Linux sudo
+  troubleshooting through sidecar-tool wording in a public security workflow.
+- Change: reworded those owner labels to local-runtime platform/tool wording
+  while keeping Python sidecar implementation roots and sidecar tests visible
+  as current implementation evidence, then extended the modular docs guard.
+- Validation: focused modular-boundary guard, docs listing, exact stale-phrase
+  scan, and diff checks.
+- Compatibility: no migration required. Permission state, OS probes, shell
+  authorization, tool execution, IPC channels, credentials, storage, hosted
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-18 Filesystem Tool Workflow Local-Runtime Owner Labels
 
 - Finding: filesystem/shell workflow, debug, inventory, and troubleshooting

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/security: route permission/local-authority workflow owner labels through
+  local-runtime tools instead of sidecar tools while preserving Python sidecar
+  test coverage references. No migration required.
 - docs/tools: route filesystem/shell workflow, debug, inventory, and
   troubleshooting owner labels through local-runtime implementation wording
   while keeping Python sidecar paths/tests explicit. No migration required.
