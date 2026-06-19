@@ -63,6 +63,12 @@ acknowledge without mutating message text. Their display rows are projected by
 the SDK current-turn listener, so the chat stream hook only prevents them from
 falling through to completion handling.
 
+`desktopChatStreamEventRuntime.isCompactionStartedConversationStreamEvent(...)`,
+`isCompactionCompletedConversationStreamEvent(...)`, and
+`isCompactionFailedConversationStreamEvent(...)` own the compaction event groups
+used by the chat stream dispatcher. The compaction handlers still validate the
+exact event shape before mutating thinking/debug state or replay snapshots.
+
 ## Event Ingress and Conversation Routing
 
 `desktopChatStreamIngressRuntime` listener flow:

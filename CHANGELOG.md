@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify SDK compaction stream event phases in
+  `desktopChatStreamEventRuntime` so `useChatStream` no longer branches on raw
+  compaction event-type strings. No migration required.
 - renderer/runtime: classify tool display-only SDK conversation stream events
   in `desktopChatStreamEventRuntime` so `useChatStream` no longer carries the
   raw tool event-type set. No migration required.

@@ -4,6 +4,9 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  isCompactionCompletedConversationStreamEvent,
+  isCompactionFailedConversationStreamEvent,
+  isCompactionStartedConversationStreamEvent,
   isSupportedConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   recordTrackingEvent,
@@ -120,6 +123,21 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isToolDisplayOnlyConversationStreamEvent({ type: 'turn_completed' })).toBe(false);
     expect(isToolDisplayOnlyConversationStreamEvent({ type: 'unknown_event' })).toBe(false);
     expect(isToolDisplayOnlyConversationStreamEvent(null)).toBe(false);
+  });
+
+  test('classifies compaction conversation stream events', () => {
+    expect(isCompactionStartedConversationStreamEvent({ type: 'compaction_started' })).toBe(true);
+    expect(isCompactionStartedConversationStreamEvent({ type: 'compaction_applied' })).toBe(false);
+    expect(isCompactionStartedConversationStreamEvent(null)).toBe(false);
+
+    expect(isCompactionCompletedConversationStreamEvent({ type: 'compaction_applied' })).toBe(true);
+    expect(isCompactionCompletedConversationStreamEvent({ type: 'compaction_skipped' })).toBe(true);
+    expect(isCompactionCompletedConversationStreamEvent({ type: 'compaction_failed' })).toBe(false);
+    expect(isCompactionCompletedConversationStreamEvent(null)).toBe(false);
+
+    expect(isCompactionFailedConversationStreamEvent({ type: 'compaction_failed' })).toBe(true);
+    expect(isCompactionFailedConversationStreamEvent({ type: 'compaction_started' })).toBe(false);
+    expect(isCompactionFailedConversationStreamEvent(null)).toBe(false);
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {

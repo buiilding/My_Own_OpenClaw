@@ -23,6 +23,9 @@ import {
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
+  isCompactionCompletedConversationStreamEvent,
+  isCompactionFailedConversationStreamEvent,
+  isCompactionStartedConversationStreamEvent,
   isSupportedConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   recordTrackingEvent as recordTrackingEventRuntime,
@@ -153,15 +156,15 @@ export function useChatStream(enableTranscript: boolean = true) {
       // Tool display state is owned by the SDK current-turn projection listener.
       return true;
     }
-    if (event.type === 'compaction_started') {
+    if (isCompactionStartedConversationStreamEvent(event)) {
       handleContextCompactionStarted(event);
       return true;
     }
-    if (event.type === 'compaction_applied' || event.type === 'compaction_skipped') {
+    if (isCompactionCompletedConversationStreamEvent(event)) {
       handleContextCompactionCompleted(event);
       return true;
     }
-    if (event.type === 'compaction_failed') {
+    if (isCompactionFailedConversationStreamEvent(event)) {
       handleContextCompactionFailed(event);
       return true;
     }

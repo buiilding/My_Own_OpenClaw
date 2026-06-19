@@ -54,6 +54,11 @@ const TOOL_DISPLAY_ONLY_CONVERSATION_STREAM_EVENT_TYPES = new Set([
   'tool_bundle_output',
 ]);
 
+const COMPACTION_COMPLETED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
+  'compaction_applied',
+  'compaction_skipped',
+]);
+
 type ConversationTypeEvent = {
   type?: string | null;
 };
@@ -70,6 +75,25 @@ export function isToolDisplayOnlyConversationStreamEvent(
 ): boolean {
   return typeof event?.type === 'string'
     && TOOL_DISPLAY_ONLY_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
+}
+
+export function isCompactionStartedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'compaction_started';
+}
+
+export function isCompactionCompletedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return typeof event?.type === 'string'
+    && COMPACTION_COMPLETED_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
+}
+
+export function isCompactionFailedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'compaction_failed';
 }
 
 function shouldIgnoreForStaleTurn(

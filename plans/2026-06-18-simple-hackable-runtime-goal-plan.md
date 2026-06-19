@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer compaction stream event classification slice
+  by adding compaction start, completed, and failed predicates to
+  `desktopChatStreamEventRuntime`. `useChatStream` now asks the app-runtime
+  helper which compaction handler should receive SDK compaction events, while
+  the feature hook keeps handler orchestration and compaction handlers keep
+  exact payload validation. Validation: focused desktop chat stream event
+  runtime and renderer chat runtime boundary tests plus docs listing, related
+  commit search, stale inline compaction event-type scans, and diff checks. No
+  migration required; SDK conversation event names and payloads, compaction
+  replay/debug behavior, stream dispatch behavior, IPC, storage, settings,
+  credentials, provider-policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer tool stream display classification slice by
   adding `isToolDisplayOnlyConversationStreamEvent` to
   `desktopChatStreamEventRuntime`. `useChatStream` now asks the app-runtime

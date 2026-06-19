@@ -472,8 +472,15 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).toContain('desktopChatStreamEventRuntime');
+    expect(source).toContain('isCompactionCompletedConversationStreamEvent');
+    expect(source).toContain('isCompactionFailedConversationStreamEvent');
+    expect(source).toContain('isCompactionStartedConversationStreamEvent');
     expect(source).toContain('isSupportedConversationStreamEvent');
     expect(source).toContain('isToolDisplayOnlyConversationStreamEvent');
+    expect(source).not.toContain("event.type === 'compaction_started'");
+    expect(source).not.toContain("event.type === 'compaction_applied'");
+    expect(source).not.toContain("event.type === 'compaction_skipped'");
+    expect(source).not.toContain("event.type === 'compaction_failed'");
     expect(source).not.toContain("event.type !== 'turn_completed'");
     expect(source).not.toContain("event.type !== 'tool_call'");
     expect(source).not.toContain("event.type !== 'usage_updated'");
@@ -487,8 +494,15 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('chatStreamTurnGuard');
     expect(source).not.toContain('chatStreamTerminalHandoffGuard');
     expect(source).not.toContain('chatStreamTracking');
+    expect(runtimeSource).toContain('isCompactionCompletedConversationStreamEvent');
+    expect(runtimeSource).toContain('isCompactionFailedConversationStreamEvent');
+    expect(runtimeSource).toContain('isCompactionStartedConversationStreamEvent');
     expect(runtimeSource).toContain('isSupportedConversationStreamEvent');
     expect(runtimeSource).toContain('isToolDisplayOnlyConversationStreamEvent');
+    expect(runtimeSource).toContain("'compaction_started'");
+    expect(runtimeSource).toContain("'compaction_applied'");
+    expect(runtimeSource).toContain("'compaction_skipped'");
+    expect(runtimeSource).toContain("'compaction_failed'");
     expect(runtimeSource).toContain("'turn_completed'");
     expect(runtimeSource).toContain("'usage_updated'");
     expect(runtimeSource).toContain("'tool_bundle_output'");

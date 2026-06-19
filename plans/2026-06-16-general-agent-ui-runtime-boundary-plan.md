@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Compaction Stream Event Classification Boundary
+
+- Finding: `useChatStream` used app-runtime helpers for supported stream
+  vocabulary and tool display-only events, but still grouped raw SDK compaction
+  event strings before choosing start/completed/failed renderer handlers.
+- Change: added compaction start, completed, and failed predicates to
+  `desktopChatStreamEventRuntime` and routed `useChatStream` through them. The
+  runtime facade owns SDK compaction event grouping while the feature hook keeps
+  handler orchestration and compaction handlers keep exact payload validation.
+- Validation: focused desktop chat stream event runtime and renderer chat
+  runtime boundary tests plus docs listing, related commit search, stale inline
+  compaction event-type scans, and diff checks.
+- Compatibility: no migration required. SDK conversation event names and
+  payloads, compaction replay/debug behavior, stream dispatch behavior, IPC,
+  storage, settings, credentials, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Tool Stream Display Classification Boundary
 
 - Finding: `useChatStream` routed general stream vocabulary through
