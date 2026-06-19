@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dashboard Layout Pulse Runtime Boundary
+
+- Finding: `DashboardShell` still constructed and dispatched the renderer-only
+  browser `resize` pulse directly when waking the dashboard from
+  `main-window-open-target`, leaving layout observer event timing inside the
+  feature component.
+- Change: added `desktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)`
+  for the resize pulse and routed dashboard wake-up through that helper.
+  `DashboardShell` keeps animation state and target routing.
+- Validation: focused desktop dashboard layout runtime, dashboard shell, and
+  renderer app-runtime boundary tests plus stale direct resize-dispatch scans,
+  docs search/history checks, and diff checks.
+- Compatibility: no migration required. Dashboard reopen animation timing,
+  resize event behavior, main-window target routing, IPC, storage, credentials,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Desktop New-Chat Event Helper Runtime Boundary
 
 - Finding: `DashboardShell` constructed the renderer-only

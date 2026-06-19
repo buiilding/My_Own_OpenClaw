@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard layout pulse boundary slice by
+  moving the dashboard wake-up browser `resize` pulse into
+  `desktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)`.
+  `DashboardShell` now keeps animation state and `main-window-open-target`
+  routing while the app-runtime helper owns the renderer-only resize dispatch
+  timing. Focused desktop dashboard layout runtime, dashboard shell, and
+  renderer app-runtime boundary tests passed with docs/history checks, stale
+  direct resize-dispatch scans, and diff checks. No migration required; reopen
+  animation timing, resize event behavior, IPC, storage, credentials, provider
+  policy, hosted URLs, and local execution are unchanged.
+
 - 2026-06-19: completed a renderer desktop new-chat event helper slice by
   moving dashboard-to-chat custom browser event dispatch and subscription into
   `desktopChatEvents` as `dispatchDesktopRuntimeNewChatEvent(...)` and

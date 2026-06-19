@@ -386,6 +386,24 @@ describe('renderer app runtime boundary', () => {
     expect(chatBindingsSource).not.toContain('window.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT');
   });
 
+  test('dashboard layout resize pulse stays behind app runtime helper', async () => {
+    const dashboardLayoutSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDashboardLayoutRuntime.js'),
+      'utf8',
+    );
+    const dashboardShellSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/DashboardShell.jsx'),
+      'utf8',
+    );
+
+    expect(dashboardLayoutSource).toContain('requestDashboardLayoutPass');
+    expect(dashboardLayoutSource).toContain("new Event('resize')");
+    expect(dashboardLayoutSource).toContain('requestAnimationFrame');
+    expect(dashboardShellSource).toContain('desktopDashboardLayoutRuntime');
+    expect(dashboardShellSource).not.toContain("window.dispatchEvent(new Event('resize'))");
+    expect(dashboardShellSource).not.toContain('window.requestAnimationFrame');
+  });
+
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),

@@ -18,6 +18,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/app/runtime/desktopChatEvents.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardLayoutRuntime.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
@@ -139,6 +140,12 @@ Shell listens through `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)`.
 The runtime client normalizes the host event before shell routing, so shell code
 consumes a trimmed `target` string and does not interpret raw
 `main-window-open-target` payload fields directly.
+
+Dashboard reopen wake-up calls
+`desktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)` for the
+renderer-only resize pulse used by layout observers. `DashboardShell` owns the
+animation and routing state, while the app-runtime helper owns the browser
+resize event dispatch timing.
 
 Accepted targets:
 

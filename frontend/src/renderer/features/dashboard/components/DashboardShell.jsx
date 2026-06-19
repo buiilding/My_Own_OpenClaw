@@ -20,6 +20,7 @@ import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSe
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import { dispatchDesktopRuntimeNewChatEvent } from '../../../app/runtime/desktopChatEvents';
+import { requestDashboardLayoutPass } from '../../../app/runtime/desktopDashboardLayoutRuntime';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -56,26 +57,6 @@ DashboardModal.propTypes = {
 
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
 const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
-
-function requestDashboardLayoutPass() {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  const dispatchResize = () => {
-    window.dispatchEvent(new Event('resize'));
-  };
-
-  if (typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(() => {
-      dispatchResize();
-      window.requestAnimationFrame(dispatchResize);
-    });
-    return;
-  }
-
-  window.setTimeout(dispatchResize, 0);
-}
 
 function DashboardShell({
   config,

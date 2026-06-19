@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move the dashboard wake layout resize pulse behind
+  `desktopDashboardLayoutRuntime` so `DashboardShell` no longer dispatches
+  browser resize events directly. No migration required.
 - renderer/runtime: move the dashboard-to-chat new-chat browser event dispatch
   and subscription behind `desktopChatEvents` helpers so feature modules no
   longer construct or subscribe to that custom event directly. No migration
