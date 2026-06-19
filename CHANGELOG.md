@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/nodes: describe the Python sidecar as the local-runtime implementation
+  node while keeping SDK/main local runtime as the owner of local executable
+  authority. No migration required.
 - renderer/runtime: move the dashboard wake layout resize pulse behind
   `desktopDashboardLayoutRuntime` so `DashboardShell` no longer dispatches
   browser resize events directly. No migration required.

@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a runtime-node local-runtime ownership wording slice
+  by relabeling the node docs from Python-sidecar-as-owner language to
+  local-runtime implementation node language. Runtime nodes now say SDK/main
+  local runtime owns local executable authority while the Python sidecar remains
+  the concrete implementation subprocess for local tools, memory, system state,
+  browser automation, and JSON-RPC handlers. Validation: focused modular docs
+  boundary guard, docs listing, exact stale node-owner phrase scan, and diff
+  checks. No migration required; documentation only, with no runtime, IPC,
+  storage, schema, credential, provider-policy, hosted URL, or local execution
+  behavior changes.
+
 - 2026-06-19: completed a renderer dashboard layout pulse boundary slice by
   moving the dashboard wake-up browser `resize` pulse into
   `desktopDashboardLayoutRuntime.requestDashboardLayoutPass(...)`.

@@ -25,7 +25,7 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 | Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, local-runtime host/status context | React component state, backend route implementation, hosted backend websocket policy, local-runtime tool implementation internals |
 | Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, display-only tool state | direct filesystem/shell access, backend auth enforcement, native window authority, backend tool-result delivery |
 | Preload | narrow `window.ipc` bridge and channel allowlist | feature policy, backend schemas, broad Node.js access |
-| Python sidecar implementation | local executable tools, local memory, browser runtime, system state, shell/filesystem/computer actions behind SDK/main local runtime | model-facing tool schemas, websocket route validation, renderer UI |
+| Python sidecar implementation | concrete implementation for local executable tools, local memory, browser runtime, system state, and shell/filesystem/computer actions behind SDK/main local runtime | reusable local-runtime authority, model-facing tool schemas, websocket route validation, renderer UI |
 | Wakeword service | model bootstrap and audio-frame detection | voice dictation transcription, generic local-runtime tools, backend TTS |
 
 ## Main Process Code Roots

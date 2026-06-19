@@ -1,5 +1,5 @@
 ---
-summary: "Current versus future WindieOS node boundaries, separating implemented desktop/backend/sidecar/VM worker nodes from planned mobile, edge, and multi-agent VM node work."
+summary: "Current versus future WindieOS node boundaries, separating implemented desktop/backend/local-runtime implementation/VM worker nodes from planned mobile, edge, and multi-agent VM node work."
 read_when:
   - When documenting node-like features without implying that planned mobile, edge, scheduler, or multi-agent VM infrastructure already exists.
   - When planning future node orchestration, remote control, mobile companion, edge workers, or agent-to-agent runtime features.
@@ -16,7 +16,7 @@ WindieOS should use OpenClaw-style node docs for discoverability, but the curren
 | --- | --- | --- |
 | Hosted backend node | implemented | FastAPI app exposes `/ws`, `/ws/transcription`, and `/api/*` routes; owns agent loop, providers, route auth, artifacts, OCR/vision, memory APIs, and runs control plane. |
 | Desktop app node | implemented | Electron main + React renderer + preload bridge own local UX, windows, IPC, endpoint selection, and SDK-runtime adaptation. |
-| Python sidecar node | implemented | Local subprocess owns executable tools, local memory, system state, shell/filesystem/computer/browser actions, and JSON-RPC protocol. |
+| Local-runtime implementation node (Python sidecar) | implemented | SDK/main local runtime owns local executable authority and starts/reuses a local Python subprocess that implements executable tools, local memory, system state, shell/filesystem/computer/browser actions, and JSON-RPC protocol. |
 | Wakeword service node | implemented | Separate local subprocess for wakeword audio/model framing. |
 | VM worker node | implemented as control-plane worker | Electron main worker polls `/api/runs/*`, dispatches assigned work through `/ws`, and relays stream events. |
 | Cloudflare/origin service node | implemented as deployment plumbing | Scripts support self-hosting backend origin behind Cloudflare Tunnel. |

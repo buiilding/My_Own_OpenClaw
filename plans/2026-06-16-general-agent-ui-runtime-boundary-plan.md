@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Runtime Nodes Local-Runtime Implementation Boundary
+
+- Finding: the runtime node hub, matrix, and current-vs-future page still
+  described the Python sidecar node as owning local executable tools, local
+  memory, system state, browser/computer/filesystem actions, and JSON-RPC
+  methods.
+- Change: relabeled those node docs to describe a local-runtime implementation
+  node backed by the Python sidecar subprocess, with SDK/main local runtime
+  named as the owner of local executable authority.
+- Validation: focused modular docs boundary guard, docs listing, exact stale
+  node-owner phrase scan, and diff checks.
+- Compatibility: no migration required. Documentation only; runtime behavior,
+  IPC, storage, schemas, credentials, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Layout Pulse Runtime Boundary
 
 - Finding: `DashboardShell` still constructed and dispatched the renderer-only
