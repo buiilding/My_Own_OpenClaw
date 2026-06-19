@@ -174,6 +174,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Stream Sub-Handler Event Predicate Boundary
+
+- Finding: stream dispatcher event identity was already centralized in
+  `desktopChatStreamEventRuntime`, but sub-handlers still duplicated raw SDK
+  event-type guards for local-user, completion, metadata, and compaction
+  side-effect paths.
+- Change: added `isTurnCompletedConversationStreamEvent(...)` and
+  `isCompactionSkippedConversationStreamEvent(...)`, then routed sub-handler
+  fail-fast checks through app-runtime predicates. The handlers still own
+  payload projection, chat-store mutation, and replay persistence side effects.
+- Validation: focused stream event runtime, metadata/compaction handler, chat
+  stream thinking/status, and renderer chat runtime boundary tests plus docs
+  search, related commit search, stale raw handler event-type scans, and diff
+  checks.
+- Compatibility: no migration required. SDK conversation event names, backend
+  normalization, stream dispatch ordering, chat-store state shape, transcript
+  writes, compaction replay persistence, IPC, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Display Projection Annotation Merge Boundary
 
 - Finding: `desktopConversationDisplayProjection` already routed SDK display

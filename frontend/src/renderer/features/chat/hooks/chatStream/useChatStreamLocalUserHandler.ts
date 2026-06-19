@@ -4,6 +4,9 @@
 
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
+import {
+  isLocalUserMessageConversationStreamEvent,
+} from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import { GENERIC_THINKING_STATUS } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import { resolveLocalUserMessageText } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
@@ -25,7 +28,7 @@ export function useChatStreamLocalUserHandler({
   setThinkingStatus,
 }: UseChatStreamLocalUserHandlerDeps) {
   return useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    if (event.type !== 'user_message') {
+    if (!isLocalUserMessageConversationStreamEvent(event)) {
       return;
     }
     const text = resolveLocalUserMessageText(event.payload);

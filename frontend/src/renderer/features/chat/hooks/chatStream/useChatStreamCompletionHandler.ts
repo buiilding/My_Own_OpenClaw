@@ -5,6 +5,9 @@
 import { useCallback } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
+import {
+  isTurnCompletedConversationStreamEvent,
+} from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
 type UseChatStreamCompletionHandlerOptions = {
   recordTrackingEvent: (
@@ -28,7 +31,7 @@ export const useChatStreamCompletionHandler = ({
   setThinkingSourceEventType,
 }: UseChatStreamCompletionHandlerOptions) => {
   return useCallback((event: ConversationEvent, conversationRef: string | null) => {
-    if (event.type !== 'turn_completed') {
+    if (!isTurnCompletedConversationStreamEvent(event)) {
       return;
     }
     const resolvedConversationRef = conversationRef ?? event.conversationRef;

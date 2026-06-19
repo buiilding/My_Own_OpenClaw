@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat stream sub-handler event-predicate
+  boundary slice by routing local-user, completion, metadata, and compaction
+  handler fail-fast guards through `desktopChatStreamEventRuntime` predicates.
+  The app-runtime event facade now owns `user_message`, `turn_completed`,
+  metadata, and compaction skipped/completed identity checks for both dispatcher
+  routing and sub-handler guard paths, while handlers keep payload projection
+  and chat-store side effects. Validation: focused stream event runtime,
+  metadata/compaction handler, chat stream thinking/status, and renderer chat
+  runtime boundary tests plus docs search, related commit search, stale raw
+  handler event-type scans, and diff checks. No migration required; SDK
+  conversation event names, backend normalization, stream dispatch ordering,
+  chat-store state shape, transcript writes, compaction replay persistence,
+  IPC, storage, settings, credentials, permissions, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer SDK display-row annotation merge boundary
   slice by moving renderer-only annotation merge and pending optimistic user-row
   preservation from `useConversationRuntimeProjectionStream` into

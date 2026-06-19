@@ -90,6 +90,12 @@ export function isCompactionCompletedConversationStreamEvent(
     && COMPACTION_COMPLETED_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
 }
 
+export function isCompactionSkippedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'compaction_skipped';
+}
+
 export function isCompactionFailedConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
@@ -124,6 +130,12 @@ export function isLocalUserMessageConversationStreamEvent(
   event: ConversationTypeEvent | null | undefined,
 ): boolean {
   return event?.type === 'user_message';
+}
+
+export function isTurnCompletedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'turn_completed';
 }
 
 export function isTurnErrorConversationStreamEvent(

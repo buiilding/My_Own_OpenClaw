@@ -7,12 +7,14 @@ import {
   isAssistantMessageConversationStreamEvent,
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
+  isCompactionSkippedConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
   isLocalUserMessageConversationStreamEvent,
   isSupportedConversationStreamEvent,
   isSystemPromptConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   isToolSchemasMetadataConversationStreamEvent,
+  isTurnCompletedConversationStreamEvent,
   isTurnErrorConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
@@ -142,6 +144,10 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isCompactionCompletedConversationStreamEvent({ type: 'compaction_failed' })).toBe(false);
     expect(isCompactionCompletedConversationStreamEvent(null)).toBe(false);
 
+    expect(isCompactionSkippedConversationStreamEvent({ type: 'compaction_skipped' })).toBe(true);
+    expect(isCompactionSkippedConversationStreamEvent({ type: 'compaction_applied' })).toBe(false);
+    expect(isCompactionSkippedConversationStreamEvent(null)).toBe(false);
+
     expect(isCompactionFailedConversationStreamEvent({ type: 'compaction_failed' })).toBe(true);
     expect(isCompactionFailedConversationStreamEvent({ type: 'compaction_started' })).toBe(false);
     expect(isCompactionFailedConversationStreamEvent(null)).toBe(false);
@@ -169,6 +175,10 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isLocalUserMessageConversationStreamEvent({ type: 'user_message' })).toBe(true);
     expect(isLocalUserMessageConversationStreamEvent({ type: 'turn_error' })).toBe(false);
     expect(isLocalUserMessageConversationStreamEvent(null)).toBe(false);
+
+    expect(isTurnCompletedConversationStreamEvent({ type: 'turn_completed' })).toBe(true);
+    expect(isTurnCompletedConversationStreamEvent({ type: 'usage_updated' })).toBe(false);
+    expect(isTurnCompletedConversationStreamEvent(null)).toBe(false);
 
     expect(isTurnErrorConversationStreamEvent({ type: 'turn_error' })).toBe(true);
     expect(isTurnErrorConversationStreamEvent({ type: 'usage_updated' })).toBe(false);

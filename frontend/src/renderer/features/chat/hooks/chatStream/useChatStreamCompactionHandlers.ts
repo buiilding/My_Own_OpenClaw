@@ -8,6 +8,12 @@ import type {
   ConversationEvent,
 } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
+  isCompactionCompletedConversationStreamEvent,
+  isCompactionFailedConversationStreamEvent,
+  isCompactionSkippedConversationStreamEvent,
+  isCompactionStartedConversationStreamEvent,
+} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
   hasCompactionReplacementHistoryEntries,
@@ -58,23 +64,6 @@ type PersistCompactedReplaySnapshot = (
   userId: string,
 ) => Promise<void>;
 
-type CompactionEventType =
-  | 'compaction_started'
-  | 'compaction_applied'
-  | 'compaction_skipped'
-  | 'compaction_failed';
-
-type CompactionConversationEvent = ConversationEvent & {
-  type: CompactionEventType;
-};
-
-function isCompactionEvent(
-  event: ConversationEvent,
-  expectedType: CompactionEventType,
-): event is CompactionConversationEvent {
-  return event.type === expectedType;
-}
-
 async function persistCompactedReplaySnapshot(
   snapshot: CompactedReplaySnapshot,
   userId: string,
@@ -105,7 +94,7 @@ export function useChatStreamCompactionHandlers({
   const persistCompactedReplayRef = useLatestRef(persistCompactedReplay);
 
   const handleContextCompactionStarted = useCallback((event: ConversationEvent) => {
-    if (!isCompactionEvent(event, 'compaction_started')) {
+    if (!isCompactionStartedConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;
@@ -121,12 +110,12 @@ export function useChatStreamCompactionHandlers({
   ]);
 
   const handleContextCompactionCompleted = useCallback((event: ConversationEvent) => {
-    if (!isCompactionEvent(event, 'compaction_applied') && !isCompactionEvent(event, 'compaction_skipped')) {
+    if (!isCompactionCompletedConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;
     const skippedReason = resolveCompactionSkippedReason(event.payload);
-    if (event.type === 'compaction_skipped' || skippedReason) {
+    if (isCompactionSkippedConversationStreamEvent(event) || skippedReason) {
       const currentSourceEventType = getThinkingSourceEventTypeRef.current?.(conversationRef) ?? null;
       if (
         currentSourceEventType === 'context-compaction-started'
@@ -171,7 +160,7 @@ export function useChatStreamCompactionHandlers({
   ]);
 
   const handleContextCompactionFailed = useCallback((event: ConversationEvent) => {
-    if (!isCompactionEvent(event, 'compaction_failed')) {
+    if (!isCompactionFailedConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;

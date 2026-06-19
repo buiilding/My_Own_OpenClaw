@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Stream Sub-Handler Event Predicate Boundary
+
+- Finding: `desktopChatStreamEventRuntime` owned SDK conversation event
+  vocabulary for `useChatStream` dispatch, but local-user, completion,
+  metadata, and compaction sub-handlers still duplicated raw event-type guard
+  strings before applying side effects.
+- Change: added missing `turn_completed` and compaction-skipped predicates to
+  `desktopChatStreamEventRuntime`, then routed sub-handler fail-fast guards
+  through the runtime predicates while leaving payload projection and state
+  mutation in the existing handlers.
+- Validation: focused stream event runtime, metadata/compaction handler, chat
+  stream thinking/status, and renderer chat runtime boundary tests plus docs
+  search, related commit search, stale raw handler event-type scans, and diff
+  checks.
+- Compatibility: no migration required. SDK conversation event names, backend
+  normalization, stream dispatch ordering, chat-store state shape, transcript
+  writes, compaction replay persistence, IPC, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Display Projection Annotation Merge Boundary
 
 - Finding: `desktopConversationDisplayProjection` already owned SDK display-row

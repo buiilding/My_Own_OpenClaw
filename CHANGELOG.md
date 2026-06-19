@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat stream sub-handler event guards through
+  `desktopChatStreamEventRuntime` predicates so local-user, completion,
+  metadata, and compaction handlers no longer duplicate raw SDK event-type
+  strings. No migration required.
 - renderer/runtime: move SDK display-row annotation and optimistic user-row merge
   rules into `desktopConversationDisplayProjection` so
   `useConversationRuntimeProjectionStream` only wires subscriptions, projection

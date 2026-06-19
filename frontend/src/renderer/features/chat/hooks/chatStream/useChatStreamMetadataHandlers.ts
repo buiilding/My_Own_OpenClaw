@@ -5,6 +5,12 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
+  isAssistantMessageConversationStreamEvent,
+  isSystemPromptConversationStreamEvent,
+  isToolSchemasMetadataConversationStreamEvent,
+  isUserMessageMetadataConversationStreamEvent,
+} from '../../../../app/runtime/desktopChatStreamEventRuntime';
+import {
   resolveToolSchemasMetadataPayload,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import {
@@ -18,16 +24,6 @@ import type {
   StreamTrackingOptions,
 } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import type { ChatMessage } from '../../stores/chatStore';
-
-type MetadataEventType =
-  | 'system_prompt'
-  | 'user_message_metadata'
-  | 'assistant_message'
-  | 'tool_schemas_metadata';
-
-type MetadataConversationEvent = ConversationEvent & {
-  type: MetadataEventType;
-};
 
 type ShouldIgnoreForStaleTurn = (
   event: { turnRef?: string | null },
@@ -54,13 +50,6 @@ type UpdateLastAssistantLlmTextMessage = (
   conversationRef?: string | null,
 ) => void;
 
-function isMetadataEvent(
-  event: ConversationEvent,
-  expectedType: MetadataEventType,
-): event is MetadataConversationEvent {
-  return event.type === expectedType;
-}
-
 function turnRefForUpdate(event: ConversationEvent): string | undefined {
   return typeof event.turnRef === 'string' && event.turnRef.trim()
     ? event.turnRef
@@ -79,7 +68,7 @@ export function useChatStreamMetadataHandlers({
   recordTrackingEvent: RecordTrackingEvent;
 }) {
   const handleSystemPrompt = useCallback((event: ConversationEvent) => {
-    if (!isMetadataEvent(event, 'system_prompt')) {
+    if (!isSystemPromptConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;
@@ -93,7 +82,7 @@ export function useChatStreamMetadataHandlers({
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleUserMessageFull = useCallback((event: ConversationEvent) => {
-    if (!isMetadataEvent(event, 'user_message_metadata')) {
+    if (!isUserMessageMetadataConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;
@@ -107,7 +96,7 @@ export function useChatStreamMetadataHandlers({
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleAssistantMessageFull = useCallback((event: ConversationEvent) => {
-    if (!isMetadataEvent(event, 'assistant_message')) {
+    if (!isAssistantMessageConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;
@@ -121,7 +110,7 @@ export function useChatStreamMetadataHandlers({
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
 
   const handleToolSchemas = useCallback((event: ConversationEvent) => {
-    if (!isMetadataEvent(event, 'tool_schemas_metadata')) {
+    if (!isToolSchemasMetadataConversationStreamEvent(event)) {
       return;
     }
     const conversationRef = event.conversationRef;

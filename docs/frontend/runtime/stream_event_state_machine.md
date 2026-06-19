@@ -66,8 +66,10 @@ falling through to completion handling.
 `desktopChatStreamEventRuntime.isCompactionStartedConversationStreamEvent(...)`,
 `isCompactionCompletedConversationStreamEvent(...)`, and
 `isCompactionFailedConversationStreamEvent(...)` own the compaction event groups
-used by the chat stream dispatcher. The compaction handlers still validate the
-exact event shape before mutating thinking/debug state or replay snapshots.
+used by the chat stream dispatcher and compaction sub-handlers. A specific
+`isCompactionSkippedConversationStreamEvent(...)` predicate owns the
+skipped-vs-applied branch before handlers mutate thinking/debug state or replay
+snapshots.
 
 Metadata and transparency dispatch classification also belongs to
 `desktopChatStreamEventRuntime`: system prompt, user message metadata, assistant
@@ -75,11 +77,11 @@ message metadata, and tool schema metadata predicates route SDK events to the
 renderer metadata handlers. The handlers own payload projection into existing
 rows; the feature hook only wires predicate to handler.
 
-The same runtime facade owns local-user and terminal telemetry dispatch
-predicates for `user_message`, `turn_error`, and `usage_updated`. `useChatStream`
-does not compare raw SDK event type strings directly; it maps runtime predicates
-to renderer handlers and lets the SDK current-turn projection own live response
-state.
+The same runtime facade owns local-user and terminal telemetry predicates for
+`user_message`, `turn_completed`, `turn_error`, and `usage_updated`.
+`useChatStream` and its sub-handlers do not compare those raw SDK event type
+strings directly; they map runtime predicates to renderer side effects and let
+the SDK current-turn projection own live response state.
 
 ## Event Ingress and Conversation Routing
 
@@ -142,8 +144,8 @@ Extra error gate:
 Transition reducer is centralized in `applyTrackingEvent(...)`. SDK
 current-turn projection deltas are converted into those tracking events by
 `desktopCurrentTurnProjectionEffectsRuntime.ts`; `useConversationRuntimeProjectionStream`
-owns subscription, cursor storage, stale projection acceptance, and display-row
-merging.
+owns subscription, cursor storage, and stale projection acceptance, while
+`desktopConversationDisplayProjection.ts` owns display-row merging.
 
 Reset/start contract:
 

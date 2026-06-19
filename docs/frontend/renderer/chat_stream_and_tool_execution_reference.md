@@ -343,6 +343,9 @@ SDK dispatch behavior:
 Handler composition boundary:
 
 - `useChatStream` dispatches SDK-normalized conversation events first.
+- Stream event identity predicates live in
+  `desktopChatStreamEventRuntime.ts`; sub-handlers use those predicates for
+  fail-fast guards instead of spelling SDK event names locally.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
 - SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `desktopCurrentTurnProjectionEffectsRuntime.ts`

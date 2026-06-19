@@ -295,8 +295,19 @@ describe('renderer chat runtime boundary', () => {
     expect(compactionHookSource).toContain('buildCompactionDebugInfo');
     expect(compactionHookSource).toContain('buildCompactedReplaySnapshot');
     expect(compactionHookSource).toContain('resolveCompactionErrorText');
+    expect(compactionHookSource).toContain('isCompactionStartedConversationStreamEvent');
+    expect(compactionHookSource).toContain('isCompactionCompletedConversationStreamEvent');
+    expect(compactionHookSource).toContain('isCompactionSkippedConversationStreamEvent');
+    expect(compactionHookSource).toContain('isCompactionFailedConversationStreamEvent');
     expect(compactionHookSource).not.toContain('event.payload.error');
+    expect(compactionHookSource).not.toContain('event.type === expectedType');
+    expect(compactionHookSource).not.toContain("event.type === 'compaction_skipped'");
+    expect(metadataHookSource).toContain('isSystemPromptConversationStreamEvent');
+    expect(metadataHookSource).toContain('isUserMessageMetadataConversationStreamEvent');
+    expect(metadataHookSource).toContain('isAssistantMessageConversationStreamEvent');
+    expect(metadataHookSource).toContain('isToolSchemasMetadataConversationStreamEvent');
     expect(metadataHookSource).toContain('resolveToolSchemasMetadataPayload');
+    expect(metadataHookSource).not.toContain('event.type === expectedType');
     expect(compactionHookSource).not.toContain('replacement_history_entries');
     expect(compactionHookSource).not.toContain('replacement_history_preview');
     expect(compactionHookSource).not.toContain('summary_preview');
@@ -1027,6 +1038,8 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
+    expect(source).toContain('isTurnCompletedConversationStreamEvent');
+    expect(source).not.toContain("event.type !== 'turn_completed'");
     expect(source).not.toContain('payload.rawEvent');
     expect(source).not.toContain('payload.sourceEvent');
     expect(source).not.toContain('rawConversationRef');
@@ -1069,7 +1082,8 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain("event.type !== 'user_message'");
     expect(runtimeSource).toContain("'user_message'");
     expect(handlerSource).not.toContain('LocalUserMessageEvent');
-    expect(handlerSource).toContain("event.type !== 'user_message'");
+    expect(handlerSource).toContain('isLocalUserMessageConversationStreamEvent');
+    expect(handlerSource).not.toContain("event.type !== 'user_message'");
     expect(handlerSource).not.toContain('event.payload?.text');
     expect(handlerSource).not.toContain('event.payload?.content');
     expect(handlerSource).not.toContain('function readString');
