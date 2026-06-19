@@ -218,6 +218,8 @@ Notable behavior:
 
 Notable behavior:
 
+- `initializeWakewordBridge(...)` can register the channels against an injected
+  `ipcMain`-compatible adapter and defaults to Electron `ipcMain`
 - disabled wakeword state drops incoming detections
 - disable path clears buffered detections and writes a zero-length reset frame
 - helper ownership:

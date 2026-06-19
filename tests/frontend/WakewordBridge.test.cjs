@@ -53,6 +53,7 @@ describe('wakeword_bridge', () => {
     mainWindow: suppliedMainWindow = null,
     runtimePaths = undefined,
     wakewordEnv = undefined,
+    injectedIpcMain = null,
   } = {}) => {
     jest.resetModules();
     handlers = {};
@@ -124,6 +125,7 @@ describe('wakeword_bridge', () => {
     bridge.initializeWakewordBridge(mainWindow, onWakewordDetected, {
       ...(runtimePaths ? { runtimePaths } : {}),
       ...(wakewordEnv ? { wakewordEnv } : {}),
+      ...(injectedIpcMain ? { ipcMain: injectedIpcMain } : {}),
     });
 
     return {
@@ -193,6 +195,58 @@ describe('wakeword_bridge', () => {
       confidence: 0.91,
       score: 0.91,
     }));
+  });
+
+  test('registers wakeword channels on an injected host IPC adapter', () => {
+    const injectedHandlers = {};
+    const injectedIpcMain = {
+      on: jest.fn((channel, handler) => {
+        injectedHandlers[channel] = handler;
+      }),
+    };
+
+    const { mainWindow, onWakewordDetected, createdProcesses } = initBridge({
+      injectedIpcMain,
+    });
+
+    expect(ipcMain.on).not.toHaveBeenCalled();
+    expect(injectedIpcMain.on).toHaveBeenCalledWith('wakeword-audio-chunk', expect.any(Function));
+    expect(injectedIpcMain.on).toHaveBeenCalledWith('wakeword-enable', expect.any(Function));
+    expect(injectedIpcMain.on).toHaveBeenCalledWith('wakeword-disable', expect.any(Function));
+
+    injectedHandlers['wakeword-enable']();
+    expect(createdProcesses.length).toBeGreaterThan(0);
+    createdProcesses[createdProcesses.length - 1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
+
+    const jsonBuffer = Buffer.from(JSON.stringify({
+      detected: true,
+      model: 'hey_jarvis',
+      confidence: 0.92,
+      score: 0.92,
+    }));
+    const lengthBuffer = Buffer.alloc(4);
+    lengthBuffer.writeUInt32LE(jsonBuffer.length, 0);
+    stdoutHandler(Buffer.concat([lengthBuffer, jsonBuffer]));
+
+    expect(onWakewordDetected).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.objectContaining({
+        model: 'hey_jarvis',
+        confidence: 0.92,
+      }),
+    );
+  });
+
+  test('fails fast when wakeword IPC adapter is missing', () => {
+    jest.resetModules();
+    const bridge = require(path.join(
+      __dirname,
+      '../../frontend/src/main/wakeword/wakeword_bridge.cjs',
+    ));
+
+    expect(() => bridge.initializeWakewordBridge(null, jest.fn(), { ipcMain: {} }))
+      .toThrow('initializeWakewordBridge requires an ipcMain-compatible adapter');
   });
 
   test('does not forward detection to a destroyed main window', () => {

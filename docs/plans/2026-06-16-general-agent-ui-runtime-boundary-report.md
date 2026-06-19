@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Wakeword IPC Host Adapter Boundary
+
+- Finding: `wakeword_bridge.cjs` owned the right wakeword subprocess and audio
+  framing boundary, but it imported and used Electron `ipcMain` directly inside
+  `initializeWakewordBridge(...)`, unlike newer main-process handler modules
+  that receive host adapters from the composition root.
+- Change: added an `ipcMain` option and fail-fast adapter validation so the
+  wakeword bridge can register its existing wakeword channels against an
+  injected host adapter while keeping Electron `ipcMain` as the default.
+- Validation: focused wakeword bridge tests, docs search, related commit
+  search, stale direct registration assumptions in docs, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Wakeword IPC channel names,
+  enable/disable behavior, audio frame format, detection/status payloads,
+  subprocess launch behavior, stderr parsing, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Main Agent SDK Invoke Handler Registration Boundary
 
 - Finding: after the pending-turn extraction, the remaining direct

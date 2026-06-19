@@ -19,6 +19,9 @@ title: "Wakeword Bridge and Audio Framing Reference"
 ## Runtime Split
 
 `wakeword_bridge.cjs` owns subprocess lifecycle, binary frame buffering, and IPC handler wiring.
+`initializeWakewordBridge(...)` accepts an optional `ipcMain`-compatible host
+adapter and defaults to Electron `ipcMain`, keeping channel registration host
+composed while preserving the same wakeword wire channels.
 
 `wakeword_bridge_runtime.cjs` owns focused helper primitives:
 
@@ -31,7 +34,7 @@ title: "Wakeword Bridge and Audio Framing Reference"
 
 Bridge entrypoint:
 
-- `initializeWakewordBridge(mainWindow, onWakewordDetected)`
+- `initializeWakewordBridge(mainWindow, onWakewordDetected, options?)`
 
 Startup path (lazy):
 

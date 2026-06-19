@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/wakeword: allow `initializeWakewordBridge(...)` to receive an
+  `ipcMain`-compatible host adapter while keeping Electron `ipcMain` as the
+  default. No migration required.
 - main/ipc: move `windie:invoke` handler registration into
   `ipc_agent_sdk_command_handlers.cjs` so `ipc.cjs` injects Agent SDK host
   dependencies while the strict SDK command helper owns the invoke listener.

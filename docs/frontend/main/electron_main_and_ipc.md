@@ -163,6 +163,8 @@ Responsibilities:
 - Streams binary audio chunks to Python service.
 - Parses framed binary wakeword detection responses.
 - Supports wakeword enable/disable state and buffer flushing.
+- Registers wakeword IPC channels through an injected `ipcMain`-compatible host
+  adapter when supplied, defaulting to Electron `ipcMain`.
 - Delegates stderr status parsing/noisy-line suppression, startup/process error message mapping, and audio-chunk normalization to `wakeword_bridge_runtime.cjs`.
 
 See [Wakeword Bridge Runtime Helper Reference](wakeword_bridge_runtime_helper_reference.md) for helper-level contracts and test-backed invariants.

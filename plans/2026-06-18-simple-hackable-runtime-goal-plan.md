@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: made the Electron main wakeword bridge accept an injected
+  `ipcMain`-compatible host adapter while keeping Electron `ipcMain` as the
+  default. `initializeWakewordBridge(...)` now fails fast on an invalid adapter
+  and preserves the existing subprocess lifecycle, audio framing,
+  enable/disable semantics, and detection/status payloads. Validation passed
+  focused wakeword bridge tests plus docs/search, docs listing, and diff
+  checks. No migration required; wakeword IPC channel names, local execution,
+  permissions, credentials, hosted URLs, provider policy, storage, and
+  subprocess launch behavior are unchanged.
+
 - 2026-06-19: moved Electron main `windie:invoke` handler registration into
   `ipc_agent_sdk_command_handlers.cjs`. `ipc.cjs` now injects Electron-main
   host state, query/stop handlers, settings gates, diagnostics, and Agent SDK

@@ -6,7 +6,7 @@
  */
 
 const { spawn } = require('child_process');
-const { app, ipcMain } = require('electron');
+const { app, ipcMain: defaultIpcMain } = require('electron');
 const {
   resolveLocalRuntimeLaunchTarget,
 } = require('../app/runtime_paths.cjs');
@@ -79,6 +79,10 @@ function writeWakewordLog(level, ...args) {
 
 function recordWakewordLifecycle(input = {}) {
   appendWakewordLifecycleDiagnostic(input);
+}
+
+function resolveWakewordIpcMain(options = {}) {
+  return options.ipcMain || defaultIpcMain;
 }
 
 /**
@@ -479,11 +483,15 @@ function stopWakewordService() {
  */
 function initializeWakewordBridge(mainWindow, onWakewordDetected, options = {}) {
   wakewordDetectedCallback = onWakewordDetected;
+  const wakewordIpcMain = resolveWakewordIpcMain(options);
+  if (!wakewordIpcMain || typeof wakewordIpcMain.on !== 'function') {
+    throw new Error('initializeWakewordBridge requires an ipcMain-compatible adapter');
+  }
   // Service is started lazily on explicit wakeword-enable.
 
   let receivedChunkCount = 0;
   // Handle audio chunks from renderer
-  ipcMain.on('wakeword-audio-chunk', (event, audioData) => {
+  wakewordIpcMain.on('wakeword-audio-chunk', (event, audioData) => {
     if (!wakewordSupervisor.getSnapshot().ready) {
       if (receivedChunkCount === 0) {
         recordWakewordLifecycle({
@@ -528,7 +536,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected, options = {}) 
   });
 
   // Handle enable/disable wakeword detection
-  ipcMain.on('wakeword-enable', () => {
+  wakewordIpcMain.on('wakeword-enable', () => {
     wakewordSupervisor.setEnabled(true);
     recordWakewordLifecycle({
       action: 'enabled',
@@ -546,7 +554,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected, options = {}) 
     // If service is starting, status will be sent when ready - no need to log
   });
 
-  ipcMain.on('wakeword-disable', () => {
+  wakewordIpcMain.on('wakeword-disable', () => {
     // Disable wakeword detection and clear buffers
     // This prevents old buffered chunks from triggering false detections
     wakewordSupervisor.setEnabled(false);
