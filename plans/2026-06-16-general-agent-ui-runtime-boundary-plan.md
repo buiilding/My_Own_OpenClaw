@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Stream Ingress Value Boundary
+
+- Finding: `desktopChatStreamIngressRuntime` centralized conversation-event
+  ingress ordering, but it still read raw SDK `event.conversationRef`,
+  `event.turnRef`, and `event.payload.userId` while related stream handlers
+  consumed app-runtime identity and payload helper values.
+- Change: routed ingress conversation identity, turn-map registration, and
+  transcript user binding through `desktopChatStreamEventRuntime` and
+  `desktopChatStreamEventPayloadRuntime`. The ingress runtime keeps fail-safe
+  projection sync, turn-map registration, transcript session sync, and handler
+  dispatch sequencing.
+- Validation: passed focused ingress runtime, event payload runtime, renderer
+  chat boundary, and docs-index tests plus docs search, related commit search,
+  stale raw ingress field scan, docs listing, and diff checks.
+- Compatibility: no migration required. SDK conversation-event shape,
+  `windie:conversation-event` IPC delivery, transcript session storage, turn
+  routing behavior, provider policy, hosted URLs, permissions, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Event Payload Access Boundary
 
 - Finding: `desktopChatStreamEventPayloadRuntime` owned stream payload alias
@@ -130,9 +149,8 @@ Each completed slice should report:
   through that event-level payload accessor. The handlers keep side effects and
   row updates while the app runtime facade owns raw payload access.
 - Validation: passed focused payload runtime, chat stream handler, renderer
-  chat boundary, wakeword hook follow-up, renderer voice boundary, and
-  docs-index tests plus docs search, related commit search, stale raw payload
-  and wakeword status scans, docs listing, and diff checks.
+  chat boundary, and docs-index tests plus docs search, related commit search,
+  stale raw payload scan, docs listing, and diff checks.
 - Compatibility: no migration required. SDK conversation event payload shapes,
   Electron IPC channel names, transcript storage, provider policy, hosted URLs,
   permissions, and local execution behavior are unchanged.

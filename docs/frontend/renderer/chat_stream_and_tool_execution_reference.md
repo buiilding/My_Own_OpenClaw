@@ -226,12 +226,16 @@ Pre-routing and workspace resolution:
 - backend event validation and SDK conversation-event normalization happen before
   renderer chat ingress; `desktopChatStreamIngressRuntime.ts` accepts SDK
   `ConversationEvent` payloads only
-- event conversation is resolved from `event.conversationRef`
+- event conversation is resolved through
+  `desktopChatStreamEventRuntime.resolveConversationStreamEventConversationRef(...)`
 - explicit `conversationRef` events promote chat-store `activeConversationRef` when no active workspace exists; `user_message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
 - SDK conversation events without explicit conversation identity are quarantined before UI projection, transcript sync, or handler dispatch
-- `turnRef -> conversationRef` map is updated opportunistically for downstream turn-scoped state
+- `turnRef -> conversationRef` map is updated opportunistically from
+  `resolveConversationStreamEventTurnRef(...)` for downstream turn-scoped state
 - handlers write into target conversation workspace instead of only active chat projection
-- transcript session sync runs only after event conversation identity resolves
+- transcript session sync runs only after event conversation identity resolves;
+  transcript user binding reads the SDK event payload through
+  `desktopChatStreamEventPayloadRuntime.resolveConversationStreamEventUserId(...)`
 - ingress orchestration for projection sync, turn-map registration,
   transcript-session update, and handler dispatch is centralized in
   `desktopChatStreamIngressRuntime.ts`; `useChatStream` supplies handler and

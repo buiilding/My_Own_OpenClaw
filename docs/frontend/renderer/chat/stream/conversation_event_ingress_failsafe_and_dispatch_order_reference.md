@@ -13,6 +13,7 @@ title: "Conversation Event Ingress Fail-Safe and Dispatch Order Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
@@ -51,11 +52,12 @@ Execution order:
 
 1. reject null/non-object events and events without `conversationRef`
 2. apply active conversation projection from the SDK event (best-effort)
-3. `registerTurnConversationRef(event.turnRef, conversationRef)` when both values exist (best-effort)
+3. `registerTurnConversationRef(turnRef, conversationRef)` when both
+   runtime-resolved values exist (best-effort)
 4. transcript session sync when `enableTranscript=true`:
   - `conversationRef` must be resolved before ingress dispatch
   - `updateTranscriptSession(...)` receives the active transcript conversation
-    preference plus event user id (best-effort)
+    preference plus the runtime-resolved event user id (best-effort)
 5. `dispatchConversationEvent(event, conversationRef)` (required)
 
 ## Fail-Safe Isolation Rules
@@ -78,7 +80,8 @@ cannot suppress the primary conversation event.
 When transcript sync is enabled:
 
 - ingress requires a resolved `conversationRef`
-- transcript sync receives the resolved `conversationRef` and event `user_id`
+- transcript sync receives the resolved `conversationRef` and SDK `userId`
+  payload value through `desktopChatStreamEventPayloadRuntime`
 
 When transcript sync is disabled:
 
@@ -99,6 +102,11 @@ backend-wire event contracts out of chat hook modules.
 Conversation selection and transcript user-binding helper rules are routed
 through `DesktopConversationSessionRuntimeClient`, so ingress orchestration
 does not import chat session internals directly.
+Conversation and turn identity are resolved through
+`desktopChatStreamEventRuntime`; transcript user binding is resolved through
+`desktopChatStreamEventPayloadRuntime`, so ingress orchestration does not read
+raw `event.conversationRef`, `event.turnRef`, or `event.payload` fields
+directly.
 
 ## Test-Backed Invariants
 
@@ -106,7 +114,8 @@ does not import chat session internals directly.
 
 - normal path ordering: projection sync -> turn map -> transcript update -> dispatch
 - missing conversation identity is rejected before projection, transcript sync, or dispatch
-- turn-map registration skipped when turn or conversation ref is missing
+- turn-map registration skipped when runtime-resolved turn or conversation ref
+  is missing
 - projection-sync throw still dispatches event
 - turn-map throw still updates transcript and dispatches
 - transcript disabled skips transcript updates

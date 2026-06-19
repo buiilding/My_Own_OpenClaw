@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chat stream ingress conversation identity, turn
+  identity, and transcript user binding through app-runtime stream event helper
+  values instead of raw SDK event fields. No migration required.
+- docs/plans: correct the renderer stream event payload access validation note
+  so payload and wakeword boundary checks are reported separately. No migration
+  required.
 - renderer/runtime: expose SDK conversation stream event payload access through
   `desktopChatStreamEventPayloadRuntime` so chat stream sub-handlers no longer
   read raw `event.payload` fields directly. No migration required.

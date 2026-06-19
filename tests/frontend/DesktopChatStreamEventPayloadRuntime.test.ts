@@ -11,6 +11,7 @@ import {
   resolveErrorText,
   resolveCompactionErrorText,
   resolveConversationStreamEventPayload,
+  resolveConversationStreamEventUserId,
   resolveLocalUserMessageText,
   resolveTerminalErrorPayload,
   resolveToolSchemasMetadataPayload,
@@ -107,6 +108,19 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
     expect(resolveConversationStreamEventPayload({ payload: null })).toBeNull();
     expect(resolveConversationStreamEventPayload({ payload: ['not-record'] as any })).toBeNull();
     expect(resolveConversationStreamEventPayload(null)).toBeNull();
+  });
+
+  test('normalizes SDK conversation event user id access', () => {
+    expect(resolveConversationStreamEventUserId({
+      payload: { userId: ' user-1 ' },
+    })).toBe('user-1');
+    expect(resolveConversationStreamEventUserId({
+      payload: { userId: '' },
+    })).toBeNull();
+    expect(resolveConversationStreamEventUserId({
+      payload: { user_id: 'legacy-user' },
+    })).toBeNull();
+    expect(resolveConversationStreamEventUserId(null)).toBeNull();
   });
 
   test('normalizes terminal error payloads to public message fields', () => {

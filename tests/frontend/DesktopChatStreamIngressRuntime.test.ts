@@ -50,6 +50,32 @@ describe('desktopChatStreamIngressRuntime', () => {
     );
   });
 
+  test('normalizes ingress identity and transcript user binding through runtime helpers', () => {
+    const deps = createDeps({
+      enableTranscript: true,
+      getActiveConversationRef: jest.fn(() => 'conv-current'),
+    });
+    (DesktopTranscriptSessionRuntimeClient.getActiveConversationRef as jest.Mock).mockReturnValue('conv-active');
+
+    handleConversationEventIngress({
+      type: 'user_message',
+      conversationRef: ' conv-next ',
+      turnRef: ' turn-1 ',
+      payload: { userId: ' user-1 ' },
+    } as any, deps);
+
+    expect(deps.setActiveConversationRef).toHaveBeenCalledWith('conv-next');
+    expect(deps.registerTurnConversationRef).toHaveBeenCalledWith('turn-1', 'conv-next');
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith(
+      'conv-next',
+      'user-1',
+    );
+    expect(deps.dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationRef: ' conv-next ' }),
+      'conv-next',
+    );
+  });
+
   test('does not let late non-user events steal the active conversation', () => {
     const deps = createDeps({
       getActiveConversationRef: jest.fn(() => 'conv-current'),

@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Stream Ingress Value Boundary
+
+- Finding: chat stream ingress orchestration was already centralized in
+  `desktopChatStreamIngressRuntime`, but it still read raw SDK
+  `event.conversationRef`, `event.turnRef`, and `event.payload.userId` while
+  adjacent handlers consumed app-runtime event identity and payload helpers.
+- Change: routed ingress conversation identity, turn-map registration, and
+  transcript user binding through `desktopChatStreamEventRuntime` and
+  `desktopChatStreamEventPayloadRuntime` helper values. Ingress still owns
+  fail-safe projection, turn-map, transcript-session, and handler dispatch
+  ordering.
+- Validation: passed focused ingress runtime, event payload runtime, renderer
+  chat boundary, and docs-index tests plus docs search, related commit search,
+  stale raw ingress field scan, docs listing, and diff checks.
+- Compatibility: no migration required. SDK conversation-event shape,
+  `windie:conversation-event` IPC delivery, transcript session storage, turn
+  routing behavior, provider policy, hosted URLs, permissions, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Event Payload Access Boundary
 
 - Finding: stream payload alias normalization and projection helpers already
@@ -185,9 +204,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   The handlers keep UI side effects and row updates while the runtime owns raw
   payload access.
 - Validation: passed focused payload runtime, chat stream handler, renderer
-  chat boundary, wakeword hook follow-up, renderer voice boundary, and
-  docs-index tests plus docs search, related commit search, stale raw payload
-  and wakeword status scans, docs listing, and diff checks.
+  chat boundary, and docs-index tests plus docs search, related commit search,
+  stale raw payload scan, docs listing, and diff checks.
 - Compatibility: no migration required. SDK conversation-event payload shape,
   renderer IPC channel names, transcript storage, provider policy, hosted URLs,
   permissions, and local-runtime execution behavior are unchanged.

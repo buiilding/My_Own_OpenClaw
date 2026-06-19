@@ -99,6 +99,12 @@ export function resolveConversationStreamEventPayload(
   return recordOrNull(event?.payload);
 }
 
+export function resolveConversationStreamEventUserId(
+  event: ConversationStreamEventPayloadEvent | null | undefined,
+): string | null {
+  return optionalString(resolveConversationStreamEventPayload(event)?.userId);
+}
+
 export function buildTokenCountsFromPayload(payload: EventPayload | null | undefined): TokenCounts {
   const source = payload ?? {};
   const tokenCounts: TokenCounts = {};

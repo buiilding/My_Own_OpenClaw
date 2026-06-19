@@ -103,15 +103,18 @@ keep side effects without reading raw `event.payload` directly.
 1. receive the SDK `ConversationEvent` from `windie:conversation-event`
 2. reject missing or malformed conversation identity
 3. call `handleConversationEventIngress(...)` to:
-  - sync active conversation projection when event has explicit conversation identity
-  - register `turn_ref -> conversation_ref` mapping
+  - sync active conversation projection after resolving conversation identity
+    through `desktopChatStreamEventRuntime`
+  - register `turn_ref -> conversation_ref` mapping from the normalized SDK turn
+    identity helper
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
+    with transcript user id read through `desktopChatStreamEventPayloadRuntime`
   - dispatch to SDK-normalized handlers through the chat hook callback
 4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
 Conversation resolution order:
 
-1. explicit SDK `event.conversationRef`
+1. normalized explicit SDK conversation identity from `desktopChatStreamEventRuntime`
 2. quarantine when no conversation identity exists
 
 This is workspace routing, not active-chat filtering. Background conversations keep receiving their own events.

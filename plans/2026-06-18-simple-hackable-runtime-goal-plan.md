@@ -275,19 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer stream ingress value boundary slice by
+  routing chat stream ingress conversation identity, turn-map registration, and
+  transcript user binding through `desktopChatStreamEventRuntime` and
+  `desktopChatStreamEventPayloadRuntime` helper values instead of raw SDK
+  `event.conversationRef`, `event.turnRef`, and `event.payload.userId` reads.
+  Ingress still owns fail-safe projection sync, turn-map registration,
+  transcript session sync, and handler dispatch ordering. Validation: passed
+  focused ingress runtime, event payload runtime, renderer chat boundary, and
+  docs-index tests plus docs search, related commit search, stale raw ingress
+  field scan, docs listing, and diff checks. No migration required; SDK
+  conversation-event shape, `windie:conversation-event` IPC delivery,
+  transcript session storage, turn routing behavior, provider policy, hosted
+  URLs, permissions, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer stream event payload access boundary slice
   by adding `resolveConversationStreamEventPayload(...)` to
   `desktopChatStreamEventPayloadRuntime` and routing compaction, local-user,
   metadata, and terminal handlers through that event-level accessor. Chat
   stream handlers keep side effects and row updates without reading raw SDK
   `event.payload` fields directly. Validation: passed focused payload runtime,
-  chat stream handler, renderer chat boundary, wakeword hook follow-up,
-  renderer voice boundary, and docs-index tests plus docs search, related
-  commit search, stale raw payload and wakeword status scans, docs listing, and
-  diff checks. No migration required; SDK conversation event payload shapes,
-  Electron IPC channel names, transcript
-  storage, provider policy, hosted URLs, permissions, and local execution
-  behavior are unchanged.
+  chat stream handler, renderer chat boundary, and docs-index tests plus docs
+  search, related commit search, stale raw payload scan, docs listing, and diff
+  checks. No migration required; SDK conversation event payload shapes,
+  Electron IPC channel names, transcript storage, provider policy, hosted URLs,
+  permissions, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer wakeword status value boundary slice by
   adding wakeword ready/error value resolvers and
   `onWakewordReadyStatus(...)` to `desktopVoiceRuntimeClient`.

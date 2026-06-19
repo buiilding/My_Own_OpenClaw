@@ -656,6 +656,12 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain('ON_CHANNELS.WINDIE_CONVERSATION_EVENT');
     expect(streamSource).not.toContain('ON_CHANNELS.FROM_BACKEND');
     expect(streamSource).not.toContain('handleBackendStreamIngress');
+    expect(ingressSource).toContain('resolveConversationStreamEventConversationRef');
+    expect(ingressSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(ingressSource).toContain('resolveConversationStreamEventUserId');
+    expect(ingressSource).not.toContain('event.conversationRef');
+    expect(ingressSource).not.toContain('event.turnRef');
+    expect(ingressSource).not.toContain('event.payload');
     expect(ingressSource).not.toContain('normalizeBackendEventToConversationEvent');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
   });
