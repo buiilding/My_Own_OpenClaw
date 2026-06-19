@@ -12,7 +12,7 @@ import {
   shouldIgnoreStreamError,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
-import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
+import { findLastAssistantLlmTextMessageId } from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 
 type UseChatStreamTerminalHandlersDeps = {

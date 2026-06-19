@@ -734,7 +734,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('chat message state helpers route transcript builders through app runtime client', async () => {
     const files = [
-      path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts'),
     ];
     const chatMessageClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageRuntimeClient.ts'),
@@ -752,6 +752,7 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('infrastructure/transcript/toolSchemaShape');
       expect(source).not.toContain('infrastructure/text/incomingTextNormalization');
       expect(source).toContain('desktopChatMessageRuntimeClient');
+      expect(source).not.toContain('features/chat');
     }
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolCallChatMessageState');
@@ -767,6 +768,9 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
     )).rejects.toThrow();
   });
 

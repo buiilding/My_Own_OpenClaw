@@ -11,7 +11,7 @@ title: "Incoming Text Normalization Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `tests/frontend/IncomingTextNormalization.test.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
@@ -73,7 +73,7 @@ This avoids invalid UTF-16 payload propagation while preserving valid non-BMP ch
 
 ### Chat stream updates
 
-`chatStreamMessageUpdates.ts` normalizes:
+`desktopChatStreamMessageUpdateRuntime.ts` normalizes:
 
 - chunk text (`streaming-response` append/new actions)
 - transparency content fields (`system-prompt`, `user-message-full`, `assistant-message-full`)

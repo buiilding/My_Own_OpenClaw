@@ -70,7 +70,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
@@ -95,7 +95,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/DesktopChatModelOptionsRuntime.test.js`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
 - `tests/frontend/DesktopChatStreamEventPayloadRuntime.test.ts`
-- `tests/frontend/ChatStreamMessageUpdates.test.ts`
+- `tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts`
 - `tests/frontend/DesktopChatStreamThinkingRuntime.test.ts`
 - `tests/frontend/DesktopCurrentTurnProjectionEffectsRuntime.test.ts`
 - `tests/frontend/DesktopRendererTraceRuntime.test.ts`

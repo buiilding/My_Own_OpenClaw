@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat Stream Message Update Runtime Boundary
+
+- Finding: stream message target selection plus system/user/assistant metadata
+  update payload builders still lived under chat feature utilities while
+  delegating text and schema normalization to app-runtime message contracts.
+- Change: moved the helpers into
+  `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`,
+  replaced the chat-store type import with a narrow message-target shape,
+  routed stream metadata/terminal/updater hooks and focused tests through the
+  app-runtime owner, and deleted the old
+  `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+  path with a renderer boundary guard.
+- Validation: focused desktop chat stream message-update runtime, renderer
+  chat boundary, docs listing, stale old-path scan, frontend lint, and diff
+  checks.
+- Compatibility: no migration required. Message-id targeting, turn-scoped
+  no-cross-turn update behavior, incoming text normalization, tool-schema
+  update normalization, transcript rows, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Chat Stream Event Payload Runtime Boundary
 
 - Finding: terminal stream error filtering, fallback error text, and screenshot
@@ -9017,7 +9038,7 @@ Each completed slice should report:
   renderer folder map plus focused listener test utilities.
 - Validation: `npm.cmd --prefix frontend test -- --runInBand
   ../tests/frontend/RendererChatRuntimeBoundary.test.ts
-  ../tests/frontend/ChatStreamMessageUpdates.test.ts
+  ../tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts
   ../tests/frontend/ConversationSessionRuntime.test.ts`; `npm.cmd --prefix
   frontend test -- --runInBand ../tests/frontend/UseDashboardConversations.test.jsx
   ../tests/frontend/MemorySection.test.jsx

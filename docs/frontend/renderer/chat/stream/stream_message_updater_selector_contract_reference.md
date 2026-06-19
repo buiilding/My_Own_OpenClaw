@@ -11,10 +11,10 @@ title: "Stream Message Updater Selector Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `tests/frontend/ChatStreamMessageUpdates.test.ts`
+- `tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts`
 
 ## Hook Responsibility
 
@@ -86,7 +86,7 @@ Current direct unit coverage for this hook is absent.
 
 Adjacent coverage:
 
-- `ChatStreamMessageUpdates` selector utilities are covered.
+- `DesktopChatStreamMessageUpdateRuntime` selector utilities are covered.
 - `useChatStream` integration tests exercise downstream behavior that depends on these helpers.
 
 ## Related Pages

@@ -76,7 +76,7 @@ npm run audit:knip
 - Thread-find match projection behavior is covered directly by `tests/frontend/DesktopThreadFindRuntime.test.js`.
 - Chat message sender helper behavior is covered directly by `tests/frontend/DesktopChatSendStateRuntime.test.ts`.
 - Chat stream event payload behavior (error filtering/text and screenshot attachment normalization) is covered directly by `tests/frontend/DesktopChatStreamEventPayloadRuntime.test.ts`.
-- Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
+- Chat stream message-update helper behavior is covered directly by `tests/frontend/DesktopChatStreamMessageUpdateRuntime.test.ts`.
 - Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.
 - Chat header provider/model/reasoning option projection is covered directly by `tests/frontend/DesktopChatModelOptionsRuntime.test.js`.
 - Shared renderer model selection/filter/reconciliation runtime behavior is covered directly by `tests/frontend/ModelSelectionUtils.test.js`.

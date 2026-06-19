@@ -38,7 +38,7 @@ the platform `scripts/python-in-env` wrapper, so do not manually activate conda 
 | Frontend CLI and layer logs | `<windie> test frontend -- WindieCli.test.cjs LayerLogSink.test.cjs WindieRunLayerLog.test.cjs ElectronLauncher.test.cjs IpcDiagnosticsRuntime.test.cjs` |
 | Overlay windows/phases | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs WindowVisibilityRuntime.test.cjs` |
 | Minimal chat pill hit-testing and dragging | `<windie> test frontend -- ChatBoxOverlayMouseIgnore.test.jsx ChatBoxPillLayout.test.js ChatPillSessionFlow.test.ts` |
-| Renderer chat stream | `<windie> test frontend -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
+| Renderer chat stream | `<windie> test frontend -- DesktopChatStreamEventRuntime.test.ts DesktopChatStreamMessageUpdateRuntime.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx ConversationRuntimeProjectionStream.test.ts` |
 | SDK conversation runtime and stop flow | `<windie> test frontend -- WindieSdkConversationRuntime.test.ts DesktopRuntimeTransport.test.ts DesktopLiveTurnRuntimeClient.test.ts IpcMainBridge.lifecycle.test.cjs AgentStopShortcutRuntime.test.cjs AgentStopShortcut.test.js DesktopStopTurnRuntime.test.js` |
 | Renderer dashboard/settings | `<windie> test frontend -- DashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
 | Permissions/onboarding | `<windie> test frontend -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx DesktopOnboardingSlideshow.test.jsx` |

@@ -11,7 +11,7 @@ import {
   findFirstMessageIdBySender,
   findLastAssistantLlmTextMessageId,
   findLastMessageIdBySender,
-} from '../../utils/chatStream/chatStreamMessageUpdates';
+} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 
 export function useStreamMessageUpdaters(
   updateMessage: (

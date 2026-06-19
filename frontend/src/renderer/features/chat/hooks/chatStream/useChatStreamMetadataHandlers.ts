@@ -9,7 +9,7 @@ import {
   buildSystemPromptUpdate,
   buildToolSchemasUpdate,
   buildUserMessageFullUpdate,
-} from '../../utils/chatStream/chatStreamMessageUpdates';
+} from '../../../../app/runtime/desktopChatStreamMessageUpdateRuntime';
 import type {
   StreamTrackingEventType,
   StreamTrackingOptions,

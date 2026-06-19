@@ -27,6 +27,7 @@ frontend/src/renderer/
 │   │   ├── desktopBrowserSessionRuntimeClient.js # Renderer browser session subscription and control hook facade
 │   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
 │   │   ├── desktopChatStreamEventPayloadRuntime.ts # Renderer stream error and screenshot attachment payload normalization facade
+│   │   ├── desktopChatStreamMessageUpdateRuntime.ts # Renderer stream message targeting and metadata payload update facade
 │   │   ├── desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
 │   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
 │   │   ├── desktopChatStreamThinkingRuntime.ts # Renderer stream thinking/compaction status label and accumulation facade
@@ -155,7 +156,6 @@ frontend/src/renderer/
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
-│   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
 │   │

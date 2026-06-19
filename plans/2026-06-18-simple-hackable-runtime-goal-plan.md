@@ -275,6 +275,22 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-stream message-update
+  runtime-boundary slice by moving message target selection and
+  system/user/assistant metadata update payload builders from
+  `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+  to
+  `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`.
+  The runtime owner now uses a narrow message-target shape instead of importing
+  the chat store type, stream metadata/terminal/updater hooks and focused tests
+  consume the app-runtime facade, and the old feature utility path is deleted
+  and guarded. Validation: focused desktop chat stream message-update runtime,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks. No migration required; message-id targeting, turn-scoped
+  no-cross-turn update behavior, incoming text normalization, tool-schema
+  update normalization, transcript rows, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer chat-stream event-payload
   runtime-boundary slice by deleting the duplicate
   `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`

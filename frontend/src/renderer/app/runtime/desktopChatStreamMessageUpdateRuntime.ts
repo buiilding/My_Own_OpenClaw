@@ -1,13 +1,19 @@
 /**
- * Provides the chat stream message updates module for the renderer UI.
+ * Normalizes renderer chat-stream message update payloads.
  */
 
-import type { ToolSchema } from '../../../../types/toolSchemas';
-import type { ChatMessage } from '../../stores/chatStore';
+import type { ToolSchema } from '../../types/toolSchemas';
 import {
   normalizeIncomingText,
   normalizeToolSchemaList,
-} from '../../../../app/runtime/desktopChatMessageRuntimeClient';
+} from './desktopChatMessageRuntimeClient';
+
+type ChatStreamMessageTarget = {
+  id: string;
+  sender?: string | null;
+  type?: string | null;
+  turnRef?: string | null;
+};
 
 type SystemPromptPayload = {
   content?: unknown;
@@ -34,9 +40,9 @@ export function buildToolSchemasUpdate(payload: { tool_schemas?: unknown } | nul
 }
 
 function findLastMessage(
-  messages: ChatMessage[],
-  predicate: (message: ChatMessage) => boolean,
-): ChatMessage | null {
+  messages: ChatStreamMessageTarget[],
+  predicate: (message: ChatStreamMessageTarget) => boolean,
+): ChatStreamMessageTarget | null {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index];
     if (predicate(message)) {
@@ -47,8 +53,8 @@ function findLastMessage(
 }
 
 export function findLastMessageIdBySender(
-  messages: ChatMessage[],
-  sender: ChatMessage['sender'],
+  messages: ChatStreamMessageTarget[],
+  sender: string,
   turnRef?: string,
 ): string | null {
   const lastMessage = findLastMessage(
@@ -62,7 +68,7 @@ export function findLastMessageIdBySender(
 }
 
 export function findLastAssistantLlmTextMessageId(
-  messages: ChatMessage[],
+  messages: ChatStreamMessageTarget[],
   turnRef?: string,
 ): string | null {
   const lastMessage = findLastMessage(
@@ -77,8 +83,8 @@ export function findLastAssistantLlmTextMessageId(
 }
 
 export function findFirstMessageIdBySender(
-  messages: ChatMessage[],
-  sender: ChatMessage['sender'],
+  messages: ChatStreamMessageTarget[],
+  sender: string,
 ): string | null {
   const firstMessage = messages.find((message) => message.sender === sender);
   return firstMessage ? firstMessage.id : null;

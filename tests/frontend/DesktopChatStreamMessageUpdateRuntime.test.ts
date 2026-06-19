@@ -1,5 +1,5 @@
 /**
- * Covers chat stream message updates. behavior in the frontend test suite.
+ * Covers desktop chat stream message update runtime behavior in the frontend test suite.
  */
 
 import {
@@ -9,9 +9,9 @@ import {
   findLastAssistantLlmTextMessageId,
   findFirstMessageIdBySender,
   findLastMessageIdBySender,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime';
 
-describe('chatStreamMessageUpdates', () => {
+describe('desktopChatStreamMessageUpdateRuntime', () => {
   const messages = [
     { id: 'u1', sender: 'user', text: 'hello', turnRef: 'turn-1' },
     { id: 'a1', sender: 'assistant', text: 'one', type: 'llm-text', isComplete: true, turnRef: 'turn-1' },

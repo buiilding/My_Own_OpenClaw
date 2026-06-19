@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for chat stream utility modules: tracking reducer semantics, app-runtime thinking text accumulation, screenshot/correlation extraction, and message-target resolution rules."
 read_when:
-  - When changing `desktopChatStreamTrackingRuntime`, `desktopChatStreamThinkingRuntime`, `desktopChatStreamEventPayloadRuntime`, or `chatStreamMessageUpdates`.
+  - When changing `desktopChatStreamTrackingRuntime`, `desktopChatStreamThinkingRuntime`, `desktopChatStreamEventPayloadRuntime`, `desktopChatStreamMessageUpdateRuntime`, or stream message-update selectors.
   - When debugging chunk-append duplication, tool-output correlation IDs, or stream terminal-state timestamps.
 title: "Tracking, Formatting, and Message-Update Utility Reference"
 ---
@@ -13,7 +13,7 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
@@ -61,7 +61,7 @@ Core behavior:
 2. payload message string
 3. `"An error occurred"`
 
-## Message Update Utilities (`chatStreamMessageUpdates.ts`)
+## Message Update Contracts (`desktopChatStreamMessageUpdateRuntime.ts`)
 
 Message targeting:
 

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat-stream: move stream message target selection and metadata
+  update payload builders into `desktopChatStreamMessageUpdateRuntime`. No
+  migration required.
 - renderer/chat-stream: delete the duplicate chat-stream event utility path and
   route terminal error filtering, error text fallback, and screenshot
   attachment normalization through `desktopChatStreamEventPayloadRuntime`. No
