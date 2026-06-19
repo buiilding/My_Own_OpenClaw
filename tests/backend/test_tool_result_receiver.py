@@ -50,6 +50,8 @@ def test_tool_result_receiver_source_uses_local_runtime_boundary_wording():
     assert "from frontend" not in source
     assert "frontend format" not in source
     assert "messages from the SDK/local runtime" in api_handler_source
+    assert "local-runtime path" in api_handler_source
+    assert "sidecar path" not in api_handler_source
     assert "message from frontend" not in api_handler_source
     assert "tool execution results from frontend" not in api_folder_source
     assert "Tool results return from frontend" not in backend_readme

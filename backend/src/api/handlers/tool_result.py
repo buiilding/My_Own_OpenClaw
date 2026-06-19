@@ -119,7 +119,7 @@ class ToolResultHandler(MessageHandler):
             result_data = self._serialize_tool_result_data(payload.data)
 
             # Delegate to session. Local tool output display is owned by the SDK
-            # sidecar path; backend only consumes local results for model/history.
+            # local-runtime path; backend consumes local results for model/history.
             await session.process_local_tool_result(
                 request_id=request_id,
                 success=payload.success,

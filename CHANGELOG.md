@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: route the tool-result API handler display/ingress comment
+  through SDK local-runtime wording instead of a sidecar path label. No
+  migration required.
 - docs/readme: route root README product and docs-table copy through SDK
   local-runtime ownership instead of desktop-sidecar execution or sidecar
   runtime labels. No migration required.

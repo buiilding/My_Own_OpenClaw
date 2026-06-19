@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a backend tool-result handler local-runtime comment
+  slice by replacing the remaining SDK sidecar path wording in
+  `backend/src/api/handlers/tool_result.py` with SDK local-runtime ownership and
+  tightening the backend guardrail. Validation: focused backend tool-result
+  receiver coverage, docs listing, exact stale sidecar-path scan, Python compile
+  check, and diff checks. No migration required; websocket event names,
+  tool-result payloads, session routing, history writes, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a root README local-runtime public label slice by
   routing the product table and docs table away from desktop-sidecar execution,
   SDK/sidecar runtime, sidecar ownership, and sidecar tool-execution labels and

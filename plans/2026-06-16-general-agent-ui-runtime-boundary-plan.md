@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Backend Tool-Result Handler Local-Runtime Comment
+
+- Finding: `backend/src/api/handlers/tool_result.py` still described local tool
+  display ownership as an SDK sidecar path even though the handler and waiting
+  docs already route ingress through SDK/local-runtime payloads.
+- Change: reworded the comment to SDK local-runtime ownership and tightened the
+  backend guardrail to keep sidecar path wording out of the API handler.
+- Validation: focused backend tool-result receiver coverage, docs listing,
+  exact stale sidecar-path scan, Python compile check, and diff checks.
+- Compatibility: no migration required. Websocket event names, tool-result
+  payloads, session routing, history writes, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Root README Local-Runtime Public Labels
 
 - Finding: the root README still described provider flexibility as desktop
