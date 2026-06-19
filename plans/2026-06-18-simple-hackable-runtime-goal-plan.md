@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an install packaging local-runtime Python label slice
+  by routing docs hub, frontend architecture packaged-install copy, install
+  troubleshooting, and packaging reinstall runbook labels away from sidecar
+  runtime packaging wording and through bundled local-runtime Python packaging,
+  bundled local-runtime Python build, missing bundled local-runtime Python,
+  packaged local-runtime Python, and Python sidecar implementation-source
+  wording. Validation: focused modular boundary guard, docs listing, exact
+  stale label scan, and diff checks. No migration required; docs and boundary
+  tests changed only, with no package command name, build script, bundled
+  runtime path, Electron Builder config, reinstall behavior, endpoint setting,
+  IPC channel, storage, credential, permission, hosted route, provider policy,
+  or local execution behavior changed.
 - 2026-06-19: completed a root README local-runtime Python route-label slice by
   routing the root README docs table away from Sidecar Docs, Python sidecar
   runtime, sidecar runtime packaging, and client/sidecar/API labels and through

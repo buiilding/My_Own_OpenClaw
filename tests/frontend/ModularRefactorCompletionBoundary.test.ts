@@ -1227,6 +1227,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/install/local_development.md',
       'docs/install/install_troubleshooting.md',
       'docs/getting-started/installation.md',
+      'docs/operations/packaging_and_reinstall_runbooks.md',
       'docs/operations/evidence_collection_runbook.md',
       'docs/operations/incident_triage_runbook.md',
       'docs/platforms/platform_change_workflow.md',
@@ -1859,6 +1860,13 @@ describe('modular sdk refactor completion boundary', () => {
         'Check sidecar `ToolRegistry.execute_tool`',
         '| Packaged app, sidecar runtime,',
         'Electron packaging, sidecar bundling',
+        'sidecar runtime packaging',
+        'Sidecar runtime build, Electron package',
+        'bundled sidecar runtime packaging',
+        'missing sidecar runtime',
+        'bundled Python sidecar runtime',
+        'Packaged sidecar uses `resources/python-runtime`',
+        'bytecode-only sidecar sources',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

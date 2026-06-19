@@ -1,8 +1,8 @@
 ---
-summary: "Install troubleshooting guide for WindieOS source setup, package builds, sidecar runtime, endpoint routing, permissions, signing, and platform-specific install failures."
+summary: "Install troubleshooting guide for WindieOS source setup, package builds, bundled local-runtime Python, endpoint routing, permissions, signing, and platform-specific install failures."
 read_when:
   - When source setup, npm install/build, Electron launch, sidecar startup, packaged reinstall, endpoint routing, or platform package install fails.
-  - When deciding whether an install failure belongs to backend dependencies, frontend Node tooling, Electron main, sidecar runtime packaging, OS permissions, or release signing.
+  - When deciding whether an install failure belongs to backend dependencies, frontend Node tooling, Electron main, bundled local-runtime Python packaging, OS permissions, or release signing.
 title: "Install Troubleshooting"
 ---
 

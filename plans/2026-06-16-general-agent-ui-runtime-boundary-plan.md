@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Install Packaging Local-Runtime Python Labels
+
+- Finding: docs hub routing, frontend architecture packaged-install copy,
+  install troubleshooting front matter, and the packaging reinstall runbook
+  still described packaged Python ownership through sidecar runtime packaging
+  labels where the public route should be bundled local-runtime Python.
+- Change: routed those labels through bundled local-runtime Python packaging,
+  bundled local-runtime Python build, missing bundled local-runtime Python,
+  packaged local-runtime Python, and Python sidecar implementation-source
+  wording while preserving the real `<windie> build sidecar-runtime` command
+  name, bundled runtime path, and concrete Python sidecar implementation
+  details.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  package command names, build scripts, bundled runtime paths, Electron Builder
+  config, reinstall behavior, endpoint settings, IPC channels, storage,
+  credentials, permissions, hosted routes, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Root README Local-Runtime Python Route Labels
 
 - Finding: the root README docs table still exposed Sidecar Docs, Python

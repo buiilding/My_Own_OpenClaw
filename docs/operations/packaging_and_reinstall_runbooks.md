@@ -1,15 +1,15 @@
 ---
-summary: "Detailed packaging reinstall runbooks for WindieOS desktop package builds, local reinstall helpers, sidecar runtime packaging, and packaged app validation across macOS, Windows, and Linux."
+summary: "Detailed packaging reinstall runbooks for WindieOS desktop package builds, local reinstall helpers, bundled local-runtime Python packaging, and packaged app validation across macOS, Windows, and Linux."
 read_when:
   - When changing packaging reinstall behavior, Electron Builder package commands, bundled Python runtime generation, release artifacts, or local reinstall helpers.
   - When debugging packaged SDK websocket support, the SDK-owned `ws` dependency, or `resources/node_modules/ws`.
-  - When debugging packaged app startup, missing sidecar runtime, package signing, notarization, local reinstall state, or OS-specific install state.
+  - When debugging packaged app startup, missing bundled local-runtime Python, package signing, notarization, local reinstall state, or OS-specific install state.
 title: "Packaging Reinstall Runbooks"
 ---
 
 # Packaging Reinstall Runbooks
 
-WindieOS packaged builds are Electron apps with a bundled Python sidecar runtime. Packaging behavior is shared through `frontend/package.json` and `frontend/electron-builder.bundled-python.yml`; reinstall behavior is OS-specific because installed app paths, permissions, state reset, and installer formats differ.
+WindieOS packaged builds are Electron apps with a bundled local-runtime Python implementation. Packaging behavior is shared through `frontend/package.json` and `frontend/electron-builder.bundled-python.yml`; reinstall behavior is OS-specific because installed app paths, permissions, state reset, and installer formats differ.
 
 ## Packaging Command Map
 
@@ -38,9 +38,9 @@ Primary files:
 Runtime expectations:
 
 - Build each runtime on its target OS.
-- Packaged sidecar uses `resources/python-runtime`.
+- Packaged local-runtime Python uses `resources/python-runtime`.
 - Packaged app does not depend on conda, system Python, or build-machine venv paths.
-- Packaged runtime ships bytecode-only sidecar sources.
+- Packaged runtime ships bytecode-only Python sidecar implementation sources.
 - Packaged runtime does not prebundle Playwright Chromium.
 - Browser automation prefers installed Chrome/Chromium-family browsers and only installs Chromium after user consent when needed.
 - Wakeword model prefetch is required unless explicitly overridden with `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`.

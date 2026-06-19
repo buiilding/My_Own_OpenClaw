@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/install: route docs-hub, frontend architecture, install troubleshooting,
+  and packaging runbook packaging labels through bundled local-runtime Python
+  wording instead of sidecar runtime packaging labels. No migration required.
 - docs/readme: route the root README docs table through local-runtime Python
   wording instead of Sidecar Docs and sidecar runtime packaging labels. No
   migration required.

@@ -22,7 +22,7 @@ WindieOS frontend is a multi-runtime desktop stack:
 ## Packaged Install Contract
 
 - End users install one OS-specific WindieOS package (Windows/macOS/Linux).
-- Packaged app ships bundled Python sidecar runtime; no system Python prerequisite.
+- Packaged app ships bundled local-runtime Python; no system Python prerequisite.
 - SDK local runtime starts/reuses the sidecar from bundled runtime paths; Electron main still starts wakeword and reports clear reinstall errors when runtime assets are missing.
 - Bundled runtime is expected to include:
   - wakeword model assets

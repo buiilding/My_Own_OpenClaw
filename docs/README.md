@@ -48,7 +48,7 @@ contracts.
 - [**Commands and Scripts**](cli/README.md) - Windie CLI command hub for developer, operator, docs, tests, packaging, backend, endpoint, and self-host workflows
 - [**Command Matrix**](cli/command_matrix.md) - Full `<windie>` command surface and command groups
 - [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
-- [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Sidecar runtime build, Electron package, smoke, reinstall, and release guardrail commands
+- [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Bundled local-runtime Python build, Electron package, smoke, reinstall, and release guardrail commands
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior
 - [**Platform Change Workflow**](platforms/platform_change_workflow.md) - Owner routing for OS-specific screenshot, overlay, permission, input, sidecar, and packaging changes
 - [**Platform Validation Matrix**](platforms/platform_validation_matrix.md) - Focused test and manual smoke matrix for platform-specific changes
@@ -87,7 +87,7 @@ contracts.
 - [**Installation Guide**](getting-started/installation.md) - Detailed installation instructions
 - [**Install Decision Matrix**](install/install_decision_matrix.md) - Choose source, packaged, reinstall, endpoint, or release validation paths by change type
 - [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
-- [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled sidecar runtime packaging
+- [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled local-runtime Python packaging
 - [**Backend Endpoint Setup**](install/local_backend_and_endpoint_setup.md) - Hosted, local, packaged-default, and self-host backend endpoint setup
 - [**Uninstall, Reinstall, and Reset**](install/uninstall_reinstall_reset.md) - OS-specific packaged app reinstall helpers and reset scope
 - [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, sidecar runtime, endpoint, permission, and signing failure routes
