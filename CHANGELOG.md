@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route diagnostic flag and process-health summaries through
+  local-runtime Python sidecar labels instead of presenting sidecar as a peer
+  runtime owner. No migration required.
 - docs/debug: route symptom playbook and trace hub wording through
   local-runtime owners instead of sidecar-as-runtime labels while preserving
   Python sidecar implementation references. No migration required.

@@ -1,8 +1,8 @@
 ---
-summary: "Process health checklist for WindieOS backend, Electron main, renderer, sidecar, wakeword service, VM worker, Cloudflare tunnel, and packaged app failures."
+summary: "Process health checklist for WindieOS backend, Electron main, renderer, local-runtime Python sidecar, wakeword service, VM worker, Cloudflare tunnel, and packaged app failures."
 read_when:
   - When a WindieOS process exits, hangs, fails readiness, or appears healthy while another runtime cannot reach it.
-  - When debugging startup, shutdown, packaged app, sidecar readiness, wakeword, VM worker, or Cloudflare user-service issues.
+  - When debugging startup, shutdown, packaged app, local-runtime Python readiness, wakeword, VM worker, or Cloudflare user-service issues.
 title: "Process Health Checklist"
 ---
 
@@ -57,22 +57,22 @@ First checks:
 - chat stream hook/store tests,
 - dashboard resume/rehydrate flow.
 
-## Python Sidecar
+## Local-Runtime Python Sidecar
 
 Healthy signs:
 
-- main bridge readiness probe succeeds.
-- sidecar stdout is valid JSON-RPC only.
-- sidecar stderr has no startup import/runtime errors.
+- local runtime bridge readiness probe succeeds.
+- Python sidecar stdout is valid JSON-RPC only.
+- Python sidecar stderr has no startup import/runtime errors.
 - `tools/registry.py` exposes expected tool names.
 
 First checks:
 
 - `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`,
-- sidecar stderr forwarding,
+- local-runtime stderr forwarding,
 - bundled runtime path in packaged app,
 - `frontend/src/main/python/local_backend.py`,
-- focused sidecar pytest for the failing tool.
+- focused Python sidecar pytest for the failing tool.
 
 ## Wakeword Service
 

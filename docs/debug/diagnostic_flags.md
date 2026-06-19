@@ -1,7 +1,7 @@
 ---
-summary: "Diagnostic flag reference for WindieOS backend logs, Electron main traces, renderer URL traces, sidecar stderr, VM worker mode, and packaged reinstall logging."
+summary: "Diagnostic flag reference for WindieOS backend logs, Electron main traces, renderer URL traces, local-runtime Python stderr, VM worker mode, and packaged reinstall logging."
 read_when:
-  - When enabling the smallest useful debug signal for a backend, Electron, renderer, sidecar, overlay, stream, screenshot, or packaged-app failure.
+  - When enabling the smallest useful debug signal for a backend, Electron, renderer, local-runtime Python sidecar process, overlay, stream, screenshot, or packaged-app failure.
   - When adding, removing, or renaming diagnostic environment flags.
 title: "Diagnostic Flags"
 ---
@@ -57,7 +57,7 @@ WINDIE_DEBUG_IPC_STDOUT=1 <windie> start desktop
 WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 ```
 
-## Sidecar
+## Local-Runtime Python Sidecar
 
 | Flag | Effect |
 | --- | --- |
@@ -67,7 +67,7 @@ WINDIE_DEBUG_TOOL_SCREENSHOT=1 <windie> start desktop
 | `AGENT_ENABLE_SEMANTIC_SUMMARIZER=0` (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` in WindieOS launches) | Disables semantic summarizer for focused local-runtime debugging; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
 | `AGENT_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` (`WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` in WindieOS launches) | Prevents browser feature-pack auto-install while debugging availability; Electron main mirrors the WindieOS skin key into the generic Agent SDK key. |
 
-Sidecar stdout is protocol traffic. Never log debug text to stdout.
+Python sidecar stdout is protocol traffic. Never log debug text to stdout.
 
 ## VM Worker and Runs
 

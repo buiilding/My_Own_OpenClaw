@@ -785,7 +785,9 @@ describe('modular sdk refactor completion boundary', () => {
   test('debug error docs route local failures through local runtime owners', async () => {
     const docs = await Promise.all([
       read('docs/debug/README.md'),
+      read('docs/debug/diagnostic_flags.md'),
       read('docs/debug/error_failure_change_workflow.md'),
+      read('docs/debug/process_health_checklist.md'),
       read('docs/debug/runtime_traces.md'),
       read('docs/debug/symptom_playbooks.md'),
     ]);
@@ -799,12 +801,20 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime trace paths');
     expect(docText).toContain('local-runtime backend URL failures');
     expect(docText).toContain('Enable local-runtime Python debug');
+    expect(docText).toContain('local-runtime Python stderr');
+    expect(docText).toContain('local-runtime Python sidecar');
+    expect(docText).toContain('local-runtime Python readiness');
+    expect(docText).toContain('Python sidecar stdout is protocol traffic');
     expect(docText).not.toContain('or sidecar registry');
     expect(docText).not.toContain('sidecar wakeword service');
     expect(docText).not.toContain('sidecar Browser Use CLI adapter');
     expect(docText).not.toContain('sidecar trace paths');
     expect(docText).not.toContain('sidecar backend URL failures');
     expect(docText).not.toContain('Enable sidecar debug');
+    expect(docText).not.toContain('renderer URL traces, sidecar stderr');
+    expect(docText).not.toContain('renderer, sidecar, wakeword service');
+    expect(docText).not.toContain('packaged app, sidecar readiness');
+    expect(docText).not.toContain('Sidecar stdout is protocol traffic');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('[Tool Registry Result Contract Reference]');
     expect(docText).not.toContain('| Sidecar ToolResult/registry |');
