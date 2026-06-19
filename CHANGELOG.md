@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/messages: move async message screenshot artifact source resolution
+  into `desktopResolvedMessageScreenshotsRuntime` and delete the remaining chat
+  feature screenshot resolver utility. No migration required.
 - renderer/chat-send: move renderer chat send preparation into
   `desktopChatSendPreparationRuntime` and inject chat-store state/actions at
   the hook boundary so the app-runtime send facade no longer imports chat

@@ -496,7 +496,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
     const resolvedScreenshotSource = await fs.readFile(
-      path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js'),
       'utf8',
     );
     const replayActionsSource = await fs.readFile(
@@ -544,6 +544,9 @@ describe('renderer chat runtime boundary', () => {
     expect(artifactClientSource).toContain('resolveScreenshotAttachmentState');
     expect(artifactClientSource).toContain('normalizeArtifactImageContentType');
     expect(endpointClientSource).toContain('buildRuntimeArtifactUrl');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
+    )).rejects.toThrow();
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageScreenshots.js'),
     )).rejects.toThrow();
@@ -1286,7 +1289,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('message artifact image UI routes desktop IPC through app runtime client', async () => {
     const resolverSource = await fs.readFile(
-      path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js'),
       'utf8',
     );
     const userMessageSource = await fs.readFile(
@@ -1301,6 +1304,9 @@ describe('renderer chat runtime boundary', () => {
     expect(resolverSource).not.toContain('FETCH_ARTIFACT_IMAGE');
     expect(resolverSource).not.toContain('IpcBridge.invoke');
     expect(resolverSource).toContain('DesktopArtifactRuntimeClient.fetchArtifactImage');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/useResolvedMessageScreenshots.js'),
+    )).rejects.toThrow();
     expect(userMessageSource).not.toContain('SHOW_IMAGE_CONTEXT_MENU');
     expect(userMessageSource).not.toContain('IpcBridge.invoke');
     expect(userMessageSource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');

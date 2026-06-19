@@ -54,6 +54,7 @@ frontend/src/renderer/
 │   │   ├── desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
 │   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
 │   │   ├── desktopMessageScreenshotRuntime.js # Renderer message screenshot attachment descriptor facade
+│   │   ├── desktopResolvedMessageScreenshotsRuntime.js # Renderer async message screenshot artifact source resolver hook facade
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 │   │   ├── desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 │   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
@@ -153,10 +154,6 @@ frontend/src/renderer/
 │   │   ├── stores/                      # State management
 │   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
 │   │   │
-│   │   └── utils/                       # Chat presentation/formatting selectors and helpers
-│   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
-│   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
-│   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   ├── hooks/                       # Dashboard business logic hooks
 │   │   │   └── useDashboardConversations.js # useDashboardConversations - Recent/search conversation load/search/open/rename/pin/delete runtime

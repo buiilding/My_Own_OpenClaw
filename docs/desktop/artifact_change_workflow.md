@@ -36,7 +36,7 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 | backend upload/fetch route fails | backend artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | [Backend Artifact Service Docs Hub](../backend/services/artifacts/README.md) | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
 | query payload lacks image context | renderer sender and backend query input resolver | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/utils/messageSender`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/backend/test_query_execution_inputs.py` |
 | tool-result screenshot is stripped or not stored | SDK/main result envelope and backend tool-result router | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `backend/src/agent/tools/waiting/router.py` | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | SDK/main result-envelope tests, backend tool-result tests |
-| replayed chat image is missing | renderer transcript/replay and message image resolver | `frontend/src/renderer/infrastructure/transcript`, `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`, `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`, sidecar transcript store | [Memory Change Workflow](../memory/memory_change_workflow.md), [Transcript and Replay](../memory/transcript_and_replay.md) | frontend transcript/message screenshot tests, sidecar transcript tests |
+| replayed chat image is missing | renderer transcript/replay and message image resolver | `frontend/src/renderer/infrastructure/transcript`, `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`, `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`, sidecar transcript store | [Memory Change Workflow](../memory/memory_change_workflow.md), [Transcript and Replay](../memory/transcript_and_replay.md) | frontend transcript/message screenshot tests, sidecar transcript tests |
 | SDK or web client cannot fetch artifact | hosted artifact routes and SDK client wrappers | `backend/src/api/routes/artifacts`, `backend/src/sdk`, `frontend/src/renderer/infrastructure/api` | [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md), [Web Client Integration](../web/web_client_integration.md) | backend artifact route tests, SDK client tests |
 
 ## Ownership Rules
@@ -73,9 +73,10 @@ Primary files:
 - `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/**`
+- `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
-- `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
+- `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`

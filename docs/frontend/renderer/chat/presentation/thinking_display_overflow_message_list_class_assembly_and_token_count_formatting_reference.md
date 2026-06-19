@@ -75,7 +75,7 @@ Assistant message thinking presentation:
 Screenshot presence for row classes and user-message routing is resolved
 through `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`.
 The React-only async artifact image fetch/cache hook remains in
-`frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`.
+`frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`.
 
 ## Token Count Tracking Contract (State, not Dedicated UI Component)
 

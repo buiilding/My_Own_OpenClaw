@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Message Screenshot Resolver Runtime Boundary
+
+- Finding: message screenshot descriptor rules already lived in app runtime,
+  but the async artifact image fetch/cache hook still lived under chat feature
+  utilities and was imported directly by user/tool message components.
+- Change: moved the hook into
+  `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`,
+  routed message components and boundary docs through the app-runtime owner,
+  and deleted the old
+  `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
+  path.
+- Validation: focused message content, desktop message screenshot runtime,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks.
+- Compatibility: no migration required. Inline screenshot fallback, artifact
+  URL inference, async fetch retry-after-failure behavior, image context-menu
+  IPC, transcript rows, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Chat Send Preparation and Selector Runtime Boundary
 
 - Finding: chat send preflight, pending-turn acceptance, SDK turn resource

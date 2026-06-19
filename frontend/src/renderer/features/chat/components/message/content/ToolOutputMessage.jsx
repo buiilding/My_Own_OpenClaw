@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useResolvedMessageScreenshotSrc } from '../../../utils/message/useResolvedMessageScreenshots';
+import { useResolvedMessageScreenshotSrc } from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
 import HighlightedPlainText from './HighlightedPlainText';
 
 export default function ToolOutputMessage({

@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer message screenshot resolver
+  runtime-boundary slice by moving async artifact screenshot source resolution
+  from
+  `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
+  to
+  `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`.
+  User/tool message components, active docs, folder structure, and renderer
+  boundary guards now route through the app-runtime owner while the old chat
+  utility path is deleted. Validation: focused message content, desktop message
+  screenshot runtime, renderer chat boundary, docs listing, stale old-path
+  scan, frontend lint, and diff checks. No migration required; inline
+  screenshot fallback, artifact URL inference, async fetch retry-after-failure
+  behavior, image context-menu IPC, transcript rows, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer chat-send preparation and selector
   runtime-boundary slice by moving
   `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`

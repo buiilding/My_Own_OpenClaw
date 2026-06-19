@@ -1,13 +1,13 @@
 /**
- * Provides the use resolved message screenshots module for the renderer UI.
+ * Resolves message screenshot sources, including asynchronous artifact images.
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
+import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 import {
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
-} from '../../../../app/runtime/desktopMessageScreenshotRuntime';
+} from './desktopMessageScreenshotRuntime';
 
 const artifactImagePromiseCache = new Map();
 

@@ -14,7 +14,7 @@ title: "Screenshot Message State and SDK Projection Reference"
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
-- `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
+- `frontend/src/renderer/app/runtime/desktopResolvedMessageScreenshotsRuntime.js`
 - `tests/frontend/ScreenshotMessageState.test.js`
 - `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
 - `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
@@ -97,7 +97,7 @@ If a replayed or resumed image is missing:
    deriving artifact URLs
 3. confirm `screenshot` is actual inline image data, not an artifact id
 4. check `desktopMessageScreenshotRuntime.js` for attachment descriptor state
-5. check `useResolvedMessageScreenshots.js` fetch/cache behavior for remote
+5. check `desktopResolvedMessageScreenshotsRuntime.js` fetch/cache behavior for remote
    artifact URLs
 
 If a row shows one image instead of multiple:

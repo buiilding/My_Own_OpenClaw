@@ -5,7 +5,7 @@
 import { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { DesktopArtifactRuntimeClient } from '../../../../../app/runtime/desktopArtifactRuntimeClient';
-import { useResolvedMessageScreenshotSrcList } from '../../../utils/message/useResolvedMessageScreenshots';
+import { useResolvedMessageScreenshotSrcList } from '../../../../../app/runtime/desktopResolvedMessageScreenshotsRuntime';
 import MarkdownMessage from './MarkdownMessage';
 
 export default function UserMessage({
