@@ -50,7 +50,7 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
     });
   });
 
-  test('visibility subscriptions emit normalized payloads', () => {
+  test('visibility subscriptions emit normalized visibility booleans', () => {
     const events: unknown[] = [];
     const unsubscribe = DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility((event) => {
       events.push(event);
@@ -60,8 +60,8 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
     visibilityListener?.({ visible: 'yes' });
 
     expect(events).toEqual([
-      { visible: true },
-      { visible: false },
+      true,
+      false,
     ]);
 
     unsubscribe?.();

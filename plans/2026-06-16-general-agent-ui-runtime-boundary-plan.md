@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Response Overlay Visibility Subscription Boundary
+
+- Finding: `DesktopResponseOverlayRuntimeClient` already normalized
+  `response-overlay-visibility` host payloads, but
+  `useResponseOverlayWindowSync` still received and inspected the normalized
+  `{ visible }` payload object.
+- Change: changed the runtime client's visibility subscription to emit a
+  normalized boolean visibility value, leaving the overlay sync hook to handle
+  cached-frame reset and visible re-report scheduling without reading host
+  event object fields.
+- Validation: focused response-overlay runtime client, chat runtime boundary,
+  response overlay state, docs-index, stale payload-field scans, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Response-overlay visibility event
+  names, responsebox size/hit-test payloads, visibility re-report timing,
+  fixed-size/awaiting sizing policy, IPC channels, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Thread Presentation Current-Turn Fallback Boundary
 
 - Finding: `desktopThreadPresentationRuntime` already owned durable-thread/live
@@ -806,11 +825,11 @@ Each completed slice should report:
 ### 2026-06-19 Renderer Response Overlay Visibility Runtime Boundary
 
 - Finding: `useResponseOverlayWindowSync` routed visibility fan-out through
-  `DesktopResponseOverlayRuntimeClient` but still interpreted the raw
-  `payload.visible` host event shape locally.
+  `DesktopResponseOverlayRuntimeClient` but still interpreted the raw host
+  event visibility field shape locally.
 - Change: added response-overlay visibility payload normalization to
-  `desktopResponseOverlayRuntimeClient` so window-sync hooks receive a boolean
-  `visible` field and keep only sizing, re-report, and cached-frame policy.
+  `desktopResponseOverlayRuntimeClient` so window-sync hooks receive normalized
+  visibility state and keep only sizing, re-report, and cached-frame policy.
 - Validation: focused desktop response overlay runtime client and renderer chat
   runtime boundary tests, stale optional visibility payload scan, docs listing,
   and diff checks.

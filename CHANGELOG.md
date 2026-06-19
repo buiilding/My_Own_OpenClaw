@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: emit response-overlay visibility subscriptions as normalized
+  booleans from `desktopResponseOverlayRuntimeClient` so
+  `useResponseOverlayWindowSync` no longer receives a host-shaped visibility
+  payload object. No migration required.
 - renderer/runtime: derive legacy SDK current-turn fallback rows inside
   `desktopThreadPresentationRuntime` so `ChatInterface` renders final thread
   presentation rows without importing the lower current-turn row builder. No

@@ -23,7 +23,7 @@ export type ResponseOverlayVisibilityPayload = {
 };
 
 export type ResponseOverlayVisibilityListener = (
-  payload: ResponseOverlayVisibilityPayload,
+  visible: boolean,
 ) => void;
 
 function recordOrEmpty(value: unknown): Record<string, unknown> {
@@ -55,7 +55,7 @@ export const DesktopResponseOverlayRuntimeClient = {
   ): (() => void) | undefined {
     return IpcBridge.on(
       ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY,
-      (payload: unknown) => listener(normalizeResponseOverlayVisibilityPayload(payload)),
+      (payload: unknown) => listener(normalizeResponseOverlayVisibilityPayload(payload).visible),
     );
   },
 };

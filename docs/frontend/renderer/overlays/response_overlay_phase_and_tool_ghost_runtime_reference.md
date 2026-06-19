@@ -127,7 +127,8 @@ Contract ownership:
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary: current-turn presentation state, response-entry derivation, rendered markdown payloads, closeability, and stale-response suppression during preflight/awaiting.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
   visibility re-report behavior, delegating responsebox IPC and visibility
-  payload normalization to `DesktopResponseOverlayRuntimeClient`.
+  payload normalization/boolean subscription projection to
+  `DesktopResponseOverlayRuntimeClient`.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:

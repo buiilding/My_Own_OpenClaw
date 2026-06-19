@@ -193,8 +193,8 @@ export function useResponseOverlayWindowSync({
   }, [reportOverlaySize]);
 
   useEffect(() => {
-    const removeListener = DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility((payload) => {
-      if (!payload.visible) {
+    const removeListener = DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility((isOverlayVisible) => {
+      if (!isOverlayVisible) {
         lastFrameRef.current = createHiddenFrameState();
         return;
       }

@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer response-overlay visibility subscription
+  boundary slice by changing
+  `DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility(...)` to
+  emit a normalized boolean visibility value. `useResponseOverlayWindowSync`
+  now resets cached frame state and schedules visible re-reports from that
+  boolean instead of reading host-shaped visibility event fields. Validation:
+  focused response-overlay runtime client, chat runtime boundary, response
+  overlay state, docs-index, stale payload-field scans, docs listing, and diff
+  checks. No migration required; response-overlay visibility event
+  names, responsebox size/hit-test payloads, visibility re-report timing, IPC,
+  storage, settings, credentials, permissions, provider policy, hosted URLs,
+  and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer thread-presentation current-turn fallback
   boundary slice by moving legacy SDK current-turn projection row derivation
   into `desktopThreadPresentationRuntime`. `ChatInterface` now passes durable

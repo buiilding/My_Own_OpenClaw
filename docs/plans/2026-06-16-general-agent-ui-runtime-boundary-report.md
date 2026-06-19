@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Response Overlay Visibility Subscription Boundary
+
+- Finding: `DesktopResponseOverlayRuntimeClient` already normalized
+  `response-overlay-visibility` host payloads, but
+  `useResponseOverlayWindowSync` still received and inspected the normalized
+  payload object shape.
+- Change: changed `onResponseOverlayVisibility(...)` to emit a normalized
+  boolean visibility value and routed the overlay window-sync hook through that
+  boolean so feature code no longer reads the host-event visibility object.
+- Validation: focused response-overlay runtime client, chat runtime boundary,
+  response overlay state, docs-index, stale payload-field scans, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Response-overlay visibility event
+  names, responsebox size/hit-test payloads, visibility re-report timing,
+  fixed-size/awaiting sizing policy, IPC channels, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Thread Presentation Current-Turn Fallback Boundary
 
 - Finding: thread presentation already lived in
@@ -858,11 +876,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ### 2026-06-19 Renderer Response Overlay Visibility Runtime Boundary
 
 - Finding: `useResponseOverlayWindowSync` routed visibility fan-out through
-  `DesktopResponseOverlayRuntimeClient` but still interpreted the raw
-  `payload.visible` host event shape locally.
+  `DesktopResponseOverlayRuntimeClient` but still interpreted the raw host
+  event visibility field shape locally.
 - Change: added response-overlay visibility payload normalization to
-  `desktopResponseOverlayRuntimeClient` so window-sync hooks receive a boolean
-  `visible` field and keep only sizing, re-report, and cached-frame policy.
+  `desktopResponseOverlayRuntimeClient` so window-sync hooks receive normalized
+  visibility state and keep only sizing, re-report, and cached-frame policy.
 - Validation: focused desktop response overlay runtime client and renderer chat
   runtime boundary tests, stale optional visibility payload scan, docs listing,
   and diff checks.
