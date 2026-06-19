@@ -1,12 +1,12 @@
 /**
- * Covers message input utils. behavior in the frontend test suite.
+ * Covers desktop message input runtime behavior in the frontend test suite.
  */
 
 import {
   buildOutgoingMessage,
-} from '../../frontend/src/renderer/features/chat/utils/message/messageInput';
+} from '../../frontend/src/renderer/app/runtime/desktopMessageInputRuntime';
 
-describe('messageInput utils', () => {
+describe('desktopMessageInputRuntime', () => {
   test('returns null for blank/whitespace-only messages', () => {
     expect(buildOutgoingMessage('', false)).toBeNull();
     expect(buildOutgoingMessage('   \n\t', false)).toBeNull();

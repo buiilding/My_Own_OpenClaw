@@ -67,11 +67,12 @@ npm run audit:knip
 - Transcript storage/event and SDK display projection primitives are covered directly by `tests/frontend/TranscriptStorage.test.ts`, `tests/frontend/DesktopConversationStore.test.ts`, and `tests/frontend/SdkDisplayChatMessageProjection.test.ts`.
 - Active chat-session reset behavior shared by chat and dashboard is covered directly by `tests/frontend/ResetActiveChatSession.test.ts`.
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.
-- Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
+- Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx` and `tests/frontend/DesktopMessageInputRuntime.test.js`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/DesktopMessageClassRuntime.test.js`.
 - Screenshot URL/data-URL resolution behavior is covered directly by `tests/frontend/DesktopMessageScreenshotRuntime.test.js`.
 - Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`.
 - Message transparency section descriptor behavior is covered directly by `tests/frontend/DesktopMessageTransparencyRuntime.test.js`.
+- Thread-find match projection behavior is covered directly by `tests/frontend/DesktopThreadFindRuntime.test.js`.
 - Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.

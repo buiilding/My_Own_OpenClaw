@@ -50,7 +50,7 @@ import {
 import {
   buildCurrentTurnMessagesFromProjection,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
-import { buildThreadFindState } from '../utils/message/threadFindState';
+import { buildThreadFindState } from '../../../app/runtime/desktopThreadFindRuntime';
 import '../../../styles/ChatInterface.css';
 
 const chatSkin = desktopRuntimeSkin.chat;

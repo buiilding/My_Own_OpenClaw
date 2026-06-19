@@ -581,11 +581,15 @@ describe('renderer chat runtime boundary', () => {
 
   test('chat markdown display reads renderer markdown helpers through app runtime client', async () => {
     const files = [
-      path.join(chatRoot, 'utils/message/markdownMessageRendering.js'),
-      path.join(chatRoot, 'utils/message/threadFindState.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js'),
       path.join(chatRoot, 'components/message/content/MarkdownMessage.jsx'),
       path.join(chatRoot, 'components/message/content/HighlightedPlainText.jsx'),
     ];
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
     const markdownClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMarkdownRuntimeClient.ts'),
       'utf8',
@@ -597,8 +601,16 @@ describe('renderer chat runtime boundary', () => {
       expect(source).not.toContain('infrastructure/llmOutputContract');
       expect(source).toContain('desktopMarkdownRuntimeClient');
     }
+    expect(chatInterfaceSource).toContain('desktopThreadFindRuntime');
+    expect(chatInterfaceSource).not.toContain('utils/message/threadFindState');
     expect(markdownClientSource).toContain('infrastructure/markdown');
     expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/markdownMessageRendering.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/threadFindState.js'),
+    )).rejects.toThrow();
   });
 
   test('message source and token tags stay behind app runtime presentation facades', async () => {
@@ -1377,6 +1389,25 @@ describe('renderer chat runtime boundary', () => {
     expect(previewRowSource).not.toContain('composerAttachmentPresentation');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/composerAttachmentPresentation.js'),
+    )).rejects.toThrow();
+  });
+
+  test('chat composer outgoing payload normalization stays behind app runtime facade', async () => {
+    const composerDraftSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatComposerDraft.js'),
+      'utf8',
+    );
+    const messageInputRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js'),
+      'utf8',
+    );
+
+    expect(composerDraftSource).toContain('desktopMessageInputRuntime');
+    expect(composerDraftSource).not.toContain('utils/message/messageInput');
+    expect(messageInputRuntimeSource).toContain('buildOutgoingMessage');
+    expect(messageInputRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageInput.js'),
     )).rejects.toThrow();
   });
 

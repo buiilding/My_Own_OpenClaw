@@ -14,10 +14,10 @@ title: "Chat Common Actions Selector Boundary and Message-Input Send Guard Refer
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
-- `frontend/src/renderer/features/chat/utils/message/messageInput.js`
+- `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/MessageInput.test.jsx`
-- `tests/frontend/MessageInputUtils.test.js`
+- `tests/frontend/DesktopMessageInputRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
 
 ## Selector Boundary Contract (`useChatCommonActions`)
@@ -40,7 +40,7 @@ Expected outcome:
 - all user-send and stream updates mutate `chatStore` through the same setter functions
 - future store action changes can be updated once in `useChatCommonActions` and fan out to both hooks
 
-## Input Normalization Contract (`messageInput.js`)
+## Input Normalization Contract (`desktopMessageInputRuntime.js`)
 
 `buildOutgoingMessage(inputValue, isSending, clipboardImages?, readableFiles?)` behavior:
 
@@ -81,7 +81,7 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
 
 ## Test-Backed Matrix
 
-- `tests/frontend/MessageInputUtils.test.js`
+- `tests/frontend/DesktopMessageInputRuntime.test.js`
   - whitespace/blank inputs rejected
   - trim-on-send behavior
   - `isSending` hard block

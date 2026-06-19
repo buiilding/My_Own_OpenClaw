@@ -1,12 +1,12 @@
 /**
- * Provides the markdown message rendering module for the renderer UI.
+ * Provides renderer markdown message render-model helpers for presentation surfaces.
  */
 
 import {
   extractTextFromHtml,
   toSanitizedMarkdownHtml,
   resolveLlmOutputContract,
-} from '../../../../app/runtime/desktopMarkdownRuntimeClient';
+} from './desktopMarkdownRuntimeClient';
 
 export function buildMarkdownRenderModel({
   text,

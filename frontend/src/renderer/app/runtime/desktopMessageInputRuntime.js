@@ -1,5 +1,5 @@
 /**
- * Provides the message input module for the renderer UI.
+ * Provides renderer outgoing message payload normalization for send surfaces.
  */
 
 function normalizeMessageForSend(inputValue) {

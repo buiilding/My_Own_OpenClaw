@@ -46,7 +46,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
-- `frontend/src/renderer/features/chat/utils/message/messageInput.js`
+- `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
 - `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
@@ -59,7 +59,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `tests/frontend/MessageInput.test.jsx`
 - `tests/frontend/ClipboardImageUtils.test.js`
 - `tests/frontend/FileAttachmentUtils.test.js`
-- `tests/frontend/MessageInputUtils.test.js`
+- `tests/frontend/DesktopMessageInputRuntime.test.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`

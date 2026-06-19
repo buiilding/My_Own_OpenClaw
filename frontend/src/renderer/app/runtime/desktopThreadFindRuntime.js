@@ -1,9 +1,9 @@
 /**
- * Provides the thread find state module for the renderer UI.
+ * Provides renderer thread-find state projection for presentation surfaces.
  */
 
-import { collectTextMatches } from '../../../../app/runtime/desktopMarkdownRuntimeClient';
-import { buildMarkdownRenderModel } from './markdownMessageRendering';
+import { collectTextMatches } from './desktopMarkdownRuntimeClient';
+import { buildMarkdownRenderModel } from './desktopMarkdownMessageRuntime';
 
 function resolveToolCallSearchText(message) {
   if (typeof message?.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()) {

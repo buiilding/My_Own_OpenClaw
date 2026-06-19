@@ -4,7 +4,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useTranscription } from './useTranscription';
-import { buildOutgoingMessage } from '../utils/message/messageInput';
+import { buildOutgoingMessage } from '../../../app/runtime/desktopMessageInputRuntime';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
 

@@ -68,6 +68,9 @@ All notable changes to WindieOS will be documented in this file.
   attachment descriptor resolution into renderer app-runtime presentation
   facades while keeping the React artifact image resolver in chat UI. No
   migration required.
+- renderer/message-runtime: move markdown message render-model construction,
+  thread-find match projection, and outgoing message payload normalization into
+  renderer app-runtime presentation facades. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

@@ -120,6 +120,29 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Markdown, Thread-Find, and Message Input Runtime Boundary
+
+- Finding: markdown render-model construction and thread-find match projection
+  were pure presentation helpers already backed by renderer app-runtime
+  markdown APIs, and outgoing message payload normalization was a send-surface
+  guard, but the helpers still lived under chat feature utilities.
+- Change: moved markdown render-model construction to
+  `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js` and
+  thread-find projection to
+  `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`, routed
+  outgoing message payload normalization through
+  `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`, routed
+  `MarkdownMessage`, `ChatInterface`, the composer draft hook, and tests through
+  those app-runtime facades, and removed the old chat utility paths.
+- Validation: focused markdown message, desktop thread-find runtime, desktop
+  message input runtime, message input, renderer chat runtime boundary, docs
+  listing, frontend lint, stale old-path scan, and diff checks.
+- Compatibility: no migration required. Sanitized markdown output, math
+  normalization, highlighted find markup, thread-find match indexing, IPC
+  payloads, outgoing payload shape, attachment-only fallback text, send lockout
+  behavior, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Message Class and Screenshot Runtime Boundary
 
 - Finding: message row class assembly and screenshot attachment descriptor

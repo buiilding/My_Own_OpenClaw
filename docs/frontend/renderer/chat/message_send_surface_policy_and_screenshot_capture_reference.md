@@ -21,7 +21,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
-- `frontend/src/renderer/features/chat/utils/message/messageInput.js`
+- `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`

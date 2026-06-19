@@ -18,6 +18,8 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/MarkdownMessage.jsx`
+- `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
 - `frontend/src/renderer/features/chat/components/message/content/ToolExplanationMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/ToolActionsSummaryMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/ToolCallMessage.jsx`
@@ -35,6 +37,7 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 - `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/LlmOutputContract.test.ts`
 - `tests/frontend/MarkdownRenderer.test.ts`
+- `tests/frontend/DesktopThreadFindRuntime.test.js`
 - `tests/frontend/DesktopMessageTransparencyRuntime.test.js`
 
 ## Message Type Routing in `MessageContent`

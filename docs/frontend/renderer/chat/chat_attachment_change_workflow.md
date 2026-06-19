@@ -38,7 +38,7 @@ flowchart LR
 | Pasted image is not previewed | Composer paste parsing | `MessageInput.jsx`, `clipboardImageUtils.js`, `dataUrlImageUtils.js` | `tests/frontend/MessageInput.test.jsx`, `ClipboardImageUtils.test.js` |
 | Selected image file is treated like readable text | File attachment bucketing | `fileAttachmentUtils.js`, `desktopAttachmentPresentationRuntime.js`, `MessageInput.jsx` | `FileAttachmentUtils.test.js`, `MessageInput.test.jsx`, `AttachmentPresentationRuntime.test.js` |
 | Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
-| Attachment-only send is blocked | Composer outgoing payload builder | `message/messageInput.js`, `MessageInput.jsx` | `MessageInputUtils.test.js`, `MessageInput.test.jsx` |
+| Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
 | SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `chatMessageSenderPayloads.ts`, `desktopChatSendPreparation.ts`, `ConversationRuntime.ts` | `ChatMessageSenderPayloads.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
 | Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `WindieSdkConversationRuntime.test.ts`, artifact tests |
@@ -109,7 +109,7 @@ Clipboard image IPC trust boundary:
 | --- | --- |
 | Clipboard image paste/preview/remove | `cd frontend && npm run test -- MessageInput ClipboardImageUtils` |
 | File picker image/readable bucketing | `cd frontend && npm run test -- MessageInput FileAttachmentUtils` |
-| Outgoing composer payload shape | `cd frontend && npm run test -- MessageInputUtils MessageInput` |
+| Outgoing composer payload shape | `cd frontend && npm run test -- DesktopMessageInputRuntime MessageInput` |
 | Sender payload normalization | `cd frontend && npm run test -- ChatMessageSenderPayloads ChatMessageSenderUtils` |
 | Sender upload/query payload path | `cd frontend && npm run test -- ChatMessageSender WindieSdkConversationRuntime RuntimeEndpointStore ArtifactImageUtils` |
 | Main-process query payload normalization | `cd frontend && npm run test -- IpcQueryRuntime` |

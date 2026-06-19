@@ -275,6 +275,26 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer markdown, thread-find, and message-input
+  runtime-boundary slice by moving markdown render-model construction from
+  `frontend/src/renderer/features/chat/utils/message/markdownMessageRendering.js`
+  to `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js` and
+  thread-find projection from
+  `frontend/src/renderer/features/chat/utils/message/threadFindState.js` to
+  `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`, plus
+  outgoing message payload normalization from
+  `frontend/src/renderer/features/chat/utils/message/messageInput.js` to
+  `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`.
+  MarkdownMessage, ChatInterface, the composer draft hook, focused tests, docs,
+  and renderer chat boundary guards now route through the app-runtime owners,
+  and the old chat utility paths are deleted. Validation: focused markdown
+  message, desktop thread-find runtime, desktop message input runtime, message
+  input, renderer chat boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks. No migration required; sanitized markdown output, math
+  normalization, highlighted find markup, thread-find match indexing, outgoing
+  payload shape, attachment-only fallback text, send lockout behavior, IPC
+  payloads, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer message class and screenshot
   runtime-boundary slice by moving row class assembly from
   `frontend/src/renderer/features/chat/utils/message/messageListClasses.js` to

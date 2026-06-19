@@ -38,11 +38,13 @@ frontend/src/renderer/
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 │   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
+│   │   ├── desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
 │   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
 │   │   ├── desktopMessageScreenshotRuntime.js # Renderer message screenshot attachment descriptor facade
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 │   │   ├── desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 │   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
+│   │   ├── desktopThreadFindRuntime.js # Renderer thread-find match projection facade
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum, phase groups, and resolver facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
@@ -55,6 +57,7 @@ frontend/src/renderer/
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
 │   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag helper shared by chat and minimal surfaces
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
+│   │   ├── desktopMarkdownMessageRuntime.js # Renderer markdown message render-model facade
 │   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
 │   │   ├── desktopModelThinkingRuntime.ts # Renderer model-catalog thinking capability facade for stream presentation
 │   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
@@ -150,7 +153,6 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thinking text accumulation helper
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
-│   │       │   ├── messageInput.js      # messageInput - Input normalization helper before send dispatch
 │   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
