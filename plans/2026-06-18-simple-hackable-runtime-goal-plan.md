@@ -275,6 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer observed transport status boundary slice by
+  adding `loadObservedMainTransportStatus` and `onObservedIpcTransportStatus`
+  to `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes
+  observed `{ isConnected }` updates instead of checking the
+  `hasConnectionState` sentinel, while keeping disconnect/reconnect recovery
+  and watchdog state in the hook. Validation: focused desktop client session
+  runtime client, chat loop hook, and renderer chat runtime boundary tests plus
+  stale sentinel scans, docs listing, and diff checks. No migration required;
+  raw `ipc-status` payloads, existing transport normalizers, recovery timing,
+  IPC, storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
+- 2026-06-19: completed a renderer agent capability event classification slice
+  by routing `AgentSettingsTab` through normalized `manifestStatus` and
+  `remoteToolCatalog` fields from `desktopExtensionRuntimeClient` instead of
+  comparing raw `client-tool-manifest` / `remote-tool-catalog` event type
+  strings. The extension runtime client now fully owns capability event type
+  classification while the settings tab keeps presentation state, tool-toggle
+  projection, and config patching. Validation: focused desktop extension
+  runtime client and renderer settings runtime boundary tests, docs search,
+  related commit search, stale raw event-type scan, and diff checks. No
+  migration required; capability event names, payload shapes, extension
+  metadata loading, settings UI behavior, config storage, IPC, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer workspace picker source classification
   boundary slice by adding `isWorkspacePickerSelection` to normalized workspace
   update payloads in `desktopWorkspaceRuntimeClient`. `ChatInterface` now
@@ -481,19 +506,19 @@ For each completed slice, record:
   provider-policy, hosted URLs, and local-runtime MCP execution are unchanged.
 
 - 2026-06-19: completed a renderer chat-loop transport status runtime slice by
-  adding a normalized transport-status view to
+  adding normalized and observed transport-status views to
   `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes
-  `onIpcTransportStatus(...)` and `loadMainTransportStatus(...)` with
-  `{ isConnected, hasConnectionState }`, leaving disconnect recovery and
-  watchdog state in the hook while moving raw `ipc-status`/startup snapshot
-  connection-field validation into the app-runtime client. Validation: focused
-  desktop client-session runtime client, chat loop UI state hook, and renderer
-  chat runtime boundary tests, stale raw connection payload scan, docs listing,
-  and diff checks. No migration required; `get-client-user-id` and
-  `ipc-status` channel names, full session snapshot payloads, endpoint metadata,
-  chat-loop disconnect/reconnect behavior, IPC allowlists, storage,
-  credentials, provider-policy, hosted URLs, and local execution behavior are
-  unchanged.
+  `onObservedIpcTransportStatus(...)` and
+  `loadObservedMainTransportStatus(...)` with observed `{ isConnected }`
+  updates, leaving disconnect recovery and watchdog state in the hook while the
+  app-runtime client filters raw `ipc-status`/startup snapshots without a
+  boolean connection field. Validation: focused desktop client-session runtime
+  client, chat loop UI state hook, and renderer chat runtime boundary tests,
+  stale raw connection payload/sentinel scans, docs listing, and diff checks.
+  No migration required; `get-client-user-id` and `ipc-status` channel names,
+  full session snapshot payloads, endpoint metadata, chat-loop
+  disconnect/reconnect behavior, IPC allowlists, storage, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
 
 - 2026-06-19: completed a renderer response overlay visibility runtime slice by
   moving visibility fan-out payload normalization into

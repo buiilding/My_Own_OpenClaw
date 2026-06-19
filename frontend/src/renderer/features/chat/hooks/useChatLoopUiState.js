@@ -121,10 +121,7 @@ export function useChatLoopTransportState({
   }, [isBusy, machineState.transportConnected, snapshotSignature]);
 
   useEffect(() => {
-    const removeListener = DesktopClientSessionRuntimeClient.onIpcTransportStatus((payload) => {
-      if (payload.hasConnectionState !== true) {
-        return;
-      }
+    const removeListener = DesktopClientSessionRuntimeClient.onObservedIpcTransportStatus((payload) => {
       dispatch({
         type: CHAT_LOOP_MACHINE_EVENT.IPC_STATUS,
         connected: payload.isConnected,
@@ -136,9 +133,9 @@ export function useChatLoopTransportState({
   }, []);
 
   useEffect(() => {
-    DesktopClientSessionRuntimeClient.loadMainTransportStatus()
+    DesktopClientSessionRuntimeClient.loadObservedMainTransportStatus()
       .then((payload) => {
-        if (payload?.hasConnectionState !== true) {
+        if (!payload) {
           return;
         }
         dispatch({

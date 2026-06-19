@@ -54,10 +54,10 @@ function AgentSettingsTab({ config, onConfigChange }) {
       });
 
     const removeListener = DesktopExtensionRuntimeClient.onAgentCapabilityEvent((event) => {
-      if (event?.type === 'client-tool-manifest' && event.manifestStatus) {
+      if (event?.manifestStatus) {
         setManifestStatus(event.manifestStatus);
       }
-      if (event?.type === 'remote-tool-catalog' && event.remoteToolCatalog) {
+      if (event?.remoteToolCatalog) {
         setRemoteToolCatalog(event.remoteToolCatalog);
       }
     });

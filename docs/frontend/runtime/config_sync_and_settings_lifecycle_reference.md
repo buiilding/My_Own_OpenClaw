@@ -174,8 +174,10 @@ Renderer uses this to:
 
 Renderer app-runtime clients normalize this host payload before feature code
 consumes it. `desktopClientSessionRuntimeClient` exposes chat-loop connection
-state as `{ isConnected, hasConnectionState }` so UI hooks do not inspect raw
-`ipc-status` payload types.
+state through observed `{ isConnected }` updates, while preserving
+`{ isConnected, hasConnectionState }` normalization for diagnostics and focused
+runtime-client tests, so UI hooks do not inspect raw `ipc-status` payload
+types.
 
 ## Event Handling Notes
 

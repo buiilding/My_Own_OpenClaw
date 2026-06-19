@@ -174,6 +174,41 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Observed Transport Status Boundary
+
+- Finding: `DesktopClientSessionRuntimeClient` normalized IPC transport status
+  snapshots, but `useChatLoopUiState` still checked the normalized
+  `hasConnectionState` sentinel before driving disconnect recovery.
+- Change: added observed transport-status helpers to the runtime client so it
+  filters snapshots without a boolean connection field before the chat loop
+  consumes them. The chat hook keeps disconnect/reconnect recovery and watchdog
+  state only.
+- Validation: focused desktop client session runtime client, chat loop hook,
+  and renderer chat runtime boundary tests plus stale sentinel scans, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Raw `ipc-status` payloads, existing
+  transport normalizers, chat loop recovery timing, IPC channel names, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
+### 2026-06-19 Renderer Agent Capability Event Classification Boundary
+
+- Finding: `desktopExtensionRuntimeClient` normalized agent capability event
+  payloads, but `AgentSettingsTab` still branched on raw
+  `client-tool-manifest` and `remote-tool-catalog` event type strings before
+  consuming normalized manifest/catalog fields.
+- Change: routed the settings tab through normalized `manifestStatus` and
+  `remoteToolCatalog` fields only. The extension runtime client owns event
+  type classification while settings keeps presentation state, tool-toggle
+  projection, and config patches.
+- Validation: focused desktop extension runtime client and renderer settings
+  runtime boundary tests, docs search, related commit search, stale raw
+  event-type scan, and diff checks.
+- Compatibility: no migration required. Capability event names, payload shapes,
+  extension metadata loading, settings UI behavior, config storage, IPC,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Workspace Picker Source Classification Boundary
 
 - Finding: `DesktopWorkspaceRuntimeClient` normalized workspace update

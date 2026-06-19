@@ -193,6 +193,8 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('payload?.accepted');
     expect(source).not.toContain('payload?.rejected');
     expect(source).not.toContain('payload?.remote_tools');
+    expect(source).not.toContain("event?.type === 'client-tool-manifest'");
+    expect(source).not.toContain("event?.type === 'remote-tool-catalog'");
     expect(source).toContain('DesktopExtensionRuntimeClient.listAgentExtensions');
     expect(source).toContain('DesktopExtensionRuntimeClient.onAgentCapabilityEvent');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');

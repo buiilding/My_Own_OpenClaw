@@ -212,12 +212,14 @@ or host-shaped settings error payload details directly.
 desktop client/session snapshot and IPC transport status subscription, including
 user id normalization while preserving endpoint metadata. It also exposes a
 transport-status view that normalizes raw `isConnected` payloads into
-`{ isConnected, hasConnectionState }` for chat-loop recovery. Chat session
-bootstrap, loop transport projection, and dashboard user snapshot fallback call
-this runtime client instead of importing `get-client-user-id` or `ipc-status`
-channel constants, trimming raw snapshot fields, or deciding raw connection
-field validity directly. App config runtime snapshot handling also calls this
-client for startup and connection-status user context.
+`{ isConnected, hasConnectionState }`, plus observed-connection helpers that
+filter snapshots without a boolean connection field before chat-loop recovery
+consumes them. Chat session bootstrap, loop transport projection, and dashboard
+user snapshot fallback call this runtime client instead of importing
+`get-client-user-id` or `ipc-status` channel constants, trimming raw snapshot
+fields, or deciding raw connection field validity directly. App config runtime
+snapshot handling also calls this client for startup and connection-status user
+context.
 
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out, live
 workspace payload normalization, and host-source classification such as
@@ -238,7 +240,8 @@ owns toggle presentation and error display while consuming normalized registry
 and toggle-result payloads from this client.
 
 `desktopExtensionRuntimeClient.ts` owns extension metadata loading, extension
-runtime payload normalization, and agent capability event fan-out/normalization.
+runtime payload normalization, and agent capability event fan-out/type
+classification into normalized `manifestStatus` and `remoteToolCatalog` fields.
 Agent settings owns extension/tool presentation, tool toggle config patches,
 and manifest/catalog display state while delegating the desktop event and
 metadata channels to this client.
