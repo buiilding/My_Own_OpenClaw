@@ -1257,6 +1257,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
       'utf8',
     );
+    const conversationSessionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts'),
+      'utf8',
+    );
     const dashboardHookSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js'),
       'utf8',
@@ -1300,7 +1304,15 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
     expect(replayActionsSource).toContain('DesktopWorkspaceRuntimeClient.getConversationWorkspaceBinding');
+    expect(replayActionsSource).toContain('desktopConversationSessionRuntime');
+    expect(replayActionsSource).not.toContain('utils/session/conversationRef');
     expect(newChatSessionSource).toContain('DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding');
+    expect(newChatSessionSource).toContain('desktopConversationSessionRuntime');
+    expect(newChatSessionSource).not.toContain('utils/session/conversationRef');
+    expect(sendPreparationSource).toContain('desktopConversationSessionRuntime');
+    expect(sendPreparationSource).not.toContain('utils/session/conversationRef');
+    expect(conversationSessionRuntimeSource).toContain('createConversationRef');
+    expect(conversationSessionRuntimeSource).not.toContain('features/chat');
     expect(dashboardHookSource).toContain('DesktopWorkspaceRuntimeClient.resolveConversationWorkspaceBinding');
     expect(dashboardShellSource).toContain('DesktopWorkspaceRuntimeClient.clearAllConversationWorkspaceBindings');
     expect(bindingsSource).not.toContain('AUDIO_CHUNK');
@@ -1315,6 +1327,9 @@ describe('renderer chat runtime boundary', () => {
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSION');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/session/conversationRef.ts'),
+    )).rejects.toThrow();
   });
 
   test('renderer app startup and main window controls route window IPC through app runtime client', async () => {

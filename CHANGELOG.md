@@ -83,6 +83,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/composer-attachments: move data URL, clipboard image, and selected
   file attachment parsing into the renderer app-runtime facade consumed by the
   chat composer draft hook. No migration required.
+- renderer/conversation-session: move the renderer local conversation-ref
+  generator into the conversation session app-runtime owner consumed by new
+  chat, send prep, and replay flows. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

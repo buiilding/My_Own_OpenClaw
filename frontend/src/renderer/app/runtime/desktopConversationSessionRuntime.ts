@@ -19,6 +19,10 @@ const EMPTY_MAIN_SESSION_SNAPSHOT: MainSessionSnapshot = Object.freeze({
   userId: null,
 });
 
+export function createConversationRef(): string {
+  return `conv_${crypto.randomUUID()}`;
+}
+
 function normalizeConversationRef(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;

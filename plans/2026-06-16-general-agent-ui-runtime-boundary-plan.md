@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Conversation Ref Runtime Boundary
+
+- Finding: local conversation-ref generation was the last standalone chat
+  session helper even though conversation identity normalization, selection,
+  send-time fallback, and local session initialization are owned by
+  `desktopConversationSessionRuntime.ts`.
+- Change: moved `createConversationRef()` into
+  `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`,
+  routed new-chat, send-preparation, replay, focused tests, docs, folder
+  structure, and renderer chat boundary guards through that app-runtime owner,
+  and removed the old chat utility path.
+- Validation: focused conversation session runtime, new chat session, chat
+  message sender, conversation replay actions, renderer chat runtime boundary,
+  docs listing, frontend lint, stale old-path scan, and diff checks.
+- Compatibility: no migration required. Conversation-ref prefix/UUID format,
+  new-chat reset behavior, send-time conversation selection, replay
+  conversation selection, transcript session payloads, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Composer Attachment Runtime Boundary
 
 - Finding: data URL parsing, clipboard image normalization, and selected-file

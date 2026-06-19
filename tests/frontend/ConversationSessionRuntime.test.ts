@@ -6,6 +6,7 @@ import {
   applyChatConversationProjection,
   applyEventChatConversationProjection,
   applyTranscriptSessionUserBinding,
+  createConversationRef,
   applyRendererConversationSelection,
   ensureConversationRefForSend,
   hydrateConversationSessionFromMainSnapshot,
@@ -14,6 +15,14 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopConversationSessionRuntime';
 
 describe('conversationSessionRuntime', () => {
+  test('createConversationRef generates the renderer local conversation prefix', () => {
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('runtime-ref');
+
+    expect(createConversationRef()).toBe('conv_runtime-ref');
+
+    jest.restoreAllMocks();
+  });
+
   test('applyRendererConversationSelection updates transcript session and optionally projects chat store selection', () => {
     const updateTranscriptSession = jest.fn();
     const setChatConversationRef = jest.fn();

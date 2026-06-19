@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer conversation-ref runtime-boundary slice by
+  moving the local `conv_${crypto.randomUUID()}` generator from the last
+  standalone chat session helper into
+  `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`.
+  New-chat, send-preparation, replay, focused tests, docs, folder structure,
+  and renderer chat boundary guards now route through the app-runtime owner,
+  and the old chat utility path is deleted. Validation: focused conversation
+  session runtime, new chat session, chat message sender, conversation replay
+  actions, renderer chat boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks. No migration required; conversation-ref prefix/UUID
+  format, new-chat reset behavior, send-time conversation selection, replay
+  conversation selection, transcript session payloads, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
 - 2026-06-19: completed a renderer composer attachment runtime-boundary slice
   by consolidating data URL parsing, clipboard image normalization, and
   selected-file attachment bucketing from chat feature utilities into

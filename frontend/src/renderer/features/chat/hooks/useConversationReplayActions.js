@@ -15,10 +15,10 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desk
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
   applyRendererConversationSelection,
+  createConversationRef,
   initializeLocalConversationSession,
   resolveRendererConversationSessionSnapshot,
 } from '../../../app/runtime/desktopConversationSessionRuntime';
-import { createConversationRef } from '../utils/session/conversationRef';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 

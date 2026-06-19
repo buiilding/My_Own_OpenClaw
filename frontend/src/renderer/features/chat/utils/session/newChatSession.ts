@@ -7,10 +7,10 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/d
 import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
 import {
   applyRendererConversationSelection,
+  createConversationRef,
   initializeLocalConversationSession,
 } from '../../../../app/runtime/desktopConversationSessionRuntime';
 import { resetActiveChatSession } from '../../../../app/runtime/desktopActiveChatSessionRuntime';
-import { createConversationRef } from './conversationRef';
 
 type NewChatSessionOptions = {
   clearMessages: (conversationRef?: string | null) => void;

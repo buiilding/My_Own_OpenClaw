@@ -146,7 +146,6 @@ frontend/src/renderer/
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
 │   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
-│   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── state/                   # state - SDK current-turn side-effect projection helpers
 │   │       │   ├── currentTurnProjectionSideEffects.ts # currentTurnProjectionSideEffects - SDK current-turn projection side effects
