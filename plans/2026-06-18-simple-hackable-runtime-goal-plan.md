@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a browser help local-runtime triage label slice by
+  routing the help triage browser-failure row and browser troubleshooting
+  heading away from sidecar browser logs/sidecar-does-nothing labels and
+  through local-runtime browser adapter/runtime wording. Validation: focused
+  modular boundary guard, docs listing, exact stale label scan, and diff checks.
+  No migration required; help/browser docs and boundary tests changed only, with
+  no browser action payload, browser runtime behavior, JSON-RPC method, IPC
+  channel, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed a backend tool-result handler local-runtime comment
   slice by replacing the remaining SDK sidecar path wording in
   `backend/src/api/handlers/tool_result.py` with SDK local-runtime ownership and

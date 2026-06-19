@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/help: route browser failure triage and troubleshooting labels through
+  local-runtime browser adapter/runtime wording instead of sidecar browser log
+  or sidecar-does-nothing labels. No migration required.
 - backend/tools: route the tool-result API handler display/ingress comment
   through SDK local-runtime wording instead of a sidecar path label. No
   migration required.

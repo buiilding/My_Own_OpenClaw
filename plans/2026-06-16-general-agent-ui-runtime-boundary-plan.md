@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Browser Help Local-Runtime Triage Labels
+
+- Finding: help triage still routed browser failures through sidecar browser
+  logs and the browser troubleshooting playbook still framed backend-emitted
+  browser tools as "Sidecar does nothing," making the implementation process
+  read like the public owner.
+- Change: routed the triage row and troubleshooting heading through
+  local-runtime browser adapter/runtime wording while preserving concrete
+  Python sidecar browser files and sidecar test commands where implementation
+  debugging needs them, and added modular docs guards for the retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Help/browser docs and boundary tests
+  changed only; browser action payloads, browser runtime behavior, JSON-RPC
+  methods, IPC channels, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Backend Tool-Result Handler Local-Runtime Comment
 
 - Finding: `backend/src/api/handlers/tool_result.py` still described local tool

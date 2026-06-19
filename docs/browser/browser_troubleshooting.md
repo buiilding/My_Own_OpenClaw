@@ -127,7 +127,7 @@ Focused tests:
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
-## Backend Emits Browser Tool But Sidecar Does Nothing
+## Backend Emits Browser Tool But Local Runtime Does Nothing
 
 Inspect in order:
 

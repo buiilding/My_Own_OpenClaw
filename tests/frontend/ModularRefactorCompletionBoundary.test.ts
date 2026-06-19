@@ -1454,6 +1454,8 @@ describe('modular sdk refactor completion boundary', () => {
         'maps the request to sidecar JSON-RPC',
         'sidecar action compatibility',
         'then sidecar browser runtime',
+        'sidecar browser logs',
+        'Backend Emits Browser Tool But Sidecar Does Nothing',
         'sidecar requirements, install auth',
         'desktop UI, SDK, sidecar, and backend',
         'sidecar local storage',
