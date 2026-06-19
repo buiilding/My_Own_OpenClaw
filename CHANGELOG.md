@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/settings: route settings reset and filesystem/shell workflow path labels
+  through local-runtime wording instead of sidecar method/path/tool labels. No
+  migration required.
+- docs/help: route the help hub first-question runtime list through local
+  runtime wording instead of making sidecar a peer public runtime. No migration
+  required.
 - docs/help: route browser failure triage and troubleshooting labels through
   local-runtime browser adapter/runtime wording instead of sidecar browser log
   or sidecar-does-nothing labels. No migration required.

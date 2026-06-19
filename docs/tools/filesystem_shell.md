@@ -1,7 +1,7 @@
 ---
 summary: "Filesystem and shell tool guide covering read/replace, shell commands, process sessions, Linux sudo pkexec prompting, removed sudo auth-mode behavior, path resolution, and output formatting."
 read_when:
-  - When changing file editing, shell/process execution, output truncation, or sidecar path handling.
+  - When changing file editing, shell/process execution, output truncation, or local-runtime path handling.
   - When debugging `run_shell_command` sudo behavior, Linux pkexec prompting, shell working directories, or process sessions.
   - When searching for `agent_sudo_access_handler removed`, `AgentSudoAccessHandler.test.cjs removed`, or removed sudo auth-mode bridge/config behavior.
   - When debugging local filesystem or terminal tool behavior.

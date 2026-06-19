@@ -120,6 +120,38 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Settings And Filesystem Local-Runtime Path Labels
+
+- Finding: settings-surface and filesystem/shell workflow docs still described
+  local data reset and file/shell changes through sidecar method/path/tool
+  labels.
+- Change: routed those workflow labels through local-runtime method, local
+  runtime delete, local-runtime shell tool, local-runtime path handling, and
+  IPC/backend/local-runtime path wording, and added modular docs guards for the
+  retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Settings/filesystem docs and boundary
+  tests changed only; settings payloads, memory reset behavior, filesystem/shell
+  execution, JSON-RPC methods, IPC channels, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
+### 2026-06-19 Help Hub Local-Runtime First Question
+
+- Finding: the help hub's first triage question still listed sidecar as a peer
+  failure runtime alongside hosted backend, Electron main, renderer, and preload.
+- Change: routed that high-entry question through local runtime wording while
+  keeping the next concrete process check about the Python sidecar daemon and
+  JSON-RPC readiness, and added modular docs coverage for the retired peer
+  runtime phrase.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Help docs and boundary tests changed
+  only; diagnostic commands, JSON-RPC readiness checks, IPC channels, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Browser Help Local-Runtime Triage Labels
 
 - Finding: help triage still routed browser failures through sidecar browser

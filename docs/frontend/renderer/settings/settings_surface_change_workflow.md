@@ -94,8 +94,8 @@ flowchart LR
 
 5. For destructive local data controls, update all reset effects.
    - The renderer hook should call the correct IPC channel.
-   - Electron main should route to the right sidecar method.
-   - Sidecar should delete the intended record family only.
+   - Electron main should route to the right local-runtime method.
+   - The local runtime should delete the intended record family only.
    - Dashboard/chat state should refresh after success.
    - The UI should block duplicate pending actions.
 
@@ -145,7 +145,7 @@ If a test stem is not available in the current checkout, search by the component
 ### Retired Sudo Toggle Appears In Settings
 
 1. Remove the renderer setting instead of reviving `agent_full_sudo_enabled`.
-2. Keep Linux sudo behavior in the sidecar shell tool. Current
+2. Keep Linux sudo behavior in the local-runtime shell tool. Current
    `run_shell_command` rewrites leading `sudo ...` commands to `pkexec`
    prompting; renderer settings do not choose a sudo auth mode.
 3. Update docs-search routing so `agent sudo access` and `sudo auth mode`
@@ -166,7 +166,7 @@ If a test stem is not available in the current checkout, search by the component
 - Authority controls do not persist optimistic config before required OS/app action succeeds.
 - Destructive controls block duplicate clicks and refresh visible state after success.
 - Settings UI tests cover tab routing and user-facing state.
-- Docs name the owner, IPC/backend/sidecar path, and focused validation.
+- Docs name the owner, IPC/backend/local-runtime path, and focused validation.
 
 ## Related Docs
 

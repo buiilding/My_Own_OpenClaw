@@ -275,6 +275,25 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a settings/filesystem local-runtime path label slice by
+  routing settings reset and filesystem/shell workflow labels away from sidecar
+  method/path/tool wording and through local-runtime method, local runtime
+  delete, local-runtime shell tool, local-runtime path handling, and
+  IPC/backend/local-runtime path wording. Validation: focused modular boundary
+  guard, docs listing, exact stale label scan, and diff checks. No migration
+  required; settings/filesystem docs and boundary tests changed only, with no
+  settings payload, memory reset behavior, filesystem/shell execution, JSON-RPC
+  method, IPC channel, storage, credential, permission, hosted route, provider
+  policy, packaging, or local execution behavior changed.
+- 2026-06-19: completed a help hub local-runtime first-question slice by
+  routing the high-entry failure-runtime list away from sidecar as a peer public
+  runtime and through local runtime wording while preserving the concrete Python
+  sidecar daemon JSON-RPC readiness check. Validation: focused modular boundary
+  guard, docs listing, exact stale label scan, and diff checks. No migration
+  required; help docs and boundary tests changed only, with no diagnostic
+  command, JSON-RPC readiness check, IPC channel, storage, credential,
+  permission, hosted route, provider policy, packaging, or local execution
+  behavior changed.
 - 2026-06-19: completed a browser help local-runtime triage label slice by
   routing the help triage browser-failure row and browser troubleshooting
   heading away from sidecar browser logs/sidecar-does-nothing labels and
