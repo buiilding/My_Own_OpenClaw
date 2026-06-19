@@ -58,6 +58,7 @@ frontend/src/renderer/
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 │   │   ├── desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 │   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
+│   │   ├── desktopMemoryRetrievalPreferenceRuntime.js # Renderer memory retrieval preference persistence facade
 │   │   ├── desktopNewChatSessionRuntime.ts # Renderer new-chat reset, conversation creation, and workspace binding facade
 │   │   ├── desktopThreadFindRuntime.js # Renderer thread-find match projection facade
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade

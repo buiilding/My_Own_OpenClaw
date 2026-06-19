@@ -88,7 +88,7 @@ The core rule is: preserve the durable conversation key separately from live bac
 ### Change Conversation Creation or Switching
 
 1. Read [Sessions and Conversations](../concepts/sessions_and_conversations.md) and [Session and Transcript Reference](../reference/session_and_transcript_reference.md).
-2. Update shared renderer helpers under `frontend/src/renderer/app/runtime/*SessionRuntime*` first, then chat-only creation helpers under `frontend/src/renderer/features/chat/utils/session`.
+2. Update shared renderer helpers under `frontend/src/renderer/app/runtime/*SessionRuntime*`; chat creation/reset helpers are app-runtime-owned and should not be reintroduced under `frontend/src/renderer/features/chat/utils/session`.
 3. Update transcript runtime only if storage/sync semantics change.
 4. Update Electron main sync if other windows or query fallback identity need the new field.
 5. Update backend session manager only if server-side lookup semantics change.

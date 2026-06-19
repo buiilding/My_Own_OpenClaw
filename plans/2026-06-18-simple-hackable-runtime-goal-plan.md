@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer memory retrieval preference
+  runtime-boundary slice by moving the persisted retrieval-injection toggle
+  helper from `frontend/src/renderer/utils/memoryRetrievalPreference.js` to
+  `frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime.js`.
+  Dashboard memory settings and query-send runtime clients now consume the
+  app-runtime facade, and the old root renderer utility path is deleted.
+  Validation: focused memory retrieval preference, memory section, runtime
+  transport, skin/config boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks. No migration required; the persisted storage key,
+  default enabled behavior, invalid-value fallback, query payload gating,
+  localStorage access, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer message screenshot resolver
   runtime-boundary slice by moving async artifact screenshot source resolution
   from

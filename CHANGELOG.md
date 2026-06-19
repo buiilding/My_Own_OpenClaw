@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/memory: move persisted memory retrieval injection preference helpers
+  into `desktopMemoryRetrievalPreferenceRuntime` for dashboard settings and
+  query-send runtime clients. No migration required.
 - renderer/messages: move async message screenshot artifact source resolution
   into `desktopResolvedMessageScreenshotsRuntime` and delete the remaining chat
   feature screenshot resolver utility. No migration required.

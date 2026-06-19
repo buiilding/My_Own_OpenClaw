@@ -87,7 +87,8 @@ Feature slices:
 - `frontend/src/renderer/features/chat/components/*`
 - `frontend/src/renderer/features/chat/hooks/*`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/features/chat/utils/*`
+- `frontend/src/renderer/app/runtime/desktopChat*.ts`
+- `frontend/src/renderer/app/runtime/desktopMessage*.js`
 - `frontend/src/renderer/features/chat/policies/*`
 - `frontend/src/renderer/features/chat/constants/*`
 - Dashboard:

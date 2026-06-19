@@ -8,7 +8,7 @@ import {
   type TurnInputResource,
 } from '../../infrastructure/api/agentSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
+import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 import { desktopRuntimeSkin } from '../skin/desktopRuntimeSkin';
 

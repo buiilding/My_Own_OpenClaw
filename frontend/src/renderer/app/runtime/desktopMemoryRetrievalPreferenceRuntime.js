@@ -1,8 +1,8 @@
 /**
- * Provides the memory retrieval preference module for the renderer UI.
+ * Owns renderer memory retrieval preference persistence.
  */
 
-import { RENDERER_STORAGE_KEYS } from '../app/skin/desktopRuntimeConfig';
+import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = RENDERER_STORAGE_KEYS.memoryRetrievalInjection;
 

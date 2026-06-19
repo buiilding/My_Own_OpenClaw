@@ -15,7 +15,8 @@ Primary renderer modules:
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
-- `frontend/src/renderer/features/chat/utils/chatStream/*`
+- `frontend/src/renderer/features/chat/hooks/chatStream/*`
+- `frontend/src/renderer/app/runtime/desktopChatStream*.ts`
 
 Responsibilities:
 

@@ -14,7 +14,7 @@ import { desktopRuntimeSkin } from '../../../../app/skin/desktopRuntimeSkin';
 import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
-} from '../../../../utils/memoryRetrievalPreference';
+} from '../../../../app/runtime/desktopMemoryRetrievalPreferenceRuntime';
 import MemoryItem from './MemoryItem';
 import {
   buildProceduralMemories,

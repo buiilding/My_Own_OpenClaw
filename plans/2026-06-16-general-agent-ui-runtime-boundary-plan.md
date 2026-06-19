@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Memory Retrieval Preference Runtime Boundary
+
+- Finding: the persisted memory retrieval injection toggle lived in a root
+  renderer utility while both dashboard memory settings and query-send runtime
+  clients consumed it as runtime policy.
+- Change: moved the helper into
+  `frontend/src/renderer/app/runtime/desktopMemoryRetrievalPreferenceRuntime.js`,
+  routed dashboard settings and live-turn transport callers through the
+  app-runtime owner, and deleted the old
+  `frontend/src/renderer/utils/memoryRetrievalPreference.js` path.
+- Validation: focused memory retrieval preference, memory section, runtime
+  transport, skin/config boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks.
+- Compatibility: no migration required. The persisted storage key, default
+  enabled behavior, invalid-value fallback, query payload gating, localStorage
+  access, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Message Screenshot Resolver Runtime Boundary
 
 - Finding: message screenshot descriptor rules already lived in app runtime,

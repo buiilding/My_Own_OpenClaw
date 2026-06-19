@@ -6,7 +6,7 @@ import {
   SDK_RUNTIME_COMMANDS,
   type AgentRuntimeTransport,
 } from '../../infrastructure/api/agentSdkClient';
-import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
+import { getMemoryRetrievalInjectionEnabled } from './desktopMemoryRetrievalPreferenceRuntime';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
 

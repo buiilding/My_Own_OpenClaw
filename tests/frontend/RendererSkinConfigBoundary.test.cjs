@@ -23,7 +23,7 @@ const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/compon
 const configFilterPath = path.join(rendererRoot, 'utils/configFilter.js');
 const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
 const applyAppearanceThemePath = path.join(rendererRoot, 'app/applyAppearanceTheme.js');
-const memoryPreferencePath = path.join(rendererRoot, 'utils/memoryRetrievalPreference.js');
+const memoryPreferencePath = path.join(rendererRoot, 'app/runtime/desktopMemoryRetrievalPreferenceRuntime.js');
 const permissionStoragePath = path.join(rendererRoot, 'features/permissions/utils/permissionStorage.js');
 const appConfigProviderPath = path.join(rendererRoot, 'app/providers/AppConfigProvider.jsx');
 
