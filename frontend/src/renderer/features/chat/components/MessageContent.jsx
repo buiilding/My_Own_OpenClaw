@@ -3,7 +3,10 @@
  */
 
 import PropTypes from 'prop-types';
-import { isUserMessageWithScreenshot } from '../../../app/runtime/desktopMessageScreenshotRuntime';
+import {
+  MESSAGE_CONTENT_RENDER_KIND,
+  resolveMessageContentPresentation,
+} from '../../../app/runtime/desktopMessageContentRuntime';
 import AssistantThinkingSection from './message/content/AssistantThinkingSection';
 import ErrorMessage from './message/content/ErrorMessage';
 import MarkdownMessage from './message/content/MarkdownMessage';
@@ -19,7 +22,9 @@ export default function MessageContent({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  if (message.type === 'error') {
+  const contentPresentation = resolveMessageContentPresentation(message);
+
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.ERROR) {
     return (
       <ErrorMessage
         message={message}
@@ -30,7 +35,7 @@ export default function MessageContent({
     );
   }
 
-  if (message.type === 'tool-output') {
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_OUTPUT) {
     return (
       <ToolOutputMessage
         message={message}
@@ -41,7 +46,7 @@ export default function MessageContent({
     );
   }
 
-  if (message.type === 'tool-call') {
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_CALL) {
     return (
       <ToolCallMessage
         message={message}
@@ -52,7 +57,7 @@ export default function MessageContent({
     );
   }
 
-  if (message.type === 'tool-explanation' || message.type === 'search-source') {
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_EXPLANATION) {
     return (
       <ToolExplanationMessage
         message={message}
@@ -63,11 +68,11 @@ export default function MessageContent({
     );
   }
 
-  if (message.type === 'tool-actions-summary') {
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.TOOL_ACTIONS_SUMMARY) {
     return <ToolActionsSummaryMessage message={message} />;
   }
 
-  if (isUserMessageWithScreenshot(message)) {
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.USER_WITH_SCREENSHOT) {
     return (
       <UserMessage
         message={message}
@@ -78,15 +83,14 @@ export default function MessageContent({
     );
   }
 
-  if (message.sender === 'assistant' && (!message.type || message.type === 'llm-text')) {
-    const hasVisibleAssistantText = typeof message.text === 'string' && message.text.trim().length > 0;
+  if (contentPresentation.renderKind === MESSAGE_CONTENT_RENDER_KIND.ASSISTANT_RESPONSE) {
     return (
       <div className="assistant-message-content">
         <AssistantThinkingSection
           thinkingText={message.thinkingText || ''}
           sourceEventType={message.thinkingSourceEventType || null}
         />
-        {hasVisibleAssistantText ? (
+        {contentPresentation.hasVisibleAssistantText ? (
           <MarkdownMessage
             text={message.text}
             sender={message.sender}

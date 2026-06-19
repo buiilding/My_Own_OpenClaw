@@ -174,6 +174,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Message Content Kind Runtime Boundary
+
+- Finding: `MessageContent` still interpreted raw SDK/display-row message
+  types for error, tool call/output, search-source, tool-action summary, and
+  assistant LLM-text rows even though related message presentation rules were
+  already moving behind app-runtime facades.
+- Change: added `desktopMessageContentRuntime` to classify message content
+  render kinds and assistant visible-text state, then routed `MessageContent`
+  through that runtime so the component stays a React content adapter.
+- Validation: focused `DesktopMessageContentRuntime`, `MessageContent`,
+  `MessageContentThinking`, and `RendererChatRuntimeBoundary` tests plus stale
+  component type-branch scans and diff checks.
+- Compatibility: no migration required. SDK display rows, rendered markup,
+  screenshot/artifact behavior, IPC, storage, settings, credentials, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Pending-Turn Broadcast Action Boundary
 
 - Finding: `DesktopConversationRuntimeEventClient` already owned the

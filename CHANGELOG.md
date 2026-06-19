@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify chat message content render kinds in
+  `desktopMessageContentRuntime` so `MessageContent` no longer branches on raw
+  message-type strings for tool, error, source, screenshot, or assistant rows.
+  No migration required.
 - renderer/runtime: normalize pending-turn broadcast envelopes into
   app-runtime pending/clear actions before chat store state application, so the
   store no longer decodes raw `windie:pending-turn` replay payloads. No

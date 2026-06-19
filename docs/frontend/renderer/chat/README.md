@@ -67,6 +67,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
@@ -100,6 +101,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/DesktopCurrentTurnProjectionEffectsRuntime.test.ts`
 - `tests/frontend/DesktopRendererTraceRuntime.test.ts`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
+- `tests/frontend/DesktopMessageContentRuntime.test.js`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopThreadFindRuntime.test.js`

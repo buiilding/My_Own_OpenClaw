@@ -816,7 +816,7 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
-  test('message row classes and screenshot descriptors stay behind app runtime facades', async () => {
+  test('message row classes, content kinds, and screenshot descriptors stay behind app runtime facades', async () => {
     const messageItemSource = await fs.readFile(
       path.join(chatRoot, 'components/message/MessageItem.jsx'),
       'utf8',
@@ -829,6 +829,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js'),
       'utf8',
     );
+    const contentRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js'),
+      'utf8',
+    );
     const screenshotRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
       'utf8',
@@ -836,10 +840,19 @@ describe('renderer chat runtime boundary', () => {
 
     expect(messageItemSource).toContain('desktopMessageClassRuntime');
     expect(messageItemSource).not.toContain('utils/message/messageListClasses');
-    expect(messageContentSource).toContain('desktopMessageScreenshotRuntime');
+    expect(messageContentSource).toContain('desktopMessageContentRuntime');
+    expect(messageContentSource).not.toContain("message.type === 'error'");
+    expect(messageContentSource).not.toContain("message.type === 'tool-output'");
+    expect(messageContentSource).not.toContain("message.type === 'tool-call'");
+    expect(messageContentSource).not.toContain("message.type === 'tool-explanation'");
+    expect(messageContentSource).not.toContain("message.type === 'search-source'");
+    expect(messageContentSource).not.toContain("message.type === 'tool-actions-summary'");
+    expect(messageContentSource).not.toContain("message.type === 'llm-text'");
     expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
     expect(classRuntimeSource).toContain('desktopMessageScreenshotRuntime');
     expect(classRuntimeSource).not.toContain('features/chat');
+    expect(contentRuntimeSource).toContain('desktopMessageScreenshotRuntime');
+    expect(contentRuntimeSource).not.toContain('features/chat');
     expect(screenshotRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListClasses.js'),

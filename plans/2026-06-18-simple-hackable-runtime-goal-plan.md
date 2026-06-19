@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer message-content render-kind boundary slice
+  by moving `MessageContent` raw row-type branching into
+  `desktopMessageContentRuntime`. The component now consumes a named
+  app-runtime presentation kind for error, tool, source, action-summary,
+  screenshot, assistant, and generic markdown rows, which keeps SDK/display-row
+  interpretation out of the React adapter. Validation: focused message content
+  runtime, message content rendering, assistant-thinking rendering, and
+  renderer chat runtime boundary tests plus stale component type-branch scans
+  and diff checks. No migration required; SDK display rows, markup,
+  screenshot/artifact behavior, IPC, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer pending-turn broadcast action boundary
   slice by adding `resolveDesktopPendingTurnBroadcastAction(...)` to
   `desktopPendingTurnRuntimeClient` and routing

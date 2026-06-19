@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for chat presentation contracts: thinking-stream overflow behavior, message-row class assembly, and token-count stream-state ownership."
+summary: "Deep reference for chat presentation contracts: thinking-stream overflow behavior, message content kind routing, message-row class assembly, and token-count stream-state ownership."
 read_when:
-  - When changing `ThinkingDisplay`, `MessageList`, or chat presentation class utility behavior.
+  - When changing `ThinkingDisplay`, `MessageContent`, `MessageList`, or chat presentation utility behavior.
   - When debugging stream token-count state updates or thinking-stream scroll affordances.
-title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference"
+title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream Token Tracking Reference"
 ---
 
-# Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference
+# Thinking Display Overflow, Message Content/Class Assembly, and Stream Token Tracking Reference
 
 ## Canonical Modules
 
@@ -14,12 +14,14 @@ title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
+- `tests/frontend/DesktopMessageContentRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopMessageListRuntime.test.js`
 - `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
@@ -61,6 +63,25 @@ Assistant message thinking presentation:
 
 - finalized reasoning text is persisted onto assistant rows (`message.thinkingText`) by `useChatStream` at `streaming-complete`.
 - live `llm-thought` chunks also write to the same assistant row while streaming; `MessageContent` renders this as a per-message collapsible section (`Show thinking`) above assistant markdown output.
+
+## Message Content Render-Kind Contract
+
+`MessageContent` consumes
+`frontend/src/renderer/app/runtime/desktopMessageContentRuntime.js` to resolve a
+single render kind before selecting React-only content components.
+
+The runtime owns row classification for:
+
+- error rows
+- tool call/output rows
+- tool explanation and search-source rows
+- tool action summaries
+- user rows with screenshots
+- assistant LLM-text rows, including whether visible assistant text should render below thinking
+- generic markdown fallback rows
+
+This keeps raw SDK/display-row message-type branching out of the React
+component while preserving the existing content components and markup.
 
 ## Message CSS Class Assembly Contract
 
@@ -108,6 +129,9 @@ Important:
   - confirms conversation selection changes force an instant near-bottom jump (`top = maxScrollTop - 72`) even after manual scroll-up in previous thread
 - `DesktopMessageClassRuntime.test.js`:
   - verifies class assembly for sender/type/screenshot/streaming state
+- `DesktopMessageContentRuntime.test.js`:
+  - verifies content render-kind routing for error, tool, source, screenshot,
+    assistant, and generic markdown rows
 - `DesktopMessageListRuntime.test.js`:
   - verifies compaction status metadata and assistant/user action gating
 - `DesktopMessageScreenshotRuntime.test.js`:

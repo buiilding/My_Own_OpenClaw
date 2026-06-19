@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Message Content Kind Runtime Boundary
+
+- Finding: `MessageContent` rendered SDK/display-row message variants through
+  app-runtime helpers for screenshots and markdown, but still owned raw
+  message-type branching for error, tool call/output, search-source,
+  tool-action summary, and assistant LLM-text rows.
+- Change: added `desktopMessageContentRuntime` as the renderer app-runtime
+  owner for message content render-kind classification and assistant visible
+  text state. `MessageContent` now selects React content components from that
+  render kind instead of inspecting raw message-type strings.
+- Validation: focused message content runtime, message content rendering,
+  assistant-thinking rendering, and renderer chat runtime boundary tests plus
+  stale component type-branch scans and diff checks.
+- Compatibility: no migration required. SDK display-row shapes, message
+  markup, screenshot behavior, artifact resolution, IPC, storage, settings,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Pending-Turn Broadcast Action Boundary
 
 - Finding: `chatStore.applyPendingTurnBroadcast(...)` still decoded the raw
