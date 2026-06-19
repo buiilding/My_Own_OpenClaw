@@ -2,7 +2,7 @@
  * Covers model thinking capabilities. behavior in the frontend test suite.
  */
 
-import { resolveThinkingCapabilities } from '../../frontend/src/renderer/features/chat/utils/modelThinkingCapabilities';
+import { resolveThinkingCapabilities } from '../../frontend/src/renderer/app/runtime/desktopModelThinkingRuntime';
 
 describe('modelThinkingCapabilities', () => {
   test('does not infer thinking support when model metadata omits capability flags', () => {

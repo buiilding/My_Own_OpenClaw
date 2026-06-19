@@ -1,5 +1,5 @@
 /**
- * Provides the model thinking capabilities module for the renderer UI.
+ * Provides model thinking capability resolution for renderer runtime consumers.
  */
 
 type ModelCapabilityDescriptor = {

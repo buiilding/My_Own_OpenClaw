@@ -50,6 +50,7 @@ frontend/src/renderer/
 │   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag helper shared by chat and minimal surfaces
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
+│   │   ├── desktopModelThinkingRuntime.ts # Renderer model-catalog thinking capability facade for stream presentation
 │   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
 │   │   ├── desktopPermissionGrantEffectsRuntime.js # Renderer permission post-grant config effects shared by onboarding and settings
 │   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients

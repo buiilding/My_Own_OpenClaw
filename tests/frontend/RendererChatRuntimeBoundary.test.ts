@@ -1338,6 +1338,25 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat stream reads model thinking capabilities through app runtime', async () => {
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const modelThinkingRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts'),
+      'utf8',
+    );
+
+    expect(streamSource).toContain('desktopModelThinkingRuntime');
+    expect(streamSource).not.toContain('utils/modelThinkingCapabilities');
+    expect(modelThinkingRuntimeSource).toContain('supports_thinking');
+    expect(modelThinkingRuntimeSource).toContain('supports_thinking_text_stream');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/modelThinkingCapabilities.ts'),
+    )).rejects.toThrow();
+  });
+
   test('chat and dashboard active-session reset share app runtime rules', async () => {
     const newChatSessionSource = await fs.readFile(
       path.join(chatRoot, 'utils/session/newChatSession.ts'),

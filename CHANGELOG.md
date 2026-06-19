@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/live-turn: move SDK current-turn surface state and message
   projection adapters into renderer app-runtime facades used by chat and the
   minimal response overlay. No migration required.
+- renderer/current-turn: move chat loop UI state, response-overlay stream
+  phase predicates, and current-turn surface projection into renderer
+  app-runtime facades shared by dashboard and minimal-pill surfaces. No
+  migration required.
 - renderer/thread-presentation: move durable-thread plus SDK live-row
   presentation into the renderer app-runtime facade used by ChatInterface. No
   migration required.
@@ -44,6 +48,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/messages: delete the unused chat feature tool-output envelope
   wrapper after current-turn and stream message paths converged on the
   app-runtime chat message facade. No migration required.
+- renderer/model-capabilities: move selected-model thinking capability
+  resolution from chat utilities into the renderer app-runtime facade consumed
+  by chat stream presentation. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

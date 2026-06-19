@@ -8,7 +8,7 @@ import {
   useChatStore,
 } from '../stores/chatStore';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
+import { resolveThinkingCapabilities } from '../../../app/runtime/desktopModelThinkingRuntime';
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';

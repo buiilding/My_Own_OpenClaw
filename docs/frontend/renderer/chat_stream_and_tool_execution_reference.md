@@ -36,9 +36,9 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 
@@ -95,7 +95,8 @@ Workspace identity state:
 
 ## Model Capability Resolution and Thinking Fallback Policy
 
-`useChatStream` resolves selected-model thinking flags through `resolveThinkingCapabilities(...)`:
+`useChatStream` resolves selected-model thinking flags through
+`desktopModelThinkingRuntime.resolveThinkingCapabilities(...)`:
 
 - source set is merged `availableModels.local + availableModels.online`
 - primary match: `{id, provider}`

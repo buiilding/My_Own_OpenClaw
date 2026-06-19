@@ -229,6 +229,28 @@ Each completed slice should report:
   payloads, storage, credentials, permissions, hosted routes, provider policy,
   packaging, and local execution behavior are unchanged.
 
+### 2026-06-19 Renderer Current-Turn Presentation Runtime Boundary
+
+- Finding: chat-loop UI state, response-overlay awaiting-reply stream-phase
+  predicates, and current-turn chatbox/reply projection were shared across the
+  dashboard, chatbox, and minimal-pill surfaces but still lived under chat
+  feature state utilities.
+- Change: moved those contracts to
+  `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`,
+  `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`, and
+  `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`,
+  routed ChatInterface, current-turn presentation hooks, tests, and docs through
+  the app-runtime owners, deleted the old chat feature state paths, and added
+  renderer app-runtime boundary guards.
+- Validation: focused chat loop UI, current-turn presentation, visible-reply,
+  stream-phase, renderer app-runtime boundary tests, docs listing, stale
+  old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Loop-state values, awaiting-dot
+  targeting, chatbox surface state, overlay phase predicates, current-turn
+  reply visibility, IPC payloads, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Tool-Output Wrapper Deletion
 
 - Finding: `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
@@ -242,6 +264,24 @@ Each completed slice should report:
   transcript rows, current-turn projection, IPC payloads, storage,
   credentials, permissions, hosted routes, provider policy, packaging, and
   local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Model Thinking Runtime Boundary
+
+- Finding: `useChatStream` resolved selected-model thinking/text-stream
+  capability flags through a chat feature utility even though the resolver
+  consumes backend model-catalog metadata and belongs behind the renderer
+  runtime boundary.
+- Change: moved the resolver to
+  `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`, routed
+  chat stream code and tests through that app-runtime facade, deleted the old
+  feature utility path, and updated docs plus boundary guards.
+- Validation: focused model-thinking capability, chat stream wiring, renderer
+  chat boundary, docs listing, stale old-path scan, frontend lint, and diff
+  checks.
+- Compatibility: no migration required. Model catalog payloads, thinking flag
+  semantics, stream presentation, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 

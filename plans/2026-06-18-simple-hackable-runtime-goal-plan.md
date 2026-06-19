@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer current-turn presentation
+  runtime-boundary slice by moving chat-loop UI state, response-overlay
+  awaiting-reply stream-phase predicates, and current-turn chatbox/reply
+  projection into `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`,
+  `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`, and
+  `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`.
+  ChatInterface, current-turn presentation hooks, docs, focused tests, and
+  renderer app-runtime boundary guards now route through the app-runtime owners,
+  and the old chat feature state paths are deleted. Validation: focused chat
+  loop UI, current-turn presentation, visible-reply, stream-phase, renderer
+  app-runtime boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks. No migration required; loop-state values, awaiting-dot targeting,
+  chatbox surface state, overlay phase predicates, current-turn reply
+  visibility, IPC payloads, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer model-thinking runtime-boundary slice by
+  moving selected-model thinking and thinking-text-stream capability resolution
+  from `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
+  into `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`.
+  `useChatStream`, docs, focused tests, and renderer chat boundary guards now
+  route through the app-runtime owner, and the old chat feature utility path is
+  deleted. Validation: focused model-thinking capability, chat stream wiring,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks. No migration required; backend model catalog payloads, thinking
+  fallback semantics, stream presentation, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer tool-output wrapper deletion by removing
   the unused `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
   path after current-turn and stream message paths converged on
