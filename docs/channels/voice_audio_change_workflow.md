@@ -92,6 +92,7 @@ Primary files:
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
 - `backend/src/api/routes/transcription/router.py`
 - `backend/src/api/services/transcription/**`
