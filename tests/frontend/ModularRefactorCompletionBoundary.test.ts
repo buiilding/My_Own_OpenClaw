@@ -848,8 +848,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Wakeword Service Model');
     expect(docText).toContain('Frontend IPC and Local-Runtime Contract Touchpoints Reference');
     expect(docText).toContain('Local-Runtime Summarizer Watermark and Conversation Batch Reference');
+    expect(docText).toContain('Frontend Main/Renderer/Contracts/Local-Runtime Hubs');
+    expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
+    expect(docText).not.toContain('Frontend Main/Renderer/Contracts/Sidecar Hubs');
+    expect(docText).not.toContain('Local Runtime Sidecar Process Workflow');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
     expect(docText).not.toContain('Sidecar Runtime Change Workflow');
     expect(docText).not.toContain('[Sidecar Registry]');

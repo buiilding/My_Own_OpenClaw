@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a public frontend/code-surface navigation label slice
+  by routing the top-level frontend hub label through Main/Renderer/Contracts/
+  Local-Runtime wording and the local-runtime process row through the
+  Local-Runtime Python Implementation Change Workflow label instead of sidecar
+  public navigation names. Sidecar daemon symptoms and Python implementation
+  paths remain explicit where they identify concrete process evidence.
+  Validation: focused modular boundary guard, docs listing, exact stale
+  navigation-label scan, and diff checks. No migration required; no IPC
+  channel, JSON-RPC method, process lifecycle behavior, storage, credential,
+  permission, hosted route, provider policy, packaging, or local execution
+  behavior changed.
 - 2026-06-19: completed a main host shortcut boundary slice by moving the
   primary wakeword/chat-pill hotkey map into the WindieOS main host skin and
   having the generic Electron composition root consume the configured

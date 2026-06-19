@@ -31,6 +31,10 @@ All notable changes to WindieOS will be documented in this file.
   config so the generic Electron host composition root consumes configured
   shortcut copy while lifecycle runtime still owns fallback registration. No
   migration required.
+- docs/hubs: route top-level frontend hub and code-change surface process
+  workflow labels through local-runtime wording instead of sidecar public
+  navigation names while keeping sidecar daemon symptoms and Python paths as
+  concrete implementation evidence. No migration required.
 - docs/voice: route renderer voice and audio wakeword bridge links through
   Electron Wakeword Bridge wording instead of Local Runtime Sidecar Wakeword
   public navigation labels while keeping the Python service implementation
