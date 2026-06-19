@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer voice/audio wakeword bridge label slice by
+  routing renderer voice and audio related-page links through Electron
+  Wakeword Bridge wording instead of Local Runtime Sidecar Wakeword public
+  navigation labels. Python wakeword service implementation details remain
+  explicit where the concrete subprocess matters. Validation: focused modular
+  boundary guard, docs listing, exact stale wakeword bridge label scan, and
+  diff checks. No migration required; no IPC channel, wakeword framing,
+  microphone capture, subprocess lifecycle, storage, credential, permission,
+  hosted route, provider policy, packaging, or local execution behavior
+  changed.
 - 2026-06-19: completed a code-surface local tool hub label slice by routing
   code-change surface local tool links through Local-Runtime Tools Docs Hub
   wording instead of Local Runtime Sidecar Tools Hub public navigation labels.

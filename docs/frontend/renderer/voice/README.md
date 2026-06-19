@@ -23,7 +23,7 @@ title: "Frontend Renderer Voice Docs Hub"
 - [Frontend Renderer Docs Hub](../README.md)
 - [Voice Capture and Wakeword Controller Reference](../voice_capture_and_wakeword_controller_reference.md)
 - [Frontend Overlay and Wakeword Control Channel Reference](../../contracts/overlay_and_wakeword_control_channel_reference.md)
-- [Local Runtime Sidecar Wakeword Bridge and Audio Framing Reference](../../sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Electron Wakeword Bridge and Audio Framing Reference](../../sidecar/wakeword_bridge_and_audio_framing_reference.md)
 - [Frontend Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
 
 ## Code Scope

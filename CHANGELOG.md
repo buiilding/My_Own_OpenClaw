@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/voice: route renderer voice and audio wakeword bridge links through
+  Electron Wakeword Bridge wording instead of Local Runtime Sidecar Wakeword
+  public navigation labels while keeping the Python service implementation
+  reference explicit. No migration required.
 - docs/reference: route code-change surface local tool links through
   Local-Runtime Tools Docs Hub wording instead of Local Runtime Sidecar Tools
   Hub public navigation labels while keeping Python sidecar implementation

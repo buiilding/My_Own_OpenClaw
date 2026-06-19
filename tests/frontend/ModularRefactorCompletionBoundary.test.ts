@@ -1786,6 +1786,9 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/channels/voice_audio_change_workflow.md'),
       read('docs/channels/voice_and_audio_channels.md'),
       read('docs/desktop/voice_and_wakeword.md'),
+      read('docs/frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md'),
+      read('docs/frontend/renderer/voice/README.md'),
+      read('docs/frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/nodes/runtime_node_matrix.md'),
       read('docs/README.md'),
@@ -1801,6 +1804,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar owns wakeword model bootstrap');
     expect(docText).not.toContain('Electron bridge to the sidecar wakeword service');
     expect(docText).not.toContain('renderer microphone chunks -> Electron main -> Python sidecar wakeword service');
+    expect(docText).not.toContain('Local Runtime Sidecar Wakeword Bridge and Audio Framing Reference');
     expect(docText).not.toContain('Sidecar wakeword service:');
   });
 });
