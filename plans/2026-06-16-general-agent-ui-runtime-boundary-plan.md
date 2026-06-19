@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Tool Workflow Link Local-Runtime Labels
+
+- Finding: tool troubleshooting, schema-policy, filesystem/shell workflow, and
+  extension docs still used Sidecar Tool/Runtime/Registry link labels and
+  sidecar tools-doc wording as active routing even though the target docs now
+  represent the local-runtime tool boundary backed by Python sidecar
+  implementation files.
+- Change: renamed those routing labels to local-runtime tool,
+  local-runtime registry/result, and local-runtime computer implementation
+  wording while keeping Python sidecar paths and pytest references as
+  implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  tool-workflow link-label scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; tool names, schemas,
+  manifests, registries, IPC channels, JSON-RPC methods, runtime code, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 SDK BackendTransport Alias Removal
 
 - Finding: the SDK conversation type surface still exported the legacy

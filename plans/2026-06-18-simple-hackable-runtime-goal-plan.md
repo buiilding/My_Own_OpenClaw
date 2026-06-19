@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a tool-workflow link-label local-runtime slice by
+  routing active tool troubleshooting, schema-policy, filesystem/shell workflow,
+  and extension docs through local-runtime tool, local-runtime registry/result,
+  and local-runtime computer implementation wording instead of Sidecar
+  Tool/Runtime/Registry link labels and sidecar tools-doc route text. Python
+  sidecar paths and pytest references remain where they identify concrete
+  implementation evidence. Validation: `bin\windie.cmd test frontend --
+  ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs list`,
+  exact stale tool-workflow link-label scan, and `git diff --check`. No
+  migration required; no tool name, schema, manifest, registry, IPC channel,
+  JSON-RPC method, runtime code, storage, credential, permission, hosted route,
+  provider policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a code-surface owner-label cleanup by routing local
   runtime readiness and packaged-runtime rows through SDK/local-runtime
   lifecycle and local-runtime sidecar bundling wording instead of presenting

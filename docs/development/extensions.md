@@ -4,7 +4,7 @@ read_when:
   - When adding reusable client-side plugins, skills, or MCP integrations.
   - When registering plugin tools through `plugins/<id>/plugin.json`, schemas, and Python local-runtime entrypoints.
   - When changing extension-owned tool schemas, local-runtime execution, prompt layers, or MCP discovery.
-  - When searching for extension package, plugin, MCP, skills, or local-runtime tool contribution layout; this doc owns extension contribution roots, not built-in Python sidecar tool behavior.
+  - When searching for extension package, plugin, MCP, skills, or local-runtime tool contribution layout; this doc owns extension contribution roots, not built-in local-runtime tool behavior.
   - When stale docs, local folders, or prompts mention `extensions/<id>/extension.json`, `plugin/index.cjs`, or an `extensions/` container; the active loader ignores that legacy shape.
 ---
 
@@ -42,7 +42,7 @@ Electron main reads `plugin.json` for the model-facing client manifest, and the
 Python sidecar implementation loads the same `plugin.json` to execute the
 declared Python entrypoints. Use this page for extension package, plugin, MCP,
 skills, and local-runtime tool contribution layout. Use the local-runtime
-sidecar tools docs for built-in computer/system/filesystem/shell/browser
+local-runtime tools docs for built-in computer/system/filesystem/shell/browser
 implementation behavior.
 
 ## Choose The Surface

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route active tool troubleshooting, schema-policy, filesystem, and
+  extension link labels through local-runtime tool wording instead of sidecar
+  tool/runtime labels. No migration required.
 - docs/reference: route code-surface lifecycle and packaging owner labels
   through SDK/local-runtime wording instead of sidecar daemon/runtime ownership
   while keeping sidecar daemon symptoms and sidecar tests as concrete evidence.
