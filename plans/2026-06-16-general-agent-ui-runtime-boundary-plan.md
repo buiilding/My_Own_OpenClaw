@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Sidecar-Backed Tool Section Label Boundary
+
+- Finding: active local-tool channel, browser automation, Python sidecar/memory,
+  and configuration reference docs still exposed Sidecar Tool/Runtime headings
+  or link labels for reusable local-runtime implementation surfaces.
+- Change: relabeled those headings and hub links to local-runtime implementation
+  wording while retaining Python sidecar wording for concrete daemon,
+  JSON-RPC, registry, and protocol references, and extended the modular docs
+  guard for the retired public labels.
+- Validation: focused modular boundary test, docs listing, stale label scan,
+  and diff checks.
+- Compatibility: no migration required. Browser tool behavior, registry
+  behavior, JSON-RPC methods, local memory, packaging paths, IPC, credentials,
+  provider policy, backend APIs, storage, and hosted URLs are unchanged.
+
 ### 2026-06-19 Local-Runtime JSON-RPC Public Channel Boundary
 
 - Finding: public channel, node, architecture-pipeline, docs hub, and browser

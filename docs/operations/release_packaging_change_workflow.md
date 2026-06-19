@@ -42,7 +42,7 @@ The release path has two different jobs:
 ## Change Sequence
 
 1. **Classify the change.** Decide whether it is source-only, packaged-runtime, reinstall/reset, smoke-check, or release-publication work. Use [Install Decision Matrix](../install/install_decision_matrix.md) when the path is unclear.
-2. **Read the owner docs.** For packaging work, read this page, [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), and [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).
+2. **Read the owner docs.** For packaging work, read this page, [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md), and [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).
 3. **Inspect the source roots.** Start with the roots in the owner map before broad searches. For runtime failures, inspect path resolution and sidecar launch code before package metadata.
 4. **Edit the producer first.** Fix package scripts, runtime assembly, endpoint resolution, or reinstall cleanup at the owner layer before adding consumer-side tolerance.
 5. **Update platform-specific paths explicitly.** If behavior differs by OS, update the matching OS helper, smoke script, platform doc, and validation notes.
@@ -126,7 +126,7 @@ Before committing packaging or release work:
 ## Related Docs
 
 - [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md)
-- [Sidecar Runtime Packaging](sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](sidecar_runtime_packaging.md)
 - [Release Guide](release.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
 - [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md)

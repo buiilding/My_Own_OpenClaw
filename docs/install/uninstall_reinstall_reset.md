@@ -86,5 +86,5 @@ The helper targets Debian/Ubuntu systems with `apt`, packages Linux targets, ins
 
 - [Packaged Desktop Builds](packaged_desktop.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
-- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Process Health Checklist](../debug/process_health_checklist.md)

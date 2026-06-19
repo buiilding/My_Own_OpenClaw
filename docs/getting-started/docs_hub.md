@@ -528,7 +528,7 @@ Read:
 - [Release Guide](../operations/release.md)
 - [Security](../operations/security.md)
 - [Multi-User Runtime Hardening](../operations/multi_user_runtime_hardening.md)
-- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Install Decision Matrix](../install/install_decision_matrix.md)
 - [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md)
@@ -812,7 +812,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md)
 - [Evidence Collection Runbook](../operations/evidence_collection_runbook.md)
 - [Incident Triage Runbook](../operations/incident_triage_runbook.md)
-- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Operational Troubleshooting](../operations/operational_troubleshooting.md)
 

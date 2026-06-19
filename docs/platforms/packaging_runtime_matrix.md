@@ -61,6 +61,6 @@ For platform packaging changes:
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
 - [Install Decision Matrix](../install/install_decision_matrix.md)
 - [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md)
-- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)

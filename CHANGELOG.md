@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: relabel sidecar-backed tool/runtime hub headings and
+  links as local-runtime implementation surfaces while retaining concrete
+  Python sidecar protocol details. No migration required.
 - docs/channels: route public JSON-RPC channel and desktop-node labels through
   local-runtime ownership instead of sidecar-as-channel wording, and refresh the
   local tool lifecycle diagram to SDK/main execution. No migration required.

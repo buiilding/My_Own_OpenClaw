@@ -1,12 +1,12 @@
 ---
-summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, shared browser contract validation, Browser Use engine dispatch, and browser file/snapshot boundaries."
+summary: "End-to-end local-runtime browser tool implementation: IPC/JSON-RPC path, shared browser contract validation, Browser Use engine dispatch, and browser file/snapshot boundaries."
 read_when:
-  - When changing sidecar browser tool behavior, action routing, or CDP launch policy.
+  - When changing local-runtime browser tool behavior, action routing, or CDP launch policy.
   - When debugging browser connect/snapshot/action failures across Agent SDK runtime, Electron main, and Python sidecar.
-title: "Browser Automation Stack"
+title: "Local-Runtime Browser Automation Stack"
 ---
 
-# Browser Automation Stack
+# Local-Runtime Browser Automation Stack
 
 WindieOS currently routes the canonical `browser` tool through local-runtime
 browser execution backed by a Python sidecar Browser Use engine adapter. The old
@@ -30,7 +30,7 @@ Main-process timeout behavior:
 - browser tool timeout: `120000ms`
 - other tools default timeout: `60000ms`
 
-## Sidecar Tool Registration Surface
+## Local-Runtime Tool Registration Surface
 
 `frontend/src/main/python/tools/registry.py`:
 

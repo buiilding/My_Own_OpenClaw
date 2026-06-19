@@ -1,12 +1,12 @@
 ---
-summary: "Bundled Sidecar Python Runtime Packaging"
+summary: "Bundled Python Runtime Packaging"
 read_when:
   - When shipping frontend-only installers with no system Python requirement.
   - When debugging packaged SDK websocket support, the SDK-owned `ws` dependency, or `resources/node_modules/ws`.
   - When preparing Windows/macOS/Linux release artifacts for end users.
 ---
 
-# Bundled Sidecar Python Runtime Packaging
+# Bundled Python Runtime Packaging
 
 This guide explains how to build installers where end users only install the
 frontend app and do not need Python installed system-wide.

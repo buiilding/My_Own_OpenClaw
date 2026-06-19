@@ -1,7 +1,7 @@
 ---
-summary: "Python sidecar runtime architecture: JSON-RPC local runtime, tool registry, memory stores, semantic consolidation, and wakeword service."
+summary: "Python sidecar implementation behind the local-runtime boundary: JSON-RPC service, tool registry, memory stores, semantic consolidation, and wakeword service."
 read_when:
-  - When changing sidecar tools, local-runtime memory persistence/search, or subprocess protocol behavior.
+  - When changing local-runtime tools backed by Python sidecar implementation, local-runtime memory persistence/search, or subprocess protocol behavior.
   - When debugging local-runtime/Python sidecar readiness, request correlation, or memory summarization cadence.
 title: "Python Sidecar and Memory"
 ---
@@ -68,7 +68,7 @@ Registry behavior:
 - warns when backend-exposed tool names are missing in local-runtime execution
 - handles sync and async tool implementations
 
-## Sidecar Tool Schemas
+## Local-Runtime Tool Schemas
 
 Module:
 

@@ -173,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Sidecar-Backed Tool Section Label Boundary
+
+- Local-tool channels, browser automation stack, Python sidecar/memory,
+  configuration reference docs, docs search results, and recent local-runtime
+  label commits were inspected after the JSON-RPC public channel slice.
+- Finding: active local-tool channel, browser automation, Python sidecar/memory,
+  and configuration reference docs still exposed Sidecar Tool/Runtime headings
+  or link labels for reusable local-runtime implementation surfaces.
+- Change: relabeled those headings and hub links to local-runtime implementation
+  wording while retaining Python sidecar wording for concrete daemon,
+  JSON-RPC, registry, and protocol references, and extended the modular docs
+  guard for the retired public labels.
+- Validation: focused modular boundary test, docs listing, stale label scan,
+  and diff checks.
+- Compatibility: no migration required. Browser tool behavior, registry
+  behavior, JSON-RPC methods, local memory, packaging paths, IPC, credentials,
+  provider policy, backend APIs, storage, and hosted URLs are unchanged.
+
 ### 2026-06-19 Local-Runtime JSON-RPC Public Channel Boundary
 
 - Channel routing, runtime-node, agent-visible pipeline, docs hub, browser
@@ -3104,3 +3122,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   concrete implementation protocol references. The desktop-node local tool
   lifecycle now shows SDK/main local-runtime execution with renderer SDK
   projection consumption.
+- Sidecar-backed tool/runtime hub headings and link labels now use
+  local-runtime implementation wording, while concrete Python sidecar daemon,
+  JSON-RPC, registry, protocol, and packaging references remain explicit.

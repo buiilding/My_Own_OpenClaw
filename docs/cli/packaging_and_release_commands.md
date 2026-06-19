@@ -58,6 +58,6 @@ Local macOS reinstall loops intentionally skip Apple notarization and release si
 - [Install Hub](../install/README.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
 - [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
-- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Bundled Python Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Release Guide](../operations/release.md)

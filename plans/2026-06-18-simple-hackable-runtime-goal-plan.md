@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a sidecar-backed tool section label slice by relabeling
+  local-tool channel, browser automation, Python sidecar/memory, and
+  configuration reference headings and hub links from Sidecar Tool/Runtime
+  labels to local-runtime implementation wording while preserving Python
+  sidecar wording for concrete daemon, JSON-RPC, registry, and protocol
+  references. The modular docs guard now rejects the retired public labels.
+  Validation: focused modular boundary test, docs listing, stale label scan,
+  and diff checks. No migration required; documentation/test only, with no
+  browser tool behavior, registry behavior, JSON-RPC method, local memory,
+  packaging path, IPC, credential, provider-policy, backend API, storage, or
+  hosted URL change.
+
 - 2026-06-19: completed a local-runtime JSON-RPC public channel slice by
   relabeling public channel, node, architecture-pipeline, docs hub, and browser
   reference surfaces from sidecar JSON-RPC and Desktop and Sidecar Node wording
