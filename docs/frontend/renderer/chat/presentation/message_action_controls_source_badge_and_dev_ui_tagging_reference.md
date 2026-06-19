@@ -92,12 +92,17 @@ Runtime behavior:
 
 `MessageSourceBadge` renders only when `isDevUiEnabled()` is true.
 
-Source fallback normalization:
+Source badge presentation is resolved by
+`desktopMessageSourceTagRuntime.resolveMessageSourceBadgePresentation(message)`.
+`MessageSourceBadge` only checks the dev-UI gate and renders the returned
+`badgeText` and `title`.
+
+Source fallback normalization inside the runtime:
 
 - `sourceEventType`: fallback `transcript`
 - `sourceChannel`: fallback `unknown`
 
-Badge label is resolved via
+The source portion of the badge is resolved via
 `desktopMessageSourceTagRuntime.resolveSourceTag(sourceEventType, sourceChannel)`:
 
 - known event/channel names map to fixed labels
@@ -111,7 +116,7 @@ Badge label is resolved via
 
 Per-message token telemetry tag:
 
-- `MessageSourceBadge` appends
+- `resolveMessageSourceBadgePresentation(...)` appends
   `desktopMessageTokenUsageRuntime.resolveMessageTokenUsageTag(message)` output
   when present.
 - tags are intentionally approximate (`tokens~ ...`) and currently emitted for:

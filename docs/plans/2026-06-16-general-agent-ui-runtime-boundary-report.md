@@ -194,6 +194,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   permissions, provider policy, hosted URLs, and local execution behavior are
   unchanged.
 
+### 2026-06-19 Renderer Message Source Badge Presentation Boundary
+
+- Finding: source labels and token usage labels were already behind app-runtime
+  helpers, but `MessageSourceBadge` still normalized raw `sourceEventType` /
+  `sourceChannel` fields and assembled combined badge text/title locally.
+- Change: moved that combined dev-badge presentation into
+  `resolveMessageSourceBadgePresentation(...)` in
+  `desktopMessageSourceTagRuntime`. The component now keeps only dev-UI gating
+  and JSX rendering.
+- Validation: focused message source badge, source tag runtime, renderer chat
+  runtime boundary, and docs-index tests plus source-badge docs search, related
+  commit search, stale raw source-field scans, and diff checks.
+- Compatibility: no migration required. Message row shape, dev-UI query gating,
+  token telemetry labels, source labels, SDK display rows, IPC, storage,
+  settings, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Display Projection Annotation Merge Boundary
 
 - Finding: `desktopConversationDisplayProjection` already routed SDK display

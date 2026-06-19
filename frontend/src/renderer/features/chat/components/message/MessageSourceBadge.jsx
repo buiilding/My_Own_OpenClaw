@@ -4,36 +4,22 @@
 
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
-import { resolveSourceTag } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
-import { resolveMessageTokenUsageTag } from '../../../../app/runtime/desktopMessageTokenUsageRuntime';
+import { resolveMessageSourceBadgePresentation } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
 
 export default function MessageSourceBadge({ message }) {
   if (!isDevUiEnabled()) {
     return null;
   }
 
-  const sourceEventType = typeof message?.sourceEventType === 'string' && message.sourceEventType
-    ? message.sourceEventType
-    : 'transcript';
-  const sourceChannel = typeof message?.sourceChannel === 'string' && message.sourceChannel
-    ? message.sourceChannel
-    : 'unknown';
-  const tokenUsageTag = resolveMessageTokenUsageTag(message);
-  const sourceTag = resolveSourceTag(sourceEventType, sourceChannel);
-  const badgeText = tokenUsageTag
-    ? `${sourceTag} / ${tokenUsageTag}`
-    : sourceTag;
+  const presentation = resolveMessageSourceBadgePresentation(message);
 
   return (
-    <div className="message-source-badge" title={`source_event=${sourceEventType}`}>
-      {badgeText}
+    <div className="message-source-badge" title={presentation.title}>
+      {presentation.badgeText}
     </div>
   );
 }
 
 MessageSourceBadge.propTypes = {
-  message: PropTypes.shape({
-    sourceEventType: PropTypes.string,
-    sourceChannel: PropTypes.string,
-  }).isRequired,
+  message: PropTypes.object.isRequired,
 };

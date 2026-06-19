@@ -828,13 +828,18 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
+    expect(sourceBadgeSource).toContain('resolveMessageSourceBadgePresentation');
     expect(sourceBadgeSource).toContain('desktopMessageSourceTagRuntime');
-    expect(sourceBadgeSource).toContain('desktopMessageTokenUsageRuntime');
+    expect(sourceBadgeSource).not.toContain('desktopMessageTokenUsageRuntime');
+    expect(sourceBadgeSource).not.toContain('sourceEventType');
+    expect(sourceBadgeSource).not.toContain('sourceChannel');
     expect(thinkingDisplaySource).toContain('desktopMessageSourceTagRuntime');
     expect(sourceBadgeSource).not.toContain('utils/message/sourceTags');
     expect(sourceBadgeSource).not.toContain('utils/message/messageTokenUsage');
     expect(thinkingDisplaySource).not.toContain('utils/message/sourceTags');
     expect(sourceTagRuntimeSource).toContain('desktopPresentationSourceChannels');
+    expect(sourceTagRuntimeSource).toContain('desktopMessageTokenUsageRuntime');
+    expect(sourceTagRuntimeSource).toContain('resolveMessageSourceBadgePresentation');
     expect(sourceTagRuntimeSource).not.toContain('features/chat');
     expect(tokenUsageRuntimeSource).toContain('tokens(provider)');
     expect(tokenUsageRuntimeSource).not.toContain('features/chat');

@@ -290,6 +290,19 @@ For each completed slice, record:
   IPC, storage, settings, credentials, permissions, provider policy, hosted
   URLs, and local execution behavior are unchanged.
 
+- 2026-06-19: completed a renderer source-badge presentation boundary slice by
+  moving combined source/tag title and badge-text assembly from
+  `MessageSourceBadge` into `desktopMessageSourceTagRuntime` as
+  `resolveMessageSourceBadgePresentation(...)`. The component now only checks
+  the dev-UI gate and renders runtime-provided text/title while the app runtime
+  owns raw source-field fallback and token-tag composition. Validation: focused
+  message source badge, source tag runtime, renderer chat runtime boundary, and
+  docs-index tests plus source-badge docs search, related commit search, stale
+  raw source-field scans, and diff checks. No migration required; message row
+  shape, dev-UI query gating, token/source labels, SDK display rows, IPC,
+  storage, settings, credentials, permissions, provider policy, hosted URLs,
+  and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer SDK display-row annotation merge boundary
   slice by moving renderer-only annotation merge and pending optimistic user-row
   preservation from `useConversationRuntimeProjectionStream` into

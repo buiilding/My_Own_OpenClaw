@@ -7,6 +7,9 @@ import {
   SDK_CURRENT_TURN_SOURCE_CHANNEL,
   SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
 } from './desktopPresentationSourceChannels';
+import {
+  resolveMessageTokenUsageTag,
+} from './desktopMessageTokenUsageRuntime';
 
 const SOURCE_EVENT_LABELS = {
   'llm-thought': 'thinking token',
@@ -52,4 +55,21 @@ export function resolveSourceTag(sourceEventType, sourceChannel) {
   const channelLabel = SOURCE_CHANNEL_LABELS[normalizedChannel] || normalizedChannel;
 
   return `${eventLabel} / ${channelLabel}`;
+}
+
+export function resolveMessageSourceBadgePresentation(message) {
+  const sourceEventType = typeof message?.sourceEventType === 'string' && message.sourceEventType
+    ? message.sourceEventType
+    : 'transcript';
+  const sourceChannel = typeof message?.sourceChannel === 'string' && message.sourceChannel
+    ? message.sourceChannel
+    : 'unknown';
+  const tokenUsageTag = resolveMessageTokenUsageTag(message);
+  const sourceTag = resolveSourceTag(sourceEventType, sourceChannel);
+  return {
+    badgeText: tokenUsageTag
+      ? `${sourceTag} / ${tokenUsageTag}`
+      : sourceTag,
+    title: `source_event=${sourceEventType}`,
+  };
 }

@@ -140,6 +140,24 @@ Each completed slice should report:
   permissions, provider policy, hosted URLs, and local execution behavior are
   unchanged.
 
+### 2026-06-19 Renderer Message Source Badge Presentation Boundary
+
+- Finding: `desktopMessageSourceTagRuntime` and
+  `desktopMessageTokenUsageRuntime` owned the individual source/tag labels, but
+  `MessageSourceBadge` still normalized raw source fields and assembled the
+  combined badge text/title in JSX.
+- Change: added `resolveMessageSourceBadgePresentation(...)` to
+  `desktopMessageSourceTagRuntime` and routed `MessageSourceBadge` through that
+  presentation model. The component now only gates dev UI and renders
+  runtime-provided badge text/title.
+- Validation: focused message source badge, source tag runtime, renderer chat
+  runtime boundary, and docs-index tests plus source-badge docs search, related
+  commit search, stale raw source-field scans, and diff checks.
+- Compatibility: no migration required. Message row shape, dev-UI query gating,
+  token telemetry labels, source labels, SDK display rows, IPC, storage,
+  settings, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Display Projection Annotation Merge Boundary
 
 - Finding: `desktopConversationDisplayProjection` already owned SDK display-row

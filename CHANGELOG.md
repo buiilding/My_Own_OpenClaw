@@ -31,6 +31,10 @@ All notable changes to WindieOS will be documented in this file.
   `desktopChatStreamEventRuntime` predicates so local-user, completion,
   metadata, and compaction handlers no longer duplicate raw SDK event-type
   strings. No migration required.
+- renderer/runtime: move dev source-badge text/title assembly into
+  `desktopMessageSourceTagRuntime` so `MessageSourceBadge` renders a runtime
+  presentation model instead of normalizing raw source fields and appending
+  token tags in JSX. No migration required.
 - renderer/runtime: move SDK display-row annotation and optimistic user-row merge
   rules into `desktopConversationDisplayProjection` so
   `useConversationRuntimeProjectionStream` only wires subscriptions, projection
