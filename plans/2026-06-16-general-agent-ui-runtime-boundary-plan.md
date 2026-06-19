@@ -129,7 +129,8 @@ Each completed slice should report:
 - Change: renamed the visible tool workflow to
   `Local-Runtime Tool Change Workflow`, renamed the Python implementation
   workflow to `Local-Runtime Python Implementation Change Workflow`, and
-  updated active links/registry labels while leaving paths stable.
+  updated active links, registry labels, and first-read docs navigation labels
+  while leaving paths stable.
 - Validation: focused modular-boundary guard, docs listing, exact stale
   workflow-label scan, and diff checks.
 - Compatibility: no migration required. Docs and boundary tests changed only;

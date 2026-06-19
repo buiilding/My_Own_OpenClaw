@@ -280,9 +280,10 @@ For each completed slice, record:
   Workflow`, renaming the sidecar runtime workflow to
   `Local-Runtime Python Implementation Change Workflow`, and updating active
   backend, browser, frontend, getting-started, operations, security, and tool
-  workflow links/registry labels while keeping file paths stable. Validation:
-  focused modular boundary guard, docs listing, exact stale workflow-label
-  scan, and diff checks. No migration required; no tool name, schema,
+  workflow links/registry labels plus first-read docs navigation labels while
+  keeping file paths stable. Validation: focused modular boundary guard, docs
+  listing, exact stale workflow-label scan, and diff checks. No migration
+  required; no tool name, schema,
   manifest, IPC channel, JSON-RPC method, runtime code, storage, credential,
   permission, hosted route, provider policy, packaging, or local execution
   behavior changed.

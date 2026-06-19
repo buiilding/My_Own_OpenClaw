@@ -66,7 +66,7 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Debug Hub](../debug/README.md) for logs, diagnostic flags, endpoint/network checks, process health, trace flags, symptom playbooks, and test selection.
 - [Observability Change Workflow](../debug/observability_change_workflow.md) for adding logs, trace flags, metrics, diagnostic events, and evidence collection safely.
-- [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md) for backend exceptions, websocket/HTTP errors, IPC failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs.
+- [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md) for backend exceptions, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs.
 - [Diagnostic Flags](../debug/diagnostic_flags.md) for enabling the narrowest backend, Electron, renderer, sidecar, VM worker, or packaged-app debug signal.
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and local-runtime endpoint drift.
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.

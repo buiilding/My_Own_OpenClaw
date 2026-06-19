@@ -779,6 +779,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md'),
       read('docs/backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md'),
       read('docs/browser/browser_change_workflow.md'),
+      read('docs/debug/README.md'),
       read('docs/README.md'),
       read('docs/frontend/README.md'),
       read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md'),
@@ -800,7 +801,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Registry and Result Contract');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
+    expect(docText).not.toContain('Sidecar Tool Change Workflow');
+    expect(docText).not.toContain('Sidecar Runtime Change Workflow');
     expect(docText).not.toContain('[Sidecar Registry]');
+    expect(docText).not.toContain('sidecar ToolResult failures');
     expect(docText).not.toContain('Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');

@@ -22,7 +22,7 @@ contracts.
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Debug Hub**](debug/README.md) - Logs, diagnostic flags, endpoint/network checks, process health, runtime traces, symptom playbooks, and test selection
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Owner routing for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates
-- [**Error and Failure Change Workflow**](debug/error_failure_change_workflow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs
+- [**Error and Failure Change Workflow**](debug/error_failure_change_workflow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
@@ -76,7 +76,7 @@ contracts.
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Sidecar process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
 - [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for Electron-to-sidecar JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
-- [**Sidecar Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, renderer execution, Electron bridge, and Python sidecar
+- [**Local-Runtime Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and Python sidecar implementation
 - [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
 - [**Backend LLM Provider Hub**](backend/llm/providers/README.md) - Base provider contract and provider-specific runtime docs for cloud/local integrations
 
@@ -212,7 +212,7 @@ contracts.
 - [**Frontend App Startup + Onboarding Workflow**](frontend/renderer/app_startup_onboarding_change_workflow.md) - Change workflow for renderer root selection, VM mode, permission onboarding, wakeword placement, and startup surface handoff
 - [**Main Process Change Workflow**](frontend/main/main_process_change_workflow.md) - Owner routing for Electron startup, IPC, windows, overlays, endpoints, permissions, local-runtime bridge, wakeword, and VM worker behavior
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Change workflow for SDK local-runtime process launch, readiness, status propagation, JSON-RPC request correlation, and packaged runtime failures
-- [**Sidecar Runtime Change Workflow**](frontend/sidecar/sidecar_runtime_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior
+- [**Local-Runtime Python Implementation Change Workflow**](frontend/sidecar/sidecar_runtime_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior behind the local-runtime boundary
 - [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Change workflow for sidecar method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors
 - [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes
 - [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for main/preload/renderer/sidecar/landing scope decisions
