@@ -263,6 +263,12 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('manifestStatus.rejected');
     expect(source).not.toContain('(tool) => [tool.name, tool]');
     expect(source).not.toContain('rejectedTool.reason');
+    expect(source).not.toContain('plugin.permissions');
+    expect(source).not.toContain('plugin.settings_panels');
+    expect(source).not.toContain('plugin.tools');
+    expect(source).not.toContain('plugin.config_schema');
+    expect(source).not.toContain('permission.reason');
+    expect(source).not.toContain('panel.description');
     expect(source).not.toContain('.find((tool) => tool.name === toolName)');
     expect(source).not.toContain("event?.type === 'client-tool-manifest'");
     expect(source).not.toContain("event?.type === 'remote-tool-catalog'");
@@ -271,6 +277,7 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('DesktopExtensionRuntimeClient.getRemoteToolPresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolManifestPresentation');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getPluginRuntimePresentation');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');
     expect(source).toContain('EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(source).toContain('EMPTY_AGENT_REMOTE_TOOL_CATALOG');
@@ -281,9 +288,11 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).toContain('getAgentRemoteToolPresentation');
     expect(clientSource).toContain('getAgentExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getAgentLocalToolManifestPresentation');
+    expect(clientSource).toContain('getAgentPluginRuntimePresentation');
     expect(clientSource).toContain('getRemoteToolPresentation');
     expect(clientSource).toContain('getExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getLocalToolManifestPresentation');
+    expect(clientSource).toContain('getPluginRuntimePresentation');
     expect(clientSource).toContain('onAgentCapabilityEvent');
     expect(clientSource).toContain('onAgentCapabilityUpdate');
     expect(clientSource).toContain('manifestStatus');
@@ -307,6 +316,7 @@ describe('renderer settings runtime boundary', () => {
     );
 
     expect(source).toContain('DesktopMcpRuntimeClient.getMcpServerPresentation');
+    expect(source).toContain('DesktopMcpRuntimeClient.getMcpRegistryErrorPresentation');
     expect(source).not.toContain('server.status?.label');
     expect(source).not.toContain('server.status?.state');
     expect(source).not.toContain('server.status?.reason');
@@ -317,7 +327,11 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('server.extension_id');
     expect(source).not.toContain('server.mcp_id');
     expect(source).not.toContain('server.id');
+    expect(source).not.toContain('registryError.kind');
+    expect(source).not.toContain('registryError.id');
+    expect(source).not.toContain('registryError.reason');
     expect(clientSource).toContain('getDesktopMcpServerPresentation');
+    expect(clientSource).toContain('getDesktopMcpRegistryErrorPresentation');
     expect(clientSource).toContain('statusClassName');
     expect(clientSource).toContain('debugSpec');
   });

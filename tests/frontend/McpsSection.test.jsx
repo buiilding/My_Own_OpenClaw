@@ -108,4 +108,20 @@ describe('McpsSection', () => {
 
     expect(await screen.findByText('Missing MCP server id.')).toBeInTheDocument();
   });
+
+  test('shows registry errors through runtime presentation values', async () => {
+    mockInvoke.mockResolvedValueOnce({
+      ...registry(),
+      mcps: [],
+      errors: [{
+        kind: 'mcp',
+        id: 'broken-memory',
+        reason: 'spawn failed',
+      }],
+    });
+
+    render(<McpsSection />);
+
+    expect(await screen.findByText('mcp broken-memory: spawn failed')).toBeInTheDocument();
+  });
 });

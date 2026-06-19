@@ -17,6 +17,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopMcpRuntimeClient,
+  getDesktopMcpRegistryErrorPresentation,
   getDesktopMcpServerPresentation,
   normalizeDesktopMcpEnablementResult,
   normalizeDesktopMcpRegistry,
@@ -141,6 +142,21 @@ describe('DesktopMcpRuntimeClient', () => {
       statusClassName: 'clone-settings-tool-status',
       statusText: 'cua-driver',
     }));
+  });
+
+  test('builds MCP registry error presentation values at the runtime boundary', () => {
+    expect(getDesktopMcpRegistryErrorPresentation({
+      kind: 'mcp',
+      id: 'memory',
+      reason: 'spawn failed',
+    })).toEqual({
+      key: 'mcp-memory-spawn failed',
+      text: 'mcp memory: spawn failed',
+    });
+    expect(DesktopMcpRuntimeClient.getMcpRegistryErrorPresentation(null)).toEqual({
+      key: 'extension-unknown-',
+      text: 'extension unknown',
+    });
   });
 
   test('list, refresh, and enablement commands return normalized payloads', async () => {

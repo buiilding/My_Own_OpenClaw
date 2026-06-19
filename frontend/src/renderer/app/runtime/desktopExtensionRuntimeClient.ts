@@ -37,6 +37,22 @@ export type AgentLocalToolManifestPresentation = {
   status: 'accepted' | 'rejected' | 'pending';
 };
 
+export type AgentPluginRuntimeTextItemPresentation = {
+  key: string;
+  text: string;
+};
+
+export type AgentPluginRuntimePresentation = {
+  debugSpec: Record<string, unknown>;
+  description: string;
+  displayName: string;
+  key: string;
+  permissions: AgentPluginRuntimeTextItemPresentation[];
+  settingsPanelCount: number;
+  settingsPanels: AgentPluginRuntimeTextItemPresentation[];
+  toolCount: number;
+};
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -203,6 +219,51 @@ export function getAgentLocalToolManifestPresentation(
   };
 }
 
+export function getAgentPluginRuntimePresentation(
+  plugin: unknown,
+): AgentPluginRuntimePresentation {
+  const source = recordOrEmpty(plugin);
+  const id = stringOrEmpty(source.id) || 'unknown-plugin';
+  const tools = Array.isArray(source.tools) ? source.tools.map(recordOrEmpty) : [];
+  const settingsPanels = Array.isArray(source.settings_panels)
+    ? source.settings_panels.map(recordOrEmpty)
+    : [];
+  const permissions = Array.isArray(source.permissions)
+    ? source.permissions.map(recordOrEmpty)
+    : [];
+
+  return {
+    debugSpec: {
+      id,
+      version: stringOrEmpty(source.version) || null,
+      tools: tools.map((tool) => stringOrEmpty(tool.name)),
+      config_schema: recordOrEmpty(source.config_schema),
+    },
+    description: stringOrEmpty(source.description),
+    displayName: stringOrEmpty(source.name) || id,
+    key: `plugin:${id}`,
+    permissions: permissions.map((permission, index) => {
+      const permissionId = stringOrEmpty(permission.id) || `permission-${index}`;
+      const reason = stringOrEmpty(permission.reason);
+      return {
+        key: permissionId,
+        text: reason ? `${permissionId}: ${reason}` : permissionId,
+      };
+    }),
+    settingsPanelCount: settingsPanels.length,
+    settingsPanels: settingsPanels.map((panel, index) => {
+      const panelId = stringOrEmpty(panel.id) || `settings-panel-${index}`;
+      const title = stringOrEmpty(panel.title) || panelId;
+      const description = stringOrEmpty(panel.description);
+      return {
+        key: panelId,
+        text: description ? `${title}: ${description}` : title,
+      };
+    }),
+    toolCount: tools.length,
+  };
+}
+
 export const DesktopExtensionRuntimeClient = {
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
@@ -245,5 +306,11 @@ export const DesktopExtensionRuntimeClient = {
     toolName: unknown,
   ): AgentLocalToolManifestPresentation {
     return getAgentLocalToolManifestPresentation(manifestStatus, toolName);
+  },
+
+  getPluginRuntimePresentation(
+    plugin: unknown,
+  ): AgentPluginRuntimePresentation {
+    return getAgentPluginRuntimePresentation(plugin);
   },
 };

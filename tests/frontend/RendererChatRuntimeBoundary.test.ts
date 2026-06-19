@@ -501,13 +501,18 @@ describe('renderer chat runtime boundary', () => {
     expect(sectionSource).not.toContain('payload.ok');
     expect(sectionSource).not.toContain('payload.errorMessage');
     expect(sectionSource).not.toContain('payload.registry');
+    expect(sectionSource).not.toContain('registryError.kind');
+    expect(sectionSource).not.toContain('registryError.id');
+    expect(sectionSource).not.toContain('registryError.reason');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.listMcpServers');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.refreshMcpServers');
     expect(sectionSource).toContain('DesktopMcpRuntimeClient.setMcpServerEnabled');
+    expect(sectionSource).toContain('DesktopMcpRuntimeClient.getMcpRegistryErrorPresentation');
     expect(sectionSource).toContain('EMPTY_DESKTOP_MCP_REGISTRY');
     expect(clientSource).toContain('normalizeDesktopMcpRegistry');
     expect(clientSource).toContain('normalizeDesktopMcpEnablementResult');
     expect(clientSource).toContain('resolveDesktopMcpEnablementRegistry');
+    expect(clientSource).toContain('getDesktopMcpRegistryErrorPresentation');
     expect(clientSource).toContain('errorMessage');
     expect(clientSource).toContain('mcp_errors');
     expect(clientSource).toContain('enabled_mcp_servers');

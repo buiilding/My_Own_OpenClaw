@@ -33,6 +33,11 @@ export type DesktopMcpServerPresentation = {
   debugSpec: Record<string, unknown>;
 };
 
+export type DesktopMcpRegistryErrorPresentation = {
+  key: string;
+  text: string;
+};
+
 export const EMPTY_DESKTOP_MCP_REGISTRY: DesktopMcpRegistry = {
   mcps: [],
   errors: [],
@@ -127,6 +132,19 @@ export function getDesktopMcpServerPresentation(server: unknown): DesktopMcpServ
   };
 }
 
+export function getDesktopMcpRegistryErrorPresentation(
+  registryError: unknown,
+): DesktopMcpRegistryErrorPresentation {
+  const source = recordOrEmpty(registryError);
+  const kind = firstText(source.kind) || 'extension';
+  const id = firstText(source.id) || 'unknown';
+  const reason = firstText(source.reason);
+  return {
+    key: `${kind}-${id}-${reason}`,
+    text: reason ? `${kind} ${id}: ${reason}` : `${kind} ${id}`,
+  };
+}
+
 export const DesktopMcpRuntimeClient = {
   async listMcpServers(): Promise<DesktopMcpRegistry> {
     return normalizeDesktopMcpRegistry(await IpcBridge.invoke(INVOKE_CHANNELS.LIST_MCP_SERVERS));
@@ -144,5 +162,11 @@ export const DesktopMcpRuntimeClient = {
 
   getMcpServerPresentation(server: unknown): DesktopMcpServerPresentation {
     return getDesktopMcpServerPresentation(server);
+  },
+
+  getMcpRegistryErrorPresentation(
+    registryError: unknown,
+  ): DesktopMcpRegistryErrorPresentation {
+    return getDesktopMcpRegistryErrorPresentation(registryError);
   },
 };

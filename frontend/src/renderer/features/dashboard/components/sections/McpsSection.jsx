@@ -130,14 +130,17 @@ function McpsSection({ onClose = () => {} }) {
           </div>
         )}
 
-        {registry.errors.length > 0 ? registry.errors.map((registryError) => (
-          <p
-            key={`${registryError.kind || 'extension'}-${registryError.id || 'unknown'}-${registryError.reason}`}
-            className="clone-settings-tool-status clone-settings-tool-status-error"
-          >
-            {registryError.kind || 'extension'} {registryError.id || 'unknown'}: {registryError.reason}
-          </p>
-        )) : null}
+        {registry.errors.length > 0 ? registry.errors.map((registryError) => {
+          const presentation = DesktopMcpRuntimeClient.getMcpRegistryErrorPresentation(registryError);
+          return (
+            <p
+              key={presentation.key}
+              className="clone-settings-tool-status clone-settings-tool-status-error"
+            >
+              {presentation.text}
+            </p>
+          );
+        }) : null}
       </div>
     </div>
   );

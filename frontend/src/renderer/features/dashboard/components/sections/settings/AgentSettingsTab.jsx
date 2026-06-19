@@ -83,15 +83,20 @@ function AgentSettingsTab({ config, onConfigChange }) {
           <p>{agentSettingsSkin.extensions.description}</p>
         </div>
         <div className="clone-settings-layer-list">
-          {extensionRuntime.plugins.length > 0 ? extensionRuntime.plugins.map((plugin) => (
-            <details key={`plugin:${plugin.id}`} className="clone-settings-schema-viewer">
-              <summary>
-                {plugin.name || plugin.id}
-                <small>{plugin.tools?.length || 0} tools / {plugin.settings_panels?.length || 0} panels</small>
-              </summary>
-              <PluginRuntimeDetails plugin={plugin} />
-            </details>
-          )) : (
+          {extensionRuntime.plugins.length > 0 ? extensionRuntime.plugins.map((plugin) => {
+            const presentation = DesktopExtensionRuntimeClient.getPluginRuntimePresentation(plugin);
+            return (
+              <details key={presentation.key} className="clone-settings-schema-viewer">
+                <summary>
+                  {presentation.displayName}
+                  <small>
+                    {presentation.toolCount} tools / {presentation.settingsPanelCount} panels
+                  </small>
+                </summary>
+                <PluginRuntimeDetails presentation={presentation} />
+              </details>
+            );
+          }) : (
             <p className="clone-settings-tool-status">{agentSettingsSkin.extensions.emptyPlugins}</p>
           )}
           {extensionRuntime.skills.length > 0 ? (
@@ -203,42 +208,33 @@ function AgentSettingsTab({ config, onConfigChange }) {
   );
 }
 
-function PluginRuntimeDetails({ plugin }) {
+function PluginRuntimeDetails({ presentation }) {
   return (
     <div className="clone-settings-extension-detail">
-      {plugin.description ? (
-        <p className="clone-settings-tool-status">{plugin.description}</p>
+      {presentation.description ? (
+        <p className="clone-settings-tool-status">{presentation.description}</p>
       ) : null}
-      {Array.isArray(plugin.permissions) && plugin.permissions.length > 0 ? (
+      {presentation.permissions.length > 0 ? (
         <div>
           <strong>Permissions</strong>
           <ul>
-            {plugin.permissions.map((permission) => (
-              <li key={permission.id}>
-                {permission.id}{permission.reason ? `: ${permission.reason}` : ''}
-              </li>
+            {presentation.permissions.map((permission) => (
+              <li key={permission.key}>{permission.text}</li>
             ))}
           </ul>
         </div>
       ) : null}
-      {Array.isArray(plugin.settings_panels) && plugin.settings_panels.length > 0 ? (
+      {presentation.settingsPanels.length > 0 ? (
         <div>
           <strong>Settings panels</strong>
           <ul>
-            {plugin.settings_panels.map((panel) => (
-              <li key={panel.id}>
-                {panel.title}{panel.description ? `: ${panel.description}` : ''}
-              </li>
+            {presentation.settingsPanels.map((panel) => (
+              <li key={panel.key}>{panel.text}</li>
             ))}
           </ul>
         </div>
       ) : null}
-      <pre>{JSON.stringify({
-        id: plugin.id,
-        version: plugin.version || null,
-        tools: (plugin.tools || []).map((tool) => tool.name),
-        config_schema: plugin.config_schema || {},
-      }, null, 2)}</pre>
+      <pre>{JSON.stringify(presentation.debugSpec, null, 2)}</pre>
     </div>
   );
 }
@@ -284,24 +280,17 @@ ToolAcceptanceStatus.propTypes = {
 };
 
 PluginRuntimeDetails.propTypes = {
-  plugin: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
+  presentation: PropTypes.shape({
+    debugSpec: PropTypes.object.isRequired,
     description: PropTypes.string,
-    version: PropTypes.string,
     permissions: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      reason: PropTypes.string,
-    })),
-    settings_panels: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      title: PropTypes.string,
-      description: PropTypes.string,
-    })),
-    tools: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string,
-    })),
-    config_schema: PropTypes.object,
+      key: PropTypes.string.isRequired,
+      text: PropTypes.string.isRequired,
+    })).isRequired,
+    settingsPanels: PropTypes.arrayOf(PropTypes.shape({
+      key: PropTypes.string.isRequired,
+      text: PropTypes.string.isRequired,
+    })).isRequired,
   }).isRequired,
 };
 

@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/mcp: move MCP registry error presentation into
+  `desktopMcpRuntimeClient` so `McpsSection` no longer formats raw registry
+  error `kind`/`id`/`reason` fields while rendering MCP diagnostics. No
+  migration required.
+- renderer/extensions: move plugin metadata presentation into
+  `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer reads raw
+  plugin permission, settings-panel, tool, or config-schema fields while
+  rendering extension diagnostics. No migration required.
 - renderer/extensions: move local tool manifest presentation lookup into
   `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer builds
   accepted/rejected tool maps from raw manifest arrays before rendering local

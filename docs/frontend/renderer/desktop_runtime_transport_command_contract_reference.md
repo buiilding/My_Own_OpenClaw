@@ -279,10 +279,11 @@ subscriptions to this client.
 enablement commands, MCP registry payload normalization, enablement result
 normalization, registry-or-error projection, and MCP server card/status
 presentation values such as display name, enablement id, enabled state, status
-label/class/text, and debug spec. The MCP dashboard section owns rendering,
-load/refresh/toggle state, and error display while consuming normalized
-registries, presentation values, and runtime-thrown enablement errors from this
-client.
+label/class/text, debug spec, and registry error key/text values. The MCP
+dashboard section owns rendering, load/refresh/toggle state, and error display
+while consuming normalized registries, presentation values, and runtime-thrown
+enablement errors from this client instead of formatting raw registry error
+fields.
 
 `desktopExtensionRuntimeClient.ts` owns extension metadata loading, extension
 runtime payload normalization, and agent capability event fan-out/type
@@ -290,12 +291,14 @@ classification into normalized `manifestStatus` and `remoteToolCatalog` fields
 plus direct manifest/catalog update callbacks and remote-tool catalog
 availability presentation plus extension runtime error presentation for
 settings UI. It also owns local-tool manifest presentation lookup from
-accepted/rejected manifest entries. Agent settings owns extension/tool layout,
-tool toggle config patches, and manifest/catalog display state while delegating
-the desktop event, metadata channels, remote-tool availability field
-interpretation, extension diagnostic error formatting, and local-tool manifest
-status lookup to this client instead of reading normalized event, catalog,
-manifest, or error fields.
+accepted/rejected manifest entries and plugin metadata presentation for
+extension details. Agent settings owns extension/tool layout, tool toggle
+config patches, and manifest/catalog display state while delegating the desktop
+event, metadata channels, remote-tool availability field interpretation,
+extension diagnostic error formatting, local-tool manifest status lookup, and
+plugin permission/settings-panel/tool/config-schema display projection to this
+client instead of reading normalized event, catalog, manifest, plugin, or error
+fields.
 
 `desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
 shared React hook helpers such as `useLatestRef`. App providers and feature

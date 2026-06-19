@@ -174,6 +174,45 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Agent Plugin Metadata Presentation Boundary
+
+- Finding: `DesktopExtensionRuntimeClient` owned extension metadata loading and
+  settings presentation helpers, but `AgentSettingsTab` still read raw plugin
+  permission, settings-panel, tool, and config-schema fields while rendering
+  plugin diagnostics.
+- Change: added plugin metadata presentation to
+  `DesktopExtensionRuntimeClient`. Agent settings now keeps extension layout
+  while rendering runtime-provided plugin names, counts, permission/panel text,
+  and debug spec values.
+- Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw plugin metadata-field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Extension runtime payload shape, plugin
+  names/descriptions/counts for normal entries, settings diagnostics, extension
+  metadata display, capability event channels, tool-toggle config keys,
+  settings storage, IPC channels, provider policy, hosted URLs, permissions,
+  credentials, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer MCP Registry Error Presentation Boundary
+
+- Finding: `desktopMcpRuntimeClient` owned MCP registry normalization,
+  registry-or-error projection, and MCP card presentation, but `McpsSection`
+  still formatted raw registry error `kind`, `id`, and `reason` fields while
+  rendering MCP diagnostics.
+- Change: added MCP registry error presentation to
+  `desktopMcpRuntimeClient`. `McpsSection` now keeps diagnostics layout while
+  rendering runtime-provided registry error key/text values.
+- Validation: passed focused desktop MCP runtime client, MCP dashboard section,
+  renderer chat runtime boundary, renderer settings boundary, and docs-index
+  tests plus docs search, related commit search, stale raw MCP registry-error
+  field scan, docs listing, and diff checks.
+- Compatibility: no migration required. MCP registry payload shape,
+  diagnostic text for normal registry error entries, enablement persistence,
+  discovery refresh behavior, IPC channels, storage, provider policy, hosted
+  URLs, permissions, credentials, and local-runtime MCP execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Agent Local Tool Manifest Presentation Boundary
 
 - Finding: `DesktopExtensionRuntimeClient` owned agent manifest normalization

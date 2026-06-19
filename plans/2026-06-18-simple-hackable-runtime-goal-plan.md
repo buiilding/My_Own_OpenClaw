@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved agent plugin metadata presentation into
+  `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps extension
+  layout while rendering runtime-provided plugin names, counts,
+  permission/panel text, and debug spec values instead of reading raw plugin
+  permission, settings-panel, tool, and config-schema fields. Validation passed
+  focused desktop extension runtime client, agent settings, renderer settings
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  raw plugin metadata-field scan, docs listing, and diff checks. No migration
+  required; extension runtime payload shape, plugin names/descriptions/counts
+  for normal entries, settings diagnostics, extension metadata display,
+  capability event channels, tool-toggle config keys, settings storage, IPC
+  channels, provider policy, hosted URLs, permissions, credentials, and local
+  execution behavior are unchanged.
+
+- 2026-06-19: moved MCP registry error presentation into
+  `desktopMcpRuntimeClient`. `McpsSection` now keeps diagnostics layout while
+  rendering runtime-provided registry error key/text values instead of
+  formatting raw `kind`, `id`, and `reason` fields. Validation passed focused
+  desktop MCP runtime client, MCP dashboard section, renderer chat runtime
+  boundary, renderer settings boundary, and docs-index tests plus docs search,
+  related commit search, stale raw MCP registry-error field scan, docs listing,
+  and diff checks. No migration required; MCP registry payload shape,
+  diagnostic text for normal registry error entries, enablement persistence,
+  discovery refresh behavior, IPC channels, storage, provider policy, hosted
+  URLs, permissions, credentials, and local-runtime MCP execution behavior are
+  unchanged.
+
 - 2026-06-19: moved agent local-tool manifest presentation lookup into
   `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps local tool
   layout and toggle config patches while consuming runtime-provided

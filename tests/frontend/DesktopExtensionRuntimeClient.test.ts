@@ -27,6 +27,7 @@ import {
   DesktopExtensionRuntimeClient,
   getAgentExtensionRuntimeErrorPresentation,
   getAgentLocalToolManifestPresentation,
+  getAgentPluginRuntimePresentation,
   getAgentRemoteToolPresentation,
   normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
@@ -280,6 +281,59 @@ describe('DesktopExtensionRuntimeClient', () => {
       acceptedTool: null,
       rejectedReason: '',
       status: 'pending',
+    });
+  });
+
+  test('builds plugin runtime presentation from raw plugin metadata', () => {
+    expect(getAgentPluginRuntimePresentation({
+      id: 'notes',
+      name: 'Notes',
+      description: 'Adds note workflows.',
+      version: '1.2.3',
+      permissions: [{ id: 'filesystem', reason: 'Read local notes' }],
+      settings_panels: [{
+        id: 'extension:plugin:notes:settings:main',
+        title: 'Notes settings',
+        description: 'Configure note sync',
+      }],
+      tools: [{ name: 'save_note' }],
+      config_schema: { type: 'object' },
+    })).toEqual({
+      debugSpec: {
+        id: 'notes',
+        version: '1.2.3',
+        tools: ['save_note'],
+        config_schema: { type: 'object' },
+      },
+      description: 'Adds note workflows.',
+      displayName: 'Notes',
+      key: 'plugin:notes',
+      permissions: [{
+        key: 'filesystem',
+        text: 'filesystem: Read local notes',
+      }],
+      settingsPanelCount: 1,
+      settingsPanels: [{
+        key: 'extension:plugin:notes:settings:main',
+        text: 'Notes settings: Configure note sync',
+      }],
+      toolCount: 1,
+    });
+
+    expect(DesktopExtensionRuntimeClient.getPluginRuntimePresentation(null)).toEqual({
+      debugSpec: {
+        id: 'unknown-plugin',
+        version: null,
+        tools: [],
+        config_schema: {},
+      },
+      description: '',
+      displayName: 'unknown-plugin',
+      key: 'plugin:unknown-plugin',
+      permissions: [],
+      settingsPanelCount: 0,
+      settingsPanels: [],
+      toolCount: 0,
     });
   });
 });
