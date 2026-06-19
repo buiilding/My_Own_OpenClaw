@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer transparency content presentation boundary
+  slice by adding transparency content presentation and clipboard serialization
+  helpers to `desktopMessageTransparencyRuntime`. `TransparencySection` now
+  keeps expand/copy UI and metadata rendering without branching on raw
+  `json` / `system-prompt` / `xml` transparency type strings. Validation:
+  passed focused message transparency runtime, transparency sections, renderer
+  chat runtime boundary, and docs-index tests plus docs search, related commit
+  search, stale raw type-branch scans, docs listing, and diff checks. No
+  migration required; transparency
+  section order, keys, titles, `type` values, metadata display,
+  collapsed/expanded UI behavior, copy behavior, CSS class names, IPC, storage,
+  settings, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+- 2026-06-19: completed a renderer agent capability update value boundary
+  slice by adding `resolveAgentCapabilityUpdate(...)` and
+  `DesktopExtensionRuntimeClient.onAgentCapabilityUpdate(...)` so the
+  extension runtime client emits direct manifest/catalog update values.
+  `AgentSettingsTab` keeps extension/tool presentation, display state, and
+  config patch policy without reading normalized agent capability event fields.
+  Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings runtime boundary, and docs-index tests plus docs search,
+  related commit search, stale capability event-field scans, docs listing, and
+  diff checks. No migration required;
+  agent capability event channels, normalized full event subscriptions,
+  extension metadata loading, manifest/catalog payload shapes, tool toggle
+  config keys, IPC, storage, settings, credentials, permissions, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer chatbox visual-anchor value boundary slice
   by adding `buildChatboxVisualAnchorHeightPayload(...)` and
   `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`. Minimal

@@ -989,6 +989,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'components/message/MessageTransparencySections.jsx'),
       'utf8',
     );
+    const transparencySectionSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/TransparencySection.jsx'),
+      'utf8',
+    );
     const overlaySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
       'utf8',
@@ -1002,8 +1006,15 @@ describe('renderer chat runtime boundary', () => {
       expect(source).toContain('desktopMessageTransparencyRuntime');
       expect(source).not.toContain('utils/message/messageTransparency');
     }
+    expect(transparencySectionSource).toContain('desktopMessageTransparencyRuntime');
+    expect(transparencySectionSource).toContain('resolveTransparencySectionContentPresentation');
+    expect(transparencySectionSource).toContain('serializeTransparencySectionContent');
+    expect(transparencySectionSource).not.toContain("type === 'json'");
+    expect(transparencySectionSource).not.toContain("type === 'system-prompt'");
+    expect(transparencySectionSource).not.toContain("type === 'xml'");
     expect(transparencyRuntimeSource).toContain('desktopChatMessageRuntimeClient');
     expect(transparencyRuntimeSource).toContain('normalizeToolSchemaList');
+    expect(transparencyRuntimeSource).toContain('resolveTransparencySectionContentPresentation');
     expect(transparencyRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageTransparency.js'),

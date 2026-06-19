@@ -129,13 +129,13 @@ the app root applies the effective theme to shared dashboard/settings tokens.
 Runtime inputs:
 
 - `DesktopExtensionRuntimeClient.listAgentExtensions()`
-- `DesktopExtensionRuntimeClient.onAgentCapabilityEvent(...)`
+- `DesktopExtensionRuntimeClient.onAgentCapabilityUpdate(...)`
 
 The tab should not import desktop IPC channels directly or branch on raw agent
-capability event type strings. It consumes extension metadata plus normalized
-`manifestStatus` and `remoteToolCatalog` fields through the runtime client,
-then keeps presentation state, tool-toggle projection, and config patches local
-to the settings surface.
+capability event type strings. It consumes extension metadata plus direct
+manifest/catalog update values through the runtime client, then keeps
+presentation state, tool-toggle projection, and config patches local to the
+settings surface.
 
 ## Memory Tab Ownership Model
 

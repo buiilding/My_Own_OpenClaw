@@ -5,6 +5,8 @@
 import {
   buildTransparencySectionConfigs,
   resolveConversationToolSchemas,
+  resolveTransparencySectionContentPresentation,
+  serializeTransparencySectionContent,
 } from '../../frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime';
 
 describe('desktopMessageTransparencyRuntime', () => {
@@ -127,5 +129,34 @@ describe('desktopMessageTransparencyRuntime', () => {
       { sender: 'assistant', text: 'reply' },
       { sender: 'user', systemPrompt: { toolSchemas: newToolSchemas } },
     ])).toEqual(newToolSchemas);
+  });
+
+  test('resolves transparency content presentation by section type', () => {
+    expect(resolveTransparencySectionContentPresentation(null, 'json')).toEqual({
+      className: 'transparency-content-text',
+      text: 'No content available',
+    });
+    expect(resolveTransparencySectionContentPresentation('{"tool":"read_file"}', 'json')).toEqual({
+      className: 'transparency-content-json',
+      text: JSON.stringify({ tool: 'read_file' }, null, 2),
+    });
+    expect(resolveTransparencySectionContentPresentation({ prompt: true }, 'system-prompt')).toEqual({
+      className: 'transparency-content-json',
+      text: JSON.stringify({ prompt: true }, null, 2),
+    });
+    expect(resolveTransparencySectionContentPresentation('{not json', 'json')).toEqual({
+      className: 'transparency-content-text',
+      text: '{not json',
+    });
+    expect(resolveTransparencySectionContentPresentation('<message />', 'xml')).toEqual({
+      className: 'transparency-content-text',
+      text: '<message />',
+    });
+  });
+
+  test('serializes transparency content for clipboard copy', () => {
+    expect(serializeTransparencySectionContent(null)).toBe('');
+    expect(serializeTransparencySectionContent('plain')).toBe('plain');
+    expect(serializeTransparencySectionContent({ a: 1 })).toBe(JSON.stringify({ a: 1 }, null, 2));
   });
 });

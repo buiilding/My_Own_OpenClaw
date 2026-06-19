@@ -240,6 +240,9 @@ stream metadata updates or transparency section rendering.
 - collapsed by default
 - content copy button shown only when expanded
 - null/undefined content renders `"No content available"`
+- content render-mode and clipboard serialization are resolved by
+  `desktopMessageTransparencyRuntime`, so the component renders the runtime
+  presentation model without branching on raw transparency type strings.
 
 Render mode by `type`:
 

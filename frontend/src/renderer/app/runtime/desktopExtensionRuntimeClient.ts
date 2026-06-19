@@ -29,6 +29,11 @@ export type AgentCapabilityEvent = {
 
 export type AgentCapabilityEventListener = (event?: AgentCapabilityEvent) => void;
 
+export type AgentCapabilityUpdateListener = (
+  manifestStatus: AgentToolManifestStatus | null,
+  remoteToolCatalog: AgentRemoteToolCatalog | null,
+) => void;
+
 export const EMPTY_AGENT_EXTENSION_RUNTIME: AgentExtensionRuntimeSnapshot = {
   plugins: [],
   skills: [],
@@ -101,6 +106,17 @@ export function normalizeAgentCapabilityEvent(event: unknown): AgentCapabilityEv
   return type ? { type, payload } : undefined;
 }
 
+export function resolveAgentCapabilityUpdate(event: unknown): {
+  manifestStatus: AgentToolManifestStatus | null;
+  remoteToolCatalog: AgentRemoteToolCatalog | null;
+} {
+  const normalizedEvent = normalizeAgentCapabilityEvent(event);
+  return {
+    manifestStatus: normalizedEvent?.manifestStatus ?? null,
+    remoteToolCatalog: normalizedEvent?.remoteToolCatalog ?? null,
+  };
+}
+
 export const DesktopExtensionRuntimeClient = {
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
@@ -112,6 +128,16 @@ export const DesktopExtensionRuntimeClient = {
     return IpcBridge.on(
       ON_CHANNELS.AGENT_CAPABILITY_EVENT,
       (event?: unknown) => listener(normalizeAgentCapabilityEvent(event)),
+    );
+  },
+
+  onAgentCapabilityUpdate(listener: AgentCapabilityUpdateListener): (() => void) | undefined {
+    return IpcBridge.on(
+      ON_CHANNELS.AGENT_CAPABILITY_EVENT,
+      (event?: unknown) => {
+        const update = resolveAgentCapabilityUpdate(event);
+        listener(update.manifestStatus, update.remoteToolCatalog);
+      },
     );
   },
 };

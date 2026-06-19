@@ -4,40 +4,23 @@
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import {
+  resolveTransparencySectionContentPresentation,
+  serializeTransparencySectionContent,
+} from '../../../../app/runtime/desktopMessageTransparencyRuntime';
 
 function TransparencySection({ title, content, metadata, type = 'text' }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleCopy = () => {
-    if (content == null) return; // Handle null/undefined
-    const textToCopy = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+    if (content == null) return;
+    const textToCopy = serializeTransparencySectionContent(content);
     navigator.clipboard.writeText(textToCopy);
   };
 
   const renderContent = () => {
-    // Handle null/undefined content
-    if (content == null) {
-      return <pre className="transparency-content-text">No content available</pre>;
-    }
-
-    if (type === 'json' || type === 'system-prompt') {
-      try {
-        const jsonContent = typeof content === 'string' ? JSON.parse(content) : content;
-        return (
-          <pre className="transparency-content-json">
-            {JSON.stringify(jsonContent, null, 2)}
-          </pre>
-        );
-      } catch (e) {
-        return <pre className="transparency-content-text">{String(content)}</pre>;
-      }
-    }
-    if (type === 'xml') {
-      // For XML content (like full messages with system_context, memory tags, etc.)
-      // Preserve formatting and show as preformatted text
-      return <pre className="transparency-content-text">{String(content)}</pre>;
-    }
-    return <pre className="transparency-content-text">{String(content)}</pre>;
+    const presentation = resolveTransparencySectionContentPresentation(content, type);
+    return <pre className={presentation.className}>{presentation.text}</pre>;
   };
 
   return (

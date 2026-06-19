@@ -29,6 +29,7 @@ import {
   normalizeAgentExtensionRuntime,
   normalizeAgentRemoteToolCatalog,
   normalizeAgentToolManifestStatus,
+  resolveAgentCapabilityUpdate,
 } from '../../frontend/src/renderer/app/runtime/desktopExtensionRuntimeClient';
 
 describe('DesktopExtensionRuntimeClient', () => {
@@ -142,5 +143,46 @@ describe('DesktopExtensionRuntimeClient', () => {
     unsubscribe?.();
     expect(subscribedListener).toBeNull();
     expect(mockInvoke).toHaveBeenCalledWith('list-agent-extensions');
+  });
+
+  test('capability update subscriptions emit manifest and catalog values directly', () => {
+    expect(resolveAgentCapabilityUpdate({
+      type: 'client-tool-manifest',
+      payload: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [],
+      },
+    })).toEqual({
+      manifestStatus: {
+        accepted: [{ name: 'read_file' }],
+        rejected: [],
+      },
+      remoteToolCatalog: null,
+    });
+
+    const updates: unknown[] = [];
+    const unsubscribe = DesktopExtensionRuntimeClient.onAgentCapabilityUpdate((
+      manifestStatus,
+      remoteToolCatalog,
+    ) => {
+      updates.push({ manifestStatus, remoteToolCatalog });
+    });
+
+    subscribedListener?.({
+      type: 'remote-tool-catalog',
+      payload: {
+        remote_tools: [{ name: 'web_search' }],
+      },
+    });
+
+    expect(updates).toEqual([{
+      manifestStatus: null,
+      remoteToolCatalog: {
+        remote_tools: [{ name: 'web_search' }],
+      },
+    }]);
+
+    unsubscribe?.();
+    expect(subscribedListener).toBeNull();
   });
 });

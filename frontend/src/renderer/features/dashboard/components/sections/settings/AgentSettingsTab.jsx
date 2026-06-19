@@ -53,12 +53,15 @@ function AgentSettingsTab({ config, onConfigChange }) {
         setExtensionRuntime(EMPTY_AGENT_EXTENSION_RUNTIME);
       });
 
-    const removeListener = DesktopExtensionRuntimeClient.onAgentCapabilityEvent((event) => {
-      if (event?.manifestStatus) {
-        setManifestStatus(event.manifestStatus);
+    const removeListener = DesktopExtensionRuntimeClient.onAgentCapabilityUpdate((
+      nextManifestStatus,
+      nextRemoteToolCatalog,
+    ) => {
+      if (nextManifestStatus) {
+        setManifestStatus(nextManifestStatus);
       }
-      if (event?.remoteToolCatalog) {
-        setRemoteToolCatalog(event.remoteToolCatalog);
+      if (nextRemoteToolCatalog) {
+        setRemoteToolCatalog(nextRemoteToolCatalog);
       }
     });
     return removeListener;

@@ -27,9 +27,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move transparency section content render-mode and clipboard
+  serialization rules into `desktopMessageTransparencyRuntime` so
+  `TransparencySection` no longer branches on raw transparency type strings. No
+  migration required.
 - renderer/runtime: expose chatbox visual-anchor height reporting as a
   value-level window runtime client call so the minimal chat pill no longer
   assembles `height`/`frameHeight` IPC payload objects. No migration required.
+- renderer/runtime: expose agent capability manifest/catalog updates as direct
+  extension runtime client callback values so `AgentSettingsTab` no longer
+  reads normalized event fields. No migration required.
 - renderer/runtime: expose active workspace selection and granted workspace
   requests as value-level runtime client results so `ChatInterface` and
   `WorkspaceSettingsTab` no longer read normalized workspace payload/result

@@ -78,3 +78,39 @@ export function buildTransparencySectionConfigs(message, options = {}) {
 
   return sections;
 }
+
+export function serializeTransparencySectionContent(content) {
+  if (content == null) {
+    return '';
+  }
+  return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+}
+
+export function resolveTransparencySectionContentPresentation(content, type = 'text') {
+  if (content == null) {
+    return {
+      className: 'transparency-content-text',
+      text: 'No content available',
+    };
+  }
+
+  if (type === 'json' || type === 'system-prompt') {
+    try {
+      const jsonContent = typeof content === 'string' ? JSON.parse(content) : content;
+      return {
+        className: 'transparency-content-json',
+        text: JSON.stringify(jsonContent, null, 2),
+      };
+    } catch (_error) {
+      return {
+        className: 'transparency-content-text',
+        text: String(content),
+      };
+    }
+  }
+
+  return {
+    className: 'transparency-content-text',
+    text: String(content),
+  };
+}

@@ -174,6 +174,45 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Transparency Content Presentation Boundary
+
+- Finding: `desktopMessageTransparencyRuntime` already owned transparency
+  section descriptors, but `TransparencySection` still branched on raw
+  `json` / `system-prompt` / `xml` type strings to choose render class,
+  string formatting, and JSON pretty-print fallbacks.
+- Change: added transparency content presentation and clipboard serialization
+  helpers to `desktopMessageTransparencyRuntime`. `TransparencySection` now
+  keeps expand/copy UI and metadata rendering while consuming a runtime
+  presentation model for content text and CSS class.
+- Validation: passed focused message transparency runtime, transparency
+  sections, renderer chat runtime boundary, and docs-index tests plus docs
+  search, related commit search, stale raw type-branch scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Transparency section order, keys,
+  titles, `type` values, metadata display, collapsed/expanded UI behavior,
+  copy behavior, CSS class names, IPC, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
+### 2026-06-19 Renderer Agent Capability Update Value Boundary
+
+- Finding: `desktopExtensionRuntimeClient` normalized agent capability events,
+  but `AgentSettingsTab` still received normalized event objects and read
+  `manifestStatus` / `remoteToolCatalog` fields locally.
+- Change: added `resolveAgentCapabilityUpdate(...)` and
+  `DesktopExtensionRuntimeClient.onAgentCapabilityUpdate(...)` so the runtime
+  client emits direct manifest/catalog update values. Agent settings keeps
+  extension/tool presentation, display state, and config patch policy.
+- Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings runtime boundary, and docs-index tests plus docs search,
+  related commit search, stale capability event-field scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Agent capability event channel names,
+  normalized full event subscription behavior, extension metadata loading,
+  manifest/catalog payload shapes, tool toggle config keys, IPC, storage,
+  settings, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Chatbox Visual Anchor Value Boundary
 
 - Finding: the minimal chat pill measured visual-anchor and native-frame sizes,
