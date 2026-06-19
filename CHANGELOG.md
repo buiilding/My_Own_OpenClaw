@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move compaction failure error text normalization behind
+  the chat stream payload runtime facade. No migration required.
 - renderer/runtime: normalize local-user stream message text aliases in the
   chat stream payload runtime before local-user handlers consume them. No
   migration required.

@@ -11,6 +11,7 @@ import {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
   hasCompactionReplacementHistoryEntries,
+  resolveCompactionErrorText,
   resolveCompactionSkippedReason,
   resolveCompactionUserId,
 } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
@@ -72,10 +73,6 @@ function isCompactionEvent(
   expectedType: CompactionEventType,
 ): event is CompactionConversationEvent {
   return event.type === expectedType;
-}
-
-function optionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
 async function persistCompactedReplaySnapshot(
@@ -178,7 +175,7 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    const errorText = optionalString(event.payload.error) ?? '';
+    const errorText = resolveCompactionErrorText(event.payload);
     setThinkingStatusRef.current(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-failed', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);

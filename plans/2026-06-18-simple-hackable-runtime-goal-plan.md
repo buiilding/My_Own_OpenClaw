@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer compaction failure error payload runtime
+  slice by moving `compaction_failed` error-text normalization from
+  `useChatStreamCompactionHandlers` into `desktopChatStreamEventPayloadRuntime`
+  as `resolveCompactionErrorText(...)`. The compaction hook keeps lifecycle
+  state, debug state, replay persistence, and tracking side effects. Validation:
+  focused chat stream payload runtime and renderer chat runtime boundary tests,
+  stale compaction error payload scan, docs listing, and diff checks. No
+  migration required; `compaction_failed` event payloads, compaction
+  thinking-status behavior, replay persistence, tracking events, IPC, storage,
+  credentials, provider-policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer local-user stream payload runtime slice by
   moving `user_message` text/content alias normalization into
   `desktopChatStreamEventPayloadRuntime`. `useChatStreamLocalUserHandler` now

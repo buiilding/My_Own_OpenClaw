@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Compaction Failure Error Payload Runtime Boundary
+
+- Finding: `useChatStreamCompactionHandlers` still read
+  `event.payload.error` locally for compaction failure status text while
+  adjacent compaction payload parsing lived in `desktopChatStreamEventPayloadRuntime`.
+- Change: moved compaction failure error-text normalization into
+  `desktopChatStreamEventPayloadRuntime` as `resolveCompactionErrorText(...)`.
+  The compaction hook keeps lifecycle state, debug state, replay persistence,
+  and tracking side effects.
+- Validation: focused chat stream payload runtime and renderer chat runtime
+  boundary tests, stale compaction error payload scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. `compaction_failed` event payloads,
+  compaction thinking-status behavior, replay persistence, tracking events,
+  IPC, storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Local-User Stream Payload Runtime Boundary
 
 - Finding: `useChatStreamLocalUserHandler` consumed SDK `user_message` text

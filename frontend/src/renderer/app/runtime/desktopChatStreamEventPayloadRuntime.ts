@@ -165,6 +165,10 @@ export function resolveCompactionSkippedReason(payload: EventPayload | null | un
     ?? '';
 }
 
+export function resolveCompactionErrorText(payload: EventPayload | null | undefined): string {
+  return optionalString(payload?.error) ?? '';
+}
+
 export function getCompactionReplacementHistoryEntries(
   payload: EventPayload | null | undefined,
 ): JsonRecord[] {

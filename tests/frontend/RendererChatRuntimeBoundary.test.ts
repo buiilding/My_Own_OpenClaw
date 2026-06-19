@@ -294,6 +294,8 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('toolSchemas');
     expect(compactionHookSource).toContain('buildCompactionDebugInfo');
     expect(compactionHookSource).toContain('buildCompactedReplaySnapshot');
+    expect(compactionHookSource).toContain('resolveCompactionErrorText');
+    expect(compactionHookSource).not.toContain('event.payload.error');
     expect(metadataHookSource).toContain('resolveToolSchemasMetadataPayload');
     expect(compactionHookSource).not.toContain('replacement_history_entries');
     expect(compactionHookSource).not.toContain('replacement_history_preview');

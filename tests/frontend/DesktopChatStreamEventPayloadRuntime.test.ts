@@ -9,6 +9,7 @@ import {
   buildTokenCountsFromPayload,
   getCompactionReplacementHistoryEntries,
   resolveErrorText,
+  resolveCompactionErrorText,
   resolveLocalUserMessageText,
   resolveTerminalErrorPayload,
   resolveToolSchemasMetadataPayload,
@@ -157,6 +158,13 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
     expect(getCompactionReplacementHistoryEntries(payload)).toEqual([
       expect.objectContaining({ message_type: 'context_compaction' }),
     ]);
+  });
+
+  test('normalizes compaction failure error text', () => {
+    expect(resolveCompactionErrorText({ error: ' failed to compact ' })).toBe('failed to compact');
+    expect(resolveCompactionErrorText({ error: '' })).toBe('');
+    expect(resolveCompactionErrorText({ error: 7 })).toBe('');
+    expect(resolveCompactionErrorText(undefined)).toBe('');
   });
 
   test('buildCompactedReplaySnapshot creates stable replay snapshots from runtime payload', () => {
