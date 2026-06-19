@@ -1,5 +1,5 @@
 ---
-summary: "Frontend module/file ownership index across Electron main, preload, renderer feature slices, sidecar Python services, browser stack, and landing surface."
+summary: "Frontend module/file ownership index across Electron main, preload, renderer feature slices, local-runtime Python services, browser stack, and landing surface."
 read_when:
   - When onboarding to frontend code and needing quick file-level entry points.
   - When planning a cross-process frontend change and choosing exact files to inspect.
@@ -15,7 +15,7 @@ This index maps frontend functionality to file ownership.
 | Surface | Files |
 | --- | ---: |
 | Main process (`frontend/src/main`, `.cjs`/`.js`) | 58 |
-| Sidecar Python (`frontend/src/main/python`, `.py`) | 156 |
+| Local-runtime Python (`frontend/src/main/python`, `.py`) | 156 |
 | Renderer runtime (`frontend/src/renderer`, TS/JS) | 202 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
@@ -120,7 +120,7 @@ Types and general utilities:
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/utils/{configFilter,configStorage,displaySelection}.*`
 
-## Sidecar Python File Index
+## Local-Runtime Python File Index
 
 Service entrypoints:
 

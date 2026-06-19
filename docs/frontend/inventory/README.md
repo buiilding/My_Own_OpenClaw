@@ -1,8 +1,8 @@
 ---
-summary: "Frontend inventory docs hub for exhaustive functionality, runtime path matrices, and module/file ownership indexes across main, preload, renderer, sidecar, and landing."
+summary: "Frontend inventory docs hub for exhaustive functionality, runtime path matrices, and module/file ownership indexes across main, preload, renderer, local-runtime Python, and landing."
 read_when:
   - When you need complete frontend runtime coverage in one place.
-  - When deciding exact ownership for a frontend/main/sidecar change.
+  - When deciding exact ownership for a frontend/main/local-runtime Python change.
 title: "Frontend Inventory Docs Hub"
 ---
 

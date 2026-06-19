@@ -1,5 +1,5 @@
 ---
-summary: "Frontend inventory domain sub-hub for runtime ownership matrix and change-path playbooks across main, preload, renderer, sidecar, and landing surfaces."
+summary: "Frontend inventory domain sub-hub for runtime ownership matrix and change-path playbooks across main, preload, renderer, local-runtime Python, and landing surfaces."
 read_when:
   - When deciding which frontend surface owns a feature or regression.
   - When choosing exact files for common frontend cross-process changes.

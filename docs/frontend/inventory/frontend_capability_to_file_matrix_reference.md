@@ -13,7 +13,7 @@ This matrix maps frontend capabilities to implementation files.
 ## Coverage Snapshot (2026-03-05)
 
 - Main process files: `58`
-- Sidecar python files: `156`
+- Local-runtime Python files: `156`
 - Renderer files: `202`
 - Landing files: `13`
 - Preload files: `1`

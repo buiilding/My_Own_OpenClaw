@@ -1,5 +1,5 @@
 ---
-summary: "Matrix view of frontend runtime surfaces and end-to-end paths across Electron main, preload boundary, renderer, sidecar services, and landing app."
+summary: "Matrix view of frontend runtime surfaces and end-to-end paths across Electron main, preload boundary, renderer, local-runtime Python services, and landing app."
 read_when:
   - When tracing frontend behavior across process boundaries.
   - When validating where new frontend functionality should be implemented.
@@ -13,7 +13,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 ## Coverage Snapshot (2026-03-05)
 
 - Main process files: `58`
-- Sidecar python files: `156`
+- Local-runtime Python files: `156`
 - Renderer files: `202`
 - Landing files: `13`
 - Preload files: `1`

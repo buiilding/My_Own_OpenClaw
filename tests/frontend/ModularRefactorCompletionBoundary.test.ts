@@ -594,6 +594,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
     expect(docText).toContain('Local runtime implementation');
+    expect(docText).toContain('backend/renderer/local-runtime change routing');
+    expect(docText).toContain('Local Runtime Python Implementation Docs Hub');
     expect(docText).toContain('Local-runtime boundaries should');
     expect(docText).toContain('Tool Policy or Local-Runtime Execution');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
@@ -614,6 +616,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('The sidecar starts each enabled MCP server');
     expect(docText).not.toContain('The sidecar sends MCP');
     expect(docText).not.toContain('The sidecar calls `tools/list`');
+    expect(docText).not.toContain('backend/renderer/sidecar change routing');
+    expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
     expect(docText).not.toContain('routes it to the sidecar');
     expect(docText).not.toContain('The sidecar sends MCP `tools/call`');
@@ -1023,6 +1027,8 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
+      'docs/frontend/inventory/README.md',
+      'docs/frontend/inventory/domains/README.md',
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',
       'docs/frontend/inventory/frontend_capability_to_file_matrix_reference.md',
       'docs/frontend/inventory/frontend_functionality_capability_catalog_reference.md',
@@ -1432,6 +1438,13 @@ describe('modular sdk refactor completion boundary', () => {
         'Sidecar transcript store methods',
         'Main IPC, Backend Relay, and Sidecar Bridge',
         'Sidecar scoped host bridge',
+        'sidecar, and landing',
+        'sidecar services',
+        'sidecar Python services',
+        'Sidecar python files',
+        'Sidecar runtime (`frontend/src/main/python`, `.py`)',
+        'Sidecar Python (`frontend/src/main/python`, `.py`)',
+        'Sidecar Python File Index',
         'Local Runtime Sidecar Implementation Domains',
         'Local Runtime Sidecar Capability Catalog',
         'Sidecar backend HTTP clients',

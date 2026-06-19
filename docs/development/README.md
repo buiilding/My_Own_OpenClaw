@@ -1,5 +1,5 @@
 ---
-summary: "Development hub for WindieOS contributor workflow, environment setup, validation, tool development, and backend/renderer/sidecar change routing."
+summary: "Development hub for WindieOS contributor workflow, environment setup, validation, tool development, and backend/renderer/local-runtime change routing."
 read_when:
   - When starting implementation work in WindieOS.
   - When deciding which development workflow, tests, docs, and validation commands apply to a change.
@@ -33,7 +33,7 @@ Use this hub when you are about to edit code. It routes a change to the right su
 | Backend | FastAPI routes, websocket messages, agent loop, LLM providers, model-facing tools, inference routes, artifacts, memory APIs | [Backend Hub](../backend/README.md), [Agent Development Workflow](agent_development_workflow.md) | `<windie> test backend` or focused `./scripts/python-in-env backend python -m pytest tests/backend/...` |
 | Electron main | windows, overlays, IPC handlers, SDK-runtime adapter, local-runtime host/status context, permissions, packaged runtime env | [Frontend Main Hub](../frontend/main/README.md), [Frontend Runtime Hub](../frontend/runtime/README.md) | focused frontend Jest tests under `tests/frontend`, `<windie> test frontend` |
 | Renderer | React UI, chat/dashboard/settings/memory/model surfaces, transcript queue, projected tool state, audio playback | [Frontend Renderer Hub](../frontend/renderer/README.md) | focused frontend Jest tests, `cd frontend && npm run lint` for touched UI code |
-| Local runtime implementation | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Sidecar Hub](../frontend/sidecar/README.md) | `<windie> test sidecar` or focused `./scripts/python-in-env sidecar python -m pytest tests/sidecar/...` |
+| Local runtime implementation | local JSON-RPC, computer/filesystem/system/browser tools, local memory, wakeword services, backend HTTP clients | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) | `<windie> test sidecar` or focused `./scripts/python-in-env sidecar python -m pytest tests/sidecar/...` |
 | Docs | agent routing maps, domain hubs, implementation references, runbooks | [Documentation Hub](../getting-started/docs_hub.md) | `<windie> docs list` and link checks for touched docs |
 | Packaging/operations | Electron Builder, bundled Python runtime, local reinstall helpers, release workflow, hosted backend ops | [Operations Hub](../operations/README.md) | target OS package/smoke helper plus `<windie> docs list` |
 

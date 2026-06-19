@@ -13,7 +13,7 @@ This page is the capability-first technical catalog for `frontend/src`.
 ## Coverage Snapshot (2026-03-05)
 
 - Main process (`frontend/src/main`, `.cjs|.js`): `58`
-- Sidecar runtime (`frontend/src/main/python`, `.py`): `156`
+- Local-runtime Python (`frontend/src/main/python`, `.py`): `156`
 - Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `202`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`

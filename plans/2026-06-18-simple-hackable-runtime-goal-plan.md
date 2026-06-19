@@ -275,6 +275,25 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a development routing local-runtime hub label slice by
+  routing contributor-facing local-runtime implementation links and the
+  development hub summary away from Local Runtime Sidecar public labels while
+  preserving concrete Python sidecar paths and sidecar validation commands as
+  implementation evidence. Validation: focused modular boundary guard, docs
+  listing, exact stale label scan, and diff checks. No migration required; docs
+  and boundary tests changed only, with no contributor-routing behavior,
+  JSON-RPC behavior, local tool execution, wakeword service, hosted helper
+  client, IPC channel, credential, permission, provider policy, packaging, or
+  storage behavior changed.
+- 2026-06-19: completed a frontend inventory local-runtime Python file-count
+  label slice by routing inventory hub, runtime matrix, functionality
+  inventory, and module-index service/count labels away from sidecar public
+  wording while preserving concrete `frontend/src/main/python` paths as
+  implementation evidence. Validation: focused modular boundary guard, docs
+  listing, exact stale label scan, and diff checks. No migration required;
+  inventory-only docs changed, with no code path, JSON-RPC method, IPC channel,
+  storage, credential, permission, hosted route, provider policy, packaging, or
+  local execution behavior changed.
 - 2026-06-19: completed a frontend capability matrix local-runtime bridge label
   slice by routing the Main IPC/Backend Relay bridge section and scoped
   host-bridge row away from Sidecar Bridge public wording while preserving

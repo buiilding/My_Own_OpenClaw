@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: align frontend inventory hub, runtime matrix, functionality
+  inventories, and module-index file-count labels with local-runtime Python
+  wording instead of sidecar public service labels. No migration required.
+- docs/development: route contributor-facing local-runtime implementation links
+  and the development hub summary through local-runtime wording instead of
+  Local Runtime Sidecar public labels. No migration required.
 - docs/frontend: route the SDK-owned readiness reference title through
   local-runtime wording instead of a Sidecar readiness public label while
   keeping concrete sidecar daemon implementation details explicit. No migration

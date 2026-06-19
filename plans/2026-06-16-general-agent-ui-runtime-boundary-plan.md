@@ -120,6 +120,39 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Frontend Inventory Local-Runtime Python File-Count Labels
+
+- Finding: active frontend inventory hub, runtime matrix, functionality
+  inventories, and module index labels still described the local implementation
+  area as sidecar services or sidecar runtime file-count buckets even though
+  adjacent routing already used local-runtime Python wording.
+- Change: renamed those visible inventory summaries, file-count rows, and the
+  module index heading to local-runtime Python wording while preserving concrete
+  `frontend/src/main/python` paths as implementation evidence, and expanded the
+  modular docs guard to cover the retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Inventory-only docs changed; no code
+  path, JSON-RPC method, IPC channel, storage, credential, permission, hosted
+  route, provider policy, packaging, or local execution behavior changed.
+
+### 2026-06-19 Development Routing Local-Runtime Hub Labels
+
+- Finding: contributor routing docs still sent local-runtime implementation
+  work to `Local Runtime Sidecar Hub` and the development hub summary described
+  backend/renderer/sidecar change routing as a public boundary.
+- Change: renamed the visible links and summary to local-runtime wording while
+  preserving the Python sidecar path and sidecar test command as concrete
+  implementation evidence, and added exact modular docs guards for the retired
+  phrases.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  contributor routing, local JSON-RPC behavior, local tool execution, wakeword
+  services, backend helper clients, IPC channels, credentials, permissions,
+  hosted routes, provider policy, packaging, and storage behavior are
+  unchanged.
+
 ### 2026-06-19 SDK-Owned Local-Runtime Readiness Reference Label
 
 - Finding: the SDK-owned readiness/helper RPC reference still used
