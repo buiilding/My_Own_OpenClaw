@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Security Hub Local-Runtime Boundary Label
+
+- Finding: the security hub still named the local execution trust-boundary row
+  as `Sidecar runtime`, which made the concrete Python process read like the
+  reusable security/runtime owner.
+- Change: renamed that row to `Local runtime implementation`, kept the Python
+  sidecar implementation detail explicit in the row description, and extended
+  the modular boundary guard to reject the retired sidecar-runtime table label.
+- Validation: focused modular-boundary guard, docs listing, exact stale-label
+  scan, and diff checks.
+- Compatibility: no migration required. Security guidance, IPC channels,
+  credential handling, permission probes, tool execution, hosted auth, and
+  provider policy are unchanged.
+
 ### 2026-06-18 Renderer Conversation Session Runtime Owner
 
 - Finding: the app-runtime facade for conversation-session helper rules still
