@@ -22,6 +22,8 @@ title: "Wakeword Bridge and Audio Framing Reference"
 `initializeWakewordBridge(...)` accepts an optional `ipcMain`-compatible host
 adapter and defaults to Electron `ipcMain`, keeping channel registration host
 composed while preserving the same wakeword wire channels.
+The production Electron path passes `ipcMain` from `index.cjs` through
+`main_window_runtime.cjs` into this bridge.
 
 `wakeword_bridge_runtime.cjs` owns focused helper primitives:
 

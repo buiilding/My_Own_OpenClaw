@@ -189,6 +189,7 @@ function createMainWindow({
   enableDebugStreamTrace = false,
   enableDebugToolScreenshot = false,
   initializeIpc,
+  ipcMain = null,
   applyResponseOverlayPhase,
   setAgentLoopStopShortcutEnabled,
   setGlobalAgentStopShortcutAccelerator,
@@ -289,6 +290,7 @@ function createMainWindow({
     runtimePaths,
     wakewordEnv,
     wakewordStderrLogMarkers,
+    ipcMain,
   });
   initializeLocalRuntimeBridge(getWindows, {
     getKnownLocalRuntime,

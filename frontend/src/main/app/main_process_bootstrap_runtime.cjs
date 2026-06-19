@@ -24,6 +24,7 @@ function createWindowBootstrapRuntime(deps) {
       enableDebugStreamTrace: deps.enableDebugStreamTrace,
       enableDebugToolScreenshot: deps.enableDebugToolScreenshot,
       initializeIpc: deps.initializeIpc,
+      ipcMain: deps.ipcMain,
       applyResponseOverlayPhase: state.applyResponseOverlayPhase,
       setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
       setGlobalAgentStopShortcutAccelerator: deps.setGlobalAgentStopShortcutAccelerator,

@@ -294,6 +294,7 @@ const {
   Menu,
   path,
   app,
+  ipcMain,
   platform: process.platform,
   enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
   enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,

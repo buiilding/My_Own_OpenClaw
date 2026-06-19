@@ -518,6 +518,7 @@ describe('main_window_runtime createMainWindow', () => {
       app: { isPackaged: false, isQuitting: false },
       platform: 'linux',
       enableDevTransparencyUi: false,
+      ipcMain: { on: jest.fn(), handle: jest.fn() },
       initializeIpc: jest.fn(),
       applyResponseOverlayPhase: jest.fn(),
       setAgentLoopStopShortcutEnabled: jest.fn(),
@@ -595,6 +596,15 @@ describe('main_window_runtime createMainWindow', () => {
       localRuntimeDaemonEntrypoint: 'local-runtime-daemon.py',
       localRuntimeEnv: deps.localRuntimeEnv,
     }));
+    expect(deps.initializeWakewordBridge).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.any(Function),
+      expect.objectContaining({
+        ipcMain: deps.ipcMain,
+        bundledRuntimeCopy: deps.bundledRuntimeCopy,
+        runtimePaths: deps.runtimePaths,
+      }),
+    );
   });
 
   test('passes the permission state path into local runtime bridge initialization', () => {

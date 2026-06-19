@@ -32,6 +32,7 @@ describe('main_process_bootstrap_runtime', () => {
         enableDebugToolScreenshot: false,
         vmMode: false,
         vmWorkerMode: false,
+        ipcMain: { on: jest.fn(), handle: jest.fn() },
         runsApiKeyHeader: 'x-windie-runs-key',
         vmWorkerEnv: {
           workspaceId: 'WINDIE_VM_WORKSPACE_ID',
@@ -126,6 +127,7 @@ describe('main_process_bootstrap_runtime', () => {
       runtimePaths: deps.runtimePaths,
       localRuntimeDaemonEntrypoint: 'sidecar_daemon.py',
       localRuntimeEnv: deps.localRuntimeEnv,
+      ipcMain: deps.ipcMain,
       wakewordEnv: deps.wakewordEnv,
       wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
       localRuntimeBridgeCopy: deps.localRuntimeBridgeCopy,

@@ -128,7 +128,9 @@ Each completed slice should report:
   that receive host adapters from the composition root.
 - Change: added an `ipcMain` option and fail-fast adapter validation so the
   wakeword bridge can register its existing wakeword channels against an
-  injected host adapter while keeping Electron `ipcMain` as the default.
+  injected host adapter while keeping Electron `ipcMain` as the default. The
+  production main-window bootstrap now passes Electron `ipcMain` from
+  `index.cjs` into `initializeWakewordBridge(...)`.
 - Validation: focused wakeword bridge tests, docs search, related commit
   search, stale direct registration assumptions in docs, docs listing, and diff
   checks.

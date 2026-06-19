@@ -56,7 +56,8 @@ Creation behavior:
 - builds frameless hidden dashboard window (`1000x700`, `#111318`)
 - initializes:
   - IPC bridge (`initializeIpc`)
-  - wakeword bridge (`initializeWakewordBridge`)
+  - wakeword bridge (`initializeWakewordBridge`) with the `ipcMain` host
+    adapter injected from `index.cjs`
   - SDK local runtime bridge (`initializeLocalRuntimeBridge`)
   - main-process IPC registration (`initializeMainProcessIpc`)
 
