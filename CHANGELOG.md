@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/main: align main-process local-runtime workflow wording around the SDK
+  local-runtime bridge instead of public main-to-sidecar labels while preserving
+  concrete Python sidecar implementation breadcrumbs. No migration required.
 - renderer/dev-ui: move the shared renderer `dev_ui=1` query flag helper from
   chat utilities into the app-runtime layer used by chat and minimal pill
   surfaces. No migration required.

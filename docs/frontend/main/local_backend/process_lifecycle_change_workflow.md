@@ -1,8 +1,8 @@
 ---
 summary: "Workflow for changing WindieOS SDK-owned local-runtime daemon lifecycle, readiness status, helper RPC routing, packaged launch options, and renderer readiness consumers."
 read_when:
-  - When changing desktop sidecar daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged sidecar launch options.
-  - When debugging sidecar startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK sidecar `/rpc` failures, or packaged app sidecar launch failures.
+  - When changing desktop local-runtime daemon startup, shutdown, readiness status broadcasts, helper RPC routing, or packaged Python sidecar launch options.
+  - When debugging local-runtime startup failures, `local-runtime-status` drift, browser controls waiting forever, SDK local-runtime `/rpc` failures, or packaged Python sidecar launch failures.
 title: "SDK-Owned Local Runtime Lifecycle Change Workflow"
 ---
 
@@ -51,10 +51,10 @@ readiness/status broadcasts.
 
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
-| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `local_runtime_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
+| Local-runtime daemon never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Desktop local-runtime launch options passed to the SDK provider | `local_runtime_launch_options.cjs`, `runtime_paths.cjs`, install/packaging docs |
 | `local-runtime-status` shows stale ready/error state | Supervisor and status broadcast path | `local_runtime_supervisor.cjs`, `buildLocalRuntimeStatusPayload`, renderer status store |
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
-| Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
+| Browser controls wait forever despite local-runtime readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
 | Local tool result shape is wrong after Python sidecar executes | Tool execution contract, not lifecycle | [Local-Runtime Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
 
@@ -141,7 +141,7 @@ Rows must stay sanitized: store booleans, action names, status strings, counts,
 request ids, durations, and short errors only. Do not store browser URLs, page
 titles, local paths, page text, screenshots, tool output, or stack traces.
 
-When adding a new renderer feature that depends on the sidecar, wire it through the status store and test both initial bootstrap read and later `local-runtime-status` event updates.
+When adding a new renderer feature that depends on local-runtime readiness, wire it through the status store and test both initial bootstrap read and later `local-runtime-status` event updates.
 
 ## Debug Routes
 

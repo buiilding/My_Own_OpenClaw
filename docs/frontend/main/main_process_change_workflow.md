@@ -8,9 +8,9 @@ title: "Main Process Change Workflow"
 
 # Main Process Change Workflow
 
-Use this workflow when the change belongs to Electron main, not React renderer and not Python sidecar. Electron main owns native desktop process orchestration: windows, overlays, tray/hotkeys, preload channel registration, renderer IPC handlers, SDK-runtime adaptation, endpoint defaults, SDK local-runtime launch facts/status consumers, platform permission probes, wakeword bridge startup, and VM worker polling.
+Use this workflow when the change belongs to Electron main, not React renderer and not Python local-runtime implementation code. Electron main owns native desktop process orchestration: windows, overlays, tray/hotkeys, preload channel registration, renderer IPC handlers, SDK-runtime adaptation, endpoint defaults, SDK local-runtime launch facts/status consumers, platform permission probes, wakeword bridge startup, and VM worker polling.
 
-Main process code is a trust boundary. It receives renderer requests through preload, talks to the hosted backend through SDK adapters, supplies local-runtime launch/context facts to the SDK, and calls platform APIs. Keep each of those responsibilities explicit instead of pushing native concerns into components or hiding malformed sidecar/backend payloads in the UI.
+Main process code is a trust boundary. It receives renderer requests through preload, talks to the hosted backend through SDK adapters, supplies local-runtime launch/context facts to the SDK, and calls platform APIs. Keep each of those responsibilities explicit instead of pushing native concerns into components or hiding malformed local-runtime/backend payloads in the UI.
 
 ## Fast Owner Map
 
@@ -73,13 +73,13 @@ When changing native windows or overlays:
 
 ## Local Runtime Bridge Checklist
 
-When changing main-to-sidecar behavior:
+When changing SDK local-runtime bridge behavior:
 
 - Decide whether the change is a new JSON-RPC method, a mapper change, a timeout/retry change, or a process lifecycle change.
 - Keep request ids and readiness/error handling observable in main-process logs.
-- Do not parse or reinterpret model-facing backend tool schemas in main. The bridge maps executable payloads for the sidecar.
-- Keep screenshot/display/window helper shapes stable or update sidecar tests and docs together.
-- Add main bridge tests plus sidecar JSON-RPC/tool tests when payload shape changes.
+- Do not parse or reinterpret model-facing backend tool schemas in main. The bridge maps executable payloads for local-runtime execution.
+- Keep screenshot/display/window helper shapes stable or update Python sidecar tests and docs together.
+- Add main bridge tests plus Python sidecar JSON-RPC/tool tests when payload shape changes.
 
 ## Endpoint and Runtime Path Checklist
 

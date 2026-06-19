@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a main local-runtime workflow wording slice by routing
+  the main-process change workflow and lifecycle hub language through the SDK
+  local-runtime bridge instead of public main-to-sidecar labels, while keeping
+  concrete Python sidecar daemon/package references where they identify the
+  implementation being debugged. Validation: focused modular refactor boundary
+  docs test, docs listing, stale public-label scan, and diff checks. No
+  migration required; docs changed only, with no IPC, local-runtime launch,
+  JSON-RPC, storage, credential, permission, hosted route, provider-policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed a renderer dev-UI flag boundary slice by moving
   `isDevUiEnabled()` from chat utilities into
   `app/runtime/desktopDevUiRuntime.js`, routing chat message surfaces and the

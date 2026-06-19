@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Main Local-Runtime Workflow Public Wording
+
+- Finding: main-process workflow docs still described the local-runtime bridge
+  checklist and lifecycle failure routes with public main-to-sidecar wording,
+  even though the owner is the SDK local-runtime bridge and the Python sidecar
+  is only the current implementation.
+- Change: updated the main change workflow, main local-runtime lifecycle
+  workflow, and hub task labels to use SDK/local-runtime bridge wording while
+  preserving concrete Python sidecar daemon/package breadcrumbs.
+- Validation: focused modular refactor boundary docs test, docs listing, stale
+  public-label scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; IPC, local-runtime
+  launch, JSON-RPC, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

@@ -435,8 +435,12 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
 
     expect(docText).toContain('SDK/main local execution');
+    expect(docText).toContain('SDK local-runtime bridge behavior');
     expect(docText).toContain('local tool calls to local-runtime execution');
     expect(docText).toContain('before local execution');
+    expect(docText).not.toContain('main-to-sidecar behavior');
+    expect(docText).not.toContain('SDK sidecar `/rpc` failures');
+    expect(docText).not.toContain('depends on the sidecar');
     expect(docText).not.toContain('sidecar daemon/local executor');
     expect(docText).not.toContain('sidecar execution');
     expect(docText).not.toContain('before sidecar execution');
