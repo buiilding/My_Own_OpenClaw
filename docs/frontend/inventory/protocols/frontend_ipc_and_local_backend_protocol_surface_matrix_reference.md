@@ -26,7 +26,7 @@ local-runtime implementation backed by the Python sidecar:
 - Main SDK/websocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_artifact_handlers.cjs`, `frontend/src/main/ipc/ipc_clipboard_image.cjs`, `frontend/src/main/ipc/ipc_image_context_menu.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/surfaces/window_controls_ipc_runtime.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword/wakeword_bridge.cjs` + `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - Main-to-sidecar scoped host bridge: `frontend/src/main/sidecar/local_runtime_bridge.cjs`
-- Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
+- Python JSON-RPC method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Renderer `window.ipc` Contract
 
@@ -182,7 +182,7 @@ Transport:
 Electron main no longer registers direct chat/memory bridge handler channels for
 these methods. Renderer feature code reaches conversation and memory operations
 through SDK-shaped commands on `windie:invoke`; SDK local-runtime store code
-builds the sidecar method and params behind that boundary.
+builds the Python JSON-RPC method and params behind that boundary.
 
 | Owner path | JSON-RPC method | Param mapping notes |
 |---|---|---|

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route JSON-RPC workflow and inventory method labels through
+  local-runtime RPC/Python JSON-RPC wording instead of sidecar method labels. No
+  migration required.
 - docs/architecture: route docs-hub, browser ADR, safety, and doctor checklist
   ownership labels through local-runtime wording instead of sidecar runtime
   owner labels. No migration required.

@@ -15,7 +15,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 ## Identifier Rules
 
 - Keep external JS surfaces camelCase when that is the established renderer contract, but normalize to snake_case at the backend websocket and sidecar JSON-RPC boundaries.
-- Normalize aliases once at the boundary. Do not let every renderer component, main-process handler, or sidecar method accept its own field variants.
+- Normalize aliases once at the boundary. Do not let every renderer component, main-process handler, or local-runtime RPC method accept its own field variants.
 - Treat `conversation_ref`, `turn_ref`, `request_id`, `tool_call_id`, `correlation_id`, and `bundle_id` as pipeline keys, not display metadata.
 - Keep visible transcript identifiers separate from backend provider-history identifiers. A transcript row can be user-facing; backend history must remain provider-replay-safe.
 - Preserve IDs through failure paths. A failed local tool still needs the original request or bundle key so backend waiters can unblock and history can record the failure.

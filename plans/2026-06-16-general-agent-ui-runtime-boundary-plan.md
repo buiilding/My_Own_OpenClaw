@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 JSON-RPC Local-Runtime Method Labels
+
+- Finding: frontend IPC, inventory, channel, and local-runtime JSON-RPC docs
+  still described cross-boundary payloads through sidecar method labels.
+- Change: routed public/change-workflow labels through local-runtime RPC or
+  Python JSON-RPC method/handler wording, preserving concrete
+  `LocalRuntimeService._initialize_methods` implementation breadcrumbs.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  JSON-RPC method names, handler registration, IPC channels, payload shapes,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Architecture And Browser Local-Runtime Route Labels
 
 - Finding: docs hub architecture routes, browser extension ADR current-behavior

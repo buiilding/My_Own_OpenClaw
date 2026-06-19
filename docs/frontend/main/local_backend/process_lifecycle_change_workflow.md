@@ -92,7 +92,7 @@ If a new lifecycle state is added, update the supervisor tests, renderer normali
 | Rule | Reason |
 | --- | --- |
 | Resolve the SDK local runtime provider before bridge helper RPCs. | Keeps daemon startup/reuse and JSON-RPC unwrapping SDK-owned. |
-| Use `runtime.rpc(...)` for sidecar methods and `runtime.executeTool(...)` for executable local tools. | Preserves SDK result normalization and local-tool lifecycle hooks. |
+| Use `runtime.rpc(...)` for Python JSON-RPC methods and `runtime.executeTool(...)` for executable local tools. | Preserves SDK result normalization and local-tool lifecycle hooks. |
 | Keep Electron-only screenshot display bounds, window hiding, and artifact upload materialization in the bridge helper layer. | These are host concerns, not SDK protocol semantics. |
 | Convert provider/RPC failures into stable `{ success:false, error }` envelopes for renderer-facing helpers. | Renderer callers need terminal failures without inspecting SDK internals. |
 

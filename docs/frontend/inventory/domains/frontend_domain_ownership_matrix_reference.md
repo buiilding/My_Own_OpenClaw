@@ -20,7 +20,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | sidecar protocol files |
 | Renderer chat/tool UX runtime | `renderer/features/chat/**` | SDK conversation-event normalization, `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | main overlay bounds logic |
 | Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | local execution logic |
-| Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + sidecar method contracts | landing page modules |
+| Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + local-runtime RPC contracts | landing page modules |
 | Local-runtime Python service core | `main/python/{local_backend,wakeword_service}.py`, `main/python/core/**` | `main/local_runtime_bridge.cjs`, wakeword bridge | renderer UI components |
 | Local-runtime Python tool implementations | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
 | Local-runtime memory runtime | `main/python/memory/**` | SDK-provided embeddings, remote semantic client, and renderer dashboard memory views | renderer chat presentation |

@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a JSON-RPC local-runtime method-label slice by routing
+  frontend IPC, inventory, channel, and local-runtime JSON-RPC docs away from
+  sidecar method labels and through local-runtime RPC or Python JSON-RPC
+  method/handler wording while preserving concrete
+  `LocalRuntimeService._initialize_methods` implementation breadcrumbs.
+  Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks. No migration required; docs and boundary tests changed
+  only, with no JSON-RPC method name, handler registration, IPC channel, payload
+  shape, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed an architecture/browser local-runtime route label slice
   by routing docs hub architecture routes, browser extension ADR current
   behavior, safety boundaries, and the doctor checklist away from sidecar

@@ -125,7 +125,7 @@ Chat and memory JSON-RPC params are now built behind SDK local-runtime store
 interfaces. Preserve these rules there:
 
 - renderer-facing command fields stay SDK-shaped and camelCase
-- sidecar method params stay snake_case
+- Python JSON-RPC method params stay snake_case
 - command validation belongs at the SDK/renderer facade boundary
 - sidecar handler signatures stay explicit so JSON-RPC validation can reject
   missing or unexpected params

@@ -228,7 +228,7 @@ Notable behavior:
 
 1. channel exposed in preload/channels constants but missing `ipcMain` registration
 2. handler moved between files (or helper split added) without docs/constants updates
-3. SDK local-runtime store field rename breaks sidecar method params silently
+3. SDK local-runtime store field rename breaks Python JSON-RPC params silently
 4. channel name typo (`-` vs `_`) between renderer constants and `ipcMain` registration
 
 ## Debug Checklist

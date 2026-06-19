@@ -11,7 +11,7 @@ title: "IPC Change Workflow"
 
 WindieOS IPC is a trust boundary. The renderer can only use channels exposed by preload, and preload receives its allowlist from the shared channel registry passed by the main process. Do not add ad hoc `ipcRenderer` access to renderer code.
 
-Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses into SDK local-runtime or Python sidecar methods, continue into [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
+Use this workflow for Electron IPC only: renderer <-> preload <-> Electron main. If the change crosses into SDK local-runtime or Python JSON-RPC methods, continue into [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md). If the channel relays backend websocket messages, continue into [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md) or [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), depending on whether the changed contract is desktop query input or backend stream output.
 
 ## Runtime Path
 
@@ -86,7 +86,7 @@ Prefer one focused channel over a generic "do-anything" channel. The preload all
 4. Register the main handler or broadcaster in the owning main-process module from the fast owner map.
 5. Return a structured payload from invoke handlers, usually `{ success, ... }` or a domain-specific object already used by nearby handlers. Avoid returning bare booleans for new behavior.
 6. If the channel reaches Python, prefer an SDK local-runtime command/store path; only add Electron main bridge code for scoped host channels that truly need Electron authority.
-7. Read [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) before changing sidecar method names, handler params, timeouts, readiness, or JSON-RPC response envelopes.
+7. Read [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) before changing Python JSON-RPC method names, handler params, timeouts, readiness, or response envelopes.
 8. Add tests for registry/preload parity plus the handler, broadcaster, mapper, or renderer consumer behavior.
 9. Update docs for the affected domain, not only this workflow.
 

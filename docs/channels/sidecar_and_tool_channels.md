@@ -63,7 +63,7 @@ daemon and local execution uses daemon HTTP endpoints such as `/execute-tool`.
 
 The older line-oriented JSON-RPC process remains for local memory/service IPC while those services are being carried behind the daemon boundary. It is intentionally separate from hosted backend HTTP/WebSocket contracts.
 
-Sidecar method families:
+Python JSON-RPC method families:
 
 - computer tools: mouse, keyboard, screenshot, scroll, window operations
 - browser tools: dedicated browser launch/control/snapshot/file helpers
