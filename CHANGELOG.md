@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route docs hub install, packaging, platform, doctor, and
+  system-state labels through local-runtime Python wording instead of sidecar
+  runtime owner labels. No migration required.
 - renderer/permissions: move shared permission post-grant config effects from
   permission feature utilities into the renderer app-runtime layer so
   onboarding and browser settings share the same grant-effect contract. No

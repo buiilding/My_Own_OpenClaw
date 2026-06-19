@@ -1,16 +1,17 @@
 ---
-summary: "Packaged desktop build guide for Electron Builder, bundled Python sidecar runtime, and platform-specific package targets."
+summary: "Packaged desktop build guide for Electron Builder, bundled local-runtime Python, and platform-specific package targets."
 read_when:
-  - When changing desktop packaging, sidecar runtime bundling, or reinstall scripts.
+  - When changing desktop packaging, bundled local-runtime Python, or reinstall scripts.
   - When preparing local package smoke checks.
 title: "Packaged Desktop Builds"
 ---
 
 # Packaged Desktop Builds
 
-Packaged WindieOS builds are Electron apps with a bundled Python sidecar
-runtime. Use `<windie> ...` packaging commands from the repository root; they
-wrap the frontend package tasks and bundled sidecar runtime builder before
+Packaged WindieOS builds are Electron apps with bundled local-runtime Python.
+The current implementation launches the Python sidecar process from that
+bundle. Use `<windie> ...` packaging commands from the repository root; they
+wrap the frontend package tasks and bundled local-runtime Python builder before
 Electron Builder.
 
 Use [Install Decision Matrix](install_decision_matrix.md) before packaging if the change may be source-only. Packaged validation is required for bundled runtime paths, installed app paths, platform permissions, local reinstall helpers, and release artifacts.
@@ -44,9 +45,9 @@ Package targets:
 - Windows: NSIS
 - Linux: AppImage, DEB, RPM
 
-## Sidecar Runtime
+## Bundled Local-Runtime Python
 
-The bundled sidecar runtime is built with:
+The bundled local-runtime Python archive is built with:
 
 ```bash
 <windie> build sidecar-runtime

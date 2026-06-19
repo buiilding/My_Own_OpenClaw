@@ -815,6 +815,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/sidecar/source_maps/README.md'),
       read('docs/frontend/sidecar/system_state/README.md'),
       read('docs/frontend/sidecar/system_state/platform/README.md'),
+      read('docs/frontend/sidecar/system_state/system_state_collection_and_platform_adapter_reference.md'),
       read('docs/frontend/sidecar/browser/README.md'),
       read('docs/frontend/sidecar/browser/contracts/README.md'),
       read('docs/frontend/sidecar/browser/chrome/README.md'),
@@ -888,6 +889,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar Browser Docs Hub');
     expect(docText).not.toContain('Sidecar Browser Contracts Docs Hub');
     expect(docText).not.toContain('Sidecar Browser Chrome Docs Hub');
+    expect(docText).not.toContain('Sidecar runtime reference');
     expect(docText).not.toContain('Sidecar Tool Catalog and Execution Model');
     expect(docText).not.toContain('Sidecar Shell and Process Session Runtime Reference');
     expect(docText).not.toContain('Sidecar Filesystem Read and Replace Runtime Reference');
@@ -1860,10 +1862,13 @@ describe('modular sdk refactor completion boundary', () => {
         'Check sidecar `ToolRegistry.execute_tool`',
         '| Packaged app, sidecar runtime,',
         'Electron packaging, sidecar bundling',
+        'sidecar runtime bundling',
         'sidecar runtime packaging',
         'Sidecar runtime build, Electron package',
         'bundled sidecar runtime packaging',
+        'bundled sidecar runtime',
         'missing sidecar runtime',
+        'package build, sidecar runtime',
         'bundled Python sidecar runtime',
         'Packaged sidecar uses `resources/python-runtime`',
         'bytecode-only sidecar sources',

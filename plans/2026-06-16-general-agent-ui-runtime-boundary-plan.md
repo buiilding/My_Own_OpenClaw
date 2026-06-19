@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Docs Hub Local-Runtime Python Route Labels
+
+- Finding: the docs hub still summarized install, release, platform, doctor,
+  process-lifecycle, and install-troubleshooting routes through sidecar
+  runtime/process labels, and the system-state reference front matter called
+  itself a sidecar runtime reference.
+- Change: routed those first-read labels through bundled local-runtime Python,
+  local-runtime Python process, and local-runtime system-state wording while
+  preserving concrete Python sidecar implementation details inside the
+  system-state path.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  process lifecycle, packaged runtime paths, `get-system-state` IPC and
+  JSON-RPC behavior, status payloads, storage, credentials, permissions,
+  hosted routes, provider policy, packaging commands, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission Grant Effects Runtime Boundary
 
 - Finding: onboarding and browser settings both applied permission post-grant

@@ -1,8 +1,8 @@
 ---
-summary: "Sidecar runtime reference for system-state capture fields, per-field fallback defaults, platform-specific probes, Electron/renderer `get-system-state` integration semantics, and the removed `local_runtime_bridge.getSystemState` export."
+summary: "Local-runtime system-state reference for capture fields, per-field fallback defaults, platform-specific probes, Electron/renderer `get-system-state` integration semantics, and the removed `local_runtime_bridge.getSystemState` export."
 read_when:
   - When adding/removing system-state fields or changing per-field fallback/default values.
-  - When debugging active-window/mouse/screen/windows/stats drift across sidecar, main-process bridge, and renderer consumers.
+  - When debugging active-window/mouse/screen/windows/stats drift across the Python sidecar implementation, main-process bridge, and renderer consumers.
   - When resolving removed `local_runtime_bridge.getSystemState` or `getSystemState` export references.
 title: "System-State Collection and Removed getSystemState Bridge Export Reference"
 ---
@@ -23,16 +23,16 @@ title: "System-State Collection and Removed getSystemState Bridge Export Referen
 
 ## End-to-End Path
 
-1. a renderer/main consumer invokes `get-system-state` through Electron IPC.
+1. a renderer or Electron-main consumer invokes `get-system-state` through Electron IPC.
 2. Electron main (`ipcMain.handle('get-system-state')`) calls `getSystemStateFromBackend(fields)`.
-3. main bridge sends JSON-RPC `get_system_state` request to sidecar.
-4. sidecar `LocalRuntimeService._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
-5. sidecar returns `{ success: true, data: state }`.
+3. main bridge sends JSON-RPC `get_system_state` request to the Python sidecar local-runtime implementation.
+4. Python sidecar `LocalRuntimeService._handle_get_system_state(...)` calls `core.system_state.get_system_state(...)`.
+5. Python sidecar returns `{ success: true, data: state }`.
 6. main bridge unwraps to `result.data || result` and returns plain state object to renderer.
 
 Error path:
 
-- if JSON-RPC fails or sidecar returns `{ success: false, ... }`, main returns `null`.
+- if JSON-RPC fails or the Python sidecar returns `{ success: false, ... }`, main returns `null`.
 
 ## Removed Direct Bridge Export
 
@@ -57,7 +57,7 @@ Valid fields:
 - `stats`
 - `time`
 
-If `fields is None`, sidecar requests the canonical full system-state snapshot.
+If `fields is None`, the local-runtime request returns the canonical full system-state snapshot.
 
 ## Collection Model
 
@@ -160,8 +160,8 @@ Current runtime note:
 
 ## Failure and Fallback Behavior Across Layers
 
-- sidecar field probe failure -> per-field defaults in response object
-- sidecar handler exception -> `{ success: false, error }`
+- Python sidecar field probe failure -> per-field defaults in response object
+- Python sidecar handler exception -> `{ success: false, error }`
 - main bridge error or `success: false` -> renderer receives `null`
 - main/renderer consumers typically degrade to null/unknown UI state rather than hard-failing query flow
 
@@ -174,7 +174,7 @@ Current runtime note:
 
 ## Drift Hotspots
 
-1. changing sidecar response shape (`{ success, data }`) without main unwrapping updates breaks renderer consumers.
+1. changing Python sidecar response shape (`{ success, data }`) without main unwrapping updates breaks renderer consumers.
 2. changing default values (`Unknown`, `<error>`, `[]`) can alter prompt XML and downstream model behavior.
 3. platform dependency loss (`xdotool`, `pyautogui`, `pyperclip`, `pywin32`, `AppKit`) silently degrades capture quality unless logs are monitored.
 4. Linux fuzzy matching thresholds in window switching are safety-sensitive; loosened thresholds risk wrong-window activation.

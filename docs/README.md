@@ -42,23 +42,23 @@ contracts.
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**Inference Capability Change Workflow**](providers/inference_capability_change_workflow.md) - Owner routing for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and local-runtime remote clients
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
-- [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, sidecar runtime bundling, reinstall/reset loops, and install troubleshooting
+- [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, bundled local-runtime Python, reinstall/reset loops, and install troubleshooting
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
-- [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Owner routing for Electron Builder targets, bundled sidecar runtime, local reinstall helpers, smoke checks, and release workflow behavior
+- [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Owner routing for Electron Builder targets, bundled local-runtime Python, local reinstall helpers, smoke checks, and release workflow behavior
 - [**Commands and Scripts**](cli/README.md) - Windie CLI command hub for developer, operator, docs, tests, packaging, backend, endpoint, and self-host workflows
 - [**Command Matrix**](cli/command_matrix.md) - Full `<windie>` command surface and command groups
 - [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Bundled local-runtime Python build, Electron package, smoke, reinstall, and release guardrail commands
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior
-- [**Platform Change Workflow**](platforms/platform_change_workflow.md) - Owner routing for OS-specific screenshot, overlay, permission, input, sidecar, and packaging changes
+- [**Platform Change Workflow**](platforms/platform_change_workflow.md) - Owner routing for OS-specific screenshot, overlay, permission, input, local-runtime Python, and packaging changes
 - [**Platform Validation Matrix**](platforms/platform_validation_matrix.md) - Focused test and manual smoke matrix for platform-specific changes
 - [**Platform Permission Matrix**](platforms/permission_matrix.md) - Cross-platform permission probes, onboarding visibility, and grant routing
 - [**Screenshot and Overlay Policy**](platforms/screenshot_overlay_policy.md) - OS-specific capture, overlay hide/restore, and content-protection policy
-- [**Window and Input Matrix**](platforms/window_input_matrix.md) - Window discovery, active-window, input control, and sidecar platform dependencies
+- [**Window and Input Matrix**](platforms/window_input_matrix.md) - Window discovery, active-window, input control, and local-runtime Python platform dependencies
 - [**Packaging Runtime Matrix**](platforms/packaging_runtime_matrix.md) - Platform package targets, bundled runtime rules, local reinstall helpers, and smoke checks
 - [**Help Hub**](help/README.md) - Diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes by runtime boundary
 - [**Triage Routes**](help/triage_routes.md) - Symptom-to-owner routing before code edits
-- [**Doctor Checklist**](help/doctor_checklist.md) - Manual environment, endpoint, sidecar, permission, packaging, and hosted checks
+- [**Doctor Checklist**](help/doctor_checklist.md) - Manual environment, endpoint, local-runtime Python, permission, packaging, and hosted checks
 - [**Evidence Packet**](help/evidence_packet.md) - Debugging report template for cross-boundary failures
 - [**FAQ**](help/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tool, browser, and memory issues
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, auth, SDK routes, client integration, artifacts, and websocket surfaces
@@ -74,7 +74,7 @@ contracts.
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Local-Runtime Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
-- [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Sidecar process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
+- [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Local-runtime Python process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
 - [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for Electron-to-sidecar JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
 - [**Local-Runtime Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and Python sidecar implementation
 - [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
@@ -90,7 +90,7 @@ contracts.
 - [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled local-runtime Python packaging
 - [**Backend Endpoint Setup**](install/local_backend_and_endpoint_setup.md) - Hosted, local, packaged-default, and self-host backend endpoint setup
 - [**Uninstall, Reinstall, and Reset**](install/uninstall_reinstall_reset.md) - OS-specific packaged app reinstall helpers and reset scope
-- [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, sidecar runtime, endpoint, permission, and signing failure routes
+- [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, packaged local-runtime Python, endpoint, permission, and signing failure routes
 - [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
 - [**Release and Packaging Change Workflow**](operations/release_packaging_change_workflow.md) - Source-vs-packaged routing for runtime build, reinstall, smoke, signing, and release workflow changes
 - [**Commands and Scripts**](cli/README.md) - Repo scripts and frontend package commands

@@ -84,15 +84,15 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [SDK Auth and Error Handling](../sdk/sdk_auth_and_error_handling.md) for SDK auth, endpoint, status, websocket, and client error contracts.
 - [Install Hub](../install/README.md) for local development, packaged desktop builds, endpoint setup, reinstall/reset loops, and install troubleshooting.
 - [Install Decision Matrix](../install/install_decision_matrix.md) for choosing the correct source, packaged, endpoint, reinstall, or release-validation path.
-- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md) for changing Electron Builder targets, bundled sidecar runtime generation, reinstall helpers, smoke checks, and release workflow behavior.
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md) for changing Electron Builder targets, bundled local-runtime Python generation, reinstall helpers, smoke checks, and release workflow behavior.
 - [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) for hosted, local, packaged-default, and self-host backend routing.
 - [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) for OS-specific local packaged reinstall helpers and reset scope.
-- [Install Troubleshooting](../install/install_troubleshooting.md) for install failures across dependencies, sidecar runtime, endpoint routing, permissions, and signing.
+- [Install Troubleshooting](../install/install_troubleshooting.md) for install failures across dependencies, packaged local-runtime Python, endpoint routing, permissions, and signing.
 - [Operations Hub](../operations/README.md) for runtime config, hosted auth, packaging, release, deployment, and operational troubleshooting.
 - [Commands and Scripts](../cli/README.md) for the first-class Windie CLI surface.
 - [Command Matrix](../cli/command_matrix.md) for the full `<windie>` command groups.
 - [Validation Commands](../cli/validation_commands.md) for choosing focused checks by changed boundary.
-- [Packaging and Release Commands](../cli/packaging_and_release_commands.md) for sidecar runtime builds, Electron package commands, smoke helpers, and reinstall loops.
+- [Packaging and Release Commands](../cli/packaging_and_release_commands.md) for bundled local-runtime Python builds, Electron package commands, smoke helpers, and reinstall loops.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior.
 - [Platform Change Workflow](../platforms/platform_change_workflow.md) for routing OS-specific screenshot, overlay, permission, input, sidecar, and packaging changes.
 - [Platform Validation Matrix](../platforms/platform_validation_matrix.md) for choosing focused platform tests and manual OS smoke checks.
