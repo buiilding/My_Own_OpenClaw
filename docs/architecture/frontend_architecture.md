@@ -338,7 +338,7 @@ Primary modules:
     `conversation.load`, and `conversations.list/search/delete`.
   - Sidecar storage RPC names stay inside SDK store/local-runtime
     implementation code and Electron main local-runtime bridge internals.
-- `renderer/features/chat/session/conversationSessionRuntime.ts`:
+- `renderer/app/runtime/desktopConversationSessionRuntime.ts`:
   - Shared renderer policy for conversation selection, local conversation creation, transcript-session sync, and active-chat projection.
   - Owns the normalization rules that decide when transcript session, chat-store projection, and backend bootstrap state may move foreground conversation focus.
 - `renderer/features/chat/session/useRendererConversationSessionInfo.js`:

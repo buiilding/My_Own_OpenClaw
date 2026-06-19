@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route the frontend architecture conversation-session policy
+  owner to `app/runtime/desktopConversationSessionRuntime.ts` instead of the
+  retired chat feature runtime path. No migration required.
 - docs/security: label the security hub's local execution trust boundary as a
   local-runtime implementation instead of a sidecar runtime. No migration
   required.

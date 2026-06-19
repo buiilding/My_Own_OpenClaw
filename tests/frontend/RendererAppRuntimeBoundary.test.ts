@@ -59,6 +59,16 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain(`active desktop-${'agent'} skin`);
   });
 
+  test('frontend architecture docs route session rules through app runtime', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'),
+      'utf8',
+    );
+
+    expect(source).toContain('renderer/app/runtime/desktopConversationSessionRuntime.ts');
+    expect(source).not.toContain('renderer/features/chat/session/conversationSessionRuntime.ts');
+  });
+
   test('audio chunk payload parsing stays behind the app runtime audio client', async () => {
     const audioRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopAudioRuntimeClient.ts'),

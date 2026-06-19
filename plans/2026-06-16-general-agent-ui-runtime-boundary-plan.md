@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Frontend Architecture Conversation Session Runtime Owner
+
+- Finding: the frontend architecture overview still routed shared
+  conversation-selection and transcript-session policy to the retired
+  `renderer/features/chat/session/conversationSessionRuntime.ts` path after the
+  implementation moved into the app-runtime owner.
+- Change: updated the architecture owner row to
+  `renderer/app/runtime/desktopConversationSessionRuntime.ts` and added a
+  renderer app-runtime boundary assertion so the stale feature-runtime path
+  stays removed from the architecture overview.
+- Validation: focused renderer app-runtime boundary test, docs listing, exact
+  stale-path scan, and diff checks.
+- Compatibility: no migration required. Session storage keys, transcript sync,
+  chat-store projection, SDK events, IPC channels, credentials, permissions,
+  local authority, and provider policy are unchanged.
+
 ### 2026-06-18 Security Hub Local-Runtime Boundary Label
 
 - Finding: the security hub still named the local execution trust-boundary row
