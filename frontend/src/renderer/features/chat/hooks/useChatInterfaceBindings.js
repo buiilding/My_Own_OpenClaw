@@ -5,7 +5,7 @@
 import { useEffect } from 'react';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../../../app/runtime/desktopShortcutRuntimeClient';
-import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
+import { subscribeDesktopRuntimeNewChatEvent } from '../../../app/runtime/desktopChatEvents';
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
   useEffect(() => {
@@ -114,12 +114,6 @@ export function useChatInterfaceFindShortcut({
 
 export function useChatInterfaceNewChatEvent(handleNewChat) {
   useEffect(() => {
-    const handleDashboardNewChat = () => {
-      handleNewChat();
-    };
-    window.addEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, handleDashboardNewChat);
-    return () => {
-      window.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT, handleDashboardNewChat);
-    };
+    return subscribeDesktopRuntimeNewChatEvent(handleNewChat);
   }, [handleNewChat]);
 }

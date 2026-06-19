@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Desktop New-Chat Event Helper Runtime Boundary
+
+- Finding: `DashboardShell` constructed the renderer-only
+  `desktop-runtime:new-chat` browser event directly while
+  `useChatInterfaceBindings` subscribed to the same custom event directly,
+  leaving the global event wiring split across feature modules.
+- Change: added `dispatchDesktopRuntimeNewChatEvent(...)` and
+  `subscribeDesktopRuntimeNewChatEvent(...)` to `desktopChatEvents`, then
+  routed the dashboard sender and chat hook receiver through those helpers.
+- Validation: focused desktop chat event, chat interface wiring, dashboard
+  shell, and renderer app-runtime boundary tests plus stale direct event wiring
+  scans, docs search/history checks, and diff checks.
+- Compatibility: no migration required. The `desktop-runtime:new-chat` event
+  name, chat reset behavior, transcript/session updates, IPC, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 SDK Agent Runtime Transport Error Wording
 
 - Finding: SDK continuity rehydrate and conversation model-setting failures

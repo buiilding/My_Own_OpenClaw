@@ -17,6 +17,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
+- `frontend/src/renderer/app/runtime/desktopChatEvents.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
@@ -48,8 +49,10 @@ Global exclusivity guard:
 
 Sidebar navigation actions:
 
-- `New chat` dispatches the renderer-only `window` event
-  `desktop-runtime:new-chat`.
+- `New chat` calls
+  `desktopChatEvents.dispatchDesktopRuntimeNewChatEvent(...)`, which dispatches
+  the renderer-only `desktop-runtime:new-chat` browser event for the mounted
+  chat surface.
 - `Search chats` opens modal and resets search runtime state.
 - `Memory` opens memory modal.
 - `Usage` opens usage modal.

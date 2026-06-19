@@ -362,6 +362,30 @@ describe('renderer app runtime boundary', () => {
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
   });
 
+  test('desktop new-chat event wiring stays behind app runtime helper', async () => {
+    const chatEventsSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatEvents.js'),
+      'utf8',
+    );
+    const dashboardShellSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/DashboardShell.jsx'),
+      'utf8',
+    );
+    const chatBindingsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatInterfaceBindings.js'),
+      'utf8',
+    );
+
+    expect(chatEventsSource).toContain('dispatchDesktopRuntimeNewChatEvent');
+    expect(chatEventsSource).toContain('subscribeDesktopRuntimeNewChatEvent');
+    expect(chatEventsSource).toContain('DESKTOP_RUNTIME_NEW_CHAT_EVENT');
+    expect(dashboardShellSource).toContain('dispatchDesktopRuntimeNewChatEvent');
+    expect(dashboardShellSource).not.toContain('new Event(DESKTOP_RUNTIME_NEW_CHAT_EVENT)');
+    expect(chatBindingsSource).toContain('subscribeDesktopRuntimeNewChatEvent');
+    expect(chatBindingsSource).not.toContain('window.addEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT');
+    expect(chatBindingsSource).not.toContain('window.removeEventListener(DESKTOP_RUNTIME_NEW_CHAT_EVENT');
+  });
+
   test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),

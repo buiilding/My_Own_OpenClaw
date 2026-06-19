@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer desktop new-chat event helper slice by
+  moving dashboard-to-chat custom browser event dispatch and subscription into
+  `desktopChatEvents` as `dispatchDesktopRuntimeNewChatEvent(...)` and
+  `subscribeDesktopRuntimeNewChatEvent(...)`. `DashboardShell` now requests a
+  new chat through the app-runtime helper, and `useChatInterfaceBindings`
+  subscribes through the same helper instead of spelling out
+  `window.dispatchEvent(...)` / `window.addEventListener(...)` for the custom
+  event. Validation: focused desktop chat event, chat interface wiring,
+  dashboard shell, and renderer app-runtime boundary tests plus stale direct
+  event wiring scans, docs search/history checks, and diff checks. No migration
+  required; the `desktop-runtime:new-chat` event name, chat reset behavior,
+  transcript/session updates, IPC, storage, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed an SDK agent runtime transport wording slice by
   replacing stale "requires a backend transport" errors in
   `ConversationContinuityService` and `ConversationRuntime.setModel` with

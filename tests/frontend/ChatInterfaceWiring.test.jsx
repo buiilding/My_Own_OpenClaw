@@ -12,7 +12,7 @@ import {
 } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
-import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
+import { dispatchDesktopRuntimeNewChatEvent } from '../../frontend/src/renderer/app/runtime/desktopChatEvents';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
 
 const mockUseChatMessageSender = jest.fn(() => ({
@@ -114,6 +114,15 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   useChatStore: (selector) => mockSelectStoreState(selector, mockChatState),
+  selectChatInterfaceState: (state) => ({
+    messages: state.messages,
+    isSending: state.isSending,
+    thinkingStatus: state.thinkingStatus,
+    thinkingSourceEventType: state.thinkingSourceEventType,
+    compactionDebugInfo: state.compactionDebugInfo,
+    currentTurnProjection: state.currentTurnProjection,
+    pendingTurn: state.pendingTurn,
+  }),
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
@@ -1546,7 +1555,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     act(() => {
-      window.dispatchEvent(new Event(DESKTOP_RUNTIME_NEW_CHAT_EVENT));
+      dispatchDesktopRuntimeNewChatEvent();
     });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);
@@ -1566,7 +1575,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     act(() => {
-      window.dispatchEvent(new Event(DESKTOP_RUNTIME_NEW_CHAT_EVENT));
+      dispatchDesktopRuntimeNewChatEvent();
     });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);

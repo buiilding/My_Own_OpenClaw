@@ -102,6 +102,11 @@ dashboard selector remains scoped to fields rendered by the full interface.
 
 ## New Chat Session Lifecycle
 
+Dashboard-to-chat new-chat requests use the renderer-only
+`desktopChatEvents.dispatchDesktopRuntimeNewChatEvent(...)` /
+`subscribeDesktopRuntimeNewChatEvent(...)` helpers so dashboard components and
+chat hooks do not construct or subscribe to the custom browser event directly.
+
 `startNewChatSession(...)` order:
 
 1. optional `stopActiveQuery()` callback

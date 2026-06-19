@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move the dashboard-to-chat new-chat browser event dispatch
+  and subscription behind `desktopChatEvents` helpers so feature modules no
+  longer construct or subscribe to that custom event directly. No migration
+  required.
 - sdk/runtime: describe missing conversation continuity and model-setting
   transports as agent runtime transport requirements instead of backend
   transport requirements. No migration required.

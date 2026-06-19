@@ -19,7 +19,7 @@ import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../../app/runtime/desktopActiveChatSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
-import { DESKTOP_RUNTIME_NEW_CHAT_EVENT } from '../../../app/runtime/desktopChatEvents';
+import { dispatchDesktopRuntimeNewChatEvent } from '../../../app/runtime/desktopChatEvents';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -192,7 +192,7 @@ function DashboardShell({
 
   const handleStartNewChat = useCallback(() => {
     closeAllPanels();
-    window.dispatchEvent(new Event(DESKTOP_RUNTIME_NEW_CHAT_EVENT));
+    dispatchDesktopRuntimeNewChatEvent();
   }, [closeAllPanels]);
 
   const handleMemorySurface = useCallback(() => {
