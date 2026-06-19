@@ -306,12 +306,24 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/chatStream/useChatStreamTerminalHandlers.ts'),
       'utf8',
     );
+    const payloadRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).not.toContain('unwrapErrorBackendEvent');
     expect(source).not.toContain('unwrapTokenCountBackendEvent');
     expect(source).not.toContain('unwrapMemoryStoreBackendEvent');
     expect(source).not.toContain('types/backendEvents');
+    expect(source).toContain('buildTokenCountsFromPayload');
+    expect(source).toContain('resolveTerminalErrorPayload');
+    expect(source).not.toContain('prompt_tokens');
+    expect(source).not.toContain('usage_source');
+    expect(source).not.toContain('cache_status');
     expect(source).toContain('ConversationEvent');
+    expect(payloadRuntimeSource).toContain('prompt_tokens');
+    expect(payloadRuntimeSource).toContain('usage_source');
+    expect(payloadRuntimeSource).toContain('cache_status');
   });
 
   test('chat stream backend ingress normalization stays behind the app runtime', async () => {

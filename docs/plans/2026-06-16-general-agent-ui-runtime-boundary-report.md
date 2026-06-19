@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Terminal Stream Payload Runtime Boundary
+
+- Finding: the terminal chat stream hook still parsed backend-wire token-count
+  fields and terminal error payload fields locally, while adjacent stream
+  payload normalization had moved behind `desktopChatStreamEventPayloadRuntime`.
+- Change: moved token-count filtering, usage/cache enum validation,
+  nullable/finite number handling, and terminal error payload shaping into the
+  app runtime payload facade. The terminal hook now asks the runtime helper for
+  normalized token counts or error payloads before coordinating chat-store side
+  effects.
+- Validation: focused payload-runtime and renderer chat runtime boundary tests,
+  terminal-hook stale-field scan, and diff checks.
+- Compatibility: no migration required. Token-count event fields, error event
+  fields, chat-store updates, stream tracking, transcript rows, IPC, backend
+  websocket events, credentials, provider policy, storage, hosted URLs, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Bundled Python Runtime Label Boundary
 
 - Finding: CLI, install, operations, platform, development, and local-runtime

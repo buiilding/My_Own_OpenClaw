@@ -3,6 +3,7 @@
  */
 
 import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
+import type { TokenCounts } from './desktopChatMessageTypes';
 import type {
   CompactedReplaySnapshot,
   ConversationEvent,
@@ -21,6 +22,9 @@ type ErrorPayload = {
 };
 
 type EventPayload = Record<string, unknown>;
+
+const USAGE_SOURCE_VALUES = new Set(['provider', 'estimated']);
+const CACHE_STATUS_VALUES = new Set(['hit', 'miss', 'unknown']);
 
 type CompactionEvent = ConversationEvent & {
   payload: EventPayload;
@@ -64,6 +68,84 @@ function recordOrNull(value: unknown): JsonRecord | null {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     ? value as JsonRecord
     : null;
+}
+
+function finiteNumberField(payload: EventPayload, key: string): number | undefined {
+  const value = payload[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function nullableNumberField(payload: EventPayload, key: string): number | null | undefined {
+  if (payload[key] === null) {
+    return null;
+  }
+  return finiteNumberField(payload, key);
+}
+
+function booleanField(payload: EventPayload, key: string): boolean | null | undefined {
+  if (payload[key] === null) {
+    return null;
+  }
+  return typeof payload[key] === 'boolean' ? payload[key] as boolean : undefined;
+}
+
+export function buildTokenCountsFromPayload(payload: EventPayload | null | undefined): TokenCounts {
+  const source = payload ?? {};
+  const tokenCounts: TokenCounts = {};
+  const promptTokens = finiteNumberField(source, 'prompt_tokens');
+  const visibleOutputTokens = finiteNumberField(source, 'visible_output_tokens');
+  const thinkingTokens = nullableNumberField(source, 'thinking_tokens');
+  const outputTokensTotal = finiteNumberField(source, 'output_tokens_total');
+  const totalTokens = finiteNumberField(source, 'total_tokens');
+  const conversationTokens = finiteNumberField(source, 'conversation_tokens');
+  const cachedTokens = nullableNumberField(source, 'cached_tokens');
+  const cacheHit = booleanField(source, 'cache_hit');
+  const usageSource = typeof source.usage_source === 'string' && USAGE_SOURCE_VALUES.has(source.usage_source)
+    ? source.usage_source as TokenCounts['usage_source']
+    : undefined;
+  const cacheStatus = typeof source.cache_status === 'string' && CACHE_STATUS_VALUES.has(source.cache_status)
+    ? source.cache_status as TokenCounts['cache_status']
+    : undefined;
+
+  if (promptTokens !== undefined) {
+    tokenCounts.prompt_tokens = promptTokens;
+  }
+  if (visibleOutputTokens !== undefined) {
+    tokenCounts.visible_output_tokens = visibleOutputTokens;
+  }
+  if (thinkingTokens !== undefined) {
+    tokenCounts.thinking_tokens = thinkingTokens;
+  }
+  if (outputTokensTotal !== undefined) {
+    tokenCounts.output_tokens_total = outputTokensTotal;
+  }
+  if (totalTokens !== undefined) {
+    tokenCounts.total_tokens = totalTokens;
+  }
+  if (conversationTokens !== undefined) {
+    tokenCounts.conversation_tokens = conversationTokens;
+  }
+  if (usageSource !== undefined) {
+    tokenCounts.usage_source = usageSource;
+  }
+  if (cachedTokens !== undefined) {
+    tokenCounts.cached_tokens = cachedTokens;
+  }
+  if (cacheHit !== undefined) {
+    tokenCounts.cache_hit = cacheHit;
+  }
+  if (cacheStatus !== undefined) {
+    tokenCounts.cache_status = cacheStatus;
+  }
+
+  return tokenCounts;
+}
+
+export function resolveTerminalErrorPayload(payload: EventPayload | null | undefined): ErrorPayload {
+  return {
+    message: payload?.message,
+    content: payload?.content,
+  };
 }
 
 export function resolveToolSchemasMetadataPayload(payload: EventPayload | null | undefined): EventPayload {

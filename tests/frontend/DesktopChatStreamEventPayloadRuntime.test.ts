@@ -6,8 +6,10 @@ import {
   buildCompactedReplaySnapshot,
   buildCompactionDebugInfo,
   buildScreenshotAttachment,
+  buildTokenCountsFromPayload,
   getCompactionReplacementHistoryEntries,
   resolveErrorText,
+  resolveTerminalErrorPayload,
   resolveToolSchemasMetadataPayload,
   shouldIgnoreStreamError,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime';
@@ -59,6 +61,51 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
     expect(resolveErrorText({ content: '', message: 'message-error' })).toBe('message-error');
     expect(resolveErrorText({ content: '', message: '' })).toBe('An error occurred');
     expect(resolveErrorText(undefined)).toBe('An error occurred');
+  });
+
+  test('normalizes terminal token-count payloads for renderer state', () => {
+    expect(buildTokenCountsFromPayload({
+      prompt_tokens: 12,
+      visible_output_tokens: 3,
+      thinking_tokens: null,
+      output_tokens_total: 5,
+      total_tokens: 17,
+      conversation_tokens: 120,
+      usage_source: 'provider',
+      cached_tokens: null,
+      cache_hit: false,
+      cache_status: 'miss',
+      ignored_extra: 'drop-me',
+    })).toEqual({
+      prompt_tokens: 12,
+      visible_output_tokens: 3,
+      thinking_tokens: null,
+      output_tokens_total: 5,
+      total_tokens: 17,
+      conversation_tokens: 120,
+      usage_source: 'provider',
+      cached_tokens: null,
+      cache_hit: false,
+      cache_status: 'miss',
+    });
+
+    expect(buildTokenCountsFromPayload({
+      prompt_tokens: Number.POSITIVE_INFINITY,
+      usage_source: 'backend-debug',
+      cache_status: 'warm',
+      cache_hit: 'false',
+    })).toEqual({});
+  });
+
+  test('normalizes terminal error payloads to public message fields', () => {
+    expect(resolveTerminalErrorPayload({
+      message: 'message-error',
+      content: 'content-error',
+      rawEvent: { debug: true },
+    })).toEqual({
+      message: 'message-error',
+      content: 'content-error',
+    });
   });
 
   test('normalizes compaction payload aliases for renderer side effects', () => {

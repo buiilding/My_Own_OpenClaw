@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer terminal stream payload runtime slice by
+  moving token-count filtering, usage/cache enum validation, nullable/finite
+  number handling, and terminal error payload shaping from the terminal chat
+  stream hook into `desktopChatStreamEventPayloadRuntime`. The hook now only
+  coordinates chat-store side effects using normalized runtime payloads.
+  Validation: focused payload-runtime and renderer chat runtime boundary tests,
+  terminal-hook stale-field scan, and diff checks. No migration required;
+  token-count/error event fields, chat-store updates, stream tracking,
+  transcript rows, IPC, backend websocket events, credentials, provider-policy,
+  storage, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a bundled Python runtime label slice by relabeling CLI,
   install, operations, platform, development, and local-runtime lifecycle docs
   from sidecar-runtime owner wording to bundled Python runtime,
