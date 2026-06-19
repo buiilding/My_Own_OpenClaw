@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: emit dashboard main-window targets and fallback session user
+  ids as value-level runtime client results so `DashboardShell` no longer reads
+  normalized host payload objects. No migration required.
 - renderer/runtime: expose observed chat-loop transport connectivity as a
   boolean from `desktopClientSessionRuntimeClient` so `useChatLoopUiState` no
   longer reads normalized `isConnected` status objects. No migration required.

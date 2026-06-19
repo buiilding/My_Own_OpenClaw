@@ -245,10 +245,9 @@ function DashboardShell({
     if (vmModeEnabled) {
       return undefined;
     }
-    const removeListener = DesktopWindowRuntimeClient.onMainWindowOpenTarget((payload) => {
+    const removeListener = DesktopWindowRuntimeClient.onMainWindowOpenTarget((target) => {
       wakeDashboardShell();
       void loadRecentConversations('main-window-open-target');
-      const target = payload.target;
       if (target === 'chat') {
         handleChatSurface({ focusComposer: true });
         return;
@@ -285,10 +284,10 @@ function DashboardShell({
   ]);
 
   useEffect(() => {
-    DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
-      .then((payload) => {
-        if (payload?.userId) {
-          setSnapshotUserId(payload.userId);
+    DesktopClientSessionRuntimeClient.loadMainSessionUserId()
+      .then((userId) => {
+        if (userId) {
+          setSnapshotUserId(userId);
         }
       })
       .catch(() => {});

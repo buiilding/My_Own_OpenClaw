@@ -49,6 +49,10 @@ export function normalizeDesktopClientSessionSnapshot(payload: unknown): Desktop
   return snapshot;
 }
 
+export function resolveDesktopClientSessionUserId(payload: unknown): string | null {
+  return normalizeDesktopClientSessionSnapshot(payload).userId;
+}
+
 export function normalizeDesktopTransportConnectionStatus(
   payload: unknown,
 ): DesktopTransportConnectionStatus {
@@ -76,6 +80,14 @@ export const DesktopClientSessionRuntimeClient = {
     }
     return IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then(normalizeDesktopClientSessionSnapshot);
+  },
+
+  loadMainSessionUserId(): Promise<string | null | undefined> {
+    if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
+      return Promise.resolve(undefined);
+    }
+    return IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+      .then(resolveDesktopClientSessionUserId);
   },
 
   onIpcStatus(listener: DesktopIpcStatusListener): (() => void) | undefined {

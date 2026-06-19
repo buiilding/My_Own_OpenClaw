@@ -40,7 +40,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopWindowRuntimeClient,
-  normalizeMainWindowOpenTargetPayload,
+  resolveMainWindowOpenTarget,
 } from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
 
 describe('DesktopWindowRuntimeClient', () => {
@@ -50,19 +50,13 @@ describe('DesktopWindowRuntimeClient', () => {
     windowListener = null;
   });
 
-  test('normalizes main-window open target payloads at the runtime boundary', () => {
-    expect(normalizeMainWindowOpenTargetPayload({ target: ' settings ' })).toEqual({
-      target: 'settings',
-    });
-    expect(normalizeMainWindowOpenTargetPayload({ target: 12 })).toEqual({
-      target: '',
-    });
-    expect(normalizeMainWindowOpenTargetPayload(null)).toEqual({
-      target: '',
-    });
+  test('resolves main-window open target payloads at the runtime boundary', () => {
+    expect(resolveMainWindowOpenTarget({ target: ' settings ' })).toBe('settings');
+    expect(resolveMainWindowOpenTarget({ target: 12 })).toBe('');
+    expect(resolveMainWindowOpenTarget(null)).toBe('');
   });
 
-  test('main-window open target subscriptions emit normalized payloads', () => {
+  test('main-window open target subscriptions emit normalized target strings', () => {
     const events: unknown[] = [];
     const unsubscribe = DesktopWindowRuntimeClient.onMainWindowOpenTarget((event) => {
       events.push(event);
@@ -70,7 +64,7 @@ describe('DesktopWindowRuntimeClient', () => {
 
     windowListener?.({ target: ' chat ' });
 
-    expect(events).toEqual([{ target: 'chat' }]);
+    expect(events).toEqual(['chat']);
 
     unsubscribe?.();
     expect(windowListener).toBeNull();

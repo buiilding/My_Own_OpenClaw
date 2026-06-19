@@ -40,12 +40,8 @@ export type MoveChatboxTarget = {
 
 export type WindowRuntimeEventListener = (payload?: unknown) => void;
 
-export type MainWindowOpenTargetPayload = {
-  target: string;
-};
-
 export type MainWindowOpenTargetListener = (
-  payload: MainWindowOpenTargetPayload,
+  target: string,
 ) => void;
 
 function recordOrEmpty(value: unknown): Record<string, unknown> {
@@ -54,10 +50,9 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
-export function normalizeMainWindowOpenTargetPayload(payload: unknown): MainWindowOpenTargetPayload {
+export function resolveMainWindowOpenTarget(payload: unknown): string {
   const source = recordOrEmpty(payload);
-  const target = typeof source.target === 'string' ? source.target.trim() : '';
-  return { target };
+  return typeof source.target === 'string' ? source.target.trim() : '';
 }
 
 export const DesktopWindowRuntimeClient = {
@@ -100,7 +95,7 @@ export const DesktopWindowRuntimeClient = {
   onMainWindowOpenTarget(listener: MainWindowOpenTargetListener): (() => void) | undefined {
     return IpcBridge.on(
       ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET,
-      (payload: unknown) => listener(normalizeMainWindowOpenTargetPayload(payload)),
+      (payload: unknown) => listener(resolveMainWindowOpenTarget(payload)),
     );
   },
 

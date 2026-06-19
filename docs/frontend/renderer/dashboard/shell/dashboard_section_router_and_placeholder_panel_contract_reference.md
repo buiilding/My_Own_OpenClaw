@@ -138,7 +138,7 @@ Failure behavior:
 
 Shell listens through `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)`.
 The runtime client normalizes the host event before shell routing, so shell code
-consumes a trimmed `target` string and does not interpret raw
+consumes a trimmed target string and does not interpret raw
 `main-window-open-target` payload fields directly.
 
 Dashboard reopen wake-up calls
@@ -163,9 +163,10 @@ Unrecognized targets are ignored.
 ## Dashboard User Snapshot Contract
 
 Shell loads the fallback dashboard user through
-`DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`. The runtime
-client trims and normalizes `userId` while preserving additive session metadata;
-the shell consumes only the normalized `userId` for recent/search conversation
+`DesktopClientSessionRuntimeClient.loadMainSessionUserId()`. The runtime client
+trims and normalizes `userId` from the full session snapshot while preserving
+`loadMainSessionSnapshot()` for callers that need additive session metadata; the
+shell consumes only the normalized user id for recent/search conversation
 loading until transcript session state supplies a current user.
 
 ## Drift Hotspots

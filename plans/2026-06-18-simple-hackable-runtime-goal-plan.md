@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard host value boundary slice by
+  changing `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)` to emit a
+  target string and adding
+  `DesktopClientSessionRuntimeClient.loadMainSessionUserId()` for dashboard
+  fallback user state. `DashboardShell` now handles wake-up, panel routing,
+  recent-list refresh, and fallback assignment without reading normalized
+  target/user payload objects. Validation: passed focused window runtime
+  client, client-session runtime client, dashboard shell, renderer chat runtime
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  payload-field scans, docs listing, and diff checks. No migration required;
+  main-window open-target events, client-user snapshot commands, full session
+  snapshots, endpoint metadata, dashboard routing, IPC, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer chat-loop observed transport connection
   boundary slice by changing the desktop client-session runtime client to emit
   boolean observed connectivity through
@@ -830,8 +844,8 @@ For each completed slice, record:
   `desktopWindowRuntimeClient` and client-session snapshot user-id
   normalization into `desktopClientSessionRuntimeClient`. `DashboardShell` now
   keeps panel routing and snapshot state updates while consuming normalized
-  runtime values instead of parsing `payload.target` or trimming raw
-  `payload.userId`. Validation: focused desktop window runtime client,
+  runtime values instead of interpreting host-shaped target or user fields.
+  Validation: focused desktop window runtime client,
   desktop client-session runtime client, dashboard shell, renderer chat runtime
   boundary tests, stale dashboard raw-payload scan, docs listing, and diff
   checks. No migration required; main-window target channel names, accepted

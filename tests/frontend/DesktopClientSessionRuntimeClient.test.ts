@@ -27,6 +27,7 @@ import {
   DesktopClientSessionRuntimeClient,
   normalizeDesktopClientSessionSnapshot,
   normalizeDesktopTransportConnectionStatus,
+  resolveDesktopClientSessionUserId,
   resolveObservedDesktopTransportConnection,
 } from '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient';
 
@@ -65,6 +66,19 @@ describe('DesktopClientSessionRuntimeClient', () => {
       userId: 'dashboard-user',
       isConnected: false,
     });
+    expect(mockInvoke).toHaveBeenCalledWith('get-client-user-id');
+  });
+
+  test('resolves and loads main session user ids directly', async () => {
+    expect(resolveDesktopClientSessionUserId({ userId: ' dashboard-user ' })).toBe('dashboard-user');
+    expect(resolveDesktopClientSessionUserId({ userId: '   ' })).toBeNull();
+
+    mockInvoke.mockResolvedValue({
+      userId: ' dashboard-user ',
+      isConnected: false,
+    });
+
+    await expect(DesktopClientSessionRuntimeClient.loadMainSessionUserId()).resolves.toBe('dashboard-user');
     expect(mockInvoke).toHaveBeenCalledWith('get-client-user-id');
   });
 

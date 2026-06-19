@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dashboard Host Value Boundary
+
+- Finding: `desktopWindowRuntimeClient` and
+  `desktopClientSessionRuntimeClient` already normalized dashboard main-window
+  target and client-user snapshot payloads, but `DashboardShell` still received
+  normalized objects and read `target` / `userId` fields locally.
+- Change: changed `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)` to
+  emit the resolved target string and added
+  `DesktopClientSessionRuntimeClient.loadMainSessionUserId()` for dashboard
+  fallback user state. `DashboardShell` now keeps only wake-up, panel routing,
+  recent-list refresh, and fallback state assignment.
+- Validation: passed focused desktop window runtime client, desktop client
+  session runtime client, dashboard shell, renderer chat runtime boundary, and
+  docs-index tests plus docs search, related commit search, stale payload-field
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. Main-window open-target event names,
+  client-user snapshot command names, full session snapshot behavior, endpoint
+  metadata, dashboard panel routing, recent-list loading, IPC, storage,
+  settings, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Chat-Loop Observed Transport Connection Boundary
 
 - Finding: `desktopClientSessionRuntimeClient` already filtered IPC status

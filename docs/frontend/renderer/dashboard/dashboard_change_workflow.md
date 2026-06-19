@@ -110,7 +110,7 @@ Shell invariants:
   only to known targets.
 - runtime clients provide normalized dashboard transport and user context snapshots
   (`DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)` and
-  `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()`). Do not
+  `DesktopClientSessionRuntimeClient.loadMainSessionUserId()`). Do not
   duplicate host-shaped target/user payload parsing or backend connection state
   in section panels.
 - Search open should reset stale query/results before displaying the modal.
