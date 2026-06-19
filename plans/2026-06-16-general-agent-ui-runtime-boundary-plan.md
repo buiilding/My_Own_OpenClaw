@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Message-List Thinking Auto-Scroll Boundary
+
+- Finding: `useMessageListAutoScroll` delegated general message-list scroll
+  rules to `desktopMessageListRuntime`, but still classified the raw assistant
+  `llm-text` row type for thinking-text auto-scroll.
+- Change: moved that same-row assistant thinking-text update predicate into
+  `desktopMessageListRuntime` as `shouldAutoScrollForThinkingTextUpdate(...)`
+  and routed the hook through the runtime helper.
+- Validation: focused desktop message-list runtime, message-list scroll
+  behavior, and renderer chat runtime boundary tests plus docs search, related
+  commit search, stale hook row-type scans, and diff checks.
+- Compatibility: no migration required. Message rows, scroll thresholds,
+  conversation-switch scroll anchoring, rendered thinking text, IPC, storage,
+  settings, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Message Content Kind Runtime Boundary
 
 - Finding: `MessageContent` rendered SDK/display-row message variants through

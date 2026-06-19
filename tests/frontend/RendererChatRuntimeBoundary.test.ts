@@ -886,6 +886,8 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(messageListRuntimeSource).toContain('resolveCompactionStatusText');
     expect(messageListRuntimeSource).toContain('shouldAutoScrollForAgentLoopMessageUpdate');
+    expect(messageListRuntimeSource).toContain('shouldAutoScrollForThinkingTextUpdate');
+    expect(autoScrollSource).not.toContain("nextLastMessage.type === 'llm-text'");
     expect(messageListRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageListState.js'),

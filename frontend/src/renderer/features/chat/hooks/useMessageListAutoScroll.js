@@ -11,29 +11,9 @@ import {
   isNearBottom,
   scrollToConversationSwitchTarget,
   shouldAutoScrollForAgentLoopMessageUpdate,
+  shouldAutoScrollForThinkingTextUpdate,
   shouldForceScrollForNewUserMessage,
 } from '../../../app/runtime/desktopMessageListRuntime';
-
-function shouldAutoScrollForThinkingTextUpdate(previousMessages, nextMessages) {
-  if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
-    return false;
-  }
-  if (previousMessages.length !== nextMessages.length || nextMessages.length === 0) {
-    return false;
-  }
-
-  const previousLastMessage = previousMessages[previousMessages.length - 1] || null;
-  const nextLastMessage = nextMessages[nextMessages.length - 1] || null;
-  if (!previousLastMessage || !nextLastMessage || previousLastMessage.id !== nextLastMessage.id) {
-    return false;
-  }
-
-  return (
-    nextLastMessage.sender === 'assistant'
-    && nextLastMessage.type === 'llm-text'
-    && previousLastMessage.thinkingText !== nextLastMessage.thinkingText
-  );
-}
 
 export function useMessageListAutoScroll({
   messages,

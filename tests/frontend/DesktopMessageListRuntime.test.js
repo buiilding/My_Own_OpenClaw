@@ -4,6 +4,7 @@
 
 import {
   resolveCompactionStatusText,
+  shouldAutoScrollForThinkingTextUpdate,
   shouldRenderAssistantActions,
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
@@ -74,5 +75,20 @@ describe('desktopMessageListRuntime', () => {
     expect(shouldRenderUserActions({ sender: 'user' }, true)).toBe(true);
     expect(shouldRenderUserActions({ sender: 'assistant' }, true)).toBe(false);
     expect(shouldRenderUserActions({ sender: 'user' }, false)).toBe(false);
+  });
+
+  test('thinking-text auto-scroll requires same assistant llm-text row update', () => {
+    expect(shouldAutoScrollForThinkingTextUpdate(
+      [{ id: 'assistant-1', sender: 'assistant', type: 'llm-text', thinkingText: 'Thinking' }],
+      [{ id: 'assistant-1', sender: 'assistant', type: 'llm-text', thinkingText: 'Thinking more' }],
+    )).toBe(true);
+    expect(shouldAutoScrollForThinkingTextUpdate(
+      [{ id: 'assistant-1', sender: 'assistant', type: 'tool-output', thinkingText: 'Thinking' }],
+      [{ id: 'assistant-1', sender: 'assistant', type: 'tool-output', thinkingText: 'Thinking more' }],
+    )).toBe(false);
+    expect(shouldAutoScrollForThinkingTextUpdate(
+      [{ id: 'assistant-1', sender: 'assistant', type: 'llm-text', thinkingText: 'Thinking' }],
+      [{ id: 'assistant-2', sender: 'assistant', type: 'llm-text', thinkingText: 'Thinking more' }],
+    )).toBe(false);
   });
 });

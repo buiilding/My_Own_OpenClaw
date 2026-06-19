@@ -100,6 +100,27 @@ export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, next
   );
 }
 
+export function shouldAutoScrollForThinkingTextUpdate(previousMessages, nextMessages) {
+  if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
+    return false;
+  }
+  if (previousMessages.length !== nextMessages.length || nextMessages.length === 0) {
+    return false;
+  }
+
+  const previousLastMessage = previousMessages[previousMessages.length - 1] || null;
+  const nextLastMessage = nextMessages[nextMessages.length - 1] || null;
+  if (!previousLastMessage || !nextLastMessage || previousLastMessage.id !== nextLastMessage.id) {
+    return false;
+  }
+
+  return (
+    isAgentLoopAutoScrollEligibleMessage(nextLastMessage)
+    && (nextLastMessage.type || '') === 'llm-text'
+    && previousLastMessage.thinkingText !== nextLastMessage.thinkingText
+  );
+}
+
 export function shouldRenderAssistantActions(message, enableAssistantActions) {
   if (!enableAssistantActions) {
     return false;

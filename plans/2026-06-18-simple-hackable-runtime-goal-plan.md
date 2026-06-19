@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer message-list thinking auto-scroll boundary
+  slice by moving the same-row assistant thinking-text update predicate into
+  `desktopMessageListRuntime` as `shouldAutoScrollForThinkingTextUpdate(...)`.
+  `useMessageListAutoScroll` now composes app-runtime predicates for
+  agent-loop and thinking-text scroll decisions instead of checking raw
+  assistant `llm-text` row types locally. Validation: focused desktop
+  message-list runtime, message-list scroll behavior, and renderer chat
+  runtime boundary tests plus docs search, related commit search, stale hook
+  row-type scans, and diff checks. No migration required; message rows, scroll
+  thresholds, conversation-switch scroll anchoring, rendered thinking text,
+  IPC, storage, settings, credentials, provider-policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer message-content render-kind boundary slice
   by moving `MessageContent` raw row-type branching into
   `desktopMessageContentRuntime`. The component now consumes a named

@@ -54,6 +54,7 @@ Overflow behavior:
 - auto-scrolls on `[messages]` updates only while user remains near bottom (`24px` threshold)
 - preserves manual scroll position after user scrolls away from bottom (assistant/tool/live updates do not force snap-to-bottom)
 - on active conversation switch, resets auto-scroll stickiness and jumps instantly to a near-bottom anchor (`72px` above absolute bottom, no smooth animation) so history selection opens at the latest context without fully pinning the last pixel
+- routes same-row assistant thinking-text update detection through `shouldAutoScrollForThinkingTextUpdate(...)` in the app runtime, keeping raw message-type classification out of `useMessageListAutoScroll`
 
 Guarantee:
 

@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Message-List Thinking Auto-Scroll Boundary
+
+- Finding: `useMessageListAutoScroll` delegated general message-list scroll
+  rules to `desktopMessageListRuntime`, but still checked raw assistant
+  `llm-text` row type locally before auto-scrolling on thinking-text updates.
+- Change: moved the same-row assistant thinking-text update predicate into
+  `desktopMessageListRuntime` as `shouldAutoScrollForThinkingTextUpdate(...)`.
+  The hook now composes runtime predicates for agent-loop and thinking-text
+  auto-scroll decisions.
+- Validation: focused desktop message-list runtime, message-list scroll
+  behavior, and renderer chat runtime boundary tests plus docs search, related
+  commit search, stale hook row-type scans, and diff checks.
+- Compatibility: no migration required. Message rows, scroll thresholds,
+  conversation-switch scroll anchoring, rendered thinking text, IPC, storage,
+  settings, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Message Content Kind Runtime Boundary
 
 - Finding: `MessageContent` still interpreted raw SDK/display-row message
