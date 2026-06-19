@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Backend-Wire Boundary Guard
+
+- Finding: the renderer chat boundary suite deleted the old renderer
+  `types/backendEvents` contract and blocked a narrow backend-wire subscription
+  shape, but did not broadly guard app/feature modules from importing SDK
+  backend-event helpers, unwrap helpers, or legacy `from-backend` channel
+  names.
+- Change: broadened the renderer app/feature scan so SDK/main backend-wire
+  normalization remains outside renderer feature code, which consumes SDK
+  conversation events and app-runtime projections instead.
+- Validation: focused renderer chat-runtime boundary test, direct source scan
+  for forbidden backend-wire helpers/channels, and diff checks.
+- Compatibility: no migration required. Tests changed only; runtime code,
+  payloads, websocket events, IPC channels, storage, settings, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Provider Boundary Guard
 
 - Finding: the renderer boundary suite already blocked direct feature imports

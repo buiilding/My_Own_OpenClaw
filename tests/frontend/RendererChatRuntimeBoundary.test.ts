@@ -282,7 +282,7 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer does not own backend-wire event contracts', async () => {
+  test('renderer feature and app code does not own backend-wire event helpers', async () => {
     const backendEventContractPath = path.join(
       path.resolve(__dirname, '../..'),
       'frontend/src/renderer/types/backendEvents.ts',
@@ -291,12 +291,28 @@ describe('renderer chat runtime boundary', () => {
     await expect(fs.access(backendEventContractPath)).rejects.toThrow();
 
     const rendererRoot = path.resolve(chatRoot, '../..');
-    const files = await listSourceFiles(rendererRoot);
+    const files = (await Promise.all([
+      listSourceFiles(path.join(rendererRoot, 'app')),
+      listSourceFiles(path.join(rendererRoot, 'features')),
+    ])).flat();
     const offenders: string[] = [];
+    const forbiddenBackendWireNeedles = [
+      'types/backendEvents',
+      'events/backendEvents',
+      'normalizeBackendEventToConversationEvent',
+      'unwrapToolBackendEvent',
+      'unwrapErrorBackendEvent',
+      'unwrapTokenCountBackendEvent',
+      'unwrapMemoryStoreBackendEvent',
+      'unwrapBackendEvent',
+      'ON_CHANNELS.FROM_BACKEND',
+      'WINDIE_FROM_BACKEND',
+      'from-backend',
+    ];
 
     for (const file of files) {
       const source = await fs.readFile(file, 'utf8');
-      if (source.includes('types/backendEvents')) {
+      if (forbiddenBackendWireNeedles.some((needle) => source.includes(needle))) {
         offenders.push(path.relative(rendererRoot, file));
       }
     }

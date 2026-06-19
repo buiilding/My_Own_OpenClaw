@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: tightened the renderer backend-wire import boundary by broadening
+  the renderer app/feature guard from the deleted `types/backendEvents` module
+  and one subscription shape to backend-event contracts, normalizers, unwrap
+  helpers, and legacy `from-backend` channels. Renderer feature code must keep
+  consuming SDK conversation events and app-runtime projections instead.
+  Validation: focused renderer chat-runtime boundary test, direct source scan,
+  and diff checks. No migration required; no runtime code, payload, websocket
+  event, IPC channel, storage, settings, credential, permission, hosted route,
+  provider policy, packaging, or local execution behavior changed.
 - 2026-06-19: tightened the renderer app-runtime import boundary by broadening
   the feature-module guard from direct `AppConfigContext` imports to direct
   `app/providers/*`, app config/status/chat contexts, and provider component
