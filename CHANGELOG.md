@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/dashboard: list the recent-conversation load helper in dashboard
+  canonical module references and remove a duplicate library-client entry. No
+  migration required.
 - renderer/config: move renderer app-config allowlisting and local persistence
   defaults into app-runtime config facades consumed by AppConfigProvider. No
   migration required.
