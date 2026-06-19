@@ -128,6 +128,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Architecture, review, help, backend service, and frontend routing docs now
   qualify backend-import parity rules as desktop client and Python sidecar
   ownership instead of broad frontend/sidecar wording.
+
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
   labels.
@@ -172,6 +173,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through renderer app runtime clients.
 
 ## Inspection Log
+
+### 2026-06-19 Local-Runtime Sidecar Owner-Label Boundary
+
+- Finding: active browser, tool, backend parity, overlay, inventory, planning,
+  development, and packaging reference docs still exposed "local-runtime
+  sidecar" as a reusable owner label after newer goal guidance separated
+  local-runtime contracts from the Python sidecar implementation process.
+- Change: reworded those active docs to local-runtime ownership labels and
+  Python sidecar implementation wording only where the concrete daemon,
+  manifest, registry, stderr logs, or executor is the debug target. The modular
+  docs guard now rejects the mixed owner labels in active docs while excluding
+  historical plan-report text from that active-doc rule.
+- Validation: focused modular boundary test, docs listing, stale active-label
+  scan, and diff checks.
+- Compatibility: no migration required. Local tool execution, browser adapter
+  behavior, registry exposure, manifest generation, packaging paths, IPC,
+  credentials, permissions, provider policy, backend APIs, storage, hosted
+  URLs, and payload shapes are unchanged.
 
 ### 2026-06-19 Sidecar-Backed Tool Section Label Boundary
 

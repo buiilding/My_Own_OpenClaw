@@ -34,7 +34,7 @@ The sidecar no longer ships or routes browser actions through the retired
 
 ## Manifest Note
 
-Built-in local tool schemas are owned by the local-runtime sidecar. `frontend/src/main/python/tools/manifest.py` generates the Electron-consumed `frontend/src/main/generated/builtin_tool_manifest.json`, including rich browser actions, desktop grounding fields, descriptions, `execution_target`, and `argument_resolution`. Keep `frontend/src/main/extensions/tool_manifest.cjs` as a loader/merger for generated built-ins plus plugin and MCP tools rather than hand-authoring built-in schemas in JavaScript.
+Built-in local tool schemas are generated from the local-runtime Python manifest. `frontend/src/main/python/tools/manifest.py` generates the Electron-consumed `frontend/src/main/generated/builtin_tool_manifest.json`, including rich browser actions, desktop grounding fields, descriptions, `execution_target`, and `argument_resolution`. Keep `frontend/src/main/extensions/tool_manifest.cjs` as a loader/merger for generated built-ins plus plugin and MCP tools rather than hand-authoring built-in schemas in JavaScript.
 
 ## Code Scope
 

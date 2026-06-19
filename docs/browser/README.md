@@ -8,7 +8,7 @@ title: "Browser Hub"
 
 # Browser Hub
 
-WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the local-runtime sidecar adapts that contract to the maintained Browser Use CLI daemon. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
+WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the local runtime executes that contract through the Python sidecar Browser Use adapter. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
 
 ## Browser Pages
 
@@ -26,7 +26,7 @@ WindieOS browser automation is a first-class local tool path. The backend expose
 | Backend | Model-facing `browser` tool schema and provider health/tool policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py` |
 | Renderer | Header/session controls and polling store | `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`, `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` |
 | Electron main | Tool execution bridge and browser automation permission/install IPC | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs` |
-| Local runtime sidecar | Browser Use engine adapter, action dispatch, result normalization, browser-local file helpers | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `frontend/src/main/python/tools/browser/browser_tool.py` |
+| Local runtime implementation | Browser Use engine adapter, action dispatch, result normalization, browser-local file helpers | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `frontend/src/main/python/tools/browser/browser_tool.py` |
 | Browser Use | Browser daemon/session lifecycle, CDP/Playwright action mechanics, DOM state, element indexes, tab commands | installed `browser-use[cli]` package |
 | Shared contract | Browser action schema consumed directly by backend and local-runtime validation | `frontend/src/main/python/windie_shared/browser_contract.py` |
 

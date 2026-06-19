@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a local-runtime sidecar owner-label slice by replacing
+  remaining active "local-runtime sidecar" labels in browser, tool, backend
+  parity, overlay, inventory, planning, development, and packaging reference
+  docs with local-runtime ownership labels plus Python sidecar implementation
+  wording where the concrete daemon, manifest, registry, stderr logs, or
+  executor is the thing being debugged. The modular docs guard now skips
+  historical plan reports and rejects the mixed public owner labels in active
+  docs. Validation: focused modular boundary test, docs listing, stale active
+  label scan, and diff checks. No migration required; documentation/test only,
+  with no local tool execution, browser adapter, registry exposure, manifest
+  generation, packaging path, IPC, credential, permission, provider-policy,
+  backend API, storage, hosted URL, or payload-shape change.
+
 - 2026-06-19: completed a sidecar-backed tool section label slice by relabeling
   local-tool channel, browser automation, Python sidecar/memory, and
   configuration reference headings and hub links from Sidecar Tool/Runtime

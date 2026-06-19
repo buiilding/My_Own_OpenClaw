@@ -234,7 +234,7 @@ Edit:
 - `frontend/src/main/permissions/permission_service_browser.cjs` for feature-pack/readiness probes and install actions.
 - `frontend/src/main/permissions/permission_ipc_runtime.cjs` for permission IPC wiring.
 - renderer onboarding/settings browser surfaces if visible state changes.
-- local-runtime sidecar requirements/runtime docs if browser feature-pack markers or dependencies change.
+- local-runtime Python implementation requirements/runtime docs if browser feature-pack markers or dependencies change.
 
 Validate:
 

@@ -162,7 +162,7 @@ Integration consequence:
 remote stubs live in the matching `backend/src/tools/remote_tools/<domain>.py`
 module instead of a package-level re-export surface.
 
-Contract test (`test_remote_tool_contract.py`) ensures names exactly match the local-runtime sidecar exposed tool set.
+Contract test (`test_remote_tool_contract.py`) ensures names exactly match the local-runtime exposed tool set.
 
 ## Args Model Enforcement Boundary
 

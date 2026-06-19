@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Local-Runtime Sidecar Owner-Label Boundary
+
+- Finding: active browser, tool, backend parity, overlay, inventory, planning,
+  development, and packaging reference docs still used "local-runtime sidecar"
+  as a public owner label, blending the local-runtime contract with the Python
+  sidecar implementation process.
+- Change: reworded those docs to local-runtime ownership labels and concrete
+  Python sidecar implementation wording where the daemon, manifest, registry,
+  stderr logs, or executor is the debug target. Tightened the modular docs
+  guard so active docs reject the mixed owner label while historical plan
+  reports remain historical evidence.
+- Validation: focused modular boundary test, docs listing, stale active-label
+  scan, and diff checks.
+- Compatibility: no migration required. Local tool execution, browser adapter
+  behavior, registry exposure, manifest generation, packaging paths, IPC,
+  credentials, permissions, provider policy, backend APIs, storage, hosted
+  URLs, and payload shapes are unchanged.
+
 ### 2026-06-19 Sidecar-Backed Tool Section Label Boundary
 
 - Finding: active local-tool channel, browser automation, Python sidecar/memory,

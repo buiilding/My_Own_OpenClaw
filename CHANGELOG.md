@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/local-runtime: retire remaining public "local-runtime sidecar" owner
+  labels in active docs in favor of local-runtime ownership plus concrete
+  Python sidecar implementation wording. No migration required.
 - docs/local-runtime: relabel sidecar-backed tool/runtime hub headings and
   links as local-runtime implementation surfaces while retaining concrete
   Python sidecar protocol details. No migration required.

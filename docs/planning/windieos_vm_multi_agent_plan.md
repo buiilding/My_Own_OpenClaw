@@ -37,7 +37,7 @@ Out of scope for initial rollout:
 
 Current WindieOS is desktop-first:
 - Agent orchestration is backend-centered.
-- Tool execution is SDK/main local-runtime sidecar-centered (`frontend/src/main/python/*`).
+- Tool execution is SDK/main local-runtime-centered (`frontend/src/main/python/*`).
 - Remote tool schemas are backend-driven and mapped to SDK/main local-runtime implementations.
 
 For VM execution, the key shift is:

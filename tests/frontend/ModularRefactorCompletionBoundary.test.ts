@@ -775,7 +775,7 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
 
     expect(docText).toContain('Python sidecar executor');
-    expect(docText).toContain('local-runtime sidecar executor');
+    expect(docText).toContain('local-runtime Python executor');
     expect(docText).toContain('Python sidecar registry');
     expect(docText).toContain('Local-runtime registry/schema implementation');
     expect(docText).not.toContain(' or sidecar executor');
@@ -785,6 +785,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('backend owners, sidecar executors');
     expect(docText).not.toContain('Built-in sidecar executors');
     expect(docText).not.toContain('Plugin sidecar executors');
+    expect(docText).not.toContain('local-runtime sidecar executor');
     expect(docText).not.toMatch(/(?<!Python )sidecar registry parity or SDK dispatch map/);
     expect(docText).not.toMatch(/(?<!Python )sidecar registry\/schema\/runtime/);
     expect(docText).not.toMatch(/(?<!Python )sidecar says missing tool/);
@@ -1045,15 +1046,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(text).not.toContain('sidecar payloads');
   });
 
-  test('docs use local runtime sidecar labels instead of frontend sidecar labels', async () => {
+  test('docs avoid frontend sidecar and local-runtime sidecar owner labels', async () => {
     const docs = await listMarkdownFiles('docs');
     const offenders: Record<string, string[]> = {};
 
     for (const relativePath of docs) {
+      const normalizedRelativePath = relativePath.replaceAll('\\', '/');
+      if (normalizedRelativePath.startsWith('docs/plans/')) {
+        continue;
+      }
       const source = await read(relativePath);
-      const staleMentions = ['Frontend Sidecar', 'Frontend sidecar'].filter((needle) =>
-        source.includes(needle),
-      );
+      const staleMentions = [
+        'Frontend Sidecar',
+        'Frontend sidecar',
+        'local-runtime sidecar',
+        'Local Runtime Sidecar',
+      ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
       }
@@ -1978,7 +1986,7 @@ describe('modular sdk refactor completion boundary', () => {
 
     const codeSurfaceIndexText = await read('docs/reference/code_change_surface_index.md');
     expect(codeSurfaceIndexText).toContain('SDK-owned local-runtime daemon lifecycle');
-    expect(codeSurfaceIndexText).toContain('Electron packaging, local-runtime sidecar bundling');
+    expect(codeSurfaceIndexText).toContain('Electron packaging, bundled Python runtime');
   });
 
   test('voice routing docs use renderer and electron owner labels', async () => {

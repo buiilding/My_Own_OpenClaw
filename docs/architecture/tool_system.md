@@ -282,7 +282,7 @@ class MyTool(Tool[MyToolArgs]):
 Client-local tools use backend catalog stubs for model-facing schema and
 policy, then dispatch executable payloads through the SDK/main local runtime
 into the Python sidecar daemon. Backend-owned remote tools such as `web_search`
-stay in backend services and do not use the local-runtime sidecar executor.
+stay in backend services and do not use the local-runtime Python executor.
 
 **Backend Catalog Stub** (`backend/src/tools/remote_tools/<domain>.py`, a
 historical package name for local-runtime-executed catalog entries):

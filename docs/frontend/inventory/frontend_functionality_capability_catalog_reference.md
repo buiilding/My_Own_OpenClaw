@@ -94,7 +94,7 @@ Primary files:
 
 Capabilities:
 
-- Starts and supervises the SDK local-runtime sidecar daemon, ping-readiness, and JSON-RPC request correlation.
+- Starts and supervises the SDK local-runtime daemon, ping-readiness, and JSON-RPC request correlation.
 - Executes sidecar-exposed tools through scoped host helpers; memory and
   transcript persistence use SDK local-runtime store calls.
 - Routes screenshot tool execution through the local-runtime window-visibility path.
