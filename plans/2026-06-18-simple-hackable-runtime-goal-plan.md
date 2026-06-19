@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a voice docs runtime-path follow-up by replacing
+  stale `frontend/src/renderer/features/voice/utils/*` references in active
+  channel, desktop, and frontend inventory docs with the current renderer
+  app-runtime voice audio, wakeword, and voice debug trace helper paths.
+  Validation: docs listing, stale wildcard scan, and diff checks. No migration
+  required; documentation only, with no code path, payload, storage, IPC,
+  settings, credentials, permissions, hosted routes, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed a renderer wakeword helper runtime-boundary slice by
   moving missing-device lockout, audio-input probing, wakeword event
   confidence/cooldown normalization, chunk-size warning text, and gated voice
