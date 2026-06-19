@@ -136,7 +136,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
       workspaceRefreshRequestIdRef.current = requestId;
       const selectionVersionAtRequestStart = workspaceSelectionVersionRef.current;
       try {
-        const result = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
+        const nextWorkspace = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspace();
         if (
           cancelled
           || requestId !== workspaceRefreshRequestIdRef.current
@@ -144,7 +144,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         ) {
           return;
         }
-        applyActiveWorkspace(result.workspace);
+        applyActiveWorkspace(nextWorkspace);
       } catch (_error) {
         if (
           !cancelled
@@ -161,12 +161,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
     void refreshActiveWorkspace();
 
-    const removeWorkspaceAccessUpdated = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(
-      (payload) => {
-        const nextWorkspace = payload.workspace;
+    const removeWorkspaceAccessUpdated = DesktopWorkspaceRuntimeClient.onWorkspaceSelectionUpdated(
+      (nextWorkspace, isWorkspacePickerSelection) => {
         applyActiveWorkspace(nextWorkspace, { markSelectionChange: true });
 
-        if (payload.isWorkspacePickerSelection !== true) {
+        if (isWorkspacePickerSelection !== true) {
           return;
         }
 
@@ -386,10 +385,10 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
 
   const handleChangeWorkspace = useCallback(async () => {
     try {
-      const result = await DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection();
-      if (result?.status?.granted === true) {
-        activeWorkspaceRef.current = result.workspace;
-        setActiveWorkspace(result.workspace);
+      const nextWorkspace = await DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace();
+      if (nextWorkspace) {
+        activeWorkspaceRef.current = nextWorkspace;
+        setActiveWorkspace(nextWorkspace);
       }
     } catch (error) {
       console.warn('[ChatInterface] Failed to change active workspace:', error);

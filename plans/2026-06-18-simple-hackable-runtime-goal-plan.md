@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer workspace value boundary slice by adding
+  value-level active-workspace helpers for fetch, granted request,
+  selection-update subscription, and active-workspace update subscription to
+  `DesktopWorkspaceRuntimeClient`. `ChatInterface` and `WorkspaceSettingsTab`
+  now keep refresh, binding, status, and UI state policy without reading
+  normalized workspace result/event envelope fields. Validation: passed
+  focused workspace runtime client, chat interface wiring, settings section,
+  renderer chat/settings runtime boundary, and docs-index tests plus docs
+  search, related commit search, stale workspace envelope scans, docs listing,
+  and diff checks. No migration required; workspace permission IPC channels,
+  workspace-access events, existing full selection result APIs, normalized
+  update payload shape, conversation workspace bindings, dashboard resume
+  restoration, query `workspace_path` forwarding, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer dashboard host value boundary slice by
   changing `DesktopWindowRuntimeClient.onMainWindowOpenTarget(...)` to emit a
   target string and adding
@@ -870,8 +885,8 @@ For each completed slice, record:
 - 2026-06-19: completed a renderer workspace access update payload runtime
   slice by adding `normalizeWorkspaceAccessUpdatedPayload` to
   `desktopWorkspaceRuntimeClient` and routing chat plus workspace settings to
-  consume normalized `payload.workspace` selections from live workspace update
-  events. Validation: focused desktop workspace runtime client, chat boundary,
+  consume normalized workspace selections from live workspace update events.
+  Validation: focused desktop workspace runtime client, chat boundary,
   renderer settings boundary tests, stale workspace live-payload scan, docs
   listing, and diff checks. No migration required; workspace event channel
   names, workspace permission state, active workspace selection behavior,

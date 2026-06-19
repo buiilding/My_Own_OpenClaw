@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Workspace Value Boundary
+
+- Finding: `desktopWorkspaceRuntimeClient` already normalized workspace
+  selection results and update events, but `ChatInterface` and
+  `WorkspaceSettingsTab` still read normalized `workspace` result/event
+  envelope fields locally.
+- Change: added value-level active-workspace helpers for fetch, granted request,
+  selection-update subscription, and active-workspace update subscription.
+  Chat and workspace settings now keep refresh, binding, status, and UI state
+  policy while consuming workspace values and a picker-selection boolean from
+  the runtime client.
+- Validation: passed focused desktop workspace runtime client, chat interface
+  wiring, settings section, renderer chat/settings runtime boundary, and
+  docs-index tests plus docs search, related commit search, stale workspace
+  envelope scans, docs listing, and diff checks.
+- Compatibility: no migration required. Workspace permission IPC channel names,
+  workspace-access event names, existing full selection result APIs, normalized
+  update payload shape, conversation workspace bindings, dashboard resume
+  workspace restoration, query `workspace_path` forwarding, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Host Value Boundary
 
 - Finding: `desktopWindowRuntimeClient` and
@@ -946,7 +968,8 @@ Each completed slice should report:
 - Change: added `normalizeWorkspaceAccessUpdatedPayload` to the workspace
   runtime client and made the subscription emit normalized workspace selections
   with compatibility fields preserved. Chat and workspace settings now consume
-  `payload.workspace` instead of parsing host-shaped event fields.
+  the normalized workspace selection instead of parsing host-shaped event
+  fields.
 - Validation: focused desktop workspace runtime client, chat boundary, and
   renderer settings boundary tests, stale workspace live-payload scan, docs
   listing, and diff checks.

@@ -37,6 +37,11 @@ export type DesktopWorkspaceAccessUpdatedListener = (
   payload: DesktopWorkspaceAccessUpdatedPayload,
 ) => void;
 
+export type DesktopWorkspaceSelectionUpdateListener = (
+  workspace: DesktopWorkspaceSelection,
+  isWorkspacePickerSelection: boolean,
+) => void;
+
 const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';
 
 function getLastPathSegment(pathValue = ''): string {
@@ -95,6 +100,10 @@ function selectionResultFromInvokeResult(result: unknown): DesktopWorkspaceSelec
   };
 }
 
+function isWorkspaceSelectionGranted(result: DesktopWorkspaceSelectionResult): boolean {
+  return result.status?.granted === true;
+}
+
 function recordOrEmpty(value: unknown): Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -131,11 +140,21 @@ export const DesktopWorkspaceRuntimeClient = {
     return selectionResultFromInvokeResult(result);
   },
 
+  async fetchActiveWorkspace(): Promise<DesktopWorkspaceSelection> {
+    const result = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
+    return result.workspace;
+  },
+
   async requestActiveWorkspaceSelection(): Promise<DesktopWorkspaceSelectionResult> {
     const result = await IpcBridge.invoke(INVOKE_CHANNELS.REQUEST_PERMISSION, {
       permissionId: WORKSPACE_ACCESS_PERMISSION_ID,
     });
     return selectionResultFromInvokeResult(result);
+  },
+
+  async requestGrantedActiveWorkspace(): Promise<DesktopWorkspaceSelection | null> {
+    const result = await DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection();
+    return isWorkspaceSelectionGranted(result) ? result.workspace : null;
   },
 
   async setActiveWorkspaceSelection(workspacePath: string | null = null): Promise<DesktopWorkspaceSelectionResult> {
@@ -153,6 +172,22 @@ export const DesktopWorkspaceRuntimeClient = {
       ON_CHANNELS.WORKSPACE_ACCESS_UPDATED,
       (payload?: unknown) => listener(normalizeWorkspaceAccessUpdatedPayload(payload)),
     );
+  },
+
+  onWorkspaceSelectionUpdated(
+    listener: DesktopWorkspaceSelectionUpdateListener,
+  ): (() => void) | undefined {
+    return DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated((payload) => {
+      listener(payload.workspace, payload.isWorkspacePickerSelection);
+    });
+  },
+
+  onActiveWorkspaceUpdated(
+    listener: (workspace: DesktopWorkspaceSelection) => void,
+  ): (() => void) | undefined {
+    return DesktopWorkspaceRuntimeClient.onWorkspaceSelectionUpdated((workspace) => {
+      listener(workspace);
+    });
   },
 
   workspaceSelectionToBinding,

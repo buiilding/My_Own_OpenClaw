@@ -96,8 +96,14 @@ Selection rules:
 - `filesystem_workspace_access` is the permission id used by renderer helpers.
 - `DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection()` reads
   permission status through the renderer app runtime boundary.
+- `DesktopWorkspaceRuntimeClient.fetchActiveWorkspace()` returns only the
+  normalized active workspace value for UI surfaces that do not need permission
+  metadata.
 - `DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection()` asks main to
   open the selection flow through the renderer app runtime boundary.
+- `DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace()` returns the
+  normalized workspace value only when the permission request resolves granted,
+  or `null` when no workspace was granted.
 - `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspacePath)`
   updates the selected workspace
   without re-opening the picker only when that path is already present in the
@@ -107,22 +113,27 @@ Selection rules:
 
 `desktopWorkspaceRuntimeClient.ts` keeps the permission id, IPC invokes,
 selection payload-shaping helpers, and live workspace update normalization
-private. Renderer callers should use only
+private. Renderer callers that need status or event metadata should use
 `DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection()`,
 `DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection()`,
 `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspacePath)`, and
-`DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)`. Stale searches
+`DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)`. Chat/settings
+UI that only needs workspace values should prefer `fetchActiveWorkspace()`,
+`requestGrantedActiveWorkspace()`, `onWorkspaceSelectionUpdated(...)`, or
+`onActiveWorkspaceUpdated(...)`. Stale searches
 for exported helper names such as `normalizeWorkspaceAccessPayload`,
 `normalizeActiveWorkspace`, `extractWorkspaceStatus`, or
 `WORKSPACE_ACCESS_PERMISSION_ID` should route to this workflow and not to
 generic package export docs.
 
 Workspace update subscriptions should go through
-`DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)` so feature code
-receives a normalized `workspace` selection object and
-`isWorkspacePickerSelection` flag instead of importing the
-`workspace-access-updated` IPC channel or interpreting raw `source`,
-`workspaceName`, or `workspacePath` host event fields directly.
+`DesktopWorkspaceRuntimeClient.onWorkspaceSelectionUpdated(...)` or
+`onActiveWorkspaceUpdated(...)` for feature UI state. The richer
+`onWorkspaceAccessUpdated(...)` remains available when a caller truly needs
+normalized event metadata. Feature code should consume workspace values and a
+picker-selection boolean instead of importing the `workspace-access-updated`
+IPC channel or interpreting raw `source`, `workspaceName`, `workspacePath`, or
+normalized `workspace` envelope fields directly.
 
 ### 3. Inspect conversation workspace binding
 

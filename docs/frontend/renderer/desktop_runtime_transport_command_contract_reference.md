@@ -225,11 +225,12 @@ snapshot handling also calls this client for startup and connection-status user
 context.
 
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out, live
-workspace payload normalization, and host-source classification such as
-`isWorkspacePickerSelection` for chat and settings surfaces. Chat owns
-active-workspace refresh and conversation binding policy; workspace settings
-owns active workspace display and folder selection while consuming normalized
-workspace selections from this runtime client.
+workspace payload normalization, host-source classification such as
+`isWorkspacePickerSelection`, and value-level workspace selection helpers for
+chat and settings surfaces. Chat owns active-workspace refresh and conversation
+binding policy; workspace settings owns active workspace display and folder
+selection while consuming workspace values from this runtime client instead of
+reading normalized workspace result or event envelopes.
 
 `desktopMemoryRuntimeClient.ts` owns SDK-shaped memory list/delete/clear
 commands plus the desktop memory-store change fan-out. Dashboard memory UI owns

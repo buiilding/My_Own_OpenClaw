@@ -74,9 +74,12 @@ Chat interface event subscriptions are routed through app runtime clients:
   playback queue handoff.
 - `DesktopWorkspaceRuntimeClient` owns the `workspace-access-updated`
   subscription, workspace selection normalization, and source classification
-  such as `isWorkspacePickerSelection`; `ChatInterface` owns
-  active-workspace refresh, conversation binding comparison, and whether a
-  normalized workspace-picker update should start a new chat.
+  such as `isWorkspacePickerSelection`. `ChatInterface` consumes value-level
+  workspace helpers (`fetchActiveWorkspace()`,
+  `requestGrantedActiveWorkspace()`, and
+  `onWorkspaceSelectionUpdated(...)`) and owns active-workspace refresh,
+  conversation binding comparison, and whether a workspace-picker update should
+  start a new chat.
 
 Provider dropdown:
 

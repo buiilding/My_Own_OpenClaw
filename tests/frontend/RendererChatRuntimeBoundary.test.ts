@@ -1674,6 +1674,8 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(chatInterfaceSource).not.toContain('payload?.workspaceName');
     expect(chatInterfaceSource).not.toContain('payload?.workspacePath');
+    expect(chatInterfaceSource).not.toContain('payload.workspace');
+    expect(chatInterfaceSource).not.toContain('result.workspace');
     expect(chatInterfaceSource).not.toContain("'workspace_picker'");
     expect(chatInterfaceSource).not.toContain('infrastructure/audio/PlayerService');
     expect(replayActionsSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
@@ -1681,10 +1683,14 @@ describe('renderer chat runtime boundary', () => {
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(dashboardHookSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(dashboardShellSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
-    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
-    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
-    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
+    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceSelectionUpdated');
+    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspace');
+    expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace');
     expect(workspaceClientSource).toContain('normalizeWorkspaceAccessUpdatedPayload');
+    expect(workspaceClientSource).toContain('onWorkspaceAccessUpdated');
+    expect(workspaceClientSource).toContain('onWorkspaceSelectionUpdated');
+    expect(workspaceClientSource).toContain('fetchActiveWorkspaceSelection');
+    expect(workspaceClientSource).toContain('requestActiveWorkspaceSelection');
     expect(workspaceClientSource).toContain('isWorkspacePickerSelection');
     expect(chatInterfaceSource).toContain('DesktopAudioRuntimeClient.createAudioPlayer');
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/workspaceAccess');

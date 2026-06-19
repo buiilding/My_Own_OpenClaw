@@ -38,9 +38,9 @@ function WorkspaceSettingsTab() {
 
     const refreshWorkspace = async () => {
       try {
-        const result = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection();
+        const nextWorkspace = await DesktopWorkspaceRuntimeClient.fetchActiveWorkspace();
         if (!cancelled) {
-          applyWorkspace(result.workspace);
+          applyWorkspace(nextWorkspace);
         }
       } catch (_error) {
         if (!cancelled) {
@@ -54,9 +54,7 @@ function WorkspaceSettingsTab() {
 
     void refreshWorkspace();
 
-    const removeWorkspaceListener = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated((payload) => {
-      applyWorkspace(payload.workspace);
-    });
+    const removeWorkspaceListener = DesktopWorkspaceRuntimeClient.onActiveWorkspaceUpdated(applyWorkspace);
 
     return () => {
       cancelled = true;
@@ -68,13 +66,13 @@ function WorkspaceSettingsTab() {
     setIsSelectingWorkspace(true);
     setStatusMessage('');
     try {
-      const result = await DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection();
-      if (result?.status?.granted === true) {
-        activeWorkspaceRef.current = result.workspace;
-        setActiveWorkspace(result.workspace);
+      const nextWorkspace = await DesktopWorkspaceRuntimeClient.requestGrantedActiveWorkspace();
+      if (nextWorkspace) {
+        activeWorkspaceRef.current = nextWorkspace;
+        setActiveWorkspace(nextWorkspace);
         setStatusTone('success');
-        setStatusMessage(result.workspace.activeWorkspaceName
-          ? `Active workspace set to ${result.workspace.activeWorkspaceName}.`
+        setStatusMessage(nextWorkspace.activeWorkspaceName
+          ? `Active workspace set to ${nextWorkspace.activeWorkspaceName}.`
           : workspaceSettingsSkin.updatedFallback);
       }
     } catch (error) {

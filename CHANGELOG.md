@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose active workspace selection and granted workspace
+  requests as value-level runtime client results so `ChatInterface` and
+  `WorkspaceSettingsTab` no longer read normalized workspace payload/result
+  envelopes. No migration required.
 - renderer/runtime: emit dashboard main-window targets and fallback session user
   ids as value-level runtime client results so `DashboardShell` no longer reads
   normalized host payload objects. No migration required.
