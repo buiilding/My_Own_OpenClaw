@@ -45,7 +45,7 @@ readiness/status broadcasts.
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
 | Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-runtime-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-runtime readiness. |
-| Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Owns the app-session `LocalRuntimeService`, `/rpc` endpoint, local tools, memory, and chat-event storage. |
+| Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Hosts the app-session `LocalRuntimeService` implementation, `/rpc` endpoint, local-tool handlers, memory handlers, and chat-event storage behind SDK local-runtime ownership. |
 
 ## Change Decision Tree
 

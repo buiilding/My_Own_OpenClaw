@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Process Lifecycle Sidecar Daemon Ownership Wording
+
+- Finding: the local-runtime process lifecycle workflow still said the sidecar
+  daemon owned the app-session `LocalRuntimeService`, `/rpc` endpoint, local
+  tools, memory, and chat-event storage.
+- Change: reworded the source-of-truth row so the sidecar daemon hosts the
+  app-session `LocalRuntimeService` implementation, local-tool handlers, memory
+  handlers, and chat-event storage behind SDK local-runtime ownership.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, exact stale lifecycle owner sentence scan, and diff checks.
+- Compatibility: no migration required. Documentation only; runtime behavior,
+  IPC, storage, schemas, credentials, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Runtime Nodes Local-Runtime Implementation Boundary
 
 - Finding: the runtime node hub, matrix, and current-vs-future page still

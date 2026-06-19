@@ -955,6 +955,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
     expect(docText).toContain('Local-runtime implementation node (Python sidecar)');
     expect(docText).toContain('SDK/main local runtime owns local executable authority');
+    expect(docText).toContain('behind SDK local-runtime ownership');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('websocket state, sidecar readiness');
@@ -1006,6 +1007,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar node | implemented | Local subprocess owns');
     expect(docText).not.toContain('Python sidecar node | local Python sidecar daemon managed');
     expect(docText).not.toContain('Python sidecar implementation | local executable tools');
+    expect(docText).not.toContain('Owns the app-session `LocalRuntimeService`, `/rpc` endpoint, local tools, memory, and chat-event storage.');
     expect(docText).not.toContain('Local Runtime Sidecar Core Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Services Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Source Maps Docs Hub');

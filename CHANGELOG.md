@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: describe the sidecar daemon as hosting the app-session
+  `LocalRuntimeService` implementation behind SDK local-runtime ownership
+  instead of owning local tools and memory. No migration required.
 - docs/nodes: describe the Python sidecar as the local-runtime implementation
   node while keeping SDK/main local runtime as the owner of local executable
   authority. No migration required.

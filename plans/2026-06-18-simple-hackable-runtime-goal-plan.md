@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a process-lifecycle sidecar daemon ownership wording
+  slice by changing the local-runtime process lifecycle workflow so the
+  sidecar daemon hosts the app-session `LocalRuntimeService` implementation
+  behind SDK local-runtime ownership instead of owning local tools, memory, and
+  chat-event storage. Validation: focused modular docs boundary guard, docs
+  search, related commit search, exact stale lifecycle owner sentence scan, and
+  diff checks. No migration required; documentation only, with no runtime, IPC,
+  storage, schema, credential, provider-policy, hosted URL, or local execution
+  behavior changes.
+
 - 2026-06-19: completed a runtime-node local-runtime ownership wording slice
   by relabeling the node docs from Python-sidecar-as-owner language to
   local-runtime implementation node language. Runtime nodes now say SDK/main
