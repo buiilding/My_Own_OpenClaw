@@ -2,7 +2,10 @@
  * Covers desktop memory runtime client. behavior in the frontend test suite.
  */
 
-import { DesktopMemoryRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient';
+import {
+  DesktopMemoryRuntimeClient,
+  resolveMemoryAdminUserId,
+} from '../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/channels';
@@ -73,6 +76,14 @@ describe('DesktopMemoryRuntimeClient', () => {
     expect(mockInvokeAgentSdkCommand).toHaveBeenNthCalledWith(2, 'conversations.clearAll', {
       userId: 'user-1',
     });
+  });
+
+  test('resolves actionable memory admin user ids from transcript session info', () => {
+    expect(resolveMemoryAdminUserId({ userId: ' user-1 ' })).toBe('user-1');
+    expect(DesktopMemoryRuntimeClient.resolveMemoryAdminUserId({ userId: 'default_user' }))
+      .toBeNull();
+    expect(resolveMemoryAdminUserId({ userId: '' })).toBeNull();
+    expect(resolveMemoryAdminUserId(null)).toBeNull();
   });
 
   test('subscribes to memory store changes through desktop runtime fan-out', () => {

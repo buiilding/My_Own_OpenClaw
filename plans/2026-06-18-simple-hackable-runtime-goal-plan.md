@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved memory settings active-user resolution into
+  `DesktopMemoryRuntimeClient`. `useMemorySettingsActions` now keeps
+  confirmation, pending state, and status copy while the runtime client decides
+  whether the transcript session has an actionable user id instead of checking
+  the `default_user` sentinel before deleting chat history. Validation passed
+  focused desktop memory runtime client, settings section, renderer dashboard
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  default-user sentinel scan, docs listing, and diff checks. No migration
+  required; memory and conversation clear command names, payload
+  shapes for actionable users, confirmation behavior, settings status text,
+  transcript session state, IPC channels, storage, provider policy, hosted
+  URLs, permissions, credentials, and local execution behavior are unchanged.
+
 - 2026-06-19: moved active-workspace selection equality into
   `desktopWorkspaceRuntimeClient`. `WorkspaceSettingsTab` now keeps state and
   rendering while consuming a runtime-owned equality predicate instead of

@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Memory Settings Active User Boundary
+
+- Finding: `DesktopMemoryRuntimeClient` owned SDK-shaped memory and chat-history
+  reset commands, but `useMemorySettingsActions` still interpreted transcript
+  session `userId` values and the `default_user` sentinel before deleting chat
+  history.
+- Change: added memory admin user-id resolution to
+  `DesktopMemoryRuntimeClient`. Memory settings now keeps confirmation,
+  pending state, and status copy while the runtime client decides whether a
+  transcript session has an actionable user id.
+- Validation: passed focused desktop memory runtime client, settings section,
+  renderer dashboard boundary, and docs-index tests plus docs search, related
+  commit search, stale default-user sentinel scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Memory and conversation clear command
+  names, payload shapes for actionable users, confirmation behavior, settings
+  status text, transcript session state, IPC channels, storage, provider
+  policy, hosted URLs, permissions, credentials, and local execution behavior
+  are unchanged.
+
 ### 2026-06-19 Renderer Workspace Selection Equality Boundary
 
 - Finding: `desktopWorkspaceRuntimeClient` owned workspace selection

@@ -11,7 +11,7 @@ const memorySettingsSkin = desktopRuntimeSkin.settings.memory;
 
 export function useMemorySettingsActions() {
   const sessionInfo = useDesktopTranscriptSessionInfo();
-  const userId = sessionInfo.userId || '';
+  const memoryAdminUserId = DesktopMemoryRuntimeClient.resolveMemoryAdminUserId(sessionInfo);
   const [pendingAction, setPendingAction] = useState(null);
   const [status, setStatus] = useState({
     tone: 'idle',
@@ -31,7 +31,7 @@ export function useMemorySettingsActions() {
       return false;
     }
 
-    if (requireActiveUser && (!userId || userId === 'default_user')) {
+    if (requireActiveUser && !memoryAdminUserId) {
       setStatus({
         tone: 'error',
         message: memorySettingsSkin.requireUserMessage,
@@ -84,7 +84,7 @@ export function useMemorySettingsActions() {
     actionId: 'chats',
     confirmMessage: memorySettingsSkin.deleteChats.confirmMessage,
     run: DesktopMemoryRuntimeClient.clearChatHistory,
-    runArgs: [userId],
+    runArgs: [memoryAdminUserId],
     requireActiveUser: true,
     successMessage: memorySettingsSkin.deleteChats.successMessage,
     onSuccess,

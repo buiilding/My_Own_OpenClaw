@@ -58,6 +58,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', 
   DesktopMemoryRuntimeClient: {
     clearLocalMemory: (...args) => mockClearLocalMemory(...args),
     clearChatHistory: (...args) => mockClearChatHistory(...args),
+    resolveMemoryAdminUserId: (sessionInfo) => {
+      const userId = typeof sessionInfo?.userId === 'string' ? sessionInfo.userId.trim() : '';
+      return userId && userId !== 'default_user' ? userId : null;
+    },
   },
 }));
 

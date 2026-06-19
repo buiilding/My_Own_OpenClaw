@@ -15,12 +15,27 @@ type MemoryListData = {
 
 export type MemoryStoreChangedListener = (payload?: unknown) => void;
 
+function recordOrEmpty(value: unknown): Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function textOrEmpty(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 async function listMemories(type: MemoryKind, limit: number): Promise<unknown[]> {
   const data = await invokeAgentSdkCommand<MemoryListData>(SDK_RUNTIME_COMMANDS.MEMORIES_LIST, {
     type,
     limit,
   });
   return Array.isArray(data?.memories) ? data.memories : [];
+}
+
+export function resolveMemoryAdminUserId(sessionInfo: unknown): string | null {
+  const userId = textOrEmpty(recordOrEmpty(sessionInfo).userId);
+  return userId && userId !== 'default_user' ? userId : null;
 }
 
 export const DesktopMemoryRuntimeClient = {
@@ -52,6 +67,8 @@ export const DesktopMemoryRuntimeClient = {
   async clearChatHistory(userId: string): Promise<unknown> {
     return invokeAgentSdkCommand(SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL, { userId });
   },
+
+  resolveMemoryAdminUserId,
 
   onMemoryStoreChanged(listener: MemoryStoreChangedListener): (() => void) | undefined {
     return IpcBridge.on(DESKTOP_RUNTIME_ON_CHANNELS.MEMORY_STORE_CHANGED, listener);

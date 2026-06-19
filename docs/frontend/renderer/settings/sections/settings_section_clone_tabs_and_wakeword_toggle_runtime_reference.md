@@ -205,6 +205,8 @@ Exception:
 - `useMemorySettingsActions()` invokes memory and chat reset through
   `DesktopMemoryRuntimeClient`, which sends SDK-shaped `memories.clearAll` and
   `conversations.clearAll` commands over `window.agentSdk.invoke`.
+  `DesktopMemoryRuntimeClient` also owns active-user resolution for destructive
+  chat-history deletion, including the non-actionable `default_user` sentinel.
 - retired `data-controls` links fall through to the generic placeholder instead of mounting hidden permission UI.
 
 ## Test-Backed Invariants

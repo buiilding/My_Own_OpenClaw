@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/memory: move memory-settings active-user resolution into
+  `DesktopMemoryRuntimeClient` so `useMemorySettingsActions` no longer checks
+  the `default_user` sentinel before deleting chat history. No migration
+  required.
 - renderer/workspace: move active-workspace selection equality into
   `desktopWorkspaceRuntimeClient` so `WorkspaceSettingsTab` no longer compares
   raw workspace name/path fields before applying workspace updates. No
