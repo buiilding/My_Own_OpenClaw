@@ -35,7 +35,7 @@ import {
   resolveSelectedModelOption,
 } from '../utils/chatModelOptions';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
-import { isDevUiEnabled } from '../utils/devUiFlag';
+import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import { useStopTurnHandler } from '../hooks/useStopTurnHandler';
 import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartupRuntimeClient';

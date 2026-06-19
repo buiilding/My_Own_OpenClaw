@@ -5,7 +5,7 @@
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { buildTransparencySectionConfigs } from '../../utils/message/messageTransparency';
-import { isDevUiEnabled } from '../../utils/devUiFlag';
+import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
 import { toolSchemaListPropType } from './toolSchemaPropType';
 
 export default function MessageTransparencySections({ message, conversationToolSchemas = null }) {

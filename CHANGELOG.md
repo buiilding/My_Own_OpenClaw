@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/dev-ui: move the shared renderer `dev_ui=1` query flag helper from
+  chat utilities into the app-runtime layer used by chat and minimal pill
+  surfaces. No migration required.
+- renderer/chatbox: move minimal pill drag-state, movement-threshold, and
+  close-bump layout helpers into the existing app-runtime chatbox layout
+  facade. No migration required.
 - renderer/overlays: move the response-overlay view intent resolver from chat
   overlay utilities into the renderer app-runtime presentation facade used by
   chat-pill session flow. No migration required.

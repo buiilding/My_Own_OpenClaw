@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dev-UI flag boundary slice by moving
+  `isDevUiEnabled()` from chat utilities into
+  `app/runtime/desktopDevUiRuntime.js`, routing chat message surfaces and the
+  minimal pill through that app-runtime owner, deleting the old chat utility
+  path, and guarding against it returning. Validation: focused dev-UI runtime,
+  message source badge/actions, transparency sections, chat interface wiring,
+  chatbox overlay mouse-ignore, renderer app-runtime boundary, docs listing,
+  stale old-path scan, and diff checks. No migration required; `dev_ui=1`
+  query flag behavior, memoization, visible controls, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
 - 2026-06-19: completed a renderer response-overlay view contract boundary
   slice by moving `resolveResponseOverlayViewContract` from chat overlay
   utilities into `app/runtime/desktopResponseOverlayViewRuntime.ts`, routing
@@ -330,16 +341,17 @@ For each completed slice, record:
   bucketing, outgoing attachment payloads, IPC channels, storage, credentials,
   permissions, hosted routes, provider policy, packaging, and local execution
   behavior are unchanged.
-- 2026-06-19: completed a renderer chatbox layout boundary slice by moving
-  shared visual-anchor constants and sizing rules from chat feature utilities
-  into `app/runtime/desktopChatboxLayoutRuntime.js`, routing minimal pill
-  consumers through that app-runtime owner, deleting the old chat utility path,
-  and guarding against the feature-owned helper returning. Validation: focused
-  chatbox layout runtime, minimal chat pill boundary, renderer app-runtime
-  boundary, docs listing, stale old-path scan, and diff checks. No migration
-  required; visual-anchor constants, measured-shell height math, chatbox IPC
-  payloads, window sizing behavior, storage, credentials, permissions, hosted
-  routes, provider policy, packaging, and local execution behavior are
+- 2026-06-19: extended the renderer chatbox layout boundary by moving minimal
+  pill drag-state, movement-threshold, target-coordinate, and close-bump helpers
+  into `app/runtime/desktopChatboxLayoutRuntime.js`, routing the pill and
+  focused layout tests through that app-runtime owner, deleting the old minimal
+  pill utility path, and guarding against feature-owned layout helpers
+  returning. Validation: focused chatbox layout runtime, minimal chat pill
+  boundary, renderer app-runtime boundary, docs listing, stale old-path scan,
+  and diff checks. No migration required; visual-anchor constants,
+  measured-shell height math, drag threshold, target-coordinate math, chatbox
+  IPC payloads, window sizing behavior, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
   unchanged.
 - 2026-06-19: completed a renderer permission grant-effects boundary slice by
   moving shared post-grant config side effects from permission feature

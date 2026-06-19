@@ -16,9 +16,9 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
-- `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
@@ -88,7 +88,8 @@ compaction behind its loop lock.
 - drag tracking starts from pointer-down capture and listens for pointer
   movement first, with mouse movement as a fallback, so a prevented first
   pointer-down used for focus handoff can still become a drag
-- drag move is ignored until distance is at least 2 pixels
+- drag move is ignored until distance reaches the shared `5px` Manhattan
+  threshold in `desktopChatboxLayoutRuntime`
 - absolute move dispatch:
   - `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`
 
@@ -98,6 +99,8 @@ compaction behind its loop lock.
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor layout is resolved through
   `desktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
+- drag-state and absolute move targets are resolved through
+  `desktopChatboxLayoutRuntime` before dispatching native movement IPC
 - visual-anchor IPC sync:
   - preview off -> `height: 64`
   - preview on -> `height: 116`

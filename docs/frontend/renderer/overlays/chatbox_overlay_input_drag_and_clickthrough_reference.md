@@ -13,6 +13,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/app/MinimalChatPillApp.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
+- `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
@@ -178,7 +179,8 @@ Interaction contract:
 Movement path:
 
 1. cache pointer offset from current window origin
-2. on mousemove, ignore small movement (`<5px` manhattan distance)
+2. on mousemove, ignore small movement (`<5px` Manhattan distance) through
+   `desktopChatboxLayoutRuntime.getChatboxDragTarget(...)`
 3. once the threshold is crossed, mark the gesture as a real drag
 4. compute absolute target window coordinates
 5. call `DesktopWindowRuntimeClient.moveChatboxTo({ x, y })`

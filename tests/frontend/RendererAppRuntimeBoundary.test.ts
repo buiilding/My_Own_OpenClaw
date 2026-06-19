@@ -87,7 +87,7 @@ describe('renderer app runtime boundary', () => {
     expect(chatBindingsSource).not.toContain("event.type !== 'audio-chunk'");
   });
 
-  test('chatbox visual-anchor layout rules stay behind the app runtime facade', async () => {
+  test('chatbox layout and drag rules stay behind the app runtime facade', async () => {
     const layoutRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatboxLayoutRuntime.js'),
       'utf8',
@@ -103,13 +103,20 @@ describe('renderer app runtime boundary', () => {
 
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('CHATBOX_WINDOW_FRAME_HEIGHT_PADDING');
+    expect(layoutRuntimeSource).toContain('createChatboxDragState');
+    expect(layoutRuntimeSource).toContain('getChatboxDragTarget');
     expect(layoutRuntimeSource).not.toContain('features/chat');
+    expect(layoutRuntimeSource).not.toContain('features/minimalChatPill');
     expect(pillSource).toContain('desktopChatboxLayoutRuntime');
     expect(bindingsSource).toContain('desktopChatboxLayoutRuntime');
+    expect(pillSource).not.toContain('minimalChatPillLayout');
     expect(pillSource).not.toContain('chat/utils/state/chatBoxState');
     expect(bindingsSource).not.toContain('chat/utils/state/chatBoxState');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/chatBoxState.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/minimalChatPill/utils/minimalChatPillLayout.js'),
     )).rejects.toThrow();
   });
 
@@ -135,6 +142,31 @@ describe('renderer app runtime boundary', () => {
     expect(previewRowSource).not.toContain('chat/utils/composerAttachmentPresentation');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/composerAttachmentPresentation.js'),
+    )).rejects.toThrow();
+  });
+
+  test('dev UI flag stays behind the app runtime facade', async () => {
+    const devUiRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDevUiRuntime.js'),
+      'utf8',
+    );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const minimalPillSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
+
+    expect(devUiRuntimeSource).toContain('dev_ui');
+    expect(devUiRuntimeSource).not.toContain('features/chat');
+    expect(chatInterfaceSource).toContain('desktopDevUiRuntime');
+    expect(minimalPillSource).toContain('desktopDevUiRuntime');
+    expect(chatInterfaceSource).not.toContain('utils/devUiFlag');
+    expect(minimalPillSource).not.toContain('chat/utils/devUiFlag');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/devUiFlag.js'),
     )).rejects.toThrow();
   });
 

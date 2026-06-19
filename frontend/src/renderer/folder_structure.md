@@ -31,7 +31,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
-│   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor layout constants and helpers
+│   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum and phase-group facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
@@ -39,6 +39,7 @@ frontend/src/renderer/
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
+│   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag helper shared by chat and minimal surfaces
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
 │   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
@@ -81,8 +82,6 @@ frontend/src/renderer/
 │   │   │   ├── useResponseOverlayScrollState.js # Response overlay scroll stickiness
 │   │   │   ├── useResponseOverlayViewModel.js # SDK current-turn response view model
 │   │   │   └── useResponseOverlayWindowSync.js # Response overlay size/visibility IPC sync
-│   │   └── utils/
-│   │       └── minimalChatPillLayout.js  # Minimal pill layout, drag-state, and movement-threshold helpers
 │   │
 │   ├── chat/                            # Chat/dashboard transcript feature module
 │   │   ├── components/                  # Chat UI components

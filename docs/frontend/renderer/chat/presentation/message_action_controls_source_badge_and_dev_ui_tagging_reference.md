@@ -17,7 +17,8 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/features/chat/utils/message/messageTokenUsage.js`
 - `frontend/src/renderer/features/chat/utils/message/sourceTags.js`
-- `frontend/src/renderer/features/chat/utils/devUiFlag.js`
+- `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
+- `tests/frontend/DesktopDevUiRuntime.test.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageSourceBadge.test.jsx`
 - `tests/frontend/MessageTokenUsage.test.js`

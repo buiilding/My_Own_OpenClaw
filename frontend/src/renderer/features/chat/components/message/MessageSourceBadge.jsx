@@ -3,7 +3,7 @@
  */
 
 import PropTypes from 'prop-types';
-import { isDevUiEnabled } from '../../utils/devUiFlag';
+import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
 import { resolveMessageTokenUsageTag } from '../../utils/message/messageTokenUsage';
 import { resolveSourceTag } from '../../utils/message/sourceTags';
 

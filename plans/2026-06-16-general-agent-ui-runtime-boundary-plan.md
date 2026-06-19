@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
+
+- Finding: chat message surfaces and the minimal pill both read the shared
+  `dev_ui=1` query flag through a helper under chat utilities even though the
+  flag is a renderer app-runtime presentation switch.
+- Change: moved `isDevUiEnabled()` to
+  `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`, routed chat and
+  minimal pill consumers/tests through that app-runtime owner, deleted the old
+  chat utility path, and refreshed docs plus boundary guards.
+- Validation: focused dev-UI runtime, message source badge/actions,
+  transparency sections, chat interface wiring, chatbox overlay mouse-ignore,
+  renderer app-runtime boundary, docs listing, stale old-path scan, and diff
+  checks.
+- Compatibility: no migration required. The `dev_ui=1` query flag behavior,
+  memoization, visible controls, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Response Overlay View Runtime Boundary
 
 - Finding: the response-overlay view visibility helper was the remaining
@@ -194,20 +212,21 @@ Each completed slice should report:
 
 ### 2026-06-19 Renderer Chatbox Layout Runtime Boundary
 
-- Finding: minimal chat pill layout code imported visual-anchor constants and
-  sizing rules from chat feature utilities even though the rule is a shared
-  renderer shell layout contract.
-- Change: moved the helper to
+- Finding: minimal chat pill layout code split visual-anchor sizing and
+  drag-positioning rules across feature utilities even though both rules are
+  shared renderer shell layout contracts.
+- Change: moved visual-anchor sizing plus minimal pill drag-state,
+  movement-threshold, target-coordinate, and close-bump helpers to
   `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`, updated
-  minimal pill consumers, deleted the old chat utility path, and refreshed docs
-  plus boundary guards.
+  minimal pill consumers, deleted the old feature utility paths, and refreshed
+  docs plus boundary guards.
 - Validation: focused chatbox layout runtime, minimal chat pill boundary,
   renderer app-runtime boundary, docs listing, stale old-path scan, and diff
   checks.
 - Compatibility: no migration required. Visual-anchor constants, measured-shell
-  height math, chatbox IPC payloads, window sizing behavior, storage,
-  credentials, permissions, hosted routes, provider policy, packaging, and
-  local execution behavior are unchanged.
+  height math, drag threshold, target-coordinate math, chatbox IPC payloads,
+  window sizing behavior, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
 
 ### 2026-06-19 Docs Hub Local-Runtime Python Route Labels
 

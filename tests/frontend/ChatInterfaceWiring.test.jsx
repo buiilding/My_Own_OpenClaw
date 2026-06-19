@@ -128,7 +128,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
   PlayerService: jest.fn(() => mockPlayerService),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 

@@ -16,22 +16,20 @@ import {
 } from '../hooks/useMinimalChatPillBindings';
 import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
-import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
+import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 import {
   CHATBOX_WINDOW_FRAME_HEIGHT_PADDING,
+  createChatboxDragState,
+  getChatboxCloseBumpHeight,
+  getChatboxDragTarget,
   resolveChatboxVisualAnchorHeight,
+  startChatboxDrag,
+  stopChatboxDrag,
 } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import {
   logRendererChatPillTrace,
   logRendererLiveSurfaceTrace,
 } from '../../chat/utils/chatStream/chatStreamDebugTrace';
-import {
-  createChatboxDragState,
-  getChatboxCloseBumpHeight,
-  getChatboxDragTarget,
-  startChatboxDrag,
-  stopChatboxDrag,
-} from '../utils/minimalChatPillLayout';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
   AttachmentIcon,

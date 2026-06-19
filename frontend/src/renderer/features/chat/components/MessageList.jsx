@@ -17,7 +17,7 @@ import {
 } from '../utils/message/messageListState';
 import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
-import { isDevUiEnabled } from '../utils/devUiFlag';
+import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 
 
 function MessageList({

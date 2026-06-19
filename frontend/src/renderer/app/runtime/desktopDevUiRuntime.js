@@ -1,5 +1,5 @@
 /**
- * Provides the dev ui flag module for the renderer UI.
+ * Provides renderer dev-UI flag helpers for app-runtime consumers.
  */
 
 let cachedDevUiEnabled = null;
