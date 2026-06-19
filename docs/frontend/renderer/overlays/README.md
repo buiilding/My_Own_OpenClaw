@@ -27,9 +27,8 @@ title: "Frontend Renderer Overlay Docs Hub"
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`

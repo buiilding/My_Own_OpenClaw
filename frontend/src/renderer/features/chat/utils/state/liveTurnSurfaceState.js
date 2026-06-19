@@ -5,7 +5,7 @@
 import {
   RESPONSE_OVERLAY_PHASE,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
-} from '../overlay/responseOverlayPhaseContract';
+} from '../../../../app/runtime/desktopResponseOverlayPhaseRuntime';
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   awaiting: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,

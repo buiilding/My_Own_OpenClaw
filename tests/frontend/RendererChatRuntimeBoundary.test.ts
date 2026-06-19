@@ -1258,12 +1258,24 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts'),
       'utf8',
     );
+    const layoutRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js'),
+      'utf8',
+    );
 
     for (const source of [overlaySource, syncSource, viewModelSource]) {
       expect(source).not.toContain('IpcBridge');
       expect(source).not.toContain('INVOKE_CHANNELS');
       expect(source).not.toContain('ON_CHANNELS');
     }
+    expect(overlaySource).toContain('desktopResponseOverlayLayoutRuntime');
+    expect(syncSource).toContain('desktopResponseOverlayLayoutRuntime');
+    expect(syncSource).not.toContain('overlayFrameSize');
+    expect(syncSource).not.toContain('responseOverlayLayoutMode');
+    expect(syncSource).not.toContain('responseOverlayLayoutContract');
+    expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
+    expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
+    expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT');
     expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActive');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility');

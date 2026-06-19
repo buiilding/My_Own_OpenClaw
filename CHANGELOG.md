@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlays: move the renderer response-overlay phase enum, layout
+  constants, layout-mode resolver, and frame-size helper from chat utilities
+  into the app-runtime layer while preserving shared JSON contracts and
+  main-process parity. No migration required.
 - docs/attachments: add the attachment presentation runtime test to attachment
   workflow validation routes. No migration required.
 - renderer/attachments: move shared readable-file preview label formatting from

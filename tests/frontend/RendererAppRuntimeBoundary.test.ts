@@ -138,6 +138,31 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('response overlay phase contract stays behind the app runtime facade', async () => {
+    const phaseRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopResponseOverlayPhaseRuntime.js'),
+      'utf8',
+    );
+    const streamPhaseSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/state/streamPhaseState.js'),
+      'utf8',
+    );
+    const liveSurfaceSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/state/liveTurnSurfaceState.js'),
+      'utf8',
+    );
+
+    expect(phaseRuntimeSource).toContain('response_overlay_phase_contract.json');
+    expect(phaseRuntimeSource).not.toContain('features/chat');
+    expect(streamPhaseSource).toContain('desktopResponseOverlayPhaseRuntime');
+    expect(liveSurfaceSource).toContain('desktopResponseOverlayPhaseRuntime');
+    expect(streamPhaseSource).not.toContain('responseOverlayPhaseContract');
+    expect(liveSurfaceSource).not.toContain('responseOverlayPhaseContract');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayPhaseContract.js'),
+    )).rejects.toThrow();
+  });
+
   test('renderer transport docs classify app-runtime clients before cleanup', async () => {
     const source = await fs.readFile(
       path.resolve(

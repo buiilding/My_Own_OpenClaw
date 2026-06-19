@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer response-overlay presentation contract
+  boundary slice by moving the renderer phase enum/preflight guard facade,
+  layout constants, layout-mode resolver, and frame-size helper from chat
+  overlay utilities into `app/runtime/desktopResponseOverlayPhaseRuntime.js`
+  and `app/runtime/desktopResponseOverlayLayoutRuntime.js`, routing chat stream,
+  live-surface state, minimal overlay rendering, and window sync through those
+  app-runtime owners, deleting the old chat utility paths, and keeping the
+  shared JSON plus main-process IPC phase contract unchanged. Validation:
+  focused overlay phase parity/runtime tests, live-turn surface state tests,
+  response overlay layout/frame tests, renderer app-runtime boundary test, docs
+  listing, stale old-path scan, and diff checks. No migration required; overlay
+  phase strings, preflight guard identity, layout constants, frame measurement
+  math, IPC payloads, window policy, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer attachment presentation boundary slice by
   moving the shared readable-file type label formatter from chat feature
   utilities into `app/runtime/desktopAttachmentPresentationRuntime.js`, routing

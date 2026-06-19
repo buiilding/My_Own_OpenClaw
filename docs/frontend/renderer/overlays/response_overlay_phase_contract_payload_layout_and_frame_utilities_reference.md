@@ -14,11 +14,9 @@ title: "Response Overlay Utility Contract Reference"
 - `frontend/src/shared/response_overlay_phase_contract.json`
 - `frontend/src/shared/response_overlay_layout_contract.json`
 - `frontend/src/shared/overlay_turn_lifecycle_contract.json`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutContract.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `tests/frontend/ResponseOverlayPhaseContract.test.js`
 - `tests/frontend/OverlayPhaseContractParity.test.js`
@@ -33,7 +31,7 @@ Shared phase/metadata source of truth:
 
 Renderer contract adapter:
 
-- `responseOverlayPhaseContract.js` reads JSON phases/metadata keys and derives:
+- `desktopResponseOverlayPhaseRuntime.js` reads JSON phases/metadata keys and derives:
   - `RESPONSE_OVERLAY_PHASE` enum object (`IDLE`, `AWAITING_FIRST_CHUNK`, `STREAMING`, `TOOL_CALL`, `TOOL_OUTPUT`, `COMPLETE`, `ERROR`)
   - renderer preflight guard-ref constant; main process owns the preflight source
 
@@ -118,7 +116,7 @@ Shared layout source of truth:
 
 Renderer adapter:
 
-- `responseOverlayLayoutContract.js` exposes:
+- `desktopResponseOverlayLayoutRuntime.js` exposes:
   - `RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT`
   - `RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT`
 

@@ -5,7 +5,7 @@
 import {
   RESPONSE_OVERLAY_PHASE,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
-} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
+} from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import responseOverlayPhaseContract from '../../frontend/src/shared/response_overlay_phase_contract.json';
 
 describe('responseOverlayPhaseContract', () => {

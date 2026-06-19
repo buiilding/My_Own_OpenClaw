@@ -1,8 +1,8 @@
 /**
- * Defines response overlay phase contract contracts for the renderer UI.
+ * Defines response overlay phase contracts for the renderer runtime.
  */
 
-import responseOverlayPhaseContract from '../../../../../shared/response_overlay_phase_contract.json';
+import responseOverlayPhaseContract from '../../../shared/response_overlay_phase_contract.json';
 
 const RESPONSE_OVERLAY_PHASES = Object.freeze(
   [...(responseOverlayPhaseContract?.phases || [])],

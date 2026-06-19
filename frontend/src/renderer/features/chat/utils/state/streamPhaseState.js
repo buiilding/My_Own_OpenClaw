@@ -2,7 +2,7 @@
  * Provides the stream phase state module for the renderer UI.
  */
 
-import { RESPONSE_OVERLAY_PHASE } from '../overlay/responseOverlayPhaseContract';
+import { RESPONSE_OVERLAY_PHASE } from '../../../../app/runtime/desktopResponseOverlayPhaseRuntime';
 
 const OVERLAY_AWAITING_REPLY_PHASES = Object.freeze([
   RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,

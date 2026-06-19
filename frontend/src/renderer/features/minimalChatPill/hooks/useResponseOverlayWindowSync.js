@@ -4,12 +4,12 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { DesktopResponseOverlayRuntimeClient } from '../../../app/runtime/desktopResponseOverlayRuntimeClient';
-import { getRoundedFrameSize } from '../../chat/utils/overlay/overlayFrameSize';
 import {
+  getRoundedFrameSize,
   isCompactHoverLayoutMode,
+  RESPONSE_OVERLAY_LAYOUT,
   RESPONSE_OVERLAY_LAYOUT_MODE,
-} from '../../chat/utils/overlay/responseOverlayLayoutMode';
-import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
+} from '../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import {
   logRendererLiveSurfaceTrace,
   logRendererResponseSurfaceTrace,

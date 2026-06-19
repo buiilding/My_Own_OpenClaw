@@ -2,9 +2,9 @@
  * Covers overlay frame size. behavior in the frontend test suite.
  */
 
-import { getRoundedFrameSize } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize';
+import { getRoundedFrameSize } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime';
 
-describe('overlayFrameSize', () => {
+describe('desktopResponseOverlayLayoutRuntime frame size', () => {
   test('returns rounded frame size with minimum 1x1 bounds', () => {
     const size = getRoundedFrameSize({
       getBoundingClientRect: () => ({ width: 0.4, height: 0.49 }),

@@ -32,6 +32,8 @@ frontend/src/renderer/
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
 │   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor layout constants and helpers
+│   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
+│   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
@@ -147,7 +149,6 @@ frontend/src/renderer/
 │   │       │   ├── messageTransparency.js # messageTransparency - Descriptor builder for transparency sections
 │   │       │   └── sourceTags.js        # sourceTags - Source tag derivation for message badges/thinking labels
 │   │       ├── overlay/                 # overlay - Phase/layout contracts for the response overlay shell
-│   │       │   ├── responseOverlayLayoutMode.js # responseOverlayLayoutMode - hidden/awaiting/response layout enum + compact-hover predicate
 │   │       │   └── responseOverlayViewContract.ts # responseOverlayViewContract - showResponse/showAwaitingReply/layout contract helper
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │

@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Response Overlay Presentation Runtime Boundary
+
+- Finding: renderer chat stream state, live-surface projection, minimal overlay
+  rendering, and response-window sync depended on shared response-overlay phase
+  and layout helpers, but the renderer facades lived under chat overlay
+  utilities even though they mirror shared JSON contracts and main-process IPC
+  phase behavior.
+- Change: moved the renderer phase facade to
+  `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
+  and the layout/frame helpers to
+  `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`,
+  routed current consumers and parity tests through those app-runtime owners,
+  deleted the old chat utility paths, and refreshed docs plus boundary guards.
+- Validation: focused overlay phase contract/parity tests, live-turn surface
+  state, response overlay layout/frame tests, renderer app-runtime boundary,
+  docs listing, stale old-path scan, and diff checks.
+- Compatibility: no migration required. Overlay phase strings, preflight guard
+  identity, layout constants, frame measurement math, IPC payloads, window
+  policy, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Attachment Presentation Runtime Boundary
 
 - Finding: chat input and the minimal pill attachment preview row both used the

@@ -22,10 +22,9 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
-- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayViewContract.ts`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`

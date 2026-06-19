@@ -2,7 +2,7 @@
  * Defines response overlay view contract contracts for the renderer UI.
  */
 
-import { RESPONSE_OVERLAY_LAYOUT_MODE, resolveResponseOverlayLayoutMode } from './responseOverlayLayoutMode';
+import { RESPONSE_OVERLAY_LAYOUT_MODE, resolveResponseOverlayLayoutMode } from '../../../../app/runtime/desktopResponseOverlayLayoutRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from './overlayTurnLifecycleContract';
 
 type CurrentTurnPresentationStateLike = {
