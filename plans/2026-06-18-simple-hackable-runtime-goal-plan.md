@@ -275,6 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a browser runtime label slice by replacing focused
+  product-skinned dedicated-browser labels and sidecar-as-browser-runtime
+  labels in browser action, browser control, permission warm-up, browser tool,
+  tool catalog, and Browser Use adapter references with local-runtime dispatch,
+  controlled browser session, dedicated browser runtime, local-runtime Python
+  entrypoint, and local-runtime result wording. The modular docs guard now
+  reads those browser pages and rejects the retired focused labels. Validation:
+  focused modular boundary test, docs listing, retired browser-label scan, and
+  diff checks. No migration required; documentation/test only, with no browser
+  action names, Browser Use behavior, CDP port/profile policy, permission
+  request flow, tool schema, local-runtime dispatch, IPC, credential,
+  provider-policy, storage, hosted URL, or payload-shape change.
+
+- 2026-06-19: completed a renderer settings ownership shorthand slice by
+  replacing the remaining `local-runtime-owned` checklist label in the settings
+  surface workflow with explicit local-runtime setting ownership prose. The
+  renderer settings docs guard now rejects the shorthand. Validation: focused
+  modular boundary test, stale shorthand scan, and diff checks. No migration
+  required; documentation/test only, with no settings schema, renderer state,
+  backend patch allowlist, local-runtime launch env, JSON-RPC action, IPC,
+  credential, provider-policy, storage, hosted URL, or payload-shape change.
+
 - 2026-06-19: completed a local-runtime sidecar owner-label slice by replacing
   remaining active "local-runtime sidecar" labels in browser, tool, backend
   parity, overlay, inventory, planning, development, and packaging reference

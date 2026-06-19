@@ -27,6 +27,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/browser: route browser action/runtime labels through local-runtime
+  dispatch, the controlled dedicated browser session, and Browser Use adapter
+  wording instead of product-skinned browser labels. No migration required.
+- docs/renderer: spell out local-runtime setting ownership in the settings
+  workflow instead of using a shorthand owner badge. No migration required.
 - docs/local-runtime: retire remaining public "local-runtime sidecar" owner
   labels in active docs in favor of local-runtime ownership plus concrete
   Python sidecar implementation wording. No migration required.

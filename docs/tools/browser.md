@@ -42,7 +42,7 @@ module precedence.
 - Check whether the browser action parsed in backend before debugging local execution.
 - Check backend/local-runtime schema parity when a backend-valid action fails locally.
 - Check the Browser Use daemon state under `AGENT_BROWSER_USE_HOME`
-  (`WINDIE_BROWSER_USE_HOME` in WindieOS launches) or the default WindieOS
+  (`WINDIE_BROWSER_USE_HOME` in WindieOS launches) or the default app
   Browser Use home when browser status polling reports a disconnected browser.
 - Do not debug browser action reliability in the renderer first; Browser Use is the browser automation engine and WindieOS should only own adapter/result boundaries.
 

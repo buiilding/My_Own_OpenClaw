@@ -117,8 +117,8 @@ the renderer:
     shell-execution grant in the app-managed permission state store, then
     re-runs the probe so runtime availability is still checked
 - `browser_automation`:
-  - verifies runtime availability, optionally installs Chromium on consent, then runs a real dedicated `browser connect` warm-up so onboarding/settings can open the WindieOS browser ahead of first task use
-  - successful request leaves the dedicated WindieOS browser available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
+  - verifies runtime availability, optionally installs Chromium on consent, then runs a real dedicated `browser connect` warm-up so onboarding/settings can open the controlled browser ahead of first task use
+  - successful request leaves the dedicated browser session available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane

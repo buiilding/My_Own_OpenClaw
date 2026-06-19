@@ -406,12 +406,18 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('renderer settings docs use renderer-local presentation wording', async () => {
-    const source = await read(
-      'docs/frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md',
-    );
+    const source = (
+      await Promise.all([
+        read(
+          'docs/frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md',
+        ),
+        read('docs/frontend/renderer/settings/settings_surface_change_workflow.md'),
+      ])
+    ).join('\n');
 
     expect(source).toContain('renderer-local theme editor values');
     expect(source).not.toContain('frontend-local theme');
+    expect(source).not.toContain('local-runtime-owned');
   });
 
   test('frontend architecture docs route tool prep through local execution wording', async () => {
@@ -997,12 +1003,17 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/tools/README.md'),
       read('docs/backend/tools/browser/browser_remote_schema_surface_reference.md'),
       read('docs/backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md'),
+      read('docs/browser/browser_action_surface.md'),
+      read('docs/browser/browser_control.md'),
       read('docs/browser/browser_change_workflow.md'),
+      read('docs/frontend/main/permission_manifest_probe_and_request_ipc_reference.md'),
       read('docs/frontend/sidecar/browser/contracts/README.md'),
       read('docs/frontend/sidecar/browser_action_runtime_reference.md'),
       read('docs/frontend/sidecar/browser_automation_stack.md'),
+      read('docs/frontend/sidecar/tools/browser_runtime_contract_and_windie_runtime_reference.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/tools/README.md'),
+      read('docs/tools/browser.md'),
       read('docs/tools/tool_catalog_matrix.md'),
     ]);
     const docText = docs.join('\n');
@@ -1013,8 +1024,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('backend/local-runtime parity');
     expect(docText).toContain('local-runtime browser execution');
     expect(docText).toContain('Python sidecar Browser Use adapters');
+    expect(docText).toContain('dedicated browser runtime');
+    expect(docText).toContain('controlled browser session');
+    expect(docText).toContain('dedicated browser Chrome/CDP startup policy');
     expect(docText).toContain('Desktop client/local-runtime manifest');
     expect(docText).toContain('Python sidecar registry');
+    expect(docText).not.toContain('dedicated Windie browser runtime');
+    expect(docText).not.toContain('Dedicated Windie browser navigation');
+    expect(docText).not.toContain('Windie browser actions');
+    expect(docText).not.toContain('dedicated WindieOS Chrome/CDP startup policy');
+    expect(docText).not.toContain('dedicated WindieOS browser');
+    expect(docText).not.toContain('WindieOS browser session');
     expect(docText).not.toContain('Backend-Sidecar Browser Schema');
     expect(docText).not.toContain('Frontend/sidecar manifest');
     expect(docText).not.toContain('Sidecar registry:');

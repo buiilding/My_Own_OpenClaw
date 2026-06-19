@@ -1,5 +1,5 @@
 ---
-summary: "Browser action surface guide mapping Windie browser actions to sidecar handlers, snapshots, refs, extraction, tabs, and file operations."
+summary: "Browser action surface guide mapping browser actions to local-runtime handlers, snapshots, refs, extraction, tabs, and file operations."
 read_when:
   - When adding, removing, or changing browser actions or shared browser action schemas.
   - When debugging browser action validation, ref resolution, snapshots, extraction, tab switching, or browser file operations.
@@ -8,7 +8,7 @@ title: "Browser Action Surface"
 
 # Browser Action Surface
 
-The browser action surface starts at the backend model-facing `browser` tool and executes in the sidecar through `BrowserUseEngineRuntime`, a thin adapter over the maintained Browser Use CLI daemon.
+The browser action surface starts at the backend model-facing `browser` tool and executes through SDK/main local-runtime dispatch into `BrowserUseEngineRuntime`, a Python sidecar adapter over the maintained Browser Use CLI daemon.
 
 ## Schema And Dispatch
 
@@ -17,11 +17,11 @@ The browser action surface starts at the backend model-facing `browser` tool and
 | Backend tool catalog | `backend/src/tools/tool_catalog.py` |
 | Backend remote browser tool | `backend/src/tools/remote_tools/browser.py` |
 | Shared browser contract | `frontend/src/main/python/windie_shared/browser_contract.py` |
-| Sidecar entrypoint | `frontend/src/main/python/tools/browser/browser_tool.py` |
+| Local-runtime Python entrypoint | `frontend/src/main/python/tools/browser/browser_tool.py` |
 | Runtime dispatch | `frontend/src/main/python/tools/browser/browser_use_engine.py` |
 | Browser engine | installed `browser-use[cli]` package |
 
-The sidecar validates `BrowserControlArgs` before dispatch. Unsupported actions raise `ACTION_UNSUPPORTED`; Browser Use daemon failures are normalized as Browser Use engine errors.
+The local-runtime Python adapter validates `BrowserControlArgs` before dispatch. Unsupported actions raise `ACTION_UNSUPPORTED`; Browser Use daemon failures are normalized as Browser Use engine errors.
 
 ## Current Runtime Actions
 

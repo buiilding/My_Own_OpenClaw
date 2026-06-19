@@ -139,7 +139,7 @@ If a test stem is not available in the current checkout, search by the component
 1. Decide whether the runtime is renderer-only, Electron main, backend, or local runtime.
 2. If backend-owned, inspect `update-settings` ACK and backend patch allowlist.
 3. If Electron-owned, inspect the matching IPC handler and disk config path.
-4. If local-runtime-owned, inspect the local-runtime launch env or JSON-RPC action path, then use Python sidecar docs only for implementation-specific changes.
+4. If the local runtime owns the setting, inspect the launch env or JSON-RPC action path, then use Python sidecar docs only for implementation-specific changes.
 5. Add producer and consumer tests for the changed field.
 
 ### Retired Sudo Toggle Appears In Settings

@@ -86,7 +86,7 @@ In addition to WindieOS lifecycle actions (`connect`, `status`, `profiles`, `sna
 
 Notes:
 - `switch` and `close_tab` use numeric `tab_index` values from `get_tabs`.
-- `close` closes the WindieOS browser session.
+- `close` closes the controlled browser session.
 - `done` is exposed for parity with Browser Use completion tooling.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
 - `switch` defaults to visible tab activation, but supports `activate=false` for internal-only target changes so WindieOS can control a different tab without bringing it to the foreground in the user-visible browser window.

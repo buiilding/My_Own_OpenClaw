@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for the sidecar Browser Use engine adapter: canonical action registry, validation boundary, engine ownership split, and feature-pack readiness contract."
+summary: "Deep reference for the local-runtime Browser Use engine adapter: canonical action registry, validation boundary, engine ownership split, and feature-pack readiness contract."
 read_when:
   - When changing `frontend/src/main/python/tools/browser/*` runtime dispatch, browser action coverage, or browser tool error mapping.
-  - When tightening or extending the canonical `browser` tool contract and needing runtime/schema parity across sidecar and backend.
+  - When tightening or extending the canonical `browser` tool contract and needing runtime/schema parity across local runtime and backend.
 title: "Browser Runtime Contract And Browser Use Engine Reference"
 ---
 
@@ -21,7 +21,7 @@ The runtime boundary is:
 - `browser_tool.py`: instantiate canonical args, execute the engine adapter, normalize failures into `ToolResult`
 - `windie_shared/browser_contract.py`: authoritative runtime validation for canonical browser payloads
 - `browser_use_engine.py`: action mapping, Browser Use CLI invocation, deterministic extraction helpers, browser-local file helpers, and result normalization
-- `chrome_launcher.py` / `chrome_detection.py`: dedicated WindieOS Chrome/CDP startup policy
+- `chrome_launcher.py` / `chrome_detection.py`: dedicated browser Chrome/CDP startup policy
 
 ## Canonical Action Registry
 
@@ -60,7 +60,7 @@ Engine failures should normalize into deterministic sidecar error codes:
 - `BROWSER_RUNTIME_ERROR`
 
 The engine adapter should raise `BrowserActionError` for expected browser/tool failures.
-`browser_tool.py` is the boundary that maps those failures into serialized sidecar tool results.
+`browser_tool.py` is the boundary that maps those failures into serialized local-runtime tool results.
 
 ## Feature-Pack Readiness
 
@@ -74,7 +74,7 @@ Current browser feature-pack markers:
 
 If the runtime starts requiring additional optional modules, update:
 
-- sidecar requirements/runtime requirements
+- local-runtime Python requirements/runtime requirements
 - feature-pack marker detection
 - browser tool docs
 - focused sidecar tests

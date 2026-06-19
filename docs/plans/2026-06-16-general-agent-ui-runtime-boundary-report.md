@@ -174,6 +174,37 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Browser Runtime Label Boundary
+
+- Finding: browser action/runtime docs still used focused product-skinned
+  dedicated-browser labels and sidecar-as-browser-runtime wording in public
+  action, control, permission warm-up, tool, tool-catalog, and Browser Use
+  adapter references.
+- Change: reworded those references through local-runtime dispatch, controlled
+  browser session, dedicated browser runtime, local-runtime Python entrypoint,
+  and local-runtime result labels. Extended the modular docs guard to read the
+  affected browser pages and reject the retired focused labels.
+- Validation: focused modular boundary test, docs listing, retired
+  browser-label scan, and diff checks.
+- Compatibility: no migration required. Browser action names, Browser Use
+  behavior, CDP port/profile policy, permission request flow, tool schemas,
+  local-runtime dispatch, IPC, credentials, provider policy, storage, hosted
+  URLs, and payload shapes are unchanged.
+
+### 2026-06-19 Renderer Settings Ownership Shorthand Boundary
+
+- Finding: the settings surface workflow still used the shorthand
+  `local-runtime-owned` checklist label, which compressed the owner decision
+  into a badge instead of explaining the local-runtime setting path.
+- Change: rewrote the checklist item as explicit local-runtime setting
+  ownership prose and guarded the renderer settings docs against the shorthand.
+- Validation: focused modular boundary test, stale shorthand scan, and diff
+  checks.
+- Compatibility: no migration required. Settings schemas, renderer state,
+  backend patch allowlists, local-runtime launch env, JSON-RPC actions, IPC,
+  credentials, provider policy, storage, hosted URLs, and payload shapes are
+  unchanged.
+
 ### 2026-06-19 Local-Runtime Sidecar Owner-Label Boundary
 
 - Finding: active browser, tool, backend parity, overlay, inventory, planning,
