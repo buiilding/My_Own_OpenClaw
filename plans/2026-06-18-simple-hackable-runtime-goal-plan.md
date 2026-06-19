@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a first-read runtime/security owner-label slice by
+  routing the conceptual runtime model and security hub through local-runtime
+  execution, local-runtime remote-client auth, and local-runtime executable tool
+  labels instead of sidecar-as-owner wording. Python sidecar remains visible as
+  the current implementation process and test/code path where concrete evidence
+  matters. The modular docs guard now reads the runtime model and security hub
+  and rejects retired sidecar local-execution, sidecar local-work routing,
+  sidecar remote-client auth, and sidecar auth-header phrases. Validation:
+  `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale first-read
+  runtime/security label scan, and `git diff --check`. No migration required;
+  no code path, payload, storage, IPC, settings, env var name, tool schema,
+  credential source, auth header, permission, hosted URL, provider-policy,
+  local execution, or endpoint behavior changed.
 - 2026-06-18: completed a public local-tool label slice by routing the docs
   hub, agent-loop concept doc, response overlay guide, provider extension guide,
   and agent-development workflow through local-runtime tool wording instead of

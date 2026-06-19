@@ -1,7 +1,8 @@
 ---
 summary: "Security hub for WindieOS hosted auth, IPC isolation, schema validation, credentials, tool execution, local-runtime boundaries, and multi-user risks."
 read_when:
-  - When changing security-relevant behavior across backend, frontend, sidecar, tools, providers, hosted auth, or packaging.
+  - When changing security-relevant behavior across backend, frontend,
+    local-runtime implementation, tools, providers, hosted auth, or packaging.
   - When deciding which trust boundary owns an auth, IPC, credential, permission, tool-execution, or multi-user issue.
 title: "Security Hub"
 ---
@@ -15,8 +16,8 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 - [Security Boundary Matrix](security_boundary_matrix.md) for owner/code/test routing by trust boundary.
 - [Security Change Playbook](security_change_playbook.md) for how to change auth, IPC, validation, credentials, permissions, tools, or local execution.
 - [Permissions and Local Authority Workflow](permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
-- [Credentials and Tokens Matrix](credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
-- [Credential and Token Change Workflow](credential_token_change_workflow.md) for changing install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging boundaries.
+- [Credentials and Tokens Matrix](credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and local-runtime remote-client auth.
+- [Credential and Token Change Workflow](credential_token_change_workflow.md) for changing install auth, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging boundaries.
 - [Operations Security](../operations/security.md) for current security notes.
 - [Safety Boundaries](../concepts/safety_boundaries.md) for the conceptual safety model.
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md) for install-token REST and websocket identity.
@@ -40,7 +41,8 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 
 - Do not commit real credentials, tokens, user data, local private paths, or generated machine secrets.
 - Do not add broad preload channels to bypass renderer/main boundaries.
-- Do not let frontend or sidecar import backend schemas for parity; add contract tests instead.
+- Do not let desktop client or Python sidecar implementation code import
+  backend schemas for parity; add contract tests instead.
 - Do not trust renderer-provided user identity when hosted install auth is enabled.
 - Do not expose unavailable tools or coordinate methods to the model.
 - Do not route local machine actions through hosted SDK routes.
@@ -53,7 +55,8 @@ When a security boundary changes, run the focused tests for that boundary:
 - hosted auth: backend auth middleware, install registration, websocket handshake tests
 - IPC/preload: bridge validation, preload allowlist, main handler tests
 - backend validation: schema, input validation, sanitized error tests
-- tool security: tool policy/schema/filtering tests, sidecar executable tool tests
+- tool security: tool policy/schema/filtering tests, local-runtime executable
+  tool tests
 - credentials/config: config loader and provider credential tests
 - permissions/platform: renderer onboarding, main permission service, platform-specific tests
 

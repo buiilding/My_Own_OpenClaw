@@ -248,8 +248,10 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/architecture/python_sidecar.md'),
+      read('docs/concepts/runtime_model.md'),
       read('docs/operations/deployment.md'),
       read('docs/security/credentials_and_tokens_matrix.md'),
+      read('docs/security/README.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
     ]);
     const docText = docs.join('\n');
@@ -276,6 +278,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('falls back to local backend candidates');
     expect(docText).not.toContain('client-local sidecar imports');
     expect(docText).not.toContain('Backend schema, shared browser contract, sidecar runtime, Electron bridge');
+    expect(docText).not.toContain('Sidecar owns local execution');
+    expect(docText).not.toContain('routes local work through the sidecar');
+    expect(docText).not.toContain('sidecar remote-client auth');
+    expect(docText).not.toContain('sidecar auth headers');
   });
 
   test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {
