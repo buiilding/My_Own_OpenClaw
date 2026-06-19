@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/overlays: move the renderer overlay turn-lifecycle shared JSON
+  facade from chat overlay utilities into the app-runtime layer used by chat
+  state and the minimal response overlay. No migration required.
 - docs/overlays: add read_when routing for the response-overlay phase and
   layout app-runtime helpers. No migration required.
 - renderer/overlays: move the renderer response-overlay phase enum, layout

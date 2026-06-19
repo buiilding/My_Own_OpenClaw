@@ -9,7 +9,7 @@ import {
   buildResponseOverlayDismissalKey,
   useChatStore,
 } from '../../chat/stores/chatStore';
-import { OVERLAY_TURN_LIFECYCLE } from '../../chat/utils/overlay/overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
 import {
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,

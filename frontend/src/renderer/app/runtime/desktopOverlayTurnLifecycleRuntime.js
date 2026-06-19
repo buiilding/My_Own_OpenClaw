@@ -1,8 +1,8 @@
 /**
- * Defines overlay turn lifecycle contract contracts for the renderer UI.
+ * Defines overlay turn lifecycle contract values for renderer runtime consumers.
  */
 
-import overlayTurnLifecycleContract from '../../../../../shared/overlay_turn_lifecycle_contract.json';
+import overlayTurnLifecycleContract from '../../../shared/overlay_turn_lifecycle_contract.json';
 
 function normalizeStateList(states) {
   return Array.isArray(states)

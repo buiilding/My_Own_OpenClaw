@@ -3,7 +3,7 @@
  */
 
 import { RESPONSE_OVERLAY_LAYOUT_MODE, resolveResponseOverlayLayoutMode } from '../../../../app/runtime/desktopResponseOverlayLayoutRuntime';
-import { OVERLAY_TURN_LIFECYCLE } from './overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 type CurrentTurnPresentationStateLike = {
   showChatboxAwaitingReply?: boolean;

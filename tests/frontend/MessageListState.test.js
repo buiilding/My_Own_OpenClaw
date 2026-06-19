@@ -8,7 +8,7 @@ import {
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
 import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('messageListState', () => {
   test('awaiting-dot target picks latest user row only while awaiting reply', () => {

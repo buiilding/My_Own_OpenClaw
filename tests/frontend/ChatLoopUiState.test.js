@@ -7,7 +7,7 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('chatLoopUiState', () => {
   test('treats preflight lifecycle as awaiting reply', () => {

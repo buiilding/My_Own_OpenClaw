@@ -5,7 +5,7 @@
 import {
   resolveCurrentTurnPresentationState,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('chatTurnPresentationState visible reply helpers', () => {
   test('targets the latest user row for awaiting-dot rendering', () => {

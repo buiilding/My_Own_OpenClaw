@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer response-overlay lifecycle contract
+  boundary slice by moving the renderer turn lifecycle constants and phase
+  groups from chat overlay utilities into
+  `app/runtime/desktopOverlayTurnLifecycleRuntime.js`, routing chat loop state,
+  chat turn presentation, response overlay view contracts, and minimal overlay
+  view models through that app-runtime owner, and deleting the old chat utility
+  path. Validation: focused overlay lifecycle/state tests, renderer app-runtime
+  boundary test, docs listing, stale old-path scan, and diff checks. No
+  migration required; lifecycle values, phase groups, SDK projection handling,
+  overlay visibility policy, IPC payloads, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a response-overlay runtime-doc routing follow-up by
   adding a `read_when` hint for the new phase and layout app-runtime helpers to
   the overlay utility reference. Validation: docs listing and diff checks. No

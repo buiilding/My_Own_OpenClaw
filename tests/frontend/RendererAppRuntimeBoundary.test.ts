@@ -163,6 +163,37 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('overlay turn lifecycle contract stays behind the app runtime facade', async () => {
+    const lifecycleRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopOverlayTurnLifecycleRuntime.js'),
+      'utf8',
+    );
+    const lifecycleStateSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/state/overlayTurnLifecycleState.js'),
+      'utf8',
+    );
+    const responseViewSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayViewContract.ts'),
+      'utf8',
+    );
+    const overlayViewModelSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
+
+    expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
+    expect(lifecycleRuntimeSource).not.toContain('features/chat');
+    expect(lifecycleStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(responseViewSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(overlayViewModelSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(lifecycleStateSource).not.toContain('overlayTurnLifecycleContract');
+    expect(responseViewSource).not.toContain('overlayTurnLifecycleContract');
+    expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/overlay/overlayTurnLifecycleContract.js'),
+    )).rejects.toThrow();
+  });
+
   test('renderer transport docs classify app-runtime clients before cleanup', async () => {
     const source = await fs.readFile(
       path.resolve(

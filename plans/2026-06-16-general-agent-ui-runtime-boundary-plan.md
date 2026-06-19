@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Response Overlay Lifecycle Runtime Boundary
+
+- Finding: response-overlay lifecycle constants and phase groups came from a
+  shared JSON contract but the renderer adapter lived under chat overlay
+  utilities, so chat loop state and minimal overlay view-model code reached
+  into chat for a cross-surface presentation contract.
+- Change: moved the lifecycle facade to
+  `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`,
+  routed chat state, response overlay view contracts, minimal overlay view
+  models, tests, and docs through that app-runtime owner, and deleted the old
+  chat utility path.
+- Validation: focused overlay lifecycle/state tests, renderer app-runtime
+  boundary, docs listing, stale old-path scan, and diff checks.
+- Compatibility: no migration required. Lifecycle values, phase groups, SDK
+  projection handling, overlay visibility policy, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Response Overlay Presentation Runtime Boundary
 
 - Finding: renderer chat stream state, live-surface projection, minimal overlay

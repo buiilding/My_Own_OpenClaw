@@ -7,7 +7,7 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from './chatLoopUiState';
-import { OVERLAY_TURN_LIFECYCLE } from '../overlay/overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',

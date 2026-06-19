@@ -2,7 +2,7 @@
  * Covers overlay turn lifecycle. behavior in the frontend test suite.
  */
 
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract';
+import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 import {
   isOverlayTurnLifecycleAwaiting,
   isOverlayTurnLifecycleBusy,
