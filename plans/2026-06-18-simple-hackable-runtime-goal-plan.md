@@ -275,18 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
-- 2026-06-19: completed a debug diagnostic/process-health local-runtime label
-  slice by routing `docs/debug/diagnostic_flags.md` and
-  `docs/debug/process_health_checklist.md` metadata, headings, and readiness
-  checks through local-runtime Python sidecar labels instead of presenting
-  sidecar as a peer runtime owner. Concrete Python sidecar stdout/stderr and
-  pytest wording remains where the docs debug the actual implementation
-  process. The modular docs guard now covers these debug pages and rejects the
-  retired sidecar-as-runtime summary/readiness phrases. Validation: focused
-  modular docs guard, docs listing, stale phrase scan, and diff checks. No
-  migration required; documentation/test only, with no code path, payload,
-  storage, IPC, settings, credentials, permissions, hosted routes, provider
-  policy, packaging, or local execution behavior changed.
+- 2026-06-19: completed a debug diagnostic/observability/process-health
+  local-runtime label slice by routing `docs/debug/diagnostic_flags.md`,
+  `docs/debug/observability_change_workflow.md`, and
+  `docs/debug/process_health_checklist.md` metadata, headings, stdout rules,
+  and readiness checks through local-runtime Python sidecar labels instead of
+  presenting sidecar as a peer runtime owner. Concrete Python sidecar
+  stdout/stderr and pytest wording remains where the docs debug the actual
+  implementation process. The modular docs guard now covers these debug pages
+  and rejects the retired sidecar-as-runtime summary/readiness phrases.
+  Validation: focused modular docs guard, docs listing, stale phrase scan, and
+  diff checks. No migration required; documentation/test only, with no code
+  path, payload, storage, IPC, settings, credentials, permissions, hosted
+  routes, provider policy, packaging, or local execution behavior changed.
 
 - 2026-06-19: completed a debug-routing local-runtime label slice by routing
   the Debug hub, runtime trace guide, and symptom playbooks from sidecar-as-

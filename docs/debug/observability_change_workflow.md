@@ -1,15 +1,15 @@
 ---
-summary: "Workflow for adding or changing WindieOS logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, sidecar, and packaged app runtimes."
+summary: "Workflow for adding or changing WindieOS logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, local-runtime Python sidecar, and packaged app runtimes."
 read_when:
   - When adding, removing, or renaming logs, trace flags, diagnostic events, metrics, or evidence collection paths.
   - When a bug needs new observability before a safe code fix can be made.
-  - When deciding where debug output belongs across backend, Electron main, renderer, sidecar, packaged app, and hosted runtime boundaries.
+  - When deciding where debug output belongs across backend, Electron main, renderer, local-runtime Python sidecar, packaged app, and hosted runtime boundaries.
 title: "Observability Change Workflow"
 ---
 
 # Observability Change Workflow
 
-Use this workflow before adding logs or diagnostic flags. Observability should prove which runtime owns a failure without creating always-on noise, leaking secrets, or corrupting sidecar JSON-RPC stdout.
+Use this workflow before adding logs or diagnostic flags. Observability should prove which runtime owns a failure without creating always-on noise, leaking secrets, or corrupting Python sidecar JSON-RPC stdout.
 
 ## Fast Owner Map
 
@@ -34,7 +34,7 @@ Use this workflow before adding logs or diagnostic flags. Observability should p
   that can fail before a conversation or turn exists.
 - Keep verbose traces opt-in behind env flags, URL params, or test-only gates.
 - Do not log secrets, bearer tokens, API keys, install tokens, file contents, or full screenshots.
-- Do not write debug text to sidecar stdout. Sidecar stdout is protocol traffic.
+- Do not write debug text to Python sidecar stdout. Python sidecar stdout is protocol traffic.
 - Prefer structured fields such as `user_id`, `session_id`, `conversation_ref`, `turn_ref`, `request_id`, and `bundle_id` over long prose.
 - Redact or summarize payloads at trust boundaries.
 - Update [Diagnostic Flags](diagnostic_flags.md) when adding, renaming, or removing a flag.

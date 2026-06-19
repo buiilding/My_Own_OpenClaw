@@ -787,6 +787,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/debug/README.md'),
       read('docs/debug/diagnostic_flags.md'),
       read('docs/debug/error_failure_change_workflow.md'),
+      read('docs/debug/observability_change_workflow.md'),
       read('docs/debug/process_health_checklist.md'),
       read('docs/debug/runtime_traces.md'),
       read('docs/debug/symptom_playbooks.md'),

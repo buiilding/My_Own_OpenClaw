@@ -127,6 +127,13 @@ def test_agent_definition_rejects_removed_legacy_default_mode():
         AgentDefinition(mode="windie_default")
 
 
+def test_agent_definition_docstring_uses_hosted_default_policy_wording():
+    doc = " ".join((AgentDefinition.__doc__ or "").split())
+
+    assert "hosted backend's default agent policy" in doc
+    assert "default WindieOS agent" not in doc
+
+
 def test_agent_definition_normalizes_prompt_tools_and_runtime():
     definition = AgentDefinition(
         id=" custom-agent ",

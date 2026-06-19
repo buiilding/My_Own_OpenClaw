@@ -152,9 +152,10 @@ class AgentRuntimeDefinition(BaseModel):
 class AgentDefinition(BaseModel):
     """Full client-defined agent contract.
 
-    Missing fields intentionally fall back to the default WindieOS agent. This
-    makes custom clients able to send almost nothing and still get the packaged
-    app behavior, while advanced clients can progressively define the agent.
+    Missing fields intentionally fall back to the hosted backend's default
+    agent policy. This lets custom clients send almost nothing and still get
+    the packaged default behavior, while advanced clients can progressively
+    define the agent.
     """
 
     model_config = ConfigDict(extra="forbid")

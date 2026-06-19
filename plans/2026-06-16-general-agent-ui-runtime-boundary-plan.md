@@ -120,6 +120,37 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Debug Diagnostic and Observability Local-Runtime Wording Boundary
+
+- Finding: diagnostic flags, observability, and process-health docs still used
+  broad sidecar labels in metadata, headings, stdout rules, and readiness
+  checks where the owner-correct boundary is local-runtime Python sidecar
+  implementation detail.
+- Change: reworded those debug docs through local-runtime Python sidecar labels
+  and extended the modular debug-doc guard to cover the observability page plus
+  the retired sidecar-as-runtime summary/readiness phrases.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. This is documentation and guard
+  coverage only; diagnostic flags, log streams, JSON-RPC stdout behavior,
+  traces, IPC, credentials, local runtime execution, provider policy, backend
+  APIs, and storage are unchanged.
+
+### 2026-06-19 Backend Agent-Definition Default-Policy Wording Boundary
+
+- Finding: the backend `AgentDefinition` schema docstring still described
+  omitted fields with product-named default-agent wording, even though the
+  backend owns hosted default agent policy and clients progressively override
+  that policy through the first-class `agent_definition` contract.
+- Change: reworded the schema docstring to hosted backend default agent
+  policy and added a focused backend schema guard for the retired product
+  default phrase.
+- Validation: focused backend schema test, docs listing, stale phrase scan, and
+  diff checks.
+- Compatibility: no migration required. Agent-definition payloads, validation
+  modes, hosted default policy, SDK builders, IPC, credentials, local runtime
+  execution, provider policy, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 Debug Local-Runtime Wording Boundary
 
 - Finding: active debug hub, runtime trace, and symptom playbook docs still
@@ -192,9 +223,9 @@ Each completed slice should report:
 
 - Finding: the SDK agent-definition guide still described the removed
   post-handshake tool-schema path as `frontend-tool-schemas`, described omitted
-  agent definitions as the default WindieOS agent, and called SDK builtins
-  WindieOS built-in tools even though the SDK contract is client manifest,
-  hosted default policy, and built-in local-runtime tool groups.
+  agent definitions with product-named default-agent wording, and called SDK
+  builtins WindieOS built-in tools even though the SDK contract is client
+  manifest, hosted default policy, and built-in local-runtime tool groups.
 - Change: reworded the agent-definition, API reference, and AgentClient runtime
   docs to client tool-schema sync, hosted backend defaults, and built-in
   local-runtime tool-group terminology, and extended the modular docs guard

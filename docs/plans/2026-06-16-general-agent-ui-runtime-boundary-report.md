@@ -173,6 +173,45 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Debug Diagnostic and Observability Local-Runtime Wording Boundary
+
+- Worktree contained debug diagnostic/process-health wording edits when the
+  backend schema pass resumed after compaction; the related observability page
+  was inspected after the stale stdout scan found the same owner label there.
+- Finding: diagnostic flags, observability, and process-health docs still used
+  broad sidecar labels in metadata, headings, stdout rules, and readiness
+  checks where the owner-correct boundary is local-runtime Python sidecar
+  implementation detail.
+- Change: reworded those debug docs through local-runtime Python sidecar labels
+  and extended the modular debug-doc guard to cover the observability page plus
+  the retired sidecar-as-runtime summary/readiness phrases.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. This is documentation and guard
+  coverage only; diagnostic flags, log streams, JSON-RPC stdout behavior,
+  traces, IPC, credentials, local runtime execution, provider policy, backend
+  APIs, and storage are unchanged.
+
+### 2026-06-19 Backend Agent-Definition Default-Policy Wording Boundary
+
+- Worktree contained a separate debug diagnostic/process-health wording slice
+  while the backend schema pass started; those changes were preserved,
+  inspected, and completed as their own boundary note.
+- Backend agent-definition docs, schema tests, stale phrase scans, and the
+  recent SDK agent-definition wording slice were inspected.
+- Finding: the backend `AgentDefinition` schema docstring still described
+  omitted fields with product-named default-agent wording, even though the
+  owner-correct boundary is hosted backend default agent policy with client
+  overrides through `agent_definition`.
+- Change: reworded the schema docstring to hosted backend default agent policy
+  and added a focused backend schema guard for the retired product default
+  phrase.
+- Validation: focused backend schema test, docs listing, stale phrase scan, and
+  diff checks.
+- Compatibility: no migration required. Agent-definition payloads, validation
+  modes, hosted default policy, SDK builders, IPC, credentials, local runtime
+  execution, provider policy, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 Debug Local-Runtime Wording Boundary
 
 - Worktree was clean after `6c189a96c` except for the debug local-runtime
@@ -267,8 +306,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   host-skin hotkey slice.
 - Finding: the SDK agent-definition guide still routed removed
   post-handshake tool schemas through `frontend-tool-schemas`, described
-  omitted agent definitions as the default WindieOS agent, and called SDK
-  builtins WindieOS built-in tools.
+  omitted agent definitions with product-named default-agent wording, and
+  called SDK builtins WindieOS built-in tools.
 - Change: reworded those docs and the API reference to client tool-schema sync,
   hosted backend defaults, and built-in local-runtime tool groups, then added
   stale-phrase guard coverage.
