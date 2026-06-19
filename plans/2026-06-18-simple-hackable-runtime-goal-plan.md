@@ -281,11 +281,11 @@ For each completed slice, record:
   registry or throw the normalized enablement error. `McpsSection` now handles
   toggle presentation, registry state, and error display without branching on
   normalized result-envelope fields. Validation: focused MCP runtime client,
-  MCP section, renderer chat runtime boundary, stale envelope-field scan,
-  docs-index coverage, and diff checks. No migration required; MCP enablement
-  IPC channels, main-process payloads, registry normalization, storage,
-  settings, credentials, permissions, provider policy, hosted URLs, and
-  local-runtime MCP execution are unchanged.
+  MCP section, renderer chat runtime boundary, and docs-index tests plus docs
+  search, related commit search, stale envelope-field scans, and diff checks.
+  No migration required; MCP enablement IPC channels, main-process payloads,
+  registry normalization, storage, settings, credentials, permissions, provider
+  policy, hosted URLs, and local-runtime MCP execution are unchanged.
 - 2026-06-19: completed a renderer response-overlay visibility subscription
   boundary slice by changing
   `DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility(...)` to

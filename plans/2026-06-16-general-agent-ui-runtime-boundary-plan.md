@@ -132,8 +132,8 @@ Each completed slice should report:
   MCP section now keeps only toggle presentation, registry state, and error
   display.
 - Validation: focused MCP runtime client, MCP section, renderer chat runtime
-  boundary, stale MCP envelope-field scan, docs-index coverage, and diff
-  checks.
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  MCP envelope-field scans, and diff checks.
 - Compatibility: no migration required. MCP enablement IPC channel names,
   main-process payloads, registry normalization, enablement persistence,
   dashboard rendering, storage, settings, credentials, permissions, provider
