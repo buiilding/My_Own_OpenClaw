@@ -34,7 +34,7 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 | Credentials | Keep API keys in env or explicit provider credential surfaces | [Credential and Token Change Workflow](credential_token_change_workflow.md), [Provider Credentials](../providers/credentials.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
 | Tool execution | Narrow model-visible capabilities and route local actions through SDK/main local execution boundaries | [Tools Hub](../tools/README.md), [Backend Tools Security Docs Hub](../backend/tools/security/README.md) |
 | Permissions | Gate screen/input/microphone/browser capabilities through OS-aware probes and onboarding | [Onboarding and Permissions](../desktop/onboarding_permissions.md), [Platform Docs](../platforms/README.md) |
-| Local runtime implementation | Keep local JSON-RPC, filesystem/shell/browser/computer actions, and subprocess protocols explicit through the current Python sidecar implementation | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Local Runtime Sidecar Docs Hub](../frontend/sidecar/README.md) |
+| Local runtime implementation | Keep local JSON-RPC, filesystem/shell/browser/computer actions, and subprocess protocols explicit through the current Python sidecar implementation | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) |
 | Future compliance | Plan durable hosted security/compliance before implementing broad hosted features | [Planning Hub](../planning/README.md) |
 
 ## Rules

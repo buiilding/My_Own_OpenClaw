@@ -779,9 +779,11 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md'),
       read('docs/backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md'),
       read('docs/browser/browser_change_workflow.md'),
+      read('docs/channels/sidecar_and_tool_channels.md'),
       read('docs/debug/README.md'),
       read('docs/README.md'),
       read('docs/frontend/README.md'),
+      read('docs/frontend/inventory/README.md'),
       read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar/README.md'),
@@ -805,8 +807,14 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/sidecar/tools/registry/README.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
       read('docs/getting-started/docs_hub.md'),
+      read('docs/nodes/README.md'),
+      read('docs/nodes/desktop_and_sidecar_node.md'),
+      read('docs/nodes/runtime_node_matrix.md'),
       read('docs/operations/evidence_collection_runbook.md'),
+      read('docs/providers/inference_capability_change_workflow.md'),
+      read('docs/reference/configuration_reference.md'),
       read('docs/security/credential_token_change_workflow.md'),
+      read('docs/security/README.md'),
       read('docs/tools/README.md'),
       read('docs/tools/browser.md'),
       read('docs/tools/computer.md'),
@@ -832,6 +840,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Source Maps Docs Hub');
     expect(docText).toContain('Local-Runtime Service Protocol Docs Hub');
     expect(docText).toContain('SDK-Owned Local-Runtime Lifecycle Reference');
+    expect(docText).toContain('Local Runtime Python Implementation Docs Hub');
+    expect(docText).toContain('Local-Runtime Process Lifecycle');
+    expect(docText).toContain('Local-Runtime JSON-RPC Protocol');
+    expect(docText).toContain('Local-Runtime Python Folder Topology');
+    expect(docText).toContain('Local-Runtime Wakeword Service Model');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
@@ -874,6 +887,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Local Runtime Sidecar Source Maps Docs Hub');
     expect(docText).not.toContain('SDK-Owned Sidecar Lifecycle Reference');
     expect(docText).not.toContain('Local Runtime Sidecar Browser Stack');
+    expect(docText).not.toContain('Local Runtime Sidecar Docs Hub');
+    expect(docText).not.toContain('Sidecar Docs Hub');
+    expect(docText).not.toContain('Sidecar Process Lifecycle');
+    expect(docText).not.toContain('Sidecar JSON-RPC Protocol');
+    expect(docText).not.toContain('Sidecar Python Folder Topology');
+    expect(docText).not.toContain('Sidecar Wakeword Service Model');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');
     expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
   });

@@ -25,5 +25,5 @@ title: "Frontend Inventory Docs Hub"
 - [Frontend Main Docs Hub](../main/README.md)
 - [Frontend Preload Docs Hub](../preload/README.md)
 - [Frontend Renderer Docs Hub](../renderer/README.md)
-- [Local Runtime Sidecar Docs Hub](../sidecar/README.md)
+- [Local Runtime Python Implementation Docs Hub](../sidecar/README.md)
 - [Frontend Contracts Docs Hub](../contracts/README.md)

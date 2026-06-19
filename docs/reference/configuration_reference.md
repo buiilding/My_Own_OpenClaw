@@ -18,7 +18,7 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 | Backend `AppConfig` | model/provider defaults, API-key env names, inference routing, tool policy, install auth, artifact limits | [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Configuration](../operations/configuration.md) |
 | Electron main | backend endpoint resolution, local desktop UI config file, local-runtime env, VM mode, windows/overlay policy | [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md) |
 | Renderer | user-facing settings subset and local UI state | [Renderer Config Sync Lifecycle](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md) |
-| Local-runtime implementation | local tool env flags, backend URL for remote clients, workers, browser runtime | [Local Runtime Sidecar Docs Hub](../frontend/sidecar/README.md) |
+| Local-runtime implementation | local tool env flags, backend URL for remote clients, workers, browser runtime | [Local Runtime Python Implementation Docs Hub](../frontend/sidecar/README.md) |
 | Release/CI | package targets, signing, notarization, bundled Python runtime | [Release Guide](../operations/release.md), [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md) |
 
 ## High-Touch Variables

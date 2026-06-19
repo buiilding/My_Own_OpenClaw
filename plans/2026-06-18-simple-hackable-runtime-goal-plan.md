@@ -275,16 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
-- 2026-06-19: completed a core/services/source-map local-runtime label slice by
-  routing first-read core, services, service-protocol, source-map, JSON-RPC,
-  lifecycle, and helper-runtime labels through Local-Runtime wording instead of
-  Sidecar or Local Runtime Sidecar public navigation names. Python sidecar code
-  scopes, wakeword service scripts, and sidecar tests remain as concrete
+- 2026-06-19: completed an implementation-hub/core/services/source-map
+  local-runtime label slice by routing first-read Python implementation hub,
+  core, services, service-protocol, source-map, JSON-RPC, lifecycle, and
+  helper-runtime labels through Local-Runtime wording instead of Sidecar or
+  Local Runtime Sidecar public navigation names. Python sidecar code scopes,
+  wakeword service scripts, and sidecar tests remain as concrete
   implementation evidence. Validation: focused modular boundary guard, docs
-  listing, exact stale core/services/source-map label scan, and diff checks. No
-  migration required; no process lifecycle behavior, JSON-RPC method, IPC
-  channel, wakeword framing, storage, credential, permission, hosted route,
-  provider policy, packaging, or local execution behavior changed.
+  listing, exact stale implementation-hub/core/services/source-map label scan,
+  and diff checks. No migration required; no process lifecycle behavior,
+  JSON-RPC method, IPC channel, wakeword framing, storage, credential,
+  permission, hosted route, provider policy, packaging, or local execution
+  behavior changed.
 - 2026-06-19: completed a system-state hub local-runtime label slice by routing
   first-read `get-system-state` and platform-adapter labels through
   Local-Runtime System-State wording instead of Sidecar System-State public

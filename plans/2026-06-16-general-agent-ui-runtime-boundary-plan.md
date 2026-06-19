@@ -120,10 +120,10 @@ Each completed slice should report:
 
 ## Progress Notes
 
-### 2026-06-19 Core Services Source-Map Local-Runtime Labels
+### 2026-06-19 Implementation Hub Core Services Source-Map Local-Runtime Labels
 
-- Finding: first-read docs and the local-runtime Python implementation core,
-  services, service-protocol, source-map, JSON-RPC, lifecycle, and helper
+- Finding: first-read docs and the local-runtime Python implementation hub,
+  core, services, service-protocol, source-map, JSON-RPC, lifecycle, and helper
   references still exposed Sidecar or Local Runtime Sidecar labels as public
   navigation names even though the reusable boundary is local-runtime process
   and helper behavior backed by Python sidecar implementation files.
@@ -131,7 +131,7 @@ Each completed slice should report:
   Python sidecar code scopes, wakeword service scripts, and sidecar tests as
   concrete implementation evidence.
 - Validation: focused modular-boundary guard, docs listing, exact stale
-  core/services/source-map label scan, and diff checks.
+  implementation-hub/core/services/source-map label scan, and diff checks.
 - Compatibility: no migration required. Docs and boundary tests changed only;
   process lifecycle behavior, JSON-RPC methods, IPC channels, wakeword framing,
   storage, credentials, permissions, hosted routes, provider policy, packaging,

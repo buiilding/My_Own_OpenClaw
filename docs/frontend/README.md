@@ -165,7 +165,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 ### Sidecar
 
-- [Sidecar Docs Hub](sidecar/README.md)
+- [Local Runtime Python Implementation Docs Hub](sidecar/README.md)
 - [Local-Runtime Core Docs Hub](sidecar/core/README.md)
 - [Local-Runtime Services Docs Hub](sidecar/services/README.md)
 - [Local-Runtime Source Maps Docs Hub](sidecar/source_maps/README.md)
