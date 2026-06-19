@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/permissions: normalize permission status reason, remediation, and
+  status-class detail presentation in `desktopPermissionPresentationRuntime`
+  so onboarding and browser settings no longer read raw status detail fields.
+  No migration required.
 - renderer/runtime: move onboarding external permission grant watch policy into
   `desktopPermissionGrantEffectsRuntime` so onboarding actions no longer read
   raw permission status `details`, `granted`, or `status` fields to decide

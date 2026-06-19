@@ -8,6 +8,7 @@ import PermissionStatusBadge from '../../../../permissions/components/Permission
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../../../../app/runtime/desktopPermissionGrantEffectsRuntime';
 import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
+import { getPermissionStatusDetailsPresentation } from '../../../../../app/runtime/desktopPermissionPresentationRuntime';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
 const browserSettingsSkin = desktopRuntimeSkin.settings.browser;
@@ -35,10 +36,7 @@ function BrowserSettingsTab() {
   ), [permissions]);
   const storedStatus = statusesByPermissionId[BROWSER_PERMISSION_ID] || null;
   const effectiveStatus = statusOverride || storedStatus;
-  const statusReason = typeof effectiveStatus?.reason === 'string' ? effectiveStatus.reason.trim() : '';
-  const remediation = typeof effectiveStatus?.details?.remediation === 'string'
-    ? effectiveStatus.details.remediation.trim()
-    : '';
+  const statusDetails = getPermissionStatusDetailsPresentation(effectiveStatus);
 
   useEffect(() => {
     if (!bootstrapped && !isLoading) {
@@ -94,16 +92,16 @@ function BrowserSettingsTab() {
             />
           </div>
           <p>{browserSettingsSkin.description}</p>
-          {statusReason ? (
-            <p className="clone-settings-browser-status">{statusReason}</p>
+          {statusDetails.reason ? (
+            <p className="clone-settings-browser-status">{statusDetails.reason}</p>
           ) : null}
-          {remediation ? (
-            <p className="clone-settings-inline-warning">{remediation}</p>
+          {statusDetails.remediation ? (
+            <p className="clone-settings-inline-warning">{statusDetails.remediation}</p>
           ) : null}
           {openBrowserError ? (
             <p className="clone-settings-action-status clone-settings-action-status-error">{openBrowserError}</p>
           ) : null}
-          {!statusReason && !openBrowserError && error ? (
+          {!statusDetails.reason && !openBrowserError && error ? (
             <p className="clone-settings-action-status clone-settings-action-status-error">{error}</p>
           ) : null}
         </div>

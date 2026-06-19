@@ -293,8 +293,10 @@ or raw permission status-field checks under the permissions feature.
 `desktopPermissionPresentationRuntime.js` owns renderer permission status and
 presentation mapping shared by onboarding and settings: access-kind labels,
 granted labels, action-label defaults, granted-status normalization, and badge
-pill label/class projection. Permission surfaces import this app-runtime facade
-instead of reaching into another feature's utility folder.
+pill label/class projection. It also normalizes permission status detail
+presentation such as reason text, status class names, and remediation text.
+Permission surfaces import this app-runtime facade instead of reaching into
+another feature's utility folder or reading raw status detail fields directly.
 
 `desktopOnboardingSlideRuntime.js` owns the pure renderer onboarding slide-state
 rules: permission-slide counts, active slide clamping, permission-vs-stop-slide

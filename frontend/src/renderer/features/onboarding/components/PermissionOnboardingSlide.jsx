@@ -7,6 +7,7 @@ import {
   getPermissionActionLabel,
   getPermissionGrantedLabel,
   getPermissionKindLabel,
+  getPermissionStatusDetailsPresentation,
   isPermissionGrantedStatus,
 } from '../../../app/runtime/desktopPermissionPresentationRuntime';
 
@@ -31,7 +32,7 @@ function PermissionOnboardingSlide({
     );
   }
 
-  const statusReason = typeof status?.reason === 'string' ? status.reason.trim() : '';
+  const statusDetails = getPermissionStatusDetailsPresentation(status);
   const isGranted = isPermissionGrantedStatus(status);
   const isPending = pendingPermissionId === activePermission.permission_id;
   const isWaiting = waitingPermissionId === activePermission.permission_id;
@@ -56,9 +57,9 @@ function PermissionOnboardingSlide({
               {getPermissionKindLabel(activePermission)}
             </p>
             <p>{activePermission.description}</p>
-            {statusReason ? (
-              <p className={`desktop-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
-                {statusReason}
+            {statusDetails.reason ? (
+              <p className={`desktop-onboarding-permission-reason ${statusDetails.statusClassName}`}>
+                {statusDetails.reason}
               </p>
             ) : null}
           </div>

@@ -42,6 +42,21 @@ export function isPermissionGrantedStatus(status) {
   return status?.granted === true || status?.status === 'granted';
 }
 
+function normalizeText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+export function getPermissionStatusDetailsPresentation(status) {
+  const reason = normalizeText(status?.reason);
+  const statusClassName = `status-${normalizeText(status?.status) || 'unknown'}`;
+  const remediation = normalizeText(status?.details?.remediation);
+  return {
+    reason,
+    statusClassName,
+    remediation,
+  };
+}
+
 export function getPermissionPill(status, permission) {
   if (status === 'granted') {
     return { label: getPermissionGrantedLabel(permission), className: 'granted' };

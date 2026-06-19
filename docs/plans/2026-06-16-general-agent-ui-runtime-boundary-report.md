@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Permission Status Detail Presentation Boundary
+
+- Finding: `desktopPermissionPresentationRuntime` owned shared permission
+  labels, granted-state checks, and badge pill projection, but onboarding and
+  browser settings still read raw status `reason`, `status`, and
+  `details.remediation` fields to render detail text and CSS classes.
+- Change: added permission status detail presentation normalization to the
+  permission presentation runtime. Onboarding and browser settings now consume
+  normalized reason, status-class, and remediation values.
+- Validation: passed focused permission presentation runtime, onboarding
+  slideshow, settings section, renderer app boundary, renderer settings
+  boundary, and docs-index tests plus docs search, related commit search,
+  stale raw status-detail field scan, docs listing, and diff checks.
+- Compatibility: no migration required. Permission status payload shape, label
+  text, CSS class tokens, browser settings rendering, onboarding slide
+  rendering, storage, IPC, provider policy, hosted URLs, permissions, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission External Grant Watch Boundary
 
 - Finding: `desktopPermissionGrantEffectsRuntime` owned cross-surface

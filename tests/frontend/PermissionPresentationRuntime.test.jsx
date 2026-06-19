@@ -10,6 +10,7 @@ import {
   getPermissionGrantedLabel,
   getPermissionKindLabel,
   getPermissionPill,
+  getPermissionStatusDetailsPresentation,
   isPermissionGrantedStatus,
 } from '../../frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime';
 import PermissionStatusBadge from '../../frontend/src/renderer/features/permissions/components/PermissionStatusBadge';
@@ -47,6 +48,30 @@ describe('desktopPermissionPresentationRuntime', () => {
       .toEqual({ label: 'Unsupported', className: 'warning' });
     expect(getPermissionPill('unknown', { access_kind: 'runtime_check' }))
       .toEqual({ label: 'Not checked', className: '' });
+  });
+
+  test('normalizes permission status detail presentation', () => {
+    expect(getPermissionStatusDetailsPresentation({
+      status: 'needs-action',
+      reason: '  Open Settings to grant access.  ',
+      details: {
+        remediation: '  Restart the browser runtime.  ',
+      },
+    })).toEqual({
+      reason: 'Open Settings to grant access.',
+      statusClassName: 'status-needs-action',
+      remediation: 'Restart the browser runtime.',
+    });
+
+    expect(getPermissionStatusDetailsPresentation({
+      reason: '',
+      status: '',
+      details: { remediation: 123 },
+    })).toEqual({
+      reason: '',
+      statusClassName: 'status-unknown',
+      remediation: '',
+    });
   });
 
   test('PermissionStatusBadge renders the runtime pill contract', () => {

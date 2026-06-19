@@ -120,6 +120,7 @@ Permission request handling is split deliberately:
 
 - `usePermissionStore.requestPermission()` remains the shared IPC-backed request primitive
 - `useOnboardingPermissionActions()` owns onboarding-local request pending state
+- `getPermissionStatusDetailsPresentation(...)` in `desktopPermissionPresentationRuntime.js` owns status reason, class, and remediation presentation so onboarding slides do not parse raw status detail fields directly
 - `applyPermissionGrantEffects(...)` in `desktopPermissionGrantEffectsRuntime.js` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
 - `shouldWatchExternalPermissionGrantCompletion(...)` and `shouldPollPermissionGrantByInterval(...)` in `desktopPermissionGrantEffectsRuntime.js` own permission-specific follow-up probe policy for OS-settings grants, so onboarding actions do not read raw status `details`, `granted`, or `status` fields directly
 
@@ -147,9 +148,10 @@ Examples:
 2. Forgetting to recompute gate state after status or onboarding-state writes.
 3. Diverging onboarding and settings permission actions into separate stores.
 4. Changing storage key/shape without an explicit reset plan can reset completion state unexpectedly.
-5. Reintroducing permission-specific config side effects or raw status-field
-   watch decisions directly inside onboarding view components will make
-   permission behavior harder to reuse or test.
+5. Reintroducing permission-specific config side effects, raw status-field
+   watch decisions, or raw status-detail presentation parsing directly inside
+   onboarding view components will make permission behavior harder to reuse or
+   test.
 
 ## Related Pages
 

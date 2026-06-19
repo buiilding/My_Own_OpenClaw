@@ -803,13 +803,24 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/onboarding/hooks/useOnboardingPermissionActions.js'),
       'utf8',
     );
+    const browserSettingsSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/components/sections/settings/BrowserSettingsTab.jsx'),
+      'utf8',
+    );
 
     expect(presentationRuntimeSource).toContain('getPermissionPill');
     expect(presentationRuntimeSource).toContain('isPermissionGrantedStatus');
+    expect(presentationRuntimeSource).toContain('getPermissionStatusDetailsPresentation');
     expect(presentationRuntimeSource).not.toContain('features/permissions');
     expect(badgeSource).toContain('desktopPermissionPresentationRuntime');
     expect(onboardingSlideSource).toContain('desktopPermissionPresentationRuntime');
     expect(onboardingActionsSource).toContain('desktopPermissionPresentationRuntime');
+    expect(onboardingSlideSource).toContain('getPermissionStatusDetailsPresentation');
+    expect(browserSettingsSource).toContain('getPermissionStatusDetailsPresentation');
+    expect(onboardingSlideSource).not.toContain('status?.reason');
+    expect(onboardingSlideSource).not.toContain('status?.status');
+    expect(browserSettingsSource).not.toContain('effectiveStatus?.reason');
+    expect(browserSettingsSource).not.toContain('effectiveStatus?.details');
     expect(onboardingSlideSource).not.toContain('permissions/utils/permissionPresentation');
     expect(onboardingSlideSource).not.toContain('permissions/utils/permissionStatus');
     expect(onboardingActionsSource).not.toContain('permissions/utils/permissionStatus');

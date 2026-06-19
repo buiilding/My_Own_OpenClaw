@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission status detail presentation
+  boundary slice by adding reason/status-class/remediation normalization to
+  `desktopPermissionPresentationRuntime`. Onboarding permission slides and
+  browser settings now consume normalized detail presentation values instead
+  of reading raw status `reason`, `status`, or `details.remediation` fields.
+  Validation: passed focused permission presentation runtime, onboarding
+  slideshow, settings section, renderer app boundary, renderer settings
+  boundary, and docs-index tests plus docs search, related commit search,
+  stale raw status-detail field scan, docs listing, and diff checks. No migration
+  required; permission status payload shape, label text, CSS class tokens,
+  browser settings rendering, onboarding slide rendering, storage, IPC,
+  provider policy, hosted URLs, permissions, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer permission external grant watch boundary
   slice by moving external-grant watch eligibility and interval-polling policy
   into `desktopPermissionGrantEffectsRuntime`. `useOnboardingPermissionActions`

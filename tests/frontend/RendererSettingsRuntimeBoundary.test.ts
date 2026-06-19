@@ -132,6 +132,21 @@ describe('renderer settings runtime boundary', () => {
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.SET_ACTIVE_WORKSPACE');
   });
 
+  test('browser settings status detail presentation routes through permission runtime', async () => {
+    const source = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx',
+      ),
+      'utf8',
+    );
+
+    expect(source).toContain('getPermissionStatusDetailsPresentation');
+    expect(source).not.toContain('effectiveStatus?.reason');
+    expect(source).not.toContain('effectiveStatus?.details');
+    expect(source).not.toContain('details?.remediation');
+  });
+
   test('global stop shortcut settings and storage route through app runtime client', async () => {
     const generalSettingsSource = await fs.readFile(
       path.resolve(
