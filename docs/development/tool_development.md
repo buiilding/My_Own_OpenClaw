@@ -15,7 +15,8 @@ runtime contract, and the desktop local-runtime executor:
   client-local tools.
 - Backend validates client-provided manifests, applies policy/provider
   projection, owns backend remote tools, and owns request correlation.
-- The desktop host's Python sidecar executes local tools against the local machine.
+- The desktop local runtime executes local tools against the local machine
+  through the current Python sidecar implementation.
 
 This guide documents the current tool API and registration flow.
 
@@ -36,10 +37,11 @@ WindieOS tools.
 
 ### Desktop local runtime (execution)
 
-- Sidecar tool registry: `frontend/src/main/python/tools/registry.py`
-- Sidecar diagnostic schema export:
+- Local-runtime tool registry implementation:
+  `frontend/src/main/python/tools/registry.py`
+- Local-runtime diagnostic schema export implementation:
   `frontend/src/main/python/tools/manifest.py`
-- Sidecar extension tool loader:
+- Local-runtime extension tool loader implementation:
   `frontend/src/main/python/tools/extension_loader.py`
 - Client model-facing manifest builder:
   `frontend/src/main/extensions/tool_manifest.cjs`
@@ -51,7 +53,8 @@ WindieOS tools.
 
 Current runtime note:
 
-- the live backend and sidecar registries expose direct tool names only
+- the live backend and local-runtime implementation registries expose direct
+  tool names only
 - the SDK/Electron desktop host sends `agent_definition.tools.client_manifest`
   during websocket handshake so client-local tool schemas can be extended
   without editing backend schema code.
@@ -63,9 +66,9 @@ Current runtime note:
   `entrypoint: "python/file.py:function"` from `plugin.json`
 - local-runtime plugin and module entrypoints must return native
   `tools.result.ToolResult` values
-- ordinary extensions do not edit the built-in sidecar registry or executable
-  manifest modules
-- repo-local `model-facing/tool_schema.txt` still documents unified `computer_use` and `system_use` envelopes, but those wrapper names are not current backend or sidecar registry entries
+- ordinary extensions do not edit the built-in local-runtime implementation
+  registry or executable manifest modules
+- repo-local `model-facing/tool_schema.txt` still documents unified `computer_use` and `system_use` envelopes, but those wrapper names are not current backend or local-runtime registry entries
 
 ## Current SDK Pattern
 
@@ -154,7 +157,7 @@ class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
 
 ### 4. Implement local execution handler
 
-For a built-in tool, create sidecar implementation in
+For a built-in tool, create the local-runtime Python sidecar implementation in
 `frontend/src/main/python/tools/...`.
 
 ```python
@@ -178,7 +181,7 @@ async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
         }
 ```
 
-### 5. Register built-in sidecar handler + exposure
+### 5. Register built-in local-runtime handler + exposure
 
 For built-ins, update `frontend/src/main/python/tools/registry.py`:
 - Add the tool to `TOOL_CATALOG` (or the explicit `switch_window` / `get_open_windows` registration path when appropriate).
@@ -186,7 +189,8 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 
 For plugin tools, do not edit built-in registry files. Add `schema` and the
 Python `entrypoint` to `plugins/<id>/plugin.json`; Electron main
-forwards the schema manifest and the sidecar loads the executable entrypoint.
+forwards the schema manifest and the local runtime loads the executable
+entrypoint through the Python sidecar implementation.
 The entrypoint must return a native `tools.result.ToolResult`.
 The plugin package must include:
 
@@ -219,9 +223,10 @@ Then run full suites relevant to your change:
 <windie> test sidecar
 ```
 
-## Sidecar Result Contract
+## Local Runtime Result Contract
 
-Sidecar handlers should return dictionary payloads that can be converted to the canonical result shape.
+Local-runtime handlers should return dictionary payloads that can be converted
+to the canonical result shape.
 
 Success:
 
@@ -273,11 +278,11 @@ If you add backend-only tools, document the wiring point in the same PR.
 4. Confirm handler is registered in sidecar `ToolRegistry`.
 5. Run remote contract or extension manifest tests for the changed path.
 
-### Tool executes but fails in sidecar
+### Tool executes but fails in local runtime
 
-1. Verify args model and sidecar arg parsing match.
+1. Verify args model and local-runtime argument parsing match.
 2. Return structured `success/error` payloads.
-3. Check sidecar stderr logs and `tests/sidecar` coverage.
+3. Check local-runtime sidecar stderr logs and `tests/sidecar` coverage.
 
 ---
 

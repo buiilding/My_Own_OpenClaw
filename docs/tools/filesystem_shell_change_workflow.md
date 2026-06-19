@@ -35,7 +35,7 @@ flowchart LR
 
 - Backend schema changes live under `backend/src/tools/filesystem`, `backend/src/tools/system`, `backend/src/tools/tool_catalog.py`, and backend policy/profile code. Do not make the sidecar import backend schemas for parity.
 - SDK/local dispatch lives under `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, and `packages/windie-sdk-js/src/tools`. It should preserve correlation, bundle semantics, formatted model content, screenshot/system-state inclusion rules, and result envelopes.
-- Sidecar runtime argument models live in `frontend/src/main/python/tools/schemas.py`. Sidecar executable implementations live in `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
+- Local-runtime executable argument models are currently backed by `frontend/src/main/python/tools/schemas.py`. Local-runtime executable implementations are currently backed by `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
 - `read_file` may read text, selected binary-safe formats, and paginated windows, but it must keep OCR/text extraction boundaries explicit. OCR belongs to screenshot/vision/OCR flows, not normal file reads.
 - `replace` must preserve the atomic edit contract: validate input first, read existing content, compute all matches/replacements, write through a temporary file, then `os.replace`. Failed matches must not partially mutate the target.
 - `run_shell_command` must keep output predictable for user display and model-facing `output`. Foreground execution returns captured stdout/stderr directly; long-running or high-volume output should use background sessions and `process`.
@@ -47,15 +47,15 @@ flowchart LR
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
 | Tool is missing from prompt or has the wrong argument schema | Backend tool schema/catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/filesystem/schemas.py`, `backend/src/tools/system/schemas.py` | [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md), backend schema tests |
-| Tool is visible but never reaches the sidecar | SDK conversation runtime/tool coordinator or local-runtime bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
+| Tool is visible but never reaches local-runtime execution | SDK conversation runtime/tool coordinator or local-runtime bridge | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs` | SDK conversation-runtime tests, bridge lifecycle/RPC tests |
 | `run_shell_command` uses the wrong sudo prompt behavior | Local-runtime shell implementation | `frontend/src/main/python/tools/system/shell_tool.py` | `tests/sidecar/test_shell_process_tool.py` |
 | Shell command runs in the wrong directory | Local-runtime shell path resolution plus selected workspace state | `frontend/src/main/python/tools/system/shell_tool.py` | workspace-context docs/tests and bridge payload tests |
 | Shell output is truncated, malformed, or missing metadata | Local-runtime shell formatter | `frontend/src/main/python/tools/system/shell_output_formatting.py`, `frontend/src/main/python/tools/system/shell_response_payloads.py` | `tests/sidecar/test_shell_output_formatting.py`, renderer message formatter tests |
 | Background session cannot be polled, written to, killed, or cleared | Local-runtime process tool/session registry | `frontend/src/main/python/tools/system/process_tool.py`, `frontend/src/main/python/tools/system/shell_process_registry.py` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py` |
 | `read_file` path resolution is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py`, `frontend/src/main/python/tools/filesystem/file_utils.py` | selected workspace docs/tests, `tests/sidecar/test_read_file_tool.py` |
 | `read_file` pagination, binary guard, PDF handling, or line truncation is wrong | Local-runtime filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py` | [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) |
-| `replace` fails to match or edits too broadly | Sidecar replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `tests/sidecar/test_replace_engine.py`, `tests/sidecar/test_replace_tool.py` |
-| `replace` writes partial content after an error | Sidecar replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
+| `replace` fails to match or edits too broadly | Local-runtime replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `tests/sidecar/test_replace_engine.py`, `tests/sidecar/test_replace_tool.py` |
+| `replace` writes partial content after an error | Local-runtime replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
 | Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `backend/src/api/handlers/tool_result.py` | SDK/main runtime and backend tool-result ingress docs/tests |
 | Backend receives a result but model history looks wrong | Backend result processing | `backend/src/agent/tools`, `backend/src/agent/tools/processing` | backend tool processing docs/tests |
 
@@ -69,7 +69,7 @@ flowchart LR
 
 2. Decide whether the model-facing contract changes.
    - If the tool name, description, argument schema, visibility, policy gate, provider projection, or prompt-facing guidance changes, start in backend tool schema and policy docs.
-   - If only local execution behavior changes while the model-facing contract stays stable, start in the sidecar implementation and update parity/behavior tests.
+   - If only local execution behavior changes while the model-facing contract stays stable, start in the local-runtime implementation and update parity/behavior tests.
 
 3. Trace the request through the Agent SDK runtime and Electron.
    - SDK conversation runtime: `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`.
@@ -79,7 +79,7 @@ flowchart LR
    - Tool execution runtime: `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`.
    - Argument mapper: `frontend/src/main/sidecar/local_runtime_tool_args.cjs`.
 
-4. Verify sidecar executable registration and schema.
+4. Verify local-runtime executable registration and schema.
    - Registry: `frontend/src/main/python/tools/registry.py`.
    - Exposed names: `frontend/src/main/python/tools/manifest.py`.
    - Executable args: `frontend/src/main/python/tools/schemas.py`.
@@ -107,7 +107,7 @@ flowchart LR
    - `process` actions should keep action-specific validation: `list`, `poll`, `log`, `write`, `send-keys`, `submit`, `paste`, `kill`, `clear`, `remove`.
 
 7. Preserve result shape.
-   - Sidecar tools should return `ToolResult` objects or normalized compatible payloads.
+   - Local-runtime tools should return `ToolResult` objects or normalized compatible payloads.
    - Electron bridge should return `{ success: true, data }` or `{ success: false, error }`.
    - SDK/main payload builders should preserve `output` and avoid leaking raw screenshot fields for non-computer tools.
    - Backend result ingress should still receive a correlation-aware `tool-result` or `tool-bundle-result` payload.
@@ -115,8 +115,8 @@ flowchart LR
 8. Update docs next to behavior.
    - Update this workflow when ownership or sequencing changes.
    - Update [Filesystem and Shell Tools](filesystem_shell.md) for user-facing behavior and high-level tool semantics.
-   - Update [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) for sidecar read/edit internals.
-   - Update [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) for sidecar shell/session internals.
+   - Update [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) for current Python sidecar read/edit internals.
+   - Update [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) for current Python sidecar shell/session internals.
    - Update [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) when the cross-runtime path changes.
    - Update [Tool Catalog Matrix](tool_catalog_matrix.md) and [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) when model-facing schema, policy, or visibility changes.
    - Update [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) if path authority, sudo behavior, workspace access, or local permission semantics change.
@@ -127,10 +127,10 @@ flowchart LR
 | --- | --- |
 | Backend filesystem/system schema, prompt visibility, or policy | `./scripts/python-in-env backend pytest tests/backend/test_tool_registry_schema.py tests/backend/test_tool_specs.py tests/backend/test_tool_policy.py tests/backend/test_system_use_schema_contract.py` |
 | Backend tool dispatch/result continuation | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_orchestrator.py tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_router.py tests/backend/test_tool_result_handler.py` |
-| Sidecar `read_file` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_read_file_tool.py` |
-| Sidecar `replace` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
-| Sidecar shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
-| Sidecar registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
+| Local-runtime `read_file` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_read_file_tool.py` |
+| Local-runtime `replace` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
+| Local-runtime shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
+| Local-runtime registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
 | Electron bridge argument shaping and local tool failures | `cd frontend && npm run test -- LocalRuntimeToolArgs LocalRuntimeBridge.lifecycle` |
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |

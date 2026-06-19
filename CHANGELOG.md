@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/development: route tool-development owner labels through local-runtime
+  registry, manifest, handler, and result-contract wording while keeping Python
+  sidecar implementation paths visible. No migration required.
 - docs/frontend: route the frontend architecture conversation-session policy
   owner to `app/runtime/desktopConversationSessionRuntime.ts` instead of the
   retired chat feature runtime path. No migration required.

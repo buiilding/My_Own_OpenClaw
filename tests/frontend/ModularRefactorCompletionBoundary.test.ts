@@ -647,6 +647,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar shell execution');
     expect(toolRoutingDocText).not.toContain('Sidecar shell runtime');
     expect(toolRoutingDocText).not.toContain('Sidecar filesystem reader');
+    expect(toolRoutingDocText).not.toContain('Sidecar tools:');
+    expect(toolRoutingDocText).not.toContain('Sidecar tool registry');
+    expect(toolRoutingDocText).not.toContain('Sidecar diagnostic schema export');
+    expect(toolRoutingDocText).not.toContain('Sidecar extension tool loader');
+    expect(toolRoutingDocText).not.toContain('Register built-in sidecar handler');
+    expect(toolRoutingDocText).not.toContain('Sidecar Result Contract');
+    expect(toolRoutingDocText).not.toContain('Tool executes but fails in sidecar');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

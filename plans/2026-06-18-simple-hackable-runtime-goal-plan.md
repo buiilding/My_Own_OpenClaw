@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a development tool-doc owner-label slice by routing
+  the contributing edit map, tool development runtime ownership list,
+  built-in handler registration heading, result-contract heading, and
+  filesystem/shell result-shape rule through local-runtime tool implementation
+  wording instead of sidecar-as-owner labels. Concrete Python sidecar paths and
+  sidecar stderr/test references remain visible as implementation evidence.
+  The modular tool/security docs guard now rejects the retired sidecar tools,
+  registry, manifest export, extension loader, handler registration, result
+  contract, and failure-heading phrases. Validation: focused modular docs
+  boundary test, docs listing, exact stale development/tool label scan, and
+  diff checks. No migration required; no code path, payload, storage, IPC,
+  settings, tool schema, credential, permission, hosted URL, provider-policy,
+  registry loading, plugin entrypoint, shell/filesystem, or local execution
+  behavior changed.
 - 2026-06-18: completed a security hub trust-boundary label slice by renaming
   the `Sidecar runtime` security area to `Local runtime implementation` while
   keeping the Python sidecar implementation and sidecar docs links visible as

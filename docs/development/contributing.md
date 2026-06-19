@@ -31,7 +31,7 @@ feat(frontend-dashboard): delete semantic memory entries
 
 - Backend: `backend/src/`
 - Frontend: `frontend/src/`
-- Sidecar tools: `frontend/src/main/python/`
+- Local-runtime tool implementations: `frontend/src/main/python/`
 - Docs: `docs/`
 
 ## Tests
