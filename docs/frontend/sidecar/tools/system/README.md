@@ -1,12 +1,12 @@
 ---
-summary: "Local Runtime Sidecar system-tools docs sub-hub for wait/window/stats runtime semantics, platform window-manager behavior, and system metrics collection contracts."
+summary: "Local-runtime system-tools docs sub-hub for wait/window/stats runtime semantics, platform window-manager behavior, and system metrics collection contracts backed by Python sidecar implementations."
 read_when:
   - When changing sidecar system tools (`wait`, `switch_window`, `get_open_windows`, `get_system_stats`, `open_app`).
   - When debugging platform-specific window switching behavior or host metrics collection failures.
-title: "Local Runtime Sidecar System Tools Docs Hub"
+title: "Local-Runtime System Tools Docs Hub"
 ---
 
-# Local Runtime Sidecar System Tools Docs Hub
+# Local-Runtime System Tools Docs Hub
 
 ## Deep Pages
 

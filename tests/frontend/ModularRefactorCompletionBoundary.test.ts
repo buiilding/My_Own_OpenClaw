@@ -788,11 +788,21 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
       read('docs/frontend/sidecar/python_sidecar_and_memory.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/browser/README.md'),
+      read('docs/frontend/sidecar/browser/contracts/README.md'),
+      read('docs/frontend/sidecar/browser/chrome/README.md'),
+      read('docs/frontend/sidecar/tools/README.md'),
+      read('docs/frontend/sidecar/tools/computer/README.md'),
+      read('docs/frontend/sidecar/tools/system/README.md'),
+      read('docs/frontend/sidecar/tools/filesystem/README.md'),
       read('docs/frontend/sidecar/tools/registry/README.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/operations/evidence_collection_runbook.md'),
       read('docs/security/credential_token_change_workflow.md'),
+      read('docs/tools/README.md'),
+      read('docs/tools/browser.md'),
+      read('docs/tools/computer.md'),
       read('docs/tools/filesystem_shell.md'),
       read('docs/tools/tool_execution_lifecycle.md'),
     ]);
@@ -802,6 +812,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
     expect(docText).toContain('Local-Runtime Registry and Result Contract');
     expect(docText).toContain('Local-Runtime Tool Registry Docs Hub');
+    expect(docText).toContain('Local-Runtime Tools Docs Hub');
+    expect(docText).toContain('Local-Runtime Computer Tools Docs Hub');
+    expect(docText).toContain('Local-Runtime System Tools Docs Hub');
+    expect(docText).toContain('Local-Runtime Browser Docs Hub');
+    expect(docText).toContain('Local-Runtime Browser Contracts Docs Hub');
+    expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
@@ -814,6 +830,24 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('missing in sidecar runtime');
     expect(docText).not.toContain('Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Exposed Schema');
+    expect(docText).not.toContain('Sidecar Tools Docs Hub');
+    expect(docText).not.toContain('Sidecar Computer Tools Docs Hub');
+    expect(docText).not.toContain('Sidecar System Tools Docs Hub');
+    expect(docText).not.toContain('Sidecar Browser Docs Hub');
+    expect(docText).not.toContain('Sidecar Browser Contracts Docs Hub');
+    expect(docText).not.toContain('Sidecar Browser Chrome Docs Hub');
+    expect(docText).not.toContain('Sidecar Tool Catalog and Execution Model');
+    expect(docText).not.toContain('Sidecar Shell and Process Session Runtime Reference');
+    expect(docText).not.toContain('Sidecar Filesystem Read and Replace Runtime Reference');
+    expect(docText).not.toContain('Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference');
+    expect(docText).not.toContain('Sidecar Wait, Window, and Stats Runtime Reference');
+    expect(docText).not.toContain('Local Runtime Sidecar Tools Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Computer Tools Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar System Tools Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Filesystem Tools Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Browser Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Browser Contracts Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Browser Chrome Docs Hub');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');
     expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
   });

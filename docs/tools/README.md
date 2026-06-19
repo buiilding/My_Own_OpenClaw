@@ -73,7 +73,7 @@ Local-runtime executable tools are registered in `frontend/src/main/python/tools
 - [Browser Change Workflow](../browser/browser_change_workflow.md)
 - [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md)
 - [Backend Tools Docs Hub](../backend/tools/README.md)
-- [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+- [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 
 ## Evidence Notes
 

@@ -89,6 +89,6 @@ Browser Use CLI-backed actions:
 
 ## Related Pages
 
-- [Sidecar Browser Docs Hub](browser/README.md)
+- [Local-Runtime Browser Docs Hub](browser/README.md)
 - [Browser Automation Stack](browser_automation_stack.md)
 - [Browser Tool](../../tools/browser.md)

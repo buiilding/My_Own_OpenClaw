@@ -63,4 +63,4 @@ When moving sidecar modules:
 
 - [Local Runtime Sidecar Source Maps Docs Hub](README.md)
 - [Local Runtime Sidecar Docs Hub](../README.md)
-- [Local Runtime Sidecar Browser Docs Hub](../browser/README.md)
+- [Local-Runtime Browser Docs Hub](../browser/README.md)

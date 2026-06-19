@@ -120,6 +120,39 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Tool Family Hub Local-Runtime Labels
+
+- Finding: first-read docs and local-runtime Python implementation sub-hubs
+  still exposed Sidecar or Local Runtime Sidecar browser/tool-family hub labels
+  for reusable browser, computer, system, filesystem, shell, and tool-catalog
+  routes, even though the public boundary is local-runtime execution backed by
+  Python sidecar implementation files.
+- Change: renamed those visible hub and reference labels to Local-Runtime
+  browser/tool-family wording while preserving stable file paths, Python
+  sidecar code scopes, and sidecar tests as concrete implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  tool-family hub label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  tool names, schemas, manifests, registries, IPC channels, JSON-RPC methods,
+  runtime code, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Provider Transport Boundary Guard
+
+- Finding: settings boundary tests covered config/status provider IPC routing,
+  but the documented app-provider rule was broader: provider modules should not
+  import desktop IPC bridges, channel constants, or SDK command bridges
+  directly.
+- Change: added a renderer app-runtime boundary guard over all
+  `app/providers` modules so provider composition keeps transport access behind
+  app-runtime clients.
+- Validation: focused renderer app-runtime boundary test, direct provider
+  source scan for forbidden transport names, and diff checks.
+- Compatibility: no migration required. Tests changed only; runtime code,
+  payloads, IPC channels, storage, settings, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Backend-Wire Boundary Guard
 
 - Finding: the renderer chat boundary suite deleted the old renderer

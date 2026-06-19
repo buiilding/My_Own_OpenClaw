@@ -70,7 +70,7 @@ When changing this pipeline:
 
 - update [Tool Contracts](../tools/tool_contracts.md)
 - update [Tool Catalog Matrix](../tools/tool_catalog_matrix.md)
-- update [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+- update [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - update backend client-manifest validation tests when the accepted manifest shape changes
 - add manifest parsing, compatibility, malicious/malformed manifest, and fallback tests for compatibility changes
 - update [Security Change Playbook](../security/security_change_playbook.md) for trust-boundary changes

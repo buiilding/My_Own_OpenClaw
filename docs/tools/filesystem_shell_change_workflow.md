@@ -188,7 +188,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
 - [Tool Troubleshooting](tool_troubleshooting.md)
 - [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
-- [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+- [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md)

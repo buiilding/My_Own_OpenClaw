@@ -146,6 +146,6 @@ Where errors are normalized:
 
 ## Related Pages
 
-- [Sidecar Browser Docs Hub](browser/README.md)
+- [Local-Runtime Browser Docs Hub](browser/README.md)
 - [Browser Change Workflow](../../browser/browser_change_workflow.md)
-- [Sidecar Browser Chrome Docs Hub](browser/chrome/README.md)
+- [Local-Runtime Browser Chrome Docs Hub](browser/chrome/README.md)

@@ -120,5 +120,5 @@ Backend transport strips defaults/`None`; local runtime receives sparse payload 
 - [Backend Browser Schema Docs Hub](README.md)
 - [Browser Control Unified Schema Reference](browser_control_unified_schema_reference.md)
 - [Browser Remote Schema Surface Reference](../browser_remote_schema_surface_reference.md)
-- [Local Runtime Sidecar Browser Docs Hub](../../../../frontend/sidecar/browser/README.md)
-- [Local Runtime Sidecar Browser Contracts Docs Hub](../../../../frontend/sidecar/browser/contracts/README.md)
+- [Local-Runtime Browser Docs Hub](../../../../frontend/sidecar/browser/README.md)
+- [Local-Runtime Browser Contracts Docs Hub](../../../../frontend/sidecar/browser/contracts/README.md)

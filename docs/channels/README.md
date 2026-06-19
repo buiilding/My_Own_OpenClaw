@@ -112,7 +112,7 @@ Read:
 
 - [Local Tool Channels](sidecar_and_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
-- [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+- [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 
 Likely code:
 

@@ -78,7 +78,7 @@ Read next:
 - [Local Runtime Sidecar Docs Hub](../frontend/sidecar/README.md)
 - [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md)
-- [Local Runtime Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+- [Local-Runtime Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - [Python Sidecar Runtime and Memory](../frontend/sidecar/python_sidecar_and_memory.md)
 - [Sidecar JSON-RPC Protocol Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 

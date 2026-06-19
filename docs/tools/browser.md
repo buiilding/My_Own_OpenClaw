@@ -54,6 +54,6 @@ module precedence.
 - [Dedicated Browser Runtime](../browser/dedicated_browser_runtime.md)
 - [Browser Action Surface](../browser/browser_action_surface.md)
 - [Browser Troubleshooting](../browser/browser_troubleshooting.md)
-- [Local Runtime Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
+- [Local-Runtime Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 - [Backend Browser Remote Schema Surface Reference](../backend/tools/browser/browser_remote_schema_surface_reference.md)
 - [Backend-Local Runtime Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)

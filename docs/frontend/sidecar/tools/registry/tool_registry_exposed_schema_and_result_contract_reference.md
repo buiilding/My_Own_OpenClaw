@@ -112,7 +112,7 @@ Operational consequence:
 
 Cross-doc references:
 
-- execution model overview: [Sidecar Tool Catalog and Execution Model](../../tool_catalog_and_execution_model.md)
+- execution model overview: [Local-Runtime Tool Catalog and Execution Model](../../tool_catalog_and_execution_model.md)
 - computer tool behavior: [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](../computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - shell/process behavior: [Shell and Process Session Runtime Reference](../shell_and_process_session_runtime_reference.md)
 - filesystem behavior: [Filesystem Read and Replace Runtime Reference](../filesystem_read_replace_runtime_reference.md)

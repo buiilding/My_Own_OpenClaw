@@ -197,7 +197,7 @@ Patch chunk mode:
 
 ## Related Pages
 
-- [Local Runtime Sidecar Tools Docs Hub](README.md)
+- [Local-Runtime Tools Docs Hub](README.md)
 - [Filesystem Tools Docs Hub](filesystem/README.md)
 - [Read-File Window Pagination, Binary Guard, and Truncation Contract Reference](filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md)
 - [Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Reference](filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md)

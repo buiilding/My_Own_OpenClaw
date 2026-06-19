@@ -1,12 +1,12 @@
 ---
-summary: "Local Runtime Sidecar tools docs sub-hub for registry/exposure contracts plus computer, system, shell/process, and filesystem tool runtime semantics."
+summary: "Local-runtime tools docs sub-hub for registry/exposure contracts plus computer, system, shell/process, and filesystem tool runtime semantics backed by Python sidecar implementations."
 read_when:
   - When changing sidecar tool registration/exposure behavior or tool result normalization semantics.
   - When changing sidecar computer/system/filesystem/shell tool behavior or debugging runtime action failures.
-title: "Local Runtime Sidecar Tools Docs Hub"
+title: "Local-Runtime Tools Docs Hub"
 ---
 
-# Local Runtime Sidecar Tools Docs Hub
+# Local-Runtime Tools Docs Hub
 
 ## Deep Pages
 

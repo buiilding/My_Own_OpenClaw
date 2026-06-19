@@ -226,6 +226,31 @@ describe('renderer app runtime boundary', () => {
     expect(hookClientSource).toContain('infrastructure/hooks/useLatestRef');
   });
 
+  test('app provider code routes desktop transport through runtime clients', async () => {
+    const files = await listSourceFiles(path.join(appRoot, 'providers'));
+    const offenders: string[] = [];
+    const forbiddenTransportNeedles = [
+      'infrastructure/ipc',
+      'IpcBridge',
+      'INVOKE_CHANNELS',
+      'ON_CHANNELS',
+      'SEND_CHANNELS',
+      'window.ipc',
+      'window.agentSdk',
+      'invokeAgentSdkCommand',
+    ];
+
+    for (const file of files) {
+      const relativePath = normalizeRelativePath(path.relative(appRoot, file));
+      const source = await fs.readFile(file, 'utf8');
+      if (forbiddenTransportNeedles.some((needle) => source.includes(needle))) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('app provider code uses runtime facades for transcript session helpers', async () => {
     const files = await listSourceFiles(appRoot);
     const offenders: string[] = [];

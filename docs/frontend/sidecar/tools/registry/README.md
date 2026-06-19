@@ -14,8 +14,8 @@ title: "Local-Runtime Tool Registry Docs Hub"
 
 ## Related Pages
 
-- [Sidecar Tool Catalog and Execution Model](../../tool_catalog_and_execution_model.md)
-- [Local Runtime Sidecar Tools Docs Hub](../README.md)
+- [Local-Runtime Tool Catalog and Execution Model](../../tool_catalog_and_execution_model.md)
+- [Local-Runtime Tools Docs Hub](../README.md)
 
 ## Code Scope
 

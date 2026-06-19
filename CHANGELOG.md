@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route browser, computer, system, filesystem, and shell tool hub
+  labels through local-runtime wording instead of Sidecar or Local Runtime
+  Sidecar public navigation names while keeping Python sidecar implementation
+  paths explicit. No migration required.
+- tests/frontend: guard all renderer app-provider modules from importing
+  desktop IPC bridges, channel constants, or SDK command bridges directly so
+  provider code keeps transport access behind app-runtime clients. No migration
+  required.
 - tests/frontend: broaden the renderer backend-wire boundary guard so
   app/feature modules cannot import backend event contracts, backend-event
   normalizers, unwrap helpers, or legacy `from-backend` channels directly. No

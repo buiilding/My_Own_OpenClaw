@@ -275,6 +275,24 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a tool-family hub local-runtime label slice by routing
+  first-read browser, computer, system, filesystem, shell, and tool-catalog
+  labels through Local-Runtime wording instead of Sidecar or Local Runtime
+  Sidecar public navigation names. Python sidecar file paths, code scopes, and
+  sidecar tests remain as concrete implementation evidence. Validation: focused
+  modular boundary guard, docs listing, exact stale tool-family hub label scan,
+  and diff checks. No migration required; no tool name, schema, manifest,
+  registry code, IPC channel, JSON-RPC method, storage, credential, permission,
+  hosted route, provider policy, packaging, or local execution behavior changed.
+- 2026-06-19: tightened the renderer app-provider transport boundary by adding
+  a guard over all `app/providers` modules so providers cannot import desktop
+  IPC bridges, channel constants, `window.ipc`, `window.agentSdk`, or SDK
+  command bridge helpers directly. Provider composition must keep transport
+  access behind app-runtime clients. Validation: focused renderer app-runtime
+  boundary test, direct provider source scan, and diff checks. No migration
+  required; no runtime code, payload, IPC channel, storage, settings,
+  credential, permission, hosted route, provider policy, packaging, or local
+  execution behavior changed.
 - 2026-06-19: tightened the renderer backend-wire import boundary by broadening
   the renderer app/feature guard from the deleted `types/backendEvents` module
   and one subscription shape to backend-event contracts, normalizers, unwrap

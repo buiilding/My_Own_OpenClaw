@@ -18,7 +18,7 @@ title: "Backend Browser Tools Docs Hub"
 ## Related Pages
 
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
-- [Local Runtime Sidecar Browser Docs Hub](../../../frontend/sidecar/browser/README.md)
+- [Local-Runtime Browser Docs Hub](../../../frontend/sidecar/browser/README.md)
 
 ## Code Scope
 
