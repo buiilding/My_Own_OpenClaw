@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 SDK Runtime Transport Factory Boundary
+
+- Finding: `AgentRuntimeTransport` was already the canonical conversation
+  runtime transport type, but the SDK's primary factory and internal
+  `Agent.conversation(...)` path still used the backend-named
+  `createAgentBackendTransport` helper.
+- Change: added `createAgentRuntimeTransport` as the primary factory, routed
+  SDK internals and focused tests through it, and kept
+  `createAgentBackendTransport` as a compatibility alias for existing SDK
+  callers.
+- Validation: focused SDK package/client tests, docs listing, checked-in CJS
+  syntax checks, active-runtime stale factory scan, and diff checks.
+- Compatibility: no migration required. The compatibility export remains;
+  websocket payloads, hosted backend URLs, AgentSession framing, conversation
+  transport behavior, storage, credentials, provider policy, local-runtime
+  execution, and renderer IPC are unchanged.
+
 ### 2026-06-19 Renderer Dashboard MCP Registry Runtime Boundary
 
 - Finding: `McpsSection` still normalized Electron-main MCP registry payload
