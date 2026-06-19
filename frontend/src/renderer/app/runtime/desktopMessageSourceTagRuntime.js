@@ -73,3 +73,16 @@ export function resolveMessageSourceBadgePresentation(message) {
     title: `source_event=${sourceEventType}`,
   };
 }
+
+export function resolveThinkingSourceBadgePresentation(sourceEventType) {
+  const resolvedSourceEventType = typeof sourceEventType === 'string' && sourceEventType.trim()
+    ? sourceEventType.trim()
+    : 'llm-thought';
+  return {
+    badgeText: resolveSourceTag(
+      resolvedSourceEventType,
+      SDK_CONVERSATION_EVENT_SOURCE_CHANNEL,
+    ),
+    title: `source_event=${resolvedSourceEventType}`,
+  };
+}

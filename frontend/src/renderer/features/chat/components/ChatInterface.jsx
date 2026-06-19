@@ -46,9 +46,6 @@ import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
 } from '../../../app/runtime/desktopThreadPresentationRuntime';
-import {
-  buildCurrentTurnMessagesFromProjection,
-} from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { buildThreadFindState } from '../../../app/runtime/desktopThreadFindRuntime';
 import '../../../styles/ChatInterface.css';
 
@@ -217,17 +214,12 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     canStop,
     speechModeEnabled,
   } = chatSurface;
-  const currentTurnMessages = useMemo(
-    () => buildCurrentTurnMessagesFromProjection(currentTurnProjection),
-    [currentTurnProjection],
-  );
   const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
     showToolLogs,
     isBusy: composerBusy,
-    currentTurnMessages,
     currentTurnProjection,
     activeConversationRef: sessionInfo.conversationRef || null,
-  }), [composerBusy, currentTurnMessages, currentTurnProjection, messages, sessionInfo.conversationRef, showToolLogs]);
+  }), [composerBusy, currentTurnProjection, messages, sessionInfo.conversationRef, showToolLogs]);
   const activeConversationRef = sessionInfo.conversationRef || null;
   const isLoadingSelectedConversation = (
     typeof loadingConversationRef === 'string'

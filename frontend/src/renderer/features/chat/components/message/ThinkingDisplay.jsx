@@ -5,8 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../../../app/runtime/desktopDevUiRuntime';
-import { resolveSourceTag } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
-import { SDK_CONVERSATION_EVENT_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
+import { resolveThinkingSourceBadgePresentation } from '../../../../app/runtime/desktopMessageSourceTagRuntime';
 import '../../../../styles/ThinkingDisplay.css';
 
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
@@ -61,8 +60,8 @@ function ThinkingDisplay({ status, sourceEventType = null }) {
     return null;
   }
 
-  const sourceTag = isDevUiEnabled()
-    ? resolveSourceTag(sourceEventType || 'llm-thought', SDK_CONVERSATION_EVENT_SOURCE_CHANNEL)
+  const sourceBadgePresentation = isDevUiEnabled()
+    ? resolveThinkingSourceBadgePresentation(sourceEventType)
     : null;
 
   return (
@@ -74,9 +73,9 @@ function ThinkingDisplay({ status, sourceEventType = null }) {
       ref={containerRef}
       onScroll={handleScroll}
     >
-      {sourceTag ? (
-        <div className="thinking-source-badge" title={`source_event=${sourceEventType || 'llm-thought'}`}>
-          {sourceTag}
+      {sourceBadgePresentation ? (
+        <div className="thinking-source-badge" title={sourceBadgePresentation.title}>
+          {sourceBadgePresentation.badgeText}
         </div>
       ) : null}
       <pre className="thinking-display-text">{normalizedStatus}</pre>

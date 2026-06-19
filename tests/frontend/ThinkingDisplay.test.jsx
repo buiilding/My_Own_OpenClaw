@@ -6,8 +6,18 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import ThinkingDisplay from '../../frontend/src/renderer/features/chat/components/message/ThinkingDisplay';
+import { isDevUiEnabled } from '../../frontend/src/renderer/app/runtime/desktopDevUiRuntime';
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopDevUiRuntime', () => ({
+  isDevUiEnabled: jest.fn(),
+}));
 
 describe('ThinkingDisplay', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    isDevUiEnabled.mockReturnValue(false);
+  });
+
   test('renders nothing for empty status', () => {
     const { container } = render(<ThinkingDisplay status={null} />);
     expect(container.firstChild).toBeNull();
@@ -45,6 +55,17 @@ describe('ThinkingDisplay', () => {
     await waitFor(() => {
       expect(streamEl.classList.contains('has-overflow-above')).toBe(true);
     });
+  });
+
+  test('renders runtime-provided thinking source badge when dev ui is enabled', async () => {
+    isDevUiEnabled.mockReturnValue(true);
+
+    render(<ThinkingDisplay status="step 1" sourceEventType="assistant_delta" />);
+
+    expect(await screen.findByText('assistant_delta event / sdk:conversation-event')).toHaveAttribute(
+      'title',
+      'source_event=assistant_delta',
+    );
   });
 });
 

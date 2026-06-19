@@ -275,6 +275,34 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer thread-presentation current-turn fallback
+  boundary slice by moving legacy SDK current-turn projection row derivation
+  into `desktopThreadPresentationRuntime`. `ChatInterface` now passes durable
+  rows, `currentTurnProjection`, and conversation context to the thread
+  presentation facade without importing `desktopCurrentTurnMessageRuntime`,
+  while the runtime still prefers SDK presentation entries before falling back
+  to legacy projection fields. Validation: focused message-presentation,
+  app-runtime boundary, and renderer chat runtime boundary tests plus docs
+  search, related commit search, stale feature import scans, and diff checks.
+  No migration required; SDK current-turn projection shape, SDK presentation
+  entries, durable transcript rows, insertion/dedupe rules, message row shape,
+  IPC, storage, settings, credentials, permissions, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
+- 2026-06-19: completed a renderer thinking source-badge presentation boundary
+  slice by moving `ThinkingDisplay` dev-only source badge text/title and SDK
+  conversation-event channel formatting into `desktopMessageSourceTagRuntime`
+  as `resolveThinkingSourceBadgePresentation(...)`. The component keeps status
+  normalization, scroll affordance state, dev-UI gating, and JSX rendering while
+  the app runtime owns source label/title formatting. Validation: focused
+  thinking display, source tag runtime, renderer chat runtime boundary, and
+  docs-index tests plus thinking/source-badge docs search, related commit
+  search, stale direct source-label scans, docs listing, and diff checks. No
+  migration required; thinking text rendering, scroll thresholds, dev-UI query
+  gating, source labels, SDK conversation events, IPC, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: completed a renderer chat stream sub-handler event-predicate
   boundary slice by routing local-user, completion, metadata, and compaction
   handler fail-fast guards through `desktopChatStreamEventRuntime` predicates.

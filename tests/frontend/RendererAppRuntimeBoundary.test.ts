@@ -279,9 +279,9 @@ describe('renderer app runtime boundary', () => {
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-output'");
     expect(overlayViewModelSource).not.toContain("entry.type === 'search-source'");
     expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
-    expect(chatInterfaceSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(chatInterfaceSource).toContain('desktopCurrentTurnPresentationRuntime');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
+    expect(chatInterfaceSource).not.toContain('desktopCurrentTurnMessageRuntime');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/chatBoxResponseState.js'),
     )).rejects.toThrow();

@@ -120,6 +120,43 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Thread Presentation Current-Turn Fallback Boundary
+
+- Finding: `desktopThreadPresentationRuntime` already owned durable-thread/live
+  row composition and SDK presentation-entry precedence, but
+  `ChatInterface` still imported `desktopCurrentTurnMessageRuntime` to build
+  fallback SDK current-turn rows before calling the thread presentation facade.
+- Change: moved the legacy current-turn projection fallback into
+  `desktopThreadPresentationRuntime`, preserving presentation-entry precedence
+  while leaving `ChatInterface` to pass only durable messages,
+  `currentTurnProjection`, and conversation context.
+- Validation: focused message-presentation, app-runtime boundary, and renderer
+  chat runtime boundary tests plus docs search, related commit search, stale
+  feature import scans, and diff checks.
+- Compatibility: no migration required. SDK current-turn projection shape, SDK
+  presentation entries, durable transcript rows, insertion/dedupe rules,
+  message row shape, IPC, storage, settings, credentials, permissions,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Thinking Source Badge Presentation Boundary
+
+- Finding: `ThinkingDisplay` used app-runtime source labels, but still assembled
+  the dev-only thinking source badge text/title and SDK conversation-event
+  channel locally.
+- Change: added `resolveThinkingSourceBadgePresentation(...)` to
+  `desktopMessageSourceTagRuntime` and routed `ThinkingDisplay` through that
+  presentation model. The component now keeps status normalization, scroll
+  affordance state, dev-UI gating, and JSX rendering while the app runtime owns
+  thinking source label/title formatting.
+- Validation: focused thinking display, source tag runtime, renderer chat
+  runtime boundary, and docs-index tests plus thinking/source-badge docs search,
+  related commit search, stale direct source-label scans, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Thinking text rendering, scroll
+  thresholds, dev-UI query gating, source labels, SDK conversation events, IPC,
+  storage, settings, credentials, permissions, provider policy, hosted URLs,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Sub-Handler Event Predicate Boundary
 
 - Finding: `desktopChatStreamEventRuntime` owned SDK conversation event

@@ -18,6 +18,7 @@ title: "Thinking Display Overflow, Message Content/Class Assembly, and Stream To
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
@@ -41,6 +42,14 @@ Overflow behavior:
 - while user stays near bottom, new thinking chunks auto-scroll
 - when user scrolls away, component preserves manual position
 - top overflow indicator class toggles when `scrollTop > 2`
+
+Dev source badge:
+
+- `ThinkingDisplay` checks the dev-UI gate, then renders
+  `desktopMessageSourceTagRuntime.resolveThinkingSourceBadgePresentation(sourceEventType)`
+  output when enabled.
+- `desktopMessageSourceTagRuntime` owns the `llm-thought` fallback, source
+  label, SDK conversation-event channel label, and source badge title string.
 
 ## Message List Ordering and Auto-Scroll Contract
 
@@ -122,6 +131,7 @@ Important:
   - empty status hidden
   - non-empty status visible
   - overflow-above class toggles correctly
+  - dev source badge renders the runtime-provided text/title
 - `MessageListThinkingDisplay.test.jsx`:
   - confirms thinking + end-anchor ordering
 - `MessageListScrollBehavior.test.jsx`:

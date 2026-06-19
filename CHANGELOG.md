@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: derive legacy SDK current-turn fallback rows inside
+  `desktopThreadPresentationRuntime` so `ChatInterface` renders final thread
+  presentation rows without importing the lower current-turn row builder. No
+  migration required.
+- renderer/runtime: move dev thinking-source badge text/title assembly into
+  `desktopMessageSourceTagRuntime` so `ThinkingDisplay` renders a runtime
+  presentation model instead of formatting SDK source labels directly. No
+  migration required.
 - renderer/runtime: route chat stream sub-handler event guards through
   `desktopChatStreamEventRuntime` predicates so local-user, completion,
   metadata, and compaction handlers no longer duplicate raw SDK event-type

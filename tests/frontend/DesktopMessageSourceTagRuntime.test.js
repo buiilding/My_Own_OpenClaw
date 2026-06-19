@@ -5,6 +5,7 @@
 import {
   resolveMessageSourceBadgePresentation,
   resolveSourceTag,
+  resolveThinkingSourceBadgePresentation,
 } from '../../frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime';
 
 describe('desktopMessageSourceTagRuntime', () => {
@@ -42,6 +43,17 @@ describe('desktopMessageSourceTagRuntime', () => {
     })).toEqual({
       badgeText: 'tool output / sdk-local-runtime / tokens~ 1',
       title: 'source_event=tool-output',
+    });
+  });
+
+  test('builds thinking source badge presentation from SDK conversation-event labels', () => {
+    expect(resolveThinkingSourceBadgePresentation('assistant_delta')).toEqual({
+      badgeText: 'assistant_delta event / sdk:conversation-event',
+      title: 'source_event=assistant_delta',
+    });
+    expect(resolveThinkingSourceBadgePresentation('  ')).toEqual({
+      badgeText: 'thinking token / sdk:conversation-event',
+      title: 'source_event=llm-thought',
     });
   });
 });

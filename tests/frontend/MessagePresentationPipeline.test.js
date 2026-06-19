@@ -149,6 +149,74 @@ describe('desktopThreadPresentationRuntime', () => {
     ]);
   });
 
+  test('buildThreadPresentationMessages derives legacy current-turn rows from the projection', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'Projected answer',
+      reasoningText: 'Thinking about files.',
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        text: 'Projected answer',
+        thinkingText: 'Thinking about files.',
+        sourceChannel: 'sdk:current-turn',
+      }),
+    ]);
+  });
+
+  test('buildThreadPresentationMessages prefers SDK presentation entries over legacy projection rows', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'Legacy answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+      presentation: {
+        entries: [{
+          id: 'conv-1:turn-1:assistant:presentation',
+          type: 'llm-text',
+          text: 'Presentation answer',
+          sourceEventType: 'assistant_delta',
+          sourceChannel: 'sdk:current-turn',
+          turnRef: 'turn-1',
+        }],
+      },
+    };
+
+    expect(buildThreadPresentationMessages(messages, {
+      currentTurnProjection,
+      activeConversationRef: 'conv-1',
+    })).toEqual([
+      messages[0],
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant:presentation',
+        text: 'Presentation answer',
+      }),
+    ]);
+  });
+
   test('buildThreadPresentationMessages uses SDK live-entry fields for tool identity', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace', turnRef: 'turn-1' },

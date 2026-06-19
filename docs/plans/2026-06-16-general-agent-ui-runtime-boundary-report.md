@@ -174,6 +174,42 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Thread Presentation Current-Turn Fallback Boundary
+
+- Finding: thread presentation already lived in
+  `desktopThreadPresentationRuntime`, but `ChatInterface` still built SDK
+  current-turn fallback rows directly through `desktopCurrentTurnMessageRuntime`
+  before asking the thread facade to merge visible rows.
+- Change: taught `desktopThreadPresentationRuntime` to derive legacy
+  projection rows when SDK presentation entries are absent, and removed the
+  direct `ChatInterface` import of the lower current-turn row builder.
+- Validation: focused message-presentation, app-runtime boundary, and renderer
+  chat runtime boundary tests plus docs search, related commit search, stale
+  feature import scans, and diff checks.
+- Compatibility: no migration required. SDK current-turn projection shape, SDK
+  presentation entries, durable transcript rows, insertion/dedupe rules,
+  message row shape, IPC, storage, settings, credentials, permissions,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Thinking Source Badge Presentation Boundary
+
+- Finding: `ThinkingDisplay` already routed source labels through
+  `desktopMessageSourceTagRuntime`, but the component still chose the
+  `llm-thought` fallback, SDK conversation-event channel, and source badge
+  title format locally.
+- Change: moved that dev-only thinking badge presentation into
+  `resolveThinkingSourceBadgePresentation(...)` in
+  `desktopMessageSourceTagRuntime`. The component now owns only status
+  normalization, scroll state, dev-UI gating, and JSX rendering.
+- Validation: focused thinking display, source tag runtime, renderer chat
+  runtime boundary, and docs-index tests plus thinking/source-badge docs search,
+  related commit search, stale direct source-label scans, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Thinking text rendering, scroll
+  thresholds, dev-UI query gating, source labels, SDK conversation events, IPC,
+  storage, settings, credentials, permissions, provider policy, hosted URLs,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Sub-Handler Event Predicate Boundary
 
 - Finding: stream dispatcher event identity was already centralized in

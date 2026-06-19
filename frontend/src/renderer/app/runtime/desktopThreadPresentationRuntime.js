@@ -2,7 +2,10 @@
  * Builds visible thread messages from durable rows plus SDK current-turn rows.
  */
 
-import { buildCurrentTurnMessagesFromPresentation } from './desktopCurrentTurnMessageRuntime';
+import {
+  buildCurrentTurnMessagesFromPresentation,
+  buildCurrentTurnMessagesFromProjection,
+} from './desktopCurrentTurnMessageRuntime';
 import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './desktopPresentationSourceChannels';
 
 function findLastUserIndex(messages) {
@@ -176,6 +179,10 @@ function resolveCurrentTurnMessages({
   const presentationMessages = buildCurrentTurnMessagesFromPresentation(currentTurnProjection);
   if (presentationMessages.length > 0) {
     return presentationMessages;
+  }
+  const projectedMessages = buildCurrentTurnMessagesFromProjection(currentTurnProjection);
+  if (projectedMessages.length > 0) {
+    return projectedMessages;
   }
   return Array.isArray(currentTurnMessages) ? currentTurnMessages : [];
 }
