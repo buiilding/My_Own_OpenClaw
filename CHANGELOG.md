@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move extension and MCP registry channel registration into
+  `ipc_extension_mcp_handlers.cjs` so `ipc.cjs` keeps Agent SDK host state while
+  a focused helper owns extension listing, MCP enablement persistence, and
+  post-toggle SDK MCP refresh wiring. No migration required.
 - renderer/permissions: move browser permission status-map lookup into
   `desktopPermissionPresentationRuntime` so `BrowserSettingsTab` no longer
   indexes raw `statusesByPermissionId` by permission id before rendering the

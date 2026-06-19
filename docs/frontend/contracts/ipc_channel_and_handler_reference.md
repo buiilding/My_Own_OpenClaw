@@ -94,9 +94,10 @@ Behavior:
 - `fetch-artifact-image` -> authenticated artifact image fetch
 - `copy-image-to-clipboard` -> trusted image clipboard copy
 - `show-image-context-menu` -> trusted image context menu actions
-- `list-agent-extensions` -> public extension metadata plus MCP registry snapshot
+- `list-agent-extensions` -> public extension metadata plus MCP registry
+  snapshot via `ipc_extension_mcp_handlers.cjs`
 - `list-mcp-servers` / `set-mcp-server-enabled` / `refresh-mcp-servers` ->
-  MCP registry and enablement controls
+  MCP registry and enablement controls via `ipc_extension_mcp_handlers.cjs`
 ## Phase-owned overlay channels (`overlay_phase_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-chatbox-visual-anchor-height` -> chat-pill anchor height updates for deterministic response overlay re-anchoring

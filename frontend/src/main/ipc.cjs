@@ -34,6 +34,9 @@ const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
+  registerExtensionMcpHandlers,
+} = require('./ipc/ipc_extension_mcp_handlers.cjs');
+const {
   clearInstallAuthStateFromDisk,
   loadInstallAuthStateFromDisk,
   registerInstallWithBackend,
@@ -1603,51 +1606,18 @@ function initializeIpc(win, options = {}) {
     setGlobalAgentStopShortcutAccelerator,
   });
 
-  ipcMain.handle('list-agent-extensions', async () => {
-    const registry = loadPublicExtensionRegistry();
-    const mcpRegistry = listMcpServersForConfig({ config: getDesktopUiConfigForMcpRegistry() });
-    return {
-      ...registry,
-      mcps: mcpRegistry.mcps,
-    };
+  registerExtensionMcpHandlers({
+    ipcMain,
+    loadPublicExtensionRegistry,
+    listMcpServersForConfig,
+    updateMcpServerEnablementForConfig,
+    getEnabledMcpServerSpecsForConfig,
+    refreshMcpServersForLatestConfig,
+    persistDesktopUiConfigToDisk,
+    getDesktopUiConfigForMcpRegistry,
+    ensureAgent,
+    mcpClientInfo: ipcHostCopy.identity.mcpClientInfo,
   });
-
-  ipcMain.handle('list-mcp-servers', async () => (
-    listMcpServersForConfig({ config: getDesktopUiConfigForMcpRegistry() })
-  ));
-
-  ipcMain.handle('set-mcp-server-enabled', async (_event, payload = {}) => {
-    const serverId = typeof payload?.id === 'string' ? payload.id.trim() : '';
-    if (!serverId) {
-      return {
-        success: false,
-        error: 'Missing MCP server id.',
-      };
-    }
-    const result = await updateMcpServerEnablementForConfig({
-      config: getDesktopUiConfigForMcpRegistry(),
-      serverId,
-      enabled: payload.enabled === true,
-      persistConfig: (nextConfig) => persistDesktopUiConfigToDisk(nextConfig, {
-        preserveMcpEnablement: false,
-      }),
-      resolveLocalRuntime: process.env.NODE_ENV === 'test'
-        ? null
-        : async () => (await ensureAgent({ reason: 'mcp-toggle' }))?.localRuntime || null,
-      clientInfo: ipcHostCopy.identity.mcpClientInfo,
-    });
-    if (result?.success === true && process.env.NODE_ENV !== 'test') {
-      const agent = await ensureAgent({ reason: 'mcp-manifest-refresh' });
-      const enabledSpecs = getEnabledMcpServerSpecsForConfig({ config: getDesktopUiConfigForMcpRegistry() });
-      await agent.registerMcps?.(enabledSpecs, { replace: true });
-      result.registry = await refreshMcpServersForLatestConfig('mcp-toggle-post-sdk-refresh');
-    }
-    return result;
-  });
-
-  ipcMain.handle('refresh-mcp-servers', async () => (
-    refreshMcpServersForLatestConfig('mcp-refresh')
-  ));
 
   ipcMain.handle('get-client-user-id', async () => {
     return {

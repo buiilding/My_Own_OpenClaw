@@ -123,8 +123,9 @@ That exposes `local_memory__search`.
 ## Runtime Flow
 
 1. Electron main reads `mcps/*/mcp.json`.
-2. Dashboard MCPs can list configured servers through Electron main IPC without
-   enabling or starting them.
+2. Dashboard MCPs can list configured servers through the Electron main
+   `ipc_extension_mcp_handlers.cjs` IPC helper without enabling or starting
+   them.
 3. Electron main filters `requires_user_enable` servers against the local
    `agent_enabled_mcp_servers` allowlist.
    WindieOS also supplies the startup-only `WINDIE_ENABLED_MCPS` allowlist env

@@ -174,6 +174,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Extension MCP IPC Handler Boundary
+
+- Finding: `ipc.cjs` already delegated many Electron main handler groups, but
+  extension metadata and MCP registry channels still kept their channel bodies,
+  server-id validation, config persistence callback, and post-toggle Agent SDK
+  MCP refresh wiring inline in the Agent SDK host root.
+- Change: added `ipc_extension_mcp_handlers.cjs` to own
+  `list-agent-extensions`, `list-mcp-servers`, `set-mcp-server-enabled`, and
+  `refresh-mcp-servers` handler registration. `ipc.cjs` now injects the
+  extension/MCP registry helpers plus shared SDK host state instead of owning
+  those channel bodies directly.
+- Validation: passed focused extension/MCP IPC handler, desktop MCP runtime
+  client, desktop extension runtime client, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale inline
+  handler scan, docs listing, and diff checks.
+- Compatibility: no migration required. IPC channel names, payload shapes,
+  desktop UI config key names, MCP allowlist persistence behavior, SDK MCP
+  registration refresh behavior, extension registry payloads, storage,
+  provider policy, hosted URLs, permissions, credentials, and local-runtime MCP
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Browser Permission Status Lookup Boundary
 
 - Finding: `desktopPermissionPresentationRuntime` owned permission manifest

@@ -33,6 +33,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
+- `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 
@@ -267,6 +268,21 @@ Removed preflight invoke path:
   a pending user turn in chat state and over `windie:pending-turn`; backend/SDK
   current-turn projection remains the authority for active response phases.
 
+### `ipc_extension_mcp_handlers.cjs`
+
+Owns extension and MCP IPC handler registration:
+
+- `list-agent-extensions`
+- `list-mcp-servers`
+- `set-mcp-server-enabled`
+- `refresh-mcp-servers`
+- extension listing combines public extension metadata with the current MCP
+  registry snapshot
+- MCP enablement persists through desktop UI config with MCP allowlist
+  preservation disabled for that explicit toggle path
+- successful runtime MCP toggles refresh Agent SDK MCP registration and then
+  rebuild the latest MCP registry outside tests
+
 ### `ipc_artifact_handlers.cjs`
 
 Owns artifact IPC handler registration:
@@ -313,7 +329,9 @@ generic `to-backend` router or direct chat query IPC handlers.
 14. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
 15. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.
-16. artifact upload/fetch handler registration delegates to
+16. extension and MCP registry handler registration delegates to
+   `ipc_extension_mcp_handlers.cjs`.
+17. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
 
 ## Drift Hotspots

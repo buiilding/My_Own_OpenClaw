@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved extension and MCP registry IPC channel registration into
+  `ipc_extension_mcp_handlers.cjs`. `ipc.cjs` now keeps Agent SDK host state
+  and injects extension/MCP registry helpers into a focused handler module
+  instead of owning `list-agent-extensions`, `list-mcp-servers`,
+  `set-mcp-server-enabled`, and `refresh-mcp-servers` channel bodies inline.
+  Validation passed focused extension/MCP IPC handler, desktop MCP runtime
+  client, desktop extension runtime client, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale inline
+  handler scan, docs listing, and diff checks. No migration required; IPC
+  channel names, payload shapes, desktop UI config key names, MCP allowlist
+  persistence behavior, SDK MCP registration refresh behavior, extension
+  registry payloads, storage, provider policy, hosted URLs, permissions,
+  credentials, and local-runtime MCP execution behavior are unchanged.
+
 - 2026-06-19: moved browser permission status-map lookup into
   `desktopPermissionPresentationRuntime`. `BrowserSettingsTab` now keeps row
   layout and browser-open actions while consuming a runtime-provided stored

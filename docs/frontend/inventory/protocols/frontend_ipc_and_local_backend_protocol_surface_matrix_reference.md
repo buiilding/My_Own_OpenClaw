@@ -74,10 +74,10 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `get-displays` | `main/surfaces/window_controls_ipc_runtime.cjs` | Return display inventory mapped as `{ id, label, isPrimary, bounds, scaleFactor }` |
 | `load-frontend-config` | `main/ipc.cjs` | Reads desktop UI config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists desktop UI config to disk |
-| `list-agent-extensions` | `main/ipc.cjs`; renderer via `DesktopExtensionRuntimeClient` | Returns public extension metadata plus MCP registry snapshot |
-| `list-mcp-servers` | `main/ipc.cjs`; renderer via `DesktopMcpRuntimeClient` | Lists configured MCP servers from desktop UI config |
-| `set-mcp-server-enabled` | `main/ipc.cjs`; renderer via `DesktopMcpRuntimeClient` | Persists MCP enablement and refreshes SDK MCP registration when running outside tests |
-| `refresh-mcp-servers` | `main/ipc.cjs`; renderer via `DesktopMcpRuntimeClient` | Rebuilds current MCP server registry from config |
+| `list-agent-extensions` | `main/ipc/ipc_extension_mcp_handlers.cjs`; renderer via `DesktopExtensionRuntimeClient` | Returns public extension metadata plus MCP registry snapshot |
+| `list-mcp-servers` | `main/ipc/ipc_extension_mcp_handlers.cjs`; renderer via `DesktopMcpRuntimeClient` | Lists configured MCP servers from desktop UI config |
+| `set-mcp-server-enabled` | `main/ipc/ipc_extension_mcp_handlers.cjs`; renderer via `DesktopMcpRuntimeClient` | Persists MCP enablement and refreshes SDK MCP registration when running outside tests |
+| `refresh-mcp-servers` | `main/ipc/ipc_extension_mcp_handlers.cjs`; renderer via `DesktopMcpRuntimeClient` | Rebuilds current MCP server registry from config |
 | `list-permissions` | `main/permissions/permission_ipc_runtime.cjs` | Returns permission manifest + status bundle |
 | `check-permissions` | `main/permissions/permission_ipc_runtime.cjs` | Batch permission probe result list |
 | `check-permission` | `main/permissions/permission_ipc_runtime.cjs` | Single permission probe shortcut |
