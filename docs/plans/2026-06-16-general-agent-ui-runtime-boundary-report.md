@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Conversation Replay Prepared-Turn Runtime Boundary
+
+- Finding: `useConversationReplayActions` still built replay preparation
+  payloads and prepared desktop chat turn objects directly, including
+  `screenshot_ref`, `screenshot_url`, `screenshot_refs`, and
+  `attachment_filenames` payload fields, while replay pairing was already owned
+  by `desktopConversationReplayRuntime`.
+- Change: moved replay preparation payload construction and prepared replay
+  desktop chat turn shaping into `desktopConversationReplayRuntime` as
+  `buildReplayPreparationPayload(...)` and
+  `buildPreparedReplayDesktopChatTurn(...)`. The replay hook keeps message
+  selection, conversation/session selection, continuity calls, and dispatch.
+- Validation: focused desktop conversation replay runtime, conversation replay
+  actions, and renderer chat runtime boundary tests plus stale snake-case
+  replay payload scans, docs search/history checks, and diff checks.
+- Compatibility: no migration required. Replay behavior, continuity rewrite
+  payloads, prepared send fields, IPC, storage, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Compaction Failure Error Payload Runtime Boundary
 
 - Finding: `useChatStreamCompactionHandlers` still read

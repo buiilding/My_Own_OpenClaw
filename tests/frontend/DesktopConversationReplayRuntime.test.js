@@ -3,7 +3,9 @@
  */
 
 import {
+  buildPreparedReplayDesktopChatTurn,
   buildReplayContextMessages,
+  buildReplayPreparationPayload,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
 
 describe('desktopConversationReplayRuntime', () => {
@@ -136,5 +138,68 @@ describe('desktopConversationReplayRuntime', () => {
       'm-3',
       'm-4',
     ]);
+  });
+
+  test('buildReplayPreparationPayload preserves only remote screenshot metadata', () => {
+    expect(buildReplayPreparationPayload({
+      screenshotRef: 'artifact-1',
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+    })).toEqual({
+      screenshot_ref: 'artifact-1',
+      screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+    });
+    expect(buildReplayPreparationPayload({
+      screenshotRef: null,
+      screenshotUrl: null,
+    })).toEqual({});
+  });
+
+  test('buildPreparedReplayDesktopChatTurn normalizes prepared replay payload fields', () => {
+    const preparedTurn = {
+      conversationRef: 'conv-prepared',
+      model: null,
+      payload: {
+        screenshot_ref: 'artifact-primary',
+        screenshot_refs: ['artifact-primary', 'artifact-secondary'],
+        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-primary',
+        attachment_filenames: [' one.png ', '', 'two.png'],
+      },
+      text: 'retry this',
+      turnRef: null,
+      workspacePath: null,
+    };
+
+    expect(buildPreparedReplayDesktopChatTurn({
+      preparedReplayTurn: preparedTurn,
+      conversationRef: 'conv-fallback',
+      deferredQueryModelSelection: { modelProvider: 'openai', modelId: 'gpt-5' },
+      screenshotRef: 'artifact-fallback',
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-fallback',
+      sessionInfo: { conversationRef: 'conv-prepared', userId: 'user-1' },
+      workspacePath: 'C:/workspace',
+      createTurnRef: () => 'turn-runtime',
+      timestamp: () => '2026-06-19T00:00:00.000Z',
+    })).toEqual({
+      attachmentFilenames: ['one.png', 'two.png'],
+      conversationRef: 'conv-prepared',
+      deferredQueryModelSelection: null,
+      metadata: null,
+      model: { modelProvider: 'openai', modelId: 'gpt-5' },
+      resources: [],
+      screenshotRef: 'artifact-primary',
+      screenshotRefs: ['artifact-primary', 'artifact-secondary'],
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-primary',
+      sendLifecycle: {
+        shouldCaptureQueryScreenshot: false,
+        shouldReturnToChatboxOnSend: false,
+        surfaceReason: 'replay',
+      },
+      sessionInfo: { conversationRef: 'conv-prepared', userId: 'user-1' },
+      text: 'retry this',
+      timestamp: '2026-06-19T00:00:00.000Z',
+      turnId: 'turn-runtime',
+      turnRef: 'turn-runtime',
+      workspacePath: 'C:/workspace',
+    });
   });
 });

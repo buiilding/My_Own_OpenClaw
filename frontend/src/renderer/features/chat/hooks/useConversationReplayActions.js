@@ -19,7 +19,11 @@ import {
   initializeLocalConversationSession,
   resolveRendererConversationSessionSnapshot,
 } from '../../../app/runtime/desktopConversationSessionRuntime';
-import { buildReplayContextMessages } from '../../../app/runtime/desktopConversationReplayRuntime';
+import {
+  buildPreparedReplayDesktopChatTurn,
+  buildReplayContextMessages,
+  buildReplayPreparationPayload,
+} from '../../../app/runtime/desktopConversationReplayRuntime';
 import { dispatchPreparedDesktopChatTurn } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 
 const chatSkin = desktopRuntimeSkin.chat;
@@ -44,77 +48,6 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
     });
   }
   return conversationRef;
-}
-
-function stringArrayPayloadField(payload, ...keys) {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-  for (const key of keys) {
-    const value = payload[key];
-    if (!Array.isArray(value)) {
-      continue;
-    }
-    const normalized = value
-      .filter((entry) => typeof entry === 'string' && entry.trim().length > 0)
-      .map((entry) => entry.trim());
-    if (normalized.length > 0) {
-      return normalized;
-    }
-  }
-  return null;
-}
-
-function buildReplayPayload({
-  screenshotRef,
-  screenshotUrl,
-}) {
-  const payload = {};
-  if (screenshotRef) {
-    payload.screenshot_ref = screenshotRef;
-  }
-  if (screenshotUrl) {
-    payload.screenshot_url = screenshotUrl;
-  }
-  return payload;
-}
-
-function buildPreparedReplayDesktopChatTurn({
-  preparedReplayTurn,
-  conversationRef,
-  deferredQueryModelSelection,
-  screenshotRef,
-  screenshotUrl,
-  sessionInfo,
-  workspacePath,
-}) {
-  const replayTurnRef = preparedReplayTurn.turnRef || crypto.randomUUID();
-  return {
-    attachmentFilenames: stringArrayPayloadField(
-      preparedReplayTurn.payload,
-      'attachment_filenames',
-      'attachmentFilenames',
-    ),
-    conversationRef: preparedReplayTurn.conversationRef || conversationRef,
-    deferredQueryModelSelection: null,
-    metadata: null,
-    model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
-    resources: [],
-    screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
-    screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,
-    screenshotUrl: preparedReplayTurn.payload?.screenshot_url ?? screenshotUrl ?? null,
-    sendLifecycle: {
-      shouldCaptureQueryScreenshot: false,
-      shouldReturnToChatboxOnSend: false,
-      surfaceReason: 'replay',
-    },
-    sessionInfo,
-    text: preparedReplayTurn.text,
-    timestamp: new Date().toISOString(),
-    turnId: replayTurnRef,
-    turnRef: replayTurnRef,
-    workspacePath: preparedReplayTurn.workspacePath ?? workspacePath ?? null,
-  };
 }
 
 async function executeReplayAction({
@@ -159,7 +92,7 @@ async function executeReplayAction({
       userId: sessionInfo.userId,
       messageId,
       text: queryText,
-      payload: buildReplayPayload({ screenshotRef, screenshotUrl }),
+      payload: buildReplayPreparationPayload({ screenshotRef, screenshotUrl }),
       model: deferredQueryModelSelection || null,
       workspacePath: workspaceBinding.workspacePath || null,
     };

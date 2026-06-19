@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer conversation replay prepared-turn runtime
+  slice by moving replay preparation payload construction and prepared replay
+  desktop chat turn shaping from `useConversationReplayActions` into
+  `desktopConversationReplayRuntime` as `buildReplayPreparationPayload(...)`
+  and `buildPreparedReplayDesktopChatTurn(...)`. The replay hook now selects
+  messages, conversation/session state, and dispatches the prepared turn while
+  the runtime helper owns screenshot-ref, screenshot-url, multi-image refs, and
+  attachment filename payload fields. Validation: focused desktop conversation
+  replay runtime, conversation replay actions, and renderer chat runtime
+  boundary tests plus stale snake-case payload scans, docs search/history
+  checks, and diff checks. No migration required; replay behavior, continuity
+  rewrite payloads, prepared send fields, IPC, storage, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer compaction failure error payload runtime
   slice by moving `compaction_failed` error-text normalization from
   `useChatStreamCompactionHandlers` into `desktopChatStreamEventPayloadRuntime`

@@ -1049,11 +1049,21 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).toContain('dispatchPreparedDesktopChatTurn');
+    expect(source).toContain('buildReplayPreparationPayload');
+    expect(source).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(source).not.toContain('screenshot_ref');
+    expect(source).not.toContain('screenshot_refs');
+    expect(source).not.toContain('screenshot_url');
+    expect(source).not.toContain('attachment_filenames');
     expect(source).not.toContain('recordTranscriptUserMessage');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
     expect(replayRuntimeSource).toContain('buildReplayContextMessages');
+    expect(replayRuntimeSource).toContain('buildReplayPreparationPayload');
+    expect(replayRuntimeSource).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(replayRuntimeSource).toContain('screenshot_ref');
+    expect(replayRuntimeSource).toContain('attachment_filenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),

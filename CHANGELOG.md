@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move replay preparation payload and prepared-turn shaping
+  into the desktop conversation replay runtime before replay hooks dispatch.
+  No migration required.
 - renderer/runtime: move compaction failure error text normalization behind
   the chat stream payload runtime facade. No migration required.
 - renderer/runtime: normalize local-user stream message text aliases in the

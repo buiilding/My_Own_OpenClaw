@@ -18,6 +18,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
 - `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
+- `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
@@ -77,6 +78,9 @@ Responsibility split:
 - `transcriptSessionRuntime.ts` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers.
 - `DesktopTranscriptSessionRuntimeClient` is the renderer facade for active conversation/user identity.
 - `DesktopConversationContinuityService` owns replay, rewrite, and rehydrate orchestration through SDK store commands.
+- `desktopConversationReplayRuntime.js` owns replay context filtering plus
+  replay preparation payload and prepared desktop-turn shaping for screenshot
+  refs, display URLs, multi-image refs, and attachment filenames.
 - `DesktopConversationLibraryClient` owns list/load/delete/search through the SDK store path.
 
 Renderer consumers subscribe through `useDesktopTranscriptSessionInfo()` for

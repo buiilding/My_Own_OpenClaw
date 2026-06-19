@@ -23,7 +23,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts` |
 | SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
 | Local snapshots/replay | SDK conversation store/projection and backend rehydrate services |
-| Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
+| Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`, `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js` |
 
 ## Write Flow
@@ -80,7 +80,8 @@ Key files:
 - SDK display projection: `sdkDisplayChatMessageProjection.ts`,
 - backend rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
 - backend rehydrate dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
-- tool-message reconstruction: `desktopConversationReplayRuntime.js`,
+- tool-message reconstruction and replay payload/turn shaping:
+  `desktopConversationReplayRuntime.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.
 
 ## Tests
