@@ -89,7 +89,9 @@ Query policy:
 
 - trim query.
 - if length `< 2`: skip RPC search and clear search result list.
-- if length `>= 2`: run debounced search (`180ms`) via `SEARCH_CHAT_CONVERSATIONS`.
+- if length `>= 2`: run debounced search (`180ms`) through
+  `DesktopConversationLibraryClient.searchConversations(...)`, which invokes the
+  SDK-shaped `conversations.search` command.
 - cancellation guard prevents stale async state writes on rapid query changes/unmount.
 
 Search RPC payload:

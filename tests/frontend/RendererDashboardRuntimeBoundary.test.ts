@@ -6,6 +6,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const dashboardRoot = path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard');
+const repoRoot = path.resolve(__dirname, '../..');
+
+const dashboardConversationDocs = [
+  'docs/frontend/renderer/dashboard_memory_management_and_resume_reference.md',
+  'docs/frontend/renderer/dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md',
+  'docs/frontend/renderer/dashboard/shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md',
+  'docs/frontend/renderer/transcript_session_and_rehydrate_reference.md',
+];
 
 async function listSourceFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -24,6 +32,32 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer dashboard runtime boundary', () => {
+  test('dashboard conversation docs route list search and resume through runtime facades', async () => {
+    const forbidden = [
+      'LIST_CHAT_CONVERSATIONS',
+      'SEARCH_CHAT_CONVERSATIONS',
+      'GET_CHAT_EVENTS',
+    ];
+    const offenders: string[] = [];
+    const combinedDocs: string[] = [];
+
+    for (const relativeDocPath of dashboardConversationDocs) {
+      const source = await fs.readFile(path.join(repoRoot, relativeDocPath), 'utf8');
+      combinedDocs.push(source);
+      for (const needle of forbidden) {
+        if (source.includes(needle)) {
+          offenders.push(`${relativeDocPath}: ${needle}`);
+        }
+      }
+    }
+
+    const combinedSource = combinedDocs.join('\n');
+    expect(offenders).toEqual([]);
+    expect(combinedSource).toContain('DesktopConversationLibraryClient');
+    expect(combinedSource).toContain('conversations.search');
+    expect(combinedSource).toContain('conversation.loadDisplay');
+  });
+
   test('dashboard feature code does not construct the desktop conversation store adapter directly', async () => {
     const files = await listSourceFiles(dashboardRoot);
     const offenders: string[] = [];

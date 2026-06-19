@@ -74,15 +74,18 @@ Conversation resume now lives in shell + `useDashboardConversations` (consumed b
 Resume call chain:
 
 - sidebar rows and search rows call `onOpenConversation(...)`
-- shell fetches full conversation via `GET_CHAT_EVENTS`
+- `useDashboardConversations` loads display rows through
+  `DesktopConversationLibraryClient.loadDisplayRows(...)`, which invokes the
+  SDK-shaped `conversation.loadDisplay` command through `windie:invoke`
 - shell marks backend inference state as unknown so the continuity runtime can lazily rehydrate before the next backend-dependent action
 - shell synchronizes transcript state and chat store
 
-IPC methods used by this surface:
+Conversation runtime methods used by this surface:
 
-- `LIST_CHAT_CONVERSATIONS`
-- `SEARCH_CHAT_CONVERSATIONS`
-- `GET_CHAT_EVENTS`
+- `DesktopConversationLibraryClient.listMetadata(...)` -> `conversations.list`
+- `DesktopConversationLibraryClient.searchConversations(...)` -> `conversations.search`
+- `DesktopConversationLibraryClient.loadDisplayRows(...)` -> `conversation.loadDisplay`
+- `DesktopConversationLibraryClient.deleteConversation(...)` -> `conversations.delete`
 
 ## Shared Session Identity Contract
 
@@ -168,8 +171,10 @@ Error behavior:
 Search query behavior:
 
 - trim query.
-- query length `< 2`: no IPC search call; fallback to recent groups.
-- query length `>= 2`: debounced IPC call to `SEARCH_CHAT_CONVERSATIONS` (`180ms`).
+- query length `< 2`: no runtime search call; fallback to recent groups.
+- query length `>= 2`: debounced
+  `DesktopConversationLibraryClient.searchConversations(...)` call to the
+  SDK-shaped `conversations.search` command (`180ms`).
 
 Search result render extras:
 

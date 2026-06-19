@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a dashboard conversation-library docs follow-up by
+  replacing active recent-list, search, resume, and transcript-session
+  references to legacy direct conversation IPC labels with the current
+  `DesktopConversationLibraryClient` and SDK-shaped `conversations.*` /
+  `conversation.loadDisplay` route. The dashboard runtime-boundary guard now
+  blocks the retired `LIST_CHAT_CONVERSATIONS`, `SEARCH_CHAT_CONVERSATIONS`,
+  and `GET_CHAT_EVENTS` labels in those active docs. Validation: focused
+  dashboard runtime-boundary test, docs listing, stale old-label scan, and diff
+  checks. No migration required; documentation/test only, with no code path,
+  payload, storage, IPC, settings, credentials, permissions, hosted routes,
+  provider policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a voice docs runtime-path follow-up by replacing
   stale `frontend/src/renderer/features/voice/utils/*` references in active
   channel, desktop, and frontend inventory docs with the current renderer

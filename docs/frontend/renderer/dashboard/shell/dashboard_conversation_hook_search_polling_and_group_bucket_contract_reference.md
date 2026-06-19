@@ -72,8 +72,10 @@ Failure behavior:
 
 Hook search policy (active only when `searchOpen=true`):
 
-- query `< 2` chars -> clear searched list and skip IPC search
-- query `>= 2` chars -> debounced `SEARCH_CHAT_CONVERSATIONS` call (`180ms`)
+- query `< 2` chars -> clear searched list and skip runtime search
+- query `>= 2` chars -> debounced
+  `DesktopConversationLibraryClient.searchConversations(...)` call to the
+  SDK-shaped `conversations.search` command (`180ms`)
 - request payload: `{ userId, query, limit: 60 }`
 - cancellation guard prevents stale async writes
 

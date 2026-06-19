@@ -85,7 +85,11 @@ app-level session state.
 
 Transcript conversation pagination helper:
 
-- `loadConversationTranscriptMemories(...)` centralizes paginated `GET_CHAT_EVENTS` fetch with `afterMessageIndex` cursor progression, used by dashboard open and manual compaction rehydrate flows.
+- dashboard open uses `DesktopConversationLibraryClient.loadDisplayRows(...)`
+  to invoke the SDK-shaped `conversation.loadDisplay` command for display rows.
+- manual compaction and continuity rehydrate use SDK store load helpers such as
+  `conversation.loadRehydrate`; renderer feature code should stay on these
+  app-runtime and store facades instead of direct conversation IPC fetches.
 
 ## SDK Store Boundary
 
