@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a troubleshooting/debug tool-label slice by routing
+  getting-started tool permission guidance, error/failure tool-result rows,
+  failure-boundary result rules, and frontend inventory tool-domain notes
+  through local-runtime tool wording instead of sidecar-as-owner labels.
+  Concrete Python sidecar paths and sidecar tool tests remain visible as
+  implementation evidence. The modular inventory/docs guard now rejects the
+  retired sidecar permission-gate, tool-result failure, result-return,
+  sidecar runtime/tool-domain, and sidecar tool-catalog phrases. Validation:
+  focused modular docs boundary test, docs listing, exact stale
+  troubleshooting/debug/inventory label scan, and diff checks. No migration
+  required; no code path, payload, storage, IPC, settings, tool schema,
+  credential, permission, hosted URL, provider-policy, result normalization,
+  tool catalog, or local execution behavior changed.
 - 2026-06-18: completed a development tool-doc owner-label slice by routing
   the contributing edit map, tool development runtime ownership list,
   built-in handler registration heading, result-contract heading, and
