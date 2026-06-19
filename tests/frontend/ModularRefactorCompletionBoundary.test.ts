@@ -647,6 +647,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar shell execution');
     expect(toolRoutingDocText).not.toContain('Sidecar shell runtime');
     expect(toolRoutingDocText).not.toContain('Sidecar filesystem reader');
+    expect(toolRoutingDocText).not.toContain('Sidecar runtime argument models');
+    expect(toolRoutingDocText).not.toContain('Sidecar executable implementations');
+    expect(toolRoutingDocText).not.toContain('Tool is visible but never reaches the sidecar');
+    expect(toolRoutingDocText).not.toContain('start in the sidecar implementation');
+    expect(toolRoutingDocText).not.toContain('Verify sidecar executable registration and schema');
     expect(toolRoutingDocText).not.toContain('Sidecar tools:');
     expect(toolRoutingDocText).not.toContain('Sidecar tool registry');
     expect(toolRoutingDocText).not.toContain('Sidecar diagnostic schema export');
@@ -1356,6 +1361,11 @@ describe('modular sdk refactor completion boundary', () => {
         'Tool execution bundling, payload normalization, capture orchestration',
         'sidecar direct-tool exposure contract used for backend parity',
         'live sidecar registry exposes concrete tool names only',
+        'Sidecar tools are not permission-gated by default',
+        'Sidecar tool result failures',
+        'Sidecar tools should return',
+        'Sidecar Runtime and Tool Domains',
+        'Sidecar tool catalog',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

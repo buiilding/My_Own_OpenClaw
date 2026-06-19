@@ -84,7 +84,7 @@ This matrix maps frontend capabilities to implementation files.
 | Permission onboarding + controls | `frontend/src/renderer/features/permissions/components/*`, `stores/permissionStore.js`, `utils/permission*.js` | Install-time gate and ongoing permission status controls. |
 | Voice capture + wakeword | `frontend/src/renderer/features/voice/hooks/*`, `utils/*`, `components/VoiceStatus.jsx` | Mic capture, wakeword streaming, voice mode websocket runtime. |
 
-## 7) Sidecar Runtime and Tool Domains
+## 7) Local Runtime Sidecar Implementation Domains
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ This matrix maps frontend capabilities to implementation files.
 | Sidecar backend HTTP clients | `frontend/src/main/python/core/{remote_api_client_base,remote_semantic_client}.py` | Shared retry/error policy wrappers for semantic backend calls. |
 | Platform state and metrics | `frontend/src/main/python/core/{system_state,system_metrics}.py`, `core/platform/*.py` | OS-specific probes and normalized runtime metrics payloads. |
 | Memory persistence and semantic pipeline | `frontend/src/main/python/memory/{local_store,sqlite_store,faiss_index,summarizer,operations,watermark_state,conversation_titles}.py` | Transcript store/search and semantic indexing/summarization. |
-| Tool registry and schemas | `frontend/src/main/python/tools/{registry,schemas,result,base}.py` | Sidecar tool catalog and standardized result structures. |
+| Tool registry and schemas | `frontend/src/main/python/tools/{registry,schemas,result,base}.py` | Local-runtime tool catalog implementation and standardized result structures. |
 | Computer/filesystem/system tools | `frontend/src/main/python/tools/{computer,filesystem,system}/*` | Direct machine control, file operations, and shell/process actions. |
 | Browser runtime + Browser Use CLI adapter | `frontend/src/main/python/tools/browser/*`, `frontend/src/main/python/windie_shared/browser_contract*.py` | Browser action schemas, Chrome/CDP launch policy, Browser Use CLI dispatch, and result normalization. |
 

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route filesystem/shell workflow, debug, inventory, and
+  troubleshooting owner labels through local-runtime implementation wording
+  while keeping Python sidecar paths/tests explicit. No migration required.
 - docs/development: route tool-development owner labels through local-runtime
   registry, manifest, handler, and result-contract wording while keeping Python
   sidecar implementation paths visible. No migration required.

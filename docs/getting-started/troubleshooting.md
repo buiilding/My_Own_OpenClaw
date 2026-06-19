@@ -243,7 +243,7 @@ read_when:
    - Check sidecar logs
 
 3. **Check Permissions**:
-   - Sidecar tools are not permission-gated by default
+   - Local-runtime tools are not permission-gated by default
    - Check OS-level permissions (screen recording, accessibility)
 
 #### Screenshot Issues

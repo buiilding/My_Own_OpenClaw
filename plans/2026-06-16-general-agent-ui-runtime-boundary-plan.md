@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Filesystem Tool Workflow Local-Runtime Owner Labels
+
+- Finding: filesystem/shell workflow, debug, inventory, and troubleshooting
+  docs still described executable argument models, concrete implementations,
+  owner-map rows, validation rows, tool-result failures, permission notes, and
+  tool domains as sidecar runtime/tool ownership in public routing docs.
+- Change: reworded those routes to local-runtime executable implementation
+  ownership while preserving the current Python sidecar file paths and sidecar
+  pytest commands as implementation/test details, then extended the modular
+  boundary guard against the retired sidecar-owner phrases.
+- Validation: focused modular-boundary guard, docs listing, exact stale-phrase
+  scan, and diff checks.
+- Compatibility: no migration required. Tool schemas, local execution
+  behavior, process sessions, result envelopes, IPC channels, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
 ### 2026-06-18 Frontend Architecture Conversation Session Runtime Owner
 
 - Finding: the frontend architecture overview still routed shared
