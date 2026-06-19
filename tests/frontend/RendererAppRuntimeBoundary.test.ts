@@ -391,9 +391,17 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('State/rule facade');
     expect(source).toContain('Presentation contract/helper facade');
     expect(source).toContain('Forwarding/helper facade with current boundary value');
+    expect(source).toContain('Removed forwarding-only adapter');
     expect(source).toContain('Removed migration shims');
+    expect(source).toContain('desktopStorageRuntimeClient.js');
     expect(source).toContain('Do not delete a helper merely because it forwards');
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);
+    await expect(fs.stat(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/app/runtime/desktopStorageRuntimeClient.js',
+      ),
+    )).rejects.toThrow();
   });
 
   test('desktop new-chat event wiring stays behind app runtime helper', async () => {
