@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat Send Preparation and Selector Runtime Boundary
+
+- Finding: chat send preflight, pending-turn acceptance, SDK turn resource
+  assembly, live-turn dispatch, and shared chat interface/live-surface
+  selectors still lived under chat feature utility paths even though they are
+  renderer app-runtime rules consumed by multiple surfaces.
+- Change: moved send preparation into
+  `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`,
+  moved shared chat surface projection into
+  `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`,
+  injected the required chat-store state/actions from feature code, and
+  deleted the old chat feature utility paths.
+- Validation: focused chat selector, pending-turn live-surface integration,
+  renderer chat boundary, renderer app-runtime boundary, docs listing, stale
+  old-path scans, frontend lint, and diff checks.
+- Compatibility: no migration required. Conversation-ref selection,
+  pending-turn acceptance/broadcast, screenshot-resource decisions, attachment
+  metadata, deferred model selection, live-turn dispatch payloads,
+  active-workspace selector references, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer New-Chat Session Runtime Boundary
 
 - Finding: new-chat reset, local conversation creation, transcript session
