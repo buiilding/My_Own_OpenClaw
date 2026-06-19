@@ -32,6 +32,15 @@ describe('windie docs index', () => {
     expect(path.join(repoRoot, readme.path)).toBe(path.join(repoRoot, 'docs', 'README.md'));
   });
 
+  test('keeps cached docs metadata private from public index callers', () => {
+    const docs = loadDocsIndex();
+    const originalTitle = docs[0].title;
+
+    docs[0].title = 'mutated by caller';
+
+    expect(loadDocsIndex()[0].title).toBe(originalTitle);
+  });
+
   test('returns the top ten docs matches by default', () => {
     expect(findDocs('runtime')).toHaveLength(10);
   });

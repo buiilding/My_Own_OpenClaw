@@ -174,6 +174,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Docs Search Runtime Cache
+
+- Finding: the required docs-search workflow had become slow enough that
+  `WindieDocsIndex` could time out because every `findDocs(...)` call reloaded
+  the docs index and renormalized every markdown page.
+- Change: cached docs metadata and precomputed normalized search fields inside
+  `scripts/windie/docs.cjs` while keeping public `loadDocsIndex()` results as
+  fresh caller-owned objects.
+- Validation: focused docs-index tests, docs list, docs search, diff checks,
+  and cache mutation guard coverage.
+- Compatibility: no migration required. Docs search ranking, docs file paths,
+  docs navigation, CLI commands, runtime code, IPC, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Main Wakeword IPC Host Adapter Boundary
 
 - Finding: `wakeword_bridge.cjs` owned the right wakeword subprocess and audio

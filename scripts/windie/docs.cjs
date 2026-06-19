@@ -6,6 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const { REPO_ROOT, repoPath } = require('./paths.cjs');
 
+let cachedDocsIndex = null;
+
 function flattenPagesFromDocsJson(value, pages = []) {
   if (Array.isArray(value)) {
     for (const item of value) {
@@ -54,6 +56,14 @@ function readDocMeta(page) {
     .map((match) => match[1].trim())
     .join(' ');
   const body = content.replace(/^---\n[\s\S]*?\n---/, '');
+  const searchFields = buildSearchFields({
+    page,
+    title,
+    summary,
+    readWhen,
+    headings,
+    body,
+  });
   return {
     page,
     path: path.relative(REPO_ROOT, filePath),
@@ -62,8 +72,48 @@ function readDocMeta(page) {
     readWhen,
     headings,
     body,
-    text: normalizeSearchText(`${page} ${title} ${summary} ${readWhen} ${headings} ${body}`),
+    text: searchFields.text,
+    searchFields,
   };
+}
+
+function buildSearchFields({
+  page = '',
+  title = '',
+  summary = '',
+  readWhen = '',
+  headings = '',
+  body = '',
+} = {}) {
+  const fields = {
+    page: normalizeSearchText(page),
+    title: normalizeSearchText(title),
+    summary: normalizeSearchText(summary),
+    readWhen: normalizeSearchText(readWhen),
+    headings: normalizeSearchText(headings),
+    body: normalizeSearchText(body),
+  };
+  const text = normalizeSearchText([
+    fields.page,
+    fields.title,
+    fields.summary,
+    fields.readWhen,
+    fields.headings,
+    fields.body,
+  ].join(' '));
+  const searchFields = {
+    ...fields,
+    text,
+  };
+  return Object.freeze({
+    ...searchFields,
+    tokens: Object.freeze(Object.fromEntries(
+      Object.entries(searchFields).map(([fieldName, field]) => [
+        fieldName,
+        Object.freeze(field.split(' ').filter(Boolean)),
+      ]),
+    )),
+  });
 }
 
 function listMarkdownFiles(dir, files = []) {
@@ -91,7 +141,7 @@ function pageFromDocPath(filePath) {
   return relative.replace(/\.(md|mdx)$/i, '');
 }
 
-function loadDocsIndex() {
+function buildDocsIndex() {
   const docsJson = JSON.parse(fs.readFileSync(repoPath('docs/docs.json'), 'utf8'));
   const discoveredPages = [
     repoPath('README.md'),
@@ -106,6 +156,22 @@ function loadDocsIndex() {
     .filter(Boolean);
 }
 
+function getDocsIndex({ refresh = false } = {}) {
+  if (refresh || !cachedDocsIndex) {
+    cachedDocsIndex = buildDocsIndex();
+  }
+  return cachedDocsIndex;
+}
+
+function toPublicDoc(doc) {
+  const { searchFields: _searchFields, ...publicDoc } = doc;
+  return { ...publicDoc };
+}
+
+function loadDocsIndex(options = {}) {
+  return getDocsIndex(options).map(toPublicDoc);
+}
+
 function normalizeSearchText(value) {
   return String(value || '')
     .toLowerCase()
@@ -114,12 +180,12 @@ function normalizeSearchText(value) {
     .trim();
 }
 
-function fieldHasTerm(field, term) {
+function fieldHasTerm(field, term, tokens = null) {
   if (!field || !term) {
     return false;
   }
-  const tokens = field.split(' ').filter(Boolean);
-  return tokens.some((token) => {
+  const fieldTokens = tokens || field.split(' ').filter(Boolean);
+  return fieldTokens.some((token) => {
     if (token === term) {
       return true;
     }
@@ -133,10 +199,10 @@ function fieldHasTerm(field, term) {
   });
 }
 
-function countFieldScore(field, terms, weight) {
+function countFieldScore(field, terms, weight, tokens = null) {
   let score = 0;
   for (const term of terms) {
-    if (fieldHasTerm(field, term)) {
+    if (fieldHasTerm(field, term, tokens)) {
       score += weight;
     }
   }
@@ -164,15 +230,7 @@ function countPairScore(field, pairs, weight) {
 function scoreDoc(doc, query) {
   const { terms, phrase } = query;
   const pairs = queryTermPairs(terms);
-  const fields = {
-    page: normalizeSearchText(doc.page),
-    title: normalizeSearchText(doc.title),
-    summary: normalizeSearchText(doc.summary),
-    readWhen: normalizeSearchText(doc.readWhen),
-    headings: normalizeSearchText(doc.headings),
-    body: normalizeSearchText(doc.body),
-    text: doc.text,
-  };
+  const fields = doc.searchFields || buildSearchFields(doc);
 
   let score = 0;
 
@@ -200,13 +258,13 @@ function scoreDoc(doc, query) {
     }
   }
 
-  score += countFieldScore(fields.page, terms, 7);
-  score += countFieldScore(fields.title, terms, 6);
-  score += countFieldScore(fields.summary, terms, 4);
-  score += countFieldScore(fields.headings, terms, 3);
-  score += countFieldScore(fields.readWhen, terms, 2);
-  score += countFieldScore(fields.body, terms, 2);
-  score += countFieldScore(fields.text, terms, 1);
+  score += countFieldScore(fields.page, terms, 7, fields.tokens?.page);
+  score += countFieldScore(fields.title, terms, 6, fields.tokens?.title);
+  score += countFieldScore(fields.summary, terms, 4, fields.tokens?.summary);
+  score += countFieldScore(fields.headings, terms, 3, fields.tokens?.headings);
+  score += countFieldScore(fields.readWhen, terms, 2, fields.tokens?.readWhen);
+  score += countFieldScore(fields.body, terms, 2, fields.tokens?.body);
+  score += countFieldScore(fields.text, terms, 1, fields.tokens?.text);
 
   score += countPairScore(fields.page, pairs, 18);
   score += countPairScore(fields.title, pairs, 16);
@@ -216,19 +274,19 @@ function scoreDoc(doc, query) {
   score += countPairScore(fields.body, pairs, 6);
   score += countPairScore(fields.text, pairs, 5);
 
-  if (terms.every((term) => fieldHasTerm(fields.text, term))) {
+  if (terms.every((term) => fieldHasTerm(fields.text, term, fields.tokens?.text))) {
     score += 15;
   }
-  if (terms.every((term) => fieldHasTerm(fields.title, term))) {
+  if (terms.every((term) => fieldHasTerm(fields.title, term, fields.tokens?.title))) {
     score += 12;
   }
-  if (terms.every((term) => fieldHasTerm(fields.summary, term))) {
+  if (terms.every((term) => fieldHasTerm(fields.summary, term, fields.tokens?.summary))) {
     score += 8;
   }
-  if (terms.every((term) => fieldHasTerm(fields.headings, term))) {
+  if (terms.every((term) => fieldHasTerm(fields.headings, term, fields.tokens?.headings))) {
     score += 8;
   }
-  if (terms.every((term) => fieldHasTerm(fields.body, term))) {
+  if (terms.every((term) => fieldHasTerm(fields.body, term, fields.tokens?.body))) {
     score += 6;
   }
 
@@ -284,8 +342,8 @@ function findDocs(topic, limit = DEFAULT_DOC_SEARCH_LIMIT) {
     return [];
   }
   const query = { phrase, terms };
-  return loadDocsIndex()
-    .map((doc) => ({ ...doc, score: scoreDoc(doc, query) }))
+  return getDocsIndex()
+    .map((doc) => ({ ...toPublicDoc(doc), score: scoreDoc(doc, query) }))
     .filter((doc) => doc.score > 0)
     .sort((a, b) => b.score - a.score || a.order - b.order || a.path.localeCompare(b.path))
     .slice(0, limit);

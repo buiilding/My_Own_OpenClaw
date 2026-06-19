@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/docs: cache docs index metadata and precomputed search fields per process
+  so repeated `findDocs(...)` calls no longer reload and renormalize the full
+  docs corpus. Public `loadDocsIndex()` callers still receive fresh doc objects.
+  No migration required.
 - main/wakeword: allow `initializeWakewordBridge(...)` to receive an
   `ipcMain`-compatible host adapter while keeping Electron `ipcMain` as the
   default, and pass the real Electron adapter through the main-window bootstrap

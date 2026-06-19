@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: cached docs index metadata and precomputed normalized search
+  fields inside `scripts/windie/docs.cjs` so repeated `findDocs(...)` calls used
+  by required orientation and `WindieDocsIndex` no longer reload and normalize
+  the entire docs corpus each time. Public `loadDocsIndex()` callers still get
+  fresh doc objects, covered by a cache mutation guard. Validation passed
+  focused docs-index tests plus docs listing/search and diff checks. No
+  migration required; docs ranking, docs paths, CLI commands, runtime code,
+  IPC, storage, credentials, permissions, hosted URLs, provider policy, and
+  local execution behavior are unchanged.
+
 - 2026-06-19: made the Electron main wakeword bridge accept an injected
   `ipcMain`-compatible host adapter while keeping Electron `ipcMain` as the
   default. `initializeWakewordBridge(...)` now fails fast on an invalid adapter
