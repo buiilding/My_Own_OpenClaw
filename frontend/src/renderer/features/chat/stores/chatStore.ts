@@ -24,7 +24,7 @@ import type { ChatWorkspaceState } from './chatWorkspaceState';
 import {
   buildStopQueryTrackingPatch,
   buildStoppedCurrentTurnProjection,
-} from '../utils/state/stopQueryState';
+} from '../../../app/runtime/desktopStopTurnRuntime';
 
 export type { ChatMessage, TokenCounts };
 

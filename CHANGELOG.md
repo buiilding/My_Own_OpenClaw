@@ -51,6 +51,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/model-capabilities: move selected-model thinking capability
   resolution from chat utilities into the renderer app-runtime facade consumed
   by chat stream presentation. No migration required.
+- renderer/stop-turn: move stop target resolution and terminal current-turn
+  projection helpers from chat state utilities into the renderer app-runtime
+  facade consumed by the stop hook and chat store. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

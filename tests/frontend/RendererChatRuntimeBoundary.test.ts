@@ -946,6 +946,30 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
   });
 
+  test('chat stop-turn state is owned by app runtime', async () => {
+    const stopHandlerSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useStopTurnHandler.js'),
+      'utf8',
+    );
+    const chatStoreSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStore.ts'),
+      'utf8',
+    );
+    const stopRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js'),
+      'utf8',
+    );
+
+    expect(stopHandlerSource).toContain('desktopStopTurnRuntime');
+    expect(chatStoreSource).toContain('desktopStopTurnRuntime');
+    expect(stopRuntimeSource).toContain('resolveStopTurnTarget');
+    expect(stopRuntimeSource).toContain('buildStoppedCurrentTurnProjection');
+    expect(stopRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/state/stopQueryState.js'),
+    )).rejects.toThrow();
+  });
+
   test('chat stream debug trace routes live-surface IPC through app runtime client', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'utils/chatStream/chatStreamDebugTrace.ts'),

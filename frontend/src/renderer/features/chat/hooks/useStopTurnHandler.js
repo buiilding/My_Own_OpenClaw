@@ -6,7 +6,7 @@ import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
-import { resolveStopTurnTarget } from '../utils/state/stopQueryState';
+import { resolveStopTurnTarget } from '../../../app/runtime/desktopStopTurnRuntime';
 
 export function useStopTurnHandler({
   enabled = true,

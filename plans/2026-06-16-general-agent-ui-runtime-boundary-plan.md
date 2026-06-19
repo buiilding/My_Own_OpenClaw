@@ -283,6 +283,23 @@ Each completed slice should report:
   permissions, hosted routes, provider policy, packaging, and local execution
   behavior are unchanged.
 
+### 2026-06-19 Renderer Stop-Turn Runtime Boundary
+
+- Finding: stop-target resolution and terminal current-turn projection helpers
+  lived under chat feature state utilities even though they reconcile SDK
+  current-turn state, pending-turn state, and renderer stop acceptance.
+- Change: moved the helpers to
+  `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`, routed the
+  stop hook, chat store, and tests through that app-runtime facade, deleted the
+  old feature state path, and updated docs plus boundary guards.
+- Validation: focused desktop stop-turn runtime, pending stop integration, chat store,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks.
+- Compatibility: no migration required. Stop target shape, current-turn
+  terminal projection, stream tracking terminal patch, SDK stop command
+  dispatch, IPC payloads, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

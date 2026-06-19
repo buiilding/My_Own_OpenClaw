@@ -1,12 +1,12 @@
 /**
- * Covers stop query state. behavior in the frontend test suite.
+ * Covers desktop stop-turn runtime behavior in the frontend test suite.
  */
 
 import {
   resolveStopTurnTarget,
-} from '../../frontend/src/renderer/features/chat/utils/state/stopQueryState';
+} from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
 
-describe('stopQueryState', () => {
+describe('desktopStopTurnRuntime', () => {
   test('resolveStopTurnTarget prioritizes active SDK current-turn before pending turn', () => {
     expect(resolveStopTurnTarget({
       currentTurnProjection: {

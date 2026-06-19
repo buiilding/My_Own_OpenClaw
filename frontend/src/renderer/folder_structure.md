@@ -44,6 +44,7 @@ frontend/src/renderer/
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
 │   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
 │   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
+│   │   ├── desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
@@ -135,8 +136,8 @@ frontend/src/renderer/
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
 │   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
-│   │       ├── state/                   # state - Chat query-stop projection helpers
-│   │       │   ├── stopQueryState.js    # stopQueryState - Shared stop target resolver and terminal projection helpers
+│   │       ├── state/                   # state - SDK current-turn side-effect projection helpers
+│   │       │   ├── currentTurnProjectionSideEffects.ts # currentTurnProjectionSideEffects - SDK current-turn projection side effects
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
 │   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers

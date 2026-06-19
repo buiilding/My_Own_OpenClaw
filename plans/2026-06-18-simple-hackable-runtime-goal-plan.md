@@ -302,6 +302,18 @@ For each completed slice, record:
   fallback semantics, stream presentation, IPC payloads, storage, credentials,
   permissions, hosted routes, provider policy, packaging, and local execution
   behavior are unchanged.
+- 2026-06-19: completed a renderer stop-turn runtime-boundary slice by moving
+  stop-target resolution, terminal current-turn projection, and stop tracking
+  patch helpers from the chat feature state folder into
+  `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`. The stop hook,
+  chat store, docs, focused tests, and renderer chat boundary guards now route
+  through the app-runtime owner, and the old feature state path is deleted.
+  Validation: focused desktop stop-turn runtime, pending stop integration, chat store,
+  renderer chat boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks. No migration required; stop target shape, current-turn terminal
+  projection, stream tracking terminal patch, SDK stop dispatch, IPC payloads,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer tool-output wrapper deletion by removing
   the unused `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
   path after current-turn and stream message paths converged on

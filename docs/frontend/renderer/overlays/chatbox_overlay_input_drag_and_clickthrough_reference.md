@@ -22,7 +22,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
+- `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`

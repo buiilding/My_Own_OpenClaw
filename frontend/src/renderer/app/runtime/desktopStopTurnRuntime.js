@@ -1,5 +1,5 @@
 /**
- * Provides the stop query state module for the renderer UI.
+ * Provides stop-turn target and terminal projection helpers for renderer runtime consumers.
  */
 
 const STOPPABLE_CURRENT_TURN_PHASES = new Set([
