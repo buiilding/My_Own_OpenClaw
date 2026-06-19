@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: remove the legacy `BackendTransport` compatibility type from
+  the TypeScript SDK surface so reusable host adapters use the single
+  `AgentRuntimeTransport` conversation-runtime boundary. No runtime or storage
+  migration required.
+- docs/runtime: route node, computer screenshot, memory/data-pipeline,
+  validation, install, and code-surface labels through local-runtime wording
+  instead of sidecar-tool or sidecar-runtime public routing labels. No migration
+  required.
 - tests/frontend: extend the modular boundary guard to cover active
   hub/matrix frontend-sidecar and main/renderer/sidecar route labels. No
   migration required.
@@ -217,9 +225,9 @@ All notable changes to WindieOS will be documented in this file.
   implying the host owns backend connection semantics directly. No migration
   required.
 - sdk/runtime: make `AgentRuntimeTransport` the canonical conversation-runtime
-  injection type across SDK internals and behavior tests while keeping
-  `BackendTransport` as a compatibility alias for existing TypeScript callers.
-  No runtime or storage migration required.
+  injection type across SDK internals and behavior tests; the legacy
+  `BackendTransport` compatibility name is now removed from the public SDK type
+  surface. No runtime or storage migration required.
 - docs/debug: add a one-message runtime trace playbook that routes renderer
   action, main query handoff, SDK dispatch, backend stream, local-runtime tool
   execution, SDK projection, and renderer display through existing sanitized

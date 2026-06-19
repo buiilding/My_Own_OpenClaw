@@ -67,7 +67,7 @@ Single-tool path:
   is missing, the event is malformed for result delivery and local execution is
   not claimed.
 - Backend stream `event_id` identifies the transport event row only. It is not
-  the tool-call correlation id. SDK sidecar outputs use SDK-owned local event
+  the tool-call correlation id. SDK local-runtime outputs use SDK-owned local event
   ids such as `{turnRef}-local-tool-output-{requestId}` and link back to the
   backend call through `request_id`, provider `tool_call_id`, `correlation_id`,
   or `bundle_id`.
@@ -141,9 +141,9 @@ without reviving the old Electron-only screenshot materializer.
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
 | Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or SDK local-runtime client | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
-| Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the sidecar without a result id |
-| SDK runtime invokes tool but Python sidecar says missing tool | Python sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
-| Python sidecar succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
+| Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the local executor without a result id |
+| SDK runtime invokes tool but local runtime says missing tool | Local-runtime registry/exposed-name parity backed by Python sidecar implementation | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
+| Local execution succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
 | Local tool output is stored as `deliveryFailed` | SDK transport/result delivery | SDK runtime should also append a turn error so UI/debug state does not treat the tool wait as completed successfully |
 | Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), [Backend History](../backend/agent/history/README.md) |
 

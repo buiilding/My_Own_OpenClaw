@@ -275,6 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an SDK transport compatibility cleanup by removing the
+  legacy `BackendTransport` TypeScript alias from the SDK conversation type
+  surface and routing SDK docs/tests to the canonical `AgentRuntimeTransport`
+  boundary. This deletes one stale backend-named public type without changing
+  websocket behavior, payloads, IPC, settings, storage, local-runtime
+  execution, credentials, permissions, hosted URLs, or provider policy. No
+  migration is required for runtime state; TypeScript SDK callers should import
+  `AgentRuntimeTransport` directly.
+- 2026-06-18: completed a runtime-guide local-runtime tool-label slice by
+  routing runtime node, computer screenshot, memory/data-pipeline, validation,
+  install, tool lifecycle, and code-surface guides through local-runtime tool,
+  local-runtime implementation, local-runtime screenshot/input, and
+  local-runtime executable wording instead of sidecar tool/channel/runtime
+  public routing labels. Python sidecar file paths, sidecar pytest commands,
+  packaged runtime commands, and implementation rows remain where they identify
+  concrete evidence. Validation: `bin\windie.cmd test frontend --
+  ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs list`,
+  exact stale runtime-guide label scan, and `git diff --check`. No migration
+  required; no CLI command, conda env, install flow, IPC channel, JSON-RPC
+  method, tool schema, manifest, registry, runtime code, storage, credential,
+  permission, hosted route, provider policy, packaging, or local execution
+  behavior changed.
 - 2026-06-18: completed an active hub/matrix local-runtime label slice by
   routing CLI validation env labels, install decision rows, the development
   boundary matrix, frontend full inventory, and the IPC pre-commit checklist

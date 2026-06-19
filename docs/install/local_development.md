@@ -1,5 +1,5 @@
 ---
-summary: "Local development setup for WindieOS backend, frontend, Electron app, sidecar, tests, and environment launcher."
+summary: "Local development setup for WindieOS backend, frontend, Electron app, local-runtime implementation, tests, and environment launcher."
 read_when:
   - When setting up WindieOS for source development.
   - When changing developer commands or environment assumptions.
@@ -15,14 +15,14 @@ conda environments or invoking lower-level launch scripts directly.
 environment adapters for
 focused Python commands.
 
-Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend, renderer, and sidecar implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.
+Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend, renderer, and local-runtime implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.
 
 ## Prerequisites
 
 - Python 3.11
 - Node 18+
 - Backend conda env name: `jarvis`
-- Frontend/sidecar conda env name: `frontend_jarvis`
+- Frontend/local-runtime implementation conda env name: `frontend_jarvis`
 
 ## Install
 

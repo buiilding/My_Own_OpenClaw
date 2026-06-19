@@ -1,8 +1,8 @@
 ---
-summary: "Runtime nodes hub for WindieOS desktop, sidecar, hosted backend, VM worker, wakeword subprocess, and Cloudflare/origin service boundaries."
+summary: "Runtime nodes hub for WindieOS desktop, local-runtime implementation, hosted backend, VM worker, wakeword subprocess, and Cloudflare/origin service boundaries."
 read_when:
   - When deciding which WindieOS runtime process or deployed service owns a behavior.
-  - When changing desktop, sidecar, backend, VM worker, wakeword, or hosted deployment lifecycle behavior.
+  - When changing desktop, local-runtime implementation, backend, VM worker, wakeword, or hosted deployment lifecycle behavior.
 title: "Runtime Nodes Hub"
 ---
 
@@ -27,11 +27,11 @@ Use this hub when an agent needs to identify where a behavior runs before editin
 
 ## Node Boundary Rules
 
-- Backend nodes expose model-facing contracts. Frontend and sidecar nodes execute local actions and must not import backend modules for schema parity.
+- Backend nodes expose model-facing contracts. Desktop/local-runtime code executes local actions and must not import backend modules for schema parity.
 - Renderer nodes never own durable hosted identity. Hosted identity comes from backend install auth and main-process token propagation.
 - Preload is a trust boundary, not an application feature layer. Add explicit channel allowlist entries only for concrete renderer needs.
 - The sidecar node logs to stderr and reserves stdout for JSON-RPC protocol frames.
-- The wakeword service is not the generic sidecar tool channel. Treat audio framing, model bootstrap, and wakeword status as a separate subprocess protocol.
+- The wakeword service is not the generic local-runtime tool channel. Treat audio framing, model bootstrap, and wakeword status as a separate subprocess protocol.
 - The VM worker node uses `/api/runs/*` as a control plane and dispatches actual agent work through the normal backend websocket query path.
 - The Cloudflare/origin service node is deployment plumbing. Route or auth failures still belong to the hosted backend node unless the tunnel/origin process is unreachable.
 

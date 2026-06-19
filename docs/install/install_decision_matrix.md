@@ -40,7 +40,7 @@ Choose the install path from the runtime you need to validate. Source-mode check
 | Change type | Minimum validation |
 | --- | --- |
 | backend-only API/provider/agent change | `<windie> test backend` plus route/provider-specific checks |
-| sidecar tool or local memory change | `<windie> test sidecar`; Electron dev smoke if bridge payloads changed |
+| local-runtime tool or memory implementation change | `<windie> test sidecar`; Electron dev smoke if bridge payloads changed |
 | renderer-only UI change | `cd frontend && npm run test`; add `npm run lint` for shared code |
 | Electron main IPC or endpoint change | focused frontend tests plus Electron dev smoke |
 | bundled sidecar dependency change | `<windie> build sidecar-runtime`; package on target OS when feasible |

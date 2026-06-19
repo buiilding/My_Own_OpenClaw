@@ -26,7 +26,7 @@ Computer tools are local-execution tools. The backend owns the model-facing inte
 
 This is the canonical computer use screenshot guide.
 
-- Renderer query screenshots and sidecar tool screenshots are different paths.
+- Renderer query screenshots and local-runtime tool screenshots are different paths.
 - Backend OCR/vision services can prepare coordinates before local execution.
 - Linux is the only platform that should hide WindieOS overlay surfaces for screenshot capture and restore them after capture.
 - Windows and macOS should not add capture-time hide/show for the minimal chat pill or response overlay.
@@ -40,7 +40,7 @@ This is the canonical computer use screenshot guide.
 - OCR/vision services: `backend/src/services/screen_grounding/*`
 - Query screenshot resource resolver: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - Main overlay capture guards: `frontend/src/main/overlays/*`
-- Sidecar computer tools: `frontend/src/main/python/tools/computer/*`
+- Python sidecar computer implementations: `frontend/src/main/python/tools/computer/*`
 
 ## Deep Docs
 

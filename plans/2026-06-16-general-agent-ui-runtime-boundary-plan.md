@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Runtime Guide Local-Runtime Tool Labels
+
+- Finding: runtime node, computer screenshot, memory/data-pipeline,
+  validation, install, tool lifecycle, and code-surface guides still used
+  sidecar tool/channel/runtime labels for active public routing after the
+  reusable local execution boundary moved to SDK/main local-runtime ownership.
+- Change: routed those labels through local-runtime tool, local-runtime
+  implementation, local-runtime screenshot/input, and local-runtime executable
+  wording while preserving Python sidecar file paths, test commands, packaged
+  runtime commands, and implementation rows as concrete evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale runtime
+  guide label scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; CLI commands, conda
+  env names, install flows, IPC channels, JSON-RPC methods, tool schemas,
+  manifests, registries, runtime code, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-18 Active Hub Matrix Local-Runtime Labels
 
 - Finding: CLI validation, install decision, development boundary, frontend

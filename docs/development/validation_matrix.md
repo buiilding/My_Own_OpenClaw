@@ -33,12 +33,12 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | backend route/handler/schema | `./scripts/python-in-env backend python -m pytest tests/backend/<focused_test>.py` | run `<windie> test backend` for shared API or session behavior |
 | backend agent loop/history/tool processing | focused backend test under `tests/backend` | run `<windie> test backend` for loop or history contract changes |
 | LLM provider/model catalog | focused provider/model tests under `tests/backend` | run backend provider/model suite and `<windie> docs list` |
-| sidecar tool | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py` | run `<windie> test sidecar` for registry or shared result changes |
+| local-runtime tool implementation | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/<focused_test>.py` | run `<windie> test sidecar` for registry or shared result changes |
 | frontend renderer state/UI | `<windie> test frontend -- <test_file>` | run `cd frontend && npm run lint && <windie> test frontend` for broader UI changes |
 | Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `<windie> test frontend` for shared bridge changes |
 | transcript/replay | focused transcript tests | include backend rehydrate/history tests when backend replay shape changes |
 | tool schema/result contract | backend schema/policy tests plus SDK runtime/router and local-runtime executable parity tests | add renderer projection tests when visible UI rows change |
-| browser runtime | backend browser schema tests plus sidecar browser tests | include browser UI/session tests when renderer controls change |
+| browser runtime | backend browser schema tests plus Python sidecar browser tests | include browser UI/session tests when renderer controls change |
 | docs-only | `<windie> docs list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
 | packaging/reinstall | `<windie> docs list` plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |
 | runtime config/env vars | focused backend, renderer, and sidecar config tests | include docs updates for [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |

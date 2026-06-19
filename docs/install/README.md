@@ -1,5 +1,5 @@
 ---
-summary: "Install hub for WindieOS local development, packaged desktop builds, endpoint setup, reinstall/reset loops, sidecar runtime bundling, and install troubleshooting."
+summary: "Install hub for WindieOS local development, packaged desktop builds, endpoint setup, reinstall/reset loops, local-runtime implementation bundling, and install troubleshooting."
 read_when:
   - When setting up or packaging WindieOS.
   - When changing install, build, or local reinstall flows.
@@ -10,7 +10,7 @@ title: "Install Hub"
 
 WindieOS install docs cover source-mode development, packaged desktop validation, backend endpoint selection, and OS-specific reinstall loops.
 
-- source development, where backend, renderer, and sidecar runtimes run from the checkout
+- source development, where backend, renderer, and the local-runtime implementation run from the checkout
 - packaged desktop builds, where Electron bundles the frontend and a Python sidecar runtime
 - endpoint setup, where the app targets Peter-hosted, local, staging, or self-hosted backend routes
 - reinstall/reset loops, where installed app state and packaged resource paths matter

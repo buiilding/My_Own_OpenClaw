@@ -185,7 +185,7 @@ $mem = Join-Path $env:APPDATA "windieos\\memory"; Remove-Item -Force `
 
 `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC access to memory and transcript storage operations
-- Wraps local memory runtime modules without exposing memory as a model-visible sidecar tool
+- Wraps local memory runtime modules without exposing memory as a model-visible local-runtime tool
 
 ## Dashboard Read APIs
 
