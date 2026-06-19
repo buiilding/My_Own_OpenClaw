@@ -280,6 +280,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Backend schema, shared browser contract, sidecar runtime, Electron bridge');
     expect(docText).not.toContain('Sidecar owns local execution');
     expect(docText).not.toContain('routes local work through the sidecar');
+    expect(docText).not.toContain('desktop sidecar owns local execution');
+    expect(docText).not.toContain('SDK and sidecar runtime');
+    expect(docText).not.toContain('sidecar ownership');
+    expect(docText).not.toContain('sidecar tool execution');
     expect(docText).not.toContain('sidecar remote-client auth');
     expect(docText).not.toContain('sidecar auth headers');
   });

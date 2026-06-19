@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Root README Local-Runtime Public Labels
+
+- Finding: the root README still described provider flexibility as desktop
+  sidecar-owned local execution, hackability as building on the SDK and sidecar
+  runtime, and docs-table routes as sidecar ownership/tool execution.
+- Change: routed those public first-read labels through SDK local-runtime
+  ownership, local-runtime contracts, local-runtime ownership, and
+  local-runtime tool execution while preserving concrete Python sidecar setup
+  and implementation links where source installs or process debugging need
+  them.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Root README copy and boundary tests
+  changed only; SDK APIs, local tool execution, sidecar process setup, tool
+  schemas, IPC channels, credentials, permissions, hosted routes, provider
+  policy, packaging, backend schemas, and storage behavior are unchanged.
+
 ### 2026-06-19 Renderer Voice Source Topology Runtime Gateway
 
 - Finding: `frontend/src/renderer/folder_structure.md` still labeled voice mode

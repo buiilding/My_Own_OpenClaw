@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/readme: route root README product and docs-table copy through SDK
+  local-runtime ownership instead of desktop-sidecar execution or sidecar
+  runtime labels. No migration required.
 - docs/renderer: route the renderer source topology voice section through the
   desktop voice runtime gateway facade instead of a direct backend websocket
   label. No migration required.

@@ -41,8 +41,8 @@ Latest releases: [Releases](https://github.com/buiilding/WindieOS/releases)
 <tr><td><b>Visible desktop presence</b></td><td>The minimal chat pill stays on top of the operating system, so the agent feels present on the machine instead of trapped inside a browser tab or separate app.</td></tr>
 <tr><td><b>Shared-workspace collaboration</b></td><td>WindieOS can work from the same screen you are looking at. It does not need you to describe every button, page, or app state before it can help.</td></tr>
 <tr><td><b>Voice-first by design</b></td><td>Say "Hey Jarvis", speak your request, and WindieOS transcribes it into the agent loop. The goal is a keyboard-free agent you can call while your hands are busy.</td></tr>
-<tr><td><b>Model-provider flexible</b></td><td>WindieOS is designed for multimodal model providers instead of one native computer-use stack. The backend owns provider policy while the desktop sidecar owns local execution.</td></tr>
-<tr><td><b>Hackable agent runtime</b></td><td>Change the instructions, add skills, register local tools, wire MCP servers, or build your own desktop agent on top of the SDK and sidecar runtime.</td></tr>
+<tr><td><b>Model-provider flexible</b></td><td>WindieOS is designed for multimodal model providers instead of one native computer-use stack. The backend owns provider policy while the SDK local runtime owns local execution.</td></tr>
+<tr><td><b>Hackable agent runtime</b></td><td>Change the instructions, add skills, register local tools, wire MCP servers, or build your own desktop agent on top of the SDK and local-runtime contracts.</td></tr>
 </table>
 
 ---
@@ -190,9 +190,9 @@ directly into a topic:
 | [Quick Start](docs/getting-started/quick_start.md) | Install dependencies and run WindieOS from source. |
 | [Installation](docs/getting-started/installation.md) | Source install, endpoint overrides, sidecar Python resolution, and verification. |
 | [User Guide](docs/getting-started/user_guide.md) | Chat pill, dashboard, browser-use, memory, and stop/redirect behavior. |
-| [Frontend Architecture](docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and sidecar ownership. |
+| [Frontend Architecture](docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and local-runtime ownership. |
 | [Communication Flow](docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |
-| [Tool System](docs/architecture/tool_system.md) | Hosted orchestration boundary, sidecar tool execution, and renderer visibility. |
+| [Tool System](docs/architecture/tool_system.md) | Hosted orchestration boundary, local-runtime tool execution, and renderer visibility. |
 | [Windie SDK Runtime](docs/sdk/windie_client_runtime.md) | Canonical client runtime, model switching, conversation stores, projections, and local tool routing. |
 | [Computer-Use](docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
 | [Browser-Use](docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |

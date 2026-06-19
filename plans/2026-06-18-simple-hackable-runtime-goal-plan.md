@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a root README local-runtime public label slice by
+  routing the product table and docs table away from desktop-sidecar execution,
+  SDK/sidecar runtime, sidecar ownership, and sidecar tool-execution labels and
+  through SDK local runtime, local-runtime contracts, local-runtime ownership,
+  and local-runtime tool execution. Validation: focused modular boundary guard,
+  docs listing, exact stale label scan, and diff checks. No migration required;
+  root README copy and boundary tests changed only, with no SDK API, local tool
+  execution, sidecar process setup, tool schema, IPC channel, credential,
+  permission, hosted route, provider policy, packaging, backend schema, or
+  storage behavior changed.
 - 2026-06-19: completed a renderer voice source-topology gateway slice by
   routing the voice mode section in `frontend/src/renderer/folder_structure.md`
   through the desktop voice runtime gateway facade instead of a direct backend
