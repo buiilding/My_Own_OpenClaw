@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an SDK runtime transport factory naming slice by
+  adding `createAgentRuntimeTransport` as the primary conversation transport
+  factory, routing `Agent.conversation(...)` and focused SDK transport tests
+  through the runtime-named factory, and preserving
+  `createAgentBackendTransport` as an explicit compatibility alias for older
+  SDK callers. Validation: focused SDK client and package-boundary tests,
+  runtime-factory source scan, and diff checks. No migration required; hosted
+  websocket behavior, conversation runtime transport shape, public compatibility
+  alias behavior, backend payloads, local-runtime execution, credentials,
+  provider-policy, storage, hosted URLs, and renderer IPC behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer dashboard MCP registry payload runtime
   slice by moving MCP registry normalization, empty registry defaults, and
   nested enablement-result registry normalization from `McpsSection` into
