@@ -49,11 +49,11 @@ function McpsSection({ onClose = () => {} }) {
     }
   }, []);
 
-  const handleToggle = useCallback(async (server, enabled) => {
+  const handleToggle = useCallback(async (id, enabled) => {
     setError('');
     try {
       setRegistry(await DesktopMcpRuntimeClient.setMcpServerEnabled({
-        id: server.extension_id || server.mcp_id || server.id,
+        id,
         enabled,
       }));
     } catch (toggleError) {
@@ -105,31 +105,28 @@ function McpsSection({ onClose = () => {} }) {
           <div className="clone-empty-state">No MCP servers configured.</div>
         ) : (
           <div className="clone-settings-layer-list">
-            {registry.mcps.map((server) => (
-              <section key={`${server.extension_id || server.id}`} className="clone-settings-tool-card">
-                <div className="clone-settings-tool-toggle">
-                  <span>
-                    {server.name || server.id}
-                    <small>{server.status?.label || 'Unknown'}</small>
-                  </span>
-                  <CloneToggle
-                    checked={server.effective_enabled === true}
-                    onChange={(enabled) => handleToggle(server, enabled)}
-                    ariaLabel={`Enable ${server.name || server.id}`}
-                  />
-                </div>
-                <p className={`clone-settings-tool-status${server.status?.state === 'error' ? ' clone-settings-tool-status-error' : ''}`}>
-                  {server.status?.reason || server.command}
-                </p>
-                <pre>{JSON.stringify({
-                  id: server.id,
-                  command: server.command,
-                  args: server.args || [],
-                  tool_prefix: server.tool_prefix || null,
-                  tools: (server.tools || []).map((tool) => tool.name),
-                }, null, 2)}</pre>
-              </section>
-            ))}
+            {registry.mcps.map((server) => {
+              const presentation = DesktopMcpRuntimeClient.getMcpServerPresentation(server);
+              return (
+                <section key={presentation.key} className="clone-settings-tool-card">
+                  <div className="clone-settings-tool-toggle">
+                    <span>
+                      {presentation.name}
+                      <small>{presentation.statusLabel}</small>
+                    </span>
+                    <CloneToggle
+                      checked={presentation.enabled}
+                      onChange={(enabled) => handleToggle(presentation.enablementId, enabled)}
+                      ariaLabel={`Enable ${presentation.name}`}
+                    />
+                  </div>
+                  <p className={presentation.statusClassName}>
+                    {presentation.statusText}
+                  </p>
+                  <pre>{JSON.stringify(presentation.debugSpec, null, 2)}</pre>
+                </section>
+              );
+            })}
           </div>
         )}
 

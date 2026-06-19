@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move MCP server card/status presentation into
+  `desktopMcpRuntimeClient` so `McpsSection` no longer reads raw server status,
+  enablement, command, args, or tool fields while rendering MCP cards. No
+  migration required.
 - renderer/runtime: normalize response-overlay stream-trace size payload fields
   in `desktopRendererTraceRuntime` so `useResponseOverlayWindowSync` no longer
   assembles diagnostic `layout_mode`, `show_response`, `compact_hover`, or

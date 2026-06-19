@@ -17,6 +17,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopMcpRuntimeClient,
+  getDesktopMcpServerPresentation,
   normalizeDesktopMcpEnablementResult,
   normalizeDesktopMcpRegistry,
   resolveDesktopMcpEnablementRegistry,
@@ -96,6 +97,50 @@ describe('DesktopMcpRuntimeClient', () => {
       success: false,
       error: ' Missing MCP server id. ',
     })).toThrow('Missing MCP server id.');
+  });
+
+  test('builds MCP server presentation values at the runtime boundary', () => {
+    expect(getDesktopMcpServerPresentation({
+      id: 'memory',
+      extension_id: 'mcp:memory',
+      name: ' Memory ',
+      command: 'node',
+      args: ['server.cjs'],
+      tool_prefix: 'memory',
+      effective_enabled: true,
+      status: { state: 'error', label: ' Error ', reason: ' Missing binary. ' },
+      tools: [{ name: 'search' }],
+    })).toEqual({
+      key: 'mcp:memory',
+      name: 'Memory',
+      enablementId: 'mcp:memory',
+      enabled: true,
+      statusLabel: 'Error',
+      statusClassName: 'clone-settings-tool-status clone-settings-tool-status-error',
+      statusText: 'Missing binary.',
+      debugSpec: {
+        id: 'memory',
+        command: 'node',
+        args: ['server.cjs'],
+        tool_prefix: 'memory',
+        tools: ['search'],
+      },
+    });
+
+    expect(DesktopMcpRuntimeClient.getMcpServerPresentation({
+      id: 'cua',
+      command: 'cua-driver',
+      status: {},
+      tools: 'offline',
+    })).toEqual(expect.objectContaining({
+      key: 'cua',
+      name: 'cua',
+      enablementId: 'cua',
+      enabled: false,
+      statusLabel: 'Unknown',
+      statusClassName: 'clone-settings-tool-status',
+      statusText: 'cua-driver',
+    }));
   });
 
   test('list, refresh, and enablement commands return normalized payloads', async () => {

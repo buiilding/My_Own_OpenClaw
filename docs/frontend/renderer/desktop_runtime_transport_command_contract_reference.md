@@ -264,9 +264,12 @@ runtime commands and refresh subscriptions to this client.
 
 `desktopMcpRuntimeClient.ts` owns desktop MCP registry list, refresh,
 enablement commands, MCP registry payload normalization, enablement result
-normalization, and registry-or-error projection. The MCP dashboard section owns
-toggle presentation and error display while consuming normalized registries and
-runtime-thrown enablement errors from this client.
+normalization, registry-or-error projection, and MCP server card/status
+presentation values such as display name, enablement id, enabled state, status
+label/class/text, and debug spec. The MCP dashboard section owns rendering,
+load/refresh/toggle state, and error display while consuming normalized
+registries, presentation values, and runtime-thrown enablement errors from this
+client.
 
 `desktopExtensionRuntimeClient.ts` owns extension metadata loading, extension
 runtime payload normalization, and agent capability event fan-out/type

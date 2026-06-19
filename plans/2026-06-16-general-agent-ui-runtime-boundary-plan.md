@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer MCP Server Card Presentation Boundary
+
+- Finding: `desktopMcpRuntimeClient` owned MCP registry, refresh, enablement,
+  and registry-or-error normalization, but `McpsSection` still read raw server
+  `status`, `effective_enabled`, command, args, and tool fields while rendering
+  MCP cards.
+- Change: added MCP server card/status presentation projection to
+  `desktopMcpRuntimeClient`. `McpsSection` now renders display name, status
+  label/class/text, enablement state/id, and debug spec values from the runtime
+  client.
+- Validation: passed focused desktop MCP runtime client, MCP dashboard section,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw MCP card-field scan, docs listing, and diff checks.
+- Compatibility: no migration required. MCP registry payloads, enablement
+  persistence, discovery refresh behavior, dashboard card text for normal
+  registry payloads, IPC channels, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Response-Surface Trace Payload Boundary
 
 - Finding: `desktopRendererTraceRuntime` owned renderer debug-trace gating and

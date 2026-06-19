@@ -245,6 +245,35 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).not.toContain('DesktopAgentExtensionRuntimeClient');
   });
 
+  test('MCP settings card presentation routes through MCP runtime client', async () => {
+    const source = await fs.readFile(
+      path.resolve(
+        __dirname,
+        '../../frontend/src/renderer/features/dashboard/components/sections/McpsSection.jsx',
+      ),
+      'utf8',
+    );
+    const clientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMcpRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('DesktopMcpRuntimeClient.getMcpServerPresentation');
+    expect(source).not.toContain('server.status?.label');
+    expect(source).not.toContain('server.status?.state');
+    expect(source).not.toContain('server.status?.reason');
+    expect(source).not.toContain('server.effective_enabled === true');
+    expect(source).not.toContain('server.command');
+    expect(source).not.toContain('server.args');
+    expect(source).not.toContain('server.tools');
+    expect(source).not.toContain('server.extension_id');
+    expect(source).not.toContain('server.mcp_id');
+    expect(source).not.toContain('server.id');
+    expect(clientSource).toContain('getDesktopMcpServerPresentation');
+    expect(clientSource).toContain('statusClassName');
+    expect(clientSource).toContain('debugSpec');
+  });
+
   test('settings runtime facade describes SDK command IPC rather than backend IPC', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts'),

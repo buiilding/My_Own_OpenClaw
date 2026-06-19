@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved MCP server card/status presentation into
+  `desktopMcpRuntimeClient`. `McpsSection` now renders display name, status
+  label/class/text, enablement state/id, and debug spec values from the runtime
+  client instead of reading raw server `status`, `effective_enabled`, command,
+  args, or tool fields while rendering cards. Validation passed focused desktop
+  MCP runtime client, MCP dashboard section, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale raw MCP
+  card-field scan, docs listing, and diff checks. No migration required; MCP
+  registry payloads, enablement persistence, discovery refresh behavior,
+  dashboard card text for normal registry payloads, IPC channels, storage,
+  provider policy, hosted URLs, permissions, credentials, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: moved response-overlay stream-trace size payload shaping into
   `desktopRendererTraceRuntime`. `useResponseOverlayWindowSync` now keeps
   response-window measurement, dedupe, and visibility re-report timing while

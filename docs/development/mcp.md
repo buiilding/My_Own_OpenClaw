@@ -36,6 +36,12 @@ visible in the dashboard without becoming model-visible by setting
 discovery, `client_tool_manifest`, `available_tools`, and execution until the
 local user enables them.
 
+The renderer MCP dashboard consumes registry and card/status presentation
+values from `desktopMcpRuntimeClient.ts`. Dashboard components should not parse
+raw server `status`, `effective_enabled`, command, args, or tool fields while
+rendering cards; the runtime client keeps that registry-payload presentation
+contract centralized.
+
 ## Add An MCP Server
 
 Create `mcps/<id>/mcp.json`:
