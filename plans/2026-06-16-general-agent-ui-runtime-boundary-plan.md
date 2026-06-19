@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Voice Source Topology Runtime Gateway
+
+- Finding: `frontend/src/renderer/folder_structure.md` still labeled voice mode
+  as a backend transcription gateway with a direct websocket connection even
+  though `useVoiceMode` delegates endpoint resolution, socket creation, protocol
+  sends, and inbound normalization through `DesktopVoiceRuntimeClient`.
+- Change: routed the source topology voice section through the desktop voice
+  runtime gateway facade while keeping `/ws/transcription` and backend STT
+  provider policy as implementation details behind that route.
+- Validation: focused renderer voice boundary coverage, docs listing, exact
+  stale direct-backend voice topology scan, and diff checks.
+- Compatibility: no migration required. Gateway URL shape, websocket protocol,
+  AudioWorklet capture, wakeword IPC, credentials, permissions, hosted routes,
+  provider policy, packaging, storage, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Appearance Defaults Skin Config
 
 - Finding: `configStorage.js`, `applyAppearanceTheme.js`, and the appearance

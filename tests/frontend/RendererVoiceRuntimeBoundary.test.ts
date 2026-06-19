@@ -74,4 +74,18 @@ describe('renderer voice runtime boundary', () => {
       expect(source).not.toContain('console.log(');
     }
   });
+
+  test('renderer source topology routes voice through the desktop voice runtime facade', async () => {
+    const folderStructurePath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/folder_structure.md',
+    );
+    const source = await fs.readFile(folderStructurePath, 'utf8');
+
+    expect(source).toContain('Voice Mode (Desktop Voice Runtime Gateway)');
+    expect(source).toContain('DesktopVoiceRuntimeClient');
+    expect(source).toContain('backend owns STT provider policy');
+    expect(source).not.toContain('Voice Mode (Backend Transcription Gateway)');
+    expect(source).not.toContain('WebSocket connection to backend `/ws/transcription`');
+  });
 });

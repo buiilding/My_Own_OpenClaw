@@ -606,8 +606,9 @@ Tools that may appear in renderer display projections:
 
 ## Voice Integration
 
-### Voice Mode (Backend Transcription Gateway)
-- WebSocket connection to backend `/ws/transcription`
+### Voice Mode (Desktop Voice Runtime Gateway)
+- `DesktopVoiceRuntimeClient` opens the transcription gateway WebSocket derived from the active backend endpoint
+- Gateway route remains `/ws/transcription`; backend owns STT provider policy behind that route
 - Real-time transcription with incremental updates
 - Utterance end detection (silence) stops temporary dictation and keeps text in the composer
 - Audio format: 16kHz, mono, Int16Array PCM

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: route the renderer source topology voice section through the
+  desktop voice runtime gateway facade instead of a direct backend websocket
+  label. No migration required.
 - renderer/config: move default appearance theme palettes into the WindieOS
   renderer skin config and route storage/theme consumers through the generic
   desktop runtime config facade. No migration required.

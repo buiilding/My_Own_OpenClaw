@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer voice source-topology gateway slice by
+  routing the voice mode section in `frontend/src/renderer/folder_structure.md`
+  through the desktop voice runtime gateway facade instead of a direct backend
+  websocket label. Validation: focused renderer voice boundary coverage, docs
+  listing, exact stale direct-backend voice topology scan, and diff checks. No
+  migration required; gateway URL shape, websocket protocol, AudioWorklet
+  capture, wakeword IPC, credential, permission, hosted route, provider policy,
+  packaging, storage, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer appearance-defaults skin config slice by
   moving the default light/dark palette out of generic config storage into the
   WindieOS renderer skin config, re-exporting it through `desktopRuntimeConfig`,
