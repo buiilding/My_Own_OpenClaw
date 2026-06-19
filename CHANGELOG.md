@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize pending-turn broadcast envelopes into
+  app-runtime pending/clear actions before chat store state application, so the
+  store no longer decodes raw `windie:pending-turn` replay payloads. No
+  migration required.
 - renderer/runtime: move chat-loop transport recovery reducer and event
   vocabulary into `desktopChatLoopUiRuntime`, leaving `useChatLoopUiState` to
   wire subscriptions and watchdog timers. No migration required.

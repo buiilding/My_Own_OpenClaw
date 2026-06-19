@@ -147,4 +147,42 @@ describe('DesktopConversationRuntimeEventClient', () => {
     unsubscribe?.();
     expect(mockChannelListeners.has('windie:rows')).toBe(false);
   });
+
+  test('pending-turn subscriptions emit normalized broadcast actions', () => {
+    const actions: unknown[] = [];
+    const unsubscribe = DesktopConversationRuntimeEventClient.onPendingTurn((action) => {
+      actions.push(action);
+    });
+
+    mockChannelListeners.get('windie:pending-turn')?.({
+      type: 'pending',
+      pendingTurn: { conversationRef: 'conv-1', turnRef: 'turn-1' },
+    });
+    mockChannelListeners.get('windie:pending-turn')?.({
+      type: 'clear',
+      conversationRef: ' conv-1 ',
+      turnRef: ' turn-1 ',
+    });
+    mockChannelListeners.get('windie:pending-turn')?.(null);
+
+    expect(mockOn).toHaveBeenCalledWith('windie:pending-turn', expect.any(Function));
+    expect(actions).toEqual([
+      {
+        kind: 'pending',
+        pendingTurn: { conversationRef: 'conv-1', turnRef: 'turn-1' },
+      },
+      {
+        kind: 'clear',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+      },
+      {
+        kind: 'pending',
+        pendingTurn: undefined,
+      },
+    ]);
+
+    unsubscribe?.();
+    expect(mockChannelListeners.has('windie:pending-turn')).toBe(false);
+  });
 });

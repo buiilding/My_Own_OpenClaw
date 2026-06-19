@@ -30,6 +30,7 @@ import {
   projectDesktopChatInterfaceState,
   projectDesktopLiveTurnSurfaceState,
 } from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
+import type { DesktopPendingTurnBroadcastAction } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 export type { ChatMessage, TokenCounts };
 
@@ -154,9 +155,7 @@ interface ChatState {
       stoppedAt?: string | null;
     } | null,
   ) => void;
-  applyPendingTurnBroadcast: (
-    payload: unknown,
-  ) => void;
+  applyPendingTurnBroadcast: (action: DesktopPendingTurnBroadcastAction) => void;
   setLatestCurrentTurnProjection: (
     currentTurnProjection: SdkCurrentTurnProjection | null,
   ) => void;
@@ -760,14 +759,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       });
     }),
 
-  applyPendingTurnBroadcast: (payload) =>
+  applyPendingTurnBroadcast: (action) =>
     set((state) => {
-      const source = payload && typeof payload === 'object' && !Array.isArray(payload)
-        ? payload as Record<string, unknown>
-        : {};
-      if (source.type === 'clear') {
-        const conversationRef = normalizeConversationRef(source.conversationRef as string | null | undefined);
-        const turnRef = normalizeTurnRef(source.turnRef as string | null | undefined);
+      if (action.kind === 'clear') {
+        const conversationRef = action.conversationRef;
+        const turnRef = action.turnRef;
         const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
         const currentWorkspace = readWorkspaceState(state, workspaceRef);
         if (!doesPendingTurnMatch(currentWorkspace.pendingTurn, { conversationRef, turnRef })) {
@@ -780,7 +776,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         };
         return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace);
       }
-      const normalizedPendingTurn = normalizePendingTurn(source.pendingTurn);
+      const normalizedPendingTurn = normalizePendingTurn(action.pendingTurn);
       if (!normalizedPendingTurn) {
         return state;
       }

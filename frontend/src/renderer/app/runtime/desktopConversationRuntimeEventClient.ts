@@ -8,6 +8,10 @@ import type {
   CurrentTurnProjection,
   SdkDisplayRow,
 } from './desktopConversationRuntimeContracts';
+import {
+  resolveDesktopPendingTurnBroadcastAction,
+  type DesktopPendingTurnBroadcastAction,
+} from './desktopPendingTurnRuntimeClient';
 
 export type DesktopRuntimeEventListener = (payload: unknown) => void;
 
@@ -115,8 +119,13 @@ export const DesktopConversationRuntimeEventClient = {
     return subscribe(DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT, listener);
   },
 
-  onPendingTurn(listener: DesktopRuntimeEventListener): (() => void) | undefined {
-    return subscribe(DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN, listener);
+  onPendingTurn(
+    listener: (action: DesktopPendingTurnBroadcastAction) => void,
+  ): (() => void) | undefined {
+    return subscribe(
+      DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN,
+      (payload: unknown) => listener(resolveDesktopPendingTurnBroadcastAction(payload)),
+    );
   },
 
   onCurrentTurn(listener: DesktopRuntimeEventListener): (() => void) | undefined {

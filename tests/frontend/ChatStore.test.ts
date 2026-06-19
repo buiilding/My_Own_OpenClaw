@@ -293,7 +293,7 @@ describe('chatStore', () => {
 
   test('applyPendingTurnBroadcast replays pending state into an empty renderer workspace', () => {
     useChatStore.getState().applyPendingTurnBroadcast({
-      type: 'pending',
+      kind: 'pending',
       pendingTurn: {
         conversationRef: 'conv-replay',
         turnRef: 'turn-replay',

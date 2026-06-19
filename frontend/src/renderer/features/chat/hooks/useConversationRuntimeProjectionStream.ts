@@ -128,8 +128,8 @@ export function useConversationRuntimeProjectionStream(): void {
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
 
   useEffect(() => {
-    const removeListener = DesktopConversationRuntimeEventClient.onPendingTurn((payload: unknown) => {
-      applyPendingTurnBroadcast(payload);
+    const removeListener = DesktopConversationRuntimeEventClient.onPendingTurn((action) => {
+      applyPendingTurnBroadcast(action);
     });
     return () => {
       removeListener?.();

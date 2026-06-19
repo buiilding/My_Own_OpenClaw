@@ -199,7 +199,7 @@ describe('pending-turn live surface integration', () => {
     const pendingTurn = state.pendingTurn;
     resetStore();
     useChatStore.getState().applyPendingTurnBroadcast({
-      type: 'pending',
+      kind: 'pending',
       pendingTurn,
     });
     state = useChatStore.getState();

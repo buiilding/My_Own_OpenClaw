@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer pending-turn broadcast action boundary
+  slice by adding `resolveDesktopPendingTurnBroadcastAction(...)` to
+  `desktopPendingTurnRuntimeClient` and routing
+  `DesktopConversationRuntimeEventClient.onPendingTurn(...)` through it.
+  `chatStore.applyPendingTurnBroadcast(...)` now consumes app-runtime
+  pending/clear actions instead of decoding raw `windie:pending-turn` replay
+  envelopes. Validation: focused pending-turn runtime client, conversation
+  runtime event client, chat store, pending-turn live surface integration, and
+  renderer chat runtime boundary tests plus docs search, related commit search,
+  stale raw-envelope scans, and diff checks. No migration required; the
+  `windie:pending-turn` IPC channel, pending/clear payload shapes, replay
+  behavior, optimistic pending-turn UI state, storage, settings, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer chat-loop transport machine runtime slice by
   moving the disconnect/reconnect recovery reducer, machine event vocabulary,
   and event factory helpers into `desktopChatLoopUiRuntime`.

@@ -1300,9 +1300,23 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopPendingTurnRuntimeClient.ts'),
       'utf8',
     );
+    const eventClientSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts'),
+      'utf8',
+    );
+    const chatStoreSource = await fs.readFile(
+      path.join(chatRoot, 'stores/chatStore.ts'),
+      'utf8',
+    );
 
     expect(offenders).toEqual([]);
     expect(clientSource).toContain('DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
+    expect(clientSource).toContain('resolveDesktopPendingTurnBroadcastAction');
+    expect(eventClientSource).toContain('resolveDesktopPendingTurnBroadcastAction(payload)');
+    expect(chatStoreSource).toContain('DesktopPendingTurnBroadcastAction');
+    expect(chatStoreSource).toContain("action.kind === 'clear'");
+    expect(chatStoreSource).not.toContain("source.type === 'clear'");
+    expect(chatStoreSource).not.toContain('source.pendingTurn');
   });
 
   test('chat stop-turn state is owned by app runtime', async () => {

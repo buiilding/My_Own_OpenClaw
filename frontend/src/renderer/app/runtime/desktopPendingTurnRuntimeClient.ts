@@ -19,6 +19,46 @@ export type DesktopPendingTurnClearInput = {
   turnRef?: string | null;
 };
 
+export type DesktopPendingTurnBroadcastAction =
+  | {
+    kind: 'pending';
+    pendingTurn: unknown;
+  }
+  | {
+    kind: 'clear';
+    conversationRef: string | null;
+    turnRef: string | null;
+  };
+
+function recordOrEmpty(value: unknown): Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function normalizeOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim()
+    ? value.trim()
+    : null;
+}
+
+export function resolveDesktopPendingTurnBroadcastAction(
+  payload: unknown,
+): DesktopPendingTurnBroadcastAction {
+  const source = recordOrEmpty(payload);
+  if (source.type === 'clear') {
+    return {
+      kind: 'clear',
+      conversationRef: normalizeOptionalString(source.conversationRef),
+      turnRef: normalizeOptionalString(source.turnRef),
+    };
+  }
+  return {
+    kind: 'pending',
+    pendingTurn: source.pendingTurn,
+  };
+}
+
 export const DesktopPendingTurnRuntimeClient = {
   setPending(pendingTurn: DesktopPendingTurn): void {
     IpcBridge.send(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, {

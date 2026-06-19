@@ -174,6 +174,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Pending-Turn Broadcast Action Boundary
+
+- Finding: `DesktopConversationRuntimeEventClient` already owned the
+  `windie:pending-turn` subscription, but `chatStore` still decoded the raw
+  pending-turn replay envelope by checking `source.type === 'clear'` and
+  reading `source.pendingTurn`.
+- Change: added `resolveDesktopPendingTurnBroadcastAction(...)` to
+  `desktopPendingTurnRuntimeClient`, routed `onPendingTurn(...)` through that
+  normalizer, and changed `chatStore.applyPendingTurnBroadcast(...)` to consume
+  app-runtime pending/clear actions while keeping pending-turn state
+  application in the store.
+- Validation: focused pending-turn runtime client, conversation runtime event
+  client, chat store, pending-turn live surface integration, and renderer chat
+  runtime boundary tests plus docs search, related commit search, stale raw
+  envelope scans, and diff checks.
+- Compatibility: no migration required. The `windie:pending-turn` IPC channel,
+  pending/clear payload shapes, replay behavior, optimistic pending-turn UI
+  state, storage, settings, credentials, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Chat-Loop Transport Machine Runtime Boundary
 
 - Finding: docs described the chat-loop disconnect/reconnect reducer as a
