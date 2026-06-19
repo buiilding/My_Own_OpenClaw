@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Source Topology Local-Runtime Execution Stage
+
+- Finding: `frontend/src/renderer/folder_structure.md` still named the local
+  tool execution diagram stage `SIDECAR EXECUTION`, making the renderer source
+  topology present the Python sidecar implementation as the execution owner.
+- Change: renamed the stage to `LOCAL-RUNTIME EXECUTION`, changed the edge text
+  to show the SDK local runtime invoking the Python sidecar daemon, and added
+  modular docs guards for the retired stage label.
+- Validation: focused modular boundary guard, exact source topology stale label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Source topology docs and boundary tests
+  changed only; renderer projection behavior, SDK tool dispatch, JSON-RPC
+  methods, IPC channels, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Frontend Inventory Local-Runtime Python File-Count Labels
 
 - Finding: active frontend inventory hub, runtime matrix, functionality

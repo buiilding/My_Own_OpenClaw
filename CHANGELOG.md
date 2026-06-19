@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: label the source-owned tool execution topology stage as
+  local-runtime execution instead of Sidecar execution while keeping the Python
+  sidecar daemon as the concrete executor implementation. No migration
+  required.
 - docs/frontend: align frontend inventory hub, runtime matrix, functionality
   inventories, and module-index file-count labels with local-runtime Python
   wording instead of sidecar public service labels. No migration required.

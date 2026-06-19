@@ -336,8 +336,8 @@ frontend/src/renderer/
        ├─> Preserve request_id / bundle_id / tool_call_id
        └─> Return exactly one tool-result or tool-bundle-result to backend
            ↓
-3. SIDECAR EXECUTION
-   └─> SDK local runtime → Python sidecar daemon
+3. LOCAL-RUNTIME EXECUTION
+   └─> SDK local runtime invokes the Python sidecar daemon
        ├─> Execute filesystem/shell/browser/computer-use/MCP/plugin tools
        └─> Return normalized local result to SDK runtime
            ↓

@@ -376,6 +376,7 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('Agent SDK runtime');
     expect(docText).toContain('Agent SDK tool');
+    expect(docText).toContain('3. LOCAL-RUNTIME EXECUTION');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
     expect(docText).not.toContain('SDK agent runtime concern');
@@ -388,6 +389,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('SDK agent stream-event module');
     expect(docText).not.toContain('public SDK agent APIs');
     expect(docText).not.toContain('SDK main runtime');
+    expect(docText).not.toContain('3. SIDECAR EXECUTION');
     expect(docText).not.toContain('Frontend/sidecar owner');
     expect(docText).not.toContain('Frontend-owned payloads:');
     expect(docText).not.toContain('Sidecar-owned payloads:');
@@ -1438,6 +1440,10 @@ describe('modular sdk refactor completion boundary', () => {
         'Sidecar transcript store methods',
         'Main IPC, Backend Relay, and Sidecar Bridge',
         'Sidecar scoped host bridge',
+        'sidecar propagation',
+        'sidecar backend URL propagation',
+        '## Local Backend',
+        'force Electron dev to use the local backend',
         'sidecar, and landing',
         'sidecar services',
         'sidecar Python services',

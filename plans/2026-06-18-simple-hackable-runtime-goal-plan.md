@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer source topology local-runtime execution
+  label slice by renaming the tool execution diagram stage in
+  `frontend/src/renderer/folder_structure.md` from Sidecar execution to
+  local-runtime execution while keeping the Python sidecar daemon as concrete
+  executor implementation evidence. Validation: focused modular boundary guard,
+  exact source topology stale label scan, docs listing, and diff checks. No
+  migration required; source topology docs and boundary tests changed only, with
+  no renderer projection behavior, SDK tool dispatch, JSON-RPC method, IPC
+  channel, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed a development routing local-runtime hub label slice by
   routing contributor-facing local-runtime implementation links and the
   development hub summary away from Local Runtime Sidecar public labels while
