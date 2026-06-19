@@ -1,22 +1,22 @@
 ---
-summary: "Deep reference for renderer wakeword capture guard utility: global lockout persistence, missing-device detection heuristics, and audio-input availability probing contract."
+summary: "Deep reference for renderer wakeword capture guard runtime: global lockout persistence, missing-device detection heuristics, and audio-input availability probing contract."
 read_when:
-  - When changing `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`.
+  - When changing `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`.
   - When debugging missing-device wakeword lockout state across remounts or device-reconnect retry behavior.
-title: "Wakeword Capture Guard Utility Reference"
+title: "Wakeword Capture Guard Runtime Reference"
 ---
 
-# Wakeword Capture Guard Utility Reference
+# Wakeword Capture Guard Runtime Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
+- `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `tests/frontend/voice/WakewordDetectionHook.test.ts`
 
-## Utility Ownership Boundary
+## Runtime Ownership Boundary
 
-`wakewordCaptureGuard.ts` is the single renderer utility owner for wakeword missing-device lockout persistence.
+`desktopWakewordCaptureGuardRuntime.ts` is the single renderer runtime owner for wakeword missing-device lockout persistence.
 
 It owns:
 
@@ -27,7 +27,7 @@ It owns:
   - `globalThis.__desktopRuntimeWakewordCaptureGuard`
 - helper functions for guard lifecycle and device heuristics.
 
-`useWakewordDetection` consumes this utility but does not own global object creation semantics.
+`useWakewordDetection` consumes this runtime facade but does not own global object creation semantics.
 
 ## Guard Lifecycle Contract
 
@@ -75,7 +75,7 @@ This keeps reconnect retry logic fail-closed under platform/API failures.
 
 ## Test-Locked Invariants
 
-`tests/frontend/voice/WakewordDetectionHook.test.ts` locks utility-driven behavior:
+`tests/frontend/voice/WakewordDetectionHook.test.ts` locks runtime-driven behavior:
 
 - lockout persists across hook remounts via shared global guard state
 - suppression-only toggles do not clear lockout

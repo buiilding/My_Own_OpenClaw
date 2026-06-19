@@ -27,6 +27,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/dashboard: move recent-conversation load normalization and retry
+  policy into `desktopDashboardConversationLoadRuntime` and delete the feature
+  utility path. No migration required.
+- renderer/voice: move wakeword guard, wakeword event normalization, and gated
+  voice debug trace helpers into app-runtime facades. No migration required.
 - renderer/voice: move voice audio encoding, capture cleanup, and AudioWorklet
   node helpers into app-runtime voice audio facades. No migration required.
 - docs/inventory: update the frontend module file index to point at current

@@ -100,8 +100,36 @@ describe('renderer voice runtime boundary', () => {
       const source = await fs.readFile(path.resolve(__dirname, hookPath), 'utf8');
 
       expect(source).toContain('logVoiceDebugTrace');
+      expect(source).toContain('desktopVoiceDebugTraceRuntime');
+      expect(source).not.toContain('../utils/voiceDebugTrace');
       expect(source).not.toContain('console.log(');
     }
+  });
+
+  test('wakeword hooks consume app-runtime wakeword helpers', async () => {
+    const detectionHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts',
+    );
+    const bridgeHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts',
+    );
+    const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+    const detectionSource = await fs.readFile(detectionHookPath, 'utf8');
+    const bridgeSource = await fs.readFile(bridgeHookPath, 'utf8');
+
+    expect(detectionSource).toContain('desktopWakewordCaptureGuardRuntime');
+    expect(detectionSource).toContain('desktopWakewordEventRuntime');
+    expect(bridgeSource).toContain('desktopWakewordEventRuntime');
+    for (const source of [detectionSource, bridgeSource]) {
+      expect(source).not.toContain('../utils/wakewordCaptureGuard');
+      expect(source).not.toContain('../utils/wakewordEventUtils');
+    }
+
+    await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/wakewordCaptureGuard.ts'))).rejects.toThrow();
+    await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/wakewordEventUtils.ts'))).rejects.toThrow();
+    await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/voiceDebugTrace.ts'))).rejects.toThrow();
   });
 
   test('renderer source topology routes voice through the desktop voice runtime facade', async () => {

@@ -132,7 +132,7 @@ describe('renderer skin/config boundary', () => {
     const consumers = [
       'app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts',
       'features/voice/hooks/useVoiceMode.ts',
-      'features/voice/utils/wakewordCaptureGuard.ts',
+      'app/runtime/desktopWakewordCaptureGuardRuntime.ts',
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));
 
     for (const source of consumers) {

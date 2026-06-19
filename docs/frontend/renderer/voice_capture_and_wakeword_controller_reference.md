@@ -23,8 +23,9 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
-- `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
-- `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
+- `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `tests/frontend/voice/WakewordDetectionHook.test.ts`

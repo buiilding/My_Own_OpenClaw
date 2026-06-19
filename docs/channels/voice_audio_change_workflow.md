@@ -22,7 +22,7 @@ Do not route live dictation through wakeword. Do not route wakeword chunks to tr
 | Symptom or request | First owner | Source roots | Start docs | Tests |
 | --- | --- | --- | --- | --- |
 | microphone permission or onboarding voice gate is wrong | Electron permission service and renderer permission UI | `frontend/src/main/permissions/permission_service_microphone.cjs`, `frontend/src/renderer/features/permissions`, `frontend/src/renderer/features/onboarding` | [Onboarding and Permissions](../desktop/onboarding_permissions.md), [Platform Permission Matrix](../platforms/permission_matrix.md) | `tests/frontend/PermissionService.test.cjs`, permission/onboarding tests |
-| wakeword starts during onboarding or when disabled | renderer wakeword controller and settings gate | `frontend/src/renderer/app/WakewordController.jsx`, `frontend/src/renderer/features/voice/hooks`, `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts` | [Renderer Voice Capture and Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md) | `tests/frontend/voice/WakewordDetectionHook.test.ts`, `tests/frontend/VoiceModeHook.test.ts` |
+| wakeword starts during onboarding or when disabled | renderer wakeword controller and settings gate | `frontend/src/renderer/app/WakewordController.jsx`, `frontend/src/renderer/features/voice/hooks`, `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts` | [Renderer Voice Capture and Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md) | `tests/frontend/voice/WakewordDetectionHook.test.ts`, `tests/frontend/VoiceModeHook.test.ts` |
 | wakeword chunks do not reach sidecar | Electron wakeword bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`, `frontend/src/main/wakeword/wakeword_supervisor.cjs` | [Electron Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) | `tests/frontend/WakewordBridge.test.cjs`, `tests/frontend/WakewordBridgeRuntime.test.cjs`, `tests/frontend/WakewordSupervisor.test.cjs` |
 | wakeword model fails to load or detection output is malformed | Local-runtime wakeword helper backed by the Python sidecar wakeword service | `frontend/src/main/python/wakeword_service.py` | [Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md) | `tests/sidecar/test_wakeword_service.py` |
 | voice dictation connects but no text appears | renderer voice mode and transcription region state | `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`, `frontend/src/renderer/features/chat/hooks/useTranscription.ts`, `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts` | [Frontend Voice Mode Gateway and Transcription Region Reference](../frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md) | `tests/frontend/VoiceModeHook.test.ts`, `tests/frontend/TranscriptionHook.test.ts`, `tests/frontend/DesktopTranscriptionRegionRuntime.test.ts` |
@@ -59,8 +59,9 @@ Primary files:
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts`
-- `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
-- `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`
 - `frontend/src/main/wakeword/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/wakeword/wakeword_supervisor.cjs`

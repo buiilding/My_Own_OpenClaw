@@ -13,7 +13,7 @@ import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoi
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
-import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
+import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;

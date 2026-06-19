@@ -1,5 +1,5 @@
 /**
- * Provides the voice debug trace module for the renderer UI.
+ * Provides gated voice debug tracing for the renderer runtime.
  */
 
 type VoiceTraceDetails = Record<string, unknown>;

@@ -14,7 +14,7 @@ title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
-- `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
@@ -120,7 +120,7 @@ Design goal:
 
 ## Wakeword Utility Guards
 
-`wakewordEventUtils` helpers:
+`desktopWakewordEventRuntime` helpers:
 
 - `resolveConfidence`: accepts finite numeric confidence only
 - `isWithinCooldown`: pure cooldown predicate (`now - last < cooldownMs`)

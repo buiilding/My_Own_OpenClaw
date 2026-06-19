@@ -6,7 +6,7 @@ import {
   getChunkSizeWarning,
   isWithinCooldown,
   resolveConfidence,
-} from '../../frontend/src/renderer/features/voice/utils/wakewordEventUtils';
+} from '../../frontend/src/renderer/app/runtime/desktopWakewordEventRuntime';
 
 describe('wakewordEventUtils', () => {
   test('getChunkSizeWarning returns warning only when chunk size is normalized', () => {

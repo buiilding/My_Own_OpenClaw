@@ -69,6 +69,7 @@ frontend/src/renderer/
 │   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
 │   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
 │   │   ├── desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
+│   │   ├── desktopDashboardConversationLoadRuntime.js # Renderer dashboard recent-conversation normalization and retry facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
 │   │   ├── desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
@@ -95,7 +96,10 @@ frontend/src/renderer/
 │   │   ├── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │   ├── desktopVoiceAudioEncodingRuntime.ts # Renderer voice PCM conversion, chunk normalization, and gateway frame facade
 │   │   ├── desktopVoiceAudioCaptureCleanupRuntime.ts # Renderer voice audio-node and media-stream cleanup facade
-│   │   └── desktopVoiceAudioProcessorNodeRuntime.ts # Renderer voice AudioWorklet capture processor facade
+│   │   ├── desktopVoiceAudioProcessorNodeRuntime.ts # Renderer voice AudioWorklet capture processor facade
+│   │   ├── desktopWakewordEventRuntime.ts # Renderer wakeword event confidence/cooldown/chunk warning facade
+│   │   ├── desktopWakewordCaptureGuardRuntime.ts # Renderer wakeword missing-device lockout and audio-input probe facade
+│   │   └── desktopVoiceDebugTraceRuntime.ts # Renderer gated voice debug trace facade
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
@@ -177,7 +181,7 @@ frontend/src/renderer/
 │   │           ├── providerApiKeys.js   # providerApiKeys - Provider API key defaults/specs + normalization
 │   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
 │   │
-│   │   └── utils/                       # Dashboard helpers
+│   │   └── utils/                       # Dashboard presentation helpers
 │   │       └── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
 │   │
 │   ├── permissions/                      # Permission settings control center
@@ -193,8 +197,7 @@ frontend/src/renderer/
 │       │   ├── useVoiceMode.ts          # useVoiceMode - Uses desktop voice runtime gateway connection and audio capture
 │       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
 │       │
-│       └── utils/                       # Voice utility helpers
-│           └── wakewordEventUtils.ts    # wakewordEventUtils - wakeword confidence/event validation helpers
+│
 │
 ├── infrastructure/                        # Core infrastructure services
 │   │

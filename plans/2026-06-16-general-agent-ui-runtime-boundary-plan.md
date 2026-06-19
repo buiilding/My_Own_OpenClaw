@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Wakeword Helper Runtime Boundary
+
+- Finding: wakeword missing-device lockout, device-probe heuristics,
+  confidence/cooldown normalization, chunk-size warning text, and gated voice
+  debug tracing still lived under the voice feature utility tree after audio
+  capture helpers moved to app runtime.
+- Change: moved those helpers into
+  `frontend/src/renderer/app/runtime/desktopWakewordCaptureGuardRuntime.ts`,
+  `frontend/src/renderer/app/runtime/desktopWakewordEventRuntime.ts`, and
+  `frontend/src/renderer/app/runtime/desktopVoiceDebugTraceRuntime.ts`,
+  routed voice hooks/tests/docs through the app-runtime owners, and deleted
+  the old voice utility helper paths.
+- Validation: focused wakeword event, wakeword detection, voice mode, voice
+  runtime boundary, skin/config boundary, docs listing, stale old-path scan,
+  frontend lint, and diff checks.
+- Compatibility: no migration required. The global wakeword guard key,
+  missing-device lockout semantics, audio-input probing behavior, wakeword
+  confidence/cooldown predicates, debug trace query flag, IPC payloads,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Voice Audio Capture Runtime Boundary
 
 - Finding: voice PCM encoding, gateway frame construction, audio-node cleanup,

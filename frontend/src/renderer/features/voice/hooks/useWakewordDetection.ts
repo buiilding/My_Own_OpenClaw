@@ -13,14 +13,14 @@ import {
 import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import {
   getChunkSizeWarning,
-} from '../utils/wakewordEventUtils';
-import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
+} from '../../../app/runtime/desktopWakewordEventRuntime';
+import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 import {
   clearWakewordCaptureGuard,
   getWakewordCaptureGuard,
   hasAvailableAudioInputDevice,
   isMissingAudioDeviceError,
-} from '../utils/wakewordCaptureGuard';
+} from '../../../app/runtime/desktopWakewordCaptureGuardRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { useWakewordBridgeEvents } from './useWakewordBridgeEvents';
