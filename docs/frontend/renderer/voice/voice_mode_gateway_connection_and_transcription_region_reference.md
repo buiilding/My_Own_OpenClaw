@@ -11,9 +11,9 @@ title: "Voice Mode Gateway Connection and Transcription Region Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
-- `frontend/src/renderer/features/voice/utils/audioProcessorNode.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
@@ -79,7 +79,7 @@ Capture configuration:
 Node graph:
 
 1. `MediaStreamAudioSourceNode`
-2. `AudioWorkletNode` capture processor (`windieos-capture-processor`)
+2. `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`)
 3. destination connection to keep processing loop active
 
 Per audio callback:

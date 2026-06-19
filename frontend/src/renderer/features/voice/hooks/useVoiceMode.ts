@@ -3,13 +3,13 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
+import { buildGatewayAudioMessage, float32ToPcm16 } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import {
   closeAudioContextSafely,
   cleanupAudioCaptureNodes,
   takeAudioContext,
-} from '../utils/audioCaptureCleanup';
-import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
+} from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
+import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';

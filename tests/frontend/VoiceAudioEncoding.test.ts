@@ -6,7 +6,7 @@ import {
   buildGatewayAudioMessage,
   float32ToPcm16,
   normalizeAudioCaptureChunkSize,
-} from '../../frontend/src/renderer/features/voice/utils/audioEncoding';
+} from '../../frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime';
 
 describe('voice audio encoding utilities', () => {
   test('float32ToPcm16 clamps and converts samples', () => {

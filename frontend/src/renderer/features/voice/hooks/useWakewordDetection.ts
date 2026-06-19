@@ -4,13 +4,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
-import { float32ToPcm16, normalizeAudioCaptureChunkSize } from '../utils/audioEncoding';
+import { float32ToPcm16, normalizeAudioCaptureChunkSize } from '../../../app/runtime/desktopVoiceAudioEncodingRuntime';
 import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,
   takeAudioContext,
-} from '../utils/audioCaptureCleanup';
-import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
+} from '../../../app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
+import { createAudioCaptureProcessorNode } from '../../../app/runtime/desktopVoiceAudioProcessorNodeRuntime';
 import {
   getChunkSizeWarning,
 } from '../utils/wakewordEventUtils';

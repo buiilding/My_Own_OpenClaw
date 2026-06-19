@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Voice Audio Capture Runtime Boundary
+
+- Finding: voice PCM encoding, gateway frame construction, audio-node cleanup,
+  and AudioWorklet processor construction lived under the voice feature utility
+  tree even though both voice mode and wakeword hooks use them as desktop
+  runtime capture primitives.
+- Change: moved those helpers into
+  `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`,
+  `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`,
+  and
+  `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`,
+  routed voice hooks/tests/docs through the app-runtime owners, and deleted
+  the old voice utility helper paths.
+- Validation: focused voice audio encoding, cleanup, processor-node, voice
+  runtime boundary, skin/config boundary, docs listing, stale old-path scan,
+  frontend lint, and diff checks.
+- Compatibility: no migration required. PCM conversion, gateway binary frame
+  layout, chunk-size normalization, AudioWorklet processor name, cleanup
+  semantics, wakeword IPC payloads, transcription gateway path, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission Onboarding Storage Runtime Boundary
 
 - Finding: permission onboarding completion persistence lived under the

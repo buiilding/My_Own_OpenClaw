@@ -11,9 +11,9 @@ title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
-- `frontend/src/renderer/features/voice/utils/audioProcessorNode.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
@@ -67,7 +67,7 @@ This is the canonical route for ScriptProcessor fallback voice capture removed.
 
 `createAudioCaptureProcessorNode(...)` behavior:
 
-- requires an `AudioWorkletNode` capture processor (`windieos-capture-processor`)
+- requires an `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`)
 - worklet path batches render quanta into configured chunk-size frames before posting to main thread
 - rejects with `AudioWorklet capture processor is unavailable` when AudioWorklet APIs are missing
 - rejects with `AudioWorklet capture processor failed to initialize: ...` when module setup or node construction fails

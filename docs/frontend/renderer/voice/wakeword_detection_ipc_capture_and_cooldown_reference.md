@@ -14,9 +14,9 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 - `frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
-- `frontend/src/renderer/features/voice/utils/audioProcessorNode.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`

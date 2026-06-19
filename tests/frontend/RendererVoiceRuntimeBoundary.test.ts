@@ -39,6 +39,33 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('JSON.parse');
   });
 
+  test('voice hooks consume app-runtime audio capture helpers', async () => {
+    const voiceModeHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useVoiceMode.ts',
+    );
+    const detectionHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts',
+    );
+    const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+    const voiceModeSource = await fs.readFile(voiceModeHookPath, 'utf8');
+    const detectionSource = await fs.readFile(detectionHookPath, 'utf8');
+
+    for (const source of [voiceModeSource, detectionSource]) {
+      expect(source).toContain('desktopVoiceAudioEncodingRuntime');
+      expect(source).toContain('desktopVoiceAudioCaptureCleanupRuntime');
+      expect(source).toContain('desktopVoiceAudioProcessorNodeRuntime');
+      expect(source).not.toContain('../utils/audioEncoding');
+      expect(source).not.toContain('../utils/audioCaptureCleanup');
+      expect(source).not.toContain('../utils/audioProcessorNode');
+    }
+
+    await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioEncoding.ts'))).rejects.toThrow();
+    await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioCaptureCleanup.ts'))).rejects.toThrow();
+    await expect(fs.access(path.join(rendererRoot, 'features/voice/utils/audioProcessorNode.ts'))).rejects.toThrow();
+  });
+
   test('wakeword hooks delegate bridge IPC to the desktop voice runtime', async () => {
     const detectionHookPath = path.resolve(
       __dirname,

@@ -130,7 +130,7 @@ describe('renderer skin/config boundary', () => {
 
   test('voice capture internals do not embed product naming', () => {
     const consumers = [
-      'features/voice/utils/audioProcessorNode.ts',
+      'app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts',
       'features/voice/hooks/useVoiceMode.ts',
       'features/voice/utils/wakewordCaptureGuard.ts',
     ].map((relativePath) => fs.readFileSync(path.join(rendererRoot, relativePath), 'utf8'));

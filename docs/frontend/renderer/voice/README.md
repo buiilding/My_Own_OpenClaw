@@ -35,8 +35,9 @@ title: "Frontend Renderer Voice Docs Hub"
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`

@@ -20,8 +20,9 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -114,7 +115,7 @@ Reconnect policy:
 
 - `getUserMedia` with mono/16kHz + echo/noise controls
 - `AudioContext` at 16kHz
-- required `AudioWorkletNode` capture processor (`windieos-capture-processor`) with chunk size 4096
+- required `AudioWorkletNode` capture processor (`desktop-runtime-capture-processor`) with chunk size 4096
 - every capture callback:
   - read Float32 input
   - convert to PCM16 (`float32ToPcm16`)

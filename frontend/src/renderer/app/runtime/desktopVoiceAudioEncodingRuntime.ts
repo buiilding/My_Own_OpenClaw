@@ -1,5 +1,5 @@
 /**
- * Provides the audio encoding module for the renderer UI.
+ * Provides desktop voice audio encoding helpers for the renderer runtime.
  */
 
 const VALID_AUDIO_CAPTURE_CHUNK_SIZES = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];

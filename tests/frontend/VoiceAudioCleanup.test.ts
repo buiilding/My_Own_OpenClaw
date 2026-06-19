@@ -6,7 +6,7 @@ import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,
   takeAudioContext,
-} from '../../frontend/src/renderer/features/voice/utils/audioCaptureCleanup';
+} from '../../frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime';
 
 describe('voice audio cleanup utils', () => {
   test('cleanupAudioCaptureNodes disconnects nodes, clears refs, and stops tracks', () => {

@@ -92,7 +92,10 @@ frontend/src/renderer/
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 │   │   ├── desktopStorageRuntimeClient.js # Renderer localStorage JSON helper facade for feature clients
 │   │   ├── desktopTranscriptSessionInfoRuntimeClient.js # Renderer transcript session info subscription facade
-│   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
+│   │   ├── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
+│   │   ├── desktopVoiceAudioEncodingRuntime.ts # Renderer voice PCM conversion, chunk normalization, and gateway frame facade
+│   │   ├── desktopVoiceAudioCaptureCleanupRuntime.ts # Renderer voice audio-node and media-stream cleanup facade
+│   │   └── desktopVoiceAudioProcessorNodeRuntime.ts # Renderer voice AudioWorklet capture processor facade
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
@@ -191,7 +194,6 @@ frontend/src/renderer/
 │       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
 │       │
 │       └── utils/                       # Voice utility helpers
-│           ├── audioEncoding.ts         # audioEncoding - PCM conversion and gateway packet framing helpers
 │           └── wakewordEventUtils.ts    # wakewordEventUtils - wakeword confidence/event validation helpers
 │
 ├── infrastructure/                        # Core infrastructure services

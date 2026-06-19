@@ -20,7 +20,7 @@ read_when:
 - **Split contexts**: `AppConfigContext` vs `AppStatusContext` reduces re-renders.
 - **Zustand store**: Chat state is store-driven and efficiently subscribed.
 - **Lazy Settings Panel**: Settings UI is loaded lazily.
-- **Voice audio encoding reuse**: shared PCM conversion helpers in `frontend/src/renderer/features/voice/utils/audioEncoding.ts` remove duplicate per-hook logic.
+- **Voice audio encoding reuse**: shared PCM conversion helpers in `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts` remove duplicate per-hook logic.
 - **Gateway metadata prefix cache**: voice packet framing caches metadata prefixes by sample rate to avoid JSON/string encoding work on every audio chunk.
 - **Voice gateway control payload reuse**: `useVoiceMode` reuses pre-serialized `set_langs`/`start_over` JSON payloads instead of re-stringifying on each socket-open or utterance-end event.
 - **Chat hook selector subscriptions**: `useChatStream` and `useChatMessageSender` subscribe to store actions via selectors to avoid rerenders from unrelated state updates.

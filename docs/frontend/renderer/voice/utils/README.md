@@ -1,7 +1,7 @@
 ---
-summary: "Frontend renderer voice utils docs sub-hub for PCM/framing helpers, capture cleanup primitives, and transcription-region edit reconciliation contracts."
+summary: "Frontend renderer voice utils docs sub-hub for app-runtime PCM/framing helpers, capture cleanup primitives, and transcription-region edit reconciliation contracts."
 read_when:
-  - When changing `frontend/src/renderer/features/voice/utils/*` helpers used by voice-mode and wakeword hooks.
+  - When changing voice audio runtime helpers or `frontend/src/renderer/features/voice/utils/*` helpers used by voice-mode and wakeword hooks.
   - When debugging chunk-size normalization drift, audio resource cleanup leaks, or transcription region offset regressions after user edits.
 title: "Frontend Renderer Voice Utils Docs Hub"
 ---
@@ -23,8 +23,9 @@ title: "Frontend Renderer Voice Utils Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioProcessorNodeRuntime.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`

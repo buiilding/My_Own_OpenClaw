@@ -90,8 +90,8 @@ Primary files:
 
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
-- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
-- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioEncodingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopVoiceAudioCaptureCleanupRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
 - `backend/src/api/routes/transcription/router.py`
 - `backend/src/api/services/transcription/**`
