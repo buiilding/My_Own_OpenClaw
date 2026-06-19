@@ -32,7 +32,7 @@ frontend/src/renderer/
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
 │   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor layout constants and helpers
-│   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer response overlay lifecycle constants and phase groups
+│   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum and phase-group facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
