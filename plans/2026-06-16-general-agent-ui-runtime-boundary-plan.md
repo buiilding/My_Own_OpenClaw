@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Appearance Defaults Skin Config
+
+- Finding: `configStorage.js`, `applyAppearanceTheme.js`, and the appearance
+  settings tab still treated the default light/dark palette as generic renderer
+  storage behavior, even though those colors are WindieOS skin defaults.
+- Change: moved `DEFAULT_APPEARANCE_THEME` into the renderer skin config,
+  re-exported it through `desktopRuntimeConfig`, routed storage and appearance
+  consumers through that facade, and added a boundary guard so the palette does
+  not drift back into generic storage.
+- Validation: focused renderer skin/config and config-storage tests, docs
+  listing, exact stale-import/palette scan, and diff checks.
+- Compatibility: no migration required. The persisted `appearance_theme` payload
+  shape, localStorage key, IPC/settings payloads, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Getting-Started Local-Runtime Overview Labels
 
 - Finding: high-level getting-started and FAQ docs still described runtime

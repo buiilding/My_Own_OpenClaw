@@ -5,7 +5,7 @@
 import PropTypes from 'prop-types';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { CloneToggle } from './settingsControls';
-import { DEFAULT_APPEARANCE_THEME } from '../../../../../utils/configStorage';
+import { DEFAULT_APPEARANCE_THEME } from '../../../../../app/skin/desktopRuntimeConfig';
 
 const THEME_MODE_OPTIONS = Object.freeze([
   { value: 'light', label: 'Light', icon: Sun },

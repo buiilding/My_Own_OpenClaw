@@ -6,7 +6,10 @@ import {
   loadConfigFromStorage,
   saveConfigToStorage,
 } from '../../frontend/src/renderer/utils/configStorage.js';
-import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig.js';
+import {
+  DEFAULT_APPEARANCE_THEME,
+  RENDERER_STORAGE_KEYS,
+} from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig.js';
 
 const CONFIG_KEY = RENDERER_STORAGE_KEYS.config;
 const DEFAULT_RENDERER_CONFIG = {
@@ -34,26 +37,7 @@ const DEFAULT_RENDERER_CONFIG = {
     kimi_coding: { enabled: false, api_key: '' },
   },
   appearance_mode: 'system',
-  appearance_theme: {
-    light: {
-      accent: '#339CFF',
-      background: '#FFFFFF',
-      foreground: '#1A1C1F',
-      ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      code_font: 'ui-monospace, "SFMono-Regular", monospace',
-      translucent_sidebar: true,
-      contrast: 45,
-    },
-    dark: {
-      accent: '#339CFF',
-      background: '#181818',
-      foreground: '#FFFFFF',
-      ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      code_font: 'ui-monospace, "SFMono-Regular", monospace',
-      translucent_sidebar: true,
-      contrast: 60,
-    },
-  },
+  appearance_theme: DEFAULT_APPEARANCE_THEME,
 };
 
 describe('configStorage', () => {

@@ -384,8 +384,8 @@ Primary modules:
     runtime names inline.
 - `renderer/app/skin/desktopRuntimeConfig.js`:
   - Generic renderer-facing facade over active model selection, provider
-    credential, and provider display defaults supplied by the WindieOS
-    skin/config files.
+    credential, provider display, storage-key, and appearance-theme defaults
+    supplied by the WindieOS skin/config files.
   - Config storage, dashboard settings helpers, model cards, and chat model
     labels should import this facade instead of individual product skin/config
     modules.

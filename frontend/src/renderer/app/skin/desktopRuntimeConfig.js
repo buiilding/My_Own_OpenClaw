@@ -11,4 +11,5 @@ export {
   formatProviderDisplayLabel,
   resolveProviderModelDisplay,
 } from './providerModelDisplaySettings';
+export { DEFAULT_APPEARANCE_THEME } from './appearanceSettings';
 export { RENDERER_STORAGE_KEYS } from './storageSettings';

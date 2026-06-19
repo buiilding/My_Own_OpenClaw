@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer appearance-defaults skin config slice by
+  moving the default light/dark palette out of generic config storage into the
+  WindieOS renderer skin config, re-exporting it through `desktopRuntimeConfig`,
+  and routing storage/theme consumers through that facade. Validation: focused
+  renderer skin/config and config-storage tests, docs listing, exact
+  stale-import/palette scan, and diff checks. No migration required; persisted
+  `appearance_theme` shape, localStorage key, IPC/settings payloads, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a getting-started local-runtime overview label slice by
   routing the project overview and FAQ away from sidecar boundary/storage/
   JSON-RPC execution labels and through local-runtime boundary, storage, and

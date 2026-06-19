@@ -17,10 +17,12 @@ const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelect
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
 const storageSettingsPath = path.join(rendererRoot, 'app/skin/storageSettings.js');
+const appearanceSettingsPath = path.join(rendererRoot, 'app/skin/appearanceSettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
 const configFilterPath = path.join(rendererRoot, 'utils/configFilter.js');
 const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
+const applyAppearanceThemePath = path.join(rendererRoot, 'app/applyAppearanceTheme.js');
 const memoryPreferencePath = path.join(rendererRoot, 'utils/memoryRetrievalPreference.js');
 const permissionStoragePath = path.join(rendererRoot, 'features/permissions/utils/permissionStorage.js');
 const appConfigProviderPath = path.join(rendererRoot, 'app/providers/AppConfigProvider.jsx');
@@ -241,6 +243,25 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain(`'${removedPermissionOnboardingKey}'`);
       expect(source).not.toContain("'windieos-permission-onboarding'");
     }
+  });
+
+  test('appearance defaults live in renderer skin config', () => {
+    const configFacadeSource = fs.readFileSync(skinConfigFacadePath, 'utf8');
+    const appearanceSettingsSource = fs.readFileSync(appearanceSettingsPath, 'utf8');
+    const configStorageSource = fs.readFileSync(configStoragePath, 'utf8');
+    const applyAppearanceThemeSource = fs.readFileSync(applyAppearanceThemePath, 'utf8');
+    const appearanceTabSource = read('AppearanceSettingsTab.jsx');
+
+    expect(configFacadeSource).toContain("from './appearanceSettings'");
+    expect(appearanceSettingsSource).toContain('DEFAULT_APPEARANCE_THEME');
+    expect(appearanceSettingsSource).toContain("accent: '#339CFF'");
+    expect(configStorageSource).toContain('desktopRuntimeConfig');
+    expect(configStorageSource).not.toContain('DEFAULT_APPEARANCE_THEME = Object.freeze');
+    expect(configStorageSource).not.toContain("accent: '#339CFF'");
+    expect(applyAppearanceThemeSource).toContain('desktopRuntimeConfig');
+    expect(applyAppearanceThemeSource).not.toContain('../utils/configStorage');
+    expect(appearanceTabSource).toContain('desktopRuntimeConfig');
+    expect(appearanceTabSource).not.toContain('utils/configStorage');
   });
 
   test('renderer config helpers describe the settings runtime boundary', () => {

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/config: move default appearance theme palettes into the WindieOS
+  renderer skin config and route storage/theme consumers through the generic
+  desktop runtime config facade. No migration required.
 - docs/getting-started: route overview memory and FAQ tool-dispatch copy through
   local-runtime wording instead of sidecar local storage or sidecar JSON-RPC
   execution labels. No migration required.

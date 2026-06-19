@@ -4,6 +4,7 @@
 
 import { DesktopShortcutRuntimeClient } from '../app/runtime/desktopShortcutRuntimeClient';
 import {
+  DEFAULT_APPEARANCE_THEME,
   DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
   RENDERER_STORAGE_KEYS,
@@ -19,27 +20,6 @@ import {
  */
 
 const CONFIG_STORAGE_KEY = RENDERER_STORAGE_KEYS.config;
-
-export const DEFAULT_APPEARANCE_THEME = Object.freeze({
-  light: Object.freeze({
-    accent: '#339CFF',
-    background: '#FFFFFF',
-    foreground: '#1A1C1F',
-    ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    code_font: 'ui-monospace, "SFMono-Regular", monospace',
-    translucent_sidebar: true,
-    contrast: 45,
-  }),
-  dark: Object.freeze({
-    accent: '#339CFF',
-    background: '#181818',
-    foreground: '#FFFFFF',
-    ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    code_font: 'ui-monospace, "SFMono-Regular", monospace',
-    translucent_sidebar: true,
-    contrast: 60,
-  }),
-});
 
 const DEFAULT_RENDERER_CONFIG = {
   model_mode: DEFAULT_MODEL_SELECTION.mode,

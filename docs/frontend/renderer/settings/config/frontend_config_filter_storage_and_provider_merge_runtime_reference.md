@@ -96,6 +96,9 @@ Default config surface:
 - `provider_api_keys`:
   - `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
   - localStorage stores `{ enabled: boolean, api_key: "" }`; raw API keys are scrubbed at this renderer persistence boundary
+- `appearance_mode: "system"`
+- `appearance_theme`: WindieOS skin-provided light/dark palette defaults from
+  the generic renderer `desktopRuntimeConfig` facade
 
 Load semantics (`loadConfigFromStorage`):
 
