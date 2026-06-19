@@ -51,7 +51,7 @@ This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, 
 
 | Desktop client owner | Local-runtime/backend owner | Contract files | Contract note |
 | --- | --- | --- | --- |
-| SDK transcript projection store | Sidecar transcript store methods | `renderer/app/runtime/desktopConversationContinuityService.ts`, `renderer/app/runtime/desktopConversationLibraryClient.js`, `renderer/infrastructure/transcript/desktopConversationStore.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
+| SDK transcript projection store | Local-runtime transcript store methods | `renderer/app/runtime/desktopConversationContinuityService.ts`, `renderer/app/runtime/desktopConversationLibraryClient.js`, `renderer/infrastructure/transcript/desktopConversationStore.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
 | Memory search/store invokes | Local store + remote clients | Renderer dashboard/memory hooks, `memory/local_store.py`, remote clients | Search quality/latency regressions |
 | Semantic summarizer cadence | Semantic endpoint | `memory/summarizer.py` + backend `/api/semantic/summarize` | Semantic memory not compacted |
 

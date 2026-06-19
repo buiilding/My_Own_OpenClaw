@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a frontend transcript-store inventory label slice by
+  routing the IPC/local-runtime contract touchpoint inventory through
+  Local-runtime transcript store methods instead of a Sidecar transcript store
+  owner label. Concrete renderer store/client and Python handler paths remain
+  visible as implementation evidence. Validation: focused modular boundary
+  guard, docs listing, exact stale label scan, and diff checks. No migration
+  required; transcript row storage, renderer projection behavior, SDK command
+  routing, IPC channels, JSON-RPC methods, credentials, permissions, hosted
+  backend URLs, provider policy, and local execution behavior are unchanged.
 - 2026-06-19: completed a public frontend/code-surface navigation label slice
   by routing the top-level frontend hub label through Main/Renderer/Contracts/
   Local-Runtime wording and the local-runtime process row through the

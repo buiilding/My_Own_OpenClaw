@@ -1426,6 +1426,7 @@ describe('modular sdk refactor completion boundary', () => {
         'focused sidecar tests',
         'Add or change a sidecar JSON-RPC method',
         'Sidecar process lifecycle/readiness',
+        'Sidecar transcript store methods',
         'what the sidecar executes',
         'what sidecar executes',
         'the same names the sidecar executes',

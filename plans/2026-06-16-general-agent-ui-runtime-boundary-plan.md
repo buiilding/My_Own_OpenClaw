@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Frontend Transcript Store Inventory Local-Runtime Label
+
+- Finding: the frontend IPC/local-runtime contract touchpoint inventory still
+  labeled SDK transcript projection persistence against `Sidecar transcript
+  store methods`, making the Python backing implementation read like the
+  reusable owner.
+- Change: changed the owner label to Local-runtime transcript store methods
+  while preserving concrete renderer store/client and Python handler paths, and
+  added a focused modular docs guard for the retired label.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Transcript row storage, renderer
+  projection behavior, SDK command routing, IPC channels, JSON-RPC methods,
+  credentials, permissions, hosted backend URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Main Wakeword Hotkey Host-Skin Boundary
 
 - Finding: the Electron main composition root still hardcoded the primary

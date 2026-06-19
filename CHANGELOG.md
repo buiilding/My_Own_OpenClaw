@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route the IPC/local-runtime contract inventory transcript
+  store owner through local-runtime wording instead of a Sidecar transcript
+  store label while keeping Python sidecar handler paths explicit. No migration
+  required.
 - main/host: move the primary wakeword/chat-pill hotkey into WindieOS host skin
   config so the generic Electron host composition root consumes configured
   shortcut copy while lifecycle runtime still owns fallback registration. No
