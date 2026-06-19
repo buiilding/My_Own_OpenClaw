@@ -3,7 +3,7 @@ summary: "Workflow for changing WindieOS model-visible tool schemas, policy gate
 read_when:
   - When adding, removing, renaming, hiding, exposing, or changing a model-visible WindieOS tool.
   - When changing tool argument schemas, descriptions, capability gates, profiles, coordinate methods, provider-native projections, local-runtime executable payloads, or Python sidecar registry exposure.
-  - When debugging a tool that is present in code but missing from the prompt, visible to the model but not executable, rejected before dispatch, or mismatched between backend and sidecar schemas.
+  - When debugging a tool that is present in code but missing from the prompt, visible to the model but not executable, rejected before dispatch, or mismatched between backend and local-runtime executable schemas.
 title: "Tool Schema and Policy Change Workflow"
 ---
 
@@ -11,7 +11,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and Python sidecar local executor implementation.
 
-The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas and local executable authority; the Python sidecar provides the current concrete local tool implementations. Do not make the desktop client or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. The Agent SDK and desktop local-runtime host own client-local tool schemas and local executable authority; the Python sidecar provides the current concrete local tool implementations. Do not make the desktop client or Python sidecar implementation import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
@@ -41,9 +41,9 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
   capability channels, SDK local-runtime host context, display/window context,
   and local-runtime availability status.
 - The local runtime owns local executable tool registry authority and actual local machine actions through the Python sidecar implementation.
-- Backend-only tools such as `web_search` do not need sidecar parity, but they still need policy and provider capability tests.
-- Python sidecar-only helper behavior must not be model-visible until the backend catalog and policy deliberately expose it.
-- Exact schema parity is required only where accepted client-local model-facing args are also the Python sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
+- Backend-only tools such as `web_search` do not need local-runtime executable parity, but they still need policy and provider capability tests.
+- Local-runtime helper behavior implemented only inside the Python sidecar must not be model-visible until the backend catalog and policy deliberately expose it.
+- Exact schema parity is required only where accepted client-local model-facing args are also local-runtime executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
 - Provider-native declarations may be added after canonical filtering, but policy must still prevent disabled grounded function schemas from leaking to the model.
 - Client manifest validation is partial and structural: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.
 - Client schemas own explicitly overridable built-in local tools. They must not add arbitrary backend execution targets.
@@ -104,7 +104,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
 
 1. Find the model-facing owner from [Tool Catalog Matrix](tool_catalog_matrix.md).
 2. For client-local tools, edit the client/local-runtime manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
-3. Decide whether the Python sidecar runtime arguments must match:
+3. Decide whether the local-runtime executable arguments must match:
    - exact parity local tools: update the client manifest and Python sidecar schema together
    - grounded tools: update backend preparation so model-facing fields are stripped or resolved before dispatch
    - backend-only tools: update backend parser/provider tests only
@@ -159,7 +159,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ### Tool Is Visible but Local Runtime Cannot Execute It
 
-- Confirm `tests/backend/test_remote_tool_contract.py` covers the tool name parity with sidecar exposure.
+- Confirm `tests/backend/test_remote_tool_contract.py` covers the tool name parity with local-runtime executable exposure.
 - Confirm `frontend/src/main/python/tools/manifest.py` includes the tool if it is local-runtime executed.
 - Confirm `frontend/src/main/python/tools/registry.py` actually registers an implementation.
 - Confirm SDK/main tool dispatch recognizes the tool and preserves request ids.
@@ -174,10 +174,10 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 ### Python Sidecar Rejects a Payload
 
-- Confirm backend preparation converts model-facing fields into Python sidecar executable fields.
+- Confirm backend preparation converts model-facing fields into local-runtime executable fields.
 - Confirm the manifest `schema` and Python sidecar `entrypoint` agree on executable arg names.
 - Confirm `argument_resolution` matches the actual backend preparation path.
-- Confirm exact-parity Python sidecar schema matches the accepted client schema where expected.
+- Confirm exact-parity local-runtime executable schema matches the accepted client schema where expected.
 - Confirm intentional exceptions are documented in parity tests.
 - Confirm SDK/main transport did not mutate or omit fields during local-runtime execution.
 
@@ -197,7 +197,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env sidecar pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
 | policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_tool_selection.py tests/backend/test_provider_health_policy.py` |
 | parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |
-| sidecar executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific sidecar tests |
+| local-runtime executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific sidecar tests |
 | SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- WindieSdkClient WindieSdkConversationRuntime RendererToolResultBoundary ToolOutputContent` tests |
 | bundle/result/history | backend result/bundle/history tests plus SDK/main bundle execution tests |
 | docs-only tool workflow | `<windie> docs list`, `git diff --check`, focused Markdown link check |
@@ -209,7 +209,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Built-in client-local tool names use accepted client schemas as the final
   provider-visible local schema. Backend catalog specs are fallback/default
   entries, not replacements for accepted client manifests.
-- Backend model-facing args and Python sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
+- Backend model-facing args and local-runtime executable args are either exact-parity tested or intentionally different with preparation coverage.
 - Policy gates are centralized in `ToolPolicy` or agent capability policy, not scattered through prompt construction, provider code, or renderer UI.
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.
 - Request ids, tool-call ids, bundle ids, artifact refs, and screenshot refs survive SDK/main/local-runtime transport.

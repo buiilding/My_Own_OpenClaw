@@ -58,7 +58,7 @@ Runtime flow:
    - coroutine function -> `await tool(args)`
    - sync function -> `tool(args)`
 5. output must be a native `ToolResult`.
-6. the sidecar local runtime returns `ToolResult.to_dict()` over JSON-RPC.
+6. the local-runtime implementation returns `ToolResult.to_dict()` over JSON-RPC.
 
 Missing tool behavior:
 

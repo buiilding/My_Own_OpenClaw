@@ -637,6 +637,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
     expect(toolRoutingDocText).not.toContain('dispatches to the sidecar');
+    expect(toolRoutingDocText).not.toContain('mismatched between backend and sidecar schemas');
+    expect(toolRoutingDocText).not.toContain('No sidecar parity is needed');
+    expect(toolRoutingDocText).not.toContain('Python sidecar runtime arguments');
+    expect(toolRoutingDocText).not.toContain('parity with sidecar exposure');
+    expect(toolRoutingDocText).not.toContain('sidecar runtime argument models');
+    expect(toolRoutingDocText).not.toContain('sidecar-only executable helper');
+    expect(toolRoutingDocText).not.toContain('sidecar executable payload need different fields');
+    expect(toolRoutingDocText).not.toContain('Update sidecar parity docs/tests');
     expect(toolRoutingDocText).not.toContain('sidecar-executable manifest entries');
     expect(toolRoutingDocText).not.toContain('executable sidecar tools');
     expect(toolRoutingDocText).not.toContain('the sidecar owns executable desktop actions');
@@ -1021,8 +1029,19 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md',
       'docs/frontend/landing/sections/why_privacy_cta_footer_and_shared_intro_component_contract_reference.md',
       'docs/README.md',
+      'docs/architecture/architecture.md',
+      'docs/architecture/communication_flow.md',
+      'docs/architecture/frontend_architecture.md',
+      'docs/backend/inventory/backend_cross_layer_contract_touchpoints_reference.md',
+      'docs/backend/inventory/domains/backend_change_path_playbook_reference.md',
+      'docs/development/agent_runtime_ownership_and_change_routing.md',
+      'docs/frontend/inventory/protocols/frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md',
+      'docs/frontend/main/main_process_change_workflow.md',
       'docs/frontend/contracts/backend_websocket_command_contract.md',
       'docs/frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md',
+      'docs/frontend/runtime/workspace_context_change_workflow.md',
+      'docs/frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md',
+      'docs/nodes/runtime_node_matrix.md',
       'docs/security/credential_token_change_workflow.md',
       'docs/operations/configuration_change_workflow.md',
       'docs/operations/operational_troubleshooting.md',
@@ -1245,6 +1264,7 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar auth-state path, sidecar bearer header',
         'sidecar remote client base or Electron sidecar env',
         'sidecar parity, SDK/main dispatch',
+        'Local-runtime sidecar tool arg schemas',
         'sidecar clients',
         'sidecar env propagation',
         'sidecar sees backend URL changes',
@@ -1387,6 +1407,21 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar or Electron main',
         'sidecar tool schemas are paired contracts',
         'client manifest and sidecar schema',
+        'renderer/main/sidecar ownership boundaries',
+        'Sidecar (Python): local tool execution',
+        'Local sidecar calls',
+        'Python sidecar tool runtime',
+        'sidecar/backend config propagation',
+        'Workspace permission and sidecar tool runtime',
+        'Route to the backend, SDK/main, renderer, or sidecar owner',
+        'Validate tool result path and sidecar JSON-RPC before changing backend schema',
+        'sidecar local runtime',
+        'sidecar tool arg schemas',
+        'sidecar tool runtime issues',
+        'participant L as Local sidecar',
+        'preserve request correlation and sidecar ownership',
+        'Renderer/main/sidecar ownership bug',
+        'sidecar tool execution',
         'Python sidecar startup owns local execution variables',
         'sidecar stderr logging or system metrics',
         '| Python sidecar runtime |',

@@ -8,9 +8,9 @@ title: "Prompt Context Change Workflow"
 
 # Prompt Context Change Workflow
 
-Use this workflow for model-facing context. The backend owns final prompt construction, system prompt loading, model-visible tool schemas, prompt metadata, and transparency events. Desktop frontend can contribute context through query payloads; sidecar can contribute local memory results; backend decides what reaches the model.
+Use this workflow for model-facing context. The backend owns final prompt construction, system prompt loading, model-visible tool schemas, prompt metadata, and transparency events. Desktop frontend can contribute context through query payloads; local-runtime memory can contribute local memory results; backend decides what reaches the model.
 
-Do not patch prompt problems in renderer display code or sidecar runtime argument models. Fix the producer of the model-facing context, then update transparency events and tests so future agents can prove what the model saw.
+Do not patch prompt problems in renderer display code or local-runtime executable argument models. Fix the producer of the model-facing context, then update transparency events and tests so future agents can prove what the model saw.
 
 ## Fast Owner Map
 
@@ -30,7 +30,7 @@ Do not patch prompt problems in renderer display code or sidecar runtime argumen
 
 - Backend prompt construction is the source of truth for what the model sees.
 - Renderer transparency panels should display backend-emitted prompt metadata, not reconstruct prompt state locally.
-- Sidecar executable tool schemas are not model-facing prompt schemas. Keep parity through tests, not imports.
+- Local-runtime executable tool schemas are not model-facing prompt schemas. Keep parity through tests, not imports.
 - Do not expose a tool/capability field unless the active backend policy, provider projection, parser path, and SDK/main local execution path support it.
 - Repo instruction order must stay broad-to-specific so nested instructions can override parent guidance.
 - Do not hand-edit generated prompt/schema artifacts when a live generation path exists; regenerate them from the prompt path and document the command used.
@@ -43,7 +43,7 @@ Do not patch prompt problems in renderer display code or sidecar runtime argumen
 
 1. **Classify the prompt input.** Decide whether the owner is system prompt text, prompt constructor assembly, repo instructions, tool schema visibility, memory/attachment context, metadata event emission, or generated artifact refresh.
 2. **Trace the producer.** Identify whether context came from backend session history, Electron query payload, local-runtime memory, artifact store, backend tool registry, provider health, or SDK session builder.
-3. **Update the backend prompt owner.** Change prompt modules or tool policy first; avoid patching renderer transparency or sidecar schemas to mask backend prompt drift.
+3. **Update the backend prompt owner.** Change prompt modules or tool policy first; avoid patching renderer transparency or local-runtime executable schemas to mask backend prompt drift.
 4. **Update transparency events if visible metadata changes.** Keep `system-prompt`, `user-message-full`, and `tool-schemas` payloads aligned with actual prompt inputs.
 5. **Regenerate generated artifacts when necessary.** Refresh `prompts/schema.txt` from the live prompt path instead of editing it by hand.
 6. **Update tests at each changed boundary.** Prompt constructor tests for message assembly, tool schema tests for visibility, event/formatter tests for metadata, frontend tests only when consumer rendering changes.
@@ -81,11 +81,11 @@ When changing `system_prompt.txt` or prompt manager behavior:
 When changing model-visible tools:
 
 - Update backend canonical schema owner and policy gates.
-- Check whether the tool is a registry tool, a client tool schema, a provider-native projection, or a sidecar-only executable helper before choosing the owner.
+- Check whether the tool is a registry tool, a client tool schema, a provider-native projection, or a local-runtime-only executable helper before choosing the owner.
 - Check provider-specific projection and parser compatibility.
 - Check capability/provider health gates so unavailable tools stay hidden.
 - Update transparency formatter/schema tests for `tool-schemas`.
-- Update sidecar parity docs/tests only when the executable sidecar surface changes.
+- Update local-runtime executable parity docs/tests only when the executable local-runtime surface changes.
 - Regenerate `prompts/schema.txt` when it is meant to reflect the current live schema.
 
 ## Context Injection Checklist
@@ -116,7 +116,7 @@ Before adding a mapper, layer, or fallback:
 - Does this context already exist in stored history, repo instructions, memory sections, or a client prompt layer?
 - Is the renderer displaying backend-emitted metadata, or reconstructing a local approximation?
 - Is the provider projection only adapting dialect, or changing semantics that should belong in canonical schema/policy?
-- Does the sidecar executable payload need different fields because of the JS/Python boundary, or because upstream schema is vague?
+- Does the local-runtime executable payload need different fields because of the JS/Python boundary, or because upstream schema is vague?
 - Can a test prove the exact model-visible prompt/tool shape instead of relying on UI output?
 
 ## Validation Matrix

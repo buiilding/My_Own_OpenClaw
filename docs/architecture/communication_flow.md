@@ -174,7 +174,7 @@ aliases or retry alternate backend URLs.
 The SDK should follow the same transport split:
 
 - **Hosted backend calls** for `/ws`, `/api/artifacts/*`, `/api/sdk/*`, and other backend-owned APIs
-- **Local sidecar calls** for screenshots, clicks, typing, browser/runtime actions, local files, and local processes
+- **Local-runtime calls** for screenshots, clicks, typing, browser/runtime actions, local files, and local processes
 - **Hybrid operations** when one user-facing action needs both, such as screenshot locally -> OCR remotely -> click locally
 
 This keeps the backend as the hosted control plane and prevents SDK consumers from needing a locally running backend just to access OCR or prediction.

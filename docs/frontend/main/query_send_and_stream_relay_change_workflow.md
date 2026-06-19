@@ -60,7 +60,7 @@ sequenceDiagram
     participant A as DesktopLiveTurnRuntimeClient
     participant T as Agent runtime transport
     participant M as Electron main
-    participant L as Local sidecar
+    participant L as Local runtime
     participant SDK as SDK runtime
     participant B as Backend websocket
     participant S as Renderer stream

@@ -1,7 +1,7 @@
 ---
-summary: "Current WindieOS frontend architecture across Electron main, React renderer, preload IPC boundary, and Python sidecar runtime."
+summary: "Current WindieOS frontend architecture across Electron main, React renderer, preload IPC boundary, and local-runtime implementation."
 read_when:
-  - When changing renderer/main/sidecar ownership boundaries.
+  - When changing renderer, main, local-runtime, or sidecar implementation ownership boundaries.
   - When changing query, stream, tool, wakeword, or transcript flow across frontend processes.
 title: "Frontend Architecture"
 ---
@@ -17,7 +17,7 @@ WindieOS frontend is a multi-runtime desktop stack:
 1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
 2. Main process (Electron/Node): window lifecycle, thin Agent SDK host wiring, SDK local-runtime bridge, wakeword subprocess bridge.
 3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
-4. Sidecar (Python): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
+4. Local runtime implementation (Python sidecar): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
 ## Packaged Install Contract
 

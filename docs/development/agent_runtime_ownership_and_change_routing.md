@@ -3,7 +3,7 @@ summary: "Agent-facing runtime ownership matrix and change-routing table extract
 read_when:
   - When starting a WindieOS code or docs change and choosing the owning runtime before editing.
   - When routing runtime ownership cleanup, ownership refactors, source-of-truth moves, or cross-runtime deletion work.
-  - When a change could cross backend, SDK, Electron main, renderer, preload, sidecar, docs, or tests.
+  - When a change could cross backend, SDK, Electron main, renderer, preload, local-runtime implementation, docs, or tests.
 title: "Agent Runtime Ownership and Change Routing"
 ---
 
@@ -21,7 +21,7 @@ Start every change by identifying the owning runtime before editing code.
 | Electron main | BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, desktop local-runtime launch option assembly, wakeword supervision, endpoint diagnostics, direct `AgentClient.wakeUp(...)` customer wiring | Agent loop, prompt compiler, durable conversation store, websocket lifecycle, local-tool routing authority, sidecar daemon client/lifecycle ownership, or duplicate SDK runtime behavior |
 | Renderer | User-facing state and display, dashboard/chat/settings/voice surfaces, transcript projection display, display-only tool state | Backend websocket loops, durable transcript storage, tool execution, model sync, or local authority |
 | Preload | Narrow allowlisted bridge between renderer and main | Business logic or policy decisions |
-| Python sidecar | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution | Backend orchestration, prompt policy, provider routing, or backend package imports |
+| local-runtime implementation | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution, currently backed by the Python sidecar | Backend orchestration, prompt policy, provider routing, or backend package imports |
 | Docs and tests | Durable contracts, routing maps, parity checks, and regression evidence | Runtime behavior |
 
 ## Change Routing
@@ -33,7 +33,7 @@ Start every change by identifying the owning runtime before editing code.
 | Model-visible tool | `docs/tools/tool_schema_policy_change_workflow.md` | Backend catalog/policy, sidecar executable contract if local, SDK/main dispatch, tests, docs, changelog |
 | Filesystem or shell behavior | `docs/tools/filesystem_shell_change_workflow.md` | Backend schema/policy, SDK/main dispatch, Electron argument shaping, local execution, result formatting, tests |
 | Browser automation | `docs/browser/browser_change_workflow.md` | Backend schema, shared browser contract, local-runtime browser execution, Python sidecar adapters, Electron bridge, renderer controls, tests |
-| Renderer/main/sidecar ownership bug | `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md` | Identify the producer before editing the consumer |
+| Renderer/main/local-runtime ownership bug | `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md` | Identify the producer before editing the consumer |
 | Storage or transcript behavior | `docs/architecture/storage_persistence_change_workflow.md` | State migration or no-migration reason explicitly |
 | Permission or local authority | `docs/security/permissions_and_local_authority_workflow.md` | Verify trust boundary and platform behavior |
 | Overlay/chat pill/runtime surface bug | `docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md` and `docs/desktop/minimal_chat_pill.md` | Define the state machine and event timeline before editing |

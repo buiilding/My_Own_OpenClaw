@@ -93,7 +93,7 @@ Validation:
 ## Scope Guards
 
 - Do not patch formatter output to compensate for schema drift; fix schema/contract owner first.
-- Do not patch API handlers for sidecar tool runtime issues; fix tool waiting/processing owner modules.
+- Do not patch API handlers for local-runtime tool execution issues; fix tool waiting/processing owner modules.
 - Do not patch agent loop for provider parse edge cases before checking parser/provider layer.
 
 ## Related Docs

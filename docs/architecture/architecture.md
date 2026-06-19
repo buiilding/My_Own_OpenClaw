@@ -236,7 +236,7 @@ Screenshots are captured strategically at key points to provide visual context f
   - **Individual Tools**: Screenshot captured **once** after tool execution completes
   - **Atomic Bundles**: Screenshot captured **once** after all bundled tools execute (single tool-bundle message, single tool-bundle-result response)
 - **Purpose**: Shows the result state after tool execution for verification and continued context
-- **Location**: Python sidecar tool runtime, routed through the SDK `ToolExecutionCoordinator`
+- **Location**: Local-runtime tool implementation, routed through the SDK `ToolExecutionCoordinator` and backed by the Python sidecar
 - **Implementation**:
   - Individual tool path uses `ensureAutoCapture(...)` (shared capture policy helper) and captures once when no screenshot is already in tool output.
   - Bundle path captures once after the full bundle run when computer-use actions are present.

@@ -221,7 +221,7 @@ Prompt rules:
 | Resumed chat uses another workspace | Check snapshot workspace metadata, `DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding`, and `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection`. | Dashboard conversation handoff |
 | AGENTS.md works locally but not with hosted backend | Check Electron-injected `agent_definition.agents_md`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
 | Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |
-| File tools run in wrong folder | Check workspace permission status, sidecar/backend config propagation, and tool execution cwd defaults. | Workspace permission and sidecar tool runtime |
+| File tools run in wrong folder | Check workspace permission status, local-runtime/backend config propagation, and tool execution cwd defaults. | Workspace permission and local-runtime tool implementation |
 
 ## Validation Matrix
 

@@ -275,6 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a public runtime route-map label slice by routing
+  architecture overview, communication flow, runtime node matrix, backend
+  cross-layer inventory, operations triage, main-process workflows, and
+  workspace debugging docs through local-runtime implementation/tool wording
+  instead of local-sidecar or sidecar-owner public labels. Python sidecar and
+  sidecar JSON-RPC references remain where they name the concrete
+  implementation process, protocol, or tests. The modular docs guard now
+  rejects the retired public route-map labels for local sidecar calls,
+  sidecar-owned triage, sidecar local runtime rows, and sidecar tool runtime
+  ownership. Validation: `bin\windie.cmd test frontend --
+  ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs list`,
+  exact stale route-map label scan, and `git diff --check`. No migration
+  required; no process launch, IPC, JSON-RPC, tool schema, parity test,
+  permission, credential, storage, hosted route, provider policy, or local
+  execution behavior changed.
+- 2026-06-18: completed a tool-contract parity owner-label slice by routing
+  tool contracts, schema-policy workflow, prompt-context workflow, and backend
+  cross-layer contract inventory through local-runtime executable parity/schema
+  labels instead of sidecar parity or sidecar schema ownership wording. Python
+  sidecar paths, registry names, and implementation tests remain visible where
+  they identify concrete executable code. Validation: pending focused modular
+  docs boundary test, docs listing, exact stale tool-contract parity label scan,
+  and diff checks. No migration required; no tool schema, prompt construction,
+  provider projection, SDK/main dispatch, IPC, payload, credential, permission,
+  storage, or local execution behavior changed.
 - 2026-06-18: completed an architecture local-runtime owner-map slice by
   routing failure-domain, runtime-boundary, architecture hub, error/failure,
   platform, help/docs hubs, and tool-system docs through local-runtime

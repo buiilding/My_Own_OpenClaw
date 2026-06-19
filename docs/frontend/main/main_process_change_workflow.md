@@ -111,7 +111,7 @@ Before committing main-process work:
 - Did every IPC contract update the shared registry, preload exposure, renderer constants, main handler, and tests?
 - Did platform/window changes keep OS-specific behavior explicit?
 - Did packaged-mode changes avoid source-only fallbacks?
-- Did local-runtime bridge changes preserve request correlation and sidecar ownership?
+- Did local-runtime bridge changes preserve request correlation and implementation ownership?
 - Did docs and `CHANGELOG.md` move with behavior or contract changes?
 
 ## Related Docs

@@ -1,14 +1,14 @@
 ---
-summary: "Backend-focused cross-layer contract map covering API schemas, stream event formatters, tool-result envelopes, and SDK/renderer/sidecar boundary touchpoints."
+summary: "Backend-focused cross-layer contract map covering API schemas, stream event formatters, tool-result envelopes, and SDK/renderer/local-runtime boundary touchpoints."
 read_when:
-  - When changing backend message/tool schema contracts that affect SDK, renderer, or sidecar behavior.
+  - When changing backend message/tool schema contracts that affect SDK, renderer, or local-runtime behavior.
   - When debugging backend/client drift in stream events, tool payloads, or browser/schema compatibility.
 title: "Backend Cross-Layer Contract Touchpoints Reference"
 ---
 
 # Backend Cross-Layer Contract Touchpoints Reference
 
-This reference lists backend-owned contracts that have direct SDK, renderer, or sidecar impact.
+This reference lists backend-owned contracts that have direct SDK, renderer, or local-runtime impact.
 
 ## WebSocket Message Contract Touchpoints
 
@@ -31,9 +31,9 @@ This reference lists backend-owned contracts that have direct SDK, renderer, or 
 
 ## Tool Execution Contract Touchpoints
 
-| Backend owner | Contract files | SDK/main, renderer, and sidecar owners | Contract note |
+| Backend owner | Contract files | SDK/main, renderer, and local-runtime owners | Contract note |
 | --- | --- | --- | --- |
-| Backend tool arg schemas | `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contract loader + remote tool | Local-runtime sidecar tool arg schemas (`frontend/src/main/python/tools/schemas.py`) and shared browser contract (`frontend/src/main/python/windie_shared/browser_contract*.py`) | Must maintain field/literal parity for runtime execution |
+| Backend tool arg schemas | `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contract loader + remote tool | Local-runtime executable schemas (`frontend/src/main/python/tools/schemas.py`) and shared browser contract (`frontend/src/main/python/windie_shared/browser_contract*.py`) | Must maintain field/literal parity for runtime execution |
 | Unified tool schema registry | `backend/src/tools/registry.py`, `schema_registry.py` | Backend parser plus SDK/main local-runtime dispatch metadata | Exposed schemas define model-call surface |
 | Tool-result ingress schema | `incoming.py` (`ToolResultMessage`, `ToolBundleResultMessage`) | SDK/main local-runtime result relay | Single/bundle result field names must match |
 | Pending result resolution | `agent/tools/waiting/storage/result_storage.py` | SDK/main local-runtime request and bundle IDs | Request/bundle IDs must be stable across turn |
@@ -47,7 +47,7 @@ This reference lists backend-owned contracts that have direct SDK, renderer, or 
 
 ## Memory + Artifact Contract Touchpoints
 
-| Backend owner | Contract files | SDK/renderer/sidecar consumers | Contract note |
+| Backend owner | Contract files | SDK/renderer/local-runtime consumers | Contract note |
 | --- | --- | --- | --- |
 | `/api/embeddings` route | `api/routes/memory/embeddings/router.py` | SDK context enrichment and memory persistence pipeline | Request/response schema stability for SDK-provided vectors |
 | `/api/semantic/summarize` route | `api/routes/memory/semantic/router.py` | Sidecar `remote_semantic_client.py`, summarizer | Summary/facts parser fallback behavior impacts store |
@@ -63,7 +63,7 @@ This reference lists backend-owned contracts that have direct SDK, renderer, or 
 ## Change Checklist (Cross-Layer Safe)
 
 1. Update backend schema/formatter/tool code.
-2. Update paired SDK/main, renderer, and sidecar contracts and validators.
+2. Update paired SDK/main, renderer, and local-runtime executable contracts and validators.
 3. Update docs in backend, SDK, renderer, and local-runtime inventory/runtime hubs.
 4. Run contract-focused tests (`tests/backend/*contract*`, SDK/renderer stream and tool tests, sidecar schema tests).
 

@@ -31,7 +31,7 @@ This matrix maps WindieOS runtime nodes to the files and contracts an agent shou
 | `/ws` query/control stream | SDK runtime | hosted backend websocket route | [Channels Hub](../channels/README.md), [Backend API WebSocket Docs Hub](../backend/api/websocket/README.md) |
 | `/ws/transcription` | renderer voice gateway | backend transcription route | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 | `/api/runs/*` | dashboard/API caller and VM worker | backend runs router/service | [Automation Hub](../automation/README.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
-| sidecar local runtime | SDK `LocalRuntime` with Electron host context | Python sidecar daemon | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Sidecar JSON-RPC Protocol Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md) |
+| local-runtime JSON-RPC | SDK `LocalRuntime` with Electron host context | Python sidecar daemon | [Local Tool Channels](../channels/sidecar_and_tool_channels.md), [Sidecar JSON-RPC Protocol Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md) |
 | preload IPC | renderer facade | Electron main IPC handlers | [Frontend Preload Channel Allowlist](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md), [Frontend IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md) |
 | wakeword subprocess frames | renderer/main wakeword bridge | Python wakeword service | [Voice and Audio Channels](../channels/voice_and_audio_channels.md), [Electron Wakeword Bridge and Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) |
 | Cloudflare tunnel ingress | public clients | hosted backend origin | [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md), [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) |
@@ -59,7 +59,7 @@ Examples:
 | websocket message schema or formatter | backend schema/handler/formatter tests plus renderer event consumer tests if UI consumes it |
 | preload IPC | preload allowlist and IPC parity tests |
 | renderer stream handling | renderer stream hook/store tests |
-| sidecar executable tool | Python sidecar tool tests plus backend/schema parity tests when the tool is model-visible |
+| local-runtime executable tool | Python sidecar tool tests plus backend/schema parity tests when the tool is model-visible |
 | wakeword protocol | wakeword bridge/service tests plus voice capture tests |
 | VM worker | backend runs service/routes and frontend VM worker/runtime-mode tests |
 | Cloudflare/deployment scripts | script dry-run/smoke checks where available plus operations docs review |

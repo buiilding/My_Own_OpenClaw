@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Public Runtime Route-Map Local-Runtime Labels
+
+- Finding: architecture overview, communication flow, runtime node matrix,
+  backend cross-layer inventory, operations triage, main-process workflows, and
+  workspace debugging docs still exposed local-sidecar or sidecar-owner wording
+  in public route maps after the reusable boundary moved to SDK/main
+  local-runtime ownership.
+- Change: routed those labels through local-runtime implementation/tool wording
+  while preserving Python sidecar and sidecar JSON-RPC references where they
+  name the concrete implementation process, protocol, or tests.
+- Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale route-map label scan,
+  and `git diff --check`.
+- Compatibility: no migration required. Runtime ownership docs changed only;
+  process launch, IPC, JSON-RPC, tool schemas, parity tests, permissions,
+  credentials, storage, hosted routes, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-18 Architecture Local-Runtime Owner Maps
 
 - Finding: architecture failure-domain, runtime-boundary, architecture hub,

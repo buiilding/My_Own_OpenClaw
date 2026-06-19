@@ -17,8 +17,8 @@ title: "Frontend IPC and Local Runtime Protocol Surface Matrix Reference"
 
 ## Scope and Sources
 
-This page maps protocol surfaces across renderer, Electron main, and the Python
-sidecar local runtime:
+This page maps protocol surfaces across renderer, Electron main, and the
+local-runtime implementation backed by the Python sidecar:
 
 - Shared preload/main channel registry: `frontend/src/shared/ipcChannels.json`
 - Preload allowlist boundary: `frontend/src/preload.js`

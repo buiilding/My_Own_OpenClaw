@@ -2,7 +2,7 @@
 summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, Electron client manifest builder ownership, local-runtime executable tools, bundles, request ids, and validation."
 read_when:
   - When changing tool schemas or tool result payloads.
-  - When debugging backend, SDK/main, renderer, or sidecar tool-contract drift.
+  - When debugging backend, SDK/main, renderer, or local-runtime tool-contract drift.
   - When changing `frontend/src/main/extensions/tool_manifest.cjs`, the client manifest builder export, or stale tool manifest name-list helper references.
 title: "Tool Contracts"
 ---
@@ -42,7 +42,7 @@ with the arguments emitted for that tool.
 
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
-| backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No sidecar parity is needed, but provider projection and policy still apply. |
+| backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No local-runtime executable parity is needed, but provider projection and policy still apply. |
 | client-local manifest tool | yes, after validation | local runtime executor or declared backend target for reserved tools | Electron/local-runtime `agent_definition.tools.client_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the local-runtime manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
 | local-executor-only helper | no until exposed | local executor | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
@@ -60,7 +60,7 @@ Accepted tool entries normalize to:
 | `description` | non-empty string, capped length | becomes the model-facing function description when the schema does not already provide one |
 | `execution_target` | `local_runtime` or `backend` | arbitrary client manifests cannot add new backend tools |
 | `schema` | supported JSON Schema subset or full function tool spec | backend-validation schema; dynamic tools convert it into a canonical flat function schema for prompt construction |
-| `executable_schema` | optional supported JSON Schema subset | executable sidecar argument schema after backend preparation; preserved for transparency and diagnostics, not provider projection |
+| `executable_schema` | optional supported JSON Schema subset | executable local-runtime argument schema after backend preparation; preserved for transparency and diagnostics, not provider projection |
 | `argument_resolution` | `passthrough` or `backend_grounding` | tells reviewers whether backend preparation may transform model args before execution |
 
 Rejected entries return `{name, reason}`. Treat rejection reasons as developer diagnostics, not model-facing prompt content.
@@ -90,13 +90,13 @@ Client-local schemas are merged with backend registry schemas before policy filt
 ## Shape Separation Rules
 
 - `agent_definition.tools.client_manifest` is capability input to backend
-  validation; sidecar `entrypoint` is executable implementation.
+  validation; local-runtime `entrypoint` is executable implementation.
 - `schema` is the developer-authored extension schema field; `function_tool_schema` is the backend-normalized model-facing shape.
 - For built-in local tool names, backend validation accepts the manifest but
-  provider-visible schemas come from the backend tool catalog. The sidecar
-  manifest schema is used for capability validation and dispatch metadata, not
-  final provider description authority.
-- Built-in manifests may include `executable_schema` to make the sidecar
+  provider-visible schemas come from the backend tool catalog. The
+  local-runtime manifest schema is used for capability validation and dispatch
+  metadata, not final provider description authority.
+- Built-in manifests may include `executable_schema` to make the local-runtime
   argument boundary explicit when `schema` contains backend grounding metadata.
 - `argument_resolution=passthrough` means model args should already be executable; `backend_grounding` means backend preparation may resolve higher-level intent first.
 - `request_id`, `bundle_id`, `tool_call_id`, and renderer `correlation_id` join different stages. Do not collapse them unless the producer and consumer really share the same domain.
@@ -144,8 +144,8 @@ For a step-by-step change route across these owners, use [Tool Schema and Policy
 - Backend schema and parser tests cover the model-facing shape.
 - Client manifest tests cover accepted, rejected, duplicate, reserved, oversized, and grounding-mode entries.
 - SDK runtime and main-process tool-router tests cover correlation and result envelopes.
-- Sidecar registry/tool tests cover executable behavior.
-- Cross-layer parity tests cover expected backend-exposed sidecar tool names.
+- Local-runtime registry/tool tests cover executable behavior.
+- Cross-layer parity tests cover expected backend-exposed local-runtime tool names.
 - Bundle paths cover atomic success, partial failure, timeout, and cleanup.
 
 ## Evidence Notes
