@@ -22,11 +22,11 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 
 | Local process | Owns | Does not own |
 | --- | --- | --- |
-| Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, local-runtime host/status context | React component state, backend route implementation, hosted backend websocket policy, sidecar tool internals |
+| Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, local-runtime host/status context | React component state, backend route implementation, hosted backend websocket policy, local-runtime tool implementation internals |
 | Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, display-only tool state | direct filesystem/shell access, backend auth enforcement, native window authority, backend tool-result delivery |
 | Preload | narrow `window.ipc` bridge and channel allowlist | feature policy, backend schemas, broad Node.js access |
 | Python sidecar | local executable tools, local memory, browser runtime, system state, shell/filesystem/computer actions | model-facing tool schemas, websocket route validation, renderer UI |
-| Wakeword service | model bootstrap and audio-frame detection | voice dictation transcription, generic sidecar tools, backend TTS |
+| Wakeword service | model bootstrap and audio-frame detection | voice dictation transcription, generic local-runtime tools, backend TTS |
 
 ## Main Process Code Roots
 
@@ -119,7 +119,7 @@ For a desktop-sidecar bug, identify the last successful boundary:
 - IPC bridge accepted the channel: preload and main handler are registered.
 - main process mapped the request: payload shape matches bridge mapper.
 - sidecar request was sent: JSON-RPC stdout/stderr framing is clean.
-- sidecar tool ran: registry has the tool and returns a result or structured error.
+- local-runtime tool ran: registry has the tool and returns a result or structured error.
 - result came back: renderer persisted/displayed it and sent backend tool-result if needed.
 
 ## Focused Validation
@@ -130,7 +130,7 @@ For a desktop-sidecar bug, identify the last successful boundary:
 | IPC or preload channel | preload allowlist parity and main IPC tests |
 | main-process window/overlay behavior | main overlay/window tests |
 | sidecar JSON-RPC mapping | sidecar JSON-RPC protocol tests and main bridge mapper tests |
-| sidecar tool implementation | focused sidecar pytest for the tool |
+| local-runtime tool implementation | focused Python sidecar pytest for the tool |
 | backend-visible local tool contract | backend remote-tool/schema tests plus local-runtime executable parity tests |
 | wakeword service or bridge | wakeword bridge/service tests and voice hook tests |
 

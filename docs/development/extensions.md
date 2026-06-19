@@ -52,7 +52,7 @@ implementation behavior.
 | The model should call local Python code | `plugins/<id>/plugin.json`, `schemas/*.schema.json`, and `python/*.py`. |
 | The agent needs reusable instructions only | `skills/<id>/SKILL.md`. |
 | A protocol server should expose tools | `mcps/<id>/mcp.json`. |
-| A built-in WindieOS tool changes | Core backend, desktop local-runtime, and sidecar tool files, not the contribution roots. |
+| A built-in WindieOS tool changes | Core backend, desktop local-runtime, and Python sidecar implementation files, not the contribution roots. |
 
 The backend receives the final output as normal `client_tool_manifest` entries
 and prompt layers. The backend validates and projects those schemas but does not

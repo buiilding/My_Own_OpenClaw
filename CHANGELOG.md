@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/hubs: route CLI validation, install decision, development boundary,
+  frontend inventory, and IPC checklist labels through local-runtime wording
+  instead of frontend/sidecar or main/renderer/sidecar routing labels. No
+  migration required.
+- docs/inventory: route SDK route, architecture/debug/development references,
+  frontend inventory, node, plugin, and tool lifecycle owner labels through
+  local-runtime tool wording instead of sidecar tool path/schema/registry
+  labels. No migration required.
 - docs/planning: route future CLI UI-control and mobile capability plans
   through local-runtime tool/capability wording instead of sidecar runtime,
   registry, or assumption labels. No migration required.

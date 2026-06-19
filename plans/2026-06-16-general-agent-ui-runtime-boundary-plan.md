@@ -120,6 +120,40 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Active Hub Matrix Local-Runtime Labels
+
+- Finding: CLI validation, install decision, development boundary, frontend
+  inventory, and IPC checklist docs still used frontend/sidecar or
+  main/renderer/sidecar labels in active routing matrices after the reusable
+  local authority boundary moved to local-runtime ownership.
+- Change: routed those labels through frontend/local-runtime,
+  main/renderer/local-runtime, local-runtime process, and Python sidecar
+  implementation wording while preserving sidecar test commands and packaged
+  sidecar runtime terms where they name concrete implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale active
+  hub/matrix label scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; CLI commands, conda
+  env names, install flows, IPC channels, runtime code, storage, tool schemas,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
+### 2026-06-18 Inventory Tool Owner Local-Runtime Labels
+
+- Finding: SDK route, frontend inventory, domain playbook, node, plugin, and
+  tool lifecycle docs still used sidecar tool path/schema/registry/module
+  labels for active owner routing even though the public execution contract is
+  the local-runtime tool path backed by Python sidecar implementation files.
+- Change: routed those labels through Electron/local-runtime tool paths,
+  local-runtime executable schemas, local-runtime tool registries, and
+  local-runtime tool implementation wording while preserving Python sidecar
+  pytest and implementation-file references as evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  inventory/tool owner-label scan, and diff checks.
+- Compatibility: no migration required. Docs changed only; SDK routes, IPC
+  channels, JSON-RPC methods, tool schemas, manifests, registries, tests,
+  credentials, permissions, hosted routes, provider policy, storage, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-18 Frontend Reference Local-Runtime Boundary Labels
 
 - Finding: active frontend inventory, IPC, renderer-state workflow,

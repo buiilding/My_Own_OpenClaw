@@ -14,7 +14,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | --- | --- | --- | --- |
 | Electron window/runtime orchestration | `frontend/src/main/index.cjs`, `frontend/src/main/surfaces/main_window_runtime.cjs`, `main/main_process_lifecycle_runtime.cjs`, overlay handlers | `main/response_overlay_phase_handler.cjs`, `main/window_visibility_runtime.cjs` | renderer feature hooks |
 | Main overlay/window IPC + visibility runtime | `main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `main/window_visibility_runtime.cjs` | overlay/window handler modules + permission/visibility delegates | renderer feature hooks |
-| Main SDK runtime host + settings gate | `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/ipc_query_runtime.cjs` | sidecar tool modules |
+| Main SDK runtime host + settings gate | `frontend/src/main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/ipc_query_runtime.cjs` | local-runtime tool implementation modules |
 | SDK local-runtime bridge | `frontend/src/main/sidecar/local_runtime*.cjs` | `main/runtime_paths.cjs`, mapper/util modules | renderer store logic |
 | Preload boundary | `frontend/src/preload.js` | renderer IPC bridge wrapper | main business logic edits |
 | Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | sidecar protocol files |
@@ -37,7 +37,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 ## Red-Flag Ownership Violations
 
 - Patching renderer UI to compensate for malformed backend events instead of fixing main/backend contracts.
-- Patching main IPC logic for sidecar tool argument shape issues that belong in sidecar schemas.
+- Patching main IPC logic for local-runtime tool argument shape issues that belong in local-runtime executable schemas.
 - Patching sidecar service logic for renderer state race conditions that belong in hooks/providers.
 - Editing preload allowlists to â€œfixâ€ missing main handlers.
 

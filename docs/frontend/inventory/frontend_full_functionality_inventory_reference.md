@@ -1,7 +1,7 @@
 ---
-summary: "Current exhaustive frontend functionality inventory across Electron main, preload bridge, renderer runtime, and Python sidecar services."
+summary: "Current exhaustive frontend functionality inventory across Electron main, preload bridge, renderer runtime, and local-runtime Python services."
 read_when:
-  - When auditing frontend behavior ownership across main/renderer/sidecar.
+  - When auditing frontend behavior ownership across main/renderer/local-runtime.
   - When updating frontend features and validating cross-process contracts.
 title: "Frontend Full Functionality Inventory Reference"
 ---
@@ -324,7 +324,7 @@ Primary files:
 
 Functionality:
 
-- Registers exposed sidecar tools expected by backend schemas.
+- Registers exposed local-runtime tools expected by backend schemas.
 - Executes mouse/keyboard/scroll/screenshot/system/window/stats/shell/process tools.
 - Executes filesystem read/replace tooling with validation + atomic update behavior.
 - Executes browser runtime actions via browser stack adapters/contracts.

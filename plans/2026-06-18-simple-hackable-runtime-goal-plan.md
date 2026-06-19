@@ -275,6 +275,32 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed an active hub/matrix local-runtime label slice by
+  routing CLI validation env labels, install decision rows, the development
+  boundary matrix, frontend full inventory, and the IPC pre-commit checklist
+  through frontend/local-runtime or main/renderer/local-runtime wording instead
+  of frontend/sidecar or main/renderer/sidecar route labels. Validation:
+  `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale active hub/matrix label
+  scan, and `git diff --check`. No migration required; no CLI command, conda
+  env, install flow, IPC channel, runtime code, storage, tool schema,
+  credential, permission, hosted route, provider policy, packaging, or local
+  execution behavior changed.
+- 2026-06-18: completed an inventory tool-owner local-runtime label slice by
+  routing SDK route, architecture/debug/development references, frontend
+  inventory, domain playbook, node, plugin, and tool lifecycle docs through
+  Electron/local-runtime tool paths,
+  local-runtime executable schemas, local-runtime tool registries, and
+  local-runtime tool implementation wording. Python sidecar pytest and
+  implementation-file references remain where they identify evidence. The
+  modular boundary guard now rejects retired sidecar tool path/schema/registry/
+  module labels across those docs. Validation: `bin\windie.cmd test frontend
+  -- ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs
+  list`, exact stale inventory/tool owner-label scan, and `git diff --check`.
+  No migration required; no SDK route, IPC channel, JSON-RPC method, tool
+  schema, manifest, registry, test command, credential, permission, hosted
+  route, provider policy, storage, packaging, or local execution behavior
+  changed.
 - 2026-06-18: completed a CLI/mobile planning local-runtime capability label
   slice by routing future CLI UI-control actions, CLI action tests, mobile V1
   parity, mobile capability negotiation, and mobile connection acceptance

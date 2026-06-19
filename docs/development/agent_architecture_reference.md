@@ -83,7 +83,7 @@ Backend tool catalog/policy
 ```
 
 ```text
-Python sidecar tool files
+Local-runtime Python tool implementation files
   -> frontend/src/main/python/tools/registry.py
   -> frontend/src/main/python/tools/manifest.py
   -> SDK/local runtime executable tool manifest

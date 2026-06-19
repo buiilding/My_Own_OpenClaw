@@ -135,7 +135,7 @@ During editing:
 Before committing:
 
 1. Run registry/preload tests when channel names change.
-2. Run the owning main/renderer/sidecar tests from the matrix below.
+2. Run the owning main/renderer/local-runtime tests from the matrix below.
 3. Run `<windie> docs list` and a focused Markdown link check for touched docs.
 4. Update `CHANGELOG.md`.
 

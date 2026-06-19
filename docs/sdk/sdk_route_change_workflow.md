@@ -33,7 +33,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 7. Update Python hosted client behavior when parity is expected.
 8. Add backend route tests and client tests.
 
-Do not add a hosted SDK route just to reach local machine state. Local screenshots, mouse/keyboard, shell/filesystem, and browser actions belong to the Electron/sidecar tool path.
+Do not add a hosted SDK route just to reach local machine state. Local screenshots, mouse/keyboard, shell/filesystem, and browser actions belong to the Electron/local-runtime tool path.
 
 ## Route Families
 

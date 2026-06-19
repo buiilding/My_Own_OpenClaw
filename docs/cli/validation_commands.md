@@ -61,7 +61,7 @@ scripts\python-in-env.cmd sidecar python -m pytest tests/sidecar/test_tool_regis
 Default env names:
 
 - backend: `jarvis` or `WINDIE_BACKEND_ENV`
-- frontend/sidecar: `frontend_jarvis` or `WINDIE_FRONTEND_ENV`
+- frontend/local-runtime implementation: `frontend_jarvis` or `WINDIE_FRONTEND_ENV`
 
 If conda or the named env is unavailable, the launcher prints a warning and runs in the current shell environment.
 

@@ -45,7 +45,7 @@ Validation:
 
 1. Update SDK tool coordination in `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
 2. Update the SDK conversation/local-runtime client in `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` or `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`.
-3. Sync sidecar tool schema/registry.
+3. Sync local-runtime tool schema/registry.
 4. Sync backend `tool-result` contract if needed.
 5. Update renderer display handlers only when the visible tool card changes.
 
@@ -100,7 +100,7 @@ Validation:
 
 - Do not patch renderer to hide malformed local-runtime payloads; fix SDK/main contract owners.
 - Do not patch main IPC for UI-only state bugs; fix renderer providers/hooks.
-- Do not patch sidecar tool logic for missing renderer correlation IDs.
+- Do not patch local-runtime tool logic for missing renderer correlation IDs.
 - Do not patch preload to add broad channel exposure for convenience.
 
 ## Related Docs
