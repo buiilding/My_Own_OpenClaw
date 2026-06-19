@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Tool Validation Local-Runtime Owner Labels
+
+- Finding: backend browser/computer docs and the frontend capability matrix
+  still named sidecar runtime enforcement or implementation as the owner for
+  active validation/local RPC surfaces.
+- Change: routed those labels through local-runtime browser enforcement,
+  local-runtime execution, and Python implementation behind local-runtime RPC,
+  then added modular docs guards for the retired sidecar-runtime owner labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  browser/computer schemas, parser validation, local tool execution, JSON-RPC
+  methods, IPC channels, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Settings And Filesystem Local-Runtime Path Labels
 
 - Finding: settings-surface and filesystem/shell workflow docs still described

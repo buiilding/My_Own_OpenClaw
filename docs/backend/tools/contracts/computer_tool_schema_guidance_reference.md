@@ -81,7 +81,7 @@ Current field-description guidance is intentionally local and stable:
   - `press` requires `key`
   - `hotkey` requires non-empty `keys`
   - `type` / `paste` reject text longer than `10000` characters
-- sidecar runtime keeps the same validation as defense in depth if invalid payloads still reach local-runtime execution
+- local-runtime execution keeps the same validation as defense in depth if invalid payloads still reach local tools
 
 `ScrollControlArgs`:
 

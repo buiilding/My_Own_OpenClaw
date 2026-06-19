@@ -2,7 +2,7 @@
 summary: "Backend browser-tools docs sub-hub for remote browser stub behavior and the shared strict browser schema surface."
 read_when:
   - When changing backend browser tool argument schemas or remote browser stub payload behavior.
-  - When debugging browser action schema acceptance drift between backend validation and sidecar runtime enforcement.
+  - When debugging browser action schema acceptance drift between backend validation and local-runtime browser enforcement.
 title: "Backend Browser Tools Docs Hub"
 ---
 

@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a tool-validation local-runtime owner-label slice by
+  routing backend browser/computer validation docs and the frontend capability
+  matrix away from sidecar runtime enforcement/implementation ownership and
+  through local-runtime browser enforcement, local-runtime execution, and
+  Python implementation behind local-runtime RPC wording. Validation: focused
+  modular boundary guard, docs listing, exact stale label scan, and diff checks.
+  No migration required; docs and boundary tests changed only, with no
+  browser/computer schema, parser validation, local tool execution, JSON-RPC
+  method, IPC channel, storage, credential, permission, hosted route, provider
+  policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a settings/filesystem local-runtime path label slice by
   routing settings reset and filesystem/shell workflow labels away from sidecar
   method/path/tool wording and through local-runtime method, local runtime

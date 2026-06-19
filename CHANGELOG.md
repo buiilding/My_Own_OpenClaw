@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route backend browser/computer validation and frontend inventory
+  implementation labels through local-runtime wording instead of sidecar runtime
+  owner labels. No migration required.
 - docs/settings: route settings reset and filesystem/shell workflow path labels
   through local-runtime wording instead of sidecar method/path/tool labels. No
   migration required.
