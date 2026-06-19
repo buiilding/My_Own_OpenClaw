@@ -42,9 +42,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
   const rejectedTools = useMemo(() => new Map(
     (manifestStatus.rejected || []).map((tool) => [tool.name, tool]),
   ), [manifestStatus.rejected]);
-  const remoteTools = Array.isArray(remoteToolCatalog.remote_tools)
-    ? remoteToolCatalog.remote_tools
-    : [];
 
   useEffect(() => {
     DesktopExtensionRuntimeClient.listAgentExtensions()
@@ -173,13 +170,19 @@ function AgentSettingsTab({ config, onConfigChange }) {
         </div>
         <div className="clone-settings-tool-grid">
           {agentSettingsSkin.remoteTools.ids.map((toolName) => {
-            const catalogEntry = remoteTools.find((tool) => tool.name === toolName);
+            const toolPresentation = DesktopExtensionRuntimeClient.getRemoteToolPresentation(
+              remoteToolCatalog,
+              toolName,
+            );
             return (
               <div key={toolName} className="clone-settings-tool-toggle clone-settings-tool-card">
                 <span>
                   {toolName}
-                  {catalogEntry?.available === false ? (
-                    <small>{catalogEntry.reason_unavailable || 'Unavailable'}</small>
+                  {!toolPresentation.available ? (
+                    <small>
+                      {toolPresentation.unavailableReason
+                        || agentSettingsSkin.remoteTools.unavailableFallback}
+                    </small>
                   ) : null}
                 </span>
                 <CloneToggle

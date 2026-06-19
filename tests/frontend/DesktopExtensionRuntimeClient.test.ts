@@ -25,6 +25,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopExtensionRuntimeClient,
+  getAgentRemoteToolPresentation,
   normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
   normalizeAgentRemoteToolCatalog,
@@ -184,5 +185,38 @@ describe('DesktopExtensionRuntimeClient', () => {
 
     unsubscribe?.();
     expect(subscribedListener).toBeNull();
+  });
+
+  test('builds remote tool availability presentation from the runtime catalog', () => {
+    const catalog = normalizeAgentRemoteToolCatalog({
+      remote_tools: [
+        {
+          name: 'web_search',
+          available: false,
+          reason_unavailable: 'Missing API key',
+        },
+        {
+          name: 'query_plan',
+          available: true,
+          reason_unavailable: 'ignored',
+        },
+      ],
+    });
+
+    expect(getAgentRemoteToolPresentation(catalog, 'web_search')).toEqual({
+      name: 'web_search',
+      available: false,
+      unavailableReason: 'Missing API key',
+    });
+    expect(DesktopExtensionRuntimeClient.getRemoteToolPresentation(catalog, 'query_plan')).toEqual({
+      name: 'query_plan',
+      available: true,
+      unavailableReason: '',
+    });
+    expect(getAgentRemoteToolPresentation(catalog, 'unknown_tool')).toEqual({
+      name: 'unknown_tool',
+      available: true,
+      unavailableReason: '',
+    });
   });
 });

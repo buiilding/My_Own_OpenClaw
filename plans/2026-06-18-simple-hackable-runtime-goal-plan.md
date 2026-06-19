@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved global stop shortcut status presentation into
+  `desktopShortcutRuntimeClient`. `GeneralSettingsTab` now asks the runtime
+  client whether to show fallback or registration-failure notices and which
+  fallback label to render instead of reading raw shortcut status fallback and
+  registration fields directly. Validation passed focused desktop shortcut
+  runtime client, settings section, general settings tab, renderer settings
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  raw shortcut-status field scan, docs listing, and diff checks. No migration
+  required; global stop shortcut status payloads, local shortcut config
+  persistence, shortcut fallback behavior, focused-window stop-key matching,
+  IPC channels, storage, provider policy, hosted URLs, permissions,
+  credentials, and local execution behavior are unchanged.
+
+- 2026-06-19: moved remote-tool catalog availability presentation into
+  `desktopExtensionRuntimeClient`. `AgentSettingsTab` now asks the runtime
+  client for cloud-tool availability and unavailable-reason values instead of
+  searching raw `remote_tools` entries or reading `available` /
+  `reason_unavailable` fields while rendering remote tools; the WindieOS skin
+  owns the unavailable fallback label. Validation passed focused desktop
+  extension runtime client, agent settings tab, renderer settings boundary, and
+  docs-index tests plus docs search, related commit search, stale raw
+  remote-tool catalog-field scan, docs listing, and diff checks. No migration
+  required; agent capability event channel names, remote-tool catalog payload
+  shape, tool toggle config keys, settings storage, IPC channels, provider
+  policy, hosted URLs, permissions, credentials, and local execution behavior
+  are unchanged.
+
 - 2026-06-19: moved MCP server card/status presentation into
   `desktopMcpRuntimeClient`. `McpsSection` now renders display name, status
   label/class/text, enablement state/id, and debug spec values from the runtime

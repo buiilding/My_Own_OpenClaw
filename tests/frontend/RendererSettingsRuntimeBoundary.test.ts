@@ -169,8 +169,18 @@ describe('renderer settings runtime boundary', () => {
     }
     expect(generalSettingsSource).toContain('DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutOptions');
     expect(generalSettingsSource).toContain('DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel');
+    expect(generalSettingsSource).toContain(
+      'DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutStatusPresentation',
+    );
+    expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus?.registrationFailed');
+    expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus?.usingFallback');
+    expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus?.resolvedAccelerator');
+    expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus?.requestedAccelerator');
+    expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus.resolvedAccelerator');
+    expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus.requestedAccelerator');
     expect(configStorageSource).toContain('DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator');
     expect(shortcutClientSource).toContain('normalizeGlobalAgentStopShortcutAccelerator');
+    expect(shortcutClientSource).toContain('getGlobalAgentStopShortcutStatusPresentation');
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/utils/configStorage.js'),
     )).rejects.toThrow();
@@ -225,10 +235,15 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('event.manifestStatus');
     expect(source).not.toContain('event?.remoteToolCatalog');
     expect(source).not.toContain('event.remoteToolCatalog');
+    expect(source).not.toContain('remoteToolCatalog.remote_tools');
+    expect(source).not.toContain('reason_unavailable');
+    expect(source).not.toContain('available === false');
+    expect(source).not.toContain('.find((tool) => tool.name === toolName)');
     expect(source).not.toContain("event?.type === 'client-tool-manifest'");
     expect(source).not.toContain("event?.type === 'remote-tool-catalog'");
     expect(source).toContain('DesktopExtensionRuntimeClient.listAgentExtensions');
     expect(source).toContain('DesktopExtensionRuntimeClient.onAgentCapabilityUpdate');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getRemoteToolPresentation');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');
     expect(source).toContain('EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(source).toContain('EMPTY_AGENT_REMOTE_TOOL_CATALOG');
@@ -236,6 +251,8 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).toContain('normalizeAgentExtensionRuntime');
     expect(clientSource).toContain('normalizeAgentCapabilityEvent');
     expect(clientSource).toContain('resolveAgentCapabilityUpdate');
+    expect(clientSource).toContain('getAgentRemoteToolPresentation');
+    expect(clientSource).toContain('getRemoteToolPresentation');
     expect(clientSource).toContain('onAgentCapabilityEvent');
     expect(clientSource).toContain('onAgentCapabilityUpdate');
     expect(clientSource).toContain('manifestStatus');

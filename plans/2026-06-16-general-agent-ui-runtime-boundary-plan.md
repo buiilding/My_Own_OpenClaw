@@ -120,6 +120,44 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Global Stop Shortcut Status Presentation Boundary
+
+- Finding: `desktopShortcutRuntimeClient` owned global stop shortcut labels,
+  supported options, accelerator normalization, and focused-window stop-key
+  matching, but `GeneralSettingsTab` still read raw shortcut status fallback and
+  registration fields while rendering notices.
+- Change: added global stop shortcut status presentation projection to
+  `desktopShortcutRuntimeClient`. `GeneralSettingsTab` now asks the runtime
+  client whether to show fallback or registration-failure notices and which
+  fallback label to render.
+- Validation: passed focused desktop shortcut runtime client, settings section,
+  general settings tab, renderer settings boundary, and docs-index tests plus
+  docs search, related commit search, stale raw shortcut-status field scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Global stop shortcut status payloads,
+  local shortcut config persistence, shortcut fallback behavior, focused-window
+  stop-key matching, IPC channels, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Remote Tool Availability Presentation Boundary
+
+- Finding: `desktopExtensionRuntimeClient` owned remote-tool catalog payload
+  normalization and capability-event fan-out, but `AgentSettingsTab` still
+  searched raw `remote_tools` entries and read `available` /
+  `reason_unavailable` fields while rendering cloud tool availability.
+- Change: added remote-tool availability presentation projection to
+  `desktopExtensionRuntimeClient`. `AgentSettingsTab` now asks the runtime
+  client for availability and unavailable-reason values, while the WindieOS
+  skin owns the unavailable fallback label.
+- Validation: passed focused desktop extension runtime client, agent settings
+  tab, renderer settings boundary, and docs-index tests plus docs search,
+  related commit search, stale raw remote-tool catalog-field scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Agent capability event channel names,
+  remote-tool catalog payload shape, tool toggle config keys, settings storage,
+  IPC channels, provider policy, hosted URLs, permissions, credentials, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer MCP Server Card Presentation Boundary
 
 - Finding: `desktopMcpRuntimeClient` owned MCP registry, refresh, enablement,

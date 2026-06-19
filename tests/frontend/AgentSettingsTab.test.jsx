@@ -91,6 +91,21 @@ describe('AgentSettingsTab', () => {
     expect(await screen.findByText('Notes')).toBeInTheDocument();
     expect(screen.getByText(/save_note/)).toBeInTheDocument();
     expect(screen.getAllByText(/search/).length).toBeGreaterThan(0);
+
+    act(() => {
+      capabilityEventHandler({
+        type: 'remote-tool-catalog',
+        payload: {
+          remote_tools: [{
+            name: 'web_search',
+            available: false,
+            reason_unavailable: 'Hosted search disabled',
+          }],
+        },
+      });
+    });
+
+    expect(screen.getByText('Hosted search disabled')).toBeInTheDocument();
   });
 
   test('formats unknown execution targets as generic runtime labels', async () => {

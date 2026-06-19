@@ -21,12 +21,10 @@ function GeneralSettingsTab({ config, onConfigChange }) {
   const showToolLogs = config?.show_tool_logs === true;
   const globalStopShortcut = config?.global_agent_stop_shortcut;
   const globalStopShortcutOptions = DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutOptions();
-  const shortcutRegistrationFailed = globalAgentStopShortcutStatus?.registrationFailed === true;
-  const shortcutFallbackActive = (
-    globalAgentStopShortcutStatus?.usingFallback === true
-    && typeof globalAgentStopShortcutStatus?.resolvedAccelerator === 'string'
-    && typeof globalAgentStopShortcutStatus?.requestedAccelerator === 'string'
-    && globalAgentStopShortcutStatus.resolvedAccelerator !== globalAgentStopShortcutStatus.requestedAccelerator
+  const shortcutStatusPresentation = (
+    DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutStatusPresentation(
+      globalAgentStopShortcutStatus,
+    )
   );
 
   const handleWakewordSttEnabledChange = (enabled) => {
@@ -95,20 +93,18 @@ function GeneralSettingsTab({ config, onConfigChange }) {
             </strong>
             .
           </p>
-          {shortcutFallbackActive ? (
+          {shortcutStatusPresentation.showFallbackNotice ? (
             <p className="clone-settings-inline-warning">
               {generalSettingsSkin.globalStopShortcut.fallbackPrefix}
               {' '}
               <strong>
-                {DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel(
-                  globalAgentStopShortcutStatus.resolvedAccelerator,
-                )}
+                {shortcutStatusPresentation.fallbackLabel}
               </strong>
               {' '}
               {generalSettingsSkin.globalStopShortcut.fallbackSuffix}
             </p>
           ) : null}
-          {shortcutRegistrationFailed ? (
+          {shortcutStatusPresentation.showRegistrationFailure ? (
             <p className="clone-settings-inline-warning">
               {generalSettingsSkin.globalStopShortcut.registrationFailure}
             </p>

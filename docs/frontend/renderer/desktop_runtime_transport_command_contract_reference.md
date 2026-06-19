@@ -170,6 +170,13 @@ instead of the chat feature constant tree.
 allowlisting plus local app-config persistence defaults. App config providers
 consume these app-runtime facades instead of root renderer utilities.
 
+`desktopShortcutRuntimeClient.ts` owns renderer shortcut labels, supported
+global-stop shortcut options, shortcut accelerator normalization, focused-window
+stop-key matching, and global-stop shortcut status presentation values for
+fallback and registration-failure notices. General settings keeps rendering,
+copy, and config-patch behavior while consuming shortcut status presentation
+from this runtime client instead of reading raw shortcut status fields.
+
 `desktopPendingTurnRuntimeClient.ts` owns the renderer adapter for the desktop
 pending-turn IPC send channel. Chat hooks and message-send utilities update
 their local store state, then call this runtime client instead of importing
@@ -274,10 +281,12 @@ client.
 `desktopExtensionRuntimeClient.ts` owns extension metadata loading, extension
 runtime payload normalization, and agent capability event fan-out/type
 classification into normalized `manifestStatus` and `remoteToolCatalog` fields
-plus direct manifest/catalog update callbacks for settings UI. Agent settings
-owns extension/tool presentation, tool toggle config patches, and
-manifest/catalog display state while delegating the desktop event and metadata
-channels to this client instead of reading normalized event fields.
+plus direct manifest/catalog update callbacks and remote-tool catalog
+availability presentation for settings UI. Agent settings owns extension/tool
+layout, tool toggle config patches, and manifest/catalog display state while
+delegating the desktop event, metadata channels, and remote-tool availability
+field interpretation to this client instead of reading normalized event or
+catalog fields.
 
 `desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
 shared React hook helpers such as `useLatestRef`. App providers and feature

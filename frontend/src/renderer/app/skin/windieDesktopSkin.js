@@ -42,6 +42,7 @@ export const windieDesktopSkin = Object.freeze({
       remoteTools: Object.freeze({
         label: 'Cloud tools',
         description: `These execute through the hosted ${productName} runtime when available.`,
+        unavailableFallback: 'Unavailable',
         ids: Object.freeze([
           'web_search',
         ]),

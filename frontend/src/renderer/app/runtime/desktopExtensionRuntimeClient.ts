@@ -20,6 +20,12 @@ export type AgentRemoteToolCatalog = {
   remote_tools: unknown[];
 };
 
+export type AgentRemoteToolPresentation = {
+  name: string;
+  available: boolean;
+  unavailableReason: string;
+};
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -54,6 +60,10 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function stringOrEmpty(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 export function normalizeAgentExtensionRuntime(payload: unknown): AgentExtensionRuntimeSnapshot {
@@ -117,6 +127,24 @@ export function resolveAgentCapabilityUpdate(event: unknown): {
   };
 }
 
+export function getAgentRemoteToolPresentation(
+  catalog: AgentRemoteToolCatalog,
+  toolName: unknown,
+): AgentRemoteToolPresentation {
+  const name = stringOrEmpty(toolName);
+  const catalogEntry = normalizeAgentRemoteToolCatalog(catalog).remote_tools
+    .map(recordOrEmpty)
+    .find((tool) => stringOrEmpty(tool.name) === name);
+
+  return {
+    name,
+    available: catalogEntry?.available !== false,
+    unavailableReason: catalogEntry?.available === false
+      ? stringOrEmpty(catalogEntry.reason_unavailable)
+      : '',
+  };
+}
+
 export const DesktopExtensionRuntimeClient = {
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
@@ -139,5 +167,12 @@ export const DesktopExtensionRuntimeClient = {
         listener(update.manifestStatus, update.remoteToolCatalog);
       },
     );
+  },
+
+  getRemoteToolPresentation(
+    catalog: AgentRemoteToolCatalog,
+    toolName: unknown,
+  ): AgentRemoteToolPresentation {
+    return getAgentRemoteToolPresentation(catalog, toolName);
   },
 };

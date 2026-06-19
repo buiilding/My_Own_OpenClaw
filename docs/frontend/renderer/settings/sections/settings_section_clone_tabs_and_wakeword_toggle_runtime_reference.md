@@ -56,7 +56,7 @@ Routing model:
 
 ## General Tab Ownership Model
 
-`GeneralSettingsTab` owns four control classes:
+`GeneralSettingsTab` owns five control classes:
 
 ### 1) AppConfigContext-driven wakeword preference
 
@@ -97,6 +97,16 @@ storage. The dashboard thread uses it to either:
 - show raw `tool-call` / `tool-output` rows, or
 - hide raw tool rows and derive subdued explanation text plus a collapsed `View actions` summary
 
+### 5) Global stop shortcut config and status presentation
+
+`GeneralSettingsTab` emits local config patches for `global_agent_stop_shortcut`
+selection. It reads supported shortcut options, shortcut labels, and fallback /
+registration-failure presentation through `DesktopShortcutRuntimeClient`.
+
+The tab should keep rendering and copy local, but it should not read raw
+`globalAgentStopShortcutStatus` fallback fields such as `usingFallback`,
+`requestedAccelerator`, `resolvedAccelerator`, or `registrationFailed` directly.
+
 ## Appearance Tab Ownership Model
 
 `AppearanceSettingsTab` owns renderer-local theme editor values:
@@ -130,12 +140,13 @@ Runtime inputs:
 
 - `DesktopExtensionRuntimeClient.listAgentExtensions()`
 - `DesktopExtensionRuntimeClient.onAgentCapabilityUpdate(...)`
+- `DesktopExtensionRuntimeClient.getRemoteToolPresentation(...)`
 
 The tab should not import desktop IPC channels directly or branch on raw agent
 capability event type strings. It consumes extension metadata plus direct
-manifest/catalog update values through the runtime client, then keeps
-presentation state, tool-toggle projection, and config patches local to the
-settings surface.
+manifest/catalog update values through the runtime client, asks the runtime
+client for remote-tool availability presentation, then keeps presentation state,
+tool-toggle projection, and config patches local to the settings surface.
 
 ## Memory Tab Ownership Model
 

@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move global stop shortcut status presentation into
+  `desktopShortcutRuntimeClient` so `GeneralSettingsTab` no longer reads raw
+  shortcut fallback or registration-failure fields while rendering shortcut
+  notices. No migration required.
+- renderer/runtime: move remote-tool catalog availability presentation into
+  `desktopExtensionRuntimeClient` so `AgentSettingsTab` no longer reads raw
+  remote tool `available` or `reason_unavailable` fields while rendering cloud
+  tool availability. No migration required.
 - renderer/runtime: move MCP server card/status presentation into
   `desktopMcpRuntimeClient` so `McpsSection` no longer reads raw server status,
   enablement, command, args, or tool fields while rendering MCP cards. No
