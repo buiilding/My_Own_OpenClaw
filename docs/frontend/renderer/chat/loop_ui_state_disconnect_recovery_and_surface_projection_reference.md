@@ -12,7 +12,6 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 - `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
-- `frontend/src/renderer/features/chat/utils/state/overlayTurnLifecycleState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useOverlayTurnLifecycle.js`

@@ -275,6 +275,44 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer send-surface/chat-pill runtime-boundary
+  slice by moving main-window vs overlay-chatbox send policy into
+  `app/runtime/desktopMessageSendUiRuntime.ts` and chat-pill send/view intent
+  into `app/runtime/desktopChatPillSessionRuntime.ts`. Chat send hooks,
+  desktop send preparation, minimal response overlay view models, tests, docs,
+  and boundary guards now route through the app-runtime owners, and the old
+  chat feature helper paths are deleted. Validation: focused message-send UI,
+  chat-pill session, chat sender, response overlay, renderer app-runtime
+  boundary tests, docs listing, stale old-path scan, frontend lint, and diff
+  checks. No migration required; sender-surface defaults, screenshot capture
+  gating, return-to-chatbox behavior, response overlay view intent, IPC
+  payloads, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer send-surface session runtime-boundary slice
+  by moving main-window vs overlay-chatbox send policy into
+  `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts` and
+  chat-pill send lifecycle/response-overlay view intent into
+  `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`. Send
+  hooks, preparation, minimal response overlay, tests, docs, and boundary
+  guards now route through those app-runtime facades; old chat policy/session
+  paths are deleted. Validation: focused message-send policy, chat-pill session
+  flow, ChatMessageSender, ChatInterface wiring, response overlay, renderer
+  app-runtime boundary, docs listing, stale old-path scan, and diff checks. No
+  migration required; sender-surface names, return-to-chatbox policy values,
+  screenshot capture gating, response-overlay view intent, IPC payloads,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer overlay-turn lifecycle resolver boundary
+  slice by moving `resolveOverlayTurnLifecycle(...)` plus busy/awaiting helper
+  predicates into `app/runtime/desktopOverlayTurnLifecycleRuntime.js` and
+  deleting the old chat feature wrapper. Chat loop state, overlay lifecycle
+  hooks, tests, and docs now import the app-runtime owner directly. Validation:
+  focused overlay lifecycle, chat-loop hook, renderer app-runtime boundary
+  tests, docs listing, stale old-path scan, frontend lint, and diff checks. No
+  migration required; lifecycle values, phase groups, reconnect watchdog
+  behavior, overlay visibility behavior, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer thread-presentation runtime-boundary slice
   by moving the durable-thread plus SDK live-row presentation pipeline out of
   chat feature utilities and into

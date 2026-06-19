@@ -10,12 +10,12 @@ import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRen
 import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
-} from '../policies/messageSendUiPolicy';
+} from '../../../app/runtime/desktopMessageSendUiRuntime';
 import { useChatCommonActions } from './useChatCommonActions';
 import {
   type OutgoingUserMessagePayload,
 } from '../utils/messageSender/chatMessageSenderPayloads';
-import { resolveChatPillSendLifecycle } from '../utils/chatPill/chatPillSessionFlow';
+import { resolveChatPillSendLifecycle } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import {
   dispatchPreparedDesktopChatTurn,
   prepareDesktopChatSend,

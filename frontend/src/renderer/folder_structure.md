@@ -32,10 +32,12 @@ frontend/src/renderer/
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
 │   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
+│   │   ├── desktopChatPillSessionRuntime.ts # Renderer chat-pill send lifecycle and response-overlay view intent facade
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
+│   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
-│   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum and phase-group facade
+│   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum, phase groups, and resolver facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
 │   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
@@ -126,8 +128,6 @@ frontend/src/renderer/
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
 │   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
-│   │       ├── chatPill/                # chatPill - Shared minimal-pill session flow contracts
-│   │       │   └── chatPillSessionFlow.ts # chatPillSessionFlow - Send lifecycle reason + overlay turn/view intent resolver
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
 │   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper

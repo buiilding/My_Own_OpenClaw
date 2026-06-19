@@ -4,9 +4,9 @@
 
 import {
   resolveMessageSendUiBehavior,
-} from '../../frontend/src/renderer/features/chat/policies/messageSendUiPolicy';
+} from '../../frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime';
 
-describe('messageSendUiPolicy', () => {
+describe('desktopMessageSendUiRuntime', () => {
   test('defaults per UI surface are explicit', () => {
     expect(resolveMessageSendUiBehavior({
       senderSurface: 'main-window',

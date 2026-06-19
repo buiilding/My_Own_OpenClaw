@@ -5,9 +5,9 @@
 import {
   resolveChatPillSendLifecycle,
   resolveChatPillViewIntent,
-} from '../../frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow';
+} from '../../frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime';
 
-describe('chatPillSessionFlow', () => {
+describe('desktopChatPillSessionRuntime', () => {
   test('resolves overlay-chatbox send lifecycle with screenshot capture', () => {
     expect(resolveChatPillSendLifecycle({
       senderSurface: 'overlay-chatbox',

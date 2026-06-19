@@ -17,7 +17,8 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
-- `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
+- `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`

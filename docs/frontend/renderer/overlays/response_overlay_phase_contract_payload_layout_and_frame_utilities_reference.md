@@ -74,13 +74,13 @@ Shared lifecycle source of truth:
 
 Renderer adapters:
 
-- `desktopOverlayTurnLifecycleRuntime.js` exposes lifecycle constants:
+- `desktopOverlayTurnLifecycleRuntime.js` exposes lifecycle constants and resolver helpers:
   - `IDLE`
   - `PREFLIGHT`
   - `AWAITING`
   - `ACTIVE`
   - `TERMINAL`
-- `overlayTurnLifecycleState.js` resolves renderer-local send state plus main-process overlay phase into one canonical lifecycle.
+- `resolveOverlayTurnLifecycle(...)` resolves renderer-local send state plus main-process overlay phase into one canonical lifecycle.
 
 Important behavior:
 

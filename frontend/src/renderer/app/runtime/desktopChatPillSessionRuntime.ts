@@ -1,14 +1,17 @@
 /**
- * Provides the chat pill session flow module for the renderer UI.
+ * Resolves chat-pill send lifecycle and response overlay view intent.
  */
 
 import {
   resolveMessageSendUiBehavior,
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
-} from '../../policies/messageSendUiPolicy';
-import { resolveResponseOverlayViewContract } from '../../../../app/runtime/desktopResponseOverlayViewRuntime';
-import type { ChatMessage } from '../../stores/chatStore';
+} from './desktopMessageSendUiRuntime';
+import { resolveResponseOverlayViewContract } from './desktopResponseOverlayViewRuntime';
+
+type TurnRefMessage = {
+  turnRef?: string | null;
+};
 
 const CHAT_PILL_SURFACE_REASON = Object.freeze({
   QUERY_SEND_WITH_CAPTURE: 'query_send_with_capture',
@@ -25,7 +28,7 @@ function normalizeOptionalTurnRef(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function findLatestChatTurnId(messages: ChatMessage[]): string | null {
+function findLatestChatTurnId(messages: TurnRefMessage[]): string | null {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const turnRef = normalizeOptionalTurnRef(messages[index]?.turnRef);
     if (turnRef) {
@@ -71,10 +74,10 @@ export function resolveChatPillViewIntent({
   responseOverlayEntries,
   dismissedResponseId = null,
 }: {
-  messages: ChatMessage[];
+  messages: TurnRefMessage[];
   currentTurnPresentationState: {
-    activeResponse?: ChatMessage | null;
-    visibleResponse?: ChatMessage | null;
+    activeResponse?: TurnRefMessage | null;
+    visibleResponse?: TurnRefMessage | null;
     showChatboxAwaitingReply?: boolean;
   };
   responseOverlayEntries: Array<{ id?: string | null }>;

@@ -1,5 +1,5 @@
 /**
- * Provides the message send ui policy module for the renderer UI.
+ * Resolves renderer send-surface UI behavior for desktop chat surfaces.
  */
 
 export type ChatSendSurface = 'main-window' | 'overlay-chatbox';

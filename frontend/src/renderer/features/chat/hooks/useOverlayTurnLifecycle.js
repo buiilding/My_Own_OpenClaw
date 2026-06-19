@@ -7,7 +7,7 @@ import { useChatLoopTransportState } from './useChatLoopUiState';
 import {
   isOverlayTurnLifecycleBusy,
   resolveOverlayTurnLifecycle,
-} from '../utils/state/overlayTurnLifecycleState';
+} from '../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 export function useOverlayTurnLifecycle({
   phase,

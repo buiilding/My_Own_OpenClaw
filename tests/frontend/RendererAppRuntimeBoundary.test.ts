@@ -251,8 +251,12 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopOverlayTurnLifecycleRuntime.js'),
       'utf8',
     );
-    const lifecycleStateSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/state/overlayTurnLifecycleState.js'),
+    const chatLoopUiStateSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/state/chatLoopUiState.js'),
+      'utf8',
+    );
+    const overlayLifecycleHookSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useOverlayTurnLifecycle.js'),
       'utf8',
     );
     const responseViewRuntimeSource = await fs.readFile(
@@ -266,14 +270,19 @@ describe('renderer app runtime boundary', () => {
 
     expect(lifecycleRuntimeSource).toContain('overlay_turn_lifecycle_contract.json');
     expect(lifecycleRuntimeSource).not.toContain('features/chat');
-    expect(lifecycleStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(lifecycleRuntimeSource).toContain('resolveOverlayTurnLifecycle');
+    expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleBusy');
+    expect(chatLoopUiStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(overlayLifecycleHookSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(overlayViewModelSource).toContain('desktopOverlayTurnLifecycleRuntime');
-    expect(lifecycleStateSource).not.toContain('overlayTurnLifecycleContract');
     expect(responseViewRuntimeSource).not.toContain('overlayTurnLifecycleContract');
     expect(overlayViewModelSource).not.toContain('overlayTurnLifecycleContract');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/overlayTurnLifecycleContract.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/overlayTurnLifecycleState.js'),
     )).rejects.toThrow();
   });
 
@@ -283,7 +292,11 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
     const chatPillFlowSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/chatPill/chatPillSessionFlow.ts'),
+      path.join(appRoot, 'runtime/desktopChatPillSessionRuntime.ts'),
+      'utf8',
+    );
+    const messageSendRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopMessageSendUiRuntime.ts'),
       'utf8',
     );
 
@@ -292,9 +305,19 @@ describe('renderer app runtime boundary', () => {
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).not.toContain('features/chat');
     expect(chatPillFlowSource).toContain('desktopResponseOverlayViewRuntime');
+    expect(chatPillFlowSource).toContain('desktopMessageSendUiRuntime');
+    expect(chatPillFlowSource).not.toContain('features/chat');
+    expect(messageSendRuntimeSource).toContain('resolveMessageSendUiBehavior');
+    expect(messageSendRuntimeSource).not.toContain('features/chat');
     expect(chatPillFlowSource).not.toContain('responseOverlayViewContract');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayViewContract.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/chatPill/chatPillSessionFlow.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/policies/messageSendUiPolicy.ts'),
     )).rejects.toThrow();
   });
 

@@ -18,7 +18,8 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
-- `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
+- `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`

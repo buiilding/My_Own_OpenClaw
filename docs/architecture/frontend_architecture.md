@@ -413,9 +413,11 @@ Primary modules:
   - Conversation gating and turn tracking.
   - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
   - Stream trace logging is separately gated by `WINDIE_DEBUG_STREAM_EVENTS=1`, which main process fans out as `?debug_stream=1` so renderer consoles stay quiet during normal `electron:dev` runs.
-- `features/chat/utils/chatPill/chatPillSessionFlow.ts`:
+- `renderer/app/runtime/desktopChatPillSessionRuntime.ts`:
   - Pure renderer contract for chat-pill send lifecycle decisions (`query_send_with_capture` vs `query_send_without_capture`) and current overlay turn/view intent.
   - Gives `useChatMessageSender` and `ChatBoxResponse` one shared place to answer “what should the pill/response overlay do for this turn?”
+- `renderer/app/runtime/desktopMessageSendUiRuntime.ts`:
+  - Pure renderer send-surface policy for main-window vs overlay-chatbox return behavior.
 - `renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`:
   - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.

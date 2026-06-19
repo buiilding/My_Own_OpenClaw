@@ -2,14 +2,14 @@
  * Covers overlay turn lifecycle. behavior in the frontend test suite.
  */
 
-import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 import {
+  OVERLAY_TURN_LIFECYCLE,
   isOverlayTurnLifecycleAwaiting,
   isOverlayTurnLifecycleBusy,
   resolveOverlayTurnLifecycle,
-} from '../../frontend/src/renderer/features/chat/utils/state/overlayTurnLifecycleState';
+} from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
-describe('overlayTurnLifecycleState', () => {
+describe('desktopOverlayTurnLifecycleRuntime', () => {
   test('treats local send latch as preflight before main phase advances', () => {
     expect(resolveOverlayTurnLifecycle({
       phase: 'idle',

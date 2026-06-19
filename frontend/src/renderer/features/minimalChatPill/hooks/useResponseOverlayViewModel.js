@@ -20,7 +20,7 @@ import {
   isResponseCloseable,
   normalizeThinkingText,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
-import { resolveChatPillViewIntent } from '../../chat/utils/chatPill/chatPillSessionFlow';
+import { resolveChatPillViewIntent } from '../../../app/runtime/desktopChatPillSessionRuntime';
 import { logRendererLiveSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
