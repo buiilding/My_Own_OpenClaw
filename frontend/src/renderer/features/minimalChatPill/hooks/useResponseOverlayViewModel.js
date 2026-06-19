@@ -18,6 +18,9 @@ import {
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnMessagesFromPresentation,
   isResponseCloseable,
+  isResponseOverlayProgressMessage,
+  isResponseOverlaySourceTaggedMessage,
+  isVisibleResponseOverlayMessage,
   normalizeThinkingText,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { resolveChatPillViewIntent } from '../../../app/runtime/desktopChatPillSessionRuntime';
@@ -25,23 +28,7 @@ import { logRendererLiveSurfaceTrace } from '../../../app/runtime/desktopRendere
 
 function normalizeProjectedCurrentTurnEntries(currentTurnProjection) {
   return buildCurrentTurnMessagesFromProjection(currentTurnProjection)
-    .filter(isVisibleOverlayMessage);
-}
-
-function isVisibleOverlayMessage(message) {
-  return (
-    message
-    && message.sender === 'assistant'
-    && (
-      (typeof message.text === 'string' && message.text.trim())
-      || (typeof message.thinkingText === 'string' && message.thinkingText.trim())
-      || message.type === 'tool-call'
-      || message.type === 'tool-output'
-      || message.type === 'search-source'
-      || message.type === 'tool-explanation'
-      || message.type === 'error'
-    )
-  );
+    .filter(isVisibleResponseOverlayMessage);
 }
 
 function resolveSdkOverlayLifecycle(presentation, overlayIntent) {
@@ -130,7 +117,7 @@ export function useResponseOverlayViewModel({
       }
       if (useSdkLiveTurnPresentation) {
         return buildCurrentTurnMessagesFromPresentation(currentTurnProjection)
-          .filter(isVisibleOverlayMessage);
+          .filter(isVisibleResponseOverlayMessage);
       }
       return normalizeProjectedCurrentTurnEntries(currentTurnProjection);
     },
@@ -247,10 +234,7 @@ export function useResponseOverlayViewModel({
   const latestSourceTaggedResponseEntry = useMemo(() => {
     for (let index = responseOverlayEntries.length - 1; index >= 0; index -= 1) {
       const entry = responseOverlayEntries[index];
-      if (entry?.type === 'llm-text' || entry?.type === 'error') {
-        return entry;
-      }
-      if (typeof entry?.sourceEventType === 'string' && entry.sourceEventType.trim()) {
+      if (isResponseOverlaySourceTaggedMessage(entry)) {
         return entry;
       }
     }
@@ -270,12 +254,7 @@ export function useResponseOverlayViewModel({
       return false;
     }
     return isResponseCloseable(latestSourceTaggedResponseEntry)
-      || responseOverlayEntries.some((entry) => (
-        entry.type === 'tool-explanation'
-        || entry.type === 'tool-call'
-        || entry.type === 'tool-output'
-        || entry.type === 'search-source'
-      ));
+      || responseOverlayEntries.some(isResponseOverlayProgressMessage);
   }, [
     resolvedCurrentTurnPresentationState.isBusy,
     latestSourceTaggedResponseEntry,

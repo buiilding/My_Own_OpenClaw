@@ -1472,6 +1472,10 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useChatLoopUiState.js'),
       'utf8',
     );
+    const loopRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js'),
+      'utf8',
+    );
     const clientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts'),
       'utf8',
@@ -1485,8 +1489,15 @@ describe('renderer chat runtime boundary', () => {
     expect(loopStateSource).not.toContain('IpcBridge.');
     expect(loopStateSource).not.toContain('payload?.isConnected');
     expect(loopStateSource).not.toContain('hasConnectionState');
+    expect(loopStateSource).not.toContain('CHAT_LOOP_MACHINE_EVENT');
+    expect(loopStateSource).not.toContain('function reduceChatLoopMachineState');
+    expect(loopStateSource).toContain('reduceChatLoopTransportMachineState');
+    expect(loopStateSource).toContain('createChatLoopTransportStatusEvent');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onObservedIpcTransportStatus');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadObservedMainTransportStatus');
+    expect(loopRuntimeSource).toContain('CHAT_LOOP_TRANSPORT_MACHINE_EVENT');
+    expect(loopRuntimeSource).toContain('reduceChatLoopTransportMachineState');
+    expect(loopRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
     expect(clientSource).toContain('normalizeDesktopTransportConnectionStatus');

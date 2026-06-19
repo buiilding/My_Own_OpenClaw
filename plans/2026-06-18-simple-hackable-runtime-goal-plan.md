@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-loop transport machine runtime slice by
+  moving the disconnect/reconnect recovery reducer, machine event vocabulary,
+  and event factory helpers into `desktopChatLoopUiRuntime`.
+  `useChatLoopUiState` now owns only runtime-client subscriptions, snapshot
+  dispatch, watchdog timer wiring, and returned presentation transport state.
+  Validation: focused chat loop UI runtime, chat loop hook, and renderer chat
+  runtime boundary tests plus docs search, related commit search, stale hook
+  reducer/event-vocabulary scans, and diff checks. No migration required; loop
+  UI states, disconnect/reconnect recovery timing, IPC channel names, session
+  snapshots, storage, settings, credentials, provider-policy, hosted URLs, and
+  local execution behavior are unchanged.
+
+- 2026-06-19: completed a renderer response-overlay row classification slice
+  by adding visible-entry, progress-entry, and source-tagged-entry predicates
+  to `desktopCurrentTurnMessageRuntime`. `useResponseOverlayViewModel` now
+  composes SDK current-turn projection rows through app-runtime predicates
+  instead of carrying raw overlay row-type sets. Validation: focused current
+  turn message runtime and renderer app-runtime boundary tests plus response
+  overlay docs search, related commit search, stale inline overlay row-type
+  scans, and diff checks. No migration required; SDK current-turn projection
+  shape, response-overlay visibility, closeability, progress-row display, IPC,
+  storage, settings, credentials, provider-policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer stream dispatch predicate boundary slice by
   adding local-user, turn-error, and usage-update predicates to
   `desktopChatStreamEventRuntime`. `useChatStream` no longer performs direct SDK

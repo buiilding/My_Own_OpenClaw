@@ -482,6 +482,51 @@ export function isResponseCloseable(response) {
   return Boolean(response.isComplete);
 }
 
+const RESPONSE_OVERLAY_VISIBLE_MESSAGE_TYPES = new Set([
+  'tool-call',
+  'tool-output',
+  'search-source',
+  'tool-explanation',
+  'error',
+]);
+
+const RESPONSE_OVERLAY_PROGRESS_MESSAGE_TYPES = new Set([
+  'tool-call',
+  'tool-output',
+  'search-source',
+  'tool-explanation',
+]);
+
+export function isVisibleResponseOverlayMessage(message) {
+  return Boolean(
+    message
+    && message.sender === 'assistant'
+    && (
+      normalizeText(message.text)
+      || normalizeText(message.thinkingText)
+      || RESPONSE_OVERLAY_VISIBLE_MESSAGE_TYPES.has(message.type)
+    )
+  );
+}
+
+export function isResponseOverlayProgressMessage(message) {
+  return Boolean(
+    message
+    && RESPONSE_OVERLAY_PROGRESS_MESSAGE_TYPES.has(message.type),
+  );
+}
+
+export function isResponseOverlaySourceTaggedMessage(message) {
+  return Boolean(
+    message
+    && (
+      message.type === 'llm-text'
+      || message.type === 'error'
+      || normalizeOptionalText(message.sourceEventType)
+    ),
+  );
+}
+
 export function normalizeThinkingText(thinkingStatus) {
   return typeof thinkingStatus === 'string' ? thinkingStatus.trim() : '';
 }

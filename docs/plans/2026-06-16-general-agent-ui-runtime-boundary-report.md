@@ -174,6 +174,42 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Chat-Loop Transport Machine Runtime Boundary
+
+- Finding: docs described the chat-loop disconnect/reconnect reducer as a
+  runtime, but `useChatLoopUiState` still owned the reducer, machine event
+  vocabulary, and transition rules for transport disconnect recovery.
+- Change: moved the chat-loop transport recovery machine into
+  `desktopChatLoopUiRuntime` with event factory helpers and a pure
+  `reduceChatLoopTransportMachineState(...)`. The hook now owns only runtime
+  client subscriptions, snapshot dispatch, watchdog timer wiring, and returned
+  presentation transport state.
+- Validation: focused chat loop UI runtime, chat loop hook, and renderer chat
+  runtime boundary tests plus docs search, related commit search, stale hook
+  reducer/event-vocabulary scans, and diff checks.
+- Compatibility: no migration required. Loop UI states, disconnect/reconnect
+  recovery timing, IPC channel names, session snapshots, storage, settings,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
+### 2026-06-19 Renderer Response Overlay Row Classification Boundary
+
+- Finding: `useResponseOverlayViewModel` consumed SDK current-turn projection
+  rows through app-runtime builders, but still owned raw response-overlay
+  visible/progress/source-tagged row-type groups locally.
+- Change: added visible-entry, progress-entry, and source-tagged-entry
+  predicates to `desktopCurrentTurnMessageRuntime` and routed the overlay view
+  model through them. The hook keeps composition, dismissal, tracing, and
+  responsebox close orchestration while current-turn message runtime owns row
+  classification.
+- Validation: focused current turn message runtime and renderer app-runtime
+  boundary tests plus response overlay docs search, related commit search,
+  stale inline overlay row-type scans, and diff checks.
+- Compatibility: no migration required. SDK current-turn projection shape,
+  response-overlay visibility, closeability, progress-row display, IPC,
+  storage, settings, credentials, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Dispatch Predicate Boundary
 
 - Finding: after moving supported, tool display-only, compaction, and metadata

@@ -254,6 +254,9 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
     expect(currentTurnMessageSource).toContain('desktopArtifactRuntimeClient');
+    expect(currentTurnMessageSource).toContain('isVisibleResponseOverlayMessage');
+    expect(currentTurnMessageSource).toContain('isResponseOverlayProgressMessage');
+    expect(currentTurnMessageSource).toContain('isResponseOverlaySourceTaggedMessage');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
     expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
@@ -265,6 +268,17 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnPresentationSource).not.toContain('features/chat');
     expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
+    expect(overlayViewModelSource).toContain('isVisibleResponseOverlayMessage');
+    expect(overlayViewModelSource).toContain('isResponseOverlayProgressMessage');
+    expect(overlayViewModelSource).toContain('isResponseOverlaySourceTaggedMessage');
+    expect(overlayViewModelSource).not.toContain("message.type === 'tool-call'");
+    expect(overlayViewModelSource).not.toContain("message.type === 'tool-output'");
+    expect(overlayViewModelSource).not.toContain("message.type === 'search-source'");
+    expect(overlayViewModelSource).not.toContain("message.type === 'tool-explanation'");
+    expect(overlayViewModelSource).not.toContain("entry.type === 'tool-call'");
+    expect(overlayViewModelSource).not.toContain("entry.type === 'tool-output'");
+    expect(overlayViewModelSource).not.toContain("entry.type === 'search-source'");
+    expect(overlayViewModelSource).not.toContain("entry.type === 'tool-explanation'");
     expect(chatInterfaceSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(chatInterfaceSource).toContain('desktopCurrentTurnPresentationRuntime');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');

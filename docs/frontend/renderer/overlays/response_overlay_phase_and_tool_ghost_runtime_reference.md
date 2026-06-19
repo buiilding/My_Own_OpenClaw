@@ -47,8 +47,10 @@ Current-turn entry construction:
   into overlay-ready current-turn messages and entries
 - SDK live-turn presentation rows are converted with `buildCurrentTurnMessagesFromPresentation(...)`;
   older projection snapshots are converted with `buildCurrentTurnMessagesFromProjection(...)`.
-- the response overlay filters those current-turn messages directly instead of
-  running a separate assistant-message scanner after the latest user boundary.
+- the response overlay filters those current-turn messages through
+  `desktopCurrentTurnMessageRuntime.isVisibleResponseOverlayMessage(...)`
+  instead of carrying an inline assistant-message scanner after the latest user
+  boundary.
 - entry types currently included:
   - `llm-text`
   - `error`
@@ -68,6 +70,10 @@ Closeability:
 
 - `error` rows are closeable immediately.
 - `llm-text` rows are closeable only when `isComplete === true`.
+- tool/progress rows (`tool-call`, `tool-output`, `search-source`, and
+  `tool-explanation`) are classified by
+  `desktopCurrentTurnMessageRuntime.isResponseOverlayProgressMessage(...)` so
+  the overlay view model does not own raw row-type groups.
 
 ## SDK-Driven View Modes
 
@@ -115,6 +121,8 @@ Contract ownership:
   - `showResponse`
   - `showAwaitingReply`
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
+- `desktopCurrentTurnMessageRuntime` owns response-overlay row classification:
+  visible entries, progress entries, source-tagged entries, and closeability.
 - `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary: current-turn presentation state, response-entry derivation, rendered markdown payloads, closeability, and stale-response suppression during preflight/awaiting.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and

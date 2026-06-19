@@ -5,6 +5,9 @@
 import {
   buildCurrentTurnMessagesFromProjection,
   isResponseCloseable,
+  isResponseOverlayProgressMessage,
+  isResponseOverlaySourceTaggedMessage,
+  isVisibleResponseOverlayMessage,
   normalizeThinkingText,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
@@ -14,6 +17,43 @@ describe('desktopCurrentTurnMessageRuntime', () => {
     expect(isResponseCloseable({ type: 'llm-text', isComplete: false })).toBe(false);
     expect(isResponseCloseable({ type: 'llm-text', isComplete: true })).toBe(true);
     expect(isResponseCloseable({ type: 'error', isComplete: false })).toBe(true);
+  });
+
+  test('classifies response overlay display entries', () => {
+    expect(isVisibleResponseOverlayMessage({
+      sender: 'assistant',
+      type: 'llm-text',
+      text: ' visible ',
+    })).toBe(true);
+    expect(isVisibleResponseOverlayMessage({
+      sender: 'assistant',
+      type: 'llm-text',
+      thinkingText: ' thinking ',
+    })).toBe(true);
+    expect(isVisibleResponseOverlayMessage({
+      sender: 'assistant',
+      type: 'tool-call',
+      text: '',
+    })).toBe(true);
+    expect(isVisibleResponseOverlayMessage({
+      sender: 'user',
+      type: 'tool-call',
+      text: '',
+    })).toBe(false);
+    expect(isVisibleResponseOverlayMessage({
+      sender: 'assistant',
+      type: 'llm-text',
+      text: '   ',
+    })).toBe(false);
+
+    expect(isResponseOverlayProgressMessage({ type: 'tool-explanation' })).toBe(true);
+    expect(isResponseOverlayProgressMessage({ type: 'search-source' })).toBe(true);
+    expect(isResponseOverlayProgressMessage({ type: 'error' })).toBe(false);
+
+    expect(isResponseOverlaySourceTaggedMessage({ type: 'llm-text' })).toBe(true);
+    expect(isResponseOverlaySourceTaggedMessage({ type: 'error' })).toBe(true);
+    expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: 'tool-call' })).toBe(true);
+    expect(isResponseOverlaySourceTaggedMessage({ sourceEventType: '   ' })).toBe(false);
   });
 
   test('normalizeThinkingText trims string input and normalizes non-string to empty', () => {

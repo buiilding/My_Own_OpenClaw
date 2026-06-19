@@ -27,6 +27,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move chat-loop transport recovery reducer and event
+  vocabulary into `desktopChatLoopUiRuntime`, leaving `useChatLoopUiState` to
+  wire subscriptions and watchdog timers. No migration required.
+- renderer/runtime: classify response-overlay visible, progress, and
+  source-tagged message rows in `desktopCurrentTurnMessageRuntime` so
+  `useResponseOverlayViewModel` no longer carries raw overlay row-type sets. No
+  migration required.
 - renderer/runtime: classify local-user, terminal-error, and usage update
   stream events in `desktopChatStreamEventRuntime` so `useChatStream` no longer
   performs direct SDK event-type comparisons. No migration required.

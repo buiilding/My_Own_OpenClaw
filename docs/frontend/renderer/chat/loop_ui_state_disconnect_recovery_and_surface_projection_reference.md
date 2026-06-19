@@ -95,7 +95,7 @@ Helper predicates:
 - `isChatLoopBusy(loopUiState)` (`idle` => false, others => true)
 - `isChatLoopAwaitingReply(loopUiState)` (`awaiting-reply` only)
 
-## Reducer Runtime (`useChatLoopUiState.js`)
+## Reducer Runtime (`desktopChatLoopUiRuntime.js`)
 
 Reducer state fields:
 
@@ -158,7 +158,9 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 The desktop client-session runtime client normalizes raw `ipc-status` and
 startup snapshot payloads into observed `{ isConnected }` updates for this hook.
 The client filters snapshots/events without a boolean connection field; the hook
-owns only disconnect recovery and watchdog state.
+owns only subscriptions, snapshot event creation, and the recovery watchdog
+timer. Disconnect/reconnect state transitions live in
+`desktopChatLoopUiRuntime.reduceChatLoopTransportMachineState(...)`.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
