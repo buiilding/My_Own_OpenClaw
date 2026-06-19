@@ -927,9 +927,8 @@ conversation runtime facade; the facade is allowed to use SDK runtime internals
 so Electron does not duplicate conversation, projection, edit/resend, retry, or
 rehydrate semantics.
 `AgentRuntimeTransport` is the canonical reusable conversation-runtime
-transport type. The older `BackendTransport` type remains only as a
-compatibility alias for existing SDK callers; SDK runtime internals and new host
-adapters should use `AgentRuntimeTransport`.
+transport type. The older `BackendTransport` compatibility type has been
+removed; SDK callers and host adapters should use `AgentRuntimeTransport`.
 
 `conversation.stream(input)` is the preferred custom-client loop API. It emits
 normalized SDK runtime events, updates the configured conversation store, and

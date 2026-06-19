@@ -696,8 +696,6 @@ export type AgentRuntimeTransport = {
   close(): Promise<void>;
 };
 
-export type BackendTransport = AgentRuntimeTransport;
-
 export type LocalToolCall = {
   toolName: string;
   args: JsonRecord;
