@@ -90,7 +90,7 @@ Feature slices:
 - `frontend/src/renderer/app/runtime/desktopChat*.ts`
 - `frontend/src/renderer/app/runtime/desktopMessage*.js`
 - `frontend/src/renderer/features/chat/policies/*`
-- `frontend/src/renderer/features/chat/constants/*`
+- `frontend/src/renderer/app/runtime/desktopToolGhostRuntime.ts`
 - Dashboard:
 - `frontend/src/renderer/features/dashboard/components/*`
 - `frontend/src/renderer/features/dashboard/hooks/*`

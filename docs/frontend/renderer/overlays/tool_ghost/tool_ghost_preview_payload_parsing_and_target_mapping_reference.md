@@ -12,7 +12,7 @@ title: "Tool Ghost Debug Cursor Payload and Timing Reference"
 
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
-- `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopToolGhostRuntime.ts`
 
 ## Runtime Scope
 

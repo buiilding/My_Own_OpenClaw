@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../features/chat/constants/toolGhostRuntime';
+import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from './runtime/desktopToolGhostRuntime';
 import ToolGhostCursor from '../features/chat/components/ToolGhostCursor';
 import '../styles/theme.css';
 import '../styles/ChatBoxResponseOverlay.css';

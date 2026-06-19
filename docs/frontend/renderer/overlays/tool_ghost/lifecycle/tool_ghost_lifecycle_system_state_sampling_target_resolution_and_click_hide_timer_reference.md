@@ -11,7 +11,7 @@ title: "Tool Ghost Debug Lifecycle and Timer Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
-- `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopToolGhostRuntime.ts`
 
 ## Lifecycle State Machine
 
@@ -51,7 +51,7 @@ Guarantee:
 
 The debug lifecycle intentionally uses the same constant as tool-click sync semantics:
 
-- `TOOL_GHOST_CLICK_SYNC_DELAY_MS` from `toolGhostRuntime.ts`
+- `TOOL_GHOST_CLICK_SYNC_DELAY_MS` from `desktopToolGhostRuntime.ts`
 
 This keeps debug cursor timing aligned with expected click timeline duration.
 

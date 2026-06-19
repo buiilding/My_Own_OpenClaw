@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Tool-Ghost Timing Runtime Boundary
+
+- Finding: debug tool-ghost click timing lived under the chat feature constants
+  tree even though it is consumed by the renderer app debug entrypoint.
+- Change: moved `TOOL_GHOST_CLICK_SYNC_DELAY_MS` into
+  `frontend/src/renderer/app/runtime/desktopToolGhostRuntime.ts`, routed
+  `ToolGhostDebugApp` and docs through that app-runtime owner, and deleted the
+  old `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts` path.
+- Validation: focused renderer app-runtime boundary test, docs listing, stale
+  old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Debug ghost timing, CSS variable value,
+  debug view routing, overlay IPC, production response overlay behavior,
+  credentials, local runtime execution, provider policy, backend APIs, and
+  storage are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Grouping and Permission Presentation Runtime Boundaries
 
 - Finding: dashboard time/workspace conversation grouping and permission

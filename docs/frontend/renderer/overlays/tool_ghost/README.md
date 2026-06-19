@@ -25,7 +25,7 @@ title: "Renderer Overlay Tool Ghost Docs Hub"
 
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
-- `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopToolGhostRuntime.ts`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
 
 ## Current Status

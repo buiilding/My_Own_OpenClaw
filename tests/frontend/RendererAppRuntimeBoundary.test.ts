@@ -718,6 +718,25 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('debug tool-ghost timing is owned by app runtime', async () => {
+    const runtimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopToolGhostRuntime.ts'),
+      'utf8',
+    );
+    const debugAppSource = await fs.readFile(
+      path.join(appRoot, 'ToolGhostDebugApp.jsx'),
+      'utf8',
+    );
+
+    expect(runtimeSource).toContain('TOOL_GHOST_CLICK_SYNC_DELAY_MS');
+    expect(runtimeSource).not.toContain('features/chat');
+    expect(debugAppSource).toContain('desktopToolGhostRuntime');
+    expect(debugAppSource).not.toContain('features/chat/constants/toolGhostRuntime');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/constants/toolGhostRuntime.ts'),
+    )).rejects.toThrow();
+  });
+
   test('onboarding slide-state rules are owned by app runtime', async () => {
     const slideRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopOnboardingSlideRuntime.js'),

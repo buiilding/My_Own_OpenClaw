@@ -67,6 +67,7 @@ frontend/src/renderer/
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
 │   │   ├── desktopResponseOverlayViewRuntime.ts # Renderer response overlay visibility and layout intent facade
+???   ???   ????????? desktopToolGhostRuntime.ts # Renderer debug tool-ghost timing facade
 │   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
 │   │   ├── desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
 │   │   ├── desktopDashboardConversationLoadRuntime.js # Renderer dashboard recent-conversation normalization and retry facade

@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a debug-routing local-runtime label slice by routing
+  the Debug hub, runtime trace guide, and symptom playbooks from sidecar-as-
+  runtime phrasing to local-runtime owner labels for trace paths, backend URL
+  drift, tool registration, wakeword service routing, and browser adapter
+  triage. Python sidecar wording remains only where the docs name the concrete
+  implementation process or registry behind the local-runtime boundary. The
+  modular docs guard now rejects the retired sidecar trace-path, sidecar backend
+  URL, sidecar wakeword service, sidecar Browser Use adapter, and sidecar debug
+  heading phrases in these debug routes. Validation: focused modular docs guard,
+  docs listing, exact stale retired-phrase scan, and diff checks. No migration
+  required; documentation/test only, with no code path, payload, storage, IPC,
+  settings, credentials, permissions, hosted routes, provider policy, packaging,
+  or local execution behavior changed.
+
+- 2026-06-19: completed a renderer tool-ghost timing runtime-boundary slice by
+  moving `TOOL_GHOST_CLICK_SYNC_DELAY_MS` from
+  `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts` into
+  `frontend/src/renderer/app/runtime/desktopToolGhostRuntime.ts`.
+  `ToolGhostDebugApp`, active tool-ghost docs, app-runtime inventory, and
+  boundary guards now consume the app-runtime owner while the old chat feature
+  constant path is deleted. Validation: focused renderer app-runtime boundary
+  test, docs listing, stale old-path scan, frontend lint, and diff checks. No
+  migration required; debug ghost timing, CSS variable value, debug view
+  routing, overlay IPC, production response overlay behavior, credentials,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer dashboard conversation-grouping
   runtime-boundary slice by moving time-bucket grouping, workspace grouping,
   title fallback, pinned ordering, matched-role labels, and search metadata

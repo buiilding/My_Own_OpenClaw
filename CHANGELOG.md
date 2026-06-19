@@ -27,12 +27,18 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route symptom playbook and trace hub wording through
+  local-runtime owners instead of sidecar-as-runtime labels while preserving
+  Python sidecar implementation references. No migration required.
 - renderer/permissions: move permission status and presentation mapping into
   `desktopPermissionPresentationRuntime` so onboarding and settings share an
   app-runtime owner instead of feature utility paths. No migration required.
 - renderer/dashboard: move dashboard conversation grouping and search metadata
   normalization into `desktopDashboardConversationGroupRuntime` and delete the
   feature utility path. No migration required.
+- renderer/tool-ghost: move debug ghost click timing into
+  `desktopToolGhostRuntime` and delete the chat feature constant path. No
+  migration required.
 - main/lifecycle: move wakeword global-hotkey fallback accelerators into the
   host skin so the generic Electron lifecycle runtime consumes configured
   shortcut candidates. No migration required.
