@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer continuity search metadata projection slice
+  by routing `DesktopConversationContinuityService.searchConversations(...)`
+  through `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+  and deleting its private SDK metadata to dashboard row mapper. The dashboard
+  conversation load runtime now owns the row projection used by recent loading,
+  the conversation library client, and the continuity-service search facade.
+  Validation: focused desktop continuity service, dashboard conversation load,
+  and renderer app-runtime boundary tests plus stale mapper scans, docs
+  search/history checks, and diff checks. No migration required; SDK
+  conversation metadata shapes, dashboard row fields, IPC command payloads,
+  storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: completed a main conversation metadata diagnostics runtime slice
   by moving app diagnostic context normalization and conversation metadata-list
   event envelope construction out of `ipc_agent_sdk_command_handlers.cjs` into

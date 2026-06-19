@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Continuity Search Metadata Projection Runtime Boundary
+
+- Finding: `DesktopConversationContinuityService.searchConversations(...)`
+  still carried a private SDK metadata to dashboard row mapper after the
+  dashboard recent loader and conversation library client moved to the shared
+  load-runtime projection.
+- Change: routed continuity search results through
+  `desktopDashboardConversationLoadRuntime.metadataListToDashboardConversations(...)`
+  and deleted the local mapper from the continuity service.
+- Validation: focused desktop continuity service, dashboard conversation load,
+  and renderer app-runtime boundary tests plus stale mapper scans, docs
+  search/history checks, and diff checks.
+- Compatibility: no migration required. SDK conversation metadata shapes,
+  dashboard row fields, IPC command payloads, storage, credentials, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Main Conversation Metadata Diagnostics Runtime Boundary
 
 - Finding: `ipc_agent_sdk_command_handlers.cjs` still built app diagnostic

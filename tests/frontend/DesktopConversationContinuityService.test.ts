@@ -267,6 +267,74 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
+  test('searchConversations projects SDK metadata through dashboard row fields', async () => {
+    const send = jest.fn();
+    const invoke = jest.fn(async (channel, payload) => {
+      if (channel === 'windie:invoke' && payload.command === 'conversations.search') {
+        return {
+          ok: true,
+          data: [
+            {
+              conversationRef: 'conv-search',
+              title: 'Search result',
+              lastMessage: 'matched text',
+              updatedAt: '2026-06-18T18:45:00.000Z',
+              eventCount: 4,
+              workspacePath: '/repo',
+              workspaceName: 'WindieOS',
+              snippet: 'hello <mark>world</mark>',
+              matchedRole: 'assistant',
+            },
+          ],
+        };
+      }
+      return { ok: true, data: null };
+    });
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke,
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      const results = await DesktopConversationContinuityService.searchConversations({
+        userId: 'user-1',
+        query: 'world',
+        limit: 10,
+      });
+
+      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversations.search',
+        payload: {
+          userId: 'user-1',
+          query: 'world',
+          limit: 10,
+        },
+      });
+      expect(results).toEqual([
+        {
+          conversation_id: 'conv-search',
+          record_kind: 'chat_event',
+          title: 'Search result',
+          last_message: 'matched text',
+          last_timestamp: '2026-06-18T18:45:00.000Z',
+          entry_count: 4,
+          workspace_path: '/repo',
+          workspace_name: 'WindieOS',
+          snippet: 'hello <mark>world</mark>',
+          matched_role: 'assistant',
+        },
+      ]);
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
   test('compactHistory falls back to the active conversation ref', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;

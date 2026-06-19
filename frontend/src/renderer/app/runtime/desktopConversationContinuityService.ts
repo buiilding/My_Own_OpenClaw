@@ -23,6 +23,7 @@ import {
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeAgentSdkCommand } from './agentSdkCommandInvokeClient';
+import { metadataListToDashboardConversations } from './desktopDashboardConversationLoadRuntime';
 import { IpcBridge } from '../../infrastructure/ipc/bridge';
 import { DESKTOP_RUNTIME_ON_CHANNELS } from '../../infrastructure/ipc/channels';
 
@@ -59,21 +60,6 @@ const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopRuntimeTransport(workspacePath ?? null),
 });
-
-function metadataToDashboardConversation(metadata: ConversationMetadata) {
-  return {
-    conversation_id: metadata.conversationRef,
-    record_kind: 'chat_event',
-    title: metadata.title || metadata.conversationRef,
-    last_message: metadata.lastMessage || '',
-    last_timestamp: metadata.updatedAt,
-    entry_count: metadata.eventCount,
-    workspace_path: metadata.workspacePath || '',
-    workspace_name: metadata.workspaceName || '',
-    snippet: metadata.snippet || '',
-    matched_role: metadata.matchedRole || '',
-  };
-}
 
 export const DesktopConversationContinuityService = {
   listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
@@ -195,7 +181,7 @@ export const DesktopConversationContinuityService = {
       query: input.query,
       limit: input.limit,
     });
-    return Array.isArray(metadata) ? metadata.map(metadataToDashboardConversation) : [];
+    return metadataListToDashboardConversations(metadata);
   },
 
   subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {

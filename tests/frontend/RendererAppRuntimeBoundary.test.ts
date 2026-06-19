@@ -396,9 +396,14 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/dashboard/hooks/useDashboardConversations.js'),
       'utf8',
     );
+    const continuityServiceSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationContinuityService.ts'),
+      'utf8',
+    );
 
     expect(runtimeSource).toContain('normalizeRecentConversations');
     expect(runtimeSource).toContain('metadataListToDashboardConversations');
+    expect(runtimeSource).toContain('metadataToDashboardConversation');
     expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
     expect(runtimeSource).not.toContain('features/dashboard');
     expect(dashboardHookSource).toContain('desktopDashboardConversationLoadRuntime');
@@ -406,6 +411,10 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('conversation_id: metadata');
     expect(dashboardHookSource).not.toContain('workspace_path: metadata');
     expect(dashboardHookSource).not.toContain('utils/dashboardConversationLoad');
+    expect(continuityServiceSource).toContain('metadataListToDashboardConversations');
+    expect(continuityServiceSource).not.toContain('function metadataToDashboardConversation');
+    expect(continuityServiceSource).not.toContain('conversation_id: metadata');
+    expect(continuityServiceSource).not.toContain('workspace_path: metadata');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/dashboard/utils/dashboardConversationLoad.js'),
     )).rejects.toThrow();
