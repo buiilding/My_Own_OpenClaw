@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify tool display-only SDK conversation stream events
+  in `desktopChatStreamEventRuntime` so `useChatStream` no longer carries the
+  raw tool event-type set. No migration required.
 - renderer/runtime: classify supported SDK conversation stream event types in
   `desktopChatStreamEventRuntime` before `useChatStream` dispatches renderer
   message updates, and clarify renderer send/stream ownership docs. No

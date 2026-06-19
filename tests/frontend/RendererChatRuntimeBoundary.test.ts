@@ -473,9 +473,14 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).toContain('desktopChatStreamEventRuntime');
     expect(source).toContain('isSupportedConversationStreamEvent');
+    expect(source).toContain('isToolDisplayOnlyConversationStreamEvent');
     expect(source).not.toContain("event.type !== 'turn_completed'");
     expect(source).not.toContain("event.type !== 'tool_call'");
     expect(source).not.toContain("event.type !== 'usage_updated'");
+    expect(source).not.toContain("event.type === 'tool_call'");
+    expect(source).not.toContain("event.type === 'tool_output'");
+    expect(source).not.toContain("event.type === 'tool_bundle_call'");
+    expect(source).not.toContain("event.type === 'tool_bundle_output'");
     expect(source).toContain('desktopChatStreamTrackingRuntime');
     expect(source).not.toContain('chatStreamEventRuntime');
     expect(source).not.toContain('chatStreamConversationGate');
@@ -483,8 +488,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('chatStreamTerminalHandoffGuard');
     expect(source).not.toContain('chatStreamTracking');
     expect(runtimeSource).toContain('isSupportedConversationStreamEvent');
+    expect(runtimeSource).toContain('isToolDisplayOnlyConversationStreamEvent');
     expect(runtimeSource).toContain("'turn_completed'");
     expect(runtimeSource).toContain("'usage_updated'");
+    expect(runtimeSource).toContain("'tool_bundle_output'");
   });
 
   test('chat stream text state is owned by the SDK current-turn projection listener', async () => {
@@ -1032,6 +1039,10 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts'),
       'utf8',
     );
+    const streamEventRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
+      'utf8',
+    );
 
     expect(source).not.toContain('ToolCallEvent');
     expect(source).not.toContain("unwrapToolBackendEvent<ToolCallEvent>");
@@ -1041,10 +1052,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordToolOutputTranscriptMessage');
     expect(source).not.toContain('ToolBundleEvent');
     expect(source).not.toContain('unwrapToolBackendEvent');
-    expect(source).toContain("event.type === 'tool_call'");
-    expect(source).toContain("event.type === 'tool_output'");
-    expect(source).toContain("event.type === 'tool_bundle_call'");
-    expect(source).toContain("event.type === 'tool_bundle_output'");
+    expect(source).toContain('isToolDisplayOnlyConversationStreamEvent');
+    expect(source).not.toContain("event.type === 'tool_call'");
+    expect(source).not.toContain("event.type === 'tool_output'");
+    expect(source).not.toContain("event.type === 'tool_bundle_call'");
+    expect(source).not.toContain("event.type === 'tool_bundle_output'");
+    expect(streamEventRuntimeSource).toContain('isToolDisplayOnlyConversationStreamEvent');
+    expect(streamEventRuntimeSource).toContain("'tool_call'");
+    expect(streamEventRuntimeSource).toContain("'tool_output'");
+    expect(streamEventRuntimeSource).toContain("'tool_bundle_call'");
+    expect(streamEventRuntimeSource).toContain("'tool_bundle_output'");
     expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_call'");
     expect(projectionSideEffectsSource).toContain("toolEvent.kind === 'tool_output'");
   });

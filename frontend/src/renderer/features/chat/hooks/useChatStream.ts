@@ -24,6 +24,7 @@ import {
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
   isSupportedConversationStreamEvent,
+  isToolDisplayOnlyConversationStreamEvent,
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
@@ -148,12 +149,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleLocalUserMessage(event, event.conversationRef);
       return true;
     }
-    if (
-      event.type === 'tool_call'
-      || event.type === 'tool_output'
-      || event.type === 'tool_bundle_call'
-      || event.type === 'tool_bundle_output'
-    ) {
+    if (isToolDisplayOnlyConversationStreamEvent(event)) {
       // Tool display state is owned by the SDK current-turn projection listener.
       return true;
     }

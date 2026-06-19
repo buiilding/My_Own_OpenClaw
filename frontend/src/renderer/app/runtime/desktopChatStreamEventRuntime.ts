@@ -47,6 +47,13 @@ const SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
   'usage_updated',
 ]);
 
+const TOOL_DISPLAY_ONLY_CONVERSATION_STREAM_EVENT_TYPES = new Set([
+  'tool_call',
+  'tool_output',
+  'tool_bundle_call',
+  'tool_bundle_output',
+]);
+
 type ConversationTypeEvent = {
   type?: string | null;
 };
@@ -56,6 +63,13 @@ export function isSupportedConversationStreamEvent(
 ): boolean {
   return typeof event?.type === 'string'
     && SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
+}
+
+export function isToolDisplayOnlyConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return typeof event?.type === 'string'
+    && TOOL_DISPLAY_ONLY_CONVERSATION_STREAM_EVENT_TYPES.has(event.type);
 }
 
 function shouldIgnoreForStaleTurn(

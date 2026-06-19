@@ -57,6 +57,12 @@ dispatcher:
 - `tool_schemas_metadata`
 - `usage_updated`
 
+`desktopChatStreamEventRuntime.isToolDisplayOnlyConversationStreamEvent(...)`
+owns the subset of tool and tool-bundle events that `useChatStream` should
+acknowledge without mutating message text. Their display rows are projected by
+the SDK current-turn listener, so the chat stream hook only prevents them from
+falling through to completion handling.
+
 ## Event Ingress and Conversation Routing
 
 `desktopChatStreamIngressRuntime` listener flow:

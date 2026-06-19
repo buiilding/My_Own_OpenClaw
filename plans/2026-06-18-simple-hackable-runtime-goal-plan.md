@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer tool stream display classification slice by
+  adding `isToolDisplayOnlyConversationStreamEvent` to
+  `desktopChatStreamEventRuntime`. `useChatStream` now asks the app-runtime
+  helper whether SDK tool/tool-bundle events should be acknowledged without
+  mutating message text, leaving SDK current-turn projection as the display-row
+  owner. Validation: focused desktop chat stream event runtime and renderer
+  chat runtime boundary tests plus docs listing, related commit search, stale
+  inline tool event-type scans, and diff checks. No migration required; SDK
+  conversation event names and payloads, tool display projection, stream
+  dispatch behavior, IPC, storage, settings, credentials, provider-policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer send/stream runtime surface boundary slice
   by moving supported SDK conversation stream event vocabulary classification
   into `desktopChatStreamEventRuntime` before `useChatStream` dispatches

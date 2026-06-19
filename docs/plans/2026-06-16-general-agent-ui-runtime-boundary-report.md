@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Tool Stream Display Classification Boundary
+
+- Finding: `useChatStream` routed general stream vocabulary through
+  `desktopChatStreamEventRuntime`, but still carried the raw tool/tool-bundle
+  event-type set used to acknowledge SDK tool events without mutating message
+  text.
+- Change: added `isToolDisplayOnlyConversationStreamEvent` to
+  `desktopChatStreamEventRuntime` and routed the hook through it. The runtime
+  facade owns tool-display-only event classification while SDK current-turn
+  projection remains the display-row owner.
+- Validation: focused desktop chat stream event runtime and renderer chat
+  runtime boundary tests plus docs search, related commit search, stale inline
+  tool event-type scans, and diff checks.
+- Compatibility: no migration required. SDK conversation event names and
+  payloads, tool display projection, stream dispatch behavior, IPC, storage,
+  settings, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Send/Stream Runtime Surface Boundary
 
 - Finding: the frontend runtime surface reference still said the renderer owns

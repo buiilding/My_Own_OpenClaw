@@ -5,6 +5,7 @@
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   isSupportedConversationStreamEvent,
+  isToolDisplayOnlyConversationStreamEvent,
   recordTrackingEvent,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
@@ -104,6 +105,21 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isSupportedConversationStreamEvent({ type: '' })).toBe(false);
     expect(isSupportedConversationStreamEvent({ type: null })).toBe(false);
     expect(isSupportedConversationStreamEvent(null)).toBe(false);
+  });
+
+  test('classifies tool display-only conversation stream events', () => {
+    for (const type of [
+      'tool_call',
+      'tool_output',
+      'tool_bundle_call',
+      'tool_bundle_output',
+    ]) {
+      expect(isToolDisplayOnlyConversationStreamEvent({ type })).toBe(true);
+    }
+    expect(isToolDisplayOnlyConversationStreamEvent({ type: 'user_message' })).toBe(false);
+    expect(isToolDisplayOnlyConversationStreamEvent({ type: 'turn_completed' })).toBe(false);
+    expect(isToolDisplayOnlyConversationStreamEvent({ type: 'unknown_event' })).toBe(false);
+    expect(isToolDisplayOnlyConversationStreamEvent(null)).toBe(false);
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
