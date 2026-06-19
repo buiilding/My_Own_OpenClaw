@@ -43,7 +43,7 @@ flowchart LR
 | Change or symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
 | Add, remove, rename, or reorder a settings tab | Renderer settings shell | `SettingsSection.jsx`, `SETTINGS_TABS`, `renderTabContent()` | `tests/frontend/SettingsSection.test.jsx`, settings docs |
-| Toggle emits config but value disappears after reload | Renderer config allowlist/storage | `frontend/src/renderer/utils/configFilter.js`, `configStorage.js`, `appConfigPersistence.js` | [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md) |
+| Toggle emits config but value disappears after reload | Renderer config allowlist/storage | `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`, `desktopRendererConfigStorageRuntime.js`, `appConfigPersistence.js` | [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md) |
 | Setting saves locally but backend ignores it | Backend patch validation or main sync | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, backend validation docs | backend settings/update tests |
 | General wakeword listening toggle is wrong | AppConfig context wakeword state | `GeneralSettingsTab.jsx`, `AppConfigProvider.jsx`, wakeword bridge/runtime docs | wakeword/voice tests |
 | Wakeword STT toggle is wrong | Renderer config patch path | `GeneralSettingsTab.jsx`, config filter/storage, settings sync | `GeneralSettingsTab.test.jsx`, config tests |
@@ -81,8 +81,8 @@ flowchart LR
    - Update `SettingsSection.propTypes` when props change.
 
 3. For config controls, update the config pipeline.
-   - Add defaults in `configStorage.js`.
-   - Add allowlist projection in `configFilter.js`.
+   - Add defaults in `desktopRendererConfigStorageRuntime.js`.
+   - Add allowlist projection in `desktopRendererConfigFilterRuntime.js`.
    - Update `AppConfigProvider` or hook usage if the field has special merge/defer semantics.
    - Update Electron disk persistence only if payload shape changes.
    - Update backend settings validation/session rewire only if backend runtime behavior changes.

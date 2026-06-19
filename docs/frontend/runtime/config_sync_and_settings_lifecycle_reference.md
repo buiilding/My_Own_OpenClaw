@@ -16,8 +16,8 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
-- `frontend/src/renderer/utils/configFilter.js`
-- `frontend/src/renderer/utils/configStorage.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 
@@ -81,7 +81,7 @@ Tracks transient save state machine:
 
 ## Renderer Persistence Layers
 
-### Browser localStorage (`configStorage.js`)
+### Browser localStorage (`desktopRendererConfigStorageRuntime.js`)
 
 - immediate startup config source
 - stores `windieos-config`

@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for renderer config ownership boundary: allowlist filtering, localStorage single-key defaults, removed desktop-assistant-config and desktop-assistant-config-version behavior, removed legacy OpenAI selected_model_id migration behavior, and AppConfigProvider sanitize/merge/apply persistence guards."
 read_when:
-  - When changing renderer-owned config keys (`configFilter`) or local fallback defaults (`configStorage`).
+  - When changing renderer-owned config keys (`desktopRendererConfigFilterRuntime`) or local fallback defaults (`desktopRendererConfigStorageRuntime`).
   - When debugging why settings updates are skipped, cross-window storage sync applies unexpectedly, or disk config merges differ from memory state.
   - When resolving stale references to `desktop-assistant-config`, `desktop-assistant-config-version`, `saveConfigToStorage` version arguments, or `Date.now()` storage-version writes.
   - When resolving stale references to removed legacy model id migration behavior, hardcoded OpenAI selected-model ids, `LEGACY_MODEL_ID_MIGRATIONS`, or renderer localStorage selected_model_id rewrites.
@@ -12,8 +12,8 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/utils/configFilter.js`
-- `frontend/src/renderer/utils/configStorage.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
@@ -24,7 +24,7 @@ title: "Renderer Config Filter, Storage, and Provider Merge Runtime Reference"
 - `tests/frontend/AppConfigProvider.models.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 
-## Renderer-Owned Config Allowlist (`configFilter`)
+## Renderer-Owned Config Allowlist (`desktopRendererConfigFilterRuntime`)
 
 `RENDERER_CONFIG_FIELDS` currently allows:
 
@@ -58,7 +58,7 @@ Intentionally excluded backend-owned speech/transcription runtime policy:
 - includes only keys in the renderer-owned allowlist
 - ignores extra runtime, backend-owned, or non-renderer local-runtime config fields
 
-## Local Config Persistence (`configStorage`)
+## Local Config Persistence (`desktopRendererConfigStorageRuntime`)
 
 Storage keys:
 

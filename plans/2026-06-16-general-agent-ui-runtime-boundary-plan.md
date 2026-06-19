@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer App Config Filter and Storage Runtime Boundary
+
+- Finding: renderer-managed config allowlisting and localStorage fallback
+  defaults lived in root renderer utility files even though AppConfigProvider
+  and settings sync treat them as app-runtime config policy.
+- Change: moved the helpers into
+  `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
+  and
+  `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`,
+  routed app config providers/tests/docs through the app-runtime owners, and
+  deleted the old `frontend/src/renderer/utils/configFilter.js` and
+  `frontend/src/renderer/utils/configStorage.js` paths.
+- Validation: focused config filter/storage, app config provider persistence,
+  settings runtime boundary, skin/config boundary, docs listing, stale old-path
+  scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Renderer-managed setting allowlist,
+  localStorage key, default config values, provider-secret stripping,
+  shortcut normalization, settings sync payload shape, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Memory Retrieval Preference Runtime Boundary
 
 - Finding: the persisted memory retrieval injection toggle lived in a root

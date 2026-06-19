@@ -4,7 +4,7 @@
 
 import {
   filterRendererConfig,
-} from '../../frontend/src/renderer/utils/configFilter.js';
+} from '../../frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js';
 
 describe('configFilter', () => {
   test('filterRendererConfig keeps only allowed fields', () => {

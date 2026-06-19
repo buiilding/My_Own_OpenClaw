@@ -42,10 +42,10 @@ header controls, and persisted selected model config.
 | Add, remove, rename, or regroup a backend model | `backend/src/llm/models/models_config.py`, `backend/src/llm/models/model_service.py`, provider modules under `backend/src/llm/providers` | `tests/backend/test_models_config.py`, `tests/backend/test_model_service.py`, provider factory/provider tests |
 | Dashboard Models section cards, provider drilldown, or API-key controls change | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`, `providerApiKeys.js`, `ApiKeysSection.jsx` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, `tests/frontend/ModelSelectionUtils.test.js` |
 | Chat header provider/model/reasoning selector changes | `frontend/src/renderer/features/chat/components/ChatInterface.jsx`, `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`, `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts` | `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/DesktopChatModelOptionsRuntime.test.js`, `tests/frontend/ModelThinkingCapabilities.test.ts` |
-| Selected model resets after reload or across windows | `frontend/src/renderer/utils/configStorage.js`, `configFilter.js`, `app/providers/AppConfigProvider.jsx`, `app/providers/appConfigPersistence.js` | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
+| Selected model resets after reload or across windows | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `desktopRendererConfigFilterRuntime.js`, `app/providers/AppConfigProvider.jsx`, `app/providers/appConfigPersistence.js` | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
 | Model list is stale or missing in renderer | `frontend/src/renderer/app/providers/AppConfigProvider.jsx`, `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`, `frontend/src/main/ipc.cjs`, `backend/src/api/handlers/settings.py` | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts`, `tests/backend/test_api_handlers.py` |
 | Backend ignores selected provider/model after save | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, `backend/src/core/validation/validators.py`, `backend/src/agent/session/session_config_service.py` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py` |
-| Provider key toggle saves but provider cannot call model | `providerApiKeys.js`, `configStorage.js`, `backend/src/core/config/loader.py`, provider config/factory modules | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/configStorage.test.js`, backend provider key/config tests |
+| Provider key toggle saves but provider cannot call model | `providerApiKeys.js`, `desktopRendererConfigStorageRuntime.js`, `backend/src/core/config/loader.py`, provider config/factory modules | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/configStorage.test.js`, backend provider key/config tests |
 
 ## Runtime Flow
 
@@ -157,8 +157,8 @@ Chat rules:
 
 Read:
 
-- `frontend/src/renderer/utils/configStorage.js`
-- `frontend/src/renderer/utils/configFilter.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`

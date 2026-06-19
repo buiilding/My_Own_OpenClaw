@@ -5,7 +5,7 @@
 import {
   loadConfigFromStorage,
   saveConfigToStorage,
-} from '../../frontend/src/renderer/utils/configStorage.js';
+} from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js';
 import {
   DEFAULT_APPEARANCE_THEME,
   RENDERER_STORAGE_KEYS,

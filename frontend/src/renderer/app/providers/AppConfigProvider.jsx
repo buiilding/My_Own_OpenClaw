@@ -3,8 +3,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { filterRendererConfig } from '../../utils/configFilter';
-import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
+import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
+import { loadConfigFromStorage, saveConfigToStorage } from '../runtime/desktopRendererConfigStorageRuntime';
 import { AppConfigContext } from './AppConfigContext';
 import { extractTranscriptUserId, routeConfigSettingsEvent } from './appConfigEvents';
 import { useLatestRef } from '../runtime/desktopRendererHooksRuntimeClient';

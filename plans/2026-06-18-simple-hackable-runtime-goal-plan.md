@@ -275,6 +275,23 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer app-config filter/storage
+  runtime-boundary slice by moving renderer-managed config allowlisting and
+  localStorage fallback defaults from `frontend/src/renderer/utils/configFilter.js`
+  and `frontend/src/renderer/utils/configStorage.js` to
+  `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
+  and
+  `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`.
+  AppConfigProvider, config persistence helpers, focused tests, active docs,
+  folder structure, and boundary guards now consume the app-runtime owners while
+  the old root utility paths are deleted. Validation: focused config
+  filter/storage, app config provider persistence, settings runtime boundary,
+  skin/config boundary, docs listing, stale old-path scan, frontend lint, and
+  diff checks. No migration required; renderer-managed setting allowlist,
+  localStorage key, default config values, provider-secret stripping, shortcut
+  normalization, settings sync payload shape, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer memory retrieval preference
   runtime-boundary slice by moving the persisted retrieval-injection toggle
   helper from `frontend/src/renderer/utils/memoryRetrievalPreference.js` to

@@ -1,14 +1,14 @@
 /**
- * Defines config storage configuration for the renderer UI.
+ * Owns renderer app-config local persistence defaults and normalization.
  */
 
-import { DesktopShortcutRuntimeClient } from '../app/runtime/desktopShortcutRuntimeClient';
+import { DesktopShortcutRuntimeClient } from './desktopShortcutRuntimeClient';
 import {
   DEFAULT_APPEARANCE_THEME,
   DEFAULT_MODEL_SELECTION,
   DEFAULT_PROVIDER_API_KEYS,
   RENDERER_STORAGE_KEYS,
-} from '../app/skin/desktopRuntimeConfig';
+} from '../skin/desktopRuntimeConfig';
 
 /**
  * Local storage utilities for configuration persistence.

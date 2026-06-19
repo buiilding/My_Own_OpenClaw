@@ -115,7 +115,7 @@ describe('renderer settings runtime boundary', () => {
       'utf8',
     );
     const configStorageSource = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/utils/configStorage.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js'),
       'utf8',
     );
     const shortcutClientSource = await fs.readFile(
@@ -130,6 +130,9 @@ describe('renderer settings runtime boundary', () => {
     expect(generalSettingsSource).toContain('DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel');
     expect(configStorageSource).toContain('DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator');
     expect(shortcutClientSource).toContain('normalizeGlobalAgentStopShortcutAccelerator');
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../frontend/src/renderer/utils/configStorage.js'),
+    )).rejects.toThrow();
   });
 
   test('app startup and onboarding shortcut labels route through app runtime client', async () => {

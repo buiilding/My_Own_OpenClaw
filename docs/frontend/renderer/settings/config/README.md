@@ -20,8 +20,8 @@ title: "Renderer Settings Config Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/utils/configFilter.js`
-- `frontend/src/renderer/utils/configStorage.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`

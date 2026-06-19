@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/config: move renderer app-config allowlisting and local persistence
+  defaults into app-runtime config facades consumed by AppConfigProvider. No
+  migration required.
 - renderer/memory: move persisted memory retrieval injection preference helpers
   into `desktopMemoryRetrievalPreferenceRuntime` for dashboard settings and
   query-send runtime clients. No migration required.

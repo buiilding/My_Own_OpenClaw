@@ -20,8 +20,8 @@ const storageSettingsPath = path.join(rendererRoot, 'app/skin/storageSettings.js
 const appearanceSettingsPath = path.join(rendererRoot, 'app/skin/appearanceSettings.js');
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
-const configFilterPath = path.join(rendererRoot, 'utils/configFilter.js');
-const configStoragePath = path.join(rendererRoot, 'utils/configStorage.js');
+const configFilterPath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigFilterRuntime.js');
+const configStoragePath = path.join(rendererRoot, 'app/runtime/desktopRendererConfigStorageRuntime.js');
 const applyAppearanceThemePath = path.join(rendererRoot, 'app/applyAppearanceTheme.js');
 const memoryPreferencePath = path.join(rendererRoot, 'app/runtime/desktopMemoryRetrievalPreferenceRuntime.js');
 const permissionStoragePath = path.join(rendererRoot, 'features/permissions/utils/permissionStorage.js');
@@ -277,5 +277,7 @@ describe('renderer skin/config boundary', () => {
     expect(configStorageSource).toContain('runtime settings changes are acknowledged');
     expect(configStorageSource).not.toContain('Syncs with backend on connection');
     expect(configStorageSource).not.toContain('when backend confirms changes');
+    expect(fs.existsSync(path.join(rendererRoot, 'utils/configFilter.js'))).toBe(false);
+    expect(fs.existsSync(path.join(rendererRoot, 'utils/configStorage.js'))).toBe(false);
   });
 });

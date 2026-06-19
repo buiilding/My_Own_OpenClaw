@@ -30,7 +30,7 @@ For tab/control ownership, start with [Settings Surface Change Workflow](../rend
 
 | Symptom or request | First owner | Source roots | Start docs | Tests |
 | --- | --- | --- | --- | --- |
-| setting disappears after reload | renderer storage and filter | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/utils/configFilter.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js` | [Renderer Config Sync Lifecycle](config_sync_and_settings_lifecycle_reference.md) | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
+| setting disappears after reload | renderer app-runtime storage and filter | `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`, `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js` | [Renderer Config Sync Lifecycle](config_sync_and_settings_lifecycle_reference.md) | `tests/frontend/configStorage.test.js`, `tests/frontend/configFilter.test.js`, `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx` |
 | setting saves locally but backend ignores it | backend patch allowlist or main ACK path | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, `backend/src/core/validation` | [Configuration Change Workflow](../../operations/configuration_change_workflow.md), [Backend Input Validation and Client Settings Patch Guard](../../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md) | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/backend/test_settings_update_rules.py` |
 | first query uses stale model/settings | Electron main initial settings sync gate | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | [Frontend Query Payload Relay](../main/query_payload_and_relay_reference.md), [Frontend WS Handshake and Settings Sync](../main/websocket_handshake_and_settings_sync_reference.md) | `tests/frontend/IpcSettingsSync.test.cjs`, query relay tests |
 | save indicator is stuck | renderer status provider and backend ACK routing | `frontend/src/renderer/app/providers/AppStatusProvider.jsx`, `frontend/src/renderer/app/providers/appConfigEvents.js`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | [Settings and Model ACK Event Routing Reference](../contracts/events/settings_and_model_ack_event_routing_reference.md) | `tests/frontend/AppStatusProvider.test.tsx`, `tests/frontend/AppConfigEvents.test.js` |
@@ -62,8 +62,8 @@ For tab/control ownership, start with [Settings Surface Change Workflow](../rend
 
 Primary files:
 
-- `frontend/src/renderer/utils/configStorage.js`
-- `frontend/src/renderer/utils/configFilter.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`

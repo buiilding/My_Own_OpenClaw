@@ -3,7 +3,7 @@
  */
 
 import { hasShallowConfigChanges } from './configComparison';
-import { filterRendererConfig } from '../../utils/configFilter';
+import { filterRendererConfig } from '../runtime/desktopRendererConfigFilterRuntime';
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);

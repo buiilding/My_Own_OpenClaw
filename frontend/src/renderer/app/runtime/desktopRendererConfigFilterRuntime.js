@@ -1,5 +1,5 @@
 /**
- * Utility functions for filtering renderer configuration.
+ * Filters runtime settings down to renderer-managed app-config fields.
  * The renderer only persists its local subset of runtime settings.
  */
 

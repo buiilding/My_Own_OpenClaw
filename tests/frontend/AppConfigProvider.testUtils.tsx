@@ -14,16 +14,16 @@ import {
 import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/AppConfigProvider';
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import { useDesktopSettingsEventHandlers } from '../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient';
-import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
+import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime';
 import { DesktopRuntimeEndpointClient } from '../../frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient');
-jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
+jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime', () => ({
   filterRendererConfig: (config: Record<string, any>) => config,
 }));
-jest.mock('../../frontend/src/renderer/utils/configStorage', () => ({
+jest.mock('../../frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime', () => ({
   loadConfigFromStorage: jest.fn(),
   saveConfigToStorage: jest.fn(),
 }));
