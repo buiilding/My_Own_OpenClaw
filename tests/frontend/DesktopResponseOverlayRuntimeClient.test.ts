@@ -26,6 +26,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopResponseOverlayRuntimeClient,
+  buildResponseboxHitTestPayload,
   buildResponseboxSizePayload,
   normalizeResponseOverlayVisibilityPayload,
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient';
@@ -122,6 +123,18 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
         turn_ref: 'turn-2',
         stale_guard_ref: 'turn-2',
       },
+    );
+  });
+
+  test('value-level hit-test commands invoke responsebox hit-test payloads', async () => {
+    expect(buildResponseboxHitTestPayload(true)).toEqual({ active: true });
+    expect(buildResponseboxHitTestPayload(1)).toEqual({ active: false });
+
+    await DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(false);
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'set-responsebox-hit-test-active',
+      { active: false },
     );
   });
 });

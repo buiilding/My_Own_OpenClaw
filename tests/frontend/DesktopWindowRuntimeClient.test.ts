@@ -40,6 +40,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopWindowRuntimeClient,
+  buildChatboxHitTestPayload,
   buildChatboxVisualAnchorHeightPayload,
   resolveMainWindowOpenTarget,
 } from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
@@ -71,6 +72,17 @@ describe('DesktopWindowRuntimeClient', () => {
     expect(mockInvoke).toHaveBeenCalledWith('set-chatbox-visual-anchor-height', {
       height: 72,
       frameHeight: 144,
+    });
+  });
+
+  test('builds chatbox hit-test payloads at the runtime boundary', async () => {
+    expect(buildChatboxHitTestPayload(true)).toEqual({ active: true });
+    expect(buildChatboxHitTestPayload('true')).toEqual({ active: false });
+
+    await DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(true);
+
+    expect(mockInvoke).toHaveBeenCalledWith('set-chatbox-hit-test-active', {
+      active: true,
     });
   });
 

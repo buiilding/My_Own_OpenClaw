@@ -171,6 +171,11 @@ camelCase value fields. The runtime client maps those values to host payload
 fields such as `compact_hover`, `turn_ref`, `stale_guard_ref`, and
 `dismissed`.
 
+Response overlay hit-test commands use
+`DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(...)`.
+`MinimalResponseOverlay` reports boolean active state only; the runtime client
+assembles the host-shaped `{ active }` IPC payload.
+
 Layout-specific sizing:
 
 - `response` mode reports measured shell width + fixed response frame height

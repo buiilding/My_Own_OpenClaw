@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer hit-test payload value boundary slice by
+  adding `buildChatboxHitTestPayload(...)` /
+  `setChatboxHitTestActiveValue(...)` and
+  `buildResponseboxHitTestPayload(...)` /
+  `setResponseboxHitTestActiveValue(...)`. `MinimalChatPill` and
+  `MinimalResponseOverlay` now pass boolean active state while runtime clients
+  assemble host-shaped `{ active }` IPC payloads. Validation: passed focused
+  desktop window runtime client, response overlay runtime client, chatbox
+  mouse-ignore, response overlay state, renderer chat boundary, and docs-index
+  tests plus docs search, related commit search, stale host-shaped hit-test
+  payload scan, docs listing, and diff checks. No migration required;
+  chatbox/responsebox hit-test IPC
+  channel names, host payload shape, pointer/mouse-leave/blur policy,
+  click-through behavior, overlay sizing, storage, provider policy, hosted
+  URLs, permissions, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer voice gateway message dispatch boundary
   slice by adding a value-level transcription gateway dispatcher to
   `DesktopVoiceRuntimeClient`. `useVoiceMode` now keeps connection, reconnect,

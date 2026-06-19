@@ -77,6 +77,12 @@ export function buildResponseboxSizePayload(values: ResponseboxSizeValues): Resp
   return payload;
 }
 
+export function buildResponseboxHitTestPayload(active: unknown): ResponseboxHitTestPayload {
+  return {
+    active: active === true,
+  };
+}
+
 export const DesktopResponseOverlayRuntimeClient = {
   setResponseboxSize(payload: ResponseboxSizePayload): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, payload);
@@ -90,6 +96,12 @@ export const DesktopResponseOverlayRuntimeClient = {
 
   setResponseboxHitTestActive(payload: ResponseboxHitTestPayload): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_HIT_TEST_ACTIVE, payload);
+  },
+
+  setResponseboxHitTestActiveValue(active: unknown): Promise<unknown> {
+    return DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActive(
+      buildResponseboxHitTestPayload(active),
+    );
   },
 
   onResponseOverlayVisibility(

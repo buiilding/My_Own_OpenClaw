@@ -187,18 +187,20 @@ chatbox restore, main-window controls, and minimal chatbox overlay focus, drag,
 hit-test, visual-anchor, text-entry, hide/show commands, and main-window
 open-target fan-out plus open-target payload normalization. It also owns
 chatbox visual-anchor height payload assembly from value-level height and
-optional frame-height inputs. Callers keep UI policy and call this runtime
-client instead of importing window IPC channel constants, parsing host-shaped
-window event payloads directly, or assembling native window payload objects.
+optional frame-height inputs, and chatbox hit-test payload assembly from
+boolean active-state inputs. Callers keep UI policy and call this runtime client
+instead of importing window IPC channel constants, parsing host-shaped window
+event payloads directly, or assembling native window payload objects.
 
 `desktopResponseOverlayRuntimeClient.ts` owns renderer response overlay window
 IPC for responsebox size, hit-test, visibility fan-out, visibility payload
-normalization, boolean visibility subscription projection, and responsebox size
-payload assembly from value-level size/turn/guard/hover/dismissal inputs.
+normalization, boolean visibility subscription projection, responsebox size
+payload assembly from value-level size/turn/guard/hover/dismissal inputs, and
+responsebox hit-test payload assembly from boolean active-state inputs.
 Response overlay view-model/window-sync hooks keep overlay selection,
 stale-turn, sizing, re-report, and scroll policy while delegating responsebox
-channel names and host-shaped visibility/size payloads to this app runtime
-client.
+channel names and host-shaped visibility/size/hit-test payloads to this app
+runtime client.
 
 `desktopArtifactRuntimeClient.ts` owns renderer adapter calls for desktop
 artifact image commands used by generic message presentation, including

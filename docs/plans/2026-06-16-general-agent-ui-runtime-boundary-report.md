@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Hit-Test Payload Value Boundary
+
+- Finding: `MinimalChatPill` and `MinimalResponseOverlay` routed through
+  app-runtime IPC clients, but still assembled host-shaped `{ active }`
+  hit-test command payloads locally.
+- Change: added value-level chatbox/responsebox hit-test helpers to the
+  desktop runtime clients. Components now pass boolean active state while
+  `DesktopWindowRuntimeClient` and `DesktopResponseOverlayRuntimeClient`
+  assemble host payloads.
+- Validation: passed focused desktop window runtime client, response overlay
+  runtime client, chatbox mouse-ignore, response overlay state, renderer chat
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  host-shaped hit-test payload scan, docs listing, and diff checks.
+- Compatibility: no migration required. Chatbox/responsebox hit-test IPC
+  channel names, host payload shape, pointer/mouse-leave/blur policy,
+  click-through behavior, overlay sizing, storage, provider policy, hosted
+  URLs, permissions, and local-runtime execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Voice Gateway Message Dispatch Boundary
 
 - Finding: `DesktopVoiceRuntimeClient` parsed transcription gateway messages,

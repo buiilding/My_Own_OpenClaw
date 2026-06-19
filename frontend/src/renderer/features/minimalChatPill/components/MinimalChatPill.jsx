@@ -452,9 +452,7 @@ function MinimalChatPill() {
       return;
     }
     chatboxHitTestActiveRef.current = nextActive;
-    DesktopWindowRuntimeClient.setChatboxHitTestActive({
-      active: nextActive,
-    }).catch(() => {});
+    DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(nextActive).catch(() => {});
     logRendererLiveSurfaceTrace('chat_pill.hit_test.set', {
       source: 'minimal-chat-pill-renderer',
       reason: 'renderer-normal-hit-test-request',

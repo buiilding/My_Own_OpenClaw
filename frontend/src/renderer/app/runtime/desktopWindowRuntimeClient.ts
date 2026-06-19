@@ -75,6 +75,12 @@ export function buildChatboxVisualAnchorHeightPayload(
   return payload;
 }
 
+export function buildChatboxHitTestPayload(active: unknown): ChatboxHitTestPayload {
+  return {
+    active: active === true,
+  };
+}
+
 export const DesktopWindowRuntimeClient = {
   showChatbox(options: ShowChatboxOptions = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, options);
@@ -107,6 +113,12 @@ export const DesktopWindowRuntimeClient = {
 
   setChatboxHitTestActive(payload: ChatboxHitTestPayload): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE, payload);
+  },
+
+  setChatboxHitTestActiveValue(active: unknown): Promise<unknown> {
+    return DesktopWindowRuntimeClient.setChatboxHitTestActive(
+      buildChatboxHitTestPayload(active),
+    );
   },
 
   moveChatboxTo(target: MoveChatboxTarget): void {

@@ -1865,7 +1865,8 @@ describe('renderer chat runtime boundary', () => {
     expect(pillSource).not.toContain('setChatboxVisualAnchorHeight({');
     expect(bindingsSource).not.toContain('payload.frameHeight');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.activateChatboxTextEntry');
-    expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxHitTestActive');
+    expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxHitTestActiveValue');
+    expect(pillSource).not.toContain('setChatboxHitTestActive({');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.showMainWindow');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.hideChatbox');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.moveChatboxTo');
@@ -1874,6 +1875,7 @@ describe('renderer chat runtime boundary', () => {
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT');
     expect(clientSource).toContain('INVOKE_CHANNELS.ACTIVATE_CHATBOX_TEXT_ENTRY');
     expect(clientSource).toContain('INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE');
+    expect(clientSource).toContain('buildChatboxHitTestPayload');
     expect(clientSource).toContain('INVOKE_CHANNELS.HIDE_CHATBOX');
     expect(clientSource).toContain('SEND_CHANNELS.MOVE_CHATBOX_TO');
     expect(clientSource).toContain('ON_CHANNELS.CHATBOX_FOCUS');
@@ -2015,11 +2017,13 @@ describe('renderer chat runtime boundary', () => {
     expect(viewModelSource).not.toContain('setResponseboxSize({');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload');
     expect(clientSource).toContain('buildResponseboxSizePayload');
+    expect(clientSource).toContain('buildResponseboxHitTestPayload');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload(payload).visible');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
     expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT_MODE');
     expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT');
-    expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActive');
+    expect(overlaySource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue');
+    expect(overlaySource).not.toContain('setResponseboxHitTestActive({');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');
     expect(syncSource).toContain('DesktopResponseOverlayRuntimeClient.onResponseOverlayVisibility');
     expect(viewModelSource).toContain('DesktopResponseOverlayRuntimeClient.setResponseboxSize');

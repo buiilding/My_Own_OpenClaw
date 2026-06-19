@@ -168,7 +168,9 @@ Closeability:
 
 `ChatBoxOverlayMouseIgnore.test.jsx` validates:
 
-- no renderer-managed click-through toggles
+- no renderer-managed click-through toggles or host-shaped hit-test payloads;
+  `MinimalChatPill` reports boolean active state through
+  `DesktopWindowRuntimeClient.setChatboxHitTestActiveValue(...)`
 - no `set-chatbox-size` resize path in chatbox pill runtime
 - preview lane class/anchor-height transitions and sender-surface wiring
 - drag coordinate emission, explicit focus behavior, and loop-lock control disabling

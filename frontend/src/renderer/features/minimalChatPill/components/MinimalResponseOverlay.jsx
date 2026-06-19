@@ -84,9 +84,7 @@ function MinimalResponseOverlay() {
       return;
     }
     responseboxHitTestActiveRef.current = nextActive;
-    DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActive({
-      active: nextActive,
-    }).catch(() => {});
+    DesktopResponseOverlayRuntimeClient.setResponseboxHitTestActiveValue(nextActive).catch(() => {});
     logRendererLiveSurfaceTrace('response_overlay.hit_test.set', {
       source: 'minimal-response-overlay-renderer',
       reason: 'renderer-normal-hit-test-request',

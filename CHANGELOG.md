@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chatbox and responsebox hit-test IPC payload assembly
+  through desktop runtime clients so minimal chat/response components report
+  active-state values instead of host-shaped `{ active }` payloads. No
+  migration required.
 - renderer/runtime: dispatch transcription gateway messages through
   `DesktopVoiceRuntimeClient` value callbacks so `useVoiceMode` no longer
   switches on gateway protocol message fields. No migration required.
