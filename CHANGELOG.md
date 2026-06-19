@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/config: route configuration owner maps, runtime variable rows, and
+  observability labels through local-runtime implementation wording while
+  keeping Python sidecar implementation paths visible. No migration required.
 - docs/debug: finish routing error/failure tool-result guidance through
   local-runtime tool wording instead of sidecar-tool failure labels while
   preserving Python sidecar implementation breadcrumbs. No migration required.

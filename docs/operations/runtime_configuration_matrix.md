@@ -2,7 +2,8 @@
 summary: "Agent-facing matrix of WindieOS runtime config fields, environment variables, owners, defaults, propagation paths, and validation targets."
 read_when:
   - When adding, removing, or debugging environment variables or runtime config fields.
-  - When deciding whether a setting belongs in backend config, Electron main, renderer local storage, or the sidecar.
+  - When deciding whether a setting belongs in backend config, Electron main,
+    renderer local storage, or the local-runtime implementation.
 title: "Runtime Configuration Matrix"
 ---
 
@@ -17,7 +18,7 @@ WindieOS configuration is intentionally split by runtime boundary. Do not add a 
 | Backend `AppConfig` | Runtime policy, provider defaults, API keys by env-var name, timeouts, inference provider settings, artifact limits, install-auth settings | Backend startup; selected updates can be applied in memory through config manager/session settings | `backend/src/core/config/app_config.py`, `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/core/config/runtime.py` |
 | Electron main | Backend endpoint selection, local-runtime launch options, local config file, windows/overlays/runtime mode | App startup and selected IPC handlers | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/index.cjs` |
 | Renderer | User-facing settings subset and local UI state | Renderer load and settings changes | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/utils/configFilter.js`, `frontend/src/renderer/features/settings/**` |
-| Sidecar | Local tool runtime flags, backend URL used by local-runtime memory/API clients, worker counts, browser runtime knobs | Sidecar process startup; tool calls read some env values lazily | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/windie/_backend_config.py`, `frontend/src/main/python/core/executors.py`, `frontend/src/main/python/tools/**` |
+| Local-runtime implementation | Local tool runtime flags, backend URL used by local-runtime memory/API clients, worker counts, browser runtime knobs | Python sidecar process startup; tool calls read some env values lazily | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/windie/_backend_config.py`, `frontend/src/main/python/core/executors.py`, `frontend/src/main/python/tools/**` |
 | Release/CI | Signing, notarization, package target behavior | GitHub Actions or local packaging command | `.github/workflows/desktop-release.yml`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime` |
 
 ## Endpoint Selection
@@ -29,7 +30,7 @@ WindieOS configuration is intentionally split by runtime boundary. Do not add a 
 | `BACKEND_HOST` / `BACKEND_PORT` | Electron main env | `127.0.0.1` / `8765` only when explicitly set | Local fallback endpoint pair | You want old-style local endpoint pinning without full URLs |
 | `WINDIE_DEFAULT_BACKEND_HTTP_URL` | Electron main env | unset | Hosted default HTTP override when no `BACKEND_*` is set | You are changing the default host for all app modes |
 | `WINDIE_DEFAULT_BACKEND_WS_URL` | Electron main env | unset | Hosted default websocket override when no `BACKEND_*` is set | You need a non-derived hosted websocket URL |
-| `WINDIE_BACKEND_HTTP_URL` | Sidecar env injected by Electron main through WindieOS host skin | resolved active backend URL | Backend URL used by sidecar remote memory/embedding clients | You are debugging sidecar-to-backend routes, not renderer websocket selection |
+| `WINDIE_BACKEND_HTTP_URL` | Local-runtime env injected by Electron main through WindieOS host skin | resolved active backend URL | Backend URL used by local-runtime remote memory/embedding clients | You are debugging local-runtime-to-backend routes, not renderer websocket selection |
 
 Current default with no endpoint env override:
 
@@ -74,21 +75,21 @@ key; stale renderer-local values at that key are ignored.
 
 Do not add backend-owned provider internals such as `speech_provider`, `stt_provider`, remote inference URLs, or provider API keys to renderer persistence.
 
-## Sidecar Runtime Variables
+## Local Runtime Implementation Variables
 
 | Variable | Owner | Effect | Primary files |
 | --- | --- | --- | --- |
 | `WINDIE_PYTHON_PATH` | Electron main env | Forces Python executable used in desktop local-runtime launch options | `frontend/src/main/app/runtime_paths.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
 | `WINDIE_SIDECAR_LOG_LEVEL` | Electron main or reinstall helper env | Sets local-runtime Python logging level. Generic host fallback: `AGENT_LOCAL_RUNTIME_LOG_LEVEL`; `AGENT_SIDECAR_LOG_LEVEL` remains a compatibility alias. | `frontend/src/main/python/local_backend.py`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs` |
 | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR` | Electron main env through WindieOS host skin | Forwards all local-runtime daemon stderr when `1`; default is severity-filtered. Generic host fallback: `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR`. | `frontend/src/main/app/main_host_skin.cjs`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` |
-| `WINDIE_INTERACTIVE_WORKERS` | Sidecar env | Interactive executor max workers. Generic host fallback: `AGENT_INTERACTIVE_WORKERS`. | `frontend/src/main/python/core/executors.py` |
-| `WINDIE_BACKGROUND_WORKERS` | Sidecar env | Background executor max workers. Generic host fallback: `AGENT_BACKGROUND_WORKERS`. | `frontend/src/main/python/core/executors.py` |
-| `WINDIE_SHELL_JOB_TTL_SECONDS` | Sidecar env | Finished shell/process session retention TTL. Generic host fallback: `AGENT_SHELL_JOB_TTL_SECONDS`. | `frontend/src/main/python/tools/system/shell_process_registry.py` |
-| `WINDIE_PERMISSION_STATE_PATH` | Sidecar env injected by Electron main through WindieOS host skin | Permission-state path for path resolution helpers. Generic host fallback: `AGENT_PERMISSION_STATE_PATH`. | `frontend/src/main/python/tools/path_resolution.py` |
+| `WINDIE_INTERACTIVE_WORKERS` | Local-runtime env | Interactive executor max workers. Generic host fallback: `AGENT_INTERACTIVE_WORKERS`. | `frontend/src/main/python/core/executors.py` |
+| `WINDIE_BACKGROUND_WORKERS` | Local-runtime env | Background executor max workers. Generic host fallback: `AGENT_BACKGROUND_WORKERS`. | `frontend/src/main/python/core/executors.py` |
+| `WINDIE_SHELL_JOB_TTL_SECONDS` | Local-runtime env | Finished shell/process session retention TTL. Generic host fallback: `AGENT_SHELL_JOB_TTL_SECONDS`. | `frontend/src/main/python/tools/system/shell_process_registry.py` |
+| `WINDIE_PERMISSION_STATE_PATH` | Local-runtime env injected by Electron main through WindieOS host skin | Permission-state path for path resolution helpers. Generic host fallback: `AGENT_PERMISSION_STATE_PATH`. | `frontend/src/main/python/tools/path_resolution.py` |
 | `WINDIE_USER_DATA_DIR` | Electron main env through WindieOS host skin and sidecar daemon env | Daemon user-data root override for diagnostics/local storage. Electron main injects the resolved WindieOS app-data root so desktop launches keep the existing storage directory. Generic host fallback: `AGENT_USER_DATA_DIR`. | `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/core/user_data_paths.py` |
 | `WINDIE_APP_DIAGNOSTICS_DB` | Sidecar daemon env | Daemon diagnostics database override. Generic host fallback: `AGENT_APP_DIAGNOSTICS_DB`. | `frontend/src/main/python/sidecar_daemon.py` |
 | `WINDIE_TEST_PLATFORM` | Sidecar daemon test env | Test-only platform override for daemon user-data path resolution. Generic test fallback: `AGENT_TEST_PLATFORM`. | `frontend/src/main/python/sidecar_daemon.py`, `tests/sidecar/test_sidecar_daemon.py` |
-| Browser env vars (`WINDIE_BROWSER_CDP_PORT`, `WINDIE_BROWSER_USE_HOME`, `WINDIE_BROWSER_USE_SESSION`, `WINDIE_BROWSER_USE_CLI`, `WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS`, `WINDIE_BROWSER_FILES_DIR`) | Sidecar env | Dedicated browser port, Browser Use daemon settings, and browser file storage behavior. Generic host fallbacks use matching `AGENT_BROWSER_*` names. | `frontend/src/main/python/tools/browser/**` |
+| Browser env vars (`WINDIE_BROWSER_CDP_PORT`, `WINDIE_BROWSER_USE_HOME`, `WINDIE_BROWSER_USE_SESSION`, `WINDIE_BROWSER_USE_CLI`, `WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS`, `WINDIE_BROWSER_FILES_DIR`) | Local-runtime env | Dedicated browser port, Browser Use daemon settings, and browser file storage behavior. Generic host fallbacks use matching `AGENT_BROWSER_*` names. | `frontend/src/main/python/tools/browser/**` |
 
 ## VM Worker and Runs API Variables
 

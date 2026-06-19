@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a configuration owner-label slice by routing the
+  configuration reference, runtime configuration matrix, configuration change
+  workflow, and observability workflow through local-runtime implementation/env
+  labels instead of sidecar-as-owner config wording. Concrete Python sidecar
+  paths, compatibility env aliases, sidecar tests, and bundled sidecar runtime
+  packaging references remain visible where they describe the implementation
+  process or artifact. The modular inventory/docs guard now rejects retired
+  sidecar config owner rows, sidecar env rows, sidecar endpoint-policy wording,
+  sidecar runtime-reader wording, and sidecar observability owner labels.
+  Validation: `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale config-label scan, and
+  `git diff --check`. No migration required; no code path, payload, storage,
+  IPC, settings, env var name, tool schema, credential, permission, hosted URL,
+  provider-policy, launch option, logging, metrics, or local execution behavior
+  changed.
 - 2026-06-18: completed a troubleshooting/debug tool-label slice by routing
   getting-started tool permission guidance, error/failure tool-result rows,
   failure-boundary result rules, and frontend inventory tool-domain notes
