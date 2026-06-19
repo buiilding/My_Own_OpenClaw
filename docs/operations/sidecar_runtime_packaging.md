@@ -143,7 +143,7 @@ On a clean test machine:
 - Release runtime bundles browser Python dependencies but does not ship a preinstalled Chromium payload.
 - Browser automation uses an installed Chrome/Chromium-family browser first and only installs Chromium after user consent when no compatible browser is found.
 - Runtime build is idempotent for bundled assets: wakeword prefetch is skipped when already present.
-- Packaged app disables browser feature-pack runtime auto-install; missing sidecar runtime deps are treated as build/package errors.
+- Packaged app disables browser feature-pack runtime auto-install; missing bundled Python runtime deps are treated as build/package errors.
 - Browser automation permission flow checks Chromium availability at runtime and can install Chromium on user consent when needed.
 - Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
 - Browser launch first checks system-installed Chrome/Chromium-family browsers, then falls back to any Chromium previously installed into the user Playwright cache.

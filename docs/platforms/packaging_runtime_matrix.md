@@ -27,7 +27,7 @@ only then do package commands run `<windie> build sidecar-runtime`,
 
 ## Bundled Runtime Rules
 
-- Bundled sidecar runtime lives under `resources/python-runtime`.
+- Bundled Python runtime lives under `resources/python-runtime`.
 - Runtime dependencies come from `frontend/src/main/python/requirements.runtime.txt`.
 - Runtime build owner is `scripts/build-sidecar-runtime`.
 - Packaged sidecar should not depend on conda, system Python, or build-machine virtualenv paths.

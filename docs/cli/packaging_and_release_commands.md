@@ -1,5 +1,5 @@
 ---
-summary: "Packaging and release command guide for WindieOS sidecar runtime builds, Electron package scripts, platform smoke helpers, local reinstall helpers, and release guardrails."
+summary: "Packaging and release command guide for WindieOS bundled Python runtime builds, Electron package scripts, platform smoke helpers, local reinstall helpers, and release guardrails."
 read_when:
   - When packaging WindieOS, changing release scripts, validating packaged app behavior, or choosing OS-specific package and reinstall commands.
   - When distinguishing local reinstall loops from signed/notarized release builds.
@@ -22,7 +22,7 @@ Run from the repository root.
 | Command | Purpose |
 | --- | --- |
 | `<windie> build frontend` | Build the Vite frontend bundle. |
-| `<windie> build sidecar-runtime` | Build bundled Python sidecar runtime. |
+| `<windie> build sidecar-runtime` | Build bundled Python runtime. |
 | `<windie> package mac` | Build macOS DMG/ZIP. |
 | `<windie> package win` | Build Windows NSIS installer. |
 | `<windie> package linux` | Build Linux AppImage/DEB/RPM. |
@@ -50,7 +50,7 @@ Local macOS reinstall loops intentionally skip Apple notarization and release si
 - Do not change version numbers or publish artifacts without explicit approval.
 - Run relevant tests before release steps.
 - If UI is touched, include frontend lint/test/build checks when feasible.
-- If sidecar runtime files change, rebuild/smoke the bundled runtime on the target OS.
+- If bundled Python runtime files change, rebuild/smoke the bundled runtime on the target OS.
 - Keep release signing credentials out of docs, tests, and committed config.
 
 ## Related Docs

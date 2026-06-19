@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Bundled Python Runtime Label Boundary
+
+- Finding: CLI, install, operations, platform, development, and local-runtime
+  lifecycle docs still described packaged runtime artifacts with sidecar-runtime
+  owner labels even though the active packaging boundary is the bundled Python
+  runtime and SDK-owned local-runtime daemon lifecycle. The
+  `<windie> build sidecar-runtime` command name remains a concrete CLI id.
+- Change: relabeled the affected prose to bundled Python runtime,
+  local-runtime daemon, and local-runtime smoke wording while preserving command
+  names, script paths, Python sidecar daemon implementation details, and
+  historical file paths.
+- Validation: focused modular boundary test, docs listing, exact retired-label
+  scan, and diff checks.
+- Compatibility: no migration required. Packaging scripts, runtime resource
+  paths, CLI command ids, package smoke behavior, local-runtime launch,
+  credentials, provider policy, hosted URLs, storage, and payload shapes are
+  unchanged.
+
 ### 2026-06-19 Renderer Chat Stream Payload Runtime Boundary
 
 - Finding: chat-stream compaction handlers and metadata handlers still owned

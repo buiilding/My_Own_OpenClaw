@@ -1,8 +1,8 @@
 ---
 summary: "SDK-owned local-runtime daemon lifecycle reference for desktop launch options, readiness status, helper RPC routing, and failure behavior."
 read_when:
-  - When changing desktop sidecar daemon startup, readiness status, or helper RPC routing.
-  - When debugging sidecar startup failures, local-runtime-status drift, or Electron helper calls that cannot reach the sidecar daemon.
+  - When changing desktop local-runtime daemon startup, readiness status, or helper RPC routing.
+  - When debugging local-runtime daemon startup failures, local-runtime-status drift, or Electron helper calls that cannot reach the Python sidecar daemon.
 title: "SDK-Owned Local-Runtime Lifecycle Reference"
 ---
 

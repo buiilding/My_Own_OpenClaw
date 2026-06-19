@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a bundled Python runtime label slice by relabeling CLI,
+  install, operations, platform, development, and local-runtime lifecycle docs
+  from sidecar-runtime owner wording to bundled Python runtime,
+  local-runtime daemon, and local-runtime smoke wording while preserving
+  `<windie> build sidecar-runtime`, script paths, Python sidecar daemon
+  implementation details, and historical file paths. Validation: focused
+  modular boundary test, docs listing, exact retired-label scan, and diff
+  checks. No migration required; packaging scripts, runtime resource paths, CLI
+  command ids, package smoke behavior, local-runtime launch, credentials,
+  provider-policy, hosted URLs, storage, and payload shapes are unchanged.
+
 - 2026-06-19: completed a renderer chat stream payload runtime slice by moving
   compaction debug/replay alias parsing, replacement-history extraction,
   compaction skipped/user id normalization, compacted replay snapshot building,

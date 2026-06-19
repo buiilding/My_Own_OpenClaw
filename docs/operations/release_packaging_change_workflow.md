@@ -32,8 +32,8 @@ The release path has two different jobs:
 ## Boundary Rules
 
 - Package builds are OS-native. Build and validate macOS artifacts on macOS, Windows artifacts on Windows, and Linux artifacts on Linux.
-- Packaged sidecar runtime must not depend on conda, system Python, build-machine virtualenv paths, source checkout paths, or writable files inside signed app resources.
-- `resources/python-runtime` is the packaged sidecar runtime location. If this path changes, update runtime path resolution, Electron Builder resources, smoke checks, and docs together.
+- Packaged bundled Python runtime must not depend on conda, system Python, build-machine virtualenv paths, source checkout paths, or writable files inside signed app resources.
+- `resources/python-runtime` is the packaged bundled Python runtime location. If this path changes, update runtime path resolution, Electron Builder resources, smoke checks, and docs together.
 - Local macOS reinstall intentionally strips Apple signing/notarization env vars and uses ad-hoc signing. That path is for fast installed-app validation, not release-signing validation.
 - Release signing secrets must stay in CI secrets or local environment only. Never document real credential values or commit generated certificates.
 - Browser and wakeword runtime assets are packaging responsibilities when packaged fallback downloads are disabled. Missing packaged assets should fail build or smoke validation rather than silently relying on source-mode behavior.

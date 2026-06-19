@@ -73,7 +73,7 @@ Current repo packaging entrypoints (run from `frontend/`):
 
 Bundled sidecar-runtime packaging profile:
 - The canonical `<windie> package win`, `<windie> package mac`, and
-  `<windie> package linux` commands use the bundled Python sidecar runtime
+  `<windie> package linux` commands use the bundled Python runtime
   with system-browser-first packaging.
 - runtime build guide: `docs/operations/sidecar_runtime_packaging.md`
 

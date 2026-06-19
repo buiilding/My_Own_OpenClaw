@@ -23,7 +23,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | frontend CI suite | `<windie> test frontend` |
 | sidecar focused tests | `./scripts/python-in-env sidecar pytest <path>` |
 | sidecar suite | `<windie> test sidecar` |
-| sidecar runtime build | `<windie> build sidecar-runtime` |
+| bundled Python runtime build | `<windie> build sidecar-runtime` |
 | macOS package | `<windie> package mac` |
 | Windows package | `<windie> package win` |
 | Linux package | `<windie> package linux` |
@@ -42,7 +42,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 | sidecar keyboard control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_keyboard_tool.py` | Validate permission handling before changing key synthesis. |
 | sidecar scroll control | not applicable unless renderer tool dispatch changed | `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_scroll_config.py` | Include app-focus manual check if scrolling target changed. |
 | sidecar window manager | not applicable unless UI consumes active-window labels | `tests/sidecar/test_macos_window_manager.py`, `tests/sidecar/test_windows_window_manager.py`, `tests/sidecar/test_linux_window_manager.py`, `tests/sidecar/test_platform_module_selection.py` | Keep platform module selection deterministic. |
-| packaged sidecar runtime | frontend package build and smoke helper | target OS sidecar smoke through installed app | Source tests do not prove installed Python runtime isolation. |
+| packaged bundled Python runtime | frontend package build and smoke helper | target OS local-runtime smoke through installed app | Source tests do not prove installed Python runtime isolation. |
 
 ## Manual Smoke Checks
 

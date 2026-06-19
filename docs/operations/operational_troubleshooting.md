@@ -167,7 +167,7 @@ Check:
 
 Likely owner:
 
-- Bundled sidecar runtime or packaged runtime path.
+- Bundled Python runtime or packaged runtime path.
 
 Check:
 

@@ -57,7 +57,7 @@ surface. The command tables below use `<windie>` for the active platform shim.
 | `<windie> commits search <query>` | Search recent git commits by subject, body, author, hash, date, and changed paths. |
 | `<windie> commits search <query> --limit 20 --json` | Return a bounded machine-readable commit-search result set. |
 | `<windie> build frontend` | Build the frontend bundle. |
-| `<windie> build sidecar-runtime` | Build the bundled Python sidecar runtime. |
+| `<windie> build sidecar-runtime` | Build the bundled Python runtime. |
 | `<windie> package mac` | Package macOS artifacts. |
 | `<windie> package win` | Package Windows artifacts. |
 | `<windie> package linux` | Package Linux artifacts. |
@@ -73,4 +73,4 @@ surface. The command tables below use `<windie>` for the active platform shim.
 
 - [Command Matrix](command_matrix.md) maps the full `<windie>` command surface.
 - [Validation Commands](validation_commands.md) maps tests, lint, typecheck, docs checks, and focused validation commands by changed boundary.
-- [Packaging and Release Commands](packaging_and_release_commands.md) maps sidecar runtime builds, package commands, smoke helpers, local reinstall commands, and release guardrails.
+- [Packaging and Release Commands](packaging_and_release_commands.md) maps bundled Python runtime builds, package commands, smoke helpers, local reinstall commands, and release guardrails.
