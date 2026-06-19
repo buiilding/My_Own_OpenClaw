@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Conversation Replay Runtime Boundary
+
+- Finding: replay context reconstruction for matched tool-call/tool-output
+  rows was pure renderer replay projection logic and already used SDK-shaped
+  correlation helpers, but it still lived under chat feature utilities.
+- Change: moved replay tool-message pairing into
+  `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`,
+  routed conversation replay actions, focused tests, memory/replay docs, folder
+  structure, runtime inventory, and renderer chat boundary guards through that
+  app-runtime facade, and removed the old chat utility path.
+- Validation: focused desktop conversation replay runtime, conversation replay
+  actions, renderer chat runtime boundary, docs listing, frontend lint, stale
+  old-path scan, and diff checks.
+- Compatibility: no migration required. Replay context row filtering,
+  tool-call/tool-output correlation matching, edit/resend and retry
+  preparation, transcript/session payloads, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Conversation Ref Runtime Boundary
 
 - Finding: local conversation-ref generation was the last standalone chat

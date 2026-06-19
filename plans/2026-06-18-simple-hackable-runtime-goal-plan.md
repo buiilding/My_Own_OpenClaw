@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer conversation replay runtime-boundary slice
+  by moving replay tool-call/tool-output pairing from
+  `frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js`
+  to
+  `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`.
+  Conversation replay actions, focused tests, memory/replay docs, folder
+  structure, runtime inventory, and renderer chat boundary guards now route
+  through the app-runtime owner, and the old chat utility path is deleted.
+  Validation: focused desktop conversation replay runtime, conversation replay
+  actions, renderer chat boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks. No migration required; replay context row filtering,
+  tool-call/tool-output correlation matching, edit/resend and retry
+  preparation, transcript/session payloads, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
 - 2026-06-19: completed a renderer conversation-ref runtime-boundary slice by
   moving the local `conv_${crypto.randomUUID()}` generator from the last
   standalone chat session helper into

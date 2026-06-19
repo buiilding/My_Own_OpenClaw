@@ -80,7 +80,7 @@ Key files:
 - SDK display projection: `sdkDisplayChatMessageProjection.ts`,
 - backend rehydrate snapshot projection: `packages/windie-sdk-js/src/projections/conversationProjections.ts`,
 - backend rehydrate dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
-- tool-message reconstruction: `conversationReplayToolMessages.js`,
+- tool-message reconstruction: `desktopConversationReplayRuntime.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.
 
 ## Tests

@@ -920,8 +920,14 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
     );
+    const replayRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js'),
+      'utf8',
+    );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
+    expect(source).toContain('desktopConversationReplayRuntime');
+    expect(source).not.toContain('utils/conversationReplayToolMessages');
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).toContain('dispatchPreparedDesktopChatTurn');
@@ -929,6 +935,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
+    expect(replayRuntimeSource).toContain('buildReplayContextMessages');
+    expect(replayRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/conversationReplayToolMessages.js'),
+    )).rejects.toThrow();
   });
 
   test('renderer feature code routes active conversation selection through session helpers', async () => {

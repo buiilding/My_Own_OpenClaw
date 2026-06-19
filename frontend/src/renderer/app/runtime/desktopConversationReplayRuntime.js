@@ -1,5 +1,5 @@
 ﻿/**
- * Provides the conversation replay tool messages module for the renderer UI.
+ * Provides renderer conversation replay projection helpers.
  */
 
 import {
@@ -7,7 +7,7 @@ import {
   resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
-} from '../../../app/runtime/desktopConversationRuntimeContracts';
+} from './desktopConversationRuntimeContracts';
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);

@@ -1,12 +1,12 @@
 /**
- * Covers conversation replay tool messages. behavior in the frontend test suite.
+ * Covers desktop conversation replay runtime behavior in the frontend test suite.
  */
 
 import {
   buildReplayContextMessages,
-} from '../../frontend/src/renderer/features/chat/utils/conversationReplayToolMessages';
+} from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
 
-describe('conversationReplayToolMessages', () => {
+describe('desktopConversationReplayRuntime', () => {
   test('keeps non-tool rows and matched tool call/output pairs', () => {
     const messages = [
       { id: 'm-1', type: 'llm-text', text: 'assistant intro' },

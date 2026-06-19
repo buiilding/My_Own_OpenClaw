@@ -86,6 +86,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/conversation-session: move the renderer local conversation-ref
   generator into the conversation session app-runtime owner consumed by new
   chat, send prep, and replay flows. No migration required.
+- renderer/conversation-replay: move replay tool-call/tool-output pairing into
+  the renderer app-runtime facade consumed by conversation replay actions. No
+  migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

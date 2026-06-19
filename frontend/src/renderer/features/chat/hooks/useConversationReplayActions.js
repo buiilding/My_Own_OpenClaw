@@ -19,7 +19,7 @@ import {
   initializeLocalConversationSession,
   resolveRendererConversationSessionSnapshot,
 } from '../../../app/runtime/desktopConversationSessionRuntime';
-import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
+import { buildReplayContextMessages } from '../../../app/runtime/desktopConversationReplayRuntime';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 
 const chatSkin = desktopRuntimeSkin.chat;

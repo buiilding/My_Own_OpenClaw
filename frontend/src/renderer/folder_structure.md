@@ -56,6 +56,7 @@ frontend/src/renderer/
 │   │   ├── desktopStreamPhaseRuntime.js # Renderer response-overlay awaiting-reply phase predicate facade
 │   │   ├── desktopStopTurnRuntime.js # Renderer stop-turn target and terminal current-turn projection facade
 │   │   ├── desktopConversationDisplayProjection.ts # Renderer SDK display-row to chat-message projection facade
+│   │   ├── desktopConversationReplayRuntime.js # Renderer replay context tool-message pairing facade
 │   │   ├── desktopConversationRuntimeContracts.ts # Renderer SDK conversation contract and helper facade
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
 │   │   ├── desktopDevUiRuntime.js # Renderer dev-ui query flag helper shared by chat and minimal surfaces

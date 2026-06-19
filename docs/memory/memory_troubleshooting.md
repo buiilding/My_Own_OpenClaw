@@ -32,13 +32,13 @@ Inspect:
 - `packages/windie-sdk-js/src/projections`
 - desktop conversation store adapter
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
-- `frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js`
+- `frontend/src/renderer/app/runtime/desktopConversationReplayRuntime.js`
 
 Validate:
 
 ```bash
 cd frontend
-<windie> test frontend -- WindieSdkConversationRuntime ConversationReplayActions ConversationReplayToolMessages
+<windie> test frontend -- WindieSdkConversationRuntime ConversationReplayActions DesktopConversationReplayRuntime
 ```
 
 ## Tool Rows Lose Linkage After Rehydrate
@@ -54,7 +54,7 @@ Validate:
 
 ```bash
 <windie> test backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage.py -q
-<windie> test frontend -- WindieSdkConversationRuntime.test.ts ConversationReplayToolMessages.test.js
+<windie> test frontend -- WindieSdkConversationRuntime.test.ts DesktopConversationReplayRuntime.test.js
 ```
 
 ## Search Finds Old Or Wrong Memory
