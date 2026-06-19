@@ -219,8 +219,9 @@ channel constants, trimming raw snapshot fields, or deciding raw connection
 field validity directly. App config runtime snapshot handling also calls this
 client for startup and connection-status user context.
 
-`desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out and
-live workspace payload normalization for chat and settings surfaces. Chat owns
+`desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out, live
+workspace payload normalization, and host-source classification such as
+`isWorkspacePickerSelection` for chat and settings surfaces. Chat owns
 active-workspace refresh and conversation binding policy; workspace settings
 owns active workspace display and folder selection while consuming normalized
 workspace selections from this runtime client.

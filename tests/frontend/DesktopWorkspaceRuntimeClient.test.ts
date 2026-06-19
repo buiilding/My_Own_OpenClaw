@@ -44,6 +44,7 @@ describe('DesktopWorkspaceRuntimeClient', () => {
     })).toEqual({
       granted: true,
       source: 'workspace_picker',
+      isWorkspacePickerSelection: true,
       workspaceName: 'WindieOS',
       workspacePath: '/repo/WindieOS/',
       workspace: {
@@ -53,9 +54,27 @@ describe('DesktopWorkspaceRuntimeClient', () => {
       },
     });
 
+    expect(normalizeWorkspaceAccessUpdatedPayload({
+      granted: true,
+      source: 'startup_sync',
+      workspacePath: '/repo/WindieOS',
+    })).toEqual({
+      granted: true,
+      source: 'startup_sync',
+      isWorkspacePickerSelection: false,
+      workspaceName: 'WindieOS',
+      workspacePath: '/repo/WindieOS',
+      workspace: {
+        activeWorkspaceName: 'WindieOS',
+        activeWorkspacePath: '/repo/WindieOS',
+        selectedPaths: ['/repo/WindieOS'],
+      },
+    });
+
     expect(normalizeWorkspaceAccessUpdatedPayload(null)).toEqual({
       granted: false,
       source: '',
+      isWorkspacePickerSelection: false,
       workspaceName: '',
       workspacePath: '',
       workspace: {
@@ -82,6 +101,7 @@ describe('DesktopWorkspaceRuntimeClient', () => {
     expect(updates).toEqual([{
       granted: true,
       source: 'workspace_picker',
+      isWorkspacePickerSelection: true,
       workspaceName: 'Repo',
       workspacePath: '/tmp/repo',
       workspace: {

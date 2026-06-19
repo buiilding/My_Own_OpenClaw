@@ -119,9 +119,10 @@ generic package export docs.
 
 Workspace update subscriptions should go through
 `DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)` so feature code
-receives a normalized `workspace` selection object instead of importing the
-`workspace-access-updated` IPC channel or interpreting `workspaceName` /
-`workspacePath` host event fields directly.
+receives a normalized `workspace` selection object and
+`isWorkspacePickerSelection` flag instead of importing the
+`workspace-access-updated` IPC channel or interpreting raw `source`,
+`workspaceName`, or `workspacePath` host event fields directly.
 
 ### 3. Inspect conversation workspace binding
 

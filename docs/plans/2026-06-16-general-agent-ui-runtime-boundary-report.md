@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Workspace Picker Source Classification Boundary
+
+- Finding: `DesktopWorkspaceRuntimeClient` normalized workspace update
+  selections, but `ChatInterface` still inspected the raw host source string
+  `workspace_picker` before deciding whether the update should start a
+  workspace-bound new chat.
+- Change: added `isWorkspacePickerSelection` to the normalized workspace update
+  payload and routed chat through that flag. The runtime client owns source
+  classification while chat keeps active-workspace refresh, binding comparison,
+  and new-chat policy.
+- Validation: focused desktop workspace runtime client, renderer chat runtime
+  boundary, and chat interface wiring tests plus stale raw source-string scans,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Workspace update event names, raw
+  source strings, active workspace selection, conversation binding behavior,
+  IPC, storage, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Process Lifecycle Sidecar Daemon Ownership Wording
 
 - Finding: the local-runtime process lifecycle workflow still said the sidecar

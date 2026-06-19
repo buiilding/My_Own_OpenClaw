@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify workspace-picker update events in
+  `desktopWorkspaceRuntimeClient` before chat decides whether a workspace
+  update should start a workspace-bound new chat. No migration required.
 - docs/frontend: describe the sidecar daemon as hosting the app-session
   `LocalRuntimeService` implementation behind SDK local-runtime ownership
   instead of owning local tools and memory. No migration required.

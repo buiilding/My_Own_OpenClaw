@@ -169,7 +169,7 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
         const nextWorkspace = payload.workspace;
         applyActiveWorkspace(nextWorkspace, { markSelectionChange: true });
 
-        if (payload.source !== 'workspace_picker') {
+        if (payload.isWorkspacePickerSelection !== true) {
           return;
         }
 

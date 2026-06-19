@@ -16,6 +16,7 @@ import {
 export type DesktopWorkspaceAccessUpdatedPayload = {
   granted: boolean;
   source: string;
+  isWorkspacePickerSelection: boolean;
   workspaceName: string;
   workspacePath: string;
   workspace: DesktopWorkspaceSelection;
@@ -115,6 +116,7 @@ export function normalizeWorkspaceAccessUpdatedPayload(
   return {
     granted: source.granted === true,
     source: typeof source.source === 'string' ? source.source : '',
+    isWorkspacePickerSelection: source.source === 'workspace_picker',
     workspaceName: activeWorkspaceName,
     workspacePath,
     workspace,

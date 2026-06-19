@@ -71,8 +71,10 @@ Chat interface event subscriptions are routed through app runtime clients:
   subscription; `useChatInterfaceAudioChunkStream` owns payload parsing and
   playback queue handoff.
 - `DesktopWorkspaceRuntimeClient` owns the `workspace-access-updated`
-  subscription; `ChatInterface` owns active-workspace refresh, conversation
-  binding comparison, and workspace-picker new-chat policy.
+  subscription, workspace selection normalization, and source classification
+  such as `isWorkspacePickerSelection`; `ChatInterface` owns
+  active-workspace refresh, conversation binding comparison, and whether a
+  normalized workspace-picker update should start a new chat.
 
 Provider dropdown:
 

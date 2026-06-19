@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer workspace picker source classification
+  boundary slice by adding `isWorkspacePickerSelection` to normalized workspace
+  update payloads in `desktopWorkspaceRuntimeClient`. `ChatInterface` now
+  consumes that flag instead of comparing the raw `workspace_picker` host source
+  string, while keeping active-workspace refresh, binding comparison, and
+  new-chat policy. Focused desktop workspace runtime client, renderer chat
+  runtime boundary, and chat interface wiring tests passed with docs listing,
+  stale raw source-string scans, and diff checks. No migration required; event
+  names, raw source strings, workspace selection, conversation binding, IPC,
+  storage, credentials, provider policy, hosted URLs, and local execution are
+  unchanged.
+
 - 2026-06-19: completed a process-lifecycle sidecar daemon ownership wording
   slice by changing the local-runtime process lifecycle workflow so the
   sidecar daemon hosts the app-session `LocalRuntimeService` implementation

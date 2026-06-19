@@ -1496,6 +1496,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(chatInterfaceSource).not.toContain('payload?.workspaceName');
     expect(chatInterfaceSource).not.toContain('payload?.workspacePath');
+    expect(chatInterfaceSource).not.toContain("'workspace_picker'");
     expect(chatInterfaceSource).not.toContain('infrastructure/audio/PlayerService');
     expect(replayActionsSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
     expect(newChatSessionSource).not.toContain('infrastructure/workspace/conversationWorkspaceBinding');
@@ -1506,6 +1507,7 @@ describe('renderer chat runtime boundary', () => {
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(chatInterfaceSource).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
     expect(workspaceClientSource).toContain('normalizeWorkspaceAccessUpdatedPayload');
+    expect(workspaceClientSource).toContain('isWorkspacePickerSelection');
     expect(chatInterfaceSource).toContain('DesktopAudioRuntimeClient.createAudioPlayer');
     expect(sendPreparationSource).not.toContain('infrastructure/workspace/workspaceAccess');
     expect(sendPreparationSource).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
