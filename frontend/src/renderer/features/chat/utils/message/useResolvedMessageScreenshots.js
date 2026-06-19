@@ -7,7 +7,7 @@ import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArt
 import {
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
-} from './messageScreenshots';
+} from '../../../../app/runtime/desktopMessageScreenshotRuntime';
 
 const artifactImagePromiseCache = new Map();
 

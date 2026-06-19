@@ -29,7 +29,7 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
-- `frontend/src/renderer/features/chat/utils/message/messageScreenshots.js`
+- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/infrastructure/llmOutputContract.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/MessageContent.test.jsx`
@@ -151,8 +151,9 @@ by the message content components listed above.
 
 The old standalone screenshot-source test path `MessageScreenshotSrc.test.js`
 was also removed. Screenshot source selection is covered through
-`messageScreenshots.js`, message rendering, and attachment/artifact tests. Stale
-searches for either removed helper should route here.
+`desktopMessageScreenshotRuntime.js`, message rendering, and
+attachment/artifact tests. Stale searches for either removed helper should
+route here.
 
 ## Tool Call Card Contract
 

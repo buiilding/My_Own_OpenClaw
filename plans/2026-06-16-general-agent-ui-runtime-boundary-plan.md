@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Message Class and Screenshot Runtime Boundary
+
+- Finding: message row class assembly and screenshot attachment descriptor
+  resolution were pure presentation/runtime rules used by message components,
+  but they still lived under chat feature utilities. The React hook for async
+  artifact image fetching remains UI-owned because it manages hook state and
+  cache lifecycle.
+- Change: moved row class assembly to
+  `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js` and
+  screenshot descriptor resolution to
+  `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`,
+  routed message content, message rows, screenshot resolver hooks, and tests
+  through those app-runtime facades, and removed the old chat utility paths.
+- Validation: focused message class, message screenshot, message content,
+  renderer chat runtime boundary, docs listing, frontend lint, stale old-path
+  scan, and diff checks.
+- Compatibility: no migration required. Message class names, screenshot
+  attachment normalization, artifact URL construction, rendered user/tool
+  image behavior, IPC payloads, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Message Transparency Runtime Boundary
 
 - Finding: chat rows and the minimal response overlay shared system-prompt,

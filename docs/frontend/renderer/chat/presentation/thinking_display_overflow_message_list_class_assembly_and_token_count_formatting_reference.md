@@ -14,11 +14,13 @@ title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/message/messageListClasses.js`
+- `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
-- `tests/frontend/MessageListClasses.test.js`
+- `tests/frontend/DesktopMessageClassRuntime.test.js`
+- `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
 - `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
 
@@ -59,12 +61,18 @@ Assistant message thinking presentation:
 
 ## Message CSS Class Assembly Contract
 
-`buildMessageClassName(message)` emits:
+`buildMessageClassName(message)` lives in
+`frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js` and emits:
 
 - always: `message`, `message-${sender}`
 - `message-streaming` for unfinished assistant LLM rows
 - `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
 - `message-has-screenshot` when screenshot attachment fields resolve true
+
+Screenshot presence for row classes and user-message routing is resolved
+through `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`.
+The React-only async artifact image fetch/cache hook remains in
+`frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`.
 
 ## Token Count Tracking Contract (State, not Dedicated UI Component)
 
@@ -95,8 +103,10 @@ Important:
   - confirms no forced auto-scroll after user scrolls up
   - confirms near-bottom streaming updates still auto-scroll
   - confirms conversation selection changes force an instant near-bottom jump (`top = maxScrollTop - 72`) even after manual scroll-up in previous thread
-- `MessageListClasses.test.js`:
+- `DesktopMessageClassRuntime.test.js`:
   - verifies class assembly for sender/type/screenshot/streaming state
+- `DesktopMessageScreenshotRuntime.test.js`:
+  - verifies screenshot attachment detection and static source resolution
 - `ChatStore.test.ts`:
   - validates token-count state updates and reset behavior
 

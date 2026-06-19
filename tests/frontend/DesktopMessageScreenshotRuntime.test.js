@@ -1,5 +1,5 @@
 /**
- * Covers message screenshots. behavior in the frontend test suite.
+ * Covers desktop message screenshot runtime behavior in the frontend test suite.
  */
 
 import {
@@ -7,7 +7,7 @@ import {
   isUserMessageWithScreenshot,
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
-} from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
+} from '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime';
 import { DesktopArtifactRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient', () => {
@@ -36,7 +36,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient'
   };
 });
 
-describe('messageScreenshots', () => {
+describe('desktopMessageScreenshotRuntime', () => {
   beforeEach(() => {
     DesktopArtifactRuntimeClient.buildArtifactUrl.mockClear();
   });

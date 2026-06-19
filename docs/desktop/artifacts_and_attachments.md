@@ -16,7 +16,8 @@ WindieOS uses artifacts to avoid passing large binary screenshots directly throu
 - Query screenshot resource preparation: `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - SDK resource resolution: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - SDK visual materialization: `packages/windie-sdk-js/src/runtime/VisualResourceMaterializer.ts`
-- Message screenshot resolution: `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
+- Message screenshot descriptors: `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
+- Message screenshot async image resolution: `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
 - Main screenshot artifact bridge: `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs`
 - Backend routes: `backend/src/api/routes/artifacts/*`
 - Backend store: `backend/src/services/artifacts/store.py`

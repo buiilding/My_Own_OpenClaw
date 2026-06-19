@@ -1,9 +1,9 @@
 /**
- * Provides the message screenshots module for the renderer UI.
+ * Provides renderer message screenshot attachment descriptors for presentation surfaces.
  */
 
-import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
-import { normalizeNonEmptyString } from '../../../../utils/normalizeNonEmptyString';
+import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
+import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
 function resolveAttachmentSrc(attachment) {
   if (!attachment || typeof attachment !== 'object') {

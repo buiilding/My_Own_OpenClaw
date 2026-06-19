@@ -445,7 +445,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('chat screenshot presentation builds artifact URLs through app runtime client', async () => {
     const screenshotSource = await fs.readFile(
-      path.join(chatRoot, 'utils/message/messageScreenshots.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
       'utf8',
     );
     const resolvedScreenshotSource = await fs.readFile(
@@ -488,6 +488,7 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.resolveScreenshotAttachmentState');
     expect(screenshotSource).toContain('DesktopArtifactRuntimeClient.normalizeArtifactImageContentType');
+    expect(resolvedScreenshotSource).toContain('desktopMessageScreenshotRuntime');
     expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(replayActionsSource).toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(dataUrlImageSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
@@ -496,6 +497,9 @@ describe('renderer chat runtime boundary', () => {
     expect(artifactClientSource).toContain('resolveScreenshotAttachmentState');
     expect(artifactClientSource).toContain('normalizeArtifactImageContentType');
     expect(endpointClientSource).toContain('buildRuntimeArtifactUrl');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageScreenshots.js'),
+    )).rejects.toThrow();
   });
 
   test('chat startup mode reads through app runtime client', async () => {
@@ -630,6 +634,39 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageTokenUsage.js'),
+    )).rejects.toThrow();
+  });
+
+  test('message row classes and screenshot descriptors stay behind app runtime facades', async () => {
+    const messageItemSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/MessageItem.jsx'),
+      'utf8',
+    );
+    const messageContentSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageContent.jsx'),
+      'utf8',
+    );
+    const classRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js'),
+      'utf8',
+    );
+    const screenshotRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js'),
+      'utf8',
+    );
+
+    expect(messageItemSource).toContain('desktopMessageClassRuntime');
+    expect(messageItemSource).not.toContain('utils/message/messageListClasses');
+    expect(messageContentSource).toContain('desktopMessageScreenshotRuntime');
+    expect(messageContentSource).not.toContain('utils/message/messageScreenshots');
+    expect(classRuntimeSource).toContain('desktopMessageScreenshotRuntime');
+    expect(classRuntimeSource).not.toContain('features/chat');
+    expect(screenshotRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageListClasses.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageScreenshots.js'),
     )).rejects.toThrow();
   });
 

@@ -11,7 +11,7 @@ import UserMessageActions from './UserMessageActions';
 import MessageSourceBadge from './MessageSourceBadge';
 import UserMessageEditComposer from './UserMessageEditComposer';
 import messageShapePropType from './messageShapePropType';
-import { buildMessageClassName } from '../../utils/message/messageListClasses';
+import { buildMessageClassName } from '../../../../app/runtime/desktopMessageClassRuntime';
 import {
   shouldRenderAssistantActions,
   shouldRenderUserActions,

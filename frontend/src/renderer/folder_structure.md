@@ -37,7 +37,9 @@ frontend/src/renderer/
 │   │   ├── desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply and chatbox surface projection facade
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
+│   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
 │   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
+│   │   ├── desktopMessageScreenshotRuntime.js # Renderer message screenshot attachment descriptor facade
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
 │   │   ├── desktopMessageTransparencyRuntime.js # Renderer message transparency section descriptor facade
 │   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
@@ -149,9 +151,8 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── messageInput.js      # messageInput - Input normalization helper before send dispatch
-│   │       │   ├── messageListClasses.js # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers
-│   │       │   ├── messageScreenshots.js # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
+│   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module

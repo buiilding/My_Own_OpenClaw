@@ -275,6 +275,23 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer message class and screenshot
+  runtime-boundary slice by moving row class assembly from
+  `frontend/src/renderer/features/chat/utils/message/messageListClasses.js` to
+  `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js` and
+  screenshot attachment descriptor resolution from
+  `frontend/src/renderer/features/chat/utils/message/messageScreenshots.js` to
+  `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`.
+  MessageItem, MessageContent, the React screenshot resolver hook, focused
+  tests, docs, and renderer chat boundary guards now route through the
+  app-runtime owners, while the hook-state artifact image fetch cache remains
+  UI-owned. Validation: focused desktop message class runtime, desktop message
+  screenshot runtime, message content, renderer chat boundary, docs listing,
+  stale old-path scan, frontend lint, and diff checks. No migration required;
+  message class names, screenshot attachment normalization, artifact URL
+  construction, rendered user/tool image behavior, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
 - 2026-06-19: completed a renderer message transparency runtime-boundary slice
   by moving system prompt, tool-schema, full-user-message, and
   full-assistant-message section descriptor helpers from

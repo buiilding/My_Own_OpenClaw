@@ -12,12 +12,12 @@ title: "Screenshot Message State and SDK Projection Reference"
 
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts`
 - `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`
-- `frontend/src/renderer/features/chat/utils/message/messageScreenshots.js`
 - `tests/frontend/ScreenshotMessageState.test.js`
 - `tests/frontend/SdkDisplayChatMessageProjection.test.ts`
-- `tests/frontend/MessageScreenshots.test.js`
+- `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
 - `tests/frontend/ConversationReplayActions.test.jsx`
 
 ## Current Contract
@@ -53,9 +53,11 @@ URLs such as `/api/artifacts/<id>`. That lets replay preserve a canonical
 
 `screenshotMessageState.js` keeps the low-level normalization rules and defaults
 to the runtime endpoint store for owner-level infrastructure tests. Renderer
-feature code should call the screenshot helpers through
-`DesktopArtifactRuntimeClient`, which injects the app runtime artifact URL
-builder and keeps endpoint-derived URLs behind the renderer runtime boundary.
+feature code should call screenshot presentation helpers through
+`desktopMessageScreenshotRuntime.js`, which delegates artifact URL and
+attachment-state work to `DesktopArtifactRuntimeClient`. That client injects
+the app runtime artifact URL builder and keeps endpoint-derived URLs behind the
+renderer runtime boundary.
 
 `buildMessageScreenshotState(...)` uses
 `preserveInlineScreenshotWithRemote: false`, so renderer chat rows prefer the
@@ -94,7 +96,8 @@ If a replayed or resumed image is missing:
 2. verify `DesktopArtifactRuntimeClient` has the active runtime HTTP URL before
    deriving artifact URLs
 3. confirm `screenshot` is actual inline image data, not an artifact id
-4. check `useResolvedMessageScreenshots.js` fetch/cache behavior for remote
+4. check `desktopMessageScreenshotRuntime.js` for attachment descriptor state
+5. check `useResolvedMessageScreenshots.js` fetch/cache behavior for remote
    artifact URLs
 
 If a row shows one image instead of multiple:

@@ -1,8 +1,8 @@
 /**
- * Provides the message list classes module for the renderer UI.
+ * Provides renderer message row class-name assembly for presentation surfaces.
  */
 
-import { hasMessageScreenshot } from './messageScreenshots';
+import { hasMessageScreenshot } from './desktopMessageScreenshotRuntime';
 
 export function buildMessageClassName(message) {
   const classNames = ['message', `message-${message.sender}`];

@@ -1,10 +1,10 @@
 /**
- * Covers message list classes. behavior in the frontend test suite.
+ * Covers desktop message class runtime behavior in the frontend test suite.
  */
 
-import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/message/messageListClasses';
+import { buildMessageClassName } from '../../frontend/src/renderer/app/runtime/desktopMessageClassRuntime';
 
-describe('buildMessageClassName', () => {
+describe('desktopMessageClassRuntime', () => {
   test('builds base user message class names', () => {
     expect(
       buildMessageClassName({

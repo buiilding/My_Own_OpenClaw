@@ -88,5 +88,5 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/ChatStreamMessageUpdates.test.ts`
 - `tests/frontend/ChatStreamFormatting.test.ts`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
-- `tests/frontend/MessageListClasses.test.js`
+- `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
