@@ -226,10 +226,11 @@ enablement commands, and MCP registry payload normalization. The MCP dashboard
 section owns toggle presentation and error display while consuming normalized
 registry payloads from this client.
 
-`desktopExtensionRuntimeClient.ts` owns extension metadata loading and agent
-capability event fan-out. Agent settings owns extension/tool presentation,
-tool toggle config patches, and manifest/catalog state projection while
-delegating the desktop event and metadata channels to this client.
+`desktopExtensionRuntimeClient.ts` owns extension metadata loading, extension
+runtime payload normalization, and agent capability event fan-out/normalization.
+Agent settings owns extension/tool presentation, tool toggle config patches,
+and manifest/catalog display state while delegating the desktop event and
+metadata channels to this client.
 
 `desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
 shared React hook helpers such as `useLatestRef`. App providers and feature

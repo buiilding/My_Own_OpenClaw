@@ -8,7 +8,12 @@ import {
   formatToolAcceptanceRuntimeSummary,
   desktopRuntimeSkin,
 } from '../../../../../app/skin/desktopRuntimeSkin';
-import { DesktopExtensionRuntimeClient } from '../../../../../app/runtime/desktopExtensionRuntimeClient';
+import {
+  DesktopExtensionRuntimeClient,
+  EMPTY_AGENT_EXTENSION_RUNTIME,
+  EMPTY_AGENT_REMOTE_TOOL_CATALOG,
+  EMPTY_AGENT_TOOL_MANIFEST_STATUS,
+} from '../../../../../app/runtime/desktopExtensionRuntimeClient';
 import { CloneToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
@@ -22,14 +27,9 @@ function toggleListValue(values, value, enabled) {
 }
 
 function AgentSettingsTab({ config, onConfigChange }) {
-  const [manifestStatus, setManifestStatus] = useState({ accepted: [], rejected: [] });
-  const [remoteToolCatalog, setRemoteToolCatalog] = useState({ remote_tools: [] });
-  const [extensionRuntime, setExtensionRuntime] = useState({
-    plugins: [],
-    skills: [],
-    mcps: [],
-    errors: [],
-  });
+  const [manifestStatus, setManifestStatus] = useState(EMPTY_AGENT_TOOL_MANIFEST_STATUS);
+  const [remoteToolCatalog, setRemoteToolCatalog] = useState(EMPTY_AGENT_REMOTE_TOOL_CATALOG);
+  const [extensionRuntime, setExtensionRuntime] = useState(EMPTY_AGENT_EXTENSION_RUNTIME);
   const disabledLocalTools = Array.isArray(config?.agent_disabled_local_tools)
     ? config.agent_disabled_local_tools
     : [];
@@ -48,31 +48,17 @@ function AgentSettingsTab({ config, onConfigChange }) {
 
   useEffect(() => {
     DesktopExtensionRuntimeClient.listAgentExtensions()
-      .then((payload) => {
-        setExtensionRuntime({
-          plugins: Array.isArray(payload?.plugins) ? payload.plugins : [],
-          skills: Array.isArray(payload?.skills) ? payload.skills : [],
-          mcps: Array.isArray(payload?.mcps) ? payload.mcps : [],
-          errors: Array.isArray(payload?.errors) ? payload.errors : [],
-        });
-      })
+      .then(setExtensionRuntime)
       .catch(() => {
-        setExtensionRuntime({ plugins: [], skills: [], mcps: [], errors: [] });
+        setExtensionRuntime(EMPTY_AGENT_EXTENSION_RUNTIME);
       });
 
     const removeListener = DesktopExtensionRuntimeClient.onAgentCapabilityEvent((event) => {
-      if (event?.type === 'client-tool-manifest') {
-        setManifestStatus({
-          accepted: Array.isArray(event.payload?.accepted) ? event.payload.accepted : [],
-          rejected: Array.isArray(event.payload?.rejected) ? event.payload.rejected : [],
-        });
+      if (event?.type === 'client-tool-manifest' && event.manifestStatus) {
+        setManifestStatus(event.manifestStatus);
       }
-      if (event?.type === 'remote-tool-catalog') {
-        setRemoteToolCatalog({
-          remote_tools: Array.isArray(event.payload?.remote_tools)
-            ? event.payload.remote_tools
-            : [],
-        });
+      if (event?.type === 'remote-tool-catalog' && event.remoteToolCatalog) {
+        setRemoteToolCatalog(event.remoteToolCatalog);
       }
     });
     return removeListener;

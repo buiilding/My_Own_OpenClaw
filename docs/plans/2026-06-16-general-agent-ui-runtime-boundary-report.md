@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Agent Settings Extension Runtime Payload Boundary
+
+- Finding: `AgentSettingsTab` still normalized desktop extension metadata and
+  capability-event payload arrays such as `plugins`, `mcps`, `accepted`,
+  `rejected`, and `remote_tools` even though `DesktopExtensionRuntimeClient`
+  owned the app-runtime channel boundary.
+- Change: moved extension runtime snapshot normalization, empty defaults,
+  client tool-manifest status normalization, and remote tool-catalog
+  normalization into `desktopExtensionRuntimeClient`. The agent settings tab now
+  consumes normalized extension runtime values and keeps presentation plus
+  config patching local.
+- Validation: focused desktop extension runtime client, agent settings tab, and
+  renderer settings boundary tests, stale agent-settings raw-payload scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Extension metadata payloads,
+  capability event names, settings storage, tool toggle behavior, IPC channel
+  names, credentials, provider policy, hosted URLs, storage, and local-runtime
+  extension/MCP execution behavior are unchanged.
+
 ### 2026-06-19 SDK Runtime Transport Factory Boundary
 
 - Finding: `AgentRuntimeTransport` was already the canonical conversation

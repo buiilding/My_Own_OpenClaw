@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer agent-settings extension payload runtime
+  slice by moving extension metadata normalization, empty extension-runtime
+  defaults, client tool-manifest status normalization, and remote tool-catalog
+  normalization from `AgentSettingsTab` into `desktopExtensionRuntimeClient`.
+  The agent settings tab now consumes normalized extension runtime values while
+  keeping presentation state and config patches local. Validation: focused
+  desktop extension runtime client, agent settings tab, renderer settings
+  boundary tests, stale agent-settings raw-payload scan, docs listing, and diff
+  checks. No migration required; extension metadata payloads, capability event
+  names, settings storage, tool toggle behavior, IPC channel names, credentials,
+  provider-policy, hosted URLs, storage, and local-runtime extension/MCP
+  execution behavior are unchanged.
+
 - 2026-06-19: completed an SDK runtime transport factory naming slice by
   adding `createAgentRuntimeTransport` as the primary conversation transport
   factory, routing `Agent.conversation(...)` and focused SDK transport tests

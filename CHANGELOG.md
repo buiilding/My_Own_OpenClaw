@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move extension metadata and capability-event payload
+  normalization behind the desktop extension runtime client instead of the
+  agent settings tab. No migration required.
 - sdk/runtime: add `createAgentRuntimeTransport` as the primary conversation
   transport factory and route SDK internals/tests through it while preserving
   `createAgentBackendTransport` as a compatibility alias. No migration

@@ -132,8 +132,8 @@ Runtime inputs:
 - `DesktopExtensionRuntimeClient.onAgentCapabilityEvent(...)`
 
 The tab should not import desktop IPC channels directly. It consumes extension
-metadata and capability events through the runtime client, then keeps all UI
-normalization and config patches local to the settings surface.
+metadata and normalized capability events through the runtime client, then
+keeps presentation state and config patches local to the settings surface.
 
 ## Memory Tab Ownership Model
 
