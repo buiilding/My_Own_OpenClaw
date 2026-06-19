@@ -259,6 +259,11 @@ hooks keep their component/effect policy while importing shared hook helpers
 through this runtime facade instead of reaching into renderer infrastructure
 directly.
 
+`desktopLocalRuntimeStatusRuntimeClient.ts` owns renderer access to shared
+local-runtime status snapshots and value-level readiness subscriptions. Dashboard
+recent-conversation reloads consume `onReady(...)` so dashboard code owns the
+reload side effect without reading raw status snapshot `ready` fields.
+
 `desktopPermissionRuntimeClient.ts` owns renderer permission list, probe,
 request, and batch-check commands, including result-envelope resolution into
 manifest/status values or runtime-thrown errors. `permissionStore` owns status

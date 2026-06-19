@@ -339,6 +339,38 @@ describe('renderer chat runtime boundary', () => {
     expect(payloadRuntimeSource).toContain('cache_status');
   });
 
+  test('chat stream sub-handlers resolve SDK event identity through app runtime facade', async () => {
+    const handlerRelativePaths = [
+      'hooks/chatStream/useChatStreamCompactionHandlers.ts',
+      'hooks/chatStream/useChatStreamCompletionHandler.ts',
+      'hooks/chatStream/useChatStreamLocalUserHandler.ts',
+      'hooks/chatStream/useChatStreamMetadataHandlers.ts',
+      'hooks/chatStream/useChatStreamTerminalHandlers.ts',
+    ];
+    const helperNeedles = [
+      'resolveConversationStreamEventConversationRef',
+      'resolveConversationStreamEventTurnRef',
+      'resolveConversationStreamEventTurnRefForUpdate',
+    ];
+    const runtimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts'),
+      'utf8',
+    );
+
+    for (const relativePath of handlerRelativePaths) {
+      const source = await fs.readFile(path.join(chatRoot, relativePath), 'utf8');
+      expect(source).not.toContain('event.conversationRef');
+      expect(source).not.toContain('event.turnRef');
+      expect(
+        helperNeedles.some((needle) => source.includes(needle)),
+      ).toBe(true);
+    }
+
+    expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
+    expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');
+  });
+
   test('chat stream backend ingress normalization stays behind the app runtime', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),
@@ -499,6 +531,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('isTurnErrorConversationStreamEvent');
     expect(source).toContain('isUserMessageMetadataConversationStreamEvent');
     expect(source).toContain('isUsageUpdatedConversationStreamEvent');
+    expect(source).toContain('resolveConversationStreamEventConversationRef');
+    expect(source).not.toContain('event.conversationRef');
+    expect(source).not.toContain('event.turnRef');
     expect(source).not.toContain('event.type ===');
     expect(source).not.toContain("event.type === 'compaction_started'");
     expect(source).not.toContain("event.type === 'compaction_applied'");
@@ -533,6 +568,9 @@ describe('renderer chat runtime boundary', () => {
     expect(runtimeSource).toContain('isTurnErrorConversationStreamEvent');
     expect(runtimeSource).toContain('isUserMessageMetadataConversationStreamEvent');
     expect(runtimeSource).toContain('isUsageUpdatedConversationStreamEvent');
+    expect(runtimeSource).toContain('resolveConversationStreamEventConversationRef');
+    expect(runtimeSource).toContain('resolveConversationStreamEventTurnRef');
+    expect(runtimeSource).toContain('resolveConversationStreamEventTurnRefForUpdate');
     expect(runtimeSource).toContain("'user_message'");
     expect(runtimeSource).toContain("'compaction_started'");
     expect(runtimeSource).toContain("'compaction_applied'");
@@ -709,12 +747,16 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(dashboardHookSource).toContain('DesktopConversationRuntimeEventClient.onConversationEvent');
-    expect(dashboardHookSource).toContain('DesktopLocalRuntimeStatusRuntimeClient.subscribe');
-    expect(dashboardHookSource).toContain('DesktopLocalRuntimeStatusRuntimeClient.getSnapshot');
+    expect(dashboardHookSource).toContain('DesktopLocalRuntimeStatusRuntimeClient.onReady');
+    expect(dashboardHookSource).not.toContain('DesktopLocalRuntimeStatusRuntimeClient.subscribe');
+    expect(dashboardHookSource).not.toContain('DesktopLocalRuntimeStatusRuntimeClient.getSnapshot');
+    expect(dashboardHookSource).not.toContain('snapshot.ready');
     expect(dashboardHookSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
     expect(dashboardHookSource).not.toContain('infrastructure/runtime/localRuntimeStatusStore');
     expect(dashboardHookSource).not.toContain('IpcBridge.on');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CONVERSATION_EVENT');
+    expect(localRuntimeStatusClientSource).toContain('onReady');
+    expect(localRuntimeStatusClientSource).toContain('isLocalRuntimeStatusReady');
     expect(localRuntimeStatusClientSource).toContain('subscribeLocalRuntimeStatusStore');
     expect(localRuntimeStatusClientSource).toContain('getLocalRuntimeStatusSnapshot');
   });
@@ -1069,7 +1111,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('payload.sourceEvent');
     expect(source).not.toContain('rawConversationRef');
     expect(source).not.toContain('rawUserId');
-    expect(source).toContain('event.conversationRef');
+    expect(source).toContain('resolveConversationStreamEventConversationRef');
+    expect(source).not.toContain('event.conversationRef');
+    expect(source).not.toContain('event.turnRef');
     expect(source).not.toContain('payload?.userId');
     expect(source).not.toContain('recordAssistantTranscriptMessage');
   });

@@ -27,6 +27,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: resolve SDK conversation stream event conversation and turn
+  identity inside `desktopChatStreamEventRuntime` so chat stream hooks and
+  sub-handlers no longer read raw `event.conversationRef` or `event.turnRef`
+  fields directly. No migration required.
+- renderer/runtime: expose local-runtime readiness as a value-level runtime
+  client subscription so dashboard recent-conversation reloads no longer read
+  raw status snapshot `ready` fields. No migration required.
 - renderer/runtime: expose permission manifest/probe/request/recheck results as
   value-level permission runtime client helpers so `permissionStore` no longer
   reads permission command result envelopes. No migration required.

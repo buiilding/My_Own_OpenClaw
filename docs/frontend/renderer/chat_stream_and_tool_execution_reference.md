@@ -325,17 +325,18 @@ SDK dispatch behavior:
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
 - metadata/transparency handlers consume SDK payload fields directly instead of
   unwrapping backend-wire metadata events
-- turn-scoped metadata annotations are strict: when `event.turnRef` is present,
-  user/system/tool-schema metadata updates only a same-turn user row; missing
-  same-turn rows are no-ops rather than sender-only fallbacks
+- turn-scoped metadata annotations are strict: when normalized SDK turn
+  identity is present, user/system/tool-schema metadata updates only a
+  same-turn user row; missing same-turn rows are no-ops rather than sender-only
+  fallbacks
 - SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate the selected user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters
 - terminal handlers consume SDK `turn_error` and `usage_updated` payloads
   directly. They do not fall back to backend-wire terminal payloads.
 - SDK `turn_completed` from backend `streaming-complete`: materialize the SDK-projected same-turn assistant `llm-text` message and write the assistant transcript when needed. Active terminal phase tracking comes from `currentTurn.phase='complete'`.
-  - completion transcript writes read identity from SDK event fields:
-    `event.conversationRef` and `payload.userId`. They do not unwrap
-    backend-wire payloads to recover backend `conversation_ref` or `user_id`.
+  - completion transcript writes read conversation and turn identity through
+    the app-runtime SDK event identity helpers. They do not unwrap backend-wire
+    payloads to recover backend `conversation_ref` or `user_id`.
   - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
   - duplicate completion events do not duplicate assistant transcript writes because transcript recording only runs for not-yet-complete assistant rows
 - SDK `turn_error` from backend `error`: materialize the SDK-projected assistant error row and write the transcript error row unless ignored by the benign/recoverable error filter. Active terminal phase tracking comes from `currentTurn.phase='error'`.
@@ -343,9 +344,10 @@ SDK dispatch behavior:
 Handler composition boundary:
 
 - `useChatStream` dispatches SDK-normalized conversation events first.
-- Stream event identity predicates live in
-  `desktopChatStreamEventRuntime.ts`; sub-handlers use those predicates for
-  fail-fast guards instead of spelling SDK event names locally.
+- Stream event identity predicates and normalized conversation/turn identity
+  helpers live in `desktopChatStreamEventRuntime.ts`; sub-handlers use those
+  helpers for fail-fast guards, workspace routing, row targeting, and tracking
+  updates instead of spelling SDK event names or raw identity fields locally.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
 - SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated through `useConversationRuntimeProjectionStream` to `desktopCurrentTurnProjectionEffectsRuntime.ts`

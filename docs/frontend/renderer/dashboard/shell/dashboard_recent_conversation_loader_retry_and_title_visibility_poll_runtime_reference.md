@@ -14,6 +14,7 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDashboardConversationGroupRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts`
+- `frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `tests/frontend/DashboardShell.test.jsx`
 
@@ -37,6 +38,11 @@ search surfaces. The hook should not spell out `conversation_id`,
 owns SDK conversation event type classification for recent-list refresh and
 title-visibility polling. The hook owns the resulting side effects: reload the
 recent list, schedule the per-conversation title poll, or ignore the event.
+
+`DesktopLocalRuntimeStatusRuntimeClient.onReady(...)` owns local-runtime status
+snapshot readiness projection. The dashboard hook owns the reload side effect
+when the runtime becomes ready, but it should not read raw `snapshot.ready`
+fields from the shared status store.
 
 ## Recent Conversation Load Concurrency and Stale-Response Guard
 

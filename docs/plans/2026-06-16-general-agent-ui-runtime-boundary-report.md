@@ -174,6 +174,42 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Stream Event Identity Value Boundary
+
+- Finding: stream event predicates and stale-turn behavior already lived in
+  `desktopChatStreamEventRuntime`, but chat stream feature hooks still read
+  raw SDK `event.conversationRef` and `event.turnRef` fields while applying
+  workspace routing, row targeting, and tracking side effects.
+- Change: added normalized conversation and turn identity helpers to the app
+  runtime facade, then routed `useChatStream` plus local-user, completion,
+  compaction, metadata, and terminal handlers through those helpers. Payload
+  projection and handler side effects remain at their existing owners.
+- Validation: focused stream event runtime, metadata/compaction handler,
+  renderer chat boundary, and docs-index tests passed; docs listing, stale raw
+  identity scan, and diff check passed.
+- Compatibility: no migration required. SDK conversation-event shape,
+  renderer IPC channel names, transcript storage, provider policy, hosted URLs,
+  permissions, and local-runtime execution behavior are unchanged.
+
+### 2026-06-19 Renderer Local Runtime Ready Value Boundary
+
+- Finding: `desktopLocalRuntimeStatusRuntimeClient` exposed the shared
+  local-runtime status store, but `useDashboardConversations` still read the
+  raw status snapshot `ready` field before reloading recent conversations.
+- Change: added local-runtime readiness projection and `onReady(...)` helpers
+  to `desktopLocalRuntimeStatusRuntimeClient`. The dashboard hook now keeps
+  recent-list reload side effects while consuming a value-level ready
+  subscription from the runtime client.
+- Validation: passed focused local-runtime status runtime client, dashboard
+  conversations, renderer chat runtime boundary, and docs-index tests plus docs
+  search, related commit search, stale snapshot-ready scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Local-runtime status IPC channels,
+  underlying status store snapshots, bootstrap/live-event race behavior,
+  dashboard reload timing, SDK conversation list commands, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission Result Value Boundary
 
 - Finding: `desktopPermissionRuntimeClient` owned permission IPC commands, but

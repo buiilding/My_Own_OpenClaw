@@ -117,7 +117,9 @@ passed to the SDK provider before changing Python sidecar code.
 Renderer readiness consumers should subscribe through
 `DesktopLocalRuntimeStatusRuntimeClient`; the underlying `localRuntimeStatusStore`
 keeps the shared IPC bootstrap and event subscription so consumers do not invoke
-local-runtime status repeatedly.
+local-runtime status repeatedly. Consumers that only need readiness should use
+the client's value-level `onReady(...)` or `isReady()` helpers instead of
+reading raw status snapshot fields.
 The store installs the live `local-runtime-status` listener before starting the
 bootstrap `get-local-runtime-status` read. If a live event arrives while the
 bootstrap read is pending, the bootstrap response is treated as stale and cannot

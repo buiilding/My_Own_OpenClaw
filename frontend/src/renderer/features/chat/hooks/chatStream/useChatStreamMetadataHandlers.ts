@@ -9,6 +9,9 @@ import {
   isSystemPromptConversationStreamEvent,
   isToolSchemasMetadataConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventTurnRefForUpdate,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import {
   resolveToolSchemasMetadataPayload,
@@ -50,12 +53,6 @@ type UpdateLastAssistantLlmTextMessage = (
   conversationRef?: string | null,
 ) => void;
 
-function turnRefForUpdate(event: ConversationEvent): string | undefined {
-  return typeof event.turnRef === 'string' && event.turnRef.trim()
-    ? event.turnRef
-    : undefined;
-}
-
 export function useChatStreamMetadataHandlers({
   shouldIgnoreForStaleTurn,
   updateLastMessageBySender,
@@ -71,56 +68,60 @@ export function useChatStreamMetadataHandlers({
     if (!isSystemPromptConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(event.payload),
-    }, turnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('system-prompt', event.turnRef, {}, conversationRef);
+    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('system-prompt', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleUserMessageFull = useCallback((event: ConversationEvent) => {
     if (!isUserMessageMetadataConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(event.payload),
-    }, turnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('user-message-full', event.turnRef, {}, conversationRef);
+    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('user-message-full', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   const handleAssistantMessageFull = useCallback((event: ConversationEvent) => {
     if (!isAssistantMessageConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
-    }, turnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('assistant-message-full', event.turnRef, {}, conversationRef);
+    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('assistant-message-full', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
 
   const handleToolSchemas = useCallback((event: ConversationEvent) => {
     if (!isToolSchemasMetadataConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
       ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(event.payload)),
-    }, turnRefForUpdate(event), conversationRef);
-    recordTrackingEvent('tool-schemas', event.turnRef, {}, conversationRef);
+    }, resolveConversationStreamEventTurnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('tool-schemas', turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   return {

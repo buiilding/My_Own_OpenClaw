@@ -120,6 +120,43 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Stream Event Identity Value Boundary
+
+- Finding: `desktopChatStreamEventRuntime` owned SDK stream event type
+  predicates and stale-turn guards, but `useChatStream` and the extracted
+  local-user, completion, compaction, metadata, and terminal handlers still
+  read raw `event.conversationRef` / `event.turnRef` identity fields before
+  routing workspace side effects and tracking updates.
+- Change: added normalized conversation-ref and turn-ref value helpers to the
+  stream event runtime, then routed dispatcher and sub-handler identity use
+  through those helpers while leaving payload projection and chat-store side
+  effects in the existing handlers.
+- Validation: focused stream event runtime, metadata/compaction handler,
+  renderer chat boundary, and docs-index tests passed; docs listing, stale raw
+  identity scan, and diff check passed.
+- Compatibility: no migration required. SDK conversation event payload shapes,
+  Electron IPC channels, transcript storage, provider policy, hosted URLs,
+  permissions, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Local Runtime Ready Value Boundary
+
+- Finding: `desktopLocalRuntimeStatusRuntimeClient` exposed the shared
+  local-runtime status store, but `useDashboardConversations` still read the
+  raw status snapshot `ready` field before reloading recent conversations.
+- Change: added local-runtime readiness projection and `onReady(...)` helpers
+  to `desktopLocalRuntimeStatusRuntimeClient`. The dashboard hook now keeps
+  recent-list reload side effects while consuming a value-level ready
+  subscription from the runtime client.
+- Validation: passed focused local-runtime status runtime client, dashboard
+  conversations, renderer chat runtime boundary, and docs-index tests plus docs
+  search, related commit search, stale snapshot-ready scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Local-runtime status IPC channels,
+  underlying status store snapshots, bootstrap/live-event race behavior,
+  dashboard reload timing, SDK conversation list commands, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Permission Result Value Boundary
 
 - Finding: `desktopPermissionRuntimeClient` owned permission IPC commands, but

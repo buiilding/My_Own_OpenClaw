@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer stream event identity value boundary slice
+  by adding normalized conversation/turn identity helpers to
+  `desktopChatStreamEventRuntime` and routing chat stream dispatcher plus
+  sub-handler workspace/tracking identity through those helpers. This keeps
+  SDK event identity interpretation in the app runtime facade while preserving
+  existing payload projection, UI side effects, IPC channels, storage, and
+  provider/local-runtime behavior. Focused stream runtime, handler, boundary,
+  and docs-index tests passed, along with docs listing, stale raw identity
+  scan, and diff checks. No migration required; SDK conversation-event shape,
+  renderer IPC channel names, transcript storage, provider policy, hosted URLs,
+  permissions, and local-runtime execution behavior are unchanged.
+- 2026-06-19: completed a renderer local-runtime ready value boundary slice by
+  adding readiness projection and `onReady(...)` helpers to
+  `desktopLocalRuntimeStatusRuntimeClient`. `useDashboardConversations` now
+  keeps recent-list reload side effects without reading raw local-runtime
+  status snapshot `ready` fields. Validation: passed focused local-runtime
+  status runtime client, dashboard conversations, renderer chat runtime
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  snapshot-ready scans, docs listing, and diff checks. No migration required;
+  local-runtime status IPC channels,
+  underlying status store snapshots, bootstrap/live-event race behavior,
+  dashboard reload timing, SDK conversation list commands, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer permission result value boundary slice by
   adding permission manifest/status/statuses result resolvers and value-level
   helpers to `desktopPermissionRuntimeClient`. `permissionStore` now keeps

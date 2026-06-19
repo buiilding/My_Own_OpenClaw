@@ -25,8 +25,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLocalRuntimeStatusRuntimeClient', () => ({
   DesktopLocalRuntimeStatusRuntimeClient: {
-    getSnapshot: jest.fn(),
-    subscribe: jest.fn(),
+    onReady: jest.fn(),
   },
 }));
 
@@ -99,8 +98,7 @@ function renderDashboardConversationsWithProps(initialProps = {}) {
 describe('useDashboardConversations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    DesktopLocalRuntimeStatusRuntimeClient.getSnapshot.mockReturnValue({ ready: false });
-    DesktopLocalRuntimeStatusRuntimeClient.subscribe.mockImplementation(() => jest.fn());
+    DesktopLocalRuntimeStatusRuntimeClient.onReady.mockImplementation(() => jest.fn());
     DesktopConversationLibraryClient.loadDisplayRows.mockResolvedValue([]);
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
     DesktopConversationRuntimeEventClient.onConversationEvent.mockImplementation(() => jest.fn());
@@ -108,7 +106,7 @@ describe('useDashboardConversations', () => {
 
   test('reloads recent conversations when the local runtime becomes ready', async () => {
     let statusSubscriber = null;
-    DesktopLocalRuntimeStatusRuntimeClient.subscribe.mockImplementation((subscriber) => {
+    DesktopLocalRuntimeStatusRuntimeClient.onReady.mockImplementation((subscriber) => {
       statusSubscriber = subscriber;
       return jest.fn();
     });
@@ -131,7 +129,6 @@ describe('useDashboardConversations', () => {
     });
     expect(result.current.recentConversations).toEqual([]);
 
-    DesktopLocalRuntimeStatusRuntimeClient.getSnapshot.mockReturnValue({ ready: true });
     await act(async () => {
       statusSubscriber();
     });

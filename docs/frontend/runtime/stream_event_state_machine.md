@@ -83,6 +83,12 @@ The same runtime facade owns local-user and terminal telemetry predicates for
 strings directly; they map runtime predicates to renderer side effects and let
 the SDK current-turn projection own live response state.
 
+`desktopChatStreamEventRuntime` also owns normalized SDK conversation-event
+identity values. Chat stream hooks resolve `conversationRef` and `turnRef`
+through runtime helpers before routing workspace side effects, stale-turn
+checks, row targeting, and tracking updates; feature hooks should not read raw
+event identity fields directly.
+
 ## Event Ingress and Conversation Routing
 
 `desktopChatStreamIngressRuntime` listener flow:
@@ -110,7 +116,7 @@ All chat-stream handlers except `user_message` call
 state. The guard is implemented by `desktopChatStreamEventRuntime.ts` and the
 pure turn comparison in `desktopChatStreamTurnGuardRuntime.ts`:
 
-- compare incoming SDK `event.turnRef` with workspace `streamTracking.activeTurnRef`
+- compare incoming SDK turn identity with workspace `streamTracking.activeTurnRef`
 - drop when values differ
 - preserve first-packet and terminal-handoff exceptions so a newly sending turn
   can re-anchor after optimistic local bookkeeping lags

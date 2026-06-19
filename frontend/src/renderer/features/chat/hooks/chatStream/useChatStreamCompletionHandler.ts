@@ -7,6 +7,8 @@ import { useChatStore } from '../../stores/chatStore';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   isTurnCompletedConversationStreamEvent,
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 
 type UseChatStreamCompletionHandlerOptions = {
@@ -34,7 +36,7 @@ export const useChatStreamCompletionHandler = ({
     if (!isTurnCompletedConversationStreamEvent(event)) {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? event.conversationRef;
+    const resolvedConversationRef = conversationRef ?? resolveConversationStreamEventConversationRef(event);
     const workspace = useChatStore.getState().getWorkspaceState(resolvedConversationRef);
     const shouldRecordTerminalTracking = (
       workspace.streamTracking?.phase !== 'complete'
@@ -46,7 +48,7 @@ export const useChatStreamCompletionHandler = ({
     setThinkingStatus(null, resolvedConversationRef);
     setThinkingSourceEventType(null, resolvedConversationRef);
     if (shouldRecordTerminalTracking) {
-      recordTrackingEvent('streaming-complete', event.turnRef, {
+      recordTrackingEvent('streaming-complete', resolveConversationStreamEventTurnRef(event), {
         phase: 'complete',
       }, resolvedConversationRef);
     }

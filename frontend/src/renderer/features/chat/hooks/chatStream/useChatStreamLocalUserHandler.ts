@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   isLocalUserMessageConversationStreamEvent,
+  resolveConversationStreamEventTurnRef,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import { GENERIC_THINKING_STATUS } from '../../../../app/runtime/desktopChatStreamThinkingRuntime';
 import { resolveLocalUserMessageText } from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
@@ -45,7 +46,7 @@ export function useChatStreamLocalUserHandler({
       setThinkingSourceEventType(null, conversationRef);
     }
 
-    recordTrackingEvent('local-user-message', event.turnRef, {
+    recordTrackingEvent('local-user-message', resolveConversationStreamEventTurnRef(event), {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
     }, conversationRef);

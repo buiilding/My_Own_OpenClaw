@@ -28,6 +28,33 @@ type ConversationTurnRefEvent = {
   turnRef?: string | null;
 };
 
+type ConversationStreamEventIdentityEvent = {
+  conversationRef?: string | null;
+  turnRef?: string | null;
+};
+
+function optionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+export function resolveConversationStreamEventConversationRef(
+  event: ConversationStreamEventIdentityEvent | null | undefined,
+): string | null {
+  return optionalString(event?.conversationRef);
+}
+
+export function resolveConversationStreamEventTurnRef(
+  event: ConversationStreamEventIdentityEvent | null | undefined,
+): string | null {
+  return optionalString(event?.turnRef);
+}
+
+export function resolveConversationStreamEventTurnRefForUpdate(
+  event: ConversationStreamEventIdentityEvent | null | undefined,
+): string | undefined {
+  return resolveConversationStreamEventTurnRef(event) ?? undefined;
+}
+
 const SUPPORTED_CONVERSATION_STREAM_EVENT_TYPES = new Set([
   'user_message',
   'turn_completed',

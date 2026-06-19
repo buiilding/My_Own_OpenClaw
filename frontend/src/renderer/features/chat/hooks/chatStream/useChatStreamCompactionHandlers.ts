@@ -12,6 +12,8 @@ import {
   isCompactionFailedConversationStreamEvent,
   isCompactionSkippedConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
 } from '../../../../app/runtime/desktopChatStreamEventRuntime';
 import {
   buildCompactedReplaySnapshot,
@@ -97,11 +99,12 @@ export function useChatStreamCompactionHandlers({
     if (!isCompactionStartedConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
     setThinkingStatusRef.current(COMPACTION_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-started', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
-    recordTrackingEventRef.current('context-compaction-started', event.turnRef, {}, conversationRef);
+    recordTrackingEventRef.current('context-compaction-started', turnRef, {}, conversationRef);
   }, [
     recordTrackingEventRef,
     setCompactionDebugInfoRef,
@@ -113,7 +116,8 @@ export function useChatStreamCompactionHandlers({
     if (!isCompactionCompletedConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
     const skippedReason = resolveCompactionSkippedReason(event.payload);
     if (isCompactionSkippedConversationStreamEvent(event) || skippedReason) {
       const currentSourceEventType = getThinkingSourceEventTypeRef.current?.(conversationRef) ?? null;
@@ -126,7 +130,7 @@ export function useChatStreamCompactionHandlers({
         setThinkingSourceEventTypeRef.current(null, conversationRef);
       }
       setCompactionDebugInfoRef.current(null, conversationRef);
-      recordTrackingEventRef.current('context-compaction-completed', event.turnRef, {}, conversationRef);
+      recordTrackingEventRef.current('context-compaction-completed', turnRef, {}, conversationRef);
       return;
     }
     setThinkingStatusRef.current(
@@ -149,7 +153,7 @@ export function useChatStreamCompactionHandlers({
         console.warn('[useChatStreamCompactionHandlers] Failed to persist compacted replay state:', error);
       });
     }
-    recordTrackingEventRef.current('context-compaction-completed', event.turnRef, {}, conversationRef);
+    recordTrackingEventRef.current('context-compaction-completed', turnRef, {}, conversationRef);
   }, [
     getThinkingSourceEventTypeRef,
     persistCompactedReplayRef,
@@ -163,12 +167,13 @@ export function useChatStreamCompactionHandlers({
     if (!isCompactionFailedConversationStreamEvent(event)) {
       return;
     }
-    const conversationRef = event.conversationRef;
+    const conversationRef = resolveConversationStreamEventConversationRef(event);
+    const turnRef = resolveConversationStreamEventTurnRef(event);
     const errorText = resolveCompactionErrorText(event.payload);
     setThinkingStatusRef.current(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-failed', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
-    recordTrackingEventRef.current('context-compaction-failed', event.turnRef, {}, conversationRef);
+    recordTrackingEventRef.current('context-compaction-failed', turnRef, {}, conversationRef);
   }, [
     recordTrackingEventRef,
     setCompactionDebugInfoRef,

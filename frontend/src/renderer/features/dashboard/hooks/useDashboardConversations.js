@@ -362,15 +362,9 @@ function useDashboardConversations({
   }, [loadRecentConversations]);
 
   useEffect(() => {
-    const reloadWhenLocalRuntimeReady = () => {
-      const snapshot = DesktopLocalRuntimeStatusRuntimeClient.getSnapshot();
-      if (snapshot.ready === true) {
-        void loadRecentConversations('local-runtime-ready');
-      }
-    };
-
-    const unsubscribe = DesktopLocalRuntimeStatusRuntimeClient.subscribe(reloadWhenLocalRuntimeReady);
-    reloadWhenLocalRuntimeReady();
+    const unsubscribe = DesktopLocalRuntimeStatusRuntimeClient.onReady(() => {
+      void loadRecentConversations('local-runtime-ready');
+    });
     return unsubscribe;
   }, [loadRecentConversations]);
 

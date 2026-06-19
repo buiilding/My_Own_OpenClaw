@@ -19,6 +19,9 @@ import {
   isUserMessageMetadataConversationStreamEvent,
   isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent,
+  resolveConversationStreamEventConversationRef,
+  resolveConversationStreamEventTurnRef,
+  resolveConversationStreamEventTurnRefForUpdate,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 
@@ -187,6 +190,32 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isUsageUpdatedConversationStreamEvent({ type: 'usage_updated' })).toBe(true);
     expect(isUsageUpdatedConversationStreamEvent({ type: 'turn_error' })).toBe(false);
     expect(isUsageUpdatedConversationStreamEvent(null)).toBe(false);
+  });
+
+  test('normalizes SDK conversation stream event identity fields', () => {
+    expect(resolveConversationStreamEventConversationRef({
+      conversationRef: ' conversation-1 ',
+      turnRef: ' turn-1 ',
+    })).toBe('conversation-1');
+    expect(resolveConversationStreamEventTurnRef({
+      conversationRef: ' conversation-1 ',
+      turnRef: ' turn-1 ',
+    })).toBe('turn-1');
+    expect(resolveConversationStreamEventTurnRefForUpdate({
+      turnRef: ' turn-1 ',
+    })).toBe('turn-1');
+
+    expect(resolveConversationStreamEventConversationRef({
+      conversationRef: '   ',
+    })).toBeNull();
+    expect(resolveConversationStreamEventTurnRef({
+      turnRef: '   ',
+    })).toBeNull();
+    expect(resolveConversationStreamEventTurnRefForUpdate({
+      turnRef: '   ',
+    })).toBeUndefined();
+    expect(resolveConversationStreamEventConversationRef(null)).toBeNull();
+    expect(resolveConversationStreamEventTurnRef(undefined)).toBeNull();
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
