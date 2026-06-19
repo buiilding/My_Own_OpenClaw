@@ -295,11 +295,12 @@ For each completed slice, record:
   cross-layer contract inventory through local-runtime executable parity/schema
   labels instead of sidecar parity or sidecar schema ownership wording. Python
   sidecar paths, registry names, and implementation tests remain visible where
-  they identify concrete executable code. Validation: pending focused modular
-  docs boundary test, docs listing, exact stale tool-contract parity label scan,
-  and diff checks. No migration required; no tool schema, prompt construction,
-  provider projection, SDK/main dispatch, IPC, payload, credential, permission,
-  storage, or local execution behavior changed.
+  they identify concrete executable code. Validation: `bin\windie.cmd test
+  frontend -- ModularRefactorCompletionBoundary --runInBand`,
+  `bin\windie.cmd docs list`, exact stale tool-contract parity label scan, and
+  `git diff --check`. No migration required; no tool schema, prompt
+  construction, provider projection, SDK/main dispatch, IPC, payload,
+  credential, permission, storage, or local execution behavior changed.
 - 2026-06-18: completed an architecture local-runtime owner-map slice by
   routing failure-domain, runtime-boundary, architecture hub, error/failure,
   platform, help/docs hubs, and tool-system docs through local-runtime
