@@ -7,7 +7,7 @@ import {
   shouldRenderAssistantActions,
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
-import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
+import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
 describe('messageListState', () => {

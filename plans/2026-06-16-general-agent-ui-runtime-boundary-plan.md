@@ -229,6 +229,20 @@ Each completed slice should report:
   payloads, storage, credentials, permissions, hosted routes, provider policy,
   packaging, and local execution behavior are unchanged.
 
+### 2026-06-19 Renderer Tool-Output Wrapper Deletion
+
+- Finding: `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
+  was no longer imported after live current-turn and stream message paths
+  routed through `desktopChatMessageRuntimeClient`.
+- Change: deleted the unused feature-local wrapper and updated renderer chat
+  boundary tests to keep the path removed.
+- Validation: focused renderer chat runtime boundary test, stale import/path
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Tool-output chat message shape,
+  transcript rows, current-turn projection, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

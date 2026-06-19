@@ -20,7 +20,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
@@ -189,7 +189,7 @@ Movement path:
 
 ## Visual Loop Activity Signal
 
-`chatTurnPresentationState.js` is the renderer-side current-turn projection contract for the minimal pill:
+`desktopCurrentTurnPresentationRuntime.js` is the renderer-side current-turn projection contract for the minimal pill:
 
 - `compact`: chat pill only
 - `awaiting-reply`: chat pill + typing indicator

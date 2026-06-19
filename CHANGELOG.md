@@ -41,6 +41,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/send-surface: move chat-pill send lifecycle, overlay view intent,
   and main-window vs overlay-chatbox send policy into renderer app-runtime
   facades. No migration required.
+- renderer/messages: delete the unused chat feature tool-output envelope
+  wrapper after current-turn and stream message paths converged on the
+  app-runtime chat message facade. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

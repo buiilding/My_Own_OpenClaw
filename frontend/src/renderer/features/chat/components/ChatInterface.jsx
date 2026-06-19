@@ -42,7 +42,7 @@ import { DesktopStartupRuntimeClient } from '../../../app/runtime/desktopStartup
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
-} from '../utils/state/chatTurnPresentationState';
+} from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,

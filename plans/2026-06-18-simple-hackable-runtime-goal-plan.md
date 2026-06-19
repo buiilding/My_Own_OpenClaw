@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer tool-output wrapper deletion by removing
+  the unused `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
+  path after current-turn and stream message paths converged on
+  `desktopChatMessageRuntimeClient`. Boundary tests now guard that the feature
+  wrapper stays deleted. Validation: focused renderer chat runtime boundary
+  test, stale import/path scan, docs listing, and diff checks. No migration
+  required; tool-output chat message shape, transcript rows, current-turn
+  projection, IPC payloads, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer send-surface/chat-pill runtime-boundary
   slice by moving main-window vs overlay-chatbox send policy into
   `app/runtime/desktopMessageSendUiRuntime.ts` and chat-pill send/view intent

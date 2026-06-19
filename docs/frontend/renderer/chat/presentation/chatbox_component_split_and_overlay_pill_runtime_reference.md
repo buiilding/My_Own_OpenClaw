@@ -21,7 +21,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
@@ -42,7 +42,7 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatSurfaceController.js`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 
 `useChatSurfaceController(...)` is the shared pill/dashboard control contract
 for SDK current-turn busy state, stop availability, speech mode toggles,

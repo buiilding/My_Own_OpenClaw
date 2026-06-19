@@ -5,8 +5,8 @@
 import {
   OVERLAY_TURN_LIFECYCLE,
   isOverlayTurnLifecycleAwaiting,
-} from '../../../../app/runtime/desktopOverlayTurnLifecycleRuntime';
-import { isOverlayAwaitingReplyPhase } from './streamPhaseState';
+} from './desktopOverlayTurnLifecycleRuntime';
+import { isOverlayAwaitingReplyPhase } from './desktopStreamPhaseRuntime';
 
 const CHAT_LOOP_UI_STATE = Object.freeze({
   IDLE: 'idle',

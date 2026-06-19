@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import {
   findLatestVisibleAssistantReply,
   resolveCurrentTurnPresentationState,
-} from '../utils/state/chatTurnPresentationState';
+} from '../../../app/runtime/desktopCurrentTurnPresentationRuntime';
 import { useOverlayTurnLifecycle } from './useOverlayTurnLifecycle';
 
 export function useCurrentTurnPresentationState({

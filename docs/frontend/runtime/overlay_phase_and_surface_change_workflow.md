@@ -108,7 +108,7 @@ Common phase producers:
 - SDK conversation-event and typed backend side-channel fan-out in
   `frontend/src/main/ipc.cjs`
 - overlay phase helpers in `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
-- renderer stream state projection in `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
+- renderer stream state projection in `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
 - SDK tool routing in `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
   and `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - main-process computer-use surface prep in
@@ -226,7 +226,7 @@ Platform rules:
 | --- | --- | --- |
 | Response overlay never appears | Confirm main receives `awaiting-first-chunk` or `streaming`, then check window mode resolution and renderer phase parser. | `ipc_overlay_phase_state.cjs`, `response_overlay_phase_handler.cjs`, overlay listener |
 | Response overlay stays after completion | Check terminal phase handling, visible-state restore policy, and renderer layout mode. | `response_overlay_visibility_policy.cjs`, `ChatBoxResponse.jsx` |
-| Awaiting dots flicker after screenshot | Check Linux hide-only collapse path, transient `idle` latch, and response content visibility clear. | SDK/main surface prep, `streamPhaseState.js`, response overlay view model |
+| Awaiting dots flicker after screenshot | Check Linux hide-only collapse path, transient `idle` latch, and response content visibility clear. | SDK/main surface prep, `desktopStreamPhaseRuntime.js`, response overlay view model |
 | Chat pill blocks clicks during idle | Check pointer-control lease release and chatbox hit-test active state. | `surface_runtime.cjs`, `tool_surface_lifecycle.cjs`, `overlay_chatbox_handler.cjs` |
 | Screenshot includes WindieOS UI on Linux | Check screenshot-capture lease prepare/restore path and compositor settle timing. | `surface_runtime.cjs`, renderer attachment capture lifecycle, and Linux surface visibility |
 | Screenshot hides WindieOS UI on macOS/Windows | Remove capture-time hide/show path and verify content-protection policy instead. | platform surface visibility and content protection |

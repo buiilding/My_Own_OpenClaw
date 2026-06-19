@@ -4,10 +4,10 @@
 
 import {
   resolveCurrentTurnPresentationState,
-} from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
+} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
-describe('chatTurnPresentationState visible reply helpers', () => {
+describe('desktopCurrentTurnPresentationRuntime visible reply helpers', () => {
   test('targets the latest user row for awaiting-dot rendering', () => {
     const state = resolveCurrentTurnPresentationState({
       phase: 'idle',

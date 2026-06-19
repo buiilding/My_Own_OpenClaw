@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/minimal-pill surface consumers."
 read_when:
-  - When changing `useChatLoopUiState`, `useOverlayTurnLifecycle`, `chatLoopUiState`, or stream-phase-to-UI mapping behavior.
+  - When changing `useChatLoopUiState`, `useOverlayTurnLifecycle`, `desktopChatLoopUiRuntime`, or stream-phase-to-UI mapping behavior.
   - When debugging stuck stop buttons, minimal-pill loop locks, or reconnect races after missing terminal events.
 title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ---
@@ -12,12 +12,12 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 - `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime.js`
-- `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
+- `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useOverlayTurnLifecycle.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
-- `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
@@ -67,7 +67,7 @@ Awaiting lifecycle states:
 - `preflight`
 - `awaiting`
 
-## Base UI-State Contract (`chatLoopUiState.js`)
+## Base UI-State Contract (`desktopChatLoopUiRuntime.js`)
 
 Public states:
 

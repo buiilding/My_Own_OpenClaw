@@ -4,9 +4,9 @@
 
 import {
   isOverlayAwaitingReplyPhase,
-} from '../../frontend/src/renderer/features/chat/utils/state/streamPhaseState';
+} from '../../frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime';
 
-describe('streamPhaseState', () => {
+describe('desktopStreamPhaseRuntime', () => {
   test('detects response-overlay awaiting phases only', () => {
     expect(isOverlayAwaitingReplyPhase('awaiting-first-chunk')).toBe(true);
     expect(isOverlayAwaitingReplyPhase('tool-call')).toBe(true);

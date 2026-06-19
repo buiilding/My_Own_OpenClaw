@@ -4,10 +4,10 @@
 
 import {
   resolveCurrentTurnPresentationState,
-} from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
+} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
-describe('chatTurnPresentationState chatbox projection', () => {
+describe('desktopCurrentTurnPresentationRuntime chatbox projection', () => {
   test('shows awaiting state while user message is still sending', () => {
     const state = resolveCurrentTurnPresentationState({
       phase: 'idle',

@@ -23,9 +23,9 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
+- `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 

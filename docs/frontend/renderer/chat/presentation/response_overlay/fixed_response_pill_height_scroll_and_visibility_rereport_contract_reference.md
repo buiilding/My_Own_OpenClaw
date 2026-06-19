@@ -13,7 +13,7 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`

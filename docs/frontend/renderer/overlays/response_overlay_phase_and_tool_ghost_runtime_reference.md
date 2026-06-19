@@ -19,7 +19,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`

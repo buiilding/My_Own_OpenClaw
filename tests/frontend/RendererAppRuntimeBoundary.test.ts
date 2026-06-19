@@ -176,7 +176,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
     const streamPhaseSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/state/streamPhaseState.js'),
+      path.join(appRoot, 'runtime/desktopStreamPhaseRuntime.js'),
       'utf8',
     );
     const liveSurfaceSource = await fs.readFile(
@@ -190,6 +190,7 @@ describe('renderer app runtime boundary', () => {
 
     expect(phaseRuntimeSource).toContain('response_overlay_phase_contract.json');
     expect(phaseRuntimeSource).not.toContain('features/chat');
+    expect(streamPhaseSource).not.toContain('features/chat');
     expect(liveSurfaceSource).not.toContain('features/chat');
     expect(liveSurfaceSource).not.toContain('features/minimalChatPill');
     expect(streamPhaseSource).toContain('desktopResponseOverlayPhaseRuntime');
@@ -202,6 +203,9 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/liveTurnSurfaceState.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/streamPhaseState.js'),
     )).rejects.toThrow();
   });
 
@@ -222,6 +226,10 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopThreadPresentationRuntime.js'),
       'utf8',
     );
+    const currentTurnPresentationSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopCurrentTurnPresentationRuntime.js'),
+      'utf8',
+    );
 
     expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
     expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
@@ -232,8 +240,13 @@ describe('renderer app runtime boundary', () => {
     expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
     expect(threadPresentationSource).not.toContain('features/chat');
     expect(threadPresentationSource).not.toContain('features/minimalChatPill');
+    expect(currentTurnPresentationSource).toContain('desktopChatLoopUiRuntime');
+    expect(currentTurnPresentationSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(currentTurnPresentationSource).not.toContain('features/chat');
+    expect(currentTurnPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(chatInterfaceSource).toContain('desktopCurrentTurnMessageRuntime');
+    expect(chatInterfaceSource).toContain('desktopCurrentTurnPresentationRuntime');
     expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/chatBoxResponseState.js'),
@@ -244,6 +257,9 @@ describe('renderer app runtime boundary', () => {
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/message/messagePresentationPipeline.js'),
     )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/chatTurnPresentationState.js'),
+    )).rejects.toThrow();
   });
 
   test('overlay turn lifecycle contract stays behind the app runtime facade', async () => {
@@ -252,7 +268,7 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
     const chatLoopUiStateSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/state/chatLoopUiState.js'),
+      path.join(appRoot, 'runtime/desktopChatLoopUiRuntime.js'),
       'utf8',
     );
     const overlayLifecycleHookSource = await fs.readFile(
@@ -272,7 +288,9 @@ describe('renderer app runtime boundary', () => {
     expect(lifecycleRuntimeSource).not.toContain('features/chat');
     expect(lifecycleRuntimeSource).toContain('resolveOverlayTurnLifecycle');
     expect(lifecycleRuntimeSource).toContain('isOverlayTurnLifecycleBusy');
+    expect(chatLoopUiStateSource).not.toContain('features/chat');
     expect(chatLoopUiStateSource).toContain('desktopOverlayTurnLifecycleRuntime');
+    expect(chatLoopUiStateSource).toContain('desktopStreamPhaseRuntime');
     expect(overlayLifecycleHookSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(responseViewRuntimeSource).toContain('desktopOverlayTurnLifecycleRuntime');
     expect(overlayViewModelSource).toContain('desktopOverlayTurnLifecycleRuntime');
@@ -283,6 +301,9 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/overlayTurnLifecycleState.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/chatLoopUiState.js'),
     )).rejects.toThrow();
   });
 

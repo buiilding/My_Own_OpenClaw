@@ -6,10 +6,10 @@ import {
   isChatLoopAwaitingReply,
   isChatLoopBusy,
   resolveChatLoopUiState,
-} from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
+} from '../../frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
-describe('chatLoopUiState', () => {
+describe('desktopChatLoopUiRuntime', () => {
   test('treats preflight lifecycle as awaiting reply', () => {
     const loopUiState = resolveChatLoopUiState({
       lifecycle: OVERLAY_TURN_LIFECYCLE.PREFLIGHT,
