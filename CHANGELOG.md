@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: remove duplicate send-surface runtime-boundary progress notes
+  from the long-running runtime plans. No migration required.
 - renderer/overlays: move overlay turn lifecycle resolver helpers into the
   app-runtime lifecycle facade and delete the old chat feature wrapper. No
   migration required.

@@ -288,20 +288,6 @@ For each completed slice, record:
   gating, return-to-chatbox behavior, response overlay view intent, IPC
   payloads, storage, credentials, permissions, hosted routes, provider policy,
   packaging, and local execution behavior are unchanged.
-- 2026-06-19: completed a renderer send-surface session runtime-boundary slice
-  by moving main-window vs overlay-chatbox send policy into
-  `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts` and
-  chat-pill send lifecycle/response-overlay view intent into
-  `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`. Send
-  hooks, preparation, minimal response overlay, tests, docs, and boundary
-  guards now route through those app-runtime facades; old chat policy/session
-  paths are deleted. Validation: focused message-send policy, chat-pill session
-  flow, ChatMessageSender, ChatInterface wiring, response overlay, renderer
-  app-runtime boundary, docs listing, stale old-path scan, and diff checks. No
-  migration required; sender-surface names, return-to-chatbox policy values,
-  screenshot capture gating, response-overlay view intent, IPC payloads,
-  storage, credentials, permissions, hosted routes, provider policy, packaging,
-  and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer overlay-turn lifecycle resolver boundary
   slice by moving `resolveOverlayTurnLifecycle(...)` plus busy/awaiting helper
   predicates into `app/runtime/desktopOverlayTurnLifecycleRuntime.js` and
