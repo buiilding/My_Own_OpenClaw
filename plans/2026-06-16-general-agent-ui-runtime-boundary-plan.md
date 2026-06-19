@@ -120,6 +120,36 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Operations Evidence Local-Runtime Label Boundary
+
+- Finding: the operations evidence runbook still used broad sidecar-readiness,
+  sidecar trace-flag, permission/platform, and local-tool failure labels, and
+  the browser workflow had the same broad bridge-or-sidecar failure route.
+- Change: reworded evidence collection metadata, boundary rows, trace flags,
+  first-bad-signal examples, and the browser action hang debug row through
+  local-runtime/Python sidecar labels, then extended the modular docs guard for
+  the retired evidence phrases.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. Evidence commands, log flags, IPC,
+  credentials, provider policy, local runtime execution, permission behavior,
+  packaging, backend APIs, and storage are unchanged.
+
+### 2026-06-19 Dashboard Section Runtime-Facade Docs Boundary
+
+- Finding: dashboard guides still pointed section work at the removed dashboard
+  utility glob even though dashboard section state now lives in section
+  components plus renderer app-runtime facades.
+- Change: reworded the desktop dashboard guide and renderer state workflow to
+  section components, `desktopDashboard*Runtime*`, memory, model, and settings
+  runtime clients, then extended the modular stale-doc guard for the retired
+  dashboard utility glob.
+- Validation: focused modular boundary test, docs listing, stale path scan, and
+  diff checks.
+- Compatibility: no migration required. Dashboard UI behavior, section state,
+  memory/model/settings commands, IPC, credentials, provider policy, local
+  runtime execution, backend APIs, and storage are unchanged.
+
 ### 2026-06-19 Tool Screenshot and Formatter Guard Wording Boundary
 
 - Finding: the tool-development guide still described computer-use screenshot

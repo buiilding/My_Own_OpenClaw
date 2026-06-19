@@ -256,7 +256,7 @@ Validate:
 | `click` or `input` hits wrong element | fresh snapshot, role-ref disambiguation, action executor locator resolution | Python sidecar snapshot/ref/action executor |
 | snapshot misses interactive elements | DOM/AX collection, ref registry, snapshot limit, page load timing | Python sidecar enhanced CDP pipeline |
 | browser files land in the wrong path | file-store root, relative path resolution, upload/read action payload | local-runtime browser file store |
-| browser action hangs at desktop bridge | Electron execute-tool timeout, Python sidecar JSON-RPC availability, action runtime hang | Electron bridge or Python sidecar browser adapter |
+| browser action hangs at desktop bridge | SDK/main execute-tool timeout, Python sidecar JSON-RPC availability, action runtime hang | SDK/main local-runtime dispatch or Python sidecar browser adapter |
 
 ## Validation Matrix
 

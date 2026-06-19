@@ -275,6 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a dashboard section runtime-facade docs slice by
+  replacing stale removed-dashboard-utility guidance in the desktop dashboard
+  guide and renderer state workflow with section components plus renderer
+  app-runtime facades for dashboard grouping/loading, memory, model, and
+  settings state. The modular stale-doc guard now reads the desktop dashboard
+  guide and rejects the retired dashboard utility glob. Validation: focused
+  modular boundary test, docs listing, stale path scan, and diff checks. No
+  migration required; documentation/test only, with no dashboard UI, section
+  state, memory/model/settings command, IPC, credential, provider-policy,
+  backend API, storage, or local execution change.
+
+- 2026-06-19: completed an operations evidence local-runtime label slice by
+  routing `docs/operations/evidence_collection_runbook.md` summary,
+  boundary-evidence rows, trace flags, permission/platform tests, and
+  local-tool failure examples plus the
+  `docs/browser/browser_change_workflow.md` browser action-hang owner row
+  through local-runtime/Python sidecar implementation labels instead of
+  sidecar-as-runtime labels. The modular docs guard now rejects retired
+  evidence phrases such as websocket-state sidecar-readiness, sidecar
+  tool/runtime, and broad bridge-or-sidecar local-tool failure routing.
+  Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks. No migration required; documentation/test only, with no
+  evidence command, log flag, IPC, credential, provider-policy, backend API,
+  storage, local execution, permission, or packaging behavior changed.
+
 - 2026-06-19: completed a tool screenshot and formatter-guard wording slice by
   routing tool-development screenshot guidance through the Agent SDK tool
   coordinator plus desktop local-runtime host, and routing backend formatter

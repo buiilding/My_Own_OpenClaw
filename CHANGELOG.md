@@ -27,9 +27,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/dashboard: route dashboard section guidance through section components
+  and renderer app-runtime facades instead of the removed dashboard utility
+  glob. No migration required.
 - docs/runtime: route tool screenshot and backend formatter debug guidance
   through Agent SDK/local-runtime and SDK/renderer guard ownership instead of
   frontend runtime wording. No migration required.
+- docs/operations: route evidence collection sidecar readiness and local-tool
+  failure labels, plus the browser action hang debug row, through
+  local-runtime/Python sidecar implementation wording. No migration required.
 - backend/schema: describe omitted `agent_definition` fields as hosted backend
   default agent policy instead of a default WindieOS agent. No migration
   required.

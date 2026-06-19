@@ -1,8 +1,8 @@
 ---
-summary: "Operations evidence collection runbook for WindieOS hosted backend, Cloudflare Tunnel, Electron main, renderer, sidecar, packaged app, VM worker, provider, and permission failures."
+summary: "Operations evidence collection runbook for WindieOS hosted backend, Cloudflare Tunnel, Electron main, renderer, local runtime, packaged app, VM worker, provider, and permission failures."
 read_when:
   - When preparing an operations handoff, bug report, incident note, or debugging packet.
-  - When a failure is hosted-only, packaged-only, platform-specific, intermittent, or crosses backend, desktop host, renderer, sidecar, or SDK boundaries.
+  - When a failure is hosted-only, packaged-only, platform-specific, intermittent, or crosses backend, desktop host, renderer, local-runtime, or SDK boundaries.
 title: "Evidence Collection Runbook"
 ---
 
@@ -40,13 +40,13 @@ Next action:
 | Cloudflare Tunnel | Hosted route status, tunnel service status, tunnel logs | `curl -fsSL https://api.windieos.com/api/embeddings/health`, `systemctl --user status windieos-cloudflared.service --no-pager`, `journalctl --user -u windieos-cloudflared.service -n 100 --no-pager` |
 | Backend route/auth | HTTP status, response body, headers present, install token source | `curl -i`, [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md) |
 | Main websocket | close code, first handshake payload shape, bearer token presence, backend logs | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
-| Electron main | endpoint candidates, token registration state, websocket state, sidecar readiness | Electron logs, `frontend/src/main/app/backend_endpoints.cjs`, `WINDIE_LOG_FILE=<path>` |
+| Electron main | endpoint candidates, token registration state, websocket state, local-runtime bridge readiness | Electron logs, `frontend/src/main/app/backend_endpoints.cjs`, `WINDIE_LOG_FILE=<path>` |
 | Renderer | visible state, active conversation/session, event type, tool runner state | focused frontend test or browser/devtools observation |
-| Sidecar | JSON-RPC method, stderr, tool result payload, remote client URL | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`, sidecar pytest target |
+| Local-runtime Python sidecar | JSON-RPC method, stderr, tool result payload, remote client URL | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG`, focused Python sidecar pytest target |
 | Packaged app | package type, runtime path, install location, local app state, packaged log | reinstall runbook, `~/windieos-packaged-run.log` on macOS helper path |
 | VM worker | worker env, heartbeat route status, assignment payload, run timeline | `/api/runs/*`, `WINDIE_VM_*`, runs API key |
 | Provider | provider id/model id, credential presence, health/circuit state, provider error | provider-specific backend tests and docs |
-| Permissions/platform | OS, permission probe result, actual privileged operation result | permission matrix, platform notes, sidecar platform tests |
+| Permissions/platform | OS, permission probe result, actual privileged operation result | permission matrix, platform notes, Python sidecar platform tests |
 
 ## Trace Flags
 
@@ -55,7 +55,7 @@ Next action:
 | Backend stream or event order | `WINDIE_DEBUG_STREAM_EVENTS=1` |
 | Chat pill or overlay phase | `WINDIE_DEBUG_CHAT_PILL=1` |
 | Screenshot/tool capture | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` |
-| Sidecar tool/runtime | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
+| Local-runtime Python sidecar tool/runtime | `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
 | Packaged app log file | `WINDIE_LOG_FILE=<path>` |
 | Verbose local-runtime stderr forwarding | `WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR=1` through WindieOS host skin; generic helper fallback is `AGENT_VERBOSE_LOCAL_RUNTIME_STDERR=1` |
 
@@ -68,7 +68,7 @@ Use the narrowest flag that matches the failing boundary. Do not enable broad lo
 | Local health works, hosted health returns `502` | Cloudflare Tunnel or origin service reachability | [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md) |
 | Hosted health works, `/api/artifacts/*` returns `401` | Install auth propagation | [Hosted Backend Auth](hosted_backend_auth.md) |
 | Websocket closes `1008` before query | Handshake/auth/schema | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
-| Query streams but local tool fails | Electron bridge or Python sidecar | [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
+| Query streams but local tool fails | SDK/main local-runtime dispatch or Python sidecar implementation | [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
 | Source app works but packaged app tool fails | Bundled runtime or packaged env | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md) |
 | Only Linux screenshot path flickers | Platform screenshot/overlay policy | [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) |
 | Model missing from picker | Backend model catalog/list-models | [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) |

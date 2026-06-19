@@ -889,6 +889,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime System Tools Docs Hub');
     expect(docText).toContain('Local-Runtime Browser Docs Hub');
     expect(docText).toContain('Local-Runtime Browser Contracts Docs Hub');
+    expect(docText).toContain('local-runtime bridge readiness');
+    expect(docText).toContain('Local-runtime Python sidecar');
+    expect(docText).toContain('SDK/main local-runtime dispatch or Python sidecar implementation');
     expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Platform Docs Hub');
@@ -909,6 +912,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Python Implementation Change Workflow');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
+    expect(docText).not.toContain('websocket state, sidecar readiness');
+    expect(docText).not.toContain('| Sidecar | JSON-RPC method');
+    expect(docText).not.toContain('| Sidecar tool/runtime |');
+    expect(docText).not.toContain('| Query streams but local tool fails | Electron bridge or Python sidecar |');
     expect(docText).not.toContain('Frontend Main/Renderer/Contracts/Sidecar Hubs');
     expect(docText).not.toContain('Local Runtime Sidecar Process Workflow');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
@@ -1143,6 +1150,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/concepts/prompt_and_tool_context.md',
       'docs/getting-started/docs_hub.md',
       'docs/desktop/artifact_change_workflow.md',
+      'docs/desktop/dashboard.md',
       'docs/browser/browser_troubleshooting.md',
       'docs/browser/browser_change_workflow.md',
       'docs/backend/agent/tool_turn_change_workflow.md',
@@ -1479,6 +1487,8 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend contract updates',
         'frontend runtime services after execution',
         'frontend runtime event guards',
+        'features/dashboard/utils/*',
+        'frontend/src/renderer/features/dashboard/utils/*',
         'frontend or sidecar impact',
         'Frontend consumer',
         'Frontend/sidecar owners',

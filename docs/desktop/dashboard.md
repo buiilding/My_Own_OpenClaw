@@ -8,7 +8,10 @@ title: "Dashboard"
 
 # Dashboard
 
-The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but it depends on Electron main for backend connection, config persistence, and SDK local-runtime-backed memory operations.
+The dashboard is the main WindieOS desktop workspace. The renderer owns the
+dashboard presentation and section state, while Electron main and Agent SDK
+runtime clients own backend connection, config persistence, and
+local-runtime-backed memory operations.
 
 ## Main Files
 
@@ -16,7 +19,7 @@ The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but 
 - Sidebar: `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - Search: `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - Conversation hooks: `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`
-- Section utilities: `frontend/src/renderer/features/dashboard/utils/*`
+- Section runtime facades: `frontend/src/renderer/app/runtime/desktopDashboard*Runtime*.js`, `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - Settings sections: `frontend/src/renderer/features/dashboard/components/sections/*`
 - Chat surface: `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 
@@ -33,7 +36,8 @@ The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but 
 ## Boundary Notes
 
 - The dashboard should not directly own backend websocket protocol details.
-- Memory sections should call renderer API/main bridge paths rather than sidecar files directly.
+- Memory sections should call renderer app-runtime clients rather than Python
+  sidecar files directly.
 - Model/provider settings should round-trip through config sync and backend ACK flows.
 - Chat replay must use transcript/session helpers instead of rebuilding backend history directly.
 
