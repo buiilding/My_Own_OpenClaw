@@ -121,10 +121,13 @@ export function useChatLoopTransportState({
   }, [isBusy, machineState.transportConnected, snapshotSignature]);
 
   useEffect(() => {
-    const removeListener = DesktopClientSessionRuntimeClient.onIpcStatus((payload) => {
+    const removeListener = DesktopClientSessionRuntimeClient.onIpcTransportStatus((payload) => {
+      if (payload.hasConnectionState !== true) {
+        return;
+      }
       dispatch({
         type: CHAT_LOOP_MACHINE_EVENT.IPC_STATUS,
-        connected: payload?.isConnected === true,
+        connected: payload.isConnected,
       });
     });
     return () => {
@@ -133,14 +136,14 @@ export function useChatLoopTransportState({
   }, []);
 
   useEffect(() => {
-    DesktopClientSessionRuntimeClient.loadMainSessionSnapshot()
+    DesktopClientSessionRuntimeClient.loadMainTransportStatus()
       .then((payload) => {
-        if (typeof payload?.isConnected !== 'boolean') {
+        if (payload?.hasConnectionState !== true) {
           return;
         }
         dispatch({
           type: CHAT_LOOP_MACHINE_EVENT.IPC_STATUS,
-          connected: payload?.isConnected === true,
+          connected: payload.isConnected,
         });
       })
       .catch(() => {});

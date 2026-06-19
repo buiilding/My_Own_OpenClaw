@@ -150,9 +150,15 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 
 `useChatLoopUiState` reads transport connectivity from:
 
-- `DesktopClientSessionRuntimeClient.onIpcStatus(...)` subscription updates
-- `DesktopClientSessionRuntimeClient.loadMainSessionSnapshot(...)` for
+- `DesktopClientSessionRuntimeClient.onIpcTransportStatus(...)` subscription
+  updates
+- `DesktopClientSessionRuntimeClient.loadMainTransportStatus(...)` for
   best-effort initial status sync
+
+The desktop client-session runtime client normalizes raw `ipc-status` and
+startup snapshot payloads into `{ isConnected, hasConnectionState }` for this
+hook. The hook ignores snapshots/events where `hasConnectionState` is false and
+owns only disconnect recovery and watchdog state.
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
@@ -198,6 +204,7 @@ It does not mutate stream tracking or backend query state; it is UI projection o
 `tests/frontend/ChatLoopUiStateHook.test.jsx` validates:
 
 - active-loop disconnect immediately drops to `idle`
+- startup snapshots and live events without a boolean connection field are ignored
 - reconnect watchdog clears stale busy lock when no progress arrives
 - watchdog disarms when post-reconnect stream progress arrives
 - `tool-output` without visible assistant reply stays awaiting until streamed reply appears

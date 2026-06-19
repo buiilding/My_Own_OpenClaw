@@ -1380,10 +1380,12 @@ describe('renderer chat runtime boundary', () => {
     expect(loopStateSource).not.toContain('GET_CLIENT_USER_ID');
     expect(loopStateSource).not.toContain('ON_CHANNELS');
     expect(loopStateSource).not.toContain('IpcBridge.');
-    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onIpcStatus');
-    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadMainSessionSnapshot');
+    expect(loopStateSource).not.toContain('payload?.isConnected');
+    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onIpcTransportStatus');
+    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadMainTransportStatus');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
+    expect(clientSource).toContain('normalizeDesktopTransportConnectionStatus');
   });
 
   test('dashboard shell routes main-window target and user snapshot IPC through app runtime clients', async () => {

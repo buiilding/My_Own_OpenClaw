@@ -95,6 +95,23 @@ describe('useChatLoopUiState', () => {
     expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('0');
   });
 
+  test('ignores runtime transport status without a boolean connection state', async () => {
+    mockInvoke.mockResolvedValue({ isConnected: 'yes' });
+
+    render(<LoopStateProbe phase="tool-call" isSending={false} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      mockListeners.get('ipc-status')?.({ isConnected: 'unknown' });
+    });
+
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
+    expect(screen.getByTestId('loop-state-probe').dataset.isTransportConnected).toBe('1');
+  });
+
   test('watchdog clears stale busy lock after reconnect when no progress arrives', async () => {
     jest.useFakeTimers();
     const { rerender } = render(<LoopStateProbe phase="awaiting-first-chunk" isSending />);

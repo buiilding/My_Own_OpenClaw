@@ -16,6 +16,11 @@ export type DesktopClientSessionSnapshot = DesktopIpcStatusPayload & {
   userId: string | null;
 };
 
+export type DesktopTransportConnectionStatus = {
+  isConnected: boolean;
+  hasConnectionState: boolean;
+};
+
 function recordOrEmpty(value: unknown): Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -44,6 +49,16 @@ export function normalizeDesktopClientSessionSnapshot(payload: unknown): Desktop
   return snapshot;
 }
 
+export function normalizeDesktopTransportConnectionStatus(
+  payload: unknown,
+): DesktopTransportConnectionStatus {
+  const source = recordOrEmpty(payload);
+  return {
+    isConnected: source.isConnected === true,
+    hasConnectionState: typeof source.isConnected === 'boolean',
+  };
+}
+
 export const DesktopClientSessionRuntimeClient = {
   loadMainSessionSnapshot(): Promise<DesktopClientSessionSnapshot | undefined> {
     if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
@@ -60,6 +75,26 @@ export const DesktopClientSessionRuntimeClient = {
     return IpcBridge.on(
       ON_CHANNELS.IPC_STATUS,
       (payload: unknown) => listener(normalizeDesktopClientSessionSnapshot(payload)),
+    );
+  },
+
+  loadMainTransportStatus(): Promise<DesktopTransportConnectionStatus | undefined> {
+    if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
+      return Promise.resolve(undefined);
+    }
+    return IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+      .then(normalizeDesktopTransportConnectionStatus);
+  },
+
+  onIpcTransportStatus(
+    listener: (payload: DesktopTransportConnectionStatus) => void,
+  ): (() => void) | undefined {
+    if (!ON_CHANNELS?.IPC_STATUS) {
+      return undefined;
+    }
+    return IpcBridge.on(
+      ON_CHANNELS.IPC_STATUS,
+      (payload: unknown) => listener(normalizeDesktopTransportConnectionStatus(payload)),
     );
   },
 };

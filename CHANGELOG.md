@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize chat-loop transport connection status in the
+  desktop client-session runtime client before recovery hooks consume it. No
+  migration required.
 - renderer/runtime: normalize response-overlay visibility fan-out payloads in
   the desktop response overlay runtime client before overlay window-sync hooks
   consume them. No migration required.

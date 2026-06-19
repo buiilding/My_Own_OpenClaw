@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-loop transport status runtime slice by
+  adding a normalized transport-status view to
+  `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes
+  `onIpcTransportStatus(...)` and `loadMainTransportStatus(...)` with
+  `{ isConnected, hasConnectionState }`, leaving disconnect recovery and
+  watchdog state in the hook while moving raw `ipc-status`/startup snapshot
+  connection-field validation into the app-runtime client. Validation: focused
+  desktop client-session runtime client, chat loop UI state hook, and renderer
+  chat runtime boundary tests, stale raw connection payload scan, docs listing,
+  and diff checks. No migration required; `get-client-user-id` and
+  `ipc-status` channel names, full session snapshot payloads, endpoint metadata,
+  chat-loop disconnect/reconnect behavior, IPC allowlists, storage,
+  credentials, provider-policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer response overlay visibility runtime slice by
   moving visibility fan-out payload normalization into
   `desktopResponseOverlayRuntimeClient`. `useResponseOverlayWindowSync` now

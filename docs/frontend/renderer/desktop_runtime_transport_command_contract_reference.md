@@ -210,12 +210,14 @@ or host-shaped settings error payload details directly.
 
 `desktopClientSessionRuntimeClient.ts` owns renderer adapter calls for the
 desktop client/session snapshot and IPC transport status subscription, including
-user id normalization while preserving endpoint metadata. Chat session
-bootstrap, loop transport projection, dashboard user snapshot fallback call this
-runtime client instead of importing `get-client-user-id` or `ipc-status`
-channel constants or trimming raw snapshot fields directly. App config runtime
-snapshot handling also calls this client for startup and connection-status user
-context.
+user id normalization while preserving endpoint metadata. It also exposes a
+transport-status view that normalizes raw `isConnected` payloads into
+`{ isConnected, hasConnectionState }` for chat-loop recovery. Chat session
+bootstrap, loop transport projection, and dashboard user snapshot fallback call
+this runtime client instead of importing `get-client-user-id` or `ipc-status`
+channel constants, trimming raw snapshot fields, or deciding raw connection
+field validity directly. App config runtime snapshot handling also calls this
+client for startup and connection-status user context.
 
 `desktopWorkspaceRuntimeClient.ts` owns workspace-access update fan-out and
 live workspace payload normalization for chat and settings surfaces. Chat owns
