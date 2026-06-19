@@ -865,18 +865,6 @@ For each completed slice, record:
   retry timing, transcript title polling, storage, IPC, credentials,
   permissions, hosted routes, provider policy, packaging, and local execution
   behavior are unchanged.
-- 2026-06-19: completed a renderer dashboard metadata row-projection
-  runtime-boundary slice by moving SDK `ConversationMetadata` to dashboard row
-  mapping into
-  `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`.
-  `useDashboardConversations` and `DesktopConversationLibraryClient` now share
-  that app-runtime owner before recent and search surfaces consume rows.
-  Validation: focused dashboard load, conversation library client, renderer
-  app-runtime boundary tests, docs/history searches, stale inline metadata-field
-  scans, docs listing, and diff checks. No migration required; SDK metadata
-  shape, dashboard row fields, recent list sorting, search snippets,
-  matched-role labels, IPC, storage, credentials, provider policy, hosted
-  routes, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer voice audio capture
   runtime-boundary slice by moving PCM encoding, gateway binary frame
   construction, capture cleanup, and AudioWorklet processor construction from
