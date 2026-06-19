@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: tightened the renderer app-runtime import boundary by broadening
+  the feature-module guard from direct `AppConfigContext` imports to direct
+  `app/providers/*`, app config/status/chat contexts, and provider component
+  imports. Renderer features must keep reading provider-owned state through
+  app-runtime facades. Validation: focused renderer app-runtime boundary test
+  and diff checks. No migration required; no runtime code, payload, IPC
+  channel, storage, settings, credential, permission, hosted route, provider
+  policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed a tool-registry hub local-runtime label slice by
   renaming first-read registry hub labels and the Python sidecar implementation
   overview heading to local-runtime tool-registry wording, and routing backend

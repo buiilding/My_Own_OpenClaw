@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: broaden the renderer app-runtime boundary guard so feature
+  modules cannot import app-provider internals directly and must keep reading
+  provider-owned state through runtime facades. No migration required.
 - docs/registry: route tool-registry hub labels and backend parity-failure
   wording through local-runtime wording instead of sidecar registry/runtime
   owner names while keeping Python sidecar registry implementation paths and

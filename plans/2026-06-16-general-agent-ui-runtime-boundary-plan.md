@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Provider Boundary Guard
+
+- Finding: the renderer boundary suite already blocked direct feature imports
+  of `AppConfigContext`, but did not generically guard other app-provider
+  internals such as status/chat contexts or provider components.
+- Change: broadened the feature-module guard so renderer features must read
+  app-provider-owned state through app-runtime facades instead of importing
+  `app/providers/*` directly.
+- Validation: focused renderer app-runtime boundary test and diff checks.
+- Compatibility: no migration required. Tests changed only; runtime code,
+  payloads, IPC channels, storage, settings, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Tool Registry Hub Local-Runtime Labels
 
 - Finding: first-read docs, the Python sidecar implementation overview, and a

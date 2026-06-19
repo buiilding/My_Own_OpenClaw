@@ -321,7 +321,7 @@ describe('renderer app runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer feature modules read app config through the runtime facade', async () => {
+  test('renderer feature modules read app provider state through runtime facades', async () => {
     const featureRoot = path.join(rendererRoot, 'features');
     const files = await listSourceFiles(featureRoot);
     const offenders: string[] = [];
@@ -329,14 +329,23 @@ describe('renderer app runtime boundary', () => {
       path.join(appRoot, 'runtime/desktopRendererConfigRuntimeClient.js'),
       'utf8',
     );
+    const forbiddenProviderNeedles = [
+      'app/providers/',
+      'app/providers/AppConfigContext',
+      'app/providers/AppStatusContext',
+      'app/providers/ChatContext',
+      'app/providers/AppProvider',
+      'app/providers/AppConfigProvider',
+      'app/providers/AppStatusProvider',
+      'app/providers/ChatProvider',
+      'useAppConfigContext',
+      'useAppStatusContext',
+    ];
 
     for (const file of files) {
       const relativePath = normalizeRelativePath(path.relative(featureRoot, file));
       const source = await fs.readFile(file, 'utf8');
-      if (
-        source.includes('app/providers/AppConfigContext')
-        || source.includes('useAppConfigContext')
-      ) {
+      if (forbiddenProviderNeedles.some((needle) => source.includes(needle))) {
         offenders.push(relativePath);
       }
     }
