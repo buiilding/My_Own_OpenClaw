@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Install Endpoint Local Backend Origin Labels
+
+- Finding: endpoint setup and local development docs still used sidecar
+  propagation wording and a `Local Backend` public section label for endpoint
+  routing, which could read like the removed local_backend runtime concept
+  instead of an explicit backend origin.
+- Change: routed those install docs through explicit local backend origin and
+  local-runtime backend URL propagation wording while preserving the concrete
+  `BACKEND_HTTP_URL`/`BACKEND_WS_URL` override commands and Python sidecar env
+  handoff evidence, and added exact modular docs guards for the retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Install docs and boundary tests changed
+  only; endpoint env var names, backend defaults, websocket URLs,
+  local-runtime env propagation, credentials, permissions, hosted routes,
+  provider policy, packaging, storage, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Source Topology Local-Runtime Execution Stage
 
 - Finding: `frontend/src/renderer/folder_structure.md` still named the local

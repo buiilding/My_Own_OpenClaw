@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/install: route endpoint setup and local development guidance through
+  explicit local backend origin plus local-runtime propagation wording instead
+  of sidecar propagation or Local Backend public section labels. No migration
+  required.
 - docs/renderer: label the source-owned tool execution topology stage as
   local-runtime execution instead of Sidecar execution while keeping the Python
   sidecar daemon as the concrete executor implementation. No migration

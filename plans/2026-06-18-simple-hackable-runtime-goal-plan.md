@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an install endpoint local backend origin label slice by
+  routing endpoint setup and local development docs away from sidecar
+  propagation wording and a Local Backend public section label toward explicit
+  local backend origin plus local-runtime backend URL propagation wording.
+  Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks. No migration required; install docs and boundary tests
+  changed only, with no endpoint env var name, backend default, websocket URL,
+  local-runtime env propagation, credential, permission, hosted route, provider
+  policy, packaging, storage, or local execution behavior changed.
 - 2026-06-19: completed a renderer source topology local-runtime execution
   label slice by renaming the tool execution diagram stage in
   `frontend/src/renderer/folder_structure.md` from Sidecar execution to

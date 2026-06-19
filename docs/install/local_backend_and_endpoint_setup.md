@@ -1,8 +1,8 @@
 ---
-summary: "Backend endpoint setup guide for WindieOS source and packaged installs, including hosted defaults, local overrides, sidecar propagation, and self-host checks."
+summary: "Backend endpoint setup guide for WindieOS source and packaged installs, including hosted defaults, explicit local backend origins, local-runtime propagation, and self-host checks."
 read_when:
   - When WindieOS should connect to a local, staging, hosted, or self-hosted backend.
-  - When changing backend endpoint defaults, packaged endpoint overrides, sidecar backend URL propagation, or Cloudflare tunnel setup.
+  - When changing backend endpoint defaults, packaged endpoint overrides, local-runtime backend URL propagation, or Cloudflare tunnel setup.
 title: "Backend Endpoint Setup"
 ---
 
@@ -26,7 +26,7 @@ Electron main resolves backend endpoints in this order:
 
 The Python sidecar process receives the resolved HTTP URL as `WINDIE_BACKEND_HTTP_URL`. If renderer websocket traffic reaches one backend while local-runtime memory/API calls reach another, debug Electron main env injection before changing local-runtime hosted helper clients.
 
-## Local Backend
+## Explicit Local Backend Origin
 
 Start the backend:
 

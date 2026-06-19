@@ -53,7 +53,7 @@ Windows PowerShell equivalents:
 <windie> start dev
 ```
 
-To force Electron dev to use the local backend:
+To force Electron dev to use an explicit local backend origin:
 
 ```bash
 BACKEND_HTTP_URL=http://127.0.0.1:8765 \
