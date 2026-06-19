@@ -1,12 +1,12 @@
 ---
-summary: "Reference for SDK-owned desktop sidecar daemon readiness, helper RPC routing, local-runtime status snapshots, and Electron host-only sidecar helpers."
+summary: "Reference for SDK-owned desktop local-runtime readiness, helper RPC routing, local-runtime status snapshots, and Electron host-only helper shaping."
 read_when:
   - When changing SDK local runtime provider usage in `frontend/src/main/sidecar/local_runtime_bridge.cjs`.
-  - When debugging desktop sidecar daemon startup, `local-runtime-status`, helper RPC failures, or screenshot helper routing.
-title: "SDK-Owned Sidecar Readiness and Helper RPC Reference"
+  - When debugging desktop local-runtime startup, `local-runtime-status`, helper RPC failures, or screenshot helper routing.
+title: "SDK-Owned Local-Runtime Readiness and Helper RPC Reference"
 ---
 
-# SDK-Owned Sidecar Readiness and Helper RPC Reference
+# SDK-Owned Local-Runtime Readiness and Helper RPC Reference
 
 ## Canonical Modules
 

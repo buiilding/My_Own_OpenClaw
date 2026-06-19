@@ -786,6 +786,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/inventory/README.md'),
       read('docs/frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md'),
       read('docs/frontend/main/local_backend/process_lifecycle_change_workflow.md'),
+      read('docs/frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar/README.md'),
       read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
@@ -841,6 +842,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Source Maps Docs Hub');
     expect(docText).toContain('Local-Runtime Service Protocol Docs Hub');
     expect(docText).toContain('SDK-Owned Local-Runtime Lifecycle Reference');
+    expect(docText).toContain('SDK-Owned Local-Runtime Readiness and Helper RPC Reference');
     expect(docText).toContain('Local Runtime Python Implementation Docs Hub');
     expect(docText).toContain('Local-Runtime Process Lifecycle');
     expect(docText).toContain('Local-Runtime JSON-RPC Protocol');
@@ -894,6 +896,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Local Runtime Sidecar Services Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Source Maps Docs Hub');
     expect(docText).not.toContain('SDK-Owned Sidecar Lifecycle Reference');
+    expect(docText).not.toContain('SDK-Owned Sidecar Readiness and Helper RPC Reference');
     expect(docText).not.toContain('Local Runtime Sidecar Browser Stack');
     expect(docText).not.toContain('Local Runtime Sidecar Docs Hub');
     expect(docText).not.toContain('Sidecar Docs Hub');

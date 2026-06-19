@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 SDK-Owned Local-Runtime Readiness Reference Label
+
+- Finding: the SDK-owned readiness/helper RPC reference still used
+  `SDK-Owned Sidecar Readiness` as its public title even though the bridge now
+  exposes SDK-owned local-runtime readiness and only mentions the Python
+  sidecar daemon as an implementation detail.
+- Change: renamed the title, heading, summary, and debugging route to
+  SDK-owned local-runtime readiness wording, and added focused modular docs
+  guards for the retired public label.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  local-runtime startup, JSON-RPC helper routing, status snapshots, screenshot
+  helpers, IPC channels, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Frontend Capability Matrix Local-Runtime Bridge Labels
 
 - Finding: the active frontend capability-to-file matrix still presented the

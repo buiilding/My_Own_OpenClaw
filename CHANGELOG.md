@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route the SDK-owned readiness reference title through
+  local-runtime wording instead of a Sidecar readiness public label while
+  keeping concrete sidecar daemon implementation details explicit. No migration
+  required.
 - docs/frontend: route the frontend capability matrix bridge section and
   scoped host-bridge labels through local-runtime wording instead of Sidecar
   Bridge public labels while keeping concrete Python sidecar paths explicit.
