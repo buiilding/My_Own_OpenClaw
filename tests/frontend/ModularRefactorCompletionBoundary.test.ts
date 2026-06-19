@@ -872,6 +872,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference');
     expect(docText).not.toContain('Sidecar Wait, Window, and Stats Runtime Reference');
     expect(docText).not.toContain('Local Runtime Sidecar Tools Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Tools Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Computer Tools Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar System Tools Docs Hub');
     expect(docText).not.toContain('Local Runtime Sidecar Filesystem Tools Docs Hub');

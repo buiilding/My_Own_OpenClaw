@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a code-surface local tool hub label slice by routing
+  code-change surface local tool links through Local-Runtime Tools Docs Hub
+  wording instead of Local Runtime Sidecar Tools Hub public navigation labels.
+  Python sidecar implementation paths remain explicit where they identify the
+  concrete executor code. Validation: focused modular boundary guard, docs
+  listing, exact stale code-surface local tool hub label scan, and diff checks.
+  No migration required; no tool name, schema, manifest, IPC channel, JSON-RPC
+  method, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-19: completed a frontend IPC/summarizer local-runtime label slice by
   routing first-read IPC contract-touchpoint and semantic summarizer labels
   through Local-Runtime wording instead of sidecar public navigation names.

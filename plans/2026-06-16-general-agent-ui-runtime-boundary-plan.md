@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Code-Surface Local Tool Hub Labels
+
+- Finding: the code-change surface index still routed local tool implementation
+  work through `Local Runtime Sidecar Tools Hub` link labels even though the
+  first-read tool implementation hub is now `Local-Runtime Tools Docs Hub`.
+- Change: renamed those visible labels to Local-Runtime wording while keeping
+  Python sidecar implementation paths as concrete executor evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  code-surface local tool hub label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  tool names, schemas, manifests, IPC channels, JSON-RPC methods, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Frontend IPC and Summarizer Local-Runtime Labels
 
 - Finding: first-read docs and the frontend IPC contract-touchpoint reference

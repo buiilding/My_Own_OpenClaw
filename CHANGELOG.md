@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/reference: route code-change surface local tool links through
+  Local-Runtime Tools Docs Hub wording instead of Local Runtime Sidecar Tools
+  Hub public navigation labels while keeping Python sidecar implementation
+  paths explicit. No migration required.
 - docs/frontend: route IPC contract-touchpoint and memory summarizer labels
   through local-runtime wording instead of sidecar public navigation names while
   keeping Python sidecar JSON-RPC implementation details explicit. No migration
