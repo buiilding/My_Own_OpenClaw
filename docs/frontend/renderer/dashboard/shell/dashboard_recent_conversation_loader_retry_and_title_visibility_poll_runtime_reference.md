@@ -33,6 +33,11 @@ owns SDK conversation metadata to dashboard row projection for both recent and
 search surfaces. The hook should not spell out `conversation_id`,
 `workspace_path`, or search-snippet field mapping itself.
 
+`desktopDashboardConversationLoadRuntime.resolveRecentConversationEventAction(...)`
+owns SDK conversation event type classification for recent-list refresh and
+title-visibility polling. The hook owns the resulting side effects: reload the
+recent list, schedule the per-conversation title poll, or ignore the event.
+
 ## Recent Conversation Load Concurrency and Stale-Response Guard
 
 `loadRecentConversations()` uses two coordination layers:
@@ -75,10 +80,12 @@ On successful load, retry counter resets to `0`.
 
 ## Title Visibility Poll After Transcript Writes
 
-Hook subscribes through `DesktopConversationRuntimeEventClient.onConversationEvent`:
+Hook subscribes through `DesktopConversationRuntimeEventClient.onConversationEvent`
+and delegates event classification to
+`resolveRecentConversationEventAction(...)`:
 
-- event type: `user_message` -> immediate `loadRecentConversations()`
-- event type: `assistant_message` -> title visibility handling
+- user message action -> immediate `loadRecentConversations()`
+- assistant message action -> title visibility handling
 
 Trigger condition:
 

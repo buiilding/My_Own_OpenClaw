@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer dashboard conversation event action
+  boundary slice by moving SDK `user_message` / `assistant_message`
+  classification for recent-list reloads and title-visibility polling into
+  `desktopDashboardConversationLoadRuntime`. `useDashboardConversations` now
+  consumes a resolved action while keeping list state, reload execution,
+  title-poll timers, open/delete/search side effects, and grouping orchestration.
+  Validation: focused dashboard conversation load, dashboard hook, and renderer
+  app-runtime boundary tests plus stale raw event-type scans, docs listing, and
+  diff checks. No migration required; SDK conversation event names and payloads,
+  recent-list reload behavior, title-poll timing, IPC, storage, credentials,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer observed transport status boundary slice by
   adding `loadObservedMainTransportStatus` and `onObservedIpcTransportStatus`
   to `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes

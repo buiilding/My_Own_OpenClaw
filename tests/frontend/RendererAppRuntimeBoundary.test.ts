@@ -447,11 +447,18 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).toContain('metadataListToDashboardConversations');
     expect(runtimeSource).toContain('metadataToDashboardConversation');
     expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
+    expect(runtimeSource).toContain('resolveRecentConversationEventAction');
+    expect(runtimeSource).toContain("'user_message'");
+    expect(runtimeSource).toContain("'assistant_message'");
     expect(runtimeSource).not.toContain('features/dashboard');
     expect(dashboardHookSource).toContain('desktopDashboardConversationLoadRuntime');
     expect(dashboardHookSource).toContain('metadataListToDashboardConversations');
+    expect(dashboardHookSource).toContain('resolveRecentConversationEventAction');
     expect(dashboardHookSource).not.toContain('conversation_id: metadata');
     expect(dashboardHookSource).not.toContain('workspace_path: metadata');
+    expect(dashboardHookSource).not.toContain("eventType === 'user_message'");
+    expect(dashboardHookSource).not.toContain("eventType !== 'assistant_message'");
+    expect(dashboardHookSource).not.toContain("'assistant_message'");
     expect(dashboardHookSource).not.toContain('utils/dashboardConversationLoad');
     expect(continuityServiceSource).toContain('metadataListToDashboardConversations');
     expect(continuityServiceSource).not.toContain('function metadataToDashboardConversation');

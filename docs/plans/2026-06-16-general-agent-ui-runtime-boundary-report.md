@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Dashboard Conversation Event Action Boundary
+
+- Finding: `useDashboardConversations` subscribed through the conversation
+  runtime event client, but still classified raw SDK `user_message` and
+  `assistant_message` event type strings before deciding whether to reload
+  recent chats or schedule title-visibility polling.
+- Change: added recent-conversation event action helpers to
+  `desktopDashboardConversationLoadRuntime` and routed the dashboard hook
+  through them. The runtime facade owns event classification; the hook keeps
+  list state, reload execution, title-poll timers, and open/delete/search side
+  effects.
+- Validation: focused dashboard conversation load, dashboard hook, and renderer
+  app-runtime boundary tests plus stale raw event-type scans, docs listing, and
+  diff checks.
+- Compatibility: no migration required. SDK conversation event names and
+  payload shapes, recent-list reload behavior, title-poll timing, IPC, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Observed Transport Status Boundary
 
 - Finding: `DesktopClientSessionRuntimeClient` normalized IPC transport status

@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify SDK conversation events for dashboard recent-list
+  reload and title-poll actions in `desktopDashboardConversationLoadRuntime`
+  before `useDashboardConversations` performs the UI side effect. No migration
+  required.
 - renderer/runtime: expose observed IPC transport connection status from
   `desktopClientSessionRuntimeClient` so chat loop recovery no longer checks raw
   status sentinel fields. No migration required.

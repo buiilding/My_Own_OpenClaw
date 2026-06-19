@@ -3,12 +3,15 @@
  */
 
 import {
+  getTitleVisibilityPollConversationRef,
   metadataListToDashboardConversations,
   metadataToDashboardConversation,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
+  resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
   shouldRetryRecentConversationsLoad,
+  shouldReloadRecentConversationsForEventAction,
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 describe('desktopDashboardConversationLoadRuntime', () => {
@@ -59,6 +62,35 @@ describe('desktopDashboardConversationLoadRuntime', () => {
       ['c-1', 'c-2', 'c-missing'],
       [{ conversation_id: 'c-2' }, { conversation_id: 'c-1' }],
     )).toEqual(['c-1', 'c-2']);
+  });
+
+  test('classifies conversation events for recent-list reload and title polling', () => {
+    const userAction = resolveRecentConversationEventAction({
+      type: 'user_message',
+      conversationRef: 'conv-user',
+    });
+    expect(shouldReloadRecentConversationsForEventAction(userAction)).toBe(true);
+    expect(getTitleVisibilityPollConversationRef(userAction)).toBeNull();
+
+    const assistantAction = resolveRecentConversationEventAction({
+      type: 'assistant_message',
+      conversationRef: ' conv-assistant ',
+    });
+    expect(shouldReloadRecentConversationsForEventAction(assistantAction)).toBe(false);
+    expect(getTitleVisibilityPollConversationRef(assistantAction)).toBe('conv-assistant');
+
+    const assistantWithoutRefAction = resolveRecentConversationEventAction({
+      type: 'assistant_message',
+    });
+    expect(shouldReloadRecentConversationsForEventAction(assistantWithoutRefAction)).toBe(true);
+    expect(getTitleVisibilityPollConversationRef(assistantWithoutRefAction)).toBeNull();
+
+    const ignoredAction = resolveRecentConversationEventAction({
+      type: 'tool_call',
+      conversationRef: 'conv-tool',
+    });
+    expect(shouldReloadRecentConversationsForEventAction(ignoredAction)).toBe(false);
+    expect(getTitleVisibilityPollConversationRef(ignoredAction)).toBeNull();
   });
 
   test('resolveRecentConversationsRetryDelayMs applies bounded exponential backoff', () => {

@@ -16,11 +16,15 @@ import {
   buildWorkspaceConversationGroups,
 } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import {
+  getRecentConversationsReloadReasonForEventAction,
+  getTitleVisibilityPollConversationRef,
   metadataListToDashboardConversations,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
+  resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
   shouldRetryRecentConversationsLoad,
+  shouldReloadRecentConversationsForEventAction,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
 
 function useDashboardConversations({
@@ -399,19 +403,13 @@ function useDashboardConversations({
 
   useEffect(() => {
     const removeListener = DesktopConversationRuntimeEventClient.onConversationEvent((event) => {
-      const eventType = typeof event?.type === 'string' ? event.type : '';
-      const conversationRef = typeof event?.conversationRef === 'string'
-        ? event.conversationRef
-        : '';
-      if (eventType === 'user_message') {
-        void loadRecentConversations('sdk-user-message');
+      const action = resolveRecentConversationEventAction(event);
+      if (shouldReloadRecentConversationsForEventAction(action)) {
+        void loadRecentConversations(getRecentConversationsReloadReasonForEventAction(action));
         return;
       }
-      if (eventType !== 'assistant_message') {
-        return;
-      }
+      const conversationRef = getTitleVisibilityPollConversationRef(action);
       if (!conversationRef) {
-        void loadRecentConversations('sdk-assistant-message-no-conversation');
         return;
       }
       scheduleTitleVisibilityPoll(conversationRef);

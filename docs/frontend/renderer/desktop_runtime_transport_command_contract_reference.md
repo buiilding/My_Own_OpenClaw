@@ -148,10 +148,11 @@ for SDK memory retrieval injection. Dashboard memory settings and query-send
 runtime clients consume this facade instead of sharing a root renderer utility.
 
 `desktopDashboardConversationLoadRuntime.js` owns recent-conversation row
-normalization, pinned-reference pruning, and bounded retry policy for the
-dashboard conversation list. `useDashboardConversations` keeps dashboard state,
-search, title polling, open/delete handlers, and grouping orchestration while
-delegating reusable list-load rules to this app-runtime facade.
+normalization, pinned-reference pruning, bounded retry policy, and SDK
+conversation event classification for recent-list reload/title-poll actions.
+`useDashboardConversations` keeps dashboard state, search, title polling,
+open/delete handlers, and grouping orchestration while delegating reusable
+list-load rules to this app-runtime facade.
 
 `desktopDashboardConversationGroupRuntime.js` owns dashboard conversation
 time-bucket and workspace grouping rules, including title fallbacks, pinned
