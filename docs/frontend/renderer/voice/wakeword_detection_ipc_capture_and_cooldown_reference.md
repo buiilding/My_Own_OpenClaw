@@ -62,7 +62,9 @@ Renderer subscribe channels used:
 - `wakeword-detected`
 - `wakeword-status`
 
-`useWakewordBridgeEvents` owns renderer subscription/update policy for these channels.
+`DesktopVoiceRuntimeClient` owns channel subscription and raw bridge payload
+normalization for detection and readiness values. `useWakewordBridgeEvents`
+owns renderer subscription/update policy for those values, and
 `useWakewordDetection` owns capture lifecycle and enable/disable orchestration.
 The hook requests enable on startup to obtain/refresh readiness status.
 
@@ -137,9 +139,11 @@ Chunk normalization:
 
 ## Detection Filtering Policy
 
-For each `wakeword-detected` event:
+For each value-level wakeword detection event:
 
-1. parse confidence with `resolveConfidence`; reject invalid values
+1. receive `model`, finite numeric `confidence`, and optional numeric `score`
+   from `DesktopVoiceRuntimeClient.onWakewordDetectedValues(...)`; invalid
+   confidence values are rejected before hook policy runs
 2. drop event if within cooldown window (`2000ms`)
 3. compare confidence to threshold (default `0.5`)
 4. on accepted detection:
@@ -180,16 +184,19 @@ Status/error precedence details:
 ## Drift Hotspots
 
 1. removing immediate disable on detection can cause repeated rapid wakeword callbacks.
-2. weakening generation guards can leak or resurrect old capture sessions.
-3. changing channel names without preload/main parity update breaks wakeword runtime silently.
-4. skipping cooldown reset on disable/re-enable can cause instant false retriggers.
+2. moving raw `model` / `confidence` / `score` bridge parsing back into
+   `useWakewordBridgeEvents` duplicates the voice runtime client boundary.
+3. weakening generation guards can leak or resurrect old capture sessions.
+4. changing channel names without preload/main parity update breaks wakeword runtime silently.
+5. skipping cooldown reset on disable/re-enable can cause instant false retriggers.
 
 ## Test-Locked Invariants
 
 `tests/frontend/voice/WakewordDetectionHook.test.ts` validates:
 
 - listener registration and enable/disable send-gating
-- confidence parsing + cooldown behavior with immediate disable on accepted detection
+- value-level detection projection, cooldown behavior, and immediate disable on
+  accepted detection
 - late `getUserMedia` resolution cleanup after disable
 - missing-device lockout persistence across remounts
 - suppression-only toggles keep lockout active

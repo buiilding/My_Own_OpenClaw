@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose wakeword detection events as value-level voice
+  runtime callbacks so wakeword bridge hooks no longer read raw bridge
+  `model`, `confidence`, or `score` fields. No migration required.
 - renderer/runtime: route chatbox/main-window visibility options and chatbox
   text-entry activation payload assembly through `DesktopWindowRuntimeClient`
   value helpers so renderer UI code no longer assembles host-shaped window

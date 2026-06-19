@@ -4,6 +4,7 @@
 
 import {
   DesktopVoiceRuntimeClient,
+  resolveWakewordDetectionValues,
   resolveWakewordReadyStatus,
   resolveWakewordStatusError,
   resolveWakewordStatusReady,
@@ -77,6 +78,51 @@ describe('DesktopVoiceRuntimeClient', () => {
       ready: true,
       error: 'warming up',
     });
+  });
+
+  test('normalizes wakeword detection values', () => {
+    expect(resolveWakewordDetectionValues({
+      model: 'hey-jarvis',
+      confidence: 0.92,
+      score: 0.7,
+    })).toEqual({
+      model: 'hey-jarvis',
+      confidence: 0.92,
+      score: 0.7,
+    });
+    expect(resolveWakewordDetectionValues({
+      model: 12 as unknown as string,
+      confidence: 0.5,
+      score: '0.5',
+    })).toEqual({
+      model: '',
+      confidence: 0.5,
+    });
+    expect(resolveWakewordDetectionValues({ confidence: 'high' })).toBeNull();
+  });
+
+  test('emits value-level wakeword detection updates', () => {
+    const detectionListener = jest.fn();
+    const invalidListener = jest.fn();
+    let detectionHandler: ((payload: unknown) => void) | undefined;
+    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+      if (channel === ON_CHANNELS.WAKEWORD_DETECTED) {
+        detectionHandler = handler;
+      }
+      return jest.fn();
+    });
+
+    DesktopVoiceRuntimeClient.onWakewordDetectedValues(detectionListener, invalidListener);
+    detectionHandler?.({ model: 'hey-jarvis', confidence: 0.99, score: 0.8 });
+    detectionHandler?.({ model: 'hey-jarvis', confidence: 'bad' });
+
+    expect(IpcBridge.on).toHaveBeenCalledWith(ON_CHANNELS.WAKEWORD_DETECTED, expect.any(Function));
+    expect(detectionListener).toHaveBeenCalledWith({
+      model: 'hey-jarvis',
+      confidence: 0.99,
+      score: 0.8,
+    });
+    expect(invalidListener).toHaveBeenCalledTimes(1);
   });
 
   test('emits value-level wakeword ready status updates', () => {

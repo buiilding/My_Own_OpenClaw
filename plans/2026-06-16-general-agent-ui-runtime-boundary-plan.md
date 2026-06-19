@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Wakeword Detection Value Boundary
+
+- Finding: `DesktopVoiceRuntimeClient` owned wakeword bridge IPC and readiness
+  value projection, but `useWakewordBridgeEvents` still read raw detection
+  payload fields such as `model`, `confidence`, and `score` before applying
+  cooldown and threshold policy.
+- Change: added value-level wakeword detection normalization and subscription
+  to the voice runtime client. The bridge hook now keeps enabled-state,
+  cooldown, threshold, disable, and callback policy while the runtime client
+  owns raw detection field extraction.
+- Validation: passed focused desktop voice runtime client, wakeword bridge
+  events hook, renderer voice boundary, and docs-index tests plus docs search,
+  related commit search, stale raw detection field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Wakeword IPC channel names, detection
+  payload shape, confidence threshold/cooldown behavior, immediate disable on
+  accepted detection, wakeword callback shape, capture lifecycle, storage,
+  provider policy, hosted URLs, permissions, and local wakeword service
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Window Command Option Value Boundary
 
 - Finding: app startup, wakeword restore, send-surface restore, minimal chat

@@ -165,9 +165,11 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 Hook startup:
 
 1. `useWakewordBridgeEvents` subscribes through `DesktopVoiceRuntimeClient`
-   wakeword event helpers. The hook receives wakeword readiness through
-   `DesktopVoiceRuntimeClient.onWakewordReadyStatus(...)`, so bridge event
-   `ready` / `error` payload normalization stays in the app runtime facade.
+   wakeword event helpers. The hook receives detection values through
+   `DesktopVoiceRuntimeClient.onWakewordDetectedValues(...)` and wakeword
+   readiness through `DesktopVoiceRuntimeClient.onWakewordReadyStatus(...)`, so
+   bridge event `model` / `confidence` / `score` and `ready` / `error` payload
+   normalization stays in the app runtime facade.
 2. send wakeword enable through `DesktopVoiceRuntimeClient` to request service activation/status
 3. start microphone capture only when `enabled && isReady`
 
@@ -179,7 +181,8 @@ Wakeword capture path:
 
 Detection guardrails:
 
-- confidence validated with `resolveConfidence`
+- confidence validated by `DesktopVoiceRuntimeClient` before bridge hooks see a
+  detection value
 - 2-second cooldown prevents rapid retrigger loops
 - threshold compare (`default 0.5`)
 - on accepted detection: disable wakeword through `DesktopVoiceRuntimeClient`
@@ -211,6 +214,10 @@ Missing-device guardrails:
   - inspect `wakeword-status` events reaching renderer and the
     `DesktopVoiceRuntimeClient.onWakewordReadyStatus(...)` value projection
   - verify `wakeword-toggle` suppression is not forcing inactive state
+- missing detection callbacks:
+  - inspect `wakeword-detected` events reaching renderer and the
+    `DesktopVoiceRuntimeClient.onWakewordDetectedValues(...)` value projection
+  - verify confidence is a finite number before cooldown/threshold policy runs
 - stuck microphone:
   - check cleanup path ran (`stopAudioCapture`) and tracks were stopped
 

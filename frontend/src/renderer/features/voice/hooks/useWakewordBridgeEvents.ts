@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
-import { isWithinCooldown, resolveConfidence } from '../../../app/runtime/desktopWakewordEventRuntime';
+import { isWithinCooldown } from '../../../app/runtime/desktopWakewordEventRuntime';
 import { logVoiceDebugTrace } from '../../../app/runtime/desktopVoiceDebugTraceRuntime';
 
 type WakewordDetectionPayload = {
@@ -40,25 +40,20 @@ export function useWakewordBridgeEvents({
   enabledRef.current = enabled;
 
   useEffect(() => {
-    const unsubscribe = DesktopVoiceRuntimeClient.onWakewordDetected((data: any) => {
+    const unsubscribe = DesktopVoiceRuntimeClient.onWakewordDetectedValues((detection) => {
       if (!enabledRef.current) {
         return;
       }
 
       const now = Date.now();
-      const confidence = resolveConfidence(data?.confidence);
-      if (confidence === null) {
-        console.warn('[Wakeword] Invalid confidence value in detection event');
-        return;
-      }
-
+      const confidence = detection.confidence;
       const confidenceText = confidence.toFixed(4);
       if (isWithinCooldown(now, lastDetectionRef.current, cooldownMs)) {
         return;
       }
 
       logVoiceDebugTrace('wakeword-detection-event', {
-        model: data.model,
+        model: detection.model,
         confidence: confidenceText,
         threshold,
       });
@@ -73,7 +68,7 @@ export function useWakewordBridgeEvents({
 
       lastDetectionRef.current = now;
       logVoiceDebugTrace('wakeword-detected', {
-        model: data.model,
+        model: detection.model,
         confidence: confidenceText,
       });
       requestWakewordDisable();
@@ -84,10 +79,12 @@ export function useWakewordBridgeEvents({
       }
 
       onWakewordDetectedRef.current({
-        model: data.model,
+        model: detection.model,
         confidence,
-        score: data.score,
+        score: detection.score,
       });
+    }, () => {
+      console.warn('[Wakeword] Invalid confidence value in detection event');
     });
 
     const statusUnsubscribe = DesktopVoiceRuntimeClient.onWakewordReadyStatus((readyStatus) => {

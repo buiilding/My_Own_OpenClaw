@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer wakeword detection value boundary slice by
+  adding value-level detection normalization and
+  `onWakewordDetectedValues(...)` to `DesktopVoiceRuntimeClient`.
+  `useWakewordBridgeEvents` now keeps enabled-state, cooldown, threshold,
+  immediate disable, and callback policy while the runtime client owns raw
+  bridge field extraction for `model`, `confidence`, and `score`. Validation:
+  passed focused desktop voice runtime client, wakeword bridge events hook,
+  renderer voice boundary, and docs-index tests plus docs search, related
+  commit search, stale raw detection field scan, docs listing, and diff checks.
+  No migration required; wakeword IPC channel names, detection payload shape,
+  confidence threshold/cooldown behavior, immediate disable on accepted
+  detection, wakeword callback shape, capture lifecycle, storage, provider
+  policy, hosted URLs, permissions, and local wakeword service execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer window command option value boundary slice
   by adding value-level show-chatbox, hide-chatbox, show-main-window, and
   text-entry activation option builders to `DesktopWindowRuntimeClient`.

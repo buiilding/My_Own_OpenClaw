@@ -4,6 +4,7 @@
 
 import { createDesktopRuntimeTransport } from './desktopRuntimeTransport';
 import { DesktopRuntimeEndpointClient } from './desktopRuntimeEndpointClient';
+import { resolveConfidence } from './desktopWakewordEventRuntime';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 const SET_LANGUAGE_PAYLOAD = JSON.stringify({
@@ -48,6 +49,12 @@ export type WakewordDetectionPayload = {
   score?: unknown;
 };
 
+export type WakewordDetectionValues = {
+  model: string;
+  confidence: number;
+  score?: number;
+};
+
 export type WakewordStatusPayload = {
   ready?: boolean;
   error?: string | null;
@@ -87,6 +94,25 @@ export function resolveWakewordReadyStatus(
   };
 }
 
+export function resolveWakewordDetectionValues(
+  payload: WakewordDetectionPayload | null | undefined,
+): WakewordDetectionValues | null {
+  const source = isRecord(payload) ? payload : {};
+  const confidence = resolveConfidence(source.confidence);
+  if (confidence === null) {
+    return null;
+  }
+  const score = resolveConfidence(source.score);
+  const values: WakewordDetectionValues = {
+    model: typeof source.model === 'string' ? source.model : '',
+    confidence,
+  };
+  if (score !== null) {
+    values.score = score;
+  }
+  return values;
+}
+
 /**
  * Renderer voice command facade for the SDK runtime hosted by Electron main.
  */
@@ -109,6 +135,20 @@ export const DesktopVoiceRuntimeClient = {
 
   onWakewordDetected(listener: (payload: WakewordDetectionPayload) => void): (() => void) | undefined {
     return IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, listener as (payload: unknown) => void);
+  },
+
+  onWakewordDetectedValues(
+    listener: (payload: WakewordDetectionValues) => void,
+    onInvalidConfidence?: () => void,
+  ): (() => void) | undefined {
+    return this.onWakewordDetected((payload) => {
+      const values = resolveWakewordDetectionValues(payload);
+      if (!values) {
+        onInvalidConfidence?.();
+        return;
+      }
+      listener(values);
+    });
   },
 
   onWakewordStatus(listener: (payload: WakewordStatusPayload) => void): (() => void) | undefined {
