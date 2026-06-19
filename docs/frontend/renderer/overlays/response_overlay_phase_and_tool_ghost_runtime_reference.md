@@ -22,7 +22,8 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
-- `frontend/src/renderer/features/chat/utils/chatSelectors.js`
+- `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
+- `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayViewRuntime.ts`

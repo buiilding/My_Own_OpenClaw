@@ -1,34 +1,33 @@
 /**
- * Provides the desktop chat send preparation module for the renderer UI.
+ * Prepares renderer chat sends for SDK live-turn dispatch.
  */
 
-import { buildDeferredQueryModelSelection } from '../../../../app/runtime/desktopRendererConfigRuntimeClient';
-import { DesktopInteractionRuntimeClient } from '../../../../app/runtime/desktopInteractionRuntimeClient';
-import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
-import { DesktopPendingTurnRuntimeClient } from '../../../../app/runtime/desktopPendingTurnRuntimeClient';
-import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
-import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import { DesktopWorkspaceRuntimeClient } from '../../../../app/runtime/desktopWorkspaceRuntimeClient';
-import { DesktopWindowRuntimeClient } from '../../../../app/runtime/desktopWindowRuntimeClient';
-import type { AgentModelSelection, TurnInputResource } from '../../../../app/runtime/desktopConversationRuntimeContracts';
-import type { ChatSendSurface } from '../../../../app/runtime/desktopMessageSendUiRuntime';
+import { buildDeferredQueryModelSelection } from './desktopRendererConfigRuntimeClient';
+import { DesktopInteractionRuntimeClient } from './desktopInteractionRuntimeClient';
+import { DesktopLiveTurnRuntimeClient } from './desktopLiveTurnRuntimeClient';
+import { DesktopPendingTurnRuntimeClient } from './desktopPendingTurnRuntimeClient';
+import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { DesktopWorkspaceRuntimeClient } from './desktopWorkspaceRuntimeClient';
+import { DesktopWindowRuntimeClient } from './desktopWindowRuntimeClient';
+import type { AgentModelSelection, TurnInputResource } from './desktopConversationRuntimeContracts';
+import type { ChatSendSurface } from './desktopMessageSendUiRuntime';
 import {
   createConversationRef,
   ensureConversationRefForSend,
   resolveRendererConversationSessionSnapshot,
-} from '../../../../app/runtime/desktopConversationSessionRuntime';
+} from './desktopConversationSessionRuntime';
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
   type ClipboardImagePayload,
   type OutgoingUserMessagePayload,
   type ReadableFilePayload,
-} from '../../../../app/runtime/desktopChatSendPayloadRuntime';
+} from './desktopChatSendPayloadRuntime';
 import {
   hasUserMessages,
-} from '../../../../app/runtime/desktopChatSendStateRuntime';
-import { useChatStore } from '../../stores/chatStore';
-import { logRendererChatPillTrace } from '../../../../app/runtime/desktopRendererTraceRuntime';
+} from './desktopChatSendStateRuntime';
+import { logRendererChatPillTrace } from './desktopRendererTraceRuntime';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
 
@@ -42,7 +41,23 @@ type WorkspaceBinding = {
   workspacePath?: string | null;
 };
 
+type ChatSendMessageSnapshot = {
+  sender?: string | null;
+};
+
+type PendingDesktopChatTurn = {
+  conversationRef: string;
+  turnRef: string;
+  userMessageId: string;
+  text: string;
+  timestamp: string;
+  attachmentFilenames: string[] | null;
+};
+
 type PrepareDesktopChatSendDependencies = {
+  acceptPendingTurn: (pendingTurn: PendingDesktopChatTurn) => void;
+  getActiveConversationRef: () => string | null | undefined;
+  getMessages: () => ChatSendMessageSnapshot[];
   setChatActiveConversationRef: (conversationRef: string | null) => void;
   stopPlayback?: () => void;
 };
@@ -137,11 +152,11 @@ async function ensureConversationWorkspaceBinding(conversationRef: string): Prom
 }
 
 async function resolveImmediateConversationRef(
-  setChatActiveConversationRef: (conversationRef: string | null) => void,
+  dependencies: Pick<PrepareDesktopChatSendDependencies, 'getActiveConversationRef' | 'setChatActiveConversationRef'>,
 ): Promise<string> {
   const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
   const transcriptConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
-  const storeConversationRef = useChatStore.getState().activeConversationRef;
+  const storeConversationRef = dependencies.getActiveConversationRef();
   const sessionSnapshot = resolveRendererConversationSessionSnapshot({
     transcriptConversationRef,
     storeConversationRef,
@@ -151,7 +166,7 @@ async function resolveImmediateConversationRef(
     transcriptConversationRef,
     storeConversationRef,
     setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
-    setChatConversationRef: setChatActiveConversationRef,
+    setChatConversationRef: dependencies.setChatActiveConversationRef,
     hydrateMainSessionSnapshot: async () => ({ conversationRef: null, userId: sessionSnapshot.userId }),
     createConversationRef,
   });
@@ -165,12 +180,14 @@ async function resolveImmediateConversationRef(
 function acceptPendingTurn({
   attachmentFilenames,
   conversationRef,
+  dependencies,
   text,
   timestamp,
   turnId,
 }: {
   attachmentFilenames: string[];
   conversationRef: string;
+  dependencies: Pick<PrepareDesktopChatSendDependencies, 'acceptPendingTurn'>;
   text: string;
   timestamp: string;
   turnId: string;
@@ -183,8 +200,7 @@ function acceptPendingTurn({
     timestamp,
     attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
   };
-  const store = useChatStore.getState();
-  store.acceptPendingTurn(pendingTurn);
+  dependencies.acceptPendingTurn(pendingTurn);
   DesktopPendingTurnRuntimeClient.setPending(pendingTurn);
 }
 
@@ -227,15 +243,14 @@ export async function prepareDesktopChatSend({
 
   dependencies.stopPlayback?.();
 
-  const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
+  const hadUserMessages = hasUserMessages(dependencies.getMessages());
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
-  const conversationRef = await resolveImmediateConversationRef(
-    dependencies.setChatActiveConversationRef,
-  );
+  const conversationRef = await resolveImmediateConversationRef(dependencies);
   acceptPendingTurn({
     attachmentFilenames,
     conversationRef,
+    dependencies,
     text,
     timestamp,
     turnId,

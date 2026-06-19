@@ -19,12 +19,17 @@ import {
   resolveChatWorkspaceRef,
   resolveWorkspaceConversationRef,
   resolveWorkspaceKey,
+  selectActiveWorkspaceState,
 } from './chatWorkspaceState';
 import type { ChatWorkspaceState } from './chatWorkspaceState';
 import {
   buildStopQueryTrackingPatch,
   buildStoppedCurrentTurnProjection,
 } from '../../../app/runtime/desktopStopTurnRuntime';
+import {
+  projectDesktopChatInterfaceState,
+  projectDesktopLiveTurnSurfaceState,
+} from '../../../app/runtime/desktopChatSurfaceSelectorRuntime';
 
 export type { ChatMessage, TokenCounts };
 
@@ -368,6 +373,17 @@ function resolveWorkspaceMutationTarget(
     workspaceRef,
     workspace: readWorkspaceState(state, workspaceRef),
   };
+}
+
+export function selectChatInterfaceState(state: ChatState) {
+  return projectDesktopChatInterfaceState(selectActiveWorkspaceState(state));
+}
+
+export function selectLiveTurnSurfaceState(state: ChatState) {
+  return projectDesktopLiveTurnSurfaceState({
+    activeWorkspace: selectActiveWorkspaceState(state),
+    latestCurrentTurnProjection: state.latestCurrentTurnProjection,
+  });
 }
 
 /**

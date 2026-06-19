@@ -19,7 +19,9 @@ The chat pill is the small always-available desktop command surface. It is rende
 - Bindings: `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - Composer state: `frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js`
 - Message sending: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- Selectors: `frontend/src/renderer/features/chat/utils/chatSelectors.js`
+- Selectors: `frontend/src/renderer/features/chat/stores/chatStore.ts`, with
+  projection rules in
+  `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - Main window/visibility: `frontend/src/main/surfaces/main_window_runtime.cjs`, `window_visibility_runtime.cjs`, `overlay_chatbox_handler.cjs`
 
 ## Behavior Contracts

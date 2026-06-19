@@ -8,7 +8,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import ChatFindBar from './ChatFindBar';
-import { useChatStore } from '../stores/chatStore';
+import { selectChatInterfaceState, useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import {
   useChatInterfaceAudioChunkStream,
@@ -21,7 +21,6 @@ import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRen
 import { desktopRuntimeSkin } from '../../../app/skin/desktopRuntimeSkin';
 import { DesktopAudioRuntimeClient } from '../../../app/runtime/desktopAudioRuntimeClient';
 import { DesktopWorkspaceRuntimeClient } from '../../../app/runtime/desktopWorkspaceRuntimeClient';
-import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { startNewChatSession } from '../../../app/runtime/desktopNewChatSessionRuntime';
 import {

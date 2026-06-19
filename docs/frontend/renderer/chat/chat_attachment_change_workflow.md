@@ -37,12 +37,12 @@ flowchart LR
 | --- | --- | --- | --- |
 | Pasted image is not previewed | Composer paste parsing | `MessageInput.jsx`, `desktopComposerAttachmentRuntime.js` | `tests/frontend/MessageInput.test.jsx`, `DesktopComposerAttachmentRuntime.test.js` |
 | Selected image file is treated like readable text | File attachment bucketing | `desktopComposerAttachmentRuntime.js`, `desktopAttachmentPresentationRuntime.js`, `MessageInput.jsx` | `DesktopComposerAttachmentRuntime.test.js`, `MessageInput.test.jsx`, `AttachmentPresentationRuntime.test.js` |
-| Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
+| Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
-| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparation.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
+| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `desktopChatSendPayloadRuntime.ts`, `desktopChatSendPreparationRuntime.ts`, `ConversationRuntime.ts` | `DesktopChatSendPayloadRuntime.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
 | Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `WindieSdkConversationRuntime.test.ts`, artifact tests |
-| Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
+| Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparationRuntime.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
 | Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `WindieSdkContextEnrichment.test.ts` |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
 | Replayed message loses images | Message screenshot resolver and transcript replay | `desktopMessageScreenshotRuntime.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `DesktopMessageScreenshotRuntime.test.js`, `MessageContent.test.jsx`, SDK rehydrate projection tests, transcript tests |
@@ -132,7 +132,7 @@ Clipboard image IPC trust boundary:
 ### File Chip Appears but Model Does Not See File Text
 
 1. Confirm selected file is in `readableFiles[]`, not `clipboardImages[]`.
-2. Confirm `desktopChatSendPreparation.ts` submitted a `readable_file` resource.
+2. Confirm `desktopChatSendPreparationRuntime.ts` submitted a `readable_file` resource.
 3. Confirm `DefaultTurnResourceResolvers` called sidecar `read_file`.
 4. Confirm successful `output` was added to `attachment_context` before backend transport.
 5. Confirm the visible transcript row only stores filename metadata.

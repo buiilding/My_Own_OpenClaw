@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat-send: move renderer chat send preparation into
+  `desktopChatSendPreparationRuntime` and inject chat-store state/actions at
+  the hook boundary so the app-runtime send facade no longer imports chat
+  feature internals. No migration required.
+- renderer/chat-selectors: move shared chat-interface and minimal live-surface
+  selector projection rules into `desktopChatSurfaceSelectorRuntime`, with
+  `chatStore` retaining the Zustand active-workspace binding. No migration
+  required.
 - renderer/session: move new-chat reset and local conversation creation
   orchestration into `desktopNewChatSessionRuntime`. No migration required.
 - renderer/chat-stream: collapse transcript model/provider and thinking-capable

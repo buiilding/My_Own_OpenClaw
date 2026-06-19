@@ -39,8 +39,10 @@ frontend/src/renderer/
 │   │   ├── desktopChatLoopUiRuntime.js # Renderer chat loop UI-state reducer shared by dashboard/minimal surfaces
 │   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
 │   │   ├── desktopChatPillSessionRuntime.ts # Renderer chat-pill send lifecycle and response-overlay view intent facade
+│   │   ├── desktopChatSendPreparationRuntime.ts # Renderer chat send preflight, pending-turn, SDK resource, and dispatch facade
 │   │   ├── desktopChatSendPayloadRuntime.ts # Renderer chat send payload and attachment filename normalization facade
 │   │   ├── desktopChatSendStateRuntime.ts # Renderer chat send state predicates facade
+│   │   ├── desktopChatSurfaceSelectorRuntime.ts # Renderer chat interface and minimal live-surface selector projection facade
 │   │   ├── desktopCurrentTurnPresentationRuntime.js # Renderer current-turn reply and chatbox surface projection facade
 │   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
 │   │   ├── desktopCurrentTurnProjectionEffectsRuntime.ts # Renderer SDK current-turn projection side-effect facade
@@ -152,9 +154,6 @@ frontend/src/renderer/
 │   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
-│   │       ├── messageSender/            # messageSender - Payload normalization and SDK turn resource handle utilities
-│   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
-│   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
 │   │

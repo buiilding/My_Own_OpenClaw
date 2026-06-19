@@ -29,7 +29,7 @@ have a `conversationRef` and `turnRef`.
 
 | Stage | Owner | Evidence to prove | First place to inspect |
 | --- | --- | --- | --- |
-| Renderer action | Generic chat desktop UI plus WindieOS skin/config | A renderer send intent produced one SDK-shaped conversation send with message length, resource count, and a `queryMessageId`. | `ipc.bridge` row `renderer query.send`; `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`; [Query Payload and Relay Reference](../frontend/main/query_payload_and_relay_reference.md). |
+| Renderer action | Generic chat desktop UI plus WindieOS skin/config | A renderer send intent produced one SDK-shaped conversation send with message length, resource count, and a `queryMessageId`. | `ipc.bridge` row `renderer query.send`; `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`; [Query Payload and Relay Reference](../frontend/main/query_payload_and_relay_reference.md). |
 | Main handoff | Generic Electron agent host plus OS/window/permission/endpoint adapters | Main accepted the renderer command, applied settings/endpoint gates, and forwarded one query to the SDK/backend transport. | `ipc.bridge` rows `settings update.*`, `backend connection.*`, and `renderer query.send`; `frontend/src/main/ipc/ipc_query_send_runtime.cjs`; [Query Send and Stream Relay Change Workflow](../frontend/main/query_send_and_stream_relay_change_workflow.md). |
 | SDK runtime dispatch | Durable SDK conversation runtime | The runtime resolved turn resources, shaped agent definition/client manifest data, and sent or skipped backend dispatch with explicit transport state. | Durable `query.resources`, `agent.definition`, `settings.sync`, and `query.dispatch` trace rows from `<windie> trace <conversation-ref> <turn-ref>`; [Windie Client Runtime](../sdk/windie_client_runtime.md). |
 | Backend hosted orchestration | WindieOS hosted FastAPI orchestration, provider policy, prompt/runtime specifics | Backend accepted the query, built prompt/provider/tool policy, emitted stream events, and reached a terminal state. | `ipc.bridge` rows `backend first_event` and `backend complete`; durable `backend.stream`, `backend.prompt`, `provider.call`, and `tool.schema.policy` traces; [Query Execution and Stream Pipeline Reference](../backend/runtime/query_execution_and_stream_pipeline_reference.md). |
@@ -505,7 +505,7 @@ Use this when screenshots are missing, stale, include overlays, or do not attach
 
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
-| Renderer query resource handle | `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts` | Whether the outgoing query requested a screenshot resource handle. |
+| Renderer query resource handle | `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts` | Whether the outgoing query requested a screenshot resource handle. |
 | SDK turn resource resolver | `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts` | Whether the SDK resolved the screenshot resource into artifact refs. |
 | SDK/main tool screenshot | `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | Tool screenshot stage and payload. |
 | Main screenshot bridge | `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | Upload/fetch path for screenshot artifacts. |

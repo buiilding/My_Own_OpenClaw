@@ -275,6 +275,27 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-send preparation and selector
+  runtime-boundary slice by moving
+  `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+  to
+  `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
+  and moving shared chat-interface/minimal live-surface projection rules from
+  `frontend/src/renderer/features/chat/utils/chatSelectors.js` into
+  `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`.
+  `useChatMessageSender` now injects the few chat-store reads/actions required
+  by send preparation, `chatStore` binds selector projection rules to the
+  active workspace, and chat/minimal surfaces, focused tests, active docs,
+  folder structure, and boundary guards consume the app-runtime owners while
+  the old feature utility paths are deleted. Validation: focused chat
+  selector, pending-turn live-surface integration, renderer chat boundary, and
+  renderer app-runtime boundary tests; docs listing; stale old-path scans;
+  frontend lint; and diff checks. No migration required; conversation-ref
+  selection, pending-turn acceptance/broadcast, screenshot-resource decisions,
+  attachment metadata, deferred model selection, live-turn dispatch payloads,
+  active-workspace selector references, IPC payloads, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer new-chat session runtime-boundary slice by
   moving new-chat reset, local conversation creation, transcript session
   selection, and workspace binding orchestration from

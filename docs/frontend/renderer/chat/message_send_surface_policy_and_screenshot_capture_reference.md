@@ -11,7 +11,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
@@ -32,7 +32,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 
 `useChatMessageSender` is now the React adapter for chat-store actions,
 playback cleanup, app config, and sender options. It delegates preparation and
-final live-turn dispatch to `desktopChatSendPreparation.ts`, which returns a
+final live-turn dispatch to `desktopChatSendPreparationRuntime.ts`, which returns a
 `PreparedDesktopChatTurn` before calling the backend-facing live-turn runtime.
 Retry and edit/resend replay actions also adapt their continuity-prepared
 turns into this same dispatch shape, with transcript recording disabled because

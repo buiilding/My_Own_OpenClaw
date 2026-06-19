@@ -5,7 +5,7 @@
 import { waitFor } from '@testing-library/react';
 import {
   prepareDesktopChatSend,
-} from '../../frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation';
+} from '../../frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime';
 import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -151,6 +151,9 @@ describe('pending-turn live surface integration', () => {
       payload: 'Live now',
       config: { include_query_screenshot: false },
       dependencies: {
+        acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
+        getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
+        getMessages: () => useChatStore.getState().messages,
         setChatActiveConversationRef: useChatStore.getState().setActiveConversationRef,
       },
       senderSurface: 'overlay-chatbox',

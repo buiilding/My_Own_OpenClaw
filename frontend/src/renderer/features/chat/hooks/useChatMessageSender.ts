@@ -19,7 +19,7 @@ import { resolveChatPillSendLifecycle } from '../../../app/runtime/desktopChatPi
 import {
   dispatchPreparedDesktopChatTurn,
   prepareDesktopChatSend,
-} from '../utils/messageSender/desktopChatSendPreparation';
+} from '../../../app/runtime/desktopChatSendPreparationRuntime';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
 
 const chatSkin = desktopRuntimeSkin.chat;
@@ -66,6 +66,9 @@ export function useChatMessageSender(
       payload,
       config,
       dependencies: {
+        acceptPendingTurn: (pendingTurn) => useChatStore.getState().acceptPendingTurn(pendingTurn),
+        getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
+        getMessages: () => useChatStore.getState().messages,
         setChatActiveConversationRef,
         stopPlayback,
       },

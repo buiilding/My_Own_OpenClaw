@@ -53,7 +53,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSendPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatSendStateRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
 - `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`

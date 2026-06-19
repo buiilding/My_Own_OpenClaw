@@ -11,10 +11,10 @@ title: "Chat Store State and New Session Rotation Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopNewChatSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopActiveChatSessionRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
@@ -85,6 +85,11 @@ Message attachment fields used by current send/runtime paths include:
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
 ## Selector Boundary
+
+`desktopChatSurfaceSelectorRuntime.ts` owns the pure projection rules for the
+full chat interface and live minimal surfaces. `chatStore.ts` binds those
+projection rules to `selectActiveWorkspaceState(...)` so the app-runtime helper
+does not import chat feature store internals.
 
 `selectChatInterfaceState` exposes active-workspace projection:
 

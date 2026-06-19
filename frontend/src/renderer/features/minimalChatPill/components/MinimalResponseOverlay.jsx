@@ -4,11 +4,10 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useChatStore } from '../../chat/stores/chatStore';
+import { selectLiveTurnSurfaceState, useChatStore } from '../../chat/stores/chatStore';
 import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewModel';
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
-import { selectLiveTurnSurfaceState } from '../../chat/utils/chatSelectors';
 import MessageItem from '../../chat/components/message/MessageItem';
 import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import {

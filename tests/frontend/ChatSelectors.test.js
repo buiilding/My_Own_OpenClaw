@@ -5,9 +5,44 @@
 import {
   selectChatInterfaceState,
   selectLiveTurnSurfaceState,
-} from '../../frontend/src/renderer/features/chat/utils/chatSelectors';
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  projectDesktopChatInterfaceState,
+  projectDesktopLiveTurnSurfaceState,
+} from '../../frontend/src/renderer/app/runtime/desktopChatSurfaceSelectorRuntime';
 
 describe('chatSelectors', () => {
+  test('projects shared chat surface fields through app runtime helpers', () => {
+    const activeWorkspace = {
+      messages: [{ id: '1', text: 'hello', sender: 'assistant' }],
+      isSending: true,
+      thinkingStatus: 'thinking',
+      thinkingSourceEventType: 'reasoning_delta',
+      compactionDebugInfo: { strategy: 'summarize' },
+      tokenCounts: { total_tokens: 7 },
+      streamTracking: { phase: 'streaming' },
+      currentTurnProjection: { turnRef: 'workspace-turn' },
+      pendingTurn: { turnRef: 'pending-turn' },
+    };
+    const liveProjection = { turnRef: 'live-turn' };
+
+    expect(projectDesktopChatInterfaceState(activeWorkspace)).toEqual({
+      messages: activeWorkspace.messages,
+      isSending: true,
+      thinkingStatus: 'thinking',
+      thinkingSourceEventType: 'reasoning_delta',
+      compactionDebugInfo: activeWorkspace.compactionDebugInfo,
+      tokenCounts: activeWorkspace.tokenCounts,
+      streamTracking: activeWorkspace.streamTracking,
+      currentTurnProjection: activeWorkspace.currentTurnProjection,
+      pendingTurn: activeWorkspace.pendingTurn,
+    });
+    expect(projectDesktopLiveTurnSurfaceState({
+      activeWorkspace,
+      latestCurrentTurnProjection: liveProjection,
+    }).currentTurnProjection).toBe(liveProjection);
+  });
+
   test('selects only chat interface state fields', () => {
     const state = {
       messages: [{ id: '1', text: 'hello', sender: 'user' }],

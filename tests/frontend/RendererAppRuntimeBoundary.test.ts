@@ -643,6 +643,38 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat surface selector projection stays behind app runtime facade', async () => {
+    const selectorRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopChatSurfaceSelectorRuntime.ts'),
+      'utf8',
+    );
+    const chatStoreSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/stores/chatStore.ts'),
+      'utf8',
+    );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const responseOverlaySource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
+      'utf8',
+    );
+
+    expect(selectorRuntimeSource).toContain('projectDesktopChatInterfaceState');
+    expect(selectorRuntimeSource).toContain('projectDesktopLiveTurnSurfaceState');
+    expect(selectorRuntimeSource).not.toContain('features/chat');
+    expect(chatStoreSource).toContain('desktopChatSurfaceSelectorRuntime');
+    expect(chatStoreSource).toContain('selectActiveWorkspaceState');
+    expect(chatInterfaceSource).toContain('selectChatInterfaceState');
+    expect(responseOverlaySource).toContain('selectLiveTurnSurfaceState');
+    expect(chatInterfaceSource).not.toContain('utils/chatSelectors');
+    expect(responseOverlaySource).not.toContain('chat/utils/chatSelectors');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/chatSelectors.js'),
+    )).rejects.toThrow();
+  });
+
   test('app runtime modules do not import chat feature internals', async () => {
     const files = await listSourceFiles(path.join(appRoot, 'runtime'));
     const offenders: string[] = [];

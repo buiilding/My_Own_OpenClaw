@@ -12,7 +12,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+- `frontend/src/renderer/app/runtime/desktopChatSendPreparationRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`
 - `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
@@ -68,7 +68,7 @@ Wait-delay resolution:
 
 Renderer send behavior:
 
-- `desktopChatSendPreparation.ts` emits a `query_screenshot_request` SDK resource
+- `desktopChatSendPreparationRuntime.ts` emits a `query_screenshot_request` SDK resource
   when overlay/config policy asks for a query screenshot
 - renderer does not capture, upload, or materialize that screenshot before the
   SDK turn exists
