@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move renderer diagnostic channel registration into
+  `ipc_renderer_diagnostics_handlers.cjs` so `ipc.cjs` delegates
+  `renderer-log` and `live-surface-trace` channel bodies while existing
+  diagnostics runtimes keep normalization and redaction. No migration required.
+- main/ipc: move client session snapshot and transcript-session-sync channel
+  registration into `ipc_client_session_handlers.cjs` so `ipc.cjs` keeps Agent
+  SDK host state while a focused helper owns the renderer-facing session
+  snapshot and transcript sync handler bodies. No migration required.
 - renderer/runtime: delete the forwarding-only `desktopStorageRuntimeClient.js`
   adapter and let `desktopPermissionOnboardingStorageRuntime` import the JSON
   localStorage helper directly as the permission-onboarding storage owner. No

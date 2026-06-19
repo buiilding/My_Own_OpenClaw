@@ -56,6 +56,9 @@ const {
   handleRendererLog,
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
+  registerRendererDiagnosticsHandlers,
+} = require('./ipc/ipc_renderer_diagnostics_handlers.cjs');
+const {
   APP_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
@@ -1673,12 +1676,10 @@ function initializeIpc(win, options = {}) {
     ],
   });
 
-  ipcMain.on('renderer-log', (_event, payload = {}) => {
-    handleRendererLog(payload);
-  });
-
-  ipcMain.on('live-surface-trace', (_event, payload = {}) => {
-    handleRendererLiveSurfaceTrace(payload);
+  registerRendererDiagnosticsHandlers({
+    ipcMain,
+    handleRendererLog,
+    handleRendererLiveSurfaceTrace,
   });
 
   ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN, (_event, payload = {}) => {

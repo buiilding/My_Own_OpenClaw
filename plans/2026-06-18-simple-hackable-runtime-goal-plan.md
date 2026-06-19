@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved Electron main renderer diagnostic channel registration
+  into `ipc_renderer_diagnostics_handlers.cjs`. `ipc.cjs` now injects the
+  existing renderer log and live-surface trace handlers instead of owning those
+  listener bodies inline, while diagnostics runtimes keep normalization and
+  redaction. Validation: focused diagnostics handler/runtime tests, main
+  runtime boundary, and docs-index passed, with docs/search, stale inline
+  handler scan, docs listing, and diff checks also passing. No migration required; `renderer-log` and
+  `live-surface-trace` wire names, payloads, redaction, logging behavior, IPC
+  allowlists, storage, credentials, permissions, hosted URLs, provider policy,
+  and local execution behavior are unchanged.
+
+- 2026-06-19: moved Electron main client session snapshot and
+  transcript-session-sync channel registration into
+  `ipc_client_session_handlers.cjs`. `ipc.cjs` now injects Agent SDK host
+  session state, runtime endpoint URLs, transcript state setters, and renderer
+  fan-out instead of owning those renderer-facing channel bodies inline.
+  Validation: focused main IPC handler, bridge lifecycle, runtime boundary,
+  and docs-index tests passed, with docs/search, stale inline handler scan,
+  docs listing, and diff checks also passing; Jest reported its open-handle
+  warning after the clean test exit. No migration required; `get-client-user-id` and
+  `transcript-session-sync` wire names, payloads, endpoint snapshot fields,
+  session semantics, IPC allowlists, storage, credentials, permissions, hosted
+  URLs, provider policy, and local execution behavior are unchanged.
+
 - 2026-06-19: deleted the forwarding-only renderer storage adapter
   `desktopStorageRuntimeClient.js`. Permission onboarding storage now imports
   the JSON localStorage helper directly while remaining the purpose-named

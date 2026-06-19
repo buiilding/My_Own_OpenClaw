@@ -36,8 +36,8 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 
 | Channel | Main owner | Primary behavior |
 |---|---|---|
-| `renderer-log` | `main/ipc.cjs` | Receives renderer log envelopes and forwards them into the Electron main logging path |
-| `live-surface-trace` | `main/ipc.cjs` | Receives renderer live-surface trace envelopes for deterministic surface diagnostics |
+| `renderer-log` | `main/ipc/ipc_renderer_diagnostics_handlers.cjs` | Receives renderer log envelopes and forwards them into the Electron main logging path |
+| `live-surface-trace` | `main/ipc/ipc_renderer_diagnostics_handlers.cjs` | Receives renderer live-surface trace envelopes for deterministic surface diagnostics |
 | `windie:pending-turn` | `main/ipc.cjs` | Stores, broadcasts, replays, and clears renderer-composed pending user turns until SDK current-turn projection catches up |
 | `transcript-session-sync` | `main/ipc/ipc_client_session_handlers.cjs` | Syncs renderer transcript session/conversation/user identity into main runtime state and rebroadcasts normalized session snapshots |
 | `move-chatbox-to` | `main/surfaces/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |

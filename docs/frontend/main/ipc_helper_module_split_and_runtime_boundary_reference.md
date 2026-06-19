@@ -23,6 +23,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
+- `frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -151,6 +152,17 @@ Owns client session IPC handler registration:
   runtime endpoint URLs
 - transcript-session sync state updates through `ipc_transcript_session_sync.cjs`
   while keeping mutable session state in `ipc.cjs`
+
+### `ipc_renderer_diagnostics_handlers.cjs`
+
+Owns renderer diagnostics IPC handler registration:
+
+- `renderer-log`
+- `live-surface-trace`
+- renderer log payloads still normalize and redact through
+  `ipc_diagnostics_runtime.cjs`
+- live-surface trace payloads still normalize and redact through
+  `live_surface_trace_runtime.cjs`
 
 ### `ipc_event_replay_state.cjs`
 
@@ -341,12 +353,14 @@ generic `to-backend` router or direct chat query IPC handlers.
    delegate to `ipc_client_session_handlers.cjs`, which uses
    `ipc_transcript_session_sync.cjs` for payload normalization and next-state
    derivation.
-14. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
-15. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
+14. renderer diagnostics handler registration delegates to
+   `ipc_renderer_diagnostics_handlers.cjs`.
+15. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
+16. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
    `ipc.cjs` and dispatched to explicit Agent SDK runtime/conversation methods.
-16. extension and MCP registry handler registration delegates to
+17. extension and MCP registry handler registration delegates to
    `ipc_extension_mcp_handlers.cjs`.
-17. artifact upload/fetch handler registration delegates to
+18. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
 
 ## Drift Hotspots

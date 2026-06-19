@@ -174,6 +174,44 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Renderer Diagnostics IPC Handler Boundary
+
+- Finding: renderer diagnostics normalization and redaction already lived in
+  focused runtimes, but `ipc.cjs` still registered the `renderer-log` and
+  `live-surface-trace` channel bodies inline.
+- Change: added `ipc_renderer_diagnostics_handlers.cjs` to own renderer
+  diagnostics channel registration. `ipc.cjs` now injects the existing renderer
+  log and live-surface trace handlers instead of owning those listener bodies.
+- Validation: passed focused renderer diagnostics handler, diagnostics
+  runtime, live-surface trace runtime, main SDK runtime boundary, and docs-index
+  tests plus docs search, related commit search, stale inline diagnostics
+  handler scan, docs listing, and diff checks.
+- Compatibility: no migration required. `renderer-log` and
+  `live-surface-trace` channel names, payload shapes, diagnostic redaction,
+  logging behavior, IPC allowlists, storage, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
+### 2026-06-19 Main Client Session IPC Handler Boundary
+
+- Finding: `ipc.cjs` already delegated transcript-session payload
+  normalization to `ipc_transcript_session_sync.cjs`, but still owned the
+  `get-client-user-id` and `transcript-session-sync` channel bodies inline,
+  including renderer-facing snapshot construction and transcript sync state
+  mutation.
+- Change: added `ipc_client_session_handlers.cjs` to own client session
+  snapshot and transcript-session-sync handler registration. `ipc.cjs` now
+  injects Agent SDK host state getters/setters, runtime endpoint URLs, and
+  renderer fan-out while keeping mutable session state in the host root.
+- Validation: passed focused client-session handler, main bridge lifecycle,
+  main SDK runtime boundary, and docs-index tests plus docs search, related
+  commit search, stale inline client-session handler scan, docs listing, and
+  diff checks. Jest reported its open-handle warning after the clean test exit.
+- Compatibility: no migration required. `get-client-user-id` and
+  `transcript-session-sync` channel names, payload shapes, session/conversation
+  state semantics, endpoint snapshot fields, renderer fan-out behavior, IPC
+  allowlists, storage, provider policy, hosted URLs, permissions, credentials,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Storage Forwarding Adapter Deletion
 
 - Finding: the renderer app-runtime inventory identified forwarding/helper
