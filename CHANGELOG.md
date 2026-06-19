@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/getting-started: route overview memory and FAQ tool-dispatch copy through
+  local-runtime wording instead of sidecar local storage or sidecar JSON-RPC
+  execution labels. No migration required.
 - docs/help: route local tool and browser troubleshooting through SDK/main
   local-runtime dispatch and local-runtime adapter wording instead of sidecar
   JSON-RPC or sidecar compatibility labels. No migration required.

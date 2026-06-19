@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Getting-Started Local-Runtime Overview Labels
+
+- Finding: high-level getting-started and FAQ docs still described runtime
+  boundaries as desktop UI/SDK/sidecar/backend, memory as sidecar local
+  storage, and missing local tool execution as sidecar JSON-RPC execution.
+- Change: routed those entry docs through desktop UI/SDK/local runtime/backend,
+  local-runtime storage, and local-runtime execution wording while preserving
+  deeper Python sidecar implementation docs for concrete process debugging, and
+  added modular docs guards for the retired labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Entry docs and boundary tests changed
+  only; memory storage, tool dispatch, JSON-RPC methods, IPC channels,
+  credentials, permissions, hosted routes, provider policy, packaging, backend
+  schemas, and local execution behavior are unchanged.
+
 ### 2026-06-19 Help Diagnostics Local-Runtime Troubleshooting Labels
 
 - Finding: user-facing diagnostics and troubleshooting docs still described

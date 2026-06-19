@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a getting-started local-runtime overview label slice by
+  routing the project overview and FAQ away from sidecar boundary/storage/
+  JSON-RPC execution labels and through local-runtime boundary, storage, and
+  execution wording. Validation: focused modular boundary guard, docs listing,
+  exact stale label scan, and diff checks. No migration required; entry docs
+  and boundary tests changed only, with no memory storage, tool dispatch,
+  JSON-RPC method, IPC channel, credential, permission, hosted route, provider
+  policy, packaging, backend schema, or local execution behavior changed.
 - 2026-06-19: completed a help diagnostics local-runtime troubleshooting label
   slice by routing local tool and browser failure guidance away from sidecar
   JSON-RPC/action compatibility labels and through SDK/main local-runtime

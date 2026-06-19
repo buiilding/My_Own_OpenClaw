@@ -22,7 +22,7 @@ Core differentiators:
 - Agent presence inside the user's personal computer session.
 - Visible, permissioned execution across apps, files, browser, and shell.
 - Local episodic and semantic memory for continuity.
-- Hackable runtime boundaries across desktop UI, SDK, sidecar, and backend.
+- Hackable runtime boundaries across desktop UI, SDK, local runtime, and backend.
 
 ## What It Does Today
 
@@ -107,7 +107,7 @@ Current focus areas:
 Coordinates conversation state, model calls, and tool execution.
 
 ### Memory System
-Runs through sidecar local storage (SQLite + FAISS) plus backend embedding/summarization services.
+Runs through local-runtime storage (SQLite + FAISS) plus backend embedding/summarization services.
 
 ### Computer Control
 Uses screenshot-driven reasoning with OCR and vision grounding for OS-level actions.

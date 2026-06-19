@@ -29,7 +29,7 @@ Read [Install Troubleshooting](../install/install_troubleshooting.md) and [Packa
 
 ## Why is a tool visible to the model but no local action happens?
 
-The backend may have emitted a tool call that did not pass through the SDK runtime tool router, Electron main bridge, or sidecar JSON-RPC execution.
+The backend may have emitted a tool call that did not pass through the SDK runtime tool router, Electron main bridge, or local-runtime execution.
 
 Read [Tool Troubleshooting](../tools/tool_troubleshooting.md).
 
