@@ -1368,8 +1368,12 @@ describe('modular sdk refactor completion boundary', () => {
         'Sidecar tools are not permission-gated by default',
         'Sidecar tool result failures',
         'Sidecar tools should return',
+        'sidecar tools should return',
         'Sidecar Runtime and Tool Domains',
         'Sidecar tool catalog',
+        'Change sidecar tool failure behavior',
+        'Tool call hangs after sidecar failure',
+        'sidecar tool or backend tool-result ingress',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

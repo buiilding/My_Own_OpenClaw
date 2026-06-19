@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for changing WindieOS error and failure surfaces across backend exceptions, websocket error envelopes, HTTP errors, Electron IPC/reconnect failures, sidecar ToolResult errors, renderer error UI, and sanitized logs."
+summary: "Workflow for changing WindieOS error and failure surfaces across backend exceptions, websocket error envelopes, HTTP errors, Electron IPC/reconnect failures, local-runtime ToolResult errors, renderer error UI, and sanitized logs."
 read_when:
-  - When changing exception mapping, websocket error envelopes, HTTP error responses, IPC failure behavior, sidecar ToolResult failures, renderer error display, synthetic query failures, settings ACK timeouts, or log sanitization.
+  - When changing exception mapping, websocket error envelopes, HTTP error responses, IPC failure behavior, local-runtime ToolResult failures, renderer error display, synthetic query failures, settings ACK timeouts, or log sanitization.
   - When debugging an error that is swallowed, overexposed, missing context, rendered in the wrong UI, retried forever, or visible in one runtime but not another.
 title: "Error and Failure Change Workflow"
 ---
@@ -10,7 +10,7 @@ title: "Error and Failure Change Workflow"
 
 Use this workflow when a change affects how WindieOS fails, reports failure, recovers, retries, logs, or displays errors. Most regressions here come from fixing the visible symptom in the consumer while the producer is still emitting the wrong contract.
 
-Core rule: preserve the failure boundary. Backend errors should stay sanitized before crossing hosted transports, Electron should normalize bridge/process failures without hiding readiness state, sidecar tools should return structured `ToolResult` failures, and renderer UI should display or recover from canonical payloads rather than inventing runtime semantics.
+Core rule: preserve the failure boundary. Backend errors should stay sanitized before crossing hosted transports, Electron should normalize bridge/process failures without hiding readiness state, local-runtime tools should return structured `ToolResult` failures, and renderer UI should display or recover from canonical payloads rather than inventing runtime semantics.
 
 ## Fast Owner Map
 
@@ -128,7 +128,7 @@ Validate:
 - public SDK clients map status codes correctly.
 - route docs/examples match new detail shape.
 
-### Change sidecar tool failure behavior
+### Change Local-Runtime Tool Failure Behavior
 
 Read:
 
@@ -138,7 +138,7 @@ Read:
 
 Edit:
 
-- concrete sidecar tool for domain-specific error codes and messages.
+- concrete Python sidecar tool for domain-specific error codes and messages.
 - `tools/result.py` only if the shared ToolResult contract changes.
 - `tools/registry.py` only if result contract enforcement changes.
 - Electron/renderer result handling only if bridge envelope changes.
@@ -215,7 +215,7 @@ Validate:
 | UI shows generic error but backend logs validation detail | websocket sanitizer and renderer display contract | backend API error mapping or renderer consumer |
 | Query send fails while disconnected | synthetic query failure event and websocket bridge state | Electron main IPC bridge |
 | Settings save spins then fails | ACK map, timeout, backend `settings-updated`/`error` id | Electron settings sync or backend handler |
-| Tool call hangs after sidecar failure | sidecar ToolResult, Electron relay, backend result storage | sidecar tool or backend tool-result ingress |
+| Tool call hangs after local-runtime tool failure | Python sidecar `ToolResult`, Electron relay, backend result storage | local-runtime tool implementation or backend tool-result ingress |
 | Tool failure visible but not saved in transcript | SDK runtime/store projection and structured failure contract | SDK runtime/store or renderer projection |
 | Sidecar startup times out | process spawn/path/readiness status | Electron local runtime bridge or packaged runtime |
 | Provider exception leaks details | provider error mapping and sanitizer path | backend provider/inference layer |

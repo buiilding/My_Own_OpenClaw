@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: finish routing error/failure tool-result guidance through
+  local-runtime tool wording instead of sidecar-tool failure labels while
+  preserving Python sidecar implementation breadcrumbs. No migration required.
 - docs/security: route permission/local-authority workflow owner labels through
   local-runtime tools instead of sidecar tools while preserving Python sidecar
   test coverage references. No migration required.

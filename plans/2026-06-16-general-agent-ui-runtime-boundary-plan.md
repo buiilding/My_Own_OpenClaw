@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Debug Failure Local-Runtime Tool Labels
+
+- Finding: the error/failure workflow still used sidecar-tool wording in its
+  summary/read_when metadata, core failure-boundary rule, tool-failure change
+  path, and debug routing row after the owner table moved to local-runtime tool
+  result failures.
+- Change: finished routing those labels through local-runtime tool-result
+  wording while preserving concrete Python sidecar implementation breadcrumbs,
+  then extended the modular docs guard for the retired sidecar failure phrases.
+- Validation: focused modular-boundary guard, docs listing, exact stale-phrase
+  scan, and diff checks.
+- Compatibility: no migration required. ToolResult shape, bridge envelopes,
+  backend result ingestion, renderer error display, IPC channels, credentials,
+  permissions, storage, hosted URLs, and provider policy are unchanged.
+
 ### 2026-06-18 Permission Local-Authority Local-Runtime Tool Labels
 
 - Finding: the permission/local-authority workflow still routed local authority
