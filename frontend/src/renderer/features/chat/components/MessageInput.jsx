@@ -16,7 +16,7 @@ import {
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
-import { resolveReadableFileTypeLabel } from '../utils/composerAttachmentPresentation';
+import { resolveReadableFileTypeLabel } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
 import {
   useClosePlusMenuOnSending,
   useComposerFocusRequest,

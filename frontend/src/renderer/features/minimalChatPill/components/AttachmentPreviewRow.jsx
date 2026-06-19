@@ -4,7 +4,7 @@
 
 import PropTypes from 'prop-types';
 import { FileText, X } from 'lucide-react';
-import { resolveReadableFileTypeLabel } from '../../chat/utils/composerAttachmentPresentation';
+import { resolveReadableFileTypeLabel } from '../../../app/runtime/desktopAttachmentPresentationRuntime';
 
 function AttachmentPreviewRow({
   clipboardImages = [],

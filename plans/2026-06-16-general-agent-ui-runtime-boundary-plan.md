@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Attachment Presentation Runtime Boundary
+
+- Finding: chat input and the minimal pill attachment preview row both used the
+  same readable-file type label formatter, but the helper lived under chat
+  feature utilities.
+- Change: moved the helper to
+  `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`,
+  routed both consumers through that app-runtime presentation facade, deleted
+  the old chat utility path, and refreshed docs plus boundary guards.
+- Validation: focused attachment presentation runtime, renderer app-runtime
+  boundary, renderer chat runtime boundary, docs listing, stale old-path scan,
+  and diff checks.
+- Compatibility: no migration required. File-label formatting, attachment
+  preview rendering, file picker bucketing, outgoing attachment payloads, IPC
+  channels, storage, credentials, permissions, hosted routes, provider policy,
+  packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Chatbox Layout Runtime Boundary
 
 - Finding: minimal chat pill layout code imported visual-anchor constants and

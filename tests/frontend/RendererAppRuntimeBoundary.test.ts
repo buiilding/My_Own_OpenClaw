@@ -113,6 +113,31 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('attachment preview labels stay behind the app runtime facade', async () => {
+    const attachmentRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopAttachmentPresentationRuntime.js'),
+      'utf8',
+    );
+    const messageInputSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/components/MessageInput.jsx'),
+      'utf8',
+    );
+    const previewRowSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/AttachmentPreviewRow.jsx'),
+      'utf8',
+    );
+
+    expect(attachmentRuntimeSource).toContain('resolveReadableFileTypeLabel');
+    expect(attachmentRuntimeSource).not.toContain('features/chat');
+    expect(messageInputSource).toContain('desktopAttachmentPresentationRuntime');
+    expect(previewRowSource).toContain('desktopAttachmentPresentationRuntime');
+    expect(messageInputSource).not.toContain('utils/composerAttachmentPresentation');
+    expect(previewRowSource).not.toContain('chat/utils/composerAttachmentPresentation');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/composerAttachmentPresentation.js'),
+    )).rejects.toThrow();
+  });
+
   test('renderer transport docs classify app-runtime clients before cleanup', async () => {
     const source = await fs.readFile(
       path.resolve(

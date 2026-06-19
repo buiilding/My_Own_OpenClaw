@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer attachment presentation boundary slice by
+  moving the shared readable-file type label formatter from chat feature
+  utilities into `app/runtime/desktopAttachmentPresentationRuntime.js`, routing
+  chat input and minimal pill attachment preview consumers through that
+  app-runtime facade, deleting the old chat utility path, and guarding against
+  the feature-owned helper returning. Validation: focused attachment
+  presentation runtime, renderer app-runtime boundary, renderer chat runtime
+  boundary, docs listing, stale old-path scan, and diff checks. No migration
+  required; file-label formatting, attachment preview rendering, file picker
+  bucketing, outgoing attachment payloads, IPC channels, storage, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer chatbox layout boundary slice by moving
   shared visual-anchor constants and sizing rules from chat feature utilities
   into `app/runtime/desktopChatboxLayoutRuntime.js`, routing minimal pill

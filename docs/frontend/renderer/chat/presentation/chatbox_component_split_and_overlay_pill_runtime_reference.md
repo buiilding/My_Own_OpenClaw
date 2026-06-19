@@ -16,6 +16,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
+- `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`

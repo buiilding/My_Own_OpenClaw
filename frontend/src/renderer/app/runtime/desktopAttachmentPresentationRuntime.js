@@ -1,5 +1,5 @@
 /**
- * Provides the composer attachment presentation module for the renderer UI.
+ * Coordinates renderer attachment preview presentation helpers.
  */
 
 export function resolveReadableFileTypeLabel(filename) {

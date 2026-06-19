@@ -30,7 +30,7 @@ Prefer artifact refs over passing raw base64 through long-lived state.
 
 | Symptom or request | First owner | Source roots | Start docs | Tests |
 | --- | --- | --- | --- | --- |
-| pasted/selected image preview is wrong | renderer message input and attachment presentation | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`, `frontend/src/renderer/features/chat/utils/composerAttachmentPresentation.js` | [Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/FileAttachmentUtils.test.js` |
+| pasted/selected image preview is wrong | renderer message input and attachment presentation | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`, `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js` | [Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/FileAttachmentUtils.test.js` |
 | query screenshot capture does not materialize or loses ref | renderer send resource request, SDK resource resolver, and main screenshot artifact bridge | `frontend/src/renderer/features/chat/utils/messageSender`, `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`, `frontend/src/main/sidecar/local_runtime_screenshot_attachment.cjs` | [Frontend Capture, Artifact URL, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) | `tests/frontend/ChatMessageSender.test.tsx`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, `tests/frontend/LocalRuntimeExecuteToolRuntime.test.cjs` |
 | artifact URL points at wrong runtime endpoint | renderer artifact URL builder and main endpoint status | `frontend/src/renderer/app/runtime/desktopRuntimeEndpointClient.ts`, `frontend/src/renderer/app/runtime/desktopArtifactRuntimeClient.ts`, `frontend/src/renderer/infrastructure/services/RuntimeEndpointStore.ts`, `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/ipc/ipc_artifact_fetch.cjs` | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md) | `tests/frontend/RuntimeEndpointStore.test.ts`, `tests/frontend/IpcArtifactFetch.test.cjs`, endpoint tests |
 | backend upload/fetch route fails | backend artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | [Backend Artifact Service Docs Hub](../backend/services/artifacts/README.md) | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
@@ -71,7 +71,7 @@ Primary files:
 
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
-- `frontend/src/renderer/features/chat/utils/composerAttachmentPresentation.js`
+- `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/**`
 - `frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js`

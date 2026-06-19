@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/attachments: move shared readable-file preview label formatting from
+  chat feature utilities into the renderer app-runtime presentation facade used
+  by chat input and the minimal pill preview row. No migration required.
 - renderer/chatbox: move shared chatbox visual-anchor layout rules from chat
   feature utilities into the renderer app-runtime facade used by the minimal
   pill. No migration required.

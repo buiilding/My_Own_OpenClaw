@@ -1216,6 +1216,31 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat and minimal pill attachment preview labels use app runtime presentation facade', async () => {
+    const messageInputSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageInput.jsx'),
+      'utf8',
+    );
+    const previewRowSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx'),
+      'utf8',
+    );
+    const attachmentRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js'),
+      'utf8',
+    );
+
+    expect(messageInputSource).toContain('desktopAttachmentPresentationRuntime');
+    expect(previewRowSource).toContain('desktopAttachmentPresentationRuntime');
+    expect(attachmentRuntimeSource).toContain('resolveReadableFileTypeLabel');
+    expect(attachmentRuntimeSource).not.toContain('features/chat');
+    expect(messageInputSource).not.toContain('composerAttachmentPresentation');
+    expect(previewRowSource).not.toContain('composerAttachmentPresentation');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/composerAttachmentPresentation.js'),
+    )).rejects.toThrow();
+  });
+
   test('minimal response overlay routes responsebox IPC through app runtime client', async () => {
     const overlaySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx'),
