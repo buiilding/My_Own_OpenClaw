@@ -14,10 +14,11 @@ import {
 } from '../../infrastructure/workspace/conversationWorkspaceBinding';
 
 export type DesktopWorkspaceAccessUpdatedPayload = {
-  granted?: boolean;
-  source?: string;
-  workspaceName?: string;
-  workspacePath?: string;
+  granted: boolean;
+  source: string;
+  workspaceName: string;
+  workspacePath: string;
+  workspace: DesktopWorkspaceSelection;
 };
 
 export type DesktopWorkspaceSelection = {
@@ -32,7 +33,7 @@ export type DesktopWorkspaceSelectionResult = {
 };
 
 export type DesktopWorkspaceAccessUpdatedListener = (
-  payload: DesktopWorkspaceAccessUpdatedPayload | null | undefined,
+  payload: DesktopWorkspaceAccessUpdatedPayload,
 ) => void;
 
 const WORKSPACE_ACCESS_PERMISSION_ID = 'filesystem_workspace_access';
@@ -93,6 +94,33 @@ function selectionResultFromInvokeResult(result: unknown): DesktopWorkspaceSelec
   };
 }
 
+function recordOrEmpty(value: unknown): Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+export function normalizeWorkspaceAccessUpdatedPayload(
+  payload: unknown,
+): DesktopWorkspaceAccessUpdatedPayload {
+  const source = recordOrEmpty(payload);
+  const workspacePath = typeof source.workspacePath === 'string' ? source.workspacePath : '';
+  const explicitWorkspaceName = typeof source.workspaceName === 'string' ? source.workspaceName : '';
+  const activeWorkspaceName = explicitWorkspaceName || getLastPathSegment(workspacePath) || '';
+  const workspace = {
+    activeWorkspaceName,
+    activeWorkspacePath: workspacePath,
+    selectedPaths: workspacePath ? [workspacePath] : [],
+  };
+  return {
+    granted: source.granted === true,
+    source: typeof source.source === 'string' ? source.source : '',
+    workspaceName: activeWorkspaceName,
+    workspacePath,
+    workspace,
+  };
+}
+
 export const DesktopWorkspaceRuntimeClient = {
   async fetchActiveWorkspaceSelection(): Promise<DesktopWorkspaceSelectionResult> {
     const result = await IpcBridge.invoke(INVOKE_CHANNELS.CHECK_PERMISSION, {
@@ -119,7 +147,10 @@ export const DesktopWorkspaceRuntimeClient = {
     if (!ON_CHANNELS?.WORKSPACE_ACCESS_UPDATED) {
       return undefined;
     }
-    return IpcBridge.on(ON_CHANNELS.WORKSPACE_ACCESS_UPDATED, listener);
+    return IpcBridge.on(
+      ON_CHANNELS.WORKSPACE_ACCESS_UPDATED,
+      (payload?: unknown) => listener(normalizeWorkspaceAccessUpdatedPayload(payload)),
+    );
   },
 
   workspaceSelectionToBinding,

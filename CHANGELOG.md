@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize workspace access update payloads in the desktop
+  workspace runtime client so chat and workspace settings consume normalized
+  workspace selections. No migration required.
 - renderer/runtime: move extension metadata and capability-event payload
   normalization behind the desktop extension runtime client instead of the
   agent settings tab. No migration required.

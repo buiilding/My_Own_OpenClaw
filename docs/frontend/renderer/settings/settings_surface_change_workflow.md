@@ -90,7 +90,7 @@ flowchart LR
 4. For authority controls, update the authority path.
    - Permission controls should go through `permissionStore` and permission services.
    - Browser controls should apply permission grant effects and update browser automation config only through the established permission path.
-   - Workspace controls should go through `DesktopWorkspaceRuntimeClient`, workspace access helpers, and Electron workspace permission/runtime services.
+   - Workspace controls should go through `DesktopWorkspaceRuntimeClient`, normalized workspace update payloads, and Electron workspace permission/runtime services.
 
 5. For destructive local data controls, update all reset effects.
    - The renderer hook should call the correct IPC channel.

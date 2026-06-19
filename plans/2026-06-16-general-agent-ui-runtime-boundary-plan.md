@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Workspace Access Update Runtime Payload Boundary
+
+- Finding: chat and workspace settings still parsed live
+  `workspace-access-updated` payload fields such as `workspaceName` and
+  `workspacePath` locally, even though `DesktopWorkspaceRuntimeClient` already
+  owned workspace selection IPC and fetch/request normalization.
+- Change: added `normalizeWorkspaceAccessUpdatedPayload` to the workspace
+  runtime client and made the subscription emit normalized workspace selections
+  with compatibility fields preserved. Chat and workspace settings now consume
+  `payload.workspace` instead of parsing host-shaped event fields.
+- Validation: focused desktop workspace runtime client, chat boundary, and
+  renderer settings boundary tests, stale workspace live-payload scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Workspace event channel names,
+  workspace permission state, active workspace selection behavior, conversation
+  workspace bindings, settings UI, chat UI, storage, credentials, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Agent Settings Extension Runtime Payload Boundary
 
 - Finding: `AgentSettingsTab` still normalized desktop extension metadata and

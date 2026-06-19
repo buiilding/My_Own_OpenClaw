@@ -105,8 +105,9 @@ Selection rules:
   access to a renderer-supplied path.
 - The displayed workspace name is derived from the final path segment.
 
-`desktopWorkspaceRuntimeClient.ts` keeps the permission id, IPC invokes, and
-payload-shaping helpers private. Renderer callers should use only
+`desktopWorkspaceRuntimeClient.ts` keeps the permission id, IPC invokes,
+selection payload-shaping helpers, and live workspace update normalization
+private. Renderer callers should use only
 `DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection()`,
 `DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection()`,
 `DesktopWorkspaceRuntimeClient.setActiveWorkspaceSelection(workspacePath)`, and
@@ -118,7 +119,9 @@ generic package export docs.
 
 Workspace update subscriptions should go through
 `DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(...)` so feature code
-does not import the `workspace-access-updated` IPC channel directly.
+receives a normalized `workspace` selection object instead of importing the
+`workspace-access-updated` IPC channel or interpreting `workspaceName` /
+`workspacePath` host event fields directly.
 
 ### 3. Inspect conversation workspace binding
 

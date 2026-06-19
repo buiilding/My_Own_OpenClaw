@@ -97,9 +97,12 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('ON_CHANNELS');
     expect(source).not.toContain('WORKSPACE_ACCESS_UPDATED');
     expect(source).not.toContain('infrastructure/workspace/workspaceAccess');
+    expect(source).not.toContain('payload?.workspaceName');
+    expect(source).not.toContain('payload?.workspacePath');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.fetchActiveWorkspaceSelection');
     expect(source).toContain('DesktopWorkspaceRuntimeClient.requestActiveWorkspaceSelection');
+    expect(workspaceClientSource).toContain('normalizeWorkspaceAccessUpdatedPayload');
     expect(workspaceClientSource).toContain('ON_CHANNELS.WORKSPACE_ACCESS_UPDATED');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.CHECK_PERMISSION');
     expect(workspaceClientSource).toContain('INVOKE_CHANNELS.REQUEST_PERMISSION');

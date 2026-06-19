@@ -54,11 +54,8 @@ function WorkspaceSettingsTab() {
 
     void refreshWorkspace();
 
-    const removeWorkspaceListener = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated((payload = {}) => {
-      applyWorkspace({
-        activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',
-        activeWorkspacePath: typeof payload?.workspacePath === 'string' ? payload.workspacePath : '',
-      });
+    const removeWorkspaceListener = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated((payload) => {
+      applyWorkspace(payload.workspace);
     });
 
     return () => {

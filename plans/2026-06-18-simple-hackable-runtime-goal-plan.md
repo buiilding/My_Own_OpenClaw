@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer workspace access update payload runtime
+  slice by adding `normalizeWorkspaceAccessUpdatedPayload` to
+  `desktopWorkspaceRuntimeClient` and routing chat plus workspace settings to
+  consume normalized `payload.workspace` selections from live workspace update
+  events. Validation: focused desktop workspace runtime client, chat boundary,
+  renderer settings boundary tests, stale workspace live-payload scan, docs
+  listing, and diff checks. No migration required; workspace event channel
+  names, workspace permission state, active workspace selection behavior,
+  conversation workspace bindings, settings UI, chat UI, storage, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer agent-settings extension payload runtime
   slice by moving extension metadata normalization, empty extension-runtime
   defaults, client tool-manifest status normalization, and remote tool-catalog

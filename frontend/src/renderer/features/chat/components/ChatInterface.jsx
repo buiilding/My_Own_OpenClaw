@@ -165,14 +165,11 @@ function ChatInterface({ focusComposerToken = 0, loadingConversationRef = null }
     void refreshActiveWorkspace();
 
     const removeWorkspaceAccessUpdated = DesktopWorkspaceRuntimeClient.onWorkspaceAccessUpdated(
-      (payload = {}) => {
-        const nextWorkspace = {
-          activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',
-          activeWorkspacePath: typeof payload?.workspacePath === 'string' ? payload.workspacePath : '',
-        };
+      (payload) => {
+        const nextWorkspace = payload.workspace;
         applyActiveWorkspace(nextWorkspace, { markSelectionChange: true });
 
-        if (payload?.source !== 'workspace_picker') {
+        if (payload.source !== 'workspace_picker') {
           return;
         }
 
