@@ -173,6 +173,27 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Debug Local-Runtime Wording Boundary
+
+- Worktree was clean after `6c189a96c` except for the debug local-runtime
+  wording docs and modular stale-doc guard, with `main` ahead of `origin/main`
+  by 274 commits.
+- Debug docs, recent local-runtime wording commits, and current modular guard
+  coverage were inspected.
+- Finding: active debug hub, runtime trace, and symptom playbook docs still
+  described sidecar paths as broad runtime owners instead of naming
+  local-runtime ownership with Python sidecar implementation details only where
+  useful.
+- Change: reworded those debug docs around local-runtime Python logs, traces,
+  backend URL failures, wakeword service, browser adapter, and tool registry
+  implementation labels, then extended the modular stale-doc guard.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. This is documentation and guard
+  coverage only; commands, diagnostic flags, logs, trace payloads, IPC,
+  credentials, local runtime execution, provider policy, backend APIs, and
+  storage are unchanged.
+
 ### 2026-06-19 Renderer Tool-Ghost Timing Runtime Boundary
 
 - Worktree was clean after `2ea966ba6`, with `main` ahead of `origin/main` by
