@@ -275,6 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a tool screenshot and formatter-guard wording slice by
+  routing tool-development screenshot guidance through the Agent SDK tool
+  coordinator plus desktop local-runtime host, and routing backend formatter
+  debugging through the SDK backend-event guard and renderer
+  conversation-event ingress guard instead of generic frontend runtime labels.
+  The modular stale-doc guard now covers the formatter reference and rejects
+  the retired frontend-runtime screenshot/guard phrases. Validation: focused
+  modular boundary test, docs listing, stale phrase scan, and diff checks. No
+  migration required; documentation/test only, with no tool schema, screenshot
+  capture behavior, formatter payload, SDK event guard, renderer ingress, IPC,
+  credential, provider-policy, backend API, storage, or local execution change.
+
+- 2026-06-19: completed a backend agent-definition default-policy wording slice
+  by rewording the backend `AgentDefinition` schema docstring from
+  product-named default-agent language to hosted backend default agent policy.
+  The backend schema guard now rejects the retired "default WindieOS agent"
+  phrase while preserving the existing `agent_definition` payload, validation
+  modes, SDK builder contract, hosted defaults, IPC, credentials, provider
+  policy, storage, and local execution behavior. Validation: focused backend
+  schema test, docs listing, stale phrase scan, and diff checks. No migration
+  required.
+
 - 2026-06-19: completed a debug diagnostic/observability/process-health
   local-runtime label slice by routing `docs/debug/diagnostic_flags.md`,
   `docs/debug/observability_change_workflow.md`, and

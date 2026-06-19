@@ -806,6 +806,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local-runtime Python sidecar');
     expect(docText).toContain('local-runtime Python readiness');
     expect(docText).toContain('Python sidecar stdout is protocol traffic');
+    expect(docText).toContain('Local-Runtime Python Sidecar Logging Changes');
+    expect(docText).toContain('local-runtime screenshot capture');
     expect(docText).not.toContain('or sidecar registry');
     expect(docText).not.toContain('sidecar wakeword service');
     expect(docText).not.toContain('sidecar Browser Use CLI adapter');
@@ -816,6 +818,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('renderer, sidecar, wakeword service');
     expect(docText).not.toContain('packaged app, sidecar readiness');
     expect(docText).not.toContain('Sidecar stdout is protocol traffic');
+    expect(docText).not.toContain('## Sidecar Logging Changes');
+    expect(docText).not.toContain('Use sidecar logs for local JSON-RPC execution');
+    expect(docText).not.toContain('SDK tool routing and sidecar capture');
+    expect(docText).not.toContain('Sidecar stdout remains protocol-only');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('[Tool Registry Result Contract Reference]');
     expect(docText).not.toContain('| Sidecar ToolResult/registry |');
@@ -1156,6 +1162,7 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/backend/api/processing/formatters/messages/assistant_user_system_and_complete_formatter_payload_contract_reference.md',
       'docs/backend/api/processing/formatters/messages/error_formatter_guard_and_schema_mapping_reference.md',
       'docs/backend/api/processing/formatters/signals/chunk_and_thinking_formatter_required_content_and_skip_contract_reference.md',
+      'docs/backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md',
       'docs/backend/llm/providers/base_request_stream_and_normalization_reference.md',
       'docs/backend/inventory/protocols/observability/backend_protocol_correlation_logging_and_telemetry_signal_reference.md',
       'docs/debug/error_failure_change_workflow.md',
@@ -1470,6 +1477,8 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend endpoint/auth code',
         'frontend websocket/main IPC tests',
         'frontend contract updates',
+        'frontend runtime services after execution',
+        'frontend runtime event guards',
         'frontend or sidecar impact',
         'Frontend consumer',
         'Frontend/sidecar owners',

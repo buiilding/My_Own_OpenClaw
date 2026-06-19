@@ -173,6 +173,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Tool Screenshot and Formatter Guard Wording Boundary
+
+- Tool-development docs, backend formatter docs, recent renderer stream-event
+  payload and tool-doc local-runtime commits, and screenshot ownership
+  references were inspected after the backend default-policy slice.
+- Finding: the tool-development guide still described computer-use screenshot
+  capture as frontend-runtime service orchestration, and a backend formatter
+  debug checklist still routed missing events to frontend-runtime event guards.
+- Change: reworded tool screenshot guidance through the Agent SDK tool
+  coordinator and desktop local-runtime host, reworded formatter debugging
+  through SDK backend-event and renderer conversation-event ingress guards, and
+  extended the modular stale-doc guard for the retired frontend-runtime
+  phrases.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. Tool schemas, screenshot capture
+  behavior, formatter output payloads, SDK event guards, renderer ingress
+  behavior, IPC, credentials, provider policy, local runtime execution,
+  backend APIs, and storage are unchanged.
+
 ### 2026-06-19 Debug Diagnostic and Observability Local-Runtime Wording Boundary
 
 - Worktree contained debug diagnostic/process-health wording edits when the

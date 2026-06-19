@@ -252,7 +252,9 @@ Failure:
 
 ## Screenshot Behavior
 
-For computer-use flows, screenshot capture is orchestrated by frontend runtime services after execution. You do not enable this with a per-tool flag in schema code.
+For computer-use flows, post-action screenshot capture is orchestrated by the
+Agent SDK tool coordinator and desktop local-runtime host after execution. You
+do not enable this with a per-tool flag in schema code.
 
 ## Backend-Only Tools
 

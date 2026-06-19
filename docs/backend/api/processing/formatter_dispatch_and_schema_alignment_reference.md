@@ -204,7 +204,8 @@ If a streamed event never appears in frontend:
 1. confirm `get_formatter_specs()` includes the event class and type literal
 2. confirm formatter returns a message and not `None` from required-field guard
 3. confirm no `ValueError` from strict formatters like `ToolSchemasEventFormatter`
-4. confirm outgoing `type` exists in frontend runtime event guards
+4. confirm outgoing `type` exists in the SDK backend-event guard and renderer
+   conversation-event ingress guard
 
 If context metadata is missing:
 

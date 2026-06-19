@@ -27,12 +27,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route tool screenshot and backend formatter debug guidance
+  through Agent SDK/local-runtime and SDK/renderer guard ownership instead of
+  frontend runtime wording. No migration required.
 - backend/schema: describe omitted `agent_definition` fields as hosted backend
   default agent policy instead of a default WindieOS agent. No migration
   required.
 - docs/debug: route diagnostic flag, observability, and process-health
-  summaries through local-runtime Python sidecar labels instead of presenting
-  sidecar as a peer runtime owner. No migration required.
+  summaries, logging guidance, and screenshot capture rows through
+  local-runtime Python sidecar labels instead of presenting sidecar as a peer
+  runtime owner. No migration required.
 - docs/debug: route symptom playbook and trace hub wording through
   local-runtime owners instead of sidecar-as-runtime labels while preserving
   Python sidecar implementation references. No migration required.
