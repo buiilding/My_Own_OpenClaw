@@ -54,7 +54,7 @@ async def test_remote_tool_uses_request_id_from_session_metadata():
 
 
 @pytest.mark.asyncio
-async def test_remote_wait_tool_uses_session_request_id_for_frontend_correlation():
+async def test_remote_wait_tool_uses_session_request_id_for_sdk_correlation():
     ctx = _make_context(metadata={"request_id": "req-wait-123"})
     wait_tool = RemoteWaitTool()
     mouse_tool = RemoteMouseTool()

@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/permissions: route desktop onboarding permission guidance through
+  renderer app-runtime permission facades instead of the removed permission
+  utility glob. No migration required.
+- backend/docs: route protocol correlation wording and backend test names
+  through SDK/renderer correlation instead of retired client-correlation
+  wording. No migration required.
 - docs/local-runtime: route JSON-RPC readiness/status, packaged app local
   runtime status, and dashboard hub ownership labels through local-runtime and
   Python sidecar implementation wording. No migration required.

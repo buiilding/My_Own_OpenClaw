@@ -15,7 +15,7 @@ WindieOS onboarding is a first-run gate for required local capabilities. It is r
 - Onboarding UI: `frontend/src/renderer/features/onboarding/*`
 - Permission store: `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - Permission UI: `frontend/src/renderer/features/permissions/components/*`
-- Permission utilities: `frontend/src/renderer/features/permissions/utils/*`
+- Permission runtime facades: `frontend/src/renderer/app/runtime/desktopPermissionPresentationRuntime.js`, `frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime.js`, `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`, `frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts`
 - Manifest: `frontend/src/shared/permissions/permission_manifest.json`
 - Main IPC: `frontend/src/main/permissions/permission_ipc_runtime.cjs`
 - Main services: `frontend/src/main/permissions/permission_service*.cjs`
@@ -24,8 +24,8 @@ WindieOS onboarding is a first-run gate for required local capabilities. It is r
 
 - Onboarding should not mount wakeword capture before the microphone permission step.
 - Opening OS settings is not the same as a granted permission; probe the real capability.
-- Permission control center in settings should reuse the same manifest and store behavior as onboarding.
-- Platform-specific permission behavior belongs in main process services or sidecar platform adapters.
+- Permission control center in settings should reuse the same manifest, store behavior, and renderer app-runtime permission facades as onboarding.
+- Platform-specific permission behavior belongs in main process services, local-runtime platform adapters, or Python sidecar implementation details.
 
 ## Settings Re-Entry
 

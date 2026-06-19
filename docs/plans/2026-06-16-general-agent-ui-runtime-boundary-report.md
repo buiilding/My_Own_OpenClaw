@@ -173,6 +173,45 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Desktop Permission Runtime-Facade Docs Boundary
+
+- Desktop onboarding permission docs, renderer permission runtime references,
+  modular stale-doc guard coverage, docs search results, and recent permission
+  runtime commits were inspected after the backend protocol correlation wording
+  slice.
+- Finding: the desktop onboarding permission guide still pointed readers at
+  the removed permission utility path even though presentation, grant effects,
+  onboarding storage, and runtime-client behavior now route through renderer
+  app-runtime permission facades.
+- Change: replaced the stale utility path with the current renderer
+  app-runtime permission facade files and extended the modular guard to read
+  the desktop permissions guide and reject the retired permission utility glob.
+- Validation: focused modular boundary test, docs listing, stale path scan,
+  and diff checks.
+- Compatibility: no migration required. Onboarding UI, settings control-center
+  behavior, permission store state, manifest contents, probes, IPC, credentials,
+  provider policy, local execution, backend APIs, and storage are unchanged.
+
+### 2026-06-19 Backend Protocol Correlation Wording Boundary
+
+- Backend formatter tests, remote-tool tests, websocket transport docs,
+  protocol-state docs, recent frontend-correlation cleanup commits, and current
+  source scans were inspected after the local-runtime readiness docs slice.
+- Finding: backend protocol docs and backend test names still used retired
+  client-correlation wording for request/context correlation, even though the
+  owner-correct path is backend context attachment feeding SDK event
+  correlation and renderer consumers.
+- Change: reworded transport and protocol-state docs to SDK/renderer
+  correlation, renamed backend formatter/remote-tool tests to SDK correlation,
+  and added backend guard coverage for the retired frontend-correlation
+  phrases.
+- Validation: focused backend formatter, remote-tool, and architecture
+  guardrail tests, docs listing, stale phrase scan, and diff checks.
+- Compatibility: no migration required. Websocket envelopes, context fields,
+  request IDs, formatter payloads, remote-tool behavior, SDK projections,
+  renderer ingress, IPC, credentials, provider policy, backend APIs, and
+  storage are unchanged.
+
 ### 2026-06-19 Local-Runtime Readiness and Dashboard-Hub Label Boundary
 
 - Local-runtime JSON-RPC workflow docs, Python sidecar memory docs, packaged

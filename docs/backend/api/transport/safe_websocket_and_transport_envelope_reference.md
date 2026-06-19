@@ -148,7 +148,7 @@ Used by:
 
 1. Changing sender-loop queue tuple contract without synchronized handler updates can deadlock futures.
 2. Removing pending-future drain on sender failure leaves awaiters hanging indefinitely.
-3. Altering context-field attachment truthiness rules can break frontend turn/session correlation.
+3. Altering context-field attachment truthiness rules can break SDK/renderer turn/session correlation.
 4. Bypassing `WebSocketSender` protocol and writing to raw websocket reintroduces concurrent-send race conditions.
 
 ## Related Pages

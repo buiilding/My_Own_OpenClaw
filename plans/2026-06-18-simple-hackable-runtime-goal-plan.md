@@ -275,6 +275,29 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a desktop permission runtime-facade docs slice by
+  replacing stale removed-permission-utility guidance in
+  `docs/desktop/onboarding_permissions.md` with the current renderer
+  app-runtime permission presentation, grant-effects, onboarding-storage, and
+  runtime-client facades. The modular stale-doc guard now reads the desktop
+  permissions guide and rejects the retired permission utility glob.
+  Validation: focused modular boundary test, docs listing, stale path scan, and
+  diff checks. No migration required; documentation/test only, with no
+  onboarding UI, settings control-center, permission store, manifest, IPC,
+  credential, provider-policy, backend API, storage, local execution, or
+  platform permission behavior changed.
+
+- 2026-06-19: completed a backend protocol correlation wording slice by
+  rewording websocket transport and backend protocol-state docs from frontend
+  correlation to SDK/renderer correlation, renaming backend formatter and
+  remote-tool tests to SDK correlation, and adding backend guard coverage for
+  the retired frontend-correlation phrases. Validation: focused backend
+  formatter, remote-tool, and architecture guardrail tests, docs listing, stale
+  phrase scan, and diff checks. No migration required; documentation/test only,
+  with no websocket envelope, context field, request id, formatter payload,
+  remote-tool behavior, SDK projection, renderer ingress, IPC, credential,
+  provider-policy, backend API, or storage change.
+
 - 2026-06-19: completed a local-runtime readiness/dashboard-hub label slice by
   routing JSON-RPC workflow readiness/status, Python sidecar memory routing,
   packaged app local-runtime status, and dashboard hub summary wording through

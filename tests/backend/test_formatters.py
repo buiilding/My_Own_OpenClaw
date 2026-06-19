@@ -439,7 +439,7 @@ class TestToolOutputEventFormatter:
 
         assert result["payload"]["output"] is None
 
-    def test_format_preserves_metadata_request_id_for_frontend_correlation_fallback(self, formatter):
+    def test_format_preserves_metadata_request_id_for_sdk_renderer_correlation(self, formatter):
         event = ToolOutputEventClass(
             tool_name="read_file",
             success=True,

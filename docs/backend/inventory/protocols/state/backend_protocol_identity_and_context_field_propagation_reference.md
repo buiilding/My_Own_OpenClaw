@@ -161,7 +161,7 @@ This keeps protocol state stable: disconnected sockets do not cause state-corrup
 When modifying this surface, keep aligned:
 
 - handshake model constraints vs route user injection assumptions
-- query stream-context builder fields vs frontend event correlation expectations
+- query stream-context builder fields vs SDK/renderer event correlation expectations
 - `SessionManager` active task metadata shape vs `StopQueryHandler` context attachment
 - shared handler context helper behavior (trim/drop rules) vs stop-query/compact-history envelope fields
 - `attach_context_fields(...)` truthy-only behavior vs tests and renderer fallback logic

@@ -107,3 +107,18 @@ def test_backend_runtime_docs_use_sdk_client_boundary_wording():
     assert "frontend protocol-ordering issues" not in synthetic_reference
     assert "tool never executed on frontend" not in synthetic_reference
     assert "renderer-owned runtime" not in frontend_architecture
+
+
+def test_backend_protocol_docs_use_sdk_renderer_correlation_wording():
+    transport_reference = _read(
+        "docs/backend/api/transport/safe_websocket_and_transport_envelope_reference.md"
+    )
+    state_reference = _read(
+        "docs/backend/inventory/protocols/state/backend_protocol_identity_and_context_field_propagation_reference.md"
+    )
+    combined = f"{transport_reference}\n{state_reference}"
+
+    assert "SDK/renderer turn/session correlation" in transport_reference
+    assert "SDK/renderer event correlation expectations" in state_reference
+    assert "frontend turn/session correlation" not in combined
+    assert "frontend event correlation expectations" not in combined
