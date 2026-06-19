@@ -1789,7 +1789,10 @@ describe('renderer chat runtime boundary', () => {
     }
     expect(layoutRuntimeSource).toContain('resolveChatboxVisualAnchorHeight');
     expect(layoutRuntimeSource).toContain('CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT');
-    expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight');
+    expect(pillSource).toContain('setChatboxVisualAnchorHeightValue');
+    expect(bindingsSource).toContain('setChatboxVisualAnchorHeightValue');
+    expect(pillSource).not.toContain('setChatboxVisualAnchorHeight({');
+    expect(bindingsSource).not.toContain('payload.frameHeight');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.activateChatboxTextEntry');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.setChatboxHitTestActive');
     expect(pillSource).toContain('DesktopWindowRuntimeClient.showMainWindow');

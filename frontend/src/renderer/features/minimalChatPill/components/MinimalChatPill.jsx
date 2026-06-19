@@ -182,9 +182,7 @@ function MinimalChatPill() {
       });
       reservedChatboxFrameHeightRef.current = null;
       setReservedChatboxFrameHeight(null);
-      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight({
-        height: nextAnchorHeight,
-      }).catch((error) => {
+      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(nextAnchorHeight).catch((error) => {
         console.warn('[MinimalChatPill] Failed to collapse chat window frame:', error);
       });
     }, CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS);
@@ -350,10 +348,10 @@ function MinimalChatPill() {
       return;
     }
 
-    DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight({
-      height: currentAnchorHeight,
-      frameHeight: expandedFrameHeight,
-    }).catch((error) => {
+    DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(
+      currentAnchorHeight,
+      expandedFrameHeight,
+    ).catch((error) => {
       console.warn('[MinimalChatPill] Failed to presize chat window:', error);
     }).finally(() => {
       if (composerResizeSequenceRef.current !== sequence) {

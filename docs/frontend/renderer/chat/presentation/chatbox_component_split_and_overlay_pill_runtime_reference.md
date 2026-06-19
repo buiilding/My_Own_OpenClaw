@@ -100,6 +100,9 @@ compaction behind its loop lock.
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor layout is resolved through
   `desktopChatboxLayoutRuntime.resolveChatboxVisualAnchorHeight(...)`
+- visual-anchor IPC payload assembly is owned by
+  `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`; the pill
+  reports measured height values and optional native-frame height values.
 - drag-state and absolute move targets are resolved through
   `desktopChatboxLayoutRuntime` before dispatching native movement IPC
 - visual-anchor IPC sync:

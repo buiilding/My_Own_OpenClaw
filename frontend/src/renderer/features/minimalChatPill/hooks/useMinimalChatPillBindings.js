@@ -94,17 +94,13 @@ export function useChatboxVisualAnchorBindings({
         return;
       }
       lastReportedSignature = nextSignature;
-      const payload = {
-        height: nextAnchorHeight,
-      };
-      if (normalizedFrameHeight !== null) {
-        payload.frameHeight = normalizedFrameHeight;
-      }
-      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight(payload).catch((error) => {
-        if (!cancelled) {
-          console.warn('[MinimalChatPill] Failed to sync visual anchor height:', error);
-        }
-      });
+      DesktopWindowRuntimeClient
+        .setChatboxVisualAnchorHeightValue(nextAnchorHeight, normalizedFrameHeight)
+        .catch((error) => {
+          if (!cancelled) {
+            console.warn('[MinimalChatPill] Failed to sync visual anchor height:', error);
+          }
+        });
     };
 
     const scheduleAnchorHeightReport = () => {
@@ -178,9 +174,9 @@ export function useChatboxVisualAnchorBindings({
 
   useEffect(() => {
     return () => {
-      DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight({
-        height: CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
-      }).catch(() => {});
+      DesktopWindowRuntimeClient
+        .setChatboxVisualAnchorHeightValue(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT)
+        .catch(() => {});
     };
   }, []);
 }

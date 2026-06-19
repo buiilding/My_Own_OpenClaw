@@ -40,6 +40,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopWindowRuntimeClient,
+  buildChatboxVisualAnchorHeightPayload,
   resolveMainWindowOpenTarget,
 } from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
 
@@ -54,6 +55,23 @@ describe('DesktopWindowRuntimeClient', () => {
     expect(resolveMainWindowOpenTarget({ target: ' settings ' })).toBe('settings');
     expect(resolveMainWindowOpenTarget({ target: 12 })).toBe('');
     expect(resolveMainWindowOpenTarget(null)).toBe('');
+  });
+
+  test('builds chatbox visual anchor payloads at the runtime boundary', async () => {
+    expect(buildChatboxVisualAnchorHeightPayload(92, 160)).toEqual({
+      height: 92,
+      frameHeight: 160,
+    });
+    expect(buildChatboxVisualAnchorHeightPayload('64.4', 0)).toEqual({
+      height: 64,
+    });
+
+    await DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(72, 144);
+
+    expect(mockInvoke).toHaveBeenCalledWith('set-chatbox-visual-anchor-height', {
+      height: 72,
+      frameHeight: 144,
+    });
   });
 
   test('main-window open target subscriptions emit normalized target strings', () => {

@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chatbox visual-anchor value boundary slice
+  by adding `buildChatboxVisualAnchorHeightPayload(...)` and
+  `DesktopWindowRuntimeClient.setChatboxVisualAnchorHeightValue(...)`. Minimal
+  chat pill code now keeps measurement, resize scheduling, composer pre-sizing,
+  and collapse policy without assembling `height` / `frameHeight` IPC payload
+  objects. Validation: passed focused desktop window runtime client, renderer
+  chat runtime boundary, minimal chat pill wiring, and docs-index tests plus
+  docs search, related commit search, stale visual-anchor payload scans, docs
+  listing, and diff checks. No migration required; the
+  `set-chatbox-visual-anchor-height` IPC channel, `height` / optional
+  `frameHeight` payload fields, native window frame behavior, overlay
+  anchoring, resize timing, hit-test behavior, storage, settings, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer workspace value boundary slice by adding
   value-level active-workspace helpers for fetch, granted request,
   selection-update subscription, and active-workspace update subscription to

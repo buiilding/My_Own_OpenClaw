@@ -55,6 +55,26 @@ export function resolveMainWindowOpenTarget(payload: unknown): string {
   return typeof source.target === 'string' ? source.target.trim() : '';
 }
 
+function optionalPositiveInteger(value: unknown): number | null {
+  const normalized = Math.round(Number(value));
+  return Number.isFinite(normalized) && normalized > 0 ? normalized : null;
+}
+
+export function buildChatboxVisualAnchorHeightPayload(
+  height: unknown,
+  frameHeight: unknown = null,
+): ChatboxVisualAnchorHeightPayload {
+  const normalizedHeight = optionalPositiveInteger(height) || 0;
+  const payload: ChatboxVisualAnchorHeightPayload = {
+    height: normalizedHeight,
+  };
+  const normalizedFrameHeight = optionalPositiveInteger(frameHeight);
+  if (normalizedFrameHeight !== null) {
+    payload.frameHeight = normalizedFrameHeight;
+  }
+  return payload;
+}
+
 export const DesktopWindowRuntimeClient = {
   showChatbox(options: ShowChatboxOptions = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, options);
@@ -70,6 +90,15 @@ export const DesktopWindowRuntimeClient = {
 
   setChatboxVisualAnchorHeight(payload: ChatboxVisualAnchorHeightPayload): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, payload);
+  },
+
+  setChatboxVisualAnchorHeightValue(
+    height: unknown,
+    frameHeight: unknown = null,
+  ): Promise<unknown> {
+    return DesktopWindowRuntimeClient.setChatboxVisualAnchorHeight(
+      buildChatboxVisualAnchorHeightPayload(height, frameHeight),
+    );
   },
 
   activateChatboxTextEntry(payload: ActivateChatboxTextEntryPayload = {}): Promise<unknown> {
