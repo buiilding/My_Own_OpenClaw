@@ -27,11 +27,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/security: route endpoint drift, remote-client auth, data-flow memory,
+  and executable local tool owner labels through local-runtime wording instead
+  of sidecar-as-public-owner wording. No migration required.
 - docs/config: route configuration owner maps, runtime variable rows, and
   observability labels through local-runtime implementation wording while
   keeping Python sidecar implementation paths visible; follow-up local-runtime
   daemon/env headings and guards now cover the remaining public config labels.
   No migration required.
+- docs/ops: route settings-sync, endpoint-debug, and operational
+  troubleshooting env owner labels through local-runtime implementation wording
+  instead of sidecar env/runtime wording. No migration required.
 - docs/debug: finish routing error/failure tool-result guidance through
   local-runtime tool wording instead of sidecar-tool failure labels while
   preserving Python sidecar implementation breadcrumbs. No migration required.

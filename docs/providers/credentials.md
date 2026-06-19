@@ -10,7 +10,9 @@ title: "Provider Credentials"
 
 WindieOS supports environment-variable credentials, renderer-managed provider overrides, and hosted install authentication. Never commit real credentials in docs, tests, or config.
 
-For code-owner routing and validation commands across install tokens, runs keys, provider keys, sidecar auth headers, and logging, start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
+For code-owner routing and validation commands across install tokens, runs keys,
+provider keys, local-runtime remote-client auth headers, and logging, start with
+[Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
 
 ## Environment Variables
 

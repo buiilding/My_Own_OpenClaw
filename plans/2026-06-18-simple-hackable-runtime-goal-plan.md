@@ -275,6 +275,35 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed an operations/settings env-label slice by routing
+  settings-sync, operations hub, endpoint debugging, and operational
+  troubleshooting docs through local-runtime implementation/env owner labels
+  instead of sidecar env/runtime wording. Python sidecar files, sidecar startup
+  tests, and bundled sidecar runtime packaging terms remain where they name the
+  current implementation artifact. The modular docs guard now rejects the
+  retired settings/operations sidecar env, sidecar endpoint-injection, and
+  sidecar/Electron bridge owner phrases. Validation: pending focused modular
+  docs boundary test, docs listing, exact stale settings/operations label scan,
+  and diff checks. No migration required; no env var name, launch option,
+  endpoint resolution, storage, IPC, settings payload, credential, hosted URL
+  policy, provider policy, permission, packaging artifact, or local execution
+  behavior changed.
+- 2026-06-18: completed an endpoint/auth/data-flow owner-label slice by routing
+  the docs entrypoint, data-flow state ownership map, and credential-token
+  workflow through local-runtime endpoint env, remote-client auth, transcript,
+  memory, permission, and executable local tool owner labels instead of
+  sidecar-as-public-owner wording. Concrete Python sidecar client base paths,
+  sidecar remote-client tests, and sidecar implementation notes remain visible
+  where they describe the current implementation. The modular docs guard now
+  rejects retired sidecar endpoint-env, URL-drift, remote-client auth,
+  data-flow state owner, and sidecar parity/client hub labels. Validation:
+  `bin\windie.cmd test frontend -- ModularRefactorCompletionBoundary
+  --runInBand`, `bin\windie.cmd docs list`, exact stale
+  endpoint/auth/data-flow label scan, and `git diff --check`. No migration
+  required; no code path, payload, storage, IPC, settings, env var name, tool
+  schema, credential source, permission, hosted URL, provider-policy, auth
+  header, token persistence, local execution, transcript, memory, or endpoint
+  behavior changed.
 - 2026-06-18: completed a configuration owner-label slice by routing the
   configuration reference, runtime configuration matrix, configuration change
   workflow, and observability workflow through local-runtime implementation/env

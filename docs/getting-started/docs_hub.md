@@ -56,8 +56,8 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) for changing visible transcript persistence, pending queue retries, dashboard replay, and backend rehydrate flow.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
-- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
-- [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging changes.
+- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and local-runtime remote-client auth.
+- [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging changes.
 - [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
 - [Extension Convention](../development/extensions.md) for reusable local runtime tool schemas, main-process plugin tools, MCP servers, prompt layers, extension skills, settings panels, lifecycle hooks, and extension docs.
 - [MCP Runtime](../development/mcp.md) for connecting stdio MCP servers, discovering MCP tools, and exposing them through the client tool manifest.
@@ -68,16 +68,16 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [Observability Change Workflow](../debug/observability_change_workflow.md) for adding logs, trace flags, metrics, diagnostic events, and evidence collection safely.
 - [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md) for backend exceptions, websocket/HTTP errors, IPC failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs.
 - [Diagnostic Flags](../debug/diagnostic_flags.md) for enabling the narrowest backend, Electron, renderer, sidecar, VM worker, or packaged-app debug signal.
-- [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and sidecar endpoint drift.
+- [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and local-runtime endpoint drift.
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
-- [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and tool-result contracts.
+- [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and tool-result contracts.
 - [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md) for changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, sudo prompt behavior, working directories, process sessions, output formatting, and local tool results.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) for browser action schemas, shared contracts, local-runtime execution, Python sidecar adapters, CDP launch, snapshots, refs, files, Electron bridge, and renderer browser controls.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [Provider Change Workflow](../providers/provider_change_workflow.md) for backend provider runtime, factory, config, credential, frontend setting, and test changes.
 - [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) for model ids, capability flags, routing metadata, and picker behavior.
-- [Inference Capability Change Workflow](../providers/inference_capability_change_workflow.md) for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and sidecar client changes.
+- [Inference Capability Change Workflow](../providers/inference_capability_change_workflow.md) for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and local-runtime remote-client changes.
 - [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md) for backend `AppConfig`, runtime normalization, DI rebinding, provider refresh, and session settings propagation.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
 - [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md) for hosted SDK route, client, artifact, OCR, vision, and test changes.

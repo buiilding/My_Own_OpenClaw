@@ -1,7 +1,8 @@
 ---
 summary: "WindieOS data-flow and state-ownership map for queries, streams, tool results, settings, transcripts, memory, artifacts, permissions, providers, and VM runs."
 read_when:
-  - When changing state that crosses backend, Electron main, renderer, preload, sidecar, or hosted API boundaries.
+  - When changing state that crosses backend, Electron main, renderer,
+    preload, local runtime, or hosted API boundaries.
   - When debugging stale UI, wrong conversation, wrong backend endpoint, missing tool result, memory drift, or duplicated state.
 title: "Data Flow and State Ownership"
 ---
@@ -18,18 +19,18 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 
 | State | Owner | Consumers | Notes |
 | --- | --- | --- | --- |
-| backend endpoint URLs | Electron main | renderer, sidecar env, SDK helpers | resolved in `frontend/src/main/app/backend_endpoints.cjs`; sidecar receives `WINDIE_BACKEND_HTTP_URL` |
-| session/conversation identity | backend plus SDK conversation runtime | backend history, SDK projections, sidecar transcript/memory, renderer display | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
+| backend endpoint URLs | Electron main | renderer, local-runtime env, SDK helpers | resolved in `frontend/src/main/app/backend_endpoints.cjs`; local runtime receives `WINDIE_BACKEND_HTTP_URL` |
+| session/conversation identity | backend plus SDK conversation runtime | backend history, SDK projections, local-runtime transcript/memory, renderer display | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
 | model/provider settings | backend config/session policy; SDK model-selection contract; renderer stores user-facing subset | provider factory, model list UI, prompt construction | renderer should not persist backend-owned provider internals or keys; desktop query-time model patches are built through the SDK model-selection helper; conversation-scoped SDK model changes append `settings_updated` events for runtime state/debug but do not become display or rehydrate history |
 | model-facing tool schema | backend | LLM provider adapters, parser validation, transparency events | desktop client/Python sidecar code must not import backend schema code |
-| executable local tool implementation | sidecar | SDK tool coordinator, Electron main bridge, backend result ingestion, renderer display projection | backend sees results, sidecar does local work |
+| executable local tool implementation | local runtime | SDK tool coordinator, Electron main bridge, backend result ingestion, renderer display projection | backend sees results, Python sidecar implementation does local work |
 | stream event phase | backend event producer plus SDK runtime reducer | chat UI, response overlay, tool coordinator, transcript projections | stale-turn filtering belongs at consumer boundaries |
 | normalized conversation events | SDK runtime | desktop, CLI, custom UI, store adapters, backend rehydrate projection | UI messages are projections, not storage truth |
-| transcript queue | SDK store adapter and sidecar local store during migration | dashboard replay, memory indexing, backend rehydrate | visible transcript is not the same as backend history |
+| transcript queue | SDK store adapter and local-runtime local store during migration | dashboard replay, memory indexing, backend rehydrate | visible transcript is not the same as backend history |
 | backend conversation history | backend | prompt context, compaction, history rehydrate | sidecar should not mutate it directly |
-| semantic/episodic memory | sidecar local store plus backend embedding/semantic APIs | prompt context, dashboard memory, search | embeddings may degrade without blocking SQLite storage |
+| semantic/episodic memory | local-runtime memory store plus backend embedding/semantic APIs | prompt context, dashboard memory, search | embeddings may degrade without blocking SQLite storage |
 | artifacts | backend artifact service/API plus Electron upload bridge | renderer image display, tool results, SDK clients | artifact refs should survive transcript replay |
-| permissions | Electron main permission services plus stored permission state | renderer onboarding/settings, sidecar path/tool decisions | renderer displays normalized state |
+| permissions | Electron main permission services plus stored permission state | renderer onboarding/settings, local-runtime path/tool decisions | renderer displays normalized state |
 | VM run status/events | backend run control service | hosted dashboard/API callers, VM worker runtime | normal desktop chat should not route through runs API |
 
 ## Query Flow
@@ -54,7 +55,7 @@ fall back to the active chat, because `conversationRef` owns chat identity.
 | Risk | Avoid by |
 | --- | --- |
 | renderer and backend disagree on model/provider | backend owns effective policy; renderer stores only user-facing selection |
-| sidecar points to different backend than websocket | Electron main injects resolved URL; debug `WINDIE_BACKEND_HTTP_URL` |
+| local runtime points to different backend than websocket | Electron main injects resolved URL; debug `WINDIE_BACKEND_HTTP_URL` |
 | tool schemas drift | parity tests, generated/shared contract checks, no backend imports in desktop client/Python sidecar code |
 | visible transcript differs from backend history | use session/transcript reference and rehydrate contracts |
 | UI display, replay, and edit/resend history drift | make them projections from SDK normalized conversation events |

@@ -1,7 +1,9 @@
 ---
-summary: "Workflow for changing WindieOS install auth, install tokens, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging boundaries."
+summary: "Workflow for changing WindieOS install auth, install tokens, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging boundaries."
 read_when:
-  - When changing install registration, REST bearer auth, websocket auth, runs API keys, provider API keys, OAuth state, sidecar remote-client auth, or credential persistence.
+  - When changing install registration, REST bearer auth, websocket auth, runs
+    API keys, provider API keys, OAuth state, local-runtime remote-client auth,
+    or credential persistence.
   - When debugging 401 responses, websocket 1008 closes, missing provider credentials, saved keys that backend ignores, VM worker auth failures, or possible secret leakage in logs/tests.
 title: "Install Auth and Credential Token Change Workflow"
 ---
@@ -10,7 +12,7 @@ title: "Install Auth and Credential Token Change Workflow"
 
 Use this workflow before editing any code that accepts, stores, forwards, derives, logs, or validates credentials. WindieOS has several credential classes with different owners. Treat the credential class as the first design decision; do not route a bug through the nearest failing client if the enforcing boundary lives elsewhere.
 
-Core rule: install auth identifies a desktop install to the hosted backend, runs keys protect the VM-run control plane, provider credentials authenticate vendors, OAuth state belongs to provider-specific auth, and sidecar remote-client auth is only a hosted-backend bearer-header propagation path.
+Core rule: install auth identifies a desktop install to the hosted backend, runs keys protect the VM-run control plane, provider credentials authenticate vendors, OAuth state belongs to provider-specific auth, and local-runtime remote-client auth is only a hosted-backend bearer-header propagation path.
 
 ## Fast Owner Map
 
@@ -20,7 +22,7 @@ Core rule: install auth identifies a desktop install to the hosted backend, runs
 | Hosted REST bearer auth | Backend auth middleware | `backend/src/api/auth/http_middleware.py`, `backend/src/api/auth/context.py`, `backend/src/main.py` | `tests/backend/test_install_auth.py`, route tests for affected APIs | [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md) |
 | Websocket bearer auth and identity override | Backend websocket connection lifecycle | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/schemas/common.py` | `tests/backend/test_websocket_connection.py` | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
 | Electron install-token persistence | Electron main auth-state helper and IPC wiring | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | frontend install-auth, backend-connection, or IPC tests | [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md) |
-| Sidecar remote-client auth headers | Python sidecar remote client base | `frontend/src/main/python/windie/_auth.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
+| Local-runtime remote-client auth headers | Python sidecar remote client base | `frontend/src/main/python/windie/_auth.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
 | Runs API key | Runs route dependency and VM worker runtime | `backend/src/api/routes/runs/support.py`, `backend/src/api/routes/runs/router.py`, `frontend/src/main/app/vm_worker_runtime.cjs` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py`, `tests/frontend/VmWorkerRuntime.test.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Provider env keys | Backend config and provider constructors | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/llm/providers/**` | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, provider tests | [Provider Credentials](../providers/credentials.md) |
 | Renderer-managed provider key overrides | Renderer settings and backend client-settings patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
@@ -78,9 +80,14 @@ If changing OAuth fields, update all three boundaries:
 2. Renderer settings or provider status surface, if exposed.
 3. Backend config model/loader behavior that consumes the OAuth entry.
 
-### Sidecar remote-client auth
+### Local-runtime remote-client auth
 
-The sidecar does not own install authentication. It reads persisted install auth state and forwards a bearer header when calling hosted backend-backed services, such as semantic summarization or other future sidecar clients. SDK-owned embedding calls use the SDK transport/auth path. Missing local auth state should produce a clear hosted-auth failure, not silent local identity invention.
+The local runtime does not own install authentication. The Python sidecar
+implementation reads persisted install auth state and forwards a bearer header
+when calling hosted backend-backed services, such as semantic summarization or
+other future local-runtime remote clients. SDK-owned embedding calls use the SDK
+transport/auth path. Missing local auth state should produce a clear hosted-auth
+failure, not silent local identity invention.
 
 ## Runtime Flows
 
@@ -274,7 +281,7 @@ Validate:
 - config loading can resolve OAuth access tokens without breaking API-key paths.
 - tests use fake tokens and never snapshot real material.
 
-### Change sidecar remote-client auth
+### Change local-runtime remote-client auth
 
 Read:
 
@@ -325,7 +332,7 @@ Validate:
 | `/api/runs/*` returns `401` while other APIs work | `x-windie-runs-key`, expected env key, VM worker env | runs support or VM worker runtime |
 | Provider missing despite visible model | env key, renderer override enabled state, alias normalization, OAuth access token | backend config loader/provider factory |
 | UI saves provider key but backend ignores it | config filter, renderer persistence merge, backend patch guard | renderer config persistence or backend validation |
-| Remote embedding/semantic request returns auth error | sidecar auth-state path, sidecar bearer header, install token validity | sidecar remote client base or Electron sidecar env |
+| Remote embedding/semantic request returns auth error | local-runtime auth-state path, local-runtime bearer header, install token validity | local-runtime remote client base or Electron local-runtime env |
 | Token appears in logs or snapshots | producing log call, fixture, snapshot, debug flag | owner runtime plus test fixture |
 
 ## Validation Matrix
@@ -339,7 +346,7 @@ Validate:
 | Provider config/key resolution | `./scripts/python-in-env backend pytest tests/backend/test_config_models.py tests/backend/test_config_loader.py` plus provider-specific tests |
 | Frontend provider settings | `cd frontend && npm run test -- ModelsSection AppConfigPersistence configStorage configFilter` |
 | Provider OAuth config | backend config-loader tests plus focused renderer config tests if renderer persistence changes |
-| Sidecar remote auth | focused sidecar remote-client pytest module plus backend auth-route test for the called endpoint |
+| Local-runtime remote auth | focused sidecar remote-client pytest module plus backend auth-route test for the called endpoint |
 | Docs-only credential changes | `<windie> docs list`, `git diff --check`, and a focused Markdown link check over touched docs |
 
 ## Review Checklist

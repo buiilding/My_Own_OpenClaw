@@ -15,7 +15,7 @@ policy/projection, and SDK/main-process dispatch.
 ## Tool Families
 
 - [Tool Contracts](tool_contracts.md) explains local manifest schemas, backend remote schemas, local execution, request ids, bundle results, and parity tests.
-- [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) routes model-visible schema, policy, provider projection, sidecar parity, SDK/main dispatch, and result-contract changes.
+- [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) routes model-visible schema, policy, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract changes.
 - [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to schema owners, Python sidecar executors, use cases, policy gates, and tests.
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, local execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.

@@ -1,7 +1,8 @@
 ---
 summary: "Credential and token handling matrix for WindieOS install auth, runs keys, provider API keys, OAuth state, renderer config, and local-runtime remote clients."
 read_when:
-  - When changing install tokens, runs keys, provider credentials, OAuth state, renderer settings, or remote sidecar clients.
+  - When changing install tokens, runs keys, provider credentials, OAuth state,
+    renderer settings, or local-runtime remote clients.
   - When debugging 401s, missing provider keys, token persistence, SDK auth, or credential leakage risk.
 title: "Credentials and Tokens Matrix"
 ---
@@ -20,7 +21,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Install user/install ids | Backend install auth service | Returned with install token and cached by Electron main | Stable hosted identity and websocket user binding | Renderer-claimed identity override |
 | Runs API key | Environment variables `WINDIE_RUNS_API_KEY`, worker `WINDIE_VM_RUNS_API_KEY` | Env only | `/api/runs/*` route dependency and VM worker | General hosted REST auth |
 | Provider API keys | Backend config/env or explicit provider settings | `backend/src/core/config/*`, provider settings UI where supported | LLM, OCR, vision, embedding, STT, TTS providers | Install identity or local machine permission |
-| Sidecar remote client auth | Electron/main loaded install token passed to sidecar remote clients | Main/sidecar config and remote client headers | Remote embeddings/semantic/title clients when hosted backend auth is enabled | Local memory DB authorization |
+| Local-runtime remote client auth | Electron/main loaded install token passed to local-runtime remote clients | Main/local-runtime config and remote client headers | Remote embeddings/semantic/title clients when hosted backend auth is enabled | Local memory DB authorization |
 
 ## Handling Rules
 
@@ -42,7 +43,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Runs key behavior | `backend/src/api/routes/runs/support.py`, VM worker runtime | `tests/backend/test_run_control_routes.py`, route helper tests |
 | Provider credential loading | `backend/src/core/config/loader.py`, config models, provider constructors | config loader/model tests and provider-specific tests |
 | Provider credential UI | Renderer settings/app config providers | AppConfigProvider, SettingsSection, ModelsSection tests |
-| Remote sidecar clients | `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests |
+| Local-runtime remote clients | `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests |
 
 ## Failure Routing
 
@@ -52,7 +53,7 @@ For implementation steps, owner code paths, debug routing, and validation comman
 | Websocket closes with `1008` during handshake | Missing/invalid install token or invalid handshake. |
 | `/api/runs/*` returns `401` only | Runs API key mismatch. |
 | Model provider unavailable or missing key | Provider API key/config. |
-| Remote embedding/semantic client returns auth error | Sidecar remote client did not forward install token or backend auth state is missing. |
+| Remote embedding/semantic client returns auth error | Local-runtime remote client did not forward install token or backend auth state is missing. |
 | UI setting saves but backend ignores field | Client settings patch guard or unsupported config field. |
 | Token appears in logs/test snapshots | Logging/test fixture leak; remove and add redaction coverage. |
 

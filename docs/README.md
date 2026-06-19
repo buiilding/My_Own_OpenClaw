@@ -24,7 +24,7 @@ contracts.
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Owner routing for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates
 - [**Error and Failure Change Workflow**](debug/error_failure_change_workflow.md) - Owner routing for backend exceptions, websocket/HTTP errors, IPC failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
-- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and sidecar URL drift checks
+- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
@@ -35,12 +35,12 @@ contracts.
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
-- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
+- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
-- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and tool-result contracts
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and tool-result contracts
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
-- [**Inference Capability Change Workflow**](providers/inference_capability_change_workflow.md) - Owner routing for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and sidecar clients
+- [**Inference Capability Change Workflow**](providers/inference_capability_change_workflow.md) - Owner routing for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and local-runtime remote clients
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
 - [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, sidecar runtime bundling, reinstall/reset loops, and install troubleshooting
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
@@ -133,8 +133,8 @@ contracts.
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes
 - [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
-- [**Credentials and Tokens Matrix**](security/credentials_and_tokens_matrix.md) - Install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth
-- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
+- [**Credentials and Tokens Matrix**](security/credentials_and_tokens_matrix.md) - Install tokens, runs keys, provider keys, OAuth state, and local-runtime remote-client auth
+- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension surfaces and plugin-marketplace boundaries
 - [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
 - [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests
@@ -155,12 +155,12 @@ contracts.
 - [**Observability Change Workflow**](debug/observability_change_workflow.md) - Add or change logs, traces, metrics, and evidence without noisy defaults or secret leakage
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
 - [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, sidecar, and websocket trace routes
-- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and sidecar URL drift checks
+- [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and local-runtime URL drift checks
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
-- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and result-contract validation
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract validation
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, Python sidecar executors, policy gates, and tests
 - [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main runtime, sidecar, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser capability policy, and web-search exposure
@@ -192,7 +192,7 @@ contracts.
 - [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
 - [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, performance, and operational troubleshooting
-- [**Configuration Change Workflow**](operations/configuration_change_workflow.md) - Owner routing for backend config, Electron endpoints, renderer settings, sidecar env, credentials, VM vars, and packaging config
+- [**Configuration Change Workflow**](operations/configuration_change_workflow.md) - Owner routing for backend config, Electron endpoints, renderer settings, local-runtime env, credentials, VM vars, and packaging config
 - [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defaults, propagation paths, and validation targets
 - [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
 - [**Evidence Collection Runbook**](operations/evidence_collection_runbook.md) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures

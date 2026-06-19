@@ -48,14 +48,16 @@ When fixing replay continuation, prefer rehydrate tests over renderer-only asser
 
 ## Semantic And Embedding Routes
 
-Backend memory routes support remote sidecar clients for:
+Backend memory routes support local-runtime remote clients for:
 
 - embeddings,
 - semantic summarization,
 - conversation title generation,
 - health checks.
 
-Provider availability and error normalization live in backend embedding/provider services. Sidecar callers should receive sanitized route errors rather than backend stack traces.
+Provider availability and error normalization live in backend embedding/provider
+services. Local-runtime callers should receive sanitized route errors rather
+than backend stack traces.
 
 ## Tests
 

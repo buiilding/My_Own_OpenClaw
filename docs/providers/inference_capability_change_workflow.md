@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS inference capabilities across OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, sidecar clients, and tests."
+summary: "Workflow for changing WindieOS inference capabilities across OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, local-runtime remote clients, and tests."
 read_when:
   - When adding, removing, disabling, or changing OCR, vision, embedding, STT, or TTS provider behavior.
   - When changing inference backend modes, remote service URLs, provider health checks, circuit breakers, capability gating, or provider error payloads.
@@ -65,7 +65,7 @@ flowchart TD
     Router --> Health["provider health policy"]
     Health --> Policy["tool policy + prompt capability gates"]
     Provider --> Callers["tools, SDK routes, memory routes, audio services"]
-    Callers --> Clients["renderer, sidecar clients, SDK clients"]
+    Callers --> Clients["renderer, local-runtime remote clients, SDK clients"]
 ```
 
 ## Change Sequence
