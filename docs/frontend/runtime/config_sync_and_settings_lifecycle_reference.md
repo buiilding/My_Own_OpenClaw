@@ -172,6 +172,11 @@ Renderer uses this to:
 - trigger config re-sync when the runtime connection becomes ready
 - persist resolved global-stop fallback bindings back into local config and Settings UI when the requested accelerator is unavailable
 
+Renderer app-runtime clients normalize this host payload before feature code
+consumes it. `desktopClientSessionRuntimeClient` exposes chat-loop connection
+state as `{ isConnected, hasConnectionState }` so UI hooks do not inspect raw
+`ipc-status` payload types.
+
 ## Event Handling Notes
 
 `routeConfigSettingsEvent(...)` currently handles:

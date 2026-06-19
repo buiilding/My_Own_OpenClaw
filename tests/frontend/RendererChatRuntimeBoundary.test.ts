@@ -1383,6 +1383,7 @@ describe('renderer chat runtime boundary', () => {
     expect(loopStateSource).not.toContain('payload?.isConnected');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onIpcTransportStatus');
     expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadMainTransportStatus');
+    expect(loopStateSource).toContain('payload.hasConnectionState !== true');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
     expect(clientSource).toContain('normalizeDesktopTransportConnectionStatus');
