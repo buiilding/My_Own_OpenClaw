@@ -1,7 +1,7 @@
 ---
-summary: "Python Sidecar"
+summary: "Python sidecar implementation behind the SDK local-runtime boundary."
 read_when:
-  - When changing the Python sidecar or IPC.
+  - When changing the Python sidecar implementation or local-runtime IPC.
 ---
 
 # Python Sidecar
@@ -13,10 +13,12 @@ that executes tools, captures system state, and manages local memory. Electron
 main supplies desktop launch facts and host-only helpers, but does not own a
 standalone sidecar process or stdin/stdout transport.
 
-The sidecar is the local execution runtime, not a replacement backend. Its role in the product boundary is:
+The local runtime is the local execution boundary, currently backed by the
+Python sidecar implementation. It is not a replacement backend. Its role in the
+product boundary is:
 
 - execute actions that must happen on the user's machine
-- expose local tool APIs to the UI and SDK
+- expose local-runtime tool APIs to the UI and SDK
 - call the hosted backend only for local-runtime hosted helper services such as semantic summarization
 - call the hosted backend through transport-only clients instead of importing backend Python packages
 
@@ -52,9 +54,10 @@ The bridge:
 - Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
   `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
   silently switch the sidecar back to a base Conda interpreter.
-- Sidecar runtime modules do not import backend Python packages at startup. Client-side
-  tool exposure and memory-type normalization are kept local to the sidecar runtime,
-  while tests enforce parity against backend tool contracts.
+- Python sidecar runtime modules do not import backend Python packages at
+  startup. Client-side tool exposure and memory-type normalization are kept
+  local to the local-runtime implementation, while tests enforce parity against
+  backend tool contracts.
 - Backend-bound Python SDK clients require an explicit `backend_url` or injected
   `AGENT_BACKEND_HTTP_URL`; `WINDIE_BACKEND_HTTP_URL` remains a WindieOS
   compatibility alias and there is no hosted URL fallback inside the sidecar.
@@ -92,8 +95,11 @@ Protocol output notes:
 The SDK-owned local runtime talks to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints. This daemon is the sidecar boundary used by `AgentClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
 
 - `GET /health`: daemon liveness, generic `sidecar_daemon` service label, pid, and creation time.
-- `GET /status`: local runtime diagnostics, daemon metadata, registered tool names, and the executable sidecar tool manifest.
-- `GET /tools`: executable sidecar tool manifest for built-in and dynamic module/plugin/MCP tools.
+- `GET /status`: local runtime diagnostics, daemon metadata, registered tool
+  names, and the executable local-runtime tool manifest backed by the Python
+  sidecar registry.
+- `GET /tools`: executable local-runtime tool manifest for built-in and dynamic
+  module/plugin/MCP tools.
 - `POST /tools/register-module`: register a Python module-path tool without restarting the daemon.
 - `POST /tools/register-plugin`: load tools from a local plugin package.
 - `POST /tools/register-mcp`: expose MCP server tools as local-runtime tools.
@@ -105,7 +111,8 @@ The daemon does not own LLM inference, prompt policy, provider history, or conve
 
 ## Tools
 
-The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry.py`) with tools for:
+The Python sidecar implementation maintains a `ToolRegistry`
+(`frontend/src/main/python/tools/registry.py`) with tools for:
 - Computer control (mouse, keyboard, scroll, screenshot)
 - Filesystem (read/write/list/search)
 - System stats and window info
@@ -117,13 +124,15 @@ The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry
 Computer-control execution notes:
 - `mouse_control` covers click, double-click, right-click, move, and drag only.
 - `scroll_control` is the dedicated scroll tool.
-- `scroll_control` vertical actions default to a 5-click amount owned by the sidecar runtime across Windows, macOS, and Linux; optional `clicks` remains available for explicit literal overrides.
+- `scroll_control` vertical actions default to a 5-click amount owned by the
+  local-runtime computer-control implementation across Windows, macOS, and
+  Linux; optional `clicks` remains available for explicit literal overrides.
 - `mouse_control` drag uses source coordinates from `x/y` and destination coordinates from `drag_to_x/drag_to_y`.
 - Backend coordinate normalization converts both source and drag destination from screenshot space into desktop space before the sidecar executes the drag.
 
 ## Memory
 
-Local memory is implemented in the sidecar:
+Local memory is backed by the Python sidecar implementation:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Durable title state in `frontend/src/main/python/memory/conversation_title_store.py`
@@ -133,7 +142,9 @@ Local memory is implemented in the sidecar:
   endpoint resolver into that generic env and `WINDIE_BACKEND_HTTP_URL`.
   Missing sidecar endpoint config fails fast instead of falling back to a
   hosted default.
-- Sidecar backend-backed HTTP clients do not parse Electron endpoint env aliases or retry alternate backend URLs. Remote memory/title/summarization calls stay pinned to the injected backend endpoint.
+- Python sidecar hosted-helper HTTP clients do not parse Electron endpoint env
+  aliases or retry alternate backend URLs. Remote memory/title/summarization
+  calls stay pinned to the injected backend endpoint.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 - Pending summarization cadence is turn-based: watermark pending count increments
   on assistant terminal transcript turns (`llm-text`, `error`, or empty type).

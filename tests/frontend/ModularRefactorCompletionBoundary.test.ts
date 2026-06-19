@@ -501,6 +501,7 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
     const toolRoutingDocText = (await Promise.all([
       read('docs/adr/005-frontend-tool-schema-source-of-truth.md'),
+      read('docs/architecture/python_sidecar.md'),
       read('docs/architecture/agent_visible_data_pipeline.md'),
       read('docs/backend/agent/tool_turn_change_workflow.md'),
       read('docs/backend/llm/prompts/prompt_context_change_workflow.md'),
@@ -519,6 +520,8 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/development/tool_development.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
+      read('docs/frontend/sidecar/README.md'),
+      read('docs/frontend/sidecar/sidecar_daemon_runtime_reference.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
       read('docs/frontend/sidecar/tool_catalog_and_execution_model.md'),
       read('docs/gateway/websocket_connection_lifecycle.md'),
@@ -641,6 +644,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('The local runtime owns what can actually run locally');
     expect(toolRoutingDocText).toContain('Local-runtime implementation payloads');
     expect(toolRoutingDocText).toContain('Local-runtime tool');
+    expect(toolRoutingDocText).toContain('Local-Runtime Tool Catalog and Execution Model');
+    expect(toolRoutingDocText).toContain('executable local-runtime tool manifest');
+    expect(toolRoutingDocText).toContain('local-runtime computer-control implementation');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -681,6 +687,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('Register built-in sidecar handler');
     expect(toolRoutingDocText).not.toContain('Sidecar Result Contract');
     expect(toolRoutingDocText).not.toContain('Tool executes but fails in sidecar');
+    expect(toolRoutingDocText).not.toContain('executable sidecar tool manifest');
+    expect(toolRoutingDocText).not.toContain('owned by the sidecar runtime');
+    expect(toolRoutingDocText).not.toContain('Sidecar Tool Catalog and Execution Model');
+    expect(toolRoutingDocText).not.toContain('registered sidecar tools');
+    expect(toolRoutingDocText).not.toContain('proof that the sidecar directly accepts');
+    expect(toolRoutingDocText).not.toContain('sidecar registry implementation');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');
@@ -1435,6 +1447,12 @@ describe('modular sdk refactor completion boundary', () => {
         'Wrapper artifacts are not live sidecar tool names',
         'Frontend documentation hub covering Electron main process, renderer runtime, tool execution services, and Python sidecar behavior',
         'main/renderer/sidecar boundaries',
+        'backend, Electron main, renderer, preload, and sidecar boundaries',
+        'hosted auth, IPC isolation, validation, credentials, tools, and sidecar boundaries',
+        'sidecar parity when executable fields change',
+        'prepared sidecar arguments',
+        'web_search` is backend-owned and does not participate in sidecar parity tests',
+        'sidecar parity tests |',
         'frontend implementation details across Electron main process, React renderer, and Python sidecar runtime',
         '| Python sidecar | Local JSON-RPC',
         'Python sidecar executable implementations',

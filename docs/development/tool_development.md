@@ -260,7 +260,7 @@ The default runtime auto-registers remote tools for LLM calling and separately r
 
 Current example:
 
-- `web_search` is backend-owned and does not participate in sidecar parity tests.
+- `web_search` is backend-owned and does not participate in local-runtime executable parity tests.
 
 If you add backend-only tools, document the wiring point in the same PR.
 

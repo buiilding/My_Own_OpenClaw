@@ -18,7 +18,7 @@ Owner: backend.
 
 Start with [Backend API Hub](../backend/api/README.md), [API Route Change Workflow](../backend/api/api_route_change_workflow.md), and [HTTP and WebSocket API Surface](../reference/http_api_surface.md).
 
-Validate route models, auth behavior, service tests, and any SDK/client examples that call the route. Keep route contracts in backend docs and do not make frontend or sidecar code import backend objects for parity.
+Validate route models, auth behavior, service tests, and any SDK/client examples that call the route. Keep route contracts in backend docs and do not make frontend or local-runtime implementation code import backend objects for parity.
 
 Avoid: adding a renderer-side fallback for malformed route payloads before fixing the backend producer.
 
@@ -38,23 +38,23 @@ Owner: backend schema and policy, with client-local manifest parity when the too
 
 Start with [Tools Hub](../tools/README.md), [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md).
 
-Validate model schema projection, provider policy, sidecar parity when executable fields change, and result-contract tests. Preserve the distinction between model-facing schema and prepared sidecar arguments.
+Validate model schema projection, provider policy, local-runtime executable parity when executable fields change, and result-contract tests. Preserve the distinction between model-facing schema and prepared local-runtime arguments.
 
 Avoid: changing only the Python tool executor while leaving the model-visible schema or provider projection stale.
 
 ## Filesystem Or Shell Tool Behavior
 
-Owner: SDK/main local execution with Python sidecar implementation and backend/client tool contract parity.
+Owner: SDK/main local execution with local-runtime implementation and backend/client tool contract parity.
 
 Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), and [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md).
 
-Validate schema visibility, working-directory handling, process/session behavior, sudo policy, output formatting, and sidecar tests. Keep local machine authority in the sidecar.
+Validate schema visibility, working-directory handling, process/session behavior, sudo policy, output formatting, and local-runtime/Python sidecar tests. Keep local machine authority in the local runtime.
 
 Avoid: moving filesystem or shell execution into backend code to make a local failure easier to reproduce.
 
 ## Browser Automation
 
-Owner: sidecar browser runtime, shared browser contract, and renderer controls.
+Owner: local-runtime browser runtime, shared browser contract, and renderer controls.
 
 Start with [Browser Change Workflow](../browser/browser_change_workflow.md), [Browser Hub](../browser/README.md), and [Browser Tool](../tools/browser.md).
 
@@ -74,7 +74,7 @@ Avoid: mixing focus, visibility, transport, and click-through changes in one pat
 
 ## Screenshots Or Artifacts
 
-Owner: sidecar capture for local screenshots, backend artifacts for hosted storage, and renderer replay/display for presentation.
+Owner: local-runtime capture for local screenshots, backend artifacts for hosted storage, and renderer replay/display for presentation.
 
 Start with [Artifact Change Workflow](../desktop/artifact_change_workflow.md), [Artifacts and Attachments](../desktop/artifacts_and_attachments.md), and [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md).
 
@@ -94,7 +94,7 @@ Avoid: patching dashboard replay output before finding the producer that persist
 
 ## Memory Or Compaction
 
-Owner: sidecar for local memory storage, backend for hosted semantic routes and compaction decisions, SDK/renderer for projection and replay.
+Owner: local runtime for local memory storage, backend for hosted semantic routes and compaction decisions, SDK/renderer for projection and replay.
 
 Start with [Memory Hub](../memory/README.md), [Memory Change Workflow](../memory/memory_change_workflow.md), and [Context and Memory](../concepts/context_and_memory.md).
 
@@ -114,11 +114,11 @@ Avoid: adding a model option only in the renderer without updating backend capab
 
 ## Inference Capability
 
-Owner: backend inference/provider services with SDK routes and sidecar clients where local capture or playback is involved.
+Owner: backend inference/provider services with SDK routes and local-runtime clients where local capture or playback is involved.
 
 Start with [Inference Capability Change Workflow](../providers/inference_capability_change_workflow.md), [Providers Hub](../providers/README.md), and [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md).
 
-Validate OCR, vision, embeddings, STT, TTS, provider health gates, SDK route envelopes, and renderer/sidecar consumers. Keep capability detection explicit instead of inferring support from a provider name.
+Validate OCR, vision, embeddings, STT, TTS, provider health gates, SDK route envelopes, and renderer/local-runtime consumers. Keep capability detection explicit instead of inferring support from a provider name.
 
 Avoid: wiring a new inference button or setting before the backend capability and failure path are testable.
 
@@ -154,7 +154,7 @@ Avoid: adding a renderer-only default that disagrees with backend config or pack
 
 ## Permission Or Local Authority
 
-Owner: Electron main for native permission prompts and window policy, Python sidecar for local machine actions, backend for policy validation only.
+Owner: Electron main for native permission prompts and window policy, local runtime for local machine actions, backend for policy validation only.
 
 Start with [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), and [Platform Permission Matrix](../platforms/permission_matrix.md).
 
@@ -164,7 +164,7 @@ Avoid: granting backend code authority over local input, filesystem, or OS permi
 
 ## Credential Or Token Handling
 
-Owner: backend auth and config for hosted tokens, Electron/renderer for user-entered local settings, sidecar only for scoped remote-client credentials.
+Owner: backend auth and config for hosted tokens, Electron/renderer for user-entered local settings, local runtime only for scoped remote-client credentials.
 
 Start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md), [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md), and [Hosted Backend Auth](../operations/hosted_backend_auth.md).
 
@@ -178,7 +178,7 @@ Owner: the extension contribution surface being changed, with package metadata a
 
 Start with [Plugins and Extensions Hub](../plugins/README.md), [Extension Convention](extensions.md), and [Extension Surface Matrix](../plugins/extension_surface_matrix.md).
 
-Validate package metadata, plugin tools, MCP server config, skill prompt layers, sidecar schemas/code, settings panels, and lifecycle hooks according to the contribution type. Keep contribution types separated inside the extension package.
+Validate package metadata, plugin tools, MCP server config, skill prompt layers, local-runtime schemas/code, settings panels, and lifecycle hooks according to the contribution type. Keep contribution types separated inside the extension package.
 
 Avoid: adding a generic adapter that only renames extension payloads without enforcing a lifecycle, security, or runtime boundary.
 
@@ -204,7 +204,7 @@ Avoid: reusing chat websocket assumptions for VM worker polling or run-control s
 
 ## Voice, Wakeword, STT, Or TTS
 
-Owner: renderer for capture/playback UI, Electron main for wakeword supervision, sidecar for local wakeword/audio helpers, backend for STT/TTS provider services.
+Owner: renderer for capture/playback UI, Electron main for wakeword supervision, local runtime for local wakeword/audio helpers, backend for STT/TTS provider services.
 
 Start with [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), and [Voice and Audio Channels](../channels/voice_and_audio_channels.md).
 
@@ -214,11 +214,11 @@ Avoid: debugging voice failures only through chat-stream events before checking 
 
 ## Packaging Or Release
 
-Owner: operations and platform packaging paths, with Electron Builder and bundled sidecar runtime as the main implementation surfaces.
+Owner: operations and platform packaging paths, with Electron Builder and bundled local runtime as the main implementation surfaces.
 
 Start with [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md), and [Packaged Desktop Builds](../install/packaged_desktop.md).
 
-Validate sidecar runtime bundling, Electron package targets, endpoint defaults, reinstall helpers, smoke checks, signing/notarization expectations, and platform-specific packaging behavior. Do not change versions or publish artifacts without explicit approval.
+Validate local-runtime bundling, Electron package targets, endpoint defaults, reinstall helpers, smoke checks, signing/notarization expectations, and platform-specific packaging behavior. Do not change versions or publish artifacts without explicit approval.
 
 Avoid: testing only the source dev loop when the change affects packaged app resources or startup paths.
 
@@ -240,17 +240,17 @@ Start with [Main Process Change Workflow](../frontend/main/main_process_change_w
 
 Validate channel registration, preload exposure, renderer caller shape, main handler lifecycle, permission boundaries, packaged behavior, and IPC contract tests. Keep policy decisions in the owning runtime, not in preload.
 
-Avoid: adding a new bridge for behavior that belongs in the SDK runtime, sidecar, or backend contract.
+Avoid: adding a new bridge for behavior that belongs in the SDK runtime, local runtime, or backend contract.
 
-## Sidecar Process Or JSON-RPC
+## Local Runtime Process Or JSON-RPC
 
-Owner: Electron main/SDK runtime for sidecar startup and reuse, Python sidecar for daemon methods and local execution.
+Owner: Electron main/SDK runtime for local-runtime process startup and reuse, Python sidecar implementation for daemon methods and local execution.
 
 Start with [Local Runtime Process Lifecycle Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md), [Local Runtime JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md), and [Local Runtime Sidecar Hub](../frontend/sidecar/README.md).
 
 Validate launch args, readiness, source identity, request correlation, timeouts, response envelopes, packaged paths, and focused sidecar tests. Keep daemon lifecycle distinct from the behavior of one executable tool.
 
-Avoid: masking stale sidecar processes with renderer retries instead of fixing startup or readiness ownership.
+Avoid: masking stale local-runtime processes with renderer retries instead of fixing startup or readiness ownership.
 
 ## Observability Or Error Handling
 

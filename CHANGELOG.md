@@ -27,6 +27,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/development: route first-read docs directory and agent-routing quick-card
+  owner labels through local-runtime boundary, executable parity, capture,
+  memory, credential, wakeword, and packaging wording while preserving Python
+  sidecar implementation/test references. No migration required.
+- docs/sidecar: route Python sidecar architecture, routing quick cards, and
+  tool-catalog docs through local-runtime executable wording while preserving
+  sidecar daemon, registry, memory, and packaging implementation evidence. No
+  migration required.
 - docs/tools: route first-read tool/frontend hubs, ADR/debug/development/plugin
   workflows, catalog/channel/tool-system executor labels, and schema-policy
   docs through local-runtime executable ownership while keeping Python sidecar

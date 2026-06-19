@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Python Sidecar Architecture Local-Runtime Labels
+
+- Finding: the Python sidecar architecture, sidecar docs hub, daemon reference,
+  routing quick cards, docs directory, and tool-catalog overview still used
+  sidecar-as-contract labels for executable manifests, tool output shape,
+  registry validation, local memory, and scroll defaults after the reusable
+  boundary moved to SDK/main local-runtime execution.
+- Change: routed those labels through local-runtime executable and
+  local-runtime Python implementation wording while preserving sidecar daemon,
+  registry, memory, hosted-helper client, packaging, and sidecar pytest
+  references as concrete implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  sidecar architecture label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC methods,
+  daemon endpoints, executable manifests, tool payloads/results, memory paths,
+  packaging paths, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-18 Tool Catalog Local-Runtime Executable Labels
 
 - Finding: first-read frontend/docs hub entries, frontend architecture runtime

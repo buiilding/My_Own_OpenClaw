@@ -275,6 +275,33 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a docs-directory and agent-routing quick-card
+  owner-label slice by routing first-read runtime/security summaries,
+  model-visible tool parity guidance, local screenshot/memory/capability/
+  credential/wakeword/packaging cards, and local-runtime process wording through
+  local-runtime boundary labels instead of sidecar-as-public-owner wording.
+  The guard now rejects the retired sidecar boundary/parity/argument phrases
+  while preserving Python sidecar implementation and test references where they
+  identify concrete code. Validation: pending in this slice. No migration
+  required; no trust-boundary behavior, auth, IPC, credential, permission, tool
+  schema, executable payload, storage, hosted route, provider policy, packaging,
+  or local execution behavior changed.
+- 2026-06-18: completed a Python sidecar architecture local-runtime label
+  slice by routing the sidecar architecture page, local-runtime Python
+  implementation docs hub, daemon reference, routing quick cards, docs
+  directory, and tool-catalog overview through local-runtime
+  executable/implementation wording. The concrete Python sidecar daemon,
+  registry, memory, hosted-helper client, packaging, and pytest references
+  remain visible where they identify implementation evidence. The
+  modular boundary guard now rejects retired executable sidecar manifest,
+  sidecar-runtime ownership, sidecar tool-catalog, and sidecar-registry
+  contract phrases. Validation: `bin\windie.cmd test frontend --
+  ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs list`,
+  exact stale sidecar architecture label scan, and `git diff --check`. No
+  migration required; no runtime code, JSON-RPC method, daemon endpoint,
+  executable manifest, tool payload/result, memory path, packaging path,
+  credential, permission, hosted backend URL, provider policy, or local
+  execution behavior changed.
 - 2026-06-18: completed a security trust-boundary owner-label slice by routing
   the security boundary matrix, security change playbook, docs hub, and docs
   entrypoint through local-runtime trust-boundary wording instead of sidecar as

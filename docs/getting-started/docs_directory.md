@@ -22,9 +22,9 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 ## Architecture
 
-- [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and sidecar boundaries.
-- [Runtime Nodes Hub](../nodes/README.md) - process and service ownership across backend, desktop, sidecar, wakeword, VM worker, and hosted ingress.
-- [Channels Hub](../channels/README.md) - desktop, websocket, sidecar JSON-RPC, voice, SDK, and VM-run communication paths.
+- [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and local-runtime boundaries.
+- [Runtime Nodes Hub](../nodes/README.md) - process and service ownership across backend, desktop, local runtime, wakeword, VM worker, and hosted ingress.
+- [Channels Hub](../channels/README.md) - desktop, websocket, local-runtime JSON-RPC, voice, SDK, and VM-run communication paths.
 - [Gateway Hub](../gateway/README.md) - hosted backend ingress, app assembly, websocket handshake, auth, health, and troubleshooting.
 - [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - owner responsibilities and first docs for common change types.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) - owner selection by runtime and trust boundary.
@@ -43,9 +43,9 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 ## Frontend and Desktop
 
-- [Frontend Hub](../frontend/README.md) - renderer, main, preload, contracts, and sidecar maps.
+- [Frontend Hub](../frontend/README.md) - renderer, main, preload, contracts, and local-runtime maps.
 - [Desktop Surfaces](../desktop/README.md) - dashboard, chat pill, response overlay, voice, permissions, onboarding, screenshots, and artifacts.
-- [Frontend Architecture](../architecture/frontend_architecture.md) - current Electron/React/sidecar topology.
+- [Frontend Architecture](../architecture/frontend_architecture.md) - current Electron/React/local-runtime topology.
 - [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md) - Electron main ownership.
 - [Global Stop Shortcut Runtime Reference](../frontend/main/global_stop_shortcut_runtime_reference.md) - configurable stop-from-anywhere accelerator, registration fallback, and settings persistence.
 - [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) - chat/dashboard/settings renderer state.
@@ -55,7 +55,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 ## Tools, Browser, SDK, and Providers
 
-- [Tools Hub](../tools/README.md) - model-facing and sidecar-executable tool contracts.
+- [Tools Hub](../tools/README.md) - model-facing and local-runtime executable tool contracts.
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) - tool visibility, schemas, policy, provider projection, and parity.
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) - backend call to SDK/main local execution to backend history.
 - [Web Search Tool](../tools/web_search.md) - backend-owned logical web search, provider-native modes, Brave fallback, and policy gates.
@@ -84,7 +84,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 
 ## Security and Reference
 
-- [Security Hub](../security/README.md) - hosted auth, IPC isolation, validation, credentials, tools, and sidecar boundaries.
+- [Security Hub](../security/README.md) - hosted auth, IPC isolation, validation, credentials, tools, and local-runtime trust boundaries.
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) - screen/input/microphone/browser/workspace/sudo authority changes.
 - [Memory Hub](../memory/README.md) - transcript, replay, local-runtime memory, backend history, semantic routes, and compaction ownership.
 - [Reference Hub](../reference/README.md) - stable API, websocket event, configuration, and identifier maps.

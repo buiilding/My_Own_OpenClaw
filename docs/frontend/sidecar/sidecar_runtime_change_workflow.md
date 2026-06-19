@@ -140,7 +140,7 @@ Before committing sidecar work:
 - [Local Runtime JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Local Runtime JSON-RPC Reference](local_backend_jsonrpc_reference.md)
 - [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md)
-- [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
+- [Local-Runtime Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
 - [Local Runtime Memory Hub](memory/README.md)
 - [Sidecar Browser Hub](browser/README.md)
 - [System-State Collection](system_state/system_state_collection_and_platform_adapter_reference.md)

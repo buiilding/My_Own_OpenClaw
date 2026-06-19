@@ -1,12 +1,12 @@
 ---
-summary: "Python sidecar tool catalog and execution model, including registry dispatch, schema-definition boundaries, and result normalization."
+summary: "Local-runtime Python tool catalog and execution model, including sidecar registry dispatch, schema-definition boundaries, and result normalization."
 read_when:
-  - When adding/changing sidecar tool implementations.
-  - When debugging sidecar tool output shape or backend compatibility.
-title: "Sidecar Tool Catalog and Execution Model"
+  - When adding/changing local-runtime tool implementations backed by Python sidecar code.
+  - When debugging local-runtime tool output shape or backend compatibility.
+title: "Local-Runtime Tool Catalog and Execution Model"
 ---
 
-# Sidecar Tool Catalog and Execution Model
+# Local-Runtime Tool Catalog and Execution Model
 
 Core modules:
 
@@ -21,7 +21,7 @@ Core modules:
 3. Registry resolves tool callable by name.
 4. Tool runs sync or async.
 5. Output must be a native `ToolResult`.
-6. Main process maps result back to renderer/backend payload flow.
+6. Main process maps the local-runtime result back to renderer/backend payload flow.
 
 Detailed registry behavior:
 
@@ -76,8 +76,10 @@ Deep runtime reference:
 
 Current runtime note:
 
-- the live sidecar registry exposes 14 direct tool names
-- `computer_use` and `system_use` are not registered sidecar tools in `frontend/src/main/python/tools/registry.py`
+- the live local-runtime registry exposes 14 direct tool names through the
+  Python sidecar implementation
+- `computer_use` and `system_use` are not registered local-runtime tools in
+  `frontend/src/main/python/tools/registry.py`
 - wrapper-shaped artifacts still exist under `model-facing/`, but they are not part of the current local execution path
 
 ## Schema Definitions and Validation Boundary
@@ -99,18 +101,21 @@ Current runtime boundary:
   - tool name must exist in the in-memory registry
   - `args` must be an object
   - args are deep-copied before tool invocation
-- no wrapper-envelope validation path exists in the current sidecar registry implementation
+- no wrapper-envelope validation path exists in the current Python sidecar
+  registry implementation
 - runtime argument enforcement is therefore owned by the concrete tool implementation, not by a sidecar wrapper router
 
 Implication:
 
-- schema-only changes still do not automatically enforce runtime behavior inside the sidecar registry.
+- schema-only changes still do not automatically enforce runtime behavior
+  inside the local-runtime registry.
 
 ## Backend Compatibility Constraint
 
 `LOCAL_RUNTIME_BUILTIN_TOOL_NAMES` in `frontend/src/main/python/tools/manifest.py` defines expected parity with backend remote tool schemas.
 
-If missing, sidecar logs warnings and tools may fail at runtime when backend emits calls.
+If missing, local-runtime diagnostics log warnings and tools may fail at runtime
+when backend emits calls.
 
 Built-in manifest entries intentionally separate schema roles:
 
@@ -123,7 +128,8 @@ Built-in manifest entries intentionally separate schema roles:
   (`backend_grounding`).
 
 Do not treat `schema` in the generated built-in manifest as proof that the
-sidecar directly accepts every field in that schema.
+local-runtime executable implementation directly accepts every field in that
+schema.
 
 ## Result Contract Rules
 

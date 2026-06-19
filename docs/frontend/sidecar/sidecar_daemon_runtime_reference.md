@@ -1,5 +1,5 @@
 ---
-summary: "Python sidecar daemon HTTP/WebSocket contract, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
+summary: "Python sidecar daemon HTTP/WebSocket contract behind the SDK local-runtime boundary, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
 read_when:
   - When changing the Python sidecar daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
   - When deciding whether a capability belongs in backend policy or local executor code.
@@ -9,7 +9,9 @@ title: "Sidecar Daemon Runtime Reference"
 
 # Sidecar Daemon Runtime Reference
 
-The Python sidecar daemon is the canonical local executor. It does not own backend policy, model lists, OCR/vision availability, paid capability gates, or prompt construction.
+The Python sidecar daemon is the current local-runtime executor implementation.
+It does not own backend policy, model lists, OCR/vision availability, paid
+capability gates, or prompt construction.
 
 ## Process Contract
 
@@ -23,7 +25,8 @@ The daemon:
 - is started/reused by the SDK auto-local-runtime provider from desktop launch options
   supplied by Electron main
 - owns the app-session `LocalRuntimeService` instance and its `LocalMemoryStore`
-- exposes built-in Python sidecar tools through the existing `ToolRegistry`
+- exposes built-in local-runtime tools through the existing Python sidecar
+  `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
 
 The daemon is the single local memory owner. Electron should route legacy local JSON-RPC calls through daemon `POST /rpc` instead of spawning standalone `local_backend.py` beside it. A second `LocalRuntimeService` process can race SQLite writes while embedding backfill is running.

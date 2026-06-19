@@ -1,12 +1,12 @@
 ---
-summary: "Local Runtime Sidecar docs sub-hub for Python sidecar runtime, tool catalog execution model, memory pipeline, and browser automation stack."
+summary: "Local-runtime Python implementation docs sub-hub for the sidecar daemon, tool catalog execution model, memory pipeline, and browser automation stack."
 read_when:
-  - When changing sidecar JSON-RPC methods, tool implementations, or memory summarization behavior.
+  - When changing local-runtime JSON-RPC methods backed by Python sidecar code, tool implementations, or memory summarization behavior.
   - When debugging renderer->main->local-runtime bridge failures or browser automation runtime issues.
-title: "Local Runtime Sidecar Docs Hub"
+title: "Local Runtime Python Implementation Docs Hub"
 ---
 
-# Local Runtime Sidecar Docs Hub
+# Local Runtime Python Implementation Docs Hub
 
 ## Deep Pages
 
@@ -19,7 +19,7 @@ title: "Local Runtime Sidecar Docs Hub"
 - [Sidecar System-State Docs Hub](system_state/README.md)
 - [Sidecar Tools Docs Hub](tools/README.md)
 - [System-State Collection and Platform Adapter Reference](system_state/system_state_collection_and_platform_adapter_reference.md)
-- [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
+- [Local-Runtime Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
 - [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
 - [Filesystem Read and Replace Runtime Reference](tools/filesystem_read_replace_runtime_reference.md)
 - [Sidecar Tool Registry Docs Hub](tools/registry/README.md)
@@ -63,7 +63,8 @@ title: "Local Runtime Sidecar Docs Hub"
 
 ## Evidence Notes
 
-- Sidecar changes need executable-result evidence from the Python boundary, not
-  just confirmation that Electron dispatched a request.
+- Local-runtime Python implementation changes need executable-result evidence
+  from the Python boundary, not just confirmation that Electron dispatched a
+  request.
 - Preserve raw local-runtime JSON-RPC payloads in diagnostics when result
   normalization or MCP/tool wrapping is under investigation.
