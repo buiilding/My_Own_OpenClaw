@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-loop observed transport connection
+  boundary slice by changing the desktop client-session runtime client to emit
+  boolean observed connectivity through
+  `onObservedIpcTransportConnection(...)` and
+  `loadObservedMainTransportConnection(...)`. `useChatLoopUiState` now drives
+  disconnect/reconnect recovery from that boolean instead of reading normalized
+  `isConnected` status objects. Validation: focused client-session runtime
+  client, chat-loop hook, renderer chat runtime boundary, docs-index coverage,
+  stale observed-status scans, docs listing, and diff checks. No migration required;
+  `get-client-user-id` and `ipc-status` channels, full session snapshots,
+  transport status helper shape, storage, settings, credentials, permissions,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer MCP enablement registry-or-error boundary
   slice by adding `resolveDesktopMcpEnablementRegistry(...)` and changing
   `DesktopMcpRuntimeClient.setMcpServerEnabled(...)` to return a normalized
@@ -557,9 +569,9 @@ For each completed slice, record:
   provider policy, hosted URLs, and local execution behavior are unchanged.
 
 - 2026-06-19: completed a renderer observed transport status boundary slice by
-  adding `loadObservedMainTransportStatus` and `onObservedIpcTransportStatus`
-  to `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes
-  observed `{ isConnected }` updates instead of checking the
+  adding observed transport helpers to `desktopClientSessionRuntimeClient`.
+  `useChatLoopUiState` now consumes observed connection updates instead of
+  checking the
   `hasConnectionState` sentinel, while keeping disconnect/reconnect recovery
   and watchdog state in the hook. Validation: focused desktop client session
   runtime client, chat loop hook, and renderer chat runtime boundary tests plus
@@ -789,11 +801,9 @@ For each completed slice, record:
 - 2026-06-19: completed a renderer chat-loop transport status runtime slice by
   adding normalized and observed transport-status views to
   `desktopClientSessionRuntimeClient`. `useChatLoopUiState` now consumes
-  `onObservedIpcTransportStatus(...)` and
-  `loadObservedMainTransportStatus(...)` with observed `{ isConnected }`
-  updates, leaving disconnect recovery and watchdog state in the hook while the
-  app-runtime client filters raw `ipc-status`/startup snapshots without a
-  boolean connection field. Validation: focused desktop client-session runtime
+  observed connection updates, leaving disconnect recovery and watchdog state in
+  the hook while the app-runtime client filters raw `ipc-status`/startup
+  snapshots without a boolean connection field. Validation: focused desktop client-session runtime
   client, chat loop UI state hook, and renderer chat runtime boundary tests,
   stale raw connection payload/sentinel scans, docs listing, and diff checks.
   No migration required; `get-client-user-id` and `ipc-status` channel names,

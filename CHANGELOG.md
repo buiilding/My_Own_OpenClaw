@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose observed chat-loop transport connectivity as a
+  boolean from `desktopClientSessionRuntimeClient` so `useChatLoopUiState` no
+  longer reads normalized `isConnected` status objects. No migration required.
 - renderer/runtime: resolve MCP enablement results to a registry-or-error
   contract inside `desktopMcpRuntimeClient` so `McpsSection` no longer branches
   on normalized enablement envelope fields. No migration required.

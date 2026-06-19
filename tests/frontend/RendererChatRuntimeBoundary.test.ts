@@ -1571,20 +1571,21 @@ describe('renderer chat runtime boundary', () => {
     expect(loopStateSource).not.toContain('ON_CHANNELS');
     expect(loopStateSource).not.toContain('IpcBridge.');
     expect(loopStateSource).not.toContain('payload?.isConnected');
+    expect(loopStateSource).not.toContain('payload.isConnected');
     expect(loopStateSource).not.toContain('hasConnectionState');
     expect(loopStateSource).not.toContain('CHAT_LOOP_MACHINE_EVENT');
     expect(loopStateSource).not.toContain('function reduceChatLoopMachineState');
     expect(loopStateSource).toContain('reduceChatLoopTransportMachineState');
     expect(loopStateSource).toContain('createChatLoopTransportStatusEvent');
-    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onObservedIpcTransportStatus');
-    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadObservedMainTransportStatus');
+    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.onObservedIpcTransportConnection');
+    expect(loopStateSource).toContain('DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection');
     expect(loopRuntimeSource).toContain('CHAT_LOOP_TRANSPORT_MACHINE_EVENT');
     expect(loopRuntimeSource).toContain('reduceChatLoopTransportMachineState');
     expect(loopRuntimeSource).not.toContain('features/chat');
     expect(clientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(clientSource).toContain('ON_CHANNELS.IPC_STATUS');
     expect(clientSource).toContain('normalizeDesktopTransportConnectionStatus');
-    expect(clientSource).toContain('normalizeObservedDesktopTransportConnectionStatus');
+    expect(clientSource).toContain('resolveObservedDesktopTransportConnection');
   });
 
   test('dashboard shell routes main-window target and user snapshot IPC through app runtime clients', async () => {

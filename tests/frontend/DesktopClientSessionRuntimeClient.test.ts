@@ -26,8 +26,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import {
   DesktopClientSessionRuntimeClient,
   normalizeDesktopClientSessionSnapshot,
-  normalizeObservedDesktopTransportConnectionStatus,
   normalizeDesktopTransportConnectionStatus,
+  resolveObservedDesktopTransportConnection,
 } from '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient';
 
 describe('DesktopClientSessionRuntimeClient', () => {
@@ -87,15 +87,11 @@ describe('DesktopClientSessionRuntimeClient', () => {
     });
   });
 
-  test('normalizes observed transport connection status for chat loop consumers', () => {
-    expect(normalizeObservedDesktopTransportConnectionStatus({ isConnected: true })).toEqual({
-      isConnected: true,
-    });
-    expect(normalizeObservedDesktopTransportConnectionStatus({ isConnected: false })).toEqual({
-      isConnected: false,
-    });
-    expect(normalizeObservedDesktopTransportConnectionStatus({ isConnected: 'yes' })).toBeNull();
-    expect(normalizeObservedDesktopTransportConnectionStatus(null)).toBeNull();
+  test('resolves observed transport connections for chat loop consumers', () => {
+    expect(resolveObservedDesktopTransportConnection({ isConnected: true })).toBe(true);
+    expect(resolveObservedDesktopTransportConnection({ isConnected: false })).toBe(false);
+    expect(resolveObservedDesktopTransportConnection({ isConnected: 'yes' })).toBeNull();
+    expect(resolveObservedDesktopTransportConnection(null)).toBeNull();
   });
 
   test('ipc status subscriptions emit normalized snapshots', () => {
@@ -144,9 +140,9 @@ describe('DesktopClientSessionRuntimeClient', () => {
     expect(statusListener).toBeNull();
   });
 
-  test('observed transport status subscriptions skip snapshots without connection state', () => {
+  test('observed transport connection subscriptions skip snapshots without connection state', () => {
     const events: unknown[] = [];
-    const unsubscribe = DesktopClientSessionRuntimeClient.onObservedIpcTransportStatus((event) => {
+    const unsubscribe = DesktopClientSessionRuntimeClient.onObservedIpcTransportConnection((event) => {
       events.push(event);
     });
 
@@ -155,12 +151,8 @@ describe('DesktopClientSessionRuntimeClient', () => {
     statusListener?.({ isConnected: false });
 
     expect(events).toEqual([
-      {
-        isConnected: true,
-      },
-      {
-        isConnected: false,
-      },
+      true,
+      false,
     ]);
 
     unsubscribe?.();
@@ -180,22 +172,20 @@ describe('DesktopClientSessionRuntimeClient', () => {
     expect(mockInvoke).toHaveBeenCalledWith('get-client-user-id');
   });
 
-  test('loadObservedMainTransportStatus returns observed connection state only', async () => {
+  test('loadObservedMainTransportConnection returns observed connection state only', async () => {
     mockInvoke.mockResolvedValueOnce({
       userId: ' dashboard-user ',
       isConnected: false,
     });
 
-    await expect(DesktopClientSessionRuntimeClient.loadObservedMainTransportStatus()).resolves.toEqual({
-      isConnected: false,
-    });
+    await expect(DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection()).resolves.toBe(false);
 
     mockInvoke.mockResolvedValueOnce({
       userId: ' dashboard-user ',
       isConnected: 'unknown',
     });
 
-    await expect(DesktopClientSessionRuntimeClient.loadObservedMainTransportStatus()).resolves.toBeNull();
+    await expect(DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection()).resolves.toBeNull();
     expect(mockInvoke).toHaveBeenCalledWith('get-client-user-id');
   });
 });

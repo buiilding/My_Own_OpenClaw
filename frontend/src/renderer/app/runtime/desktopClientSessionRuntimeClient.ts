@@ -21,10 +21,6 @@ export type DesktopTransportConnectionStatus = {
   hasConnectionState: boolean;
 };
 
-export type DesktopObservedTransportConnectionStatus = {
-  isConnected: boolean;
-};
-
 function recordOrEmpty(value: unknown): Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -63,16 +59,14 @@ export function normalizeDesktopTransportConnectionStatus(
   };
 }
 
-export function normalizeObservedDesktopTransportConnectionStatus(
+export function resolveObservedDesktopTransportConnection(
   payload: unknown,
-): DesktopObservedTransportConnectionStatus | null {
+): boolean | null {
   const status = normalizeDesktopTransportConnectionStatus(payload);
   if (status.hasConnectionState !== true) {
     return null;
   }
-  return {
-    isConnected: status.isConnected,
-  };
+  return status.isConnected;
 }
 
 export const DesktopClientSessionRuntimeClient = {
@@ -114,16 +108,16 @@ export const DesktopClientSessionRuntimeClient = {
     );
   },
 
-  loadObservedMainTransportStatus(): Promise<DesktopObservedTransportConnectionStatus | null | undefined> {
+  loadObservedMainTransportConnection(): Promise<boolean | null | undefined> {
     if (!INVOKE_CHANNELS?.GET_CLIENT_USER_ID) {
       return Promise.resolve(undefined);
     }
     return IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
-      .then(normalizeObservedDesktopTransportConnectionStatus);
+      .then(resolveObservedDesktopTransportConnection);
   },
 
-  onObservedIpcTransportStatus(
-    listener: (payload: DesktopObservedTransportConnectionStatus) => void,
+  onObservedIpcTransportConnection(
+    listener: (connected: boolean) => void,
   ): (() => void) | undefined {
     if (!ON_CHANNELS?.IPC_STATUS) {
       return undefined;
@@ -131,11 +125,11 @@ export const DesktopClientSessionRuntimeClient = {
     return IpcBridge.on(
       ON_CHANNELS.IPC_STATUS,
       (payload: unknown) => {
-        const status = normalizeObservedDesktopTransportConnectionStatus(payload);
-        if (status === null) {
+        const connected = resolveObservedDesktopTransportConnection(payload);
+        if (connected === null) {
           return;
         }
-        listener(status);
+        listener(connected);
       },
     );
   },

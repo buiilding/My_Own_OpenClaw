@@ -214,9 +214,10 @@ desktop client/session snapshot and IPC transport status subscription, including
 user id normalization while preserving endpoint metadata. It also exposes a
 transport-status view that normalizes raw `isConnected` payloads into
 `{ isConnected, hasConnectionState }`, plus observed-connection helpers that
-filter snapshots without a boolean connection field before chat-loop recovery
-consumes them. Chat session bootstrap, loop transport projection, and dashboard
-user snapshot fallback call this runtime client instead of importing
+filter snapshots without a boolean connection field and emit boolean connection
+values before chat-loop recovery consumes them. Chat session bootstrap, loop
+transport projection, and dashboard user snapshot fallback call this runtime
+client instead of importing
 `get-client-user-id` or `ipc-status` channel constants, trimming raw snapshot
 fields, or deciding raw connection field validity directly. App config runtime
 snapshot handling also calls this client for startup and connection-status user

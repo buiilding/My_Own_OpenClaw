@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat-Loop Observed Transport Connection Boundary
+
+- Finding: `desktopClientSessionRuntimeClient` already filtered IPC status
+  snapshots without a boolean connection bit for chat-loop recovery, but
+  `useChatLoopUiState` still received and read normalized observed
+  `isConnected` status objects.
+- Change: replaced the observed status subscription/load API with
+  `onObservedIpcTransportConnection(...)` and
+  `loadObservedMainTransportConnection(...)`, which emit boolean connectivity
+  values only after the runtime client validates that the host snapshot carried
+  a real connection field.
+- Validation: focused desktop client-session runtime client, chat-loop hook,
+  renderer chat runtime boundary, docs-index coverage, stale observed-status
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. `get-client-user-id` and `ipc-status`
+  channel names, full session snapshots, transport status helper shape,
+  disconnect/reconnect behavior, IPC allowlists, storage, settings,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer MCP Enablement Registry-Or-Error Boundary
 
 - Finding: `desktopMcpRuntimeClient` already normalized MCP enablement results

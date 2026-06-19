@@ -150,13 +150,13 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 
 `useChatLoopUiState` reads transport connectivity from:
 
-- `DesktopClientSessionRuntimeClient.onObservedIpcTransportStatus(...)`
+- `DesktopClientSessionRuntimeClient.onObservedIpcTransportConnection(...)`
   subscription updates
-- `DesktopClientSessionRuntimeClient.loadObservedMainTransportStatus(...)` for
-  best-effort initial status sync
+- `DesktopClientSessionRuntimeClient.loadObservedMainTransportConnection(...)`
+  for best-effort initial status sync
 
 The desktop client-session runtime client normalizes raw `ipc-status` and
-startup snapshot payloads into observed `{ isConnected }` updates for this hook.
+startup snapshot payloads into observed boolean connection updates for this hook.
 The client filters snapshots/events without a boolean connection field; the hook
 owns only subscriptions, snapshot event creation, and the recovery watchdog
 timer. Disconnect/reconnect state transitions live in
