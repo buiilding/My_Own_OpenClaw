@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Permission Result Value Boundary
+
+- Finding: `desktopPermissionRuntimeClient` owned permission IPC commands, but
+  `permissionStore` still interpreted raw command envelopes before normalizing
+  manifest and status state.
+- Change: added permission manifest/status/statuses result resolvers and
+  value-level runtime client helpers. `permissionStore` now keeps status
+  normalization, gate derivation, onboarding persistence, and action errors
+  while consuming manifest/status values from the runtime client.
+- Validation: passed focused permission runtime client, permission store,
+  renderer app-runtime boundary, and docs-index tests plus docs search, related
+  commit search, stale envelope-field scans, docs listing, and diff checks.
+- Compatibility: no migration required. Permission IPC channel names, raw
+  command helpers, manifest/status payload shapes, onboarding storage key,
+  gate formulas, permission probing/request behavior, settings, credentials,
+  provider policy, hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Transparency Content Presentation Boundary
 
 - Finding: `desktopMessageTransparencyRuntime` already owned transparency

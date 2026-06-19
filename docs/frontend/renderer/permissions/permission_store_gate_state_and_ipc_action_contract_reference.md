@@ -96,14 +96,19 @@ Callers:
 
 `permissionStore` owns renderer permission state only: manifest snapshot,
 status normalization, gate derivation, onboarding persistence, and user-facing
-errors. Desktop transport is delegated to `DesktopPermissionRuntimeClient`.
+errors. Desktop transport and permission command result-envelope resolution are
+delegated to `DesktopPermissionRuntimeClient`.
 
 Runtime client calls:
 
-- `listPermissions()`
-- `runPermissionProbe(permissionId)`
-- `requestPermission(permissionId)`
-- `checkPermissions(permissionIds)`
+- `listPermissionManifest()`
+- `runPermissionProbeStatus(permissionId)`
+- `requestPermissionStatus(permissionId)`
+- `checkPermissionStatuses(permissionIds)`
+
+The runtime client keeps lower-level raw command helpers for the IPC channel
+boundary, but store actions consume only manifest/status values or runtime
+client-thrown errors.
 
 The store should not import `IpcBridge`, channel constants, or desktop
 permission channel names directly.
@@ -113,7 +118,7 @@ permission channel names directly.
 ### `bootstrapPermissions`
 
 - no-op when `isLoading` is already true
-- sets loading state, calls `DesktopPermissionRuntimeClient.listPermissions()`
+- sets loading state, calls `DesktopPermissionRuntimeClient.listPermissionManifest()`
 - on success:
   - normalizes manifest + status payload
   - reloads `onboardingState` from localStorage
@@ -129,21 +134,22 @@ Main-process runtime now performs async startup probes before returning the init
 
 ### `runPermissionProbe(permissionId)`
 
-- calls `DesktopPermissionRuntimeClient.runPermissionProbe(permissionId)` for one id
-- requires `{ success:true, data.status }` response shape
+- calls `DesktopPermissionRuntimeClient.runPermissionProbeStatus(permissionId)` for one id
+- consumes the returned status value; `{ success, data.status, error }`
+  envelope handling stays inside `DesktopPermissionRuntimeClient`
 - merges normalized status and recomputes gate fields
 - does not set or clear `isLoading`; action-level in-flight state is not tracked
 
 ### `requestPermission(permissionId)`
 
-- calls `DesktopPermissionRuntimeClient.requestPermission(permissionId)` and then applies returned `data.status`
+- calls `DesktopPermissionRuntimeClient.requestPermissionStatus(permissionId)` and then applies returned status value
 - shares merge/recompute semantics with probe path
 - does not set or clear `isLoading`
 
 ### `recheckAllPermissions`
 
 - builds `permissionIds` from current manifest snapshot
-- calls `DesktopPermissionRuntimeClient.checkPermissions(permissionIds)`
+- calls `DesktopPermissionRuntimeClient.checkPermissionStatuses(permissionIds)`
 - replaces entire status map with fresh normalized statuses
 - does not set or clear `isLoading`; repeated clicks can trigger overlapping recheck requests
 

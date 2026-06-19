@@ -260,9 +260,10 @@ through this runtime facade instead of reaching into renderer infrastructure
 directly.
 
 `desktopPermissionRuntimeClient.ts` owns renderer permission list, probe,
-request, and batch-check commands. `permissionStore` owns status normalization,
-gate derivation, onboarding persistence, and action errors while delegating
-desktop permission transport to this client.
+request, and batch-check commands, including result-envelope resolution into
+manifest/status values or runtime-thrown errors. `permissionStore` owns status
+normalization, gate derivation, onboarding persistence, and action errors while
+delegating desktop permission transport to this client.
 
 `desktopPermissionGrantEffectsRuntime.js` owns renderer post-grant permission
 effects that update app config, such as enabling browser automation after the

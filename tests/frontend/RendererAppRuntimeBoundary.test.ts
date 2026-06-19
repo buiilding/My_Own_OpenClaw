@@ -814,6 +814,28 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('permission command result envelopes stay behind the app runtime client', async () => {
+    const clientSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopPermissionRuntimeClient.ts'),
+      'utf8',
+    );
+    const storeSource = await fs.readFile(
+      path.join(rendererRoot, 'features/permissions/stores/permissionStore.js'),
+      'utf8',
+    );
+
+    expect(clientSource).toContain('resolvePermissionManifestResult');
+    expect(clientSource).toContain('resolvePermissionStatusResult');
+    expect(clientSource).toContain('resolvePermissionStatusesResult');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.listPermissionManifest');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.runPermissionProbeStatus');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.requestPermissionStatus');
+    expect(storeSource).toContain('DesktopPermissionRuntimeClient.checkPermissionStatuses');
+    expect(storeSource).not.toContain('result?.success');
+    expect(storeSource).not.toContain('result.data');
+    expect(storeSource).not.toContain('result?.data');
+  });
+
   test('debug tool-ghost timing is owned by app runtime', async () => {
     const runtimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopToolGhostRuntime.ts'),

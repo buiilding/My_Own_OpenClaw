@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: expose permission manifest/probe/request/recheck results as
+  value-level permission runtime client helpers so `permissionStore` no longer
+  reads permission command result envelopes. No migration required.
 - renderer/runtime: move transparency section content render-mode and clipboard
   serialization rules into `desktopMessageTransparencyRuntime` so
   `TransparencySection` no longer branches on raw transparency type strings. No

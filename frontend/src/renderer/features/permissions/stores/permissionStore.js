@@ -107,16 +107,12 @@ export const usePermissionStore = create((set, get) => ({
     set({ isLoading: true, error: '' });
 
     try {
-      const result = await DesktopPermissionRuntimeClient.listPermissions();
-      if (!result?.success || !result?.data) {
-        throw new Error(result?.error || 'Failed to load permission manifest.');
-      }
-
-      const manifestVersion = typeof result.data.manifest_version === 'string'
-        ? result.data.manifest_version
+      const manifest = await DesktopPermissionRuntimeClient.listPermissionManifest();
+      const manifestVersion = typeof manifest.manifest_version === 'string'
+        ? manifest.manifest_version
         : '';
-      const permissions = Array.isArray(result.data.permissions) ? result.data.permissions : [];
-      const statusesByPermissionId = mapStatusesByPermissionId(result.data.statuses);
+      const permissions = Array.isArray(manifest.permissions) ? manifest.permissions : [];
+      const statusesByPermissionId = mapStatusesByPermissionId(manifest.statuses);
       const onboardingState = loadPermissionOnboardingState();
       const gateState = resolveGateState({
         permissions,
@@ -127,7 +123,7 @@ export const usePermissionStore = create((set, get) => ({
 
       set({
         manifestVersion,
-        generatedAt: typeof result.data.generated_at === 'string' ? result.data.generated_at : null,
+        generatedAt: typeof manifest.generated_at === 'string' ? manifest.generated_at : null,
         permissions,
         statusesByPermissionId,
         onboardingState,
@@ -151,14 +147,9 @@ export const usePermissionStore = create((set, get) => ({
     }
 
     try {
-      const result = await DesktopPermissionRuntimeClient.runPermissionProbe(permissionId);
-
-      if (!result?.success || !result?.data?.status) {
-        throw new Error(result?.error || 'Failed to run permission probe.');
-      }
-
-      set(buildStatusStateUpdate(get(), [result.data.status]));
-      return result.data.status;
+      const status = await DesktopPermissionRuntimeClient.runPermissionProbeStatus(permissionId);
+      set(buildStatusStateUpdate(get(), [status]));
+      return status;
     } catch (error) {
       set({ error: error?.message || 'Failed to run permission probe.' });
       return null;
@@ -171,14 +162,9 @@ export const usePermissionStore = create((set, get) => ({
     }
 
     try {
-      const result = await DesktopPermissionRuntimeClient.requestPermission(permissionId);
-
-      if (!result?.success || !result?.data?.status) {
-        throw new Error(result?.error || 'Failed to request permission.');
-      }
-
-      set(buildStatusStateUpdate(get(), [result.data.status]));
-      return result.data.status;
+      const status = await DesktopPermissionRuntimeClient.requestPermissionStatus(permissionId);
+      set(buildStatusStateUpdate(get(), [status]));
+      return status;
     } catch (error) {
       set({ error: error?.message || 'Failed to request permission.' });
       return null;
@@ -188,12 +174,8 @@ export const usePermissionStore = create((set, get) => ({
   recheckAllPermissions: async () => {
     try {
       const permissionIds = get().permissions.map((permission) => permission.permission_id);
-      const result = await DesktopPermissionRuntimeClient.checkPermissions(permissionIds);
-      if (!result?.success || !result?.data?.statuses) {
-        throw new Error(result?.error || 'Failed to recheck permissions.');
-      }
-
-      set(buildStatusStateUpdate(get(), result.data.statuses, { replace: true }));
+      const statuses = await DesktopPermissionRuntimeClient.checkPermissionStatuses(permissionIds);
+      set(buildStatusStateUpdate(get(), statuses, { replace: true }));
     } catch (error) {
       set({ error: error?.message || 'Failed to recheck permissions.' });
     }

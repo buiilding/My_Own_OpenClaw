@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission result value boundary slice by
+  adding permission manifest/status/statuses result resolvers and value-level
+  helpers to `desktopPermissionRuntimeClient`. `permissionStore` now keeps
+  status normalization, gate derivation, onboarding persistence, and action
+  errors without reading permission command result envelopes.
+  Validation: passed focused permission runtime client, permission store,
+  renderer app-runtime boundary, and docs-index tests plus docs search, related
+  commit search, stale envelope-field scans, docs listing, and diff checks. No
+  migration required; permission IPC
+  channel names, raw command helpers, manifest/status payload shapes,
+  onboarding storage key, gate formulas, permission probing/request behavior,
+  settings, credentials, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer transparency content presentation boundary
   slice by adding transparency content presentation and clipboard serialization
   helpers to `desktopMessageTransparencyRuntime`. `TransparencySection` now
