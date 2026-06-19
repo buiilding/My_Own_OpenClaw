@@ -274,6 +274,33 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.replaceCompactedReplayFromBackendEvent');
   });
 
+  test('chat stream payload alias normalization stays behind app runtime facade', async () => {
+    const payloadRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts'),
+      'utf8',
+    );
+    const compactionHookSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamCompactionHandlers.ts'),
+      'utf8',
+    );
+    const metadataHookSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamMetadataHandlers.ts'),
+      'utf8',
+    );
+
+    expect(payloadRuntimeSource).toContain('replacement_history_entries');
+    expect(payloadRuntimeSource).toContain('replacement_history_preview');
+    expect(payloadRuntimeSource).toContain('summary_preview');
+    expect(payloadRuntimeSource).toContain('toolSchemas');
+    expect(compactionHookSource).toContain('buildCompactionDebugInfo');
+    expect(compactionHookSource).toContain('buildCompactedReplaySnapshot');
+    expect(metadataHookSource).toContain('resolveToolSchemasMetadataPayload');
+    expect(compactionHookSource).not.toContain('replacement_history_entries');
+    expect(compactionHookSource).not.toContain('replacement_history_preview');
+    expect(compactionHookSource).not.toContain('summary_preview');
+    expect(metadataHookSource).not.toContain('toolSchemas');
+  });
+
   test('chat stream terminal handlers consume SDK events directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamTerminalHandlers.ts'),

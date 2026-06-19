@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat stream payload runtime slice by moving
+  compaction debug/replay alias parsing, replacement-history extraction,
+  compaction skipped/user id normalization, compacted replay snapshot building,
+  and tool-schema metadata alias normalization from chat hooks into
+  `desktopChatStreamEventPayloadRuntime`. Hooks now coordinate side effects and
+  UI updates through app-runtime helpers. Validation: focused payload-runtime,
+  compaction-handler, metadata-handler, renderer chat runtime boundary tests,
+  and diff checks. No migration required; compaction event payloads, replay
+  storage shape, metadata updates, stream tracking, IPC, backend websocket
+  events, credentials, provider-policy, storage, hosted URLs, and local
+  execution behavior are unchanged.
+
 - 2026-06-19: completed an SDK example product-label slice by renaming the
   runnable example loader helpers to `buildLocalAgentSdk` and
   `loadLocalAgentSdk`, updating custom UI/CLI/local-tool/plugin example copy and

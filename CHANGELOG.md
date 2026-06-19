@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move chat stream compaction and tool-schema payload alias
+  normalization behind the app runtime payload facade. No migration required.
 - examples/sdk: rename runnable example helper APIs and copy from Windie SDK
   product labels to Agent SDK/runtime labels. No migration required.
 - docs/browser: route browser action/runtime labels through local-runtime

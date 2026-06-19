@@ -3,8 +3,12 @@
  */
 
 import {
+  buildCompactedReplaySnapshot,
+  buildCompactionDebugInfo,
   buildScreenshotAttachment,
+  getCompactionReplacementHistoryEntries,
   resolveErrorText,
+  resolveToolSchemasMetadataPayload,
   shouldIgnoreStreamError,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime';
 
@@ -55,5 +59,91 @@ describe('desktopChatStreamEventPayloadRuntime', () => {
     expect(resolveErrorText({ content: '', message: 'message-error' })).toBe('message-error');
     expect(resolveErrorText({ content: '', message: '' })).toBe('An error occurred');
     expect(resolveErrorText(undefined)).toBe('An error occurred');
+  });
+
+  test('normalizes compaction payload aliases for renderer side effects', () => {
+    const payload = {
+      before_tokens: 10,
+      afterTokens: 4,
+      removed_messages: 2,
+      summary_preview: 'short',
+      summaryText: 'full',
+      skipped_reason: '',
+      replacement_history_preview: [
+        {
+          role: 'assistant',
+          message_type: 'context_compaction',
+          content: 'summary',
+          tool_name: 'compact',
+          tool_call_id: 'tool-1',
+        },
+      ],
+      replacement_history_entries: [
+        { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+      ],
+    };
+
+    expect(buildCompactionDebugInfo(payload)).toEqual(expect.objectContaining({
+      beforeTokens: 10,
+      afterTokens: 4,
+      removedMessages: 2,
+      summaryPreview: 'short',
+      summaryText: 'full',
+      replacementHistoryPreview: [
+        {
+          role: 'assistant',
+          messageType: 'context_compaction',
+          content: 'summary',
+          toolName: 'compact',
+          toolCallId: 'tool-1',
+        },
+      ],
+    }));
+    expect(getCompactionReplacementHistoryEntries(payload)).toEqual([
+      expect.objectContaining({ message_type: 'context_compaction' }),
+    ]);
+  });
+
+  test('buildCompactedReplaySnapshot creates stable replay snapshots from runtime payload', () => {
+    const snapshot = buildCompactedReplaySnapshot({
+      eventId: 'event-1',
+      type: 'compaction_applied',
+      conversationRef: 'conversation-1',
+      turnRef: 'turn-1',
+      revisionId: 'rev-1',
+      timestamp: '2026-06-19T00:00:00.000Z',
+      payload: {
+        generationId: 'generation-1',
+        replacementHistoryEntries: [
+          { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+        ],
+      },
+    } as any, 'conversation-1');
+
+    expect(snapshot).toEqual(expect.objectContaining({
+      generationId: 'generation-1',
+      conversationRef: 'conversation-1',
+      sourceRevisionId: 'rev-1',
+      sourceTurnRef: 'turn-1',
+      entryCount: 1,
+      complete: true,
+      active: true,
+    }));
+  });
+
+  test('normalizes tool-schema metadata aliases before message updates', () => {
+    expect(resolveToolSchemasMetadataPayload({
+      toolSchemas: [{ name: 'read_file' }],
+    })).toEqual({
+      toolSchemas: [{ name: 'read_file' }],
+      tool_schemas: [{ name: 'read_file' }],
+    });
+    expect(resolveToolSchemasMetadataPayload({
+      tool_schemas: [{ name: 'replace' }],
+      toolSchemas: [{ name: 'read_file' }],
+    })).toEqual({
+      tool_schemas: [{ name: 'replace' }],
+      toolSchemas: [{ name: 'read_file' }],
+    });
   });
 });

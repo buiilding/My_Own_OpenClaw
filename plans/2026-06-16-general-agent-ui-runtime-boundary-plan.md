@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat Stream Payload Runtime Boundary
+
+- Finding: chat-stream compaction handlers and metadata handlers still owned
+  backend-wire alias parsing for compaction debug/replay payloads and
+  `toolSchemas`/`tool_schemas` metadata, even though those shapes are shared
+  event-payload normalization rather than hook presentation policy.
+- Change: moved compaction debug info, compacted replay snapshot construction,
+  compaction skipped/user id parsing, replacement-history extraction, and
+  tool-schema metadata alias normalization into
+  `desktopChatStreamEventPayloadRuntime`, leaving the chat hooks to coordinate
+  side effects and UI updates through app-runtime helpers.
+- Validation: focused payload-runtime, compaction-handler, metadata-handler,
+  renderer chat runtime boundary tests, and diff checks.
+- Compatibility: no migration required. Compaction event payloads, replay
+  storage shape, metadata updates, stream tracking, IPC, backend websocket
+  events, credentials, provider policy, storage, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 SDK Example Product-Label Boundary
 
 - Finding: runnable SDK examples and the shared local SDK loader still used

@@ -5,6 +5,9 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';
 import {
+  resolveToolSchemasMetadataPayload,
+} from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
+import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildToolSchemasUpdate,
@@ -62,13 +65,6 @@ function turnRefForUpdate(event: ConversationEvent): string | undefined {
   return typeof event.turnRef === 'string' && event.turnRef.trim()
     ? event.turnRef
     : undefined;
-}
-
-function toolSchemasPayload(event: MetadataConversationEvent) {
-  return {
-    ...event.payload,
-    tool_schemas: event.payload.tool_schemas ?? event.payload.toolSchemas,
-  };
 }
 
 export function useChatStreamMetadataHandlers({
@@ -133,7 +129,7 @@ export function useChatStreamMetadataHandlers({
       return;
     }
     updateLastMessageBySender('user', {
-      ...buildToolSchemasUpdate(toolSchemasPayload(event)),
+      ...buildToolSchemasUpdate(resolveToolSchemasMetadataPayload(event.payload)),
     }, turnRefForUpdate(event), conversationRef);
     recordTrackingEvent('tool-schemas', event.turnRef, {}, conversationRef);
   }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
