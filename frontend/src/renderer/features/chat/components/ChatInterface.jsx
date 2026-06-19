@@ -46,7 +46,7 @@ import {
 import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
-} from '../utils/message/messagePresentationPipeline';
+} from '../../../app/runtime/desktopThreadPresentationRuntime';
 import {
   buildCurrentTurnMessagesFromProjection,
 } from '../../../app/runtime/desktopCurrentTurnMessageRuntime';

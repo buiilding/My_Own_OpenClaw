@@ -169,6 +169,25 @@ Each completed slice should report:
   IPC payloads, storage, credentials, permissions, hosted routes, provider
   policy, packaging, and local execution behavior are unchanged.
 
+### 2026-06-19 Renderer Thread Presentation Runtime Boundary
+
+- Finding: `ChatInterface` used a pure presentation pipeline under chat
+  feature utilities to merge durable transcript rows with SDK current-turn live
+  rows, even though the rule depends only on app-runtime presentation
+  contracts.
+- Change: moved the thread presentation pipeline to
+  `frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime.js`,
+  routed chat and integration tests through that app-runtime facade, deleted
+  the old chat utility path, and refreshed docs plus boundary guards.
+- Validation: focused message presentation, pending-turn integration,
+  ChatInterface wiring, renderer app-runtime boundary, docs listing, stale
+  old-path scan, and diff checks.
+- Compatibility: no migration required. Durable transcript rows, SDK
+  current-turn row projection, duplicate suppression, insertion order,
+  response overlay behavior, IPC payloads, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

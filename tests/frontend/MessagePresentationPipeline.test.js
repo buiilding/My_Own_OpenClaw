@@ -5,9 +5,9 @@
 import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
-} from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
+} from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
 
-describe('messagePresentationPipeline', () => {
+describe('desktopThreadPresentationRuntime', () => {
   test('buildThreadPresentationMessages keeps SDK row order even when tool logs are hidden', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },

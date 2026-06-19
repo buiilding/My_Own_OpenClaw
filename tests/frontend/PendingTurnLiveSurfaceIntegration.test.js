@@ -14,7 +14,7 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 import {
   buildThreadPresentationMessages,
-} from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
+} from '../../frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime';
 import {
   buildCurrentTurnMessagesFromPresentation,
 } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';

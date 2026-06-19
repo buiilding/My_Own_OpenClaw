@@ -1,9 +1,9 @@
 /**
- * Provides the message presentation pipeline module for the renderer UI.
+ * Builds visible thread messages from durable rows plus SDK current-turn rows.
  */
 
-import { buildCurrentTurnMessagesFromPresentation } from '../../../../app/runtime/desktopCurrentTurnMessageRuntime';
-import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
+import { buildCurrentTurnMessagesFromPresentation } from './desktopCurrentTurnMessageRuntime';
+import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from './desktopPresentationSourceChannels';
 
 function findLastUserIndex(messages) {
   if (!Array.isArray(messages)) {

@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer thread-presentation runtime-boundary slice
+  by moving the durable-thread plus SDK live-row presentation pipeline out of
+  chat feature utilities and into
+  `frontend/src/renderer/app/runtime/desktopThreadPresentationRuntime.js`.
+  ChatInterface and integration tests now route through the app-runtime facade,
+  and the old chat utility path is deleted and guarded. Validation: focused
+  message presentation, pending-turn integration, ChatInterface wiring,
+  renderer app-runtime boundary, docs listing, stale old-path scan, and diff
+  checks. No migration required; durable transcript rows, SDK current-turn row
+  projection, duplicate suppression, insertion order, response overlay
+  behavior, IPC payloads, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer live-turn/current-turn runtime-boundary
   slice by moving SDK current-turn message projection, response closeability,
   thinking-text normalization, and live surface/overlay preflight resolution

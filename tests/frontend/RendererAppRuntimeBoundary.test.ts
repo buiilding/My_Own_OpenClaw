@@ -218,8 +218,8 @@ describe('renderer app runtime boundary', () => {
       path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
       'utf8',
     );
-    const presentationPipelineSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/message/messagePresentationPipeline.js'),
+    const threadPresentationSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopThreadPresentationRuntime.js'),
       'utf8',
     );
 
@@ -228,14 +228,21 @@ describe('renderer app runtime boundary', () => {
     expect(currentTurnMessageSource).toContain('desktopArtifactRuntimeClient');
     expect(currentTurnMessageSource).not.toContain('features/chat');
     expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
+    expect(threadPresentationSource).toContain('desktopCurrentTurnMessageRuntime');
+    expect(threadPresentationSource).toContain('desktopPresentationSourceChannels');
+    expect(threadPresentationSource).not.toContain('features/chat');
+    expect(threadPresentationSource).not.toContain('features/minimalChatPill');
     expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
     expect(chatInterfaceSource).toContain('desktopCurrentTurnMessageRuntime');
-    expect(presentationPipelineSource).toContain('desktopCurrentTurnMessageRuntime');
+    expect(chatInterfaceSource).toContain('desktopThreadPresentationRuntime');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/state/chatBoxResponseState.js'),
     )).rejects.toThrow();
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/message/liveTurnPresentationMessages.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/message/messagePresentationPipeline.js'),
     )).rejects.toThrow();
   });
 
