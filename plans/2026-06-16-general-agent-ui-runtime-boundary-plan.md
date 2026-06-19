@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dashboard MCP Registry Runtime Boundary
+
+- Finding: `McpsSection` still normalized Electron-main MCP registry payload
+  fields such as `mcp_errors` and `enabled_mcp_servers` even though
+  `DesktopMcpRuntimeClient` already owned the dashboard MCP command boundary.
+- Change: moved MCP registry normalization, empty registry defaults, and nested
+  enablement-result registry normalization into `desktopMcpRuntimeClient`,
+  leaving the dashboard MCP section to handle loading, toggle presentation, and
+  user-visible errors from normalized registry objects.
+- Validation: focused MCP runtime client, MCP section, renderer chat runtime
+  boundary tests, stale MCP section registry-field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. MCP registry payloads, enablement
+  persistence, discovery refresh behavior, dashboard rendering, IPC channel
+  names, credentials, provider policy, storage, hosted URLs, and local-runtime
+  MCP execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Terminal Stream Payload Runtime Boundary
 
 - Finding: the terminal chat stream hook still parsed backend-wire token-count

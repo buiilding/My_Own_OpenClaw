@@ -57,9 +57,9 @@ Module split ownership:
 - `DashboardSidebar` owns conversation row rendering and per-row action menu state.
 - `useDismissOnOutside` is shared by both profile menu and conversation kebab menu.
 - The `MCPs` product item opens the MCP control panel. Renderer code routes
-  registry list, refresh, and enablement commands through
-  `DesktopMcpRuntimeClient`; Electron main owns local registry discovery,
-  enablement persistence, and process execution.
+  registry list, refresh, enablement commands, and registry payload
+  normalization through `DesktopMcpRuntimeClient`; Electron main owns local
+  registry discovery, enablement persistence, and process execution.
 
 Collapse/expand motion contract:
 
