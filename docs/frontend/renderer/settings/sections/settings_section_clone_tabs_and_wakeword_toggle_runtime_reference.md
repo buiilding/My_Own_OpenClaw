@@ -145,15 +145,16 @@ Runtime inputs:
 
 - `DesktopExtensionRuntimeClient.listAgentExtensions()`
 - `DesktopExtensionRuntimeClient.onAgentCapabilityUpdate(...)`
+- `DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(...)`
 - `DesktopExtensionRuntimeClient.getRemoteToolPresentation(...)`
 - `DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation(...)`
 
 The tab should not import desktop IPC channels directly or branch on raw agent
 capability event type strings. It consumes extension metadata plus direct
 manifest/catalog update values through the runtime client, asks the runtime
-client for remote-tool availability and extension error presentation, then
-keeps presentation state, tool-toggle projection, and config patches local to
-the settings surface.
+client for local-tool manifest status, remote-tool availability, and extension
+error presentation, then keeps presentation state, tool-toggle projection, and
+config patches local to the settings surface.
 
 ## Workspace Tab Ownership Model
 

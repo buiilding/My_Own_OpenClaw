@@ -26,6 +26,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import {
   DesktopExtensionRuntimeClient,
   getAgentExtensionRuntimeErrorPresentation,
+  getAgentLocalToolManifestPresentation,
   getAgentRemoteToolPresentation,
   normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
@@ -233,6 +234,52 @@ describe('DesktopExtensionRuntimeClient', () => {
     expect(DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation(null)).toEqual({
       key: 'extension-unknown-',
       text: 'extension unknown',
+    });
+  });
+
+  test('builds local tool manifest presentation from accepted and rejected entries', () => {
+    const manifestStatus = normalizeAgentToolManifestStatus({
+      accepted: [{
+        name: 'read_file',
+        execution_target: 'local_runtime',
+        argument_resolution: 'passthrough',
+        schema: { type: 'object' },
+      }],
+      rejected: [{
+        name: 'broken_tool',
+        reason: 'bad schema',
+      }, {
+        name: 'missing_reason',
+      }],
+    });
+
+    expect(getAgentLocalToolManifestPresentation(manifestStatus, 'read_file')).toEqual({
+      acceptedTool: {
+        name: 'read_file',
+        execution_target: 'local_runtime',
+        argument_resolution: 'passthrough',
+        schema: { type: 'object' },
+      },
+      rejectedReason: '',
+      status: 'accepted',
+    });
+    expect(DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(
+      manifestStatus,
+      'broken_tool',
+    )).toEqual({
+      acceptedTool: null,
+      rejectedReason: 'bad schema',
+      status: 'rejected',
+    });
+    expect(getAgentLocalToolManifestPresentation(manifestStatus, 'missing_reason')).toEqual({
+      acceptedTool: null,
+      rejectedReason: 'manifest validation failed',
+      status: 'rejected',
+    });
+    expect(getAgentLocalToolManifestPresentation(manifestStatus, 'unknown_tool')).toEqual({
+      acceptedTool: null,
+      rejectedReason: '',
+      status: 'pending',
     });
   });
 });

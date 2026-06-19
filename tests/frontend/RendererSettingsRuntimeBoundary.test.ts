@@ -259,6 +259,10 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('error.kind');
     expect(source).not.toContain('error.id');
     expect(source).not.toContain('error.reason');
+    expect(source).not.toContain('manifestStatus.accepted');
+    expect(source).not.toContain('manifestStatus.rejected');
+    expect(source).not.toContain('(tool) => [tool.name, tool]');
+    expect(source).not.toContain('rejectedTool.reason');
     expect(source).not.toContain('.find((tool) => tool.name === toolName)');
     expect(source).not.toContain("event?.type === 'client-tool-manifest'");
     expect(source).not.toContain("event?.type === 'remote-tool-catalog'");
@@ -266,6 +270,7 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('DesktopExtensionRuntimeClient.onAgentCapabilityUpdate');
     expect(source).toContain('DesktopExtensionRuntimeClient.getRemoteToolPresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolManifestPresentation');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');
     expect(source).toContain('EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(source).toContain('EMPTY_AGENT_REMOTE_TOOL_CATALOG');
@@ -275,8 +280,10 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).toContain('resolveAgentCapabilityUpdate');
     expect(clientSource).toContain('getAgentRemoteToolPresentation');
     expect(clientSource).toContain('getAgentExtensionRuntimeErrorPresentation');
+    expect(clientSource).toContain('getAgentLocalToolManifestPresentation');
     expect(clientSource).toContain('getRemoteToolPresentation');
     expect(clientSource).toContain('getExtensionRuntimeErrorPresentation');
+    expect(clientSource).toContain('getLocalToolManifestPresentation');
     expect(clientSource).toContain('onAgentCapabilityEvent');
     expect(clientSource).toContain('onAgentCapabilityUpdate');
     expect(clientSource).toContain('manifestStatus');

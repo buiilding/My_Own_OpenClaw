@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved agent local-tool manifest presentation lookup into
+  `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps local tool
+  layout and toggle config patches while consuming runtime-provided
+  accepted/rejected/pending status values instead of building maps from raw
+  manifest arrays or reading rejected tool reasons. Validation passed focused
+  desktop extension runtime client, agent settings, renderer settings boundary,
+  and docs-index tests plus docs search, related commit search, stale raw
+  local-tool manifest-field scan, docs listing, and diff checks. No migration
+  required; client tool manifest payload shape, accepted schema display,
+  rejected reason text, local/remote tool toggle config keys, settings storage,
+  capability event channels, IPC channels, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
 - 2026-06-19: moved agent extension runtime error presentation into
   `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps diagnostics
   layout while rendering runtime-provided extension error key/text values

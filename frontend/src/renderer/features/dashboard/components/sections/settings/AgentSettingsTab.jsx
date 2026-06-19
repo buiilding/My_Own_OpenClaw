@@ -2,7 +2,7 @@
  * Defines agent settings tab configuration for the renderer UI.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   formatToolAcceptanceRuntimeSummary,
@@ -36,13 +36,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
   const disabledRemoteTools = Array.isArray(config?.agent_disabled_remote_tools)
     ? config.agent_disabled_remote_tools
     : [];
-  const acceptedTools = useMemo(() => new Map(
-    (manifestStatus.accepted || []).map((tool) => [tool.name, tool]),
-  ), [manifestStatus.accepted]);
-  const rejectedTools = useMemo(() => new Map(
-    (manifestStatus.rejected || []).map((tool) => [tool.name, tool]),
-  ), [manifestStatus.rejected]);
-
   useEffect(() => {
     DesktopExtensionRuntimeClient.listAgentExtensions()
       .then(setExtensionRuntime)
@@ -158,8 +151,10 @@ function AgentSettingsTab({ config, onConfigChange }) {
                 />
               </div>
               <ToolAcceptanceStatus
-                acceptedTool={acceptedTools.get(toolName)}
-                rejectedTool={rejectedTools.get(toolName)}
+                presentation={DesktopExtensionRuntimeClient.getLocalToolManifestPresentation(
+                  manifestStatus,
+                  toolName,
+                )}
               />
             </div>
           ))}
@@ -248,20 +243,21 @@ function PluginRuntimeDetails({ plugin }) {
   );
 }
 
-function ToolAcceptanceStatus({ acceptedTool, rejectedTool }) {
+function ToolAcceptanceStatus({ presentation }) {
   const config = agentSettingsSkin.toolAcceptance;
-  if (rejectedTool) {
+  if (presentation.status === 'rejected') {
     return (
       <p className="clone-settings-tool-status clone-settings-tool-status-error">
-        {config.rejectedPrefix}: {rejectedTool.reason || 'manifest validation failed'}
+        {config.rejectedPrefix}: {presentation.rejectedReason}
       </p>
     );
   }
-  if (!acceptedTool) {
+  if (presentation.status !== 'accepted' || !presentation.acceptedTool) {
     return (
       <p className="clone-settings-tool-status">{config.pending}</p>
     );
   }
+  const { acceptedTool } = presentation;
   return (
     <details className="clone-settings-schema-viewer">
       <summary>{config.acceptedSummary}</summary>
@@ -276,14 +272,15 @@ function ToolAcceptanceStatus({ acceptedTool, rejectedTool }) {
 }
 
 ToolAcceptanceStatus.propTypes = {
-  acceptedTool: PropTypes.shape({
-    argument_resolution: PropTypes.string,
-    execution_target: PropTypes.string,
-    schema: PropTypes.object,
-  }),
-  rejectedTool: PropTypes.shape({
-    reason: PropTypes.string,
-  }),
+  presentation: PropTypes.shape({
+    acceptedTool: PropTypes.shape({
+      argument_resolution: PropTypes.string,
+      execution_target: PropTypes.string,
+      schema: PropTypes.object,
+    }),
+    rejectedReason: PropTypes.string.isRequired,
+    status: PropTypes.oneOf(['accepted', 'rejected', 'pending']).isRequired,
+  }).isRequired,
 };
 
 PluginRuntimeDetails.propTypes = {

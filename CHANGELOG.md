@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/extensions: move local tool manifest presentation lookup into
+  `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer builds
+  accepted/rejected tool maps from raw manifest arrays before rendering local
+  tool status. No migration required.
 - renderer/extensions: move agent extension runtime error presentation into
   `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer formats raw
   extension `kind`/`id`/`reason` fields while rendering extension diagnostics.

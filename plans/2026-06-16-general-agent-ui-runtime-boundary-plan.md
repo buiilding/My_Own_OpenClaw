@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Agent Local Tool Manifest Presentation Boundary
+
+- Finding: `DesktopExtensionRuntimeClient` owned agent manifest normalization
+  and settings presentation helpers, but `AgentSettingsTab` still built
+  accepted/rejected local-tool maps from raw manifest arrays and read rejected
+  tool reasons while rendering local tool status.
+- Change: added local-tool manifest presentation lookup to
+  `DesktopExtensionRuntimeClient`. Agent settings now keeps local tool layout
+  and toggle config patches while consuming runtime-provided accepted/rejected
+  status values for each displayed tool.
+- Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw local-tool manifest-field scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Client tool manifest payload shape,
+  accepted schema display, rejected reason text, local/remote tool toggle
+  config keys, settings storage, capability event channels, IPC channels,
+  provider policy, hosted URLs, permissions, credentials, and local execution
+  behavior are unchanged.
+
 ### 2026-06-19 Renderer Agent Extension Error Presentation Boundary
 
 - Finding: `DesktopExtensionRuntimeClient` owned extension runtime payload

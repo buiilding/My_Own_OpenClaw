@@ -31,6 +31,12 @@ export type AgentExtensionRuntimeErrorPresentation = {
   text: string;
 };
 
+export type AgentLocalToolManifestPresentation = {
+  acceptedTool: Record<string, unknown> | null;
+  rejectedReason: string;
+  status: 'accepted' | 'rejected' | 'pending';
+};
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -163,6 +169,40 @@ export function getAgentExtensionRuntimeErrorPresentation(
   };
 }
 
+export function getAgentLocalToolManifestPresentation(
+  manifestStatus: unknown,
+  toolName: unknown,
+): AgentLocalToolManifestPresentation {
+  const name = stringOrEmpty(toolName);
+  const status = normalizeAgentToolManifestStatus(manifestStatus);
+  const acceptedTool = status.accepted
+    .map(recordOrEmpty)
+    .find((tool) => stringOrEmpty(tool.name) === name) ?? null;
+  const rejectedTool = status.rejected
+    .map(recordOrEmpty)
+    .find((tool) => stringOrEmpty(tool.name) === name) ?? null;
+
+  if (rejectedTool) {
+    return {
+      acceptedTool: null,
+      rejectedReason: stringOrEmpty(rejectedTool.reason) || 'manifest validation failed',
+      status: 'rejected',
+    };
+  }
+  if (acceptedTool) {
+    return {
+      acceptedTool,
+      rejectedReason: '',
+      status: 'accepted',
+    };
+  }
+  return {
+    acceptedTool: null,
+    rejectedReason: '',
+    status: 'pending',
+  };
+}
+
 export const DesktopExtensionRuntimeClient = {
   async listAgentExtensions(): Promise<AgentExtensionRuntimeSnapshot> {
     return normalizeAgentExtensionRuntime(
@@ -198,5 +238,12 @@ export const DesktopExtensionRuntimeClient = {
     error: unknown,
   ): AgentExtensionRuntimeErrorPresentation {
     return getAgentExtensionRuntimeErrorPresentation(error);
+  },
+
+  getLocalToolManifestPresentation(
+    manifestStatus: unknown,
+    toolName: unknown,
+  ): AgentLocalToolManifestPresentation {
+    return getAgentLocalToolManifestPresentation(manifestStatus, toolName);
   },
 };
