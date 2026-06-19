@@ -7,7 +7,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  loadLocalWindieSdk,
+  loadLocalAgentSdk,
   loadSdkWebSocket,
 } from '../_shared/local_sdk_loader.mjs';
 
@@ -22,7 +22,7 @@ function send(socket, type, payload = {}, extra = {}) {
 function createMockBackend() {
   const server = http.createServer((_req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, service: 'windie-local-tool-extension-example' }));
+    res.end(JSON.stringify({ ok: true, service: 'agent-local-tool-extension-example' }));
   });
   const sockets = new Set();
   const wss = new WebSocketServer({ server, path: '/ws' });
@@ -65,8 +65,8 @@ function createMockBackend() {
             tool_name: toolName,
             tool_call_id: 'local-tool-extension-provider-call',
             parameters: {
-              text: 'Windie local module tools execute through the SDK local runtime.',
-              filename: 'windie-local-tool-extension.txt',
+              text: 'Local module tools execute through the SDK local runtime.',
+              filename: 'agent-local-tool-extension.txt',
             },
             request_id: 'local-tool-extension-tool-call',
           },
@@ -125,7 +125,7 @@ function createMockBackend() {
 const {
   AgentClient,
   moduleTool,
-} = await loadLocalWindieSdk(repoRoot);
+} = await loadLocalAgentSdk(repoRoot);
 
 const backend = await createMockBackend();
 const client = new AgentClient({

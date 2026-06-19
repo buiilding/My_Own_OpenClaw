@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples/sdk: rename runnable example helper APIs and copy from Windie SDK
+  product labels to Agent SDK/runtime labels. No migration required.
 - docs/browser: route browser action/runtime labels through local-runtime
   dispatch, the controlled dedicated browser session, and Browser Use adapter
   wording instead of product-skinned browser labels. No migration required.

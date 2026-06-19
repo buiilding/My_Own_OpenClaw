@@ -1,6 +1,6 @@
 # Custom UI Example
 
-Minimal browser UI built directly on the Windie SDK runtime. It is not an
+Minimal browser UI built directly on the Agent SDK runtime. It is not an
 Electron renderer and does not use desktop transcript hooks.
 
 Run from the repo root:

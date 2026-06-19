@@ -1,6 +1,6 @@
 # Local Tool Extension Example
 
-This is the smallest runnable Windie SDK example for a local module tool. It
+This is the smallest runnable Agent SDK example for a local module tool. It
 does not use a plugin package; the SDK registers a Python `module:function`
 entrypoint with the local-runtime daemon and routes the backend tool call
 through it.

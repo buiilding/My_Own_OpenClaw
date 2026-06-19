@@ -146,19 +146,36 @@ describe('modular sdk refactor completion boundary', () => {
   });
 
   test('public local-runtime examples avoid sidecar-facing descriptions', async () => {
+    const localSdkLoader = await read('examples/_shared/local_sdk_loader.mjs');
+    const cliAgentReadme = await read('examples/cli-agent/README.md');
+    const cliAgentRun = await read('examples/cli-agent/run.mjs');
+    const customUiReadme = await read('examples/custom-ui/README.md');
+    const customUiHtml = await read('examples/custom-ui/index.html');
+    const customUiRun = await read('examples/custom-ui/run.mjs');
     const localToolReadme = await read('examples/local-tool-extension/README.md');
     const localToolRun = await read('examples/local-tool-extension/run.mjs');
     const repoAgentReadme = await read('examples/repo-agent-extension/README.md');
     const repoAgentManifest = await read('examples/repo-agent-extension/plugin.json');
     const simpleChatReadme = await read('examples/simple-chat-cli/README.md');
+    const simpleChatRun = await read('examples/simple-chat-cli/run.mjs');
     const publicExampleText = [
+      localSdkLoader,
+      cliAgentReadme,
+      cliAgentRun,
+      customUiReadme,
+      customUiHtml,
+      customUiRun,
       localToolReadme,
       localToolRun,
       repoAgentReadme,
       repoAgentManifest,
       simpleChatReadme,
+      simpleChatRun,
     ].join('\n');
 
+    expect(publicExampleText).toContain('Agent SDK runtime');
+    expect(publicExampleText).toContain('loadLocalAgentSdk');
+    expect(publicExampleText).toContain('Agent SDK Custom UI');
     expect(publicExampleText).toContain('local-runtime daemon discovery');
     expect(publicExampleText).toContain('local-runtime plugin example');
     expect(publicExampleText).toContain('local-runtime tool implementation');
@@ -172,6 +189,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(publicExampleText).not.toContain('Windie sidecar plugin');
     expect(publicExampleText).not.toContain('sidecar plugin manifest');
     expect(publicExampleText).not.toContain('local sidecar tool implementation');
+    expect(publicExampleText).not.toContain('buildLocalWindieSdk');
+    expect(publicExampleText).not.toContain('loadLocalWindieSdk');
+    expect(publicExampleText).not.toContain('Windie SDK');
+    expect(publicExampleText).not.toContain('Windie agent');
+    expect(publicExampleText).not.toContain('Windie local');
+    expect(publicExampleText).not.toContain('windie-local-tool-extension');
   });
 
   test('sdk docs describe local runtime contracts without sidecar-facing public wording', async () => {

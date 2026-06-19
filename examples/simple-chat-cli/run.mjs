@@ -7,12 +7,12 @@ import readline from "node:readline/promises";
 import { exit, stderr, stdin, stdout } from "node:process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadLocalWindieSdk } from "../_shared/local_sdk_loader.mjs";
+import { loadLocalAgentSdk } from "../_shared/local_sdk_loader.mjs";
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, "../..");
 
-const { AgentClient } = await loadLocalWindieSdk(repoRoot);
+const { AgentClient } = await loadLocalAgentSdk(repoRoot);
 const installToken = process.env.WINDIE_INSTALL_TOKEN;
 
 if (!installToken) {

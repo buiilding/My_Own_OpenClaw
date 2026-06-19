@@ -15,7 +15,7 @@ function sdkPackageJson(repoRoot) {
   return path.join(sdkDir(repoRoot), 'package.json');
 }
 
-export function buildLocalWindieSdk(repoRoot) {
+export function buildLocalAgentSdk(repoRoot) {
   const packageDir = sdkDir(repoRoot);
   const command = process.platform === 'win32'
     ? process.env.ComSpec || 'cmd.exe'
@@ -30,15 +30,15 @@ export function buildLocalWindieSdk(repoRoot) {
   if (result.status !== 0) {
     throw new Error(
       [
-        'Could not build the local Windie SDK package.',
+        'Could not build the local Agent SDK package.',
         'Run `cd packages/windie-sdk-js && npm install`, then retry this example.',
       ].join('\n'),
     );
   }
 }
 
-export async function loadLocalWindieSdk(repoRoot) {
-  buildLocalWindieSdk(repoRoot);
+export async function loadLocalAgentSdk(repoRoot) {
+  buildLocalAgentSdk(repoRoot);
   return import(pathToFileURL(path.join(sdkDir(repoRoot), 'dist/index.js')).href);
 }
 
@@ -50,7 +50,7 @@ export function loadSdkWebSocket(repoRoot) {
   } catch (error) {
     throw new Error(
       [
-        'Could not load the Windie SDK websocket dependency.',
+        'Could not load the Agent SDK websocket dependency.',
         'Run `cd packages/windie-sdk-js && npm install`, then retry this example.',
         error instanceof Error ? error.message : String(error),
       ].join('\n'),

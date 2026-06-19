@@ -7,14 +7,14 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  loadLocalWindieSdk,
+  loadLocalAgentSdk,
   loadSdkWebSocket,
 } from '../_shared/local_sdk_loader.mjs';
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, '../..');
 const { WebSocketServer, WebSocketImpl } = loadSdkWebSocket(repoRoot);
-const { AgentClient } = await loadLocalWindieSdk(repoRoot);
+const { AgentClient } = await loadLocalAgentSdk(repoRoot);
 
 function send(socket, type, payload = {}, extra = {}) {
   socket.send(JSON.stringify({ type, payload, ...extra }));

@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promises as fs } from 'node:fs';
 import {
-  buildLocalWindieSdk,
+  buildLocalAgentSdk,
   loadSdkWebSocket,
 } from '../_shared/local_sdk_loader.mjs';
 
@@ -102,7 +102,7 @@ function createServer() {
   return { server, wss };
 }
 
-buildLocalWindieSdk(repoRoot);
+buildLocalAgentSdk(repoRoot);
 const { server, wss } = createServer();
 const address = await new Promise(resolve => {
   server.listen(0, '127.0.0.1', () => resolve(server.address()));
@@ -111,7 +111,7 @@ const url = `http://127.0.0.1:${address.port}`;
 
 if (process.argv.includes('--smoke')) {
   const response = await fetch(url);
-  if (!response.ok || !(await response.text()).includes('Windie SDK Custom UI')) {
+  if (!response.ok || !(await response.text()).includes('Agent SDK Custom UI')) {
     throw new Error('Custom UI smoke check failed');
   }
   await new Promise(resolve => wss.close(() => server.close(resolve)));

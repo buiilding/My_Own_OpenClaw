@@ -1,6 +1,6 @@
 # Repo Agent Extension Example
 
-This is the canonical runnable Windie local-runtime plugin example. It includes one
+This is the canonical runnable local-runtime plugin example. It includes one
 local Python plugin tool and one SDK script that wakes an agent with this plugin.
 
 Run it from the repo root:

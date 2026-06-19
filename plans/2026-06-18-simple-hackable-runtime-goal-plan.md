@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed an SDK example product-label slice by renaming the
+  runnable example loader helpers to `buildLocalAgentSdk` and
+  `loadLocalAgentSdk`, updating custom UI/CLI/local-tool/plugin example copy and
+  smoke checks to Agent SDK/runtime wording, and extending the modular guard
+  across the runnable example set. Validation: focused modular boundary test,
+  stale example-label scan, and diff checks. No migration required; repository
+  examples and tests changed only, with no SDK package export, backend route,
+  websocket payload, local-runtime startup, plugin manifest shape, credential,
+  storage, provider-policy, or hosted-URL change.
+
 - 2026-06-19: completed a browser runtime label slice by replacing focused
   product-skinned dedicated-browser labels and sidecar-as-browser-runtime
   labels in browser action, browser control, permission warm-up, browser tool,

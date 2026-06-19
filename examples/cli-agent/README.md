@@ -1,6 +1,6 @@
 # CLI Agent Example
 
-Minimal Node CLI that uses the Windie SDK conversation runtime without the
+Minimal Node CLI that uses the Agent SDK conversation runtime without the
 Electron desktop.
 
 Run from the repo root:
@@ -10,7 +10,7 @@ node examples/cli-agent/run.mjs
 ```
 
 The script builds the local SDK package from `packages/windie-sdk-js`, starts a tiny mock backend websocket,
-wakes a Windie agent with an initial model selection, lists backend-owned models,
+wakes an agent with an initial model selection, lists backend-owned models,
 changes the active model through `agent.setModel(...)`, opens a conversation runtime with an
 `FileConversationStore`, streams one turn through `conversation.stream()`,
 passes a per-turn model override, prints assistant deltas, retries the turn

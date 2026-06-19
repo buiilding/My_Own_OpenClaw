@@ -8,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  loadLocalWindieSdk,
+  loadLocalAgentSdk,
   loadSdkWebSocket,
 } from '../_shared/local_sdk_loader.mjs';
 
@@ -115,7 +115,7 @@ function createMockBackend() {
 const {
   AgentClient,
   FileConversationStore,
-} = await loadLocalWindieSdk(repoRoot);
+} = await loadLocalAgentSdk(repoRoot);
 
 const backend = await createMockBackend();
 const store = new FileConversationStore({

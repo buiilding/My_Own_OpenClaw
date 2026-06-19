@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 SDK Example Product-Label Boundary
+
+- Finding: runnable SDK examples and the shared local SDK loader still used
+  Windie SDK, Windie agent, and Windie local labels for reusable custom UI,
+  CLI, module-tool, plugin, and local loader surfaces.
+- Change: renamed the example helper exports to `buildLocalAgentSdk` and
+  `loadLocalAgentSdk`, updated example copy and smoke checks to Agent SDK
+  wording, and kept the package path/name unchanged for compatibility with the
+  current repository layout. The modular boundary guard now reads the runnable
+  example set and rejects the retired product-shaped SDK example labels.
+- Validation: focused modular boundary test, stale example-label scan, and diff
+  checks.
+- Compatibility: no migration required for shipped runtime behavior. These are
+  runnable repository examples and test/docs labels only; SDK package exports,
+  backend routes, websocket payloads, local-runtime startup, plugin manifests,
+  credentials, storage, provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-19 Browser Runtime Label Boundary
 
 - Finding: browser action/runtime docs still used focused product-skinned
