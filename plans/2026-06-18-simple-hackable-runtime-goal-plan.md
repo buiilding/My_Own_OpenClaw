@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a root README local-runtime Python route-label slice by
+  routing the root README docs table away from Sidecar Docs, Python sidecar
+  runtime, sidecar runtime packaging, and client/sidecar/API labels and through
+  Local-Runtime Python Docs, Python implementation behind local-runtime
+  behavior, bundled local-runtime Python packaging, and local-runtime Python
+  implementation API wording. Validation: focused modular boundary guard, docs
+  listing, exact stale label scan, and diff checks. No migration required;
+  README copy and boundary tests changed only, with no API surface, packaging
+  command, bundled runtime build name, endpoint setting, IPC channel, storage,
+  credential, permission, hosted route, provider policy, or local execution
+  behavior changed.
 - 2026-06-19: completed a JSON-RPC local-runtime method-label slice by routing
   frontend IPC, inventory, channel, and local-runtime JSON-RPC docs away from
   sidecar method labels and through local-runtime RPC or Python JSON-RPC

@@ -261,6 +261,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local runtime-backed tool');
     expect(docText).toContain('local-runtime executed');
     expect(docText).toContain('local-runtime browser execution, Python sidecar adapters');
+    expect(docText).toContain('Local-Runtime Python Docs');
+    expect(docText).toContain('bundled local-runtime Python packaging');
     expect(docText).not.toContain('hosted-backend plus local sidecar');
     expect(docText).not.toContain('local sidecar daemon');
     expect(docText).not.toContain('The local sidecar owns');
@@ -286,6 +288,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar tool execution');
     expect(docText).not.toContain('sidecar remote-client auth');
     expect(docText).not.toContain('sidecar auth headers');
+    expect(docText).not.toContain('Sidecar Docs');
+    expect(docText).not.toContain('Python sidecar runtime, memory');
+    expect(docText).not.toContain('sidecar runtime packaging');
+    expect(docText).not.toContain('client, sidecar, and SDKs');
   });
 
   test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {

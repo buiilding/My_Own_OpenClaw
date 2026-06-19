@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Root README Local-Runtime Python Route Labels
+
+- Finding: the root README docs table still exposed Sidecar Docs, Python
+  sidecar runtime, sidecar runtime packaging, and client/sidecar/API labels as
+  first-jump public routes even though the reusable owner is the local runtime.
+- Change: routed those root README labels through Local-Runtime Python Docs,
+  Python implementation behind local-runtime behavior, bundled local-runtime
+  Python packaging, and local-runtime Python implementation API wording while
+  preserving concrete Python sidecar visibility.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. README copy and boundary tests changed
+  only; API surfaces, packaging commands, bundled runtime build names,
+  endpoint settings, IPC channels, storage, credentials, permissions, hosted
+  routes, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-19 JSON-RPC Local-Runtime Method Labels
 
 - Finding: frontend IPC, inventory, channel, and local-runtime JSON-RPC docs

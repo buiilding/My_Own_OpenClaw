@@ -197,10 +197,10 @@ directly into a topic:
 | [Computer-Use](docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
 | [Browser-Use](docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
 | [Frontend Docs](docs/frontend/README.md) | Deep frontend maps across main, renderer, preload, contracts, runtime, and inventory. |
-| [Sidecar Docs](docs/frontend/sidecar/README.md) | Python sidecar runtime, memory, browser automation, services, and tools. |
-| [Operations](docs/operations/release.md) | Configuration, packaging, release, security, performance, and sidecar runtime packaging. |
+| [Local-Runtime Python Docs](docs/frontend/sidecar/README.md) | Python implementation behind local-runtime memory, browser automation, services, and tools. |
+| [Operations](docs/operations/release.md) | Configuration, packaging, release, security, performance, and bundled local-runtime Python packaging. |
 | [Development](docs/development/contributing.md) | Contribution workflow, environment setup, tests, and tool development. |
-| [API Reference](docs/reference/api_reference.md) | Backend API and transport surfaces consumed by the client, sidecar, and SDKs. |
+| [API Reference](docs/reference/api_reference.md) | Backend API and transport surfaces consumed by the client, local-runtime Python implementation, and SDKs. |
 
 The docs describe the Electron frontend, Python sidecar, browser-use runtime,
 local memory, backend agent loop, model providers, SDK/API surfaces, packaging,

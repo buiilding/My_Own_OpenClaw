@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/readme: route the root README docs table through local-runtime Python
+  wording instead of Sidecar Docs and sidecar runtime packaging labels. No
+  migration required.
 - docs/frontend: route JSON-RPC workflow and inventory method labels through
   local-runtime RPC/Python JSON-RPC wording instead of sidecar method labels. No
   migration required.
