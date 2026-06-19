@@ -75,6 +75,12 @@ message metadata, and tool schema metadata predicates route SDK events to the
 renderer metadata handlers. The handlers own payload projection into existing
 rows; the feature hook only wires predicate to handler.
 
+The same runtime facade owns local-user and terminal telemetry dispatch
+predicates for `user_message`, `turn_error`, and `usage_updated`. `useChatStream`
+does not compare raw SDK event type strings directly; it maps runtime predicates
+to renderer handlers and lets the SDK current-turn projection own live response
+state.
+
 ## Event Ingress and Conversation Routing
 
 `desktopChatStreamIngressRuntime` listener flow:

@@ -27,11 +27,14 @@ import {
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
+  isLocalUserMessageConversationStreamEvent,
   isSupportedConversationStreamEvent,
   isSystemPromptConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   isToolSchemasMetadataConversationStreamEvent,
+  isTurnErrorConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
+  isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
@@ -152,7 +155,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
       return true;
     }
-    if (event.type === 'user_message') {
+    if (isLocalUserMessageConversationStreamEvent(event)) {
       handleLocalUserMessage(event, event.conversationRef);
       return true;
     }
@@ -188,11 +191,11 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleToolSchemas(event);
       return true;
     }
-    if (event.type === 'turn_error') {
+    if (isTurnErrorConversationStreamEvent(event)) {
       handleError(event, event.conversationRef);
       return true;
     }
-    if (event.type === 'usage_updated') {
+    if (isUsageUpdatedConversationStreamEvent(event)) {
       handleTokenCount(event, event.conversationRef);
       return true;
     }

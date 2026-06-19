@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer stream dispatch predicate boundary slice by
+  adding local-user, turn-error, and usage-update predicates to
+  `desktopChatStreamEventRuntime`. `useChatStream` no longer performs direct SDK
+  `event.type` comparisons; it maps app-runtime predicates to renderer
+  handlers. Validation: focused desktop chat stream event runtime and renderer
+  chat runtime boundary tests plus docs listing, related commit search, stale
+  inline event-type scans, and diff checks. No migration required; SDK
+  conversation event names and payloads, terminal telemetry behavior,
+  local-user turn seeding, stream dispatch behavior, IPC, storage, settings,
+  credentials, provider-policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 - 2026-06-19: completed a renderer metadata stream event classification slice
   by adding system prompt, user message metadata, assistant message, and tool
   schema metadata predicates to `desktopChatStreamEventRuntime`. `useChatStream`

@@ -120,6 +120,24 @@ export function isToolSchemasMetadataConversationStreamEvent(
   return event?.type === 'tool_schemas_metadata';
 }
 
+export function isLocalUserMessageConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'user_message';
+}
+
+export function isTurnErrorConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'turn_error';
+}
+
+export function isUsageUpdatedConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'usage_updated';
+}
+
 function shouldIgnoreForStaleTurn(
   event: TurnRefEvent,
   conversationRef?: string | null,

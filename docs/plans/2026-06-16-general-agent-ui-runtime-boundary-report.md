@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Stream Dispatch Predicate Boundary
+
+- Finding: after moving supported, tool display-only, compaction, and metadata
+  classifications into `desktopChatStreamEventRuntime`, `useChatStream` still
+  compared raw SDK event strings for local user rows, terminal errors, and
+  usage updates.
+- Change: added local user, turn error, and usage update predicates to
+  `desktopChatStreamEventRuntime` and routed the hook through them. The feature
+  hook no longer performs direct SDK `event.type` comparisons; it maps
+  app-runtime predicates to renderer handlers.
+- Validation: focused desktop chat stream event runtime and renderer chat
+  runtime boundary tests plus docs listing, related commit search, stale inline
+  event-type scans, and diff checks.
+- Compatibility: no migration required. SDK conversation event names and
+  payloads, terminal telemetry behavior, local-user turn seeding, stream
+  dispatch behavior, IPC, storage, settings, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Metadata Stream Event Classification Boundary
 
 - Finding: `useChatStream` routed supported, tool display-only, and compaction

@@ -8,11 +8,14 @@ import {
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
+  isLocalUserMessageConversationStreamEvent,
   isSupportedConversationStreamEvent,
   isSystemPromptConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
   isToolSchemasMetadataConversationStreamEvent,
+  isTurnErrorConversationStreamEvent,
   isUserMessageMetadataConversationStreamEvent,
+  isUsageUpdatedConversationStreamEvent,
   recordTrackingEvent,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
@@ -160,6 +163,20 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isToolSchemasMetadataConversationStreamEvent({ type: 'tool_schemas_metadata' })).toBe(true);
     expect(isToolSchemasMetadataConversationStreamEvent({ type: 'assistant_message' })).toBe(false);
     expect(isToolSchemasMetadataConversationStreamEvent(null)).toBe(false);
+  });
+
+  test('classifies local user and terminal conversation stream events', () => {
+    expect(isLocalUserMessageConversationStreamEvent({ type: 'user_message' })).toBe(true);
+    expect(isLocalUserMessageConversationStreamEvent({ type: 'turn_error' })).toBe(false);
+    expect(isLocalUserMessageConversationStreamEvent(null)).toBe(false);
+
+    expect(isTurnErrorConversationStreamEvent({ type: 'turn_error' })).toBe(true);
+    expect(isTurnErrorConversationStreamEvent({ type: 'usage_updated' })).toBe(false);
+    expect(isTurnErrorConversationStreamEvent(null)).toBe(false);
+
+    expect(isUsageUpdatedConversationStreamEvent({ type: 'usage_updated' })).toBe(true);
+    expect(isUsageUpdatedConversationStreamEvent({ type: 'turn_error' })).toBe(false);
+    expect(isUsageUpdatedConversationStreamEvent(null)).toBe(false);
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
