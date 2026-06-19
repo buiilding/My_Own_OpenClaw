@@ -74,5 +74,5 @@ npm run audit:knip
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
 - Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.
-- Dashboard model selection/filter/reconciliation helpers are covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
-- Dashboard model card, provider, and selection helper behavior is covered directly by `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, and `tests/frontend/ModelSelectionUtils.test.js`.
+- Shared renderer model selection/filter/reconciliation runtime behavior is covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
+- Dashboard model card and provider behavior is covered directly by `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, and `tests/frontend/ModelSelectionUtils.test.js`.
