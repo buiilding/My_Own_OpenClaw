@@ -18,7 +18,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 import { usePermissionStore } from '../../frontend/src/renderer/features/permissions/stores/permissionStore';
-import { loadPermissionOnboardingState } from '../../frontend/src/renderer/features/permissions/utils/permissionStorage';
+import { loadPermissionOnboardingState } from '../../frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('permissionStore', () => {

@@ -37,7 +37,7 @@ title: "Frontend Renderer Settings Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
 - `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
-- `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`

@@ -1,12 +1,12 @@
 /**
- * Provides the permission storage module for the renderer UI.
+ * Persists renderer permission onboarding gate state for the desktop runtime.
  */
 
 import {
   readJsonObjectFromLocalStorage,
   writeJsonObjectToLocalStorage,
-} from '../../../app/runtime/desktopStorageRuntimeClient';
-import { RENDERER_STORAGE_KEYS } from '../../../app/skin/desktopRuntimeConfig';
+} from './desktopStorageRuntimeClient';
+import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
 
 const PERMISSION_ONBOARDING_STORAGE_KEY = RENDERER_STORAGE_KEYS.permissionOnboarding;
 

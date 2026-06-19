@@ -19,7 +19,7 @@ title: "Permission Onboarding Gate and Manifest Version Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 - `frontend/src/renderer/app/runtime/desktopPermissionGrantEffectsRuntime.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
-- `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`
 - `tests/frontend/DesktopOnboardingSlideshow.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
 - `tests/frontend/permissionGrantEffects.test.js`
@@ -72,7 +72,7 @@ Response normalization:
 
 ## Onboarding Persistence Contract
 
-`permissionStorage.js` localStorage key:
+`desktopPermissionOnboardingStorageRuntime.js` localStorage key:
 
 - `windieos-permission-onboarding`
 

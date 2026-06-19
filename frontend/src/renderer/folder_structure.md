@@ -81,6 +81,7 @@ frontend/src/renderer/
 │   │   ├── desktopModelThinkingRuntime.ts # Renderer model-catalog thinking capability facade for stream presentation
 │   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
 │   │   ├── desktopPermissionGrantEffectsRuntime.js # Renderer permission post-grant config effects shared by onboarding and settings
+│   │   ├── desktopPermissionOnboardingStorageRuntime.js # Renderer permission onboarding localStorage persistence facade
 │   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
 │   │   ├── desktopRendererConfigFilterRuntime.js # Renderer app-config allowlist facade
 │   │   ├── desktopRendererConfigStorageRuntime.js # Renderer app-config local persistence facade
@@ -178,10 +179,8 @@ frontend/src/renderer/
 │   │
 │   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI
-│   │   ├── stores/                      # Permission state management
-│   │   │   └── permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
-│   │   └── utils/                       # Permission persistence helpers
-│   │       └── permissionStorage.js     # permissionStorage - localStorage manifest/consent state load/save
+│   │   └── stores/                      # Permission state management
+│   │       └── permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
 │   │
 │   └── voice/                            # Voice feature module
 │       ├── components/                  # Voice UI components

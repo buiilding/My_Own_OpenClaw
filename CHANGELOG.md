@@ -30,6 +30,9 @@ All notable changes to WindieOS will be documented in this file.
 - docs/dashboard: list the recent-conversation load helper in dashboard
   canonical module references and remove a duplicate library-client entry. No
   migration required.
+- renderer/permissions: move permission onboarding localStorage persistence into
+  `desktopPermissionOnboardingStorageRuntime` and delete the feature utility
+  storage path. No migration required.
 - renderer/config: move renderer app-config allowlisting and local persistence
   defaults into app-runtime config facades consumed by AppConfigProvider. No
   migration required.

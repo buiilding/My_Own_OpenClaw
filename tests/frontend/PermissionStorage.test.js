@@ -5,7 +5,7 @@
 import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
-} from '../../frontend/src/renderer/features/permissions/utils/permissionStorage';
+} from '../../frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime';
 import { RENDERER_STORAGE_KEYS } from '../../frontend/src/renderer/app/skin/desktopRuntimeConfig';
 
 describe('permission onboarding storage', () => {

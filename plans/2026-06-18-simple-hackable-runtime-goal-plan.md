@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission onboarding storage
+  runtime-boundary slice by moving localStorage manifest-completion
+  persistence from
+  `frontend/src/renderer/features/permissions/utils/permissionStorage.js` to
+  `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`.
+  `permissionStore`, focused tests, active permission/onboarding/settings docs,
+  folder structure, and boundary guards now consume the app-runtime owner while
+  the old feature storage utility path is deleted. Validation: focused
+  permission storage/store, renderer skin/config boundary, docs listing, stale
+  old-path scan, frontend lint, and diff checks. No migration required; the
+  permission onboarding localStorage key, persisted payload shape, gate
+  semantics, IPC permission actions, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer app-config filter/storage
   runtime-boundary slice by moving renderer-managed config allowlisting and
   localStorage fallback defaults from `frontend/src/renderer/utils/configFilter.js`

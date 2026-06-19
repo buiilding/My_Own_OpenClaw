@@ -12,7 +12,7 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/app/runtime/desktopPermissionRuntimeClient.ts`
-- `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
+- `frontend/src/renderer/app/runtime/desktopPermissionOnboardingStorageRuntime.js`
 - `frontend/src/renderer/features/onboarding/components/DesktopOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 - `frontend/src/main/permissions/permission_service.cjs`
@@ -166,7 +166,7 @@ On guard failure:
 
 ## Persistence Contract
 
-`permissionStorage.js` uses localStorage key:
+`desktopPermissionOnboardingStorageRuntime.js` uses localStorage key:
 
 - `windieos-permission-onboarding`
 

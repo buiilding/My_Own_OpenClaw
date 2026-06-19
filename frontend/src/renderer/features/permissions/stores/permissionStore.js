@@ -7,7 +7,7 @@ import { DesktopPermissionRuntimeClient } from '../../../app/runtime/desktopPerm
 import {
   loadPermissionOnboardingState,
   savePermissionOnboardingState,
-} from '../utils/permissionStorage';
+} from '../../../app/runtime/desktopPermissionOnboardingStorageRuntime';
 
 function mapStatusesByPermissionId(statuses) {
   if (!Array.isArray(statuses)) {
