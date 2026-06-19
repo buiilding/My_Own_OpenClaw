@@ -142,6 +142,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs'),
       'utf8',
     );
+    const metadataDiagnosticsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_conversation_metadata_diagnostics_runtime.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('DESKTOP_RUNTIME_INVOKE_CHANNELS');
     expect(mainSource).toContain('ipcMain.handle(DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE');
@@ -157,6 +161,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MEMORIES_DELETE]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.MEMORIES_CLEAR_ALL]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_LIST]');
+    expect(source).toContain('ipc_conversation_metadata_diagnostics_runtime');
+    expect(source).not.toContain('function normalizeAppDiagnosticContext');
+    expect(source).not.toContain('function recordConversationMetadataListDiagnostic');
+    expect(metadataDiagnosticsSource).toContain('normalizeAppDiagnosticContext');
+    expect(metadataDiagnosticsSource).toContain('recordConversationMetadataListDiagnostic');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_SEARCH]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_DELETE]');
     expect(source).toContain('[SDK_RUNTIME_COMMANDS.CONVERSATIONS_CLEAR_ALL]');

@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a main conversation metadata diagnostics runtime slice
+  by moving app diagnostic context normalization and conversation metadata-list
+  event envelope construction out of `ipc_agent_sdk_command_handlers.cjs` into
+  `ipc_conversation_metadata_diagnostics_runtime.cjs`. The SDK command handler
+  now keeps command orchestration, validation, stage selection, and agent calls
+  while the helper owns trace/request/session/conversation propagation and
+  request/duration diagnostic data enrichment. Validation: focused IPC
+  conversation metadata diagnostics runtime and main SDK runtime boundary tests,
+  docs listing, stale inline helper scan, and diff checks. No migration
+  required; diagnostic path names, trace/request propagation, conversations.list
+  behavior, SDK command payloads, IPC, storage, credentials, provider-policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer dashboard conversation metadata projection
   slice by moving SDK `ConversationMetadata` to dashboard row mapping into
   `desktopDashboardConversationLoadRuntime` as

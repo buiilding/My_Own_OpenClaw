@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Main Conversation Metadata Diagnostics Runtime Boundary
+
+- Finding: `ipc_agent_sdk_command_handlers.cjs` still built app diagnostic
+  context and conversation metadata-list event envelopes inline while the
+  command handler should keep SDK command orchestration and stage selection.
+- Change: added `ipc_conversation_metadata_diagnostics_runtime.cjs` for
+  `normalizeAppDiagnosticContext(...)` and
+  `recordConversationMetadataListDiagnostic(...)`, then routed conversations
+  list handling and renderer diagnostics append through that helper.
+- Validation: focused IPC conversation metadata diagnostics runtime and main
+  SDK runtime boundary tests, docs listing, stale inline helper scan, and diff
+  checks.
+- Compatibility: no migration required. Diagnostic path names, trace/request
+  propagation, conversations.list behavior, SDK command payloads, IPC, storage,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Dashboard Conversation Metadata Projection Runtime Boundary
 
 - Finding: recent conversation loading in `useDashboardConversations` rebuilt

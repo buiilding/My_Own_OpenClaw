@@ -255,6 +255,10 @@ dependencies such as `ensureAgent`:
   projection, or stop of the matching pending turn. Explicit clear filters use
   `conversationRef` and `turnRef`; removed snake_case filter fields are ignored
   instead of being treated as aliases.
+- conversation metadata-list diagnostic context and event envelopes are built
+  by `ipc_conversation_metadata_diagnostics_runtime.cjs`; command handlers
+  choose lifecycle stages and call the helper rather than constructing
+  diagnostic rows inline.
 
 Removed preflight invoke path:
 

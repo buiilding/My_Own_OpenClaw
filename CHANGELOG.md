@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/runtime: move Agent SDK conversation metadata-list diagnostic context
+  and event envelope construction into the IPC conversation metadata diagnostics
+  runtime helper before SDK command handlers emit list diagnostics. No migration
+  required.
 - renderer/runtime: share dashboard conversation metadata row projection through
   the dashboard conversation load runtime before recent and search surfaces
   consume SDK metadata. No migration required.

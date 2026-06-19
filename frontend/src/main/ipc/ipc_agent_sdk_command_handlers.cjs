@@ -6,8 +6,9 @@ const {
   SDK_RUNTIME_COMMANDS,
 } = require('../../../../packages/windie-sdk-js/cjs/index.js');
 const {
-  APP_DIAGNOSTICS_PATH,
-} = require('../diagnostics/app_diagnostics_store.cjs');
+  normalizeAppDiagnosticContext,
+  recordConversationMetadataListDiagnostic,
+} = require('./ipc_conversation_metadata_diagnostics_runtime.cjs');
 
 function isPlainObject(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -102,42 +103,6 @@ function requireCommandString(payload = {}, key, label) {
     throw new Error(`Agent SDK command requires ${label}.`);
   }
   return value;
-}
-
-function normalizeAppDiagnosticContext(payload = {}, state = {}) {
-  const diagnostics = isPlainObject(payload._diagnostics) ? payload._diagnostics : {};
-  return {
-    path: normalizeOptionalString(diagnostics.path) || APP_DIAGNOSTICS_PATH,
-    traceId: normalizeOptionalString(diagnostics.traceId) || undefined,
-    parentSpanId: normalizeOptionalString(diagnostics.parentSpanId) || null,
-    requestId: normalizeOptionalString(diagnostics.requestId) || undefined,
-    sessionId: normalizeOptionalString(diagnostics.sessionId) || state.currentSessionId || undefined,
-    conversationRef: normalizeOptionalString(diagnostics.conversationRef)
-      || state.currentConversationRef
-      || undefined,
-  };
-}
-
-function recordConversationMetadataListDiagnostic(appendAppDiagnostic, context = {}, input = {}) {
-  const event = {
-    path: context.path || APP_DIAGNOSTICS_PATH,
-    traceId: context.traceId,
-    parentSpanId: input.parentSpanId || context.parentSpanId || null,
-    requestId: input.requestId || context.requestId,
-    sessionId: input.sessionId || context.sessionId,
-    conversationRef: input.conversationRef || context.conversationRef,
-    ...input,
-    data: {
-      ...(input.data || {}),
-      ...(input.requestId || context.requestId ? { requestId: input.requestId || context.requestId } : {}),
-      ...(input.durationMs !== undefined ? { durationMs: input.durationMs } : {}),
-    },
-  };
-  const result = appendAppDiagnostic(event);
-  if (result?.traceId && !context.traceId) {
-    context.traceId = result.traceId;
-  }
-  return result;
 }
 
 function appendRendererAppDiagnostic(payload = {}, deps = {}) {
