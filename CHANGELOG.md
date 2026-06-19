@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/debug: route error and symptom playbook local-runtime process/tool
+  failure labels through local-runtime lifecycle and registry/result docs
+  instead of sidecar runtime or unqualified registry owners. No migration
+  required.
 - docs/tools: route active tool troubleshooting, schema-policy, filesystem, and
   extension link labels through local-runtime tool wording instead of sidecar
   tool/runtime labels. No migration required.

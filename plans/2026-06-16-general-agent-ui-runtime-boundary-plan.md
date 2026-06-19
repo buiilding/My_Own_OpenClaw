@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Debug Error Local-Runtime Failure Labels
+
+- Finding: debug error and symptom playbooks still routed local process/tool
+  failures through Sidecar Runtime, Tool Registry, and unqualified sidecar
+  registry labels even though those pages are first-read owner routing docs.
+- Change: changed those labels to local-runtime lifecycle, local-runtime
+  registry/result, and local-runtime tool registration wording while preserving
+  Python sidecar registry references as concrete implementation evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  debug-label scan, and diff checks.
+- Compatibility: no migration required. Docs and boundary tests changed only;
+  error envelopes, ToolResult payloads, IPC channels, JSON-RPC methods,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-18 Tool Workflow Link Local-Runtime Labels
 
 - Finding: tool troubleshooting, schema-policy, filesystem/shell workflow, and

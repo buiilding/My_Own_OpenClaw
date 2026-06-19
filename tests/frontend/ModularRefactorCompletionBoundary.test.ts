@@ -757,6 +757,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar tests cover executable behavior');
   });
 
+  test('debug error docs route local failures through local runtime owners', async () => {
+    const docs = await Promise.all([
+      read('docs/debug/error_failure_change_workflow.md'),
+      read('docs/debug/symptom_playbooks.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('Local Runtime Process Lifecycle Change Workflow');
+    expect(docText).toContain('Local-Runtime Registry and Result Contract');
+    expect(docText).toContain('local-runtime tool registration backed by the Python sidecar registry');
+    expect(docText).not.toContain('or sidecar registry');
+    expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
+    expect(docText).not.toContain('[Tool Registry Result Contract Reference]');
+    expect(docText).not.toContain('| Sidecar ToolResult/registry |');
+  });
+
   test('browser contract docs route shared validation through the local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/README.md'),

@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a debug-routing local-runtime failure-label slice by
+  updating error and symptom playbooks so local-runtime JSON-RPC/process
+  failures route to local-runtime lifecycle docs, tool result failures route to
+  local-runtime registry/result docs, and tool-execution symptoms describe
+  local-runtime tool registration backed by the Python sidecar registry instead
+  of a peer sidecar registry owner. Validation: focused modular boundary guard,
+  docs listing, exact stale debug-label scan, and diff checks. No migration
+  required; no error envelope, ToolResult payload, IPC channel, JSON-RPC
+  method, storage, credential, permission, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-18: completed a tool-workflow link-label local-runtime slice by
   routing active tool troubleshooting, schema-policy, filesystem/shell workflow,
   and extension docs through local-runtime tool, local-runtime registry/result,

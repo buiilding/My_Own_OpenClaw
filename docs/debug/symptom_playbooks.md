@@ -63,7 +63,7 @@ Validate:
 
 ## Tool Call Appears But Does Not Execute
 
-Likely boundary: backend tool event, Agent SDK tool routing, Electron main bridge, or sidecar registry.
+Likely boundary: backend tool event, Agent SDK tool routing, Electron main bridge, or local-runtime tool registration backed by the Python sidecar registry.
 
 Inspect:
 

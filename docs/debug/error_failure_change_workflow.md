@@ -23,8 +23,8 @@ Core rule: preserve the failure boundary. Backend errors should stay sanitized b
 | Tool result failure ingestion | Backend tool waiting/processing | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**`, `backend/src/agent/tools/processing/**` | `tests/backend/test_tool_result_*.py`, `test_incoming_tool_result_schemas.py` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Electron websocket send/reconnect failure | Electron main IPC bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | `tests/frontend/IpcMainBridge*.test.cjs` | [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md) |
 | Preload IPC validation errors | Preload bridge and renderer IPC wrapper | `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/**` | `tests/frontend/IpcBridgeValidation.test.ts` | [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
-| Local runtime JSON-RPC/process failure | Electron local runtime bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, sidecar process launch helpers | `tests/frontend/LocalRuntimeBridge*.test.cjs` | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
-| Local-runtime tool result failures | Python sidecar registry/tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `tests/sidecar/test_tool_result.py`, tool-specific sidecar tests | [Tool Registry Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
+| Local runtime JSON-RPC/process failure | Electron local runtime bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, sidecar process launch helpers | `tests/frontend/LocalRuntimeBridge*.test.cjs` | [Local Runtime Process Lifecycle Change Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md) |
+| Local-runtime tool result failures | Python sidecar registry/tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/result.py`, concrete tool module | `tests/sidecar/test_tool_result.py`, tool-specific sidecar tests | [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md) |
 | SDK/main tool-dispatch failure and display projection | SDK tool coordinator plus renderer projection | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts` | SDK tool/runtime tests, `ChatStreamToolHandlers.test.ts` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 | Renderer component crash boundary | Renderer components | `frontend/src/renderer/components/ErrorBoundary.jsx`, `frontend/src/renderer/styles/ErrorBoundary.css` | focused renderer component tests if behavior changes | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Provider/inference error mapping | Backend provider/inference layer | `backend/src/llm/providers/error_mapping.py`, `backend/src/core/inference/errors.py`, provider modules | provider/inference backend tests | [Provider Change Workflow](../providers/provider_change_workflow.md) |
@@ -132,8 +132,8 @@ Validate:
 
 Read:
 
-- [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md)
-- [Tool Registry Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
+- [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
 Edit:
@@ -217,7 +217,7 @@ Validate:
 | Settings save spins then fails | ACK map, timeout, backend `settings-updated`/`error` id | Electron settings sync or backend handler |
 | Tool call hangs after local-runtime tool failure | Python sidecar `ToolResult`, Electron relay, backend result storage | local-runtime tool implementation or backend tool-result ingress |
 | Tool failure visible but not saved in transcript | SDK runtime/store projection and structured failure contract | SDK runtime/store or renderer projection |
-| Sidecar startup times out | process spawn/path/readiness status | Electron local runtime bridge or packaged runtime |
+| Local-runtime sidecar startup times out | process spawn/path/readiness status | Electron local runtime bridge or packaged runtime |
 | Provider exception leaks details | provider error mapping and sanitizer path | backend provider/inference layer |
 | Error includes a token/key | producing log/response call site and redaction coverage | owner runtime plus security docs |
 
@@ -232,7 +232,7 @@ Validate:
 | Tool result ingestion | `./scripts/python-in-env backend pytest tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_router.py tests/backend/test_incoming_tool_result_schemas.py` |
 | Electron websocket/settings/local-runtime failures | `<windie> test frontend -- IpcMainBridge LocalRuntimeBridge` |
 | Preload/IPC validation | `<windie> test frontend -- IpcBridgeValidation` |
-| Sidecar ToolResult/registry | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_result.py tests/sidecar/test_tool_registry.py` |
+| Local-runtime ToolResult/registry | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_tool_result.py tests/sidecar/test_tool_registry.py` |
 | Renderer tool failure UI/persistence | `<windie> test frontend -- ToolRunnerFailureContracts ToolExecutionResultDispatch ToolResultEnvelope` |
 | Docs-only error changes | `<windie> docs list`, `git diff --check`, and focused Markdown link check over touched docs |
 
@@ -253,6 +253,6 @@ Before committing an error/failure change:
 - [Failure Domain Map](../architecture/failure_domain_map.md)
 - [Handler Registry and Error Envelope Reference](../backend/api/handler_registry_and_error_envelope_reference.md)
 - [Frontend IPC/WS Error Recovery Reference](../frontend/inventory/protocols/errors/frontend_ipc_ws_bridge_and_local_backend_error_recovery_contract_reference.md)
-- [Tool Registry Result Contract Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
+- [Local-Runtime Registry and Result Contract](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_contract_reference.md)
 - [Observability Change Workflow](observability_change_workflow.md)
 - [Test Selection](test_selection.md)
