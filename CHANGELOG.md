@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: route renderer state permission-probing guidance through
+  Electron main and local-runtime platform code instead of sidecar platform
+  code labels. No migration required.
 - docs/platforms: route active platform and permission authority wording
   through local-runtime platform adapters instead of sidecar platform adapter
   labels. No migration required.

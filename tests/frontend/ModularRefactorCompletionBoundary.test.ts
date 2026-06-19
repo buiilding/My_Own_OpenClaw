@@ -1777,6 +1777,7 @@ describe('modular sdk refactor completion boundary', () => {
         '| sidecar process |',
         'sidecar tool registry/tool',
         'sidecar platform adapter',
+        'sidecar platform code',
         'websocket, sidecar tool, SDK',
         'packaged app sidecar fails',
         '| Python sidecar | local tools',

@@ -84,7 +84,7 @@ When changing dashboard sections or settings:
   but durable conversation identity still comes from transcript/session sync and
   chat-store workspace state after rows load.
 - Route provider/model setting changes through `AppConfigProvider` and settings sync helpers, not ad hoc IPC calls from leaf components.
-- Keep permission status UI driven by `permissionStore`, with platform probing owned by Electron main/sidecar platform code.
+- Keep permission status UI driven by `permissionStore`, with platform probing owned by Electron main and local-runtime platform code.
 - Add tests for empty/loading/error states and for any persisted setting or runtime sync payload.
 
 ## Transcript and Replay Checklist

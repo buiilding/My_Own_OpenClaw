@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer permission platform-code label slice by
+  rewording the renderer state workflow from Electron main/sidecar platform
+  code to Electron main plus local-runtime platform code for permission
+  probing. The modular stale-doc guard now rejects the retired sidecar
+  platform-code phrase. Validation: focused modular boundary test, docs
+  listing, stale phrase scan, and diff checks. No migration required;
+  documentation/test only, with no renderer state, permission probing, platform
+  adapter, IPC, credential, provider-policy, backend API, storage, or local
+  execution change.
+
 - 2026-06-19: completed a platform adapter local-runtime label slice by
   rewording active security permission authority, platform hub, and Windows
   platform docs from sidecar platform adapter labels to local-runtime platform

@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Permission Platform-Code Label Boundary
+
+- Finding: the renderer state workflow still described permission platform
+  probing as Electron main/sidecar platform code even though reusable platform
+  authority now routes through Electron main and local-runtime platform code.
+- Change: reworded the renderer checklist to Electron main plus local-runtime
+  platform code and extended the modular stale-doc guard for the retired
+  sidecar platform-code phrase.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. Renderer state, permission probing,
+  platform adapters, IPC, credentials, provider policy, backend APIs, storage,
+  and local execution are unchanged.
+
 ### 2026-06-19 Platform Adapter Local-Runtime Label Boundary
 
 - Finding: active security/platform docs still used sidecar platform adapter

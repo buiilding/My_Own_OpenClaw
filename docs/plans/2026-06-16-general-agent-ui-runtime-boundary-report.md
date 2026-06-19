@@ -173,6 +173,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Permission Platform-Code Label Boundary
+
+- Renderer state workflow docs, docs search results, and recent renderer
+  permission runtime commits were inspected after the platform adapter
+  local-runtime label slice.
+- Finding: the renderer state workflow still described permission platform
+  probing as Electron main/sidecar platform code even though reusable platform
+  authority now routes through Electron main and local-runtime platform code.
+- Change: reworded the renderer checklist to Electron main plus local-runtime
+  platform code and extended the modular stale-doc guard for the retired
+  sidecar platform-code phrase.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. Renderer state, permission probing,
+  platform adapters, IPC, credentials, provider policy, backend APIs, storage,
+  and local execution are unchanged.
+
 ### 2026-06-19 Platform Adapter Local-Runtime Label Boundary
 
 - Security permission authority docs, platform hub docs, Windows platform docs,
