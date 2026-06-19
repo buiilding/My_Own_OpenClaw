@@ -129,7 +129,7 @@ Inspect:
 - `frontend/src/main/surfaces/surface_runtime.cjs`
 - `frontend/src/main/surfaces/window_visibility_runtime.cjs`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
-- `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
+- `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`

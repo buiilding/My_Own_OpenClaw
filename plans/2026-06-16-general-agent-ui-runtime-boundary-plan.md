@@ -150,6 +150,25 @@ Each completed slice should report:
   launch, JSON-RPC, storage, credentials, permissions, hosted routes, provider
   policy, packaging, and local execution behavior are unchanged.
 
+### 2026-06-19 Renderer Live-Turn Current-Turn Runtime Boundary
+
+- Finding: chat and minimal response overlay surfaces shared SDK current-turn
+  presentation logic, but the live surface resolver and message projection
+  adapters still lived under chat feature utilities.
+- Change: moved SDK live-turn surface state to
+  `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js` and
+  current-turn message projection/closeability helpers to
+  `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`,
+  routed chat, overlay, presentation pipeline, and tests through those
+  app-runtime facades, and deleted the old chat feature helper paths.
+- Validation: focused live-turn surface, current-turn message projection,
+  response overlay, chat thinking metadata, pending-turn integration, renderer
+  app/chat boundary, docs listing, stale old-path scan, and diff checks.
+- Compatibility: no migration required. SDK projection shape, rendered chat
+  rows, response-overlay closeability, screenshot attachment URL resolution,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

@@ -13,13 +13,13 @@ import { OVERLAY_TURN_LIFECYCLE } from '../../../app/runtime/desktopOverlayTurnL
 import {
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,
-} from '../../chat/utils/state/liveTurnSurfaceState';
+} from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 import {
   buildCurrentTurnMessagesFromProjection,
+  buildCurrentTurnMessagesFromPresentation,
   isResponseCloseable,
   normalizeThinkingText,
-} from '../../chat/utils/state/chatBoxResponseState';
-import { buildCurrentTurnMessagesFromPresentation } from '../../chat/utils/message/liveTurnPresentationMessages';
+} from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { resolveChatPillViewIntent } from '../../chat/utils/chatPill/chatPillSessionFlow';
 import { logRendererLiveSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 

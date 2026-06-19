@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/live-turn: move SDK current-turn surface state and message
+  projection adapters into renderer app-runtime facades used by chat and the
+  minimal response overlay. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

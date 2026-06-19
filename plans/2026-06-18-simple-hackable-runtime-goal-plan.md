@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer live-turn/current-turn runtime-boundary
+  slice by moving SDK current-turn message projection, response closeability,
+  thinking-text normalization, and live surface/overlay preflight resolution
+  out of chat feature utilities and into renderer app-runtime facades. Chat,
+  minimal response overlay, message presentation, docs, and boundary tests now
+  route through `desktopCurrentTurnMessageRuntime.js` and
+  `desktopLiveTurnSurfaceRuntime.js`; the old chat helper paths are deleted and
+  guarded against returning. Validation: focused live-turn surface,
+  current-turn message projection, response overlay, chat thinking metadata,
+  pending-turn integration, renderer app/chat boundary tests, docs listing,
+  stale old-path scan, and diff checks. No migration required; SDK projection
+  shape, rendered chat rows, response-overlay closeability, screenshot
+  attachment URL resolution, IPC payloads, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a debug trace local-runtime wording slice by retitling
   the JSON-RPC trace route and test-selection labels around local-runtime
   Python ownership instead of a public sidecar trace owner, while preserving

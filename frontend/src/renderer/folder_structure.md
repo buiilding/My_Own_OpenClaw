@@ -32,6 +32,8 @@ frontend/src/renderer/
 │   │   ├── desktopChatMessageRuntimeClient.ts # Renderer chat message builders, schema, and text-normalization facade
 │   │   ├── desktopChatMessageTypes.ts # Renderer chat message and token-count contract types
 │   │   ├── desktopChatboxLayoutRuntime.js # Renderer shared chatbox visual-anchor, drag-state, and movement helpers
+│   │   ├── desktopCurrentTurnMessageRuntime.js # Renderer SDK current-turn projection and presentation entries to chat-message facade
+│   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum and phase-group facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
@@ -129,7 +131,6 @@ frontend/src/renderer/
 │   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
-│   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability and thinking text normalization
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
 │   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/minimal-pill surface projection helpers
 │   │       │   ├── stopQueryState.js    # stopQueryState - Shared stop target resolver and terminal projection helpers
@@ -141,7 +142,6 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thinking text accumulation helper
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
-│   │       │   ├── liveTurnPresentationMessages.js # liveTurnPresentationMessages - SDK current-turn presentation entries projected into chat messages
 │   │       │   ├── messageInput.js      # messageInput - Input normalization helper before send dispatch
 │   │       │   ├── messageListClasses.js # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers
@@ -449,7 +449,7 @@ frontend/src/renderer/
 3. UI UPDATE
    └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
        └─> chatStore.setCurrentTurnProjection()
-           └─> features/chat/utils/state/chatBoxResponseState.js renders projected bundle/tool output
+           └─> app/runtime/desktopCurrentTurnMessageRuntime.js renders projected bundle/tool output
 ```
 
 ---

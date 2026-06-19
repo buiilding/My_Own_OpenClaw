@@ -602,11 +602,13 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'utils/toolOutputMessages.ts'),
       path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
       path.join(chatRoot, 'utils/message/messageTransparency.js'),
-      path.join(chatRoot, 'utils/message/liveTurnPresentationMessages.js'),
-      path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
     ];
     const chatMessageClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatMessageRuntimeClient.ts'),
+      'utf8',
+    );
+    const currentTurnMessageSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
     );
 
@@ -623,6 +625,13 @@ describe('renderer chat runtime boundary', () => {
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolOutputChatMessageState');
     expect(chatMessageClientSource).toContain('infrastructure/transcript/toolSchemaShape');
     expect(chatMessageClientSource).toContain('infrastructure/text/incomingTextNormalization');
+    expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/liveTurnPresentationMessages.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
+    )).rejects.toThrow();
   });
 
   test('renderer feature hooks read latest-ref helper through app runtime facade', async () => {
@@ -1370,7 +1379,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('live current-turn presentation does not read backend-shaped payload details', async () => {
     const source = await fs.readFile(
-      path.join(chatRoot, 'utils/message/liveTurnPresentationMessages.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
     );
 
@@ -1382,7 +1391,7 @@ describe('renderer chat runtime boundary', () => {
 
   test('current-turn tool-event fallback does not read backend-shaped payload details', async () => {
     const source = await fs.readFile(
-      path.join(chatRoot, 'utils/state/chatBoxResponseState.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js'),
       'utf8',
     );
 

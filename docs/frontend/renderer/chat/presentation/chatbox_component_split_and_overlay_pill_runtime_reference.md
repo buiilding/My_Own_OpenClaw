@@ -19,7 +19,8 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopChatboxLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopAttachmentPresentationRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
-- `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
+- `frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayLayoutRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime.js`

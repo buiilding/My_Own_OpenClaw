@@ -6,9 +6,9 @@ import {
   buildCurrentTurnMessagesFromProjection,
   isResponseCloseable,
   normalizeThinkingText,
-} from '../../frontend/src/renderer/features/chat/utils/state/chatBoxResponseState';
+} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 
-describe('chatBoxResponseState', () => {
+describe('desktopCurrentTurnMessageRuntime', () => {
   test('isResponseCloseable allows complete and error responses', () => {
     expect(isResponseCloseable(null)).toBe(false);
     expect(isResponseCloseable({ type: 'llm-text', isComplete: false })).toBe(false);

@@ -7,9 +7,9 @@ import {
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayPhaseRuntime';
 import {
   resolveLiveTurnPresentationInput,
-} from '../../frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState';
+} from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 
-describe('liveTurnSurfaceState', () => {
+describe('desktopLiveTurnSurfaceRuntime', () => {
   test('uses SDK current turn as live surface authority', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: {

@@ -2,7 +2,7 @@
  * Provides the message presentation pipeline module for the renderer UI.
  */
 
-import { buildCurrentTurnMessagesFromPresentation } from './liveTurnPresentationMessages';
+import { buildCurrentTurnMessagesFromPresentation } from '../../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { SDK_CURRENT_TURN_SOURCE_CHANNEL } from '../../../../app/runtime/desktopPresentationSourceChannels';
 
 function findLastUserIndex(messages) {

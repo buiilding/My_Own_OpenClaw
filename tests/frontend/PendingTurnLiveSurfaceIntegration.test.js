@@ -11,13 +11,13 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   resolveLiveTurnPresentationInput,
-} from '../../frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState';
+} from '../../frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime';
 import {
   buildThreadPresentationMessages,
 } from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
 import {
   buildCurrentTurnMessagesFromPresentation,
-} from '../../frontend/src/renderer/features/chat/utils/message/liveTurnPresentationMessages';
+} from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnMessageRuntime';
 import {
   resetChatStoreForTests,
 } from './chatStoreTestUtils';

@@ -1,11 +1,11 @@
 /**
- * Provides the live turn surface state module for the renderer UI.
+ * Resolves live current-turn surface state for renderer desktop UI surfaces.
  */
 
 import {
   RESPONSE_OVERLAY_PHASE,
   RESPONSE_OVERLAY_PREFLIGHT_GUARD_REF,
-} from '../../../../app/runtime/desktopResponseOverlayPhaseRuntime';
+} from './desktopResponseOverlayPhaseRuntime';
 
 const CURRENT_TURN_PHASE_TO_SURFACE_PHASE = Object.freeze({
   awaiting: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,

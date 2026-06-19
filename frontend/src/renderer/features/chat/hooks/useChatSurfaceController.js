@@ -9,7 +9,7 @@ import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationSta
 import {
   resolveLiveTurnPresentationInput,
   resolveSdkOverlayIntent,
-} from '../utils/state/liveTurnSurfaceState';
+} from '../../../app/runtime/desktopLiveTurnSurfaceRuntime';
 
 function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);

@@ -49,7 +49,7 @@ import {
 } from '../utils/message/messagePresentationPipeline';
 import {
   buildCurrentTurnMessagesFromProjection,
-} from '../utils/state/chatBoxResponseState';
+} from '../../../app/runtime/desktopCurrentTurnMessageRuntime';
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
 

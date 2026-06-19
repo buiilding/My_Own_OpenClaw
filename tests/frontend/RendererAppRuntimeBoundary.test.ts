@@ -180,18 +180,62 @@ describe('renderer app runtime boundary', () => {
       'utf8',
     );
     const liveSurfaceSource = await fs.readFile(
-      path.join(rendererRoot, 'features/chat/utils/state/liveTurnSurfaceState.js'),
+      path.join(appRoot, 'runtime/desktopLiveTurnSurfaceRuntime.js'),
+      'utf8',
+    );
+    const chatSurfaceControllerSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/hooks/useChatSurfaceController.js'),
       'utf8',
     );
 
     expect(phaseRuntimeSource).toContain('response_overlay_phase_contract.json');
     expect(phaseRuntimeSource).not.toContain('features/chat');
+    expect(liveSurfaceSource).not.toContain('features/chat');
+    expect(liveSurfaceSource).not.toContain('features/minimalChatPill');
     expect(streamPhaseSource).toContain('desktopResponseOverlayPhaseRuntime');
     expect(liveSurfaceSource).toContain('desktopResponseOverlayPhaseRuntime');
+    expect(chatSurfaceControllerSource).toContain('desktopLiveTurnSurfaceRuntime');
     expect(streamPhaseSource).not.toContain('responseOverlayPhaseContract');
     expect(liveSurfaceSource).not.toContain('responseOverlayPhaseContract');
     await expect(fs.stat(
       path.join(rendererRoot, 'features/chat/utils/overlay/responseOverlayPhaseContract.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/liveTurnSurfaceState.js'),
+    )).rejects.toThrow();
+  });
+
+  test('current-turn message projection stays behind the app runtime facade', async () => {
+    const currentTurnMessageSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopCurrentTurnMessageRuntime.js'),
+      'utf8',
+    );
+    const overlayViewModelSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/hooks/useResponseOverlayViewModel.js'),
+      'utf8',
+    );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const presentationPipelineSource = await fs.readFile(
+      path.join(rendererRoot, 'features/chat/utils/message/messagePresentationPipeline.js'),
+      'utf8',
+    );
+
+    expect(currentTurnMessageSource).toContain('desktopChatMessageRuntimeClient');
+    expect(currentTurnMessageSource).toContain('desktopPresentationSourceChannels');
+    expect(currentTurnMessageSource).toContain('desktopArtifactRuntimeClient');
+    expect(currentTurnMessageSource).not.toContain('features/chat');
+    expect(currentTurnMessageSource).not.toContain('features/minimalChatPill');
+    expect(overlayViewModelSource).toContain('desktopCurrentTurnMessageRuntime');
+    expect(chatInterfaceSource).toContain('desktopCurrentTurnMessageRuntime');
+    expect(presentationPipelineSource).toContain('desktopCurrentTurnMessageRuntime');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/state/chatBoxResponseState.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/chat/utils/message/liveTurnPresentationMessages.js'),
     )).rejects.toThrow();
   });
 
