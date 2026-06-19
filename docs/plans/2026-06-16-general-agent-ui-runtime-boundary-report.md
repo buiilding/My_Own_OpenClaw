@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Agent Skill and MCP Metadata Presentation Boundary
+
+- Finding: `DesktopExtensionRuntimeClient` owned extension metadata loading and
+  plugin diagnostics presentation, but `AgentSettingsTab` still counted raw
+  skill/MCP arrays and shaped MCP server debug metadata while rendering
+  extension diagnostics.
+- Change: added skill and MCP metadata debug presentation to
+  `DesktopExtensionRuntimeClient`. Agent settings now keeps extension layout
+  while rendering runtime-provided skill/MCP counts, summaries, and debug specs.
+- Validation: passed focused desktop extension runtime client, agent settings,
+  renderer settings boundary, and docs-index tests plus docs search, related
+  commit search, stale raw skill/MCP metadata-field scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. Extension runtime payload shape, skill
+  and MCP debug details for normal entries, settings diagnostics, extension
+  metadata display, capability event channels, tool-toggle config keys,
+  settings storage, IPC channels, provider policy, hosted URLs, permissions,
+  credentials, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Agent Plugin Metadata Presentation Boundary
 
 - Finding: `DesktopExtensionRuntimeClient` owned extension metadata loading and

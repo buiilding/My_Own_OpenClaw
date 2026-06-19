@@ -53,6 +53,12 @@ export type AgentPluginRuntimePresentation = {
   toolCount: number;
 };
 
+export type AgentExtensionDebugListPresentation = {
+  count: number;
+  debugSpec: unknown[];
+  summary: string;
+};
+
 export type AgentCapabilityEvent = {
   type?: string;
   payload?: Record<string, unknown> | AgentToolManifestStatus | AgentRemoteToolCatalog;
@@ -91,6 +97,10 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
 
 function stringOrEmpty(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function recordsOrEmpty(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value) ? value.map(recordOrEmpty) : [];
 }
 
 export function normalizeAgentExtensionRuntime(payload: unknown): AgentExtensionRuntimeSnapshot {
@@ -224,13 +234,9 @@ export function getAgentPluginRuntimePresentation(
 ): AgentPluginRuntimePresentation {
   const source = recordOrEmpty(plugin);
   const id = stringOrEmpty(source.id) || 'unknown-plugin';
-  const tools = Array.isArray(source.tools) ? source.tools.map(recordOrEmpty) : [];
-  const settingsPanels = Array.isArray(source.settings_panels)
-    ? source.settings_panels.map(recordOrEmpty)
-    : [];
-  const permissions = Array.isArray(source.permissions)
-    ? source.permissions.map(recordOrEmpty)
-    : [];
+  const tools = recordsOrEmpty(source.tools);
+  const settingsPanels = recordsOrEmpty(source.settings_panels);
+  const permissions = recordsOrEmpty(source.permissions);
 
   return {
     debugSpec: {
@@ -261,6 +267,33 @@ export function getAgentPluginRuntimePresentation(
       };
     }),
     toolCount: tools.length,
+  };
+}
+
+export function getAgentSkillRuntimePresentation(
+  skills: unknown,
+): AgentExtensionDebugListPresentation {
+  const skillRecords = recordsOrEmpty(skills);
+  return {
+    count: skillRecords.length,
+    debugSpec: skillRecords,
+    summary: `${skillRecords.length} prompt layers`,
+  };
+}
+
+export function getAgentMcpRuntimeMetadataPresentation(
+  mcps: unknown,
+): AgentExtensionDebugListPresentation {
+  const mcpRecords = recordsOrEmpty(mcps);
+  return {
+    count: mcpRecords.length,
+    debugSpec: mcpRecords.map((server) => ({
+      id: stringOrEmpty(server.id),
+      name: stringOrEmpty(server.name),
+      command: stringOrEmpty(server.command),
+      tools: recordsOrEmpty(server.tools).map((tool) => stringOrEmpty(tool.name)),
+    })),
+    summary: `${mcpRecords.length} servers`,
   };
 }
 
@@ -312,5 +345,17 @@ export const DesktopExtensionRuntimeClient = {
     plugin: unknown,
   ): AgentPluginRuntimePresentation {
     return getAgentPluginRuntimePresentation(plugin);
+  },
+
+  getSkillRuntimePresentation(
+    skills: unknown,
+  ): AgentExtensionDebugListPresentation {
+    return getAgentSkillRuntimePresentation(skills);
+  },
+
+  getMcpRuntimeMetadataPresentation(
+    mcps: unknown,
+  ): AgentExtensionDebugListPresentation {
+    return getAgentMcpRuntimeMetadataPresentation(mcps);
   },
 };

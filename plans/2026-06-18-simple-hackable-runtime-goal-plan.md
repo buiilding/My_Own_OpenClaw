@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved agent skill and MCP metadata debug presentation into
+  `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps extension
+  layout while rendering runtime-provided skill/MCP counts, summaries, and
+  debug specs instead of counting raw skill/MCP arrays or shaping MCP server
+  debug metadata. Validation passed focused desktop extension runtime client,
+  agent settings, renderer settings boundary, and docs-index tests plus docs
+  search, related commit search, stale raw skill/MCP metadata-field scan, docs
+  listing, and diff checks. No migration required; extension runtime payload
+  shape, skill and MCP debug details for normal entries, settings diagnostics,
+  extension metadata display, capability event channels, tool-toggle config
+  keys, settings storage, IPC channels, provider policy, hosted URLs,
+  permissions, credentials, and local execution behavior are unchanged.
+
 - 2026-06-19: moved agent plugin metadata presentation into
   `DesktopExtensionRuntimeClient`. `AgentSettingsTab` now keeps extension
   layout while rendering runtime-provided plugin names, counts,

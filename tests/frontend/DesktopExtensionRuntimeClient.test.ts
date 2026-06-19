@@ -27,8 +27,10 @@ import {
   DesktopExtensionRuntimeClient,
   getAgentExtensionRuntimeErrorPresentation,
   getAgentLocalToolManifestPresentation,
+  getAgentMcpRuntimeMetadataPresentation,
   getAgentPluginRuntimePresentation,
   getAgentRemoteToolPresentation,
+  getAgentSkillRuntimePresentation,
   normalizeAgentCapabilityEvent,
   normalizeAgentExtensionRuntime,
   normalizeAgentRemoteToolCatalog,
@@ -334,6 +336,44 @@ describe('DesktopExtensionRuntimeClient', () => {
       settingsPanelCount: 0,
       settingsPanels: [],
       toolCount: 0,
+    });
+  });
+
+  test('builds extension skill and MCP metadata debug presentations', () => {
+    expect(getAgentSkillRuntimePresentation([{
+      id: 'extension:skill:review',
+      type: 'extension_skill',
+      priority: 75,
+    }])).toEqual({
+      count: 1,
+      debugSpec: [{
+        id: 'extension:skill:review',
+        type: 'extension_skill',
+        priority: 75,
+      }],
+      summary: '1 prompt layers',
+    });
+
+    expect(DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation([{
+      id: 'memory',
+      name: 'Memory',
+      command: 'node',
+      tools: [{ name: 'search' }],
+    }])).toEqual({
+      count: 1,
+      debugSpec: [{
+        id: 'memory',
+        name: 'Memory',
+        command: 'node',
+        tools: ['search'],
+      }],
+      summary: '1 servers',
+    });
+
+    expect(getAgentMcpRuntimeMetadataPresentation(null)).toEqual({
+      count: 0,
+      debugSpec: [],
+      summary: '0 servers',
     });
   });
 });

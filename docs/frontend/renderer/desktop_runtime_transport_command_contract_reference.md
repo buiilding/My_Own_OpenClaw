@@ -292,13 +292,14 @@ plus direct manifest/catalog update callbacks and remote-tool catalog
 availability presentation plus extension runtime error presentation for
 settings UI. It also owns local-tool manifest presentation lookup from
 accepted/rejected manifest entries and plugin metadata presentation for
-extension details. Agent settings owns extension/tool layout, tool toggle
-config patches, and manifest/catalog display state while delegating the desktop
-event, metadata channels, remote-tool availability field interpretation,
-extension diagnostic error formatting, local-tool manifest status lookup, and
-plugin permission/settings-panel/tool/config-schema display projection to this
-client instead of reading normalized event, catalog, manifest, plugin, or error
-fields.
+extension details, including skill and MCP metadata debug projections. Agent
+settings owns extension/tool layout, tool toggle config patches, and
+manifest/catalog display state while delegating the desktop event, metadata
+channels, remote-tool availability field interpretation, extension diagnostic
+error formatting, local-tool manifest status lookup, plugin
+permission/settings-panel/tool/config-schema display projection, and raw
+skill/MCP metadata shaping to this client instead of reading normalized event,
+catalog, manifest, plugin, skill, MCP, or error fields.
 
 `desktopRendererHooksRuntimeClient.ts` owns renderer app-runtime access to
 shared React hook helpers such as `useLatestRef`. App providers and feature

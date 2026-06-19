@@ -43,6 +43,10 @@ All notable changes to WindieOS will be documented in this file.
   `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer reads raw
   plugin permission, settings-panel, tool, or config-schema fields while
   rendering extension diagnostics. No migration required.
+- renderer/extensions: move extension skill and MCP metadata debug
+  presentation into `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no
+  longer shapes raw skill or MCP metadata arrays before rendering extension
+  diagnostics. No migration required.
 - renderer/extensions: move local tool manifest presentation lookup into
   `DesktopExtensionRuntimeClient` so `AgentSettingsTab` no longer builds
   accepted/rejected tool maps from raw manifest arrays before rendering local

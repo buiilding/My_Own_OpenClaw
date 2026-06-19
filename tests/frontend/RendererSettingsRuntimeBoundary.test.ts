@@ -249,6 +249,11 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('payload?.accepted');
     expect(source).not.toContain('payload?.rejected');
     expect(source).not.toContain('payload?.remote_tools');
+    expect(source).not.toContain('extensionRuntime.skills.length');
+    expect(source).not.toContain('extensionRuntime.mcps.length');
+    expect(source).not.toContain('extensionRuntime.mcps.map');
+    expect(source).not.toContain('server.tools');
+    expect(source).not.toContain('server.command');
     expect(source).not.toContain('event?.manifestStatus');
     expect(source).not.toContain('event.manifestStatus');
     expect(source).not.toContain('event?.remoteToolCatalog');
@@ -278,6 +283,8 @@ describe('renderer settings runtime boundary', () => {
     expect(source).toContain('DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getLocalToolManifestPresentation');
     expect(source).toContain('DesktopExtensionRuntimeClient.getPluginRuntimePresentation');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getSkillRuntimePresentation');
+    expect(source).toContain('DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation');
     expect(source).toContain('EMPTY_AGENT_EXTENSION_RUNTIME');
     expect(source).toContain('EMPTY_AGENT_TOOL_MANIFEST_STATUS');
     expect(source).toContain('EMPTY_AGENT_REMOTE_TOOL_CATALOG');
@@ -289,10 +296,14 @@ describe('renderer settings runtime boundary', () => {
     expect(clientSource).toContain('getAgentExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getAgentLocalToolManifestPresentation');
     expect(clientSource).toContain('getAgentPluginRuntimePresentation');
+    expect(clientSource).toContain('getAgentSkillRuntimePresentation');
+    expect(clientSource).toContain('getAgentMcpRuntimeMetadataPresentation');
     expect(clientSource).toContain('getRemoteToolPresentation');
     expect(clientSource).toContain('getExtensionRuntimeErrorPresentation');
     expect(clientSource).toContain('getLocalToolManifestPresentation');
     expect(clientSource).toContain('getPluginRuntimePresentation');
+    expect(clientSource).toContain('getSkillRuntimePresentation');
+    expect(clientSource).toContain('getMcpRuntimeMetadataPresentation');
     expect(clientSource).toContain('onAgentCapabilityEvent');
     expect(clientSource).toContain('onAgentCapabilityUpdate');
     expect(clientSource).toContain('manifestStatus');

@@ -30,6 +30,12 @@ function AgentSettingsTab({ config, onConfigChange }) {
   const [manifestStatus, setManifestStatus] = useState(EMPTY_AGENT_TOOL_MANIFEST_STATUS);
   const [remoteToolCatalog, setRemoteToolCatalog] = useState(EMPTY_AGENT_REMOTE_TOOL_CATALOG);
   const [extensionRuntime, setExtensionRuntime] = useState(EMPTY_AGENT_EXTENSION_RUNTIME);
+  const skillsPresentation = DesktopExtensionRuntimeClient.getSkillRuntimePresentation(
+    extensionRuntime.skills,
+  );
+  const mcpsPresentation = DesktopExtensionRuntimeClient.getMcpRuntimeMetadataPresentation(
+    extensionRuntime.mcps,
+  );
   const disabledLocalTools = Array.isArray(config?.agent_disabled_local_tools)
     ? config.agent_disabled_local_tools
     : [];
@@ -99,27 +105,22 @@ function AgentSettingsTab({ config, onConfigChange }) {
           }) : (
             <p className="clone-settings-tool-status">{agentSettingsSkin.extensions.emptyPlugins}</p>
           )}
-          {extensionRuntime.skills.length > 0 ? (
+          {skillsPresentation.count > 0 ? (
             <details className="clone-settings-schema-viewer">
               <summary>
                 Skills
-                <small>{extensionRuntime.skills.length} prompt layers</small>
+                <small>{skillsPresentation.summary}</small>
               </summary>
-              <pre>{JSON.stringify(extensionRuntime.skills, null, 2)}</pre>
+              <pre>{JSON.stringify(skillsPresentation.debugSpec, null, 2)}</pre>
             </details>
           ) : null}
-          {extensionRuntime.mcps.length > 0 ? (
+          {mcpsPresentation.count > 0 ? (
             <details className="clone-settings-schema-viewer">
               <summary>
                 MCP servers
-                <small>{extensionRuntime.mcps.length} servers</small>
+                <small>{mcpsPresentation.summary}</small>
               </summary>
-              <pre>{JSON.stringify(extensionRuntime.mcps.map((server) => ({
-                id: server.id,
-                name: server.name,
-                command: server.command,
-                tools: (server.tools || []).map((tool) => tool.name),
-              })), null, 2)}</pre>
+              <pre>{JSON.stringify(mcpsPresentation.debugSpec, null, 2)}</pre>
             </details>
           ) : null}
           {extensionRuntime.errors.length > 0 ? extensionRuntime.errors.map((error) => {
