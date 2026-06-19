@@ -1,5 +1,5 @@
 /**
- * Provides the dashboard conversation load module for the renderer UI.
+ * Provides dashboard conversation load rules for the renderer app runtime.
  */
 
 const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;

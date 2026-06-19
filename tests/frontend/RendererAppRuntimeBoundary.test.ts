@@ -387,6 +387,26 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain("message.includes('timed out waiting for sidecar daemon')");
   });
 
+  test('dashboard recent-conversation load rules stay behind app runtime facade', async () => {
+    const runtimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopDashboardConversationLoadRuntime.js'),
+      'utf8',
+    );
+    const dashboardHookSource = await fs.readFile(
+      path.join(rendererRoot, 'features/dashboard/hooks/useDashboardConversations.js'),
+      'utf8',
+    );
+
+    expect(runtimeSource).toContain('normalizeRecentConversations');
+    expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
+    expect(runtimeSource).not.toContain('features/dashboard');
+    expect(dashboardHookSource).toContain('desktopDashboardConversationLoadRuntime');
+    expect(dashboardHookSource).not.toContain('utils/dashboardConversationLoad');
+    await expect(fs.stat(
+      path.join(rendererRoot, 'features/dashboard/utils/dashboardConversationLoad.js'),
+    )).rejects.toThrow();
+  });
+
   test('chat stream stale-turn guard uses generic runtime packet wording', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopChatStreamEventRuntime.ts'),

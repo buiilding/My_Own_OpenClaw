@@ -11,7 +11,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
-- `frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad.js`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`

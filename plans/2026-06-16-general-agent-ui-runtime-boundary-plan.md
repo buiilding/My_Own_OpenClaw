@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Dashboard Recent Conversation Load Runtime Boundary
+
+- Finding: dashboard recent-conversation list normalization, pinned-reference
+  pruning, retry delay calculation, and retry gating lived under the dashboard
+  feature utility tree even though the hook consumes them as shared app-runtime
+  conversation loading policy.
+- Change: moved those helpers into
+  `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`,
+  routed the dashboard hook/tests/docs through the app-runtime owner, and
+  deleted the old
+  `frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad.js`
+  path.
+- Validation: focused dashboard conversation-load and app-runtime boundary
+  tests, docs listing, stale old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. SDK conversation metadata commands,
+  row shape, sorting, pinned-list behavior, retry timing, transcript title
+  polling, storage, IPC, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Wakeword Helper Runtime Boundary
 
 - Finding: wakeword missing-device lockout, device-probe heuristics,

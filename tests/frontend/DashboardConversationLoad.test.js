@@ -7,9 +7,9 @@ import {
   prunePinnedConversationRefs,
   resolveRecentConversationsRetryDelayMs,
   shouldRetryRecentConversationsLoad,
-} from '../../frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad';
+} from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
-describe('dashboardConversationLoad', () => {
+describe('desktopDashboardConversationLoadRuntime', () => {
   test('normalizeRecentConversations filters missing ids and sorts newest first', () => {
     const list = normalizeRecentConversations([
       { conversation_id: 'c-old', last_timestamp: '2024-01-01T00:00:00Z' },

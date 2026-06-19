@@ -20,7 +20,7 @@ import {
   prunePinnedConversationRefs,
   resolveRecentConversationsRetryDelayMs,
   shouldRetryRecentConversationsLoad,
-} from '../utils/dashboardConversationLoad';
+} from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
 
 function useDashboardConversations({
   resolvedUserId,

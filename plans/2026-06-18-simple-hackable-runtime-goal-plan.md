@@ -275,6 +275,38 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer wakeword helper runtime-boundary slice by
+  moving missing-device lockout, audio-input probing, wakeword event
+  confidence/cooldown normalization, chunk-size warning text, and gated voice
+  debug tracing from
+  `frontend/src/renderer/features/voice/utils/{wakewordCaptureGuard,wakewordEventUtils,voiceDebugTrace}.ts`
+  into
+  `frontend/src/renderer/app/runtime/{desktopWakewordCaptureGuardRuntime,desktopWakewordEventRuntime,desktopVoiceDebugTraceRuntime}.ts`.
+  Wakeword/voice hooks, focused tests, active voice docs, folder structure,
+  app-runtime inventory, and boundary guards now consume the app-runtime owners
+  while the old feature utility paths are deleted. Validation: focused
+  wakeword event, wakeword detection, voice mode, renderer voice runtime
+  boundary, skin/config boundary, docs listing, stale old-path scan, frontend
+  lint, and diff checks. No migration required; global wakeword guard key,
+  missing-device lockout semantics, audio-input probing, wakeword
+  confidence/cooldown predicates, debug trace query flag, IPC payloads,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer dashboard recent-conversation load
+  runtime-boundary slice by moving list normalization, pinned-reference pruning,
+  retry delay calculation, and retry gating from
+  `frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad.js`
+  into
+  `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`.
+  `useDashboardConversations`, focused tests, active dashboard docs, folder
+  structure, app-runtime inventory, and boundary guards now consume the
+  app-runtime owner while the old feature utility path is deleted. Validation:
+  focused dashboard load and app-runtime boundary tests, docs listing, stale
+  old-path scan, frontend lint, and diff checks. No migration required; SDK
+  conversation metadata commands, row shape, sorting, pinned-list behavior,
+  retry timing, transcript title polling, storage, IPC, credentials,
+  permissions, hosted routes, provider policy, packaging, and local execution
+  behavior are unchanged.
 - 2026-06-19: completed a renderer voice audio capture
   runtime-boundary slice by moving PCM encoding, gateway binary frame
   construction, capture cleanup, and AudioWorklet processor construction from

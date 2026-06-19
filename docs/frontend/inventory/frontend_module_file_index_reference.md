@@ -94,6 +94,7 @@ Feature slices:
 - Dashboard:
 - `frontend/src/renderer/features/dashboard/components/*`
 - `frontend/src/renderer/features/dashboard/hooks/*`
+- `frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime.js`
 - `frontend/src/renderer/features/dashboard/utils/*`
 - Settings:
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
