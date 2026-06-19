@@ -34,6 +34,16 @@ owns SDK conversation metadata to dashboard row projection for both recent and
 search surfaces. The hook should not spell out `conversation_id`,
 `workspace_path`, or search-snippet field mapping itself.
 
+`desktopDashboardConversationLoadRuntime.getDashboardConversationRef(...)`,
+`getDashboardConversationRenamePromptValue(...)`,
+`renameDashboardConversationInList(...)`,
+`removeDashboardConversationFromList(...)`, `togglePinnedConversationRef(...)`,
+and `removePinnedConversationRef(...)` own dashboard row identity, title prompt
+fallbacks, and in-memory row/pin updates. The hook owns user prompts,
+confirmation, SDK delete calls, workspace-binding cleanup, and active-session
+reset side effects, but it should not inspect raw row ids or map/filter row
+lists itself for rename, delete, or pin actions.
+
 `desktopDashboardConversationLoadRuntime.resolveRecentConversationEventAction(...)`
 owns SDK conversation event type classification for recent-list refresh and
 title-visibility polling. The hook owns the resulting side effects: reload the
@@ -141,7 +151,8 @@ Failure is reported via `recentConversationsError`.
 - confirms with blocking prompt
 - delegates to the SDK-shaped `conversations.delete` command through the
   desktop conversation library facade
-- removes row from recent/searched lists and pin set
+- removes row from recent/searched lists and pin set through
+  `desktopDashboardConversationLoadRuntime` list-update helpers
 - when deleting currently active session conversation:
   - clears active conversation refs
   - resets transcript session

@@ -61,7 +61,7 @@ function isGenericTransientRecentConversationsError(message) {
 
 export function normalizeRecentConversations(conversations) {
   return (Array.isArray(conversations) ? conversations : [])
-    .filter((conversation) => Boolean(conversation?.conversation_id))
+    .filter((conversation) => Boolean(getDashboardConversationRef(conversation)))
     .sort((a, b) => {
       const aTime = Date.parse(a?.last_timestamp || '') || 0;
       const bTime = Date.parse(b?.last_timestamp || '') || 0;
@@ -69,13 +69,78 @@ export function normalizeRecentConversations(conversations) {
     });
 }
 
+export function getDashboardConversationRef(conversation) {
+  return normalizeOptionalString(conversation?.conversation_id);
+}
+
+export function getDashboardConversationTitle(conversation) {
+  return normalizeOptionalString(conversation?.title);
+}
+
+export function getDashboardConversationRenamePromptValue(
+  conversation,
+  fallbackTitle = 'New chat',
+) {
+  return getDashboardConversationTitle(conversation) || fallbackTitle;
+}
+
+export function isDashboardConversationRef(conversation, conversationRef) {
+  return getDashboardConversationRef(conversation) === normalizeOptionalString(conversationRef);
+}
+
+export function renameDashboardConversationInList(
+  conversations,
+  conversationRef,
+  nextTitle,
+) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  const title = normalizeOptionalString(nextTitle);
+  if (!targetRef || !title || !Array.isArray(conversations)) {
+    return Array.isArray(conversations) ? conversations : [];
+  }
+  return conversations.map((conversation) => (
+    isDashboardConversationRef(conversation, targetRef)
+      ? { ...conversation, title }
+      : conversation
+  ));
+}
+
+export function removeDashboardConversationFromList(conversations, conversationRef) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  if (!targetRef || !Array.isArray(conversations)) {
+    return Array.isArray(conversations) ? conversations : [];
+  }
+  return conversations.filter((conversation) => !isDashboardConversationRef(conversation, targetRef));
+}
+
 export function prunePinnedConversationRefs(pinnedConversationRefs, recentConversations) {
   const knownIds = new Set(
     recentConversations
-      .map((conversation) => conversation?.conversation_id)
+      .map(getDashboardConversationRef)
       .filter(Boolean),
   );
   return pinnedConversationRefs.filter((conversationRef) => knownIds.has(conversationRef));
+}
+
+export function togglePinnedConversationRef(pinnedConversationRefs, conversationRef) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  const source = Array.isArray(pinnedConversationRefs) ? pinnedConversationRefs : [];
+  if (!targetRef) {
+    return source;
+  }
+  if (source.includes(targetRef)) {
+    return source.filter((id) => id !== targetRef);
+  }
+  return [targetRef, ...source];
+}
+
+export function removePinnedConversationRef(pinnedConversationRefs, conversationRef) {
+  const targetRef = normalizeOptionalString(conversationRef);
+  const source = Array.isArray(pinnedConversationRefs) ? pinnedConversationRefs : [];
+  if (!targetRef) {
+    return source;
+  }
+  return source.filter((id) => id !== targetRef);
 }
 
 export function resolveRecentConversationEventAction(event) {

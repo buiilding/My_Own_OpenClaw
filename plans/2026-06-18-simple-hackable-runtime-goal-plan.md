@@ -275,6 +275,21 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved dashboard conversation row identity and in-memory row/pin
+  updates into `desktopDashboardConversationLoadRuntime`.
+  `useDashboardConversations` now keeps user prompts, SDK open/delete calls,
+  workspace-binding cleanup, active-session reset, and React state side effects
+  while consuming runtime-provided row refs, rename prompt values,
+  rename/delete list updates, and pin-state updates instead of reading raw
+  conversation row ids or mapping/filtering row lists directly. Validation
+  passed focused dashboard conversation load, dashboard shell, renderer app
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  raw dashboard row action-field scan, docs listing, and diff checks. No
+  migration required; dashboard row payload shape, recent/search list behavior,
+  rename prompt default behavior, pin ordering, delete/reset side effects, SDK
+  conversation command names, IPC channels, storage, provider policy, hosted
+  URLs, permissions, credentials, and local execution behavior are unchanged.
+
 - 2026-06-19: moved active-workspace display presentation into
   `desktopWorkspaceRuntimeClient`. `WorkspaceSettingsTab` now keeps row layout,
   local sync state, and folder-pick actions while consuming runtime-provided

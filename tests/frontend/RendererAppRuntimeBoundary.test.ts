@@ -483,6 +483,10 @@ describe('renderer app runtime boundary', () => {
     expect(runtimeSource).toContain('shouldRetryRecentConversationsLoad');
     expect(runtimeSource).toContain('resolveRecentConversationEventAction');
     expect(runtimeSource).toContain('shouldContinueTitleVisibilityPoll');
+    expect(runtimeSource).toContain('getDashboardConversationRef');
+    expect(runtimeSource).toContain('renameDashboardConversationInList');
+    expect(runtimeSource).toContain('removeDashboardConversationFromList');
+    expect(runtimeSource).toContain('togglePinnedConversationRef');
     expect(runtimeSource).toContain('TITLE_VISIBILITY_POLL_DELAY_MS');
     expect(runtimeSource).toContain("'user_message'");
     expect(runtimeSource).toContain("'assistant_message'");
@@ -491,8 +495,15 @@ describe('renderer app runtime boundary', () => {
     expect(dashboardHookSource).toContain('metadataListToDashboardConversations');
     expect(dashboardHookSource).toContain('resolveRecentConversationEventAction');
     expect(dashboardHookSource).toContain('shouldContinueTitleVisibilityPoll');
+    expect(dashboardHookSource).toContain('getDashboardConversationRef');
+    expect(dashboardHookSource).toContain('renameDashboardConversationInList');
+    expect(dashboardHookSource).toContain('removeDashboardConversationFromList');
+    expect(dashboardHookSource).toContain('togglePinnedConversationRef');
     expect(dashboardHookSource).not.toContain('conversation_id: metadata');
     expect(dashboardHookSource).not.toContain('workspace_path: metadata');
+    expect(dashboardHookSource).not.toContain('conversation?.conversation_id');
+    expect(dashboardHookSource).not.toContain('item?.conversation_id');
+    expect(dashboardHookSource).not.toContain('conversation?.title');
     expect(dashboardHookSource).not.toContain('conversation?.conversation_id === conversationRef');
     expect(dashboardHookSource).not.toContain('const maxAttempts = 240');
     expect(dashboardHookSource).not.toContain('const delayMs = 1250');

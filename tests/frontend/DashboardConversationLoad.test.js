@@ -3,6 +3,8 @@
  */
 
 import {
+  getDashboardConversationRef,
+  getDashboardConversationRenamePromptValue,
   getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
   isConversationVisibleInRecentConversations,
@@ -10,11 +12,15 @@ import {
   metadataToDashboardConversation,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
+  removeDashboardConversationFromList,
+  removePinnedConversationRef,
+  renameDashboardConversationInList,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
   shouldContinueTitleVisibilityPoll,
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
+  togglePinnedConversationRef,
 } from '../../frontend/src/renderer/app/runtime/desktopDashboardConversationLoadRuntime';
 
 describe('desktopDashboardConversationLoadRuntime', () => {
@@ -65,6 +71,36 @@ describe('desktopDashboardConversationLoadRuntime', () => {
       ['c-1', 'c-2', 'c-missing'],
       [{ conversation_id: 'c-2' }, { conversation_id: 'c-1' }],
     )).toEqual(['c-1', 'c-2']);
+  });
+
+  test('dashboard conversation row identity and list updates stay in the runtime', () => {
+    const conversations = [
+      { conversation_id: ' conv-1 ', title: ' First ' },
+      { conversation_id: 'conv-2', title: '' },
+      { conversation_id: 'conv-3', title: 'Third' },
+    ];
+
+    expect(getDashboardConversationRef(conversations[0])).toBe('conv-1');
+    expect(getDashboardConversationRef(null)).toBe('');
+    expect(getDashboardConversationRenamePromptValue(conversations[0])).toBe('First');
+    expect(getDashboardConversationRenamePromptValue(conversations[1])).toBe('New chat');
+
+    expect(renameDashboardConversationInList(
+      conversations,
+      'conv-1',
+      'Renamed',
+    )).toEqual([
+      { conversation_id: ' conv-1 ', title: 'Renamed' },
+      { conversation_id: 'conv-2', title: '' },
+      { conversation_id: 'conv-3', title: 'Third' },
+    ]);
+    expect(removeDashboardConversationFromList(conversations, 'conv-2')).toEqual([
+      { conversation_id: ' conv-1 ', title: ' First ' },
+      { conversation_id: 'conv-3', title: 'Third' },
+    ]);
+    expect(togglePinnedConversationRef(['conv-1'], 'conv-2')).toEqual(['conv-2', 'conv-1']);
+    expect(togglePinnedConversationRef(['conv-2', 'conv-1'], 'conv-2')).toEqual(['conv-1']);
+    expect(removePinnedConversationRef(['conv-2', 'conv-1'], 'conv-2')).toEqual(['conv-1']);
   });
 
   test('classifies conversation events for recent-list reload and title polling', () => {

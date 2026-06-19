@@ -174,6 +174,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Dashboard Conversation Row Action Boundary
+
+- Finding: `desktopDashboardConversationLoadRuntime` owned recent-list
+  projection, event classification, title-poll rules, and retry policy, but
+  `useDashboardConversations` still read raw dashboard row ids/titles and
+  mapped or filtered recent/search/pin lists while handling rename, pin, open,
+  and delete actions.
+- Change: added dashboard conversation row identity/title helpers plus
+  rename/delete/pin list-update helpers to
+  `desktopDashboardConversationLoadRuntime`. The dashboard hook now keeps user
+  prompts, confirmations, SDK delete/load calls, workspace cleanup, and active
+  session reset side effects while delegating row identity and in-memory row
+  mutations to the runtime facade.
+- Validation: passed focused dashboard conversation load, dashboard shell,
+  renderer app boundary, and docs-index tests plus docs search, related commit
+  search, stale raw dashboard row action-field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Conversation metadata payload shape,
+  prompt text, rename/delete/pin UI behavior, recent/search list contents,
+  SDK conversation commands, IPC channels, storage, provider policy, hosted
+  URLs, permissions, credentials, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Workspace Display Presentation Boundary
 
 - Finding: `desktopWorkspaceRuntimeClient` owned active workspace value

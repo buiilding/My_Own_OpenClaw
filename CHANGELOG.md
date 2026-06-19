@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move dashboard conversation row identity, rename/delete
+  list updates, and pin-state updates into
+  `desktopDashboardConversationLoadRuntime` so `useDashboardConversations` no
+  longer reads raw conversation row ids or maps/filters row lists for
+  user-facing recent-chat actions. No migration required.
 - renderer/runtime: move dashboard generated-title poll timing and visibility
   checks into `desktopDashboardConversationLoadRuntime` so
   `useDashboardConversations` no longer hard-codes poll constants or checks raw

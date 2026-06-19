@@ -16,17 +16,23 @@ import {
   buildWorkspaceConversationGroups,
 } from '../../../app/runtime/desktopDashboardConversationGroupRuntime';
 import {
+  getDashboardConversationRef,
+  getDashboardConversationRenamePromptValue,
   getRecentConversationsReloadReasonForEventAction,
   getTitleVisibilityPollSchedule,
   getTitleVisibilityPollConversationRef,
   metadataListToDashboardConversations,
   normalizeRecentConversations,
   prunePinnedConversationRefs,
+  removeDashboardConversationFromList,
+  removePinnedConversationRef,
+  renameDashboardConversationInList,
   resolveRecentConversationEventAction,
   resolveRecentConversationsRetryDelayMs,
   shouldContinueTitleVisibilityPoll,
   shouldRetryRecentConversationsLoad,
   shouldReloadRecentConversationsForEventAction,
+  togglePinnedConversationRef,
 } from '../../../app/runtime/desktopDashboardConversationLoadRuntime';
 
 function useDashboardConversations({
@@ -174,7 +180,7 @@ function useDashboardConversations({
   }, [clearPendingTitlePoll, loadRecentConversations]);
 
   const handleOpenConversation = useCallback(async (conversation) => {
-    const conversationRef = conversation?.conversation_id;
+    const conversationRef = getDashboardConversationRef(conversation);
     if (!conversationRef) {
       return;
     }
@@ -252,14 +258,15 @@ function useDashboardConversations({
   ]);
 
   const handleRenameConversation = useCallback((conversation) => {
-    const conversationRef = conversation?.conversation_id;
+    const conversationRef = getDashboardConversationRef(conversation);
     if (!conversationRef) {
       return;
     }
-    const currentTitle = typeof conversation?.title === 'string'
-      ? conversation.title.trim()
-      : '';
-    const nextTitleInput = window.prompt('Rename chat', currentTitle || 'New chat');
+    const currentTitle = getDashboardConversationRenamePromptValue(conversation, '');
+    const nextTitleInput = window.prompt(
+      'Rename chat',
+      getDashboardConversationRenamePromptValue(conversation),
+    );
     if (typeof nextTitleInput !== 'string') {
       return;
     }
@@ -267,33 +274,28 @@ function useDashboardConversations({
     if (!nextTitle || nextTitle === currentTitle) {
       return;
     }
-    setRecentConversations((current) => current.map((item) => (
-      item?.conversation_id === conversationRef
-        ? { ...item, title: nextTitle }
-        : item
-    )));
-    setSearchedConversations((current) => current.map((item) => (
-      item?.conversation_id === conversationRef
-        ? { ...item, title: nextTitle }
-        : item
-    )));
+    setRecentConversations((current) => renameDashboardConversationInList(
+      current,
+      conversationRef,
+      nextTitle,
+    ));
+    setSearchedConversations((current) => renameDashboardConversationInList(
+      current,
+      conversationRef,
+      nextTitle,
+    ));
   }, []);
 
   const handleTogglePinConversation = useCallback((conversation) => {
-    const conversationRef = conversation?.conversation_id;
+    const conversationRef = getDashboardConversationRef(conversation);
     if (!conversationRef) {
       return;
     }
-    setPinnedConversationRefs((current) => {
-      if (current.includes(conversationRef)) {
-        return current.filter((id) => id !== conversationRef);
-      }
-      return [conversationRef, ...current];
-    });
+    setPinnedConversationRefs((current) => togglePinnedConversationRef(current, conversationRef));
   }, []);
 
   const handleDeleteConversation = useCallback(async (conversation) => {
-    const conversationRef = conversation?.conversation_id;
+    const conversationRef = getDashboardConversationRef(conversation);
     if (!conversationRef) {
       return;
     }
@@ -305,9 +307,9 @@ function useDashboardConversations({
     try {
       await DesktopConversationLibraryClient.deleteConversation(resolvedUserId, conversationRef);
 
-      setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
-      setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
-      setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
+      setRecentConversations((current) => removeDashboardConversationFromList(current, conversationRef));
+      setSearchedConversations((current) => removeDashboardConversationFromList(current, conversationRef));
+      setPinnedConversationRefs((current) => removePinnedConversationRef(current, conversationRef));
       DesktopWorkspaceRuntimeClient.clearConversationWorkspaceBinding(conversationRef);
       if (sessionConversationRef === conversationRef) {
         resetActiveChatSession({
