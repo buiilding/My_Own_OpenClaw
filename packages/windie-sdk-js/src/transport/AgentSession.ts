@@ -1,5 +1,5 @@
 /**
- * Provides the backend agent session transport for the TypeScript SDK runtime.
+ * Provides the agent session transport for the TypeScript SDK runtime.
  */
 
 import {
@@ -410,7 +410,7 @@ export class AgentSession {
   }
 }
 
-export function createAgentBackendTransport(
+export function createAgentRuntimeTransport(
   session: AgentSessionRuntime,
   conversationRef: string,
   agentDefinition?: JsonRecord,
@@ -478,6 +478,8 @@ export function createAgentBackendTransport(
     close: async () => session.close(1000, 'conversation-runtime-close'),
   };
 }
+
+export const createAgentBackendTransport = createAgentRuntimeTransport;
 
 function cloneJsonRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

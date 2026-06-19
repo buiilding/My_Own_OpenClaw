@@ -78,11 +78,13 @@ or display-row projection.
 
 For advanced hosts that need the lower transport directly, the SDK exposes
 generic agent-session contracts such as `AgentSessionRuntime`,
-`createAgentSession`, `createAgentBackendTransport`,
+`createAgentSession`, `createAgentRuntimeTransport`,
 `ManagedAgentSession`, and `createManagedAgentSession`. `AgentSession` and
 `ManagedAgentSession` are the canonical hosted-session modules. New app-builder code should
 prefer the generic names because the hosted websocket transport is an Agent SDK
 runtime concern rather than WindieOS renderer skin state.
+`createAgentBackendTransport` remains a compatibility alias for existing SDK
+callers, but new host adapters should use the runtime-named factory.
 Hosts that inject a transport into `createConversationRuntime(...)` should type
 that adapter as `AgentRuntimeTransport`. The older `BackendTransport`
 compatibility type has been removed so new app-builder code sees one reusable

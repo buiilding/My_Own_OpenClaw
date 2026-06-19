@@ -62,9 +62,12 @@ Ownership rules:
 - the SDK transport module owns the websocket type surface. `AgentSession.ts`
   defines the public `AgentSessionOptions`, `AgentQueryInput`,
   `AgentStopInput`, `AgentSessionRuntime`, `AgentSession`,
-  `createAgentSession`, and `createAgentBackendTransport` contracts alongside
+  `createAgentSession`, and `createAgentRuntimeTransport` contracts alongside
   `WebSocketLike` and `WebSocketConstructor`. `AgentSession.ts` is the
   canonical websocket session module.
+  `createAgentBackendTransport` remains as a compatibility alias for older SDK
+  callers, but the SDK runtime and new host adapters use
+  `createAgentRuntimeTransport`.
   `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`.
   `ManagedAgentSession.ts` is the canonical managed

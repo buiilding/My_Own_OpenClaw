@@ -22,6 +22,7 @@ import {
   isDefaultAgentDefinition,
   createAgentBackendSocket,
   createAgentBackendTransport,
+  createAgentRuntimeTransport,
   createAgentLocalRuntimeProvider,
   createAgentSession,
   ManagedAgentSession,
@@ -73,7 +74,9 @@ describe('@windie/sdk package boundary', () => {
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(agentBuiltins.desktop()).toEqual({ builtins: 'default' });
     expect(createAgentSession).toBeDefined();
+    expect(createAgentRuntimeTransport).toBeDefined();
     expect(createAgentBackendTransport).toBeDefined();
+    expect(createAgentBackendTransport).toBe(createAgentRuntimeTransport);
     expect(ManagedAgentSession).toBeDefined();
     expect(createManagedAgentSession).toBeDefined();
     expect(AgentSession).toBeDefined();
@@ -168,6 +171,13 @@ describe('@windie/sdk package boundary', () => {
     expect(continuitySource).not.toContain("Pick<BackendTransport, 'rehydrateConversation'>");
     expect(frontendArchitectureSource).toContain('ConversationStore` and `AgentRuntimeTransport');
     expect(frontendArchitectureSource).not.toContain('ConversationStore` and `BackendTransport');
+
+    const agentSource = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/runtime/Agent.ts'),
+      'utf8',
+    );
+    expect(agentSource).toContain('createAgentRuntimeTransport');
+    expect(agentSource).not.toContain('createAgentBackendTransport');
   });
 
   test('exports generic backend socket factory helpers', () => {

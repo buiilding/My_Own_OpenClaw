@@ -196,7 +196,7 @@ class Agent {
             conversationRef,
             revisionId: options.revisionId,
             store: options.store ?? this.defaultConversationStore,
-            transport: (0, AgentSession_js_1.createAgentBackendTransport)(this.session, conversationRef, this.agentDefinition),
+            transport: (0, AgentSession_js_1.createAgentRuntimeTransport)(this.session, conversationRef, this.agentDefinition),
             localRuntime: resolvedLocalRuntime,
             sdkClient: this.sdkClient,
             userId: this.userId,

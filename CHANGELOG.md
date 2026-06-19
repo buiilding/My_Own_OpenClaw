@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: add `createAgentRuntimeTransport` as the primary conversation
+  transport factory and route SDK internals/tests through it while preserving
+  `createAgentBackendTransport` as a compatibility alias. No migration
+  required.
 - renderer/runtime: move MCP registry list, refresh, and enablement payload
   normalization behind the desktop MCP runtime client instead of the dashboard
   section. No migration required.

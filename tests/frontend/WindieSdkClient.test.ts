@@ -10,7 +10,7 @@ import {
   buildAgentDefinition,
   isDefaultAgentDefinition,
   createAgentBackendSocket,
-  createAgentBackendTransport,
+  createAgentRuntimeTransport,
   createAgentSession,
   createConversationEvent,
   createAgentLocalRuntimeProvider,
@@ -1687,7 +1687,7 @@ describe('Agent SDK client behavior', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createAgentBackendTransport(session, 'conv-models');
+    const transport = createAgentRuntimeTransport(session, 'conv-models');
     const messageId = await transport.listModels();
 
     expect(messageId).toEqual(expect.any(String));
@@ -1725,7 +1725,7 @@ describe('Agent SDK client behavior', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createAgentBackendTransport(session, 'conv-agent-context', {
+    const transport = createAgentRuntimeTransport(session, 'conv-agent-context', {
       id: 'transport-agent',
       tools: {
         mode: 'client_only',
@@ -1813,7 +1813,7 @@ describe('Agent SDK client behavior', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createAgentBackendTransport(session, 'conv-agent-context', {
+    const transport = createAgentRuntimeTransport(session, 'conv-agent-context', {
       id: 'transport-agent',
       tools: {
         mode: 'client_only',
@@ -1899,7 +1899,7 @@ describe('Agent SDK client behavior', () => {
     await openPromise;
     FakeWebSocket.instances[0].clearSent();
 
-    const transport = createAgentBackendTransport(session, 'conv-commands');
+    const transport = createAgentRuntimeTransport(session, 'conv-commands');
     await transport.compactHistory({
       conversation_ref: 'conv-commands',
       force: true,

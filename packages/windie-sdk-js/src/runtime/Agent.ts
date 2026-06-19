@@ -22,7 +22,7 @@ import type {
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
 import {
-  createAgentBackendTransport,
+  createAgentRuntimeTransport,
   type AgentQueryInput,
   type AgentSessionRuntime,
 } from '../transport/AgentSession.js';
@@ -349,7 +349,7 @@ export class Agent {
       conversationRef,
       revisionId: options.revisionId,
       store: options.store ?? this.defaultConversationStore,
-      transport: createAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
+      transport: createAgentRuntimeTransport(this.session, conversationRef, this.agentDefinition),
       localRuntime: resolvedLocalRuntime,
       sdkClient: this.sdkClient,
       userId: this.userId,

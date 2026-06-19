@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Provides the backend agent session transport for the TypeScript SDK runtime.
+ * Provides the agent session transport for the TypeScript SDK runtime.
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -12,7 +12,7 @@ exports.deriveWsUrl = deriveWsUrl;
 exports.createMessageId = createMessageId;
 exports.buildAgentSessionHandshake = buildAgentSessionHandshake;
 exports.createAgentSession = createAgentSession;
-exports.createAgentBackendTransport = createAgentBackendTransport;
+exports.createAgentRuntimeTransport = createAgentRuntimeTransport;
 exports.mergeQueryAgentDefinition = mergeQueryAgentDefinition;
 const backendEvents_js_1 = require("../events/backendEvents.js");
 const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
@@ -275,7 +275,7 @@ class AgentSession {
     }
 }
 exports.AgentSession = AgentSession;
-function createAgentBackendTransport(session, conversationRef, agentDefinition) {
+function createAgentRuntimeTransport(session, conversationRef, agentDefinition) {
     return {
         connect: async () => session.waitForOpen(),
         handshake: async () => undefined,
@@ -336,6 +336,7 @@ function createAgentBackendTransport(session, conversationRef, agentDefinition) 
         close: async () => session.close(1000, 'conversation-runtime-close'),
     };
 }
+exports.createAgentBackendTransport = createAgentRuntimeTransport;
 function cloneJsonRecord(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return {};
