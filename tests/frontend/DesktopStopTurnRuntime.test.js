@@ -3,6 +3,8 @@
  */
 
 import {
+  isStopTurnTargetFromCurrentTurn,
+  isStopTurnTargetFromPendingTurn,
   resolveStopTurnTarget,
 } from '../../frontend/src/renderer/app/runtime/desktopStopTurnRuntime';
 
@@ -59,5 +61,31 @@ describe('desktopStopTurnRuntime', () => {
       turnRef: null,
       canStop: false,
     });
+  });
+
+  test('classifies stop target sources behind runtime predicates', () => {
+    const currentTurnTarget = resolveStopTurnTarget({
+      currentTurnProjection: {
+        conversationRef: 'conv-sdk',
+        turnRef: 'turn-sdk',
+        phase: 'awaiting',
+      },
+    });
+    const pendingTarget = resolveStopTurnTarget({
+      pendingTurn: {
+        conversationRef: 'conv-pending',
+        turnRef: 'turn-pending',
+      },
+    });
+    const idleTarget = resolveStopTurnTarget({
+      conversationRef: 'conv-idle',
+    });
+
+    expect(isStopTurnTargetFromCurrentTurn(currentTurnTarget)).toBe(true);
+    expect(isStopTurnTargetFromPendingTurn(currentTurnTarget)).toBe(false);
+    expect(isStopTurnTargetFromCurrentTurn(pendingTarget)).toBe(false);
+    expect(isStopTurnTargetFromPendingTurn(pendingTarget)).toBe(true);
+    expect(isStopTurnTargetFromCurrentTurn(idleTarget)).toBe(false);
+    expect(isStopTurnTargetFromPendingTurn(idleTarget)).toBe(false);
   });
 });

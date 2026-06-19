@@ -120,6 +120,39 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Stop Target Source Predicate Boundary
+
+- Finding: `useStopTurnHandler` resolved stop targets through
+  `desktopStopTurnRuntime`, but still branched on raw `sdk-current-turn` and
+  `pending-turn` source strings before current-turn and pending-turn side
+  effects.
+- Change: added stop-target source predicate helpers to
+  `desktopStopTurnRuntime` and routed the hook through them. The runtime facade
+  owns source classification; the hook keeps stop orchestration, playback stop,
+  pending-turn clear, and SDK stop dispatch.
+- Validation: focused desktop stop-turn runtime and renderer chat runtime
+  boundary tests plus stale source-string scans, docs listing, and diff checks.
+- Compatibility: no migration required. Stop target source values, pending-turn
+  clearing, stopped-turn projection, IPC, storage, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
+### 2026-06-19 Renderer Feature Import Boundary Guard
+
+- Finding: renderer feature modules had targeted boundary tests for provider,
+  transport, and backend-wire escape hatches, but the app-runtime boundary guard
+  did not report exact file-token offenders across those categories in one
+  repo-wide feature-source scan.
+- Change: tightened `RendererAppRuntimeBoundary.test.ts` so active feature
+  source files are scanned for direct app-provider internals,
+  infrastructure/IPC symbols, and backend-wire helper imports. Feature code
+  remains routed through app-runtime clients while the test names the precise
+  forbidden token if the boundary regresses.
+- Validation: focused renderer app-runtime boundary test, docs search, related
+  commit search, explicit stale-import scans, and diff checks.
+- Compatibility: no migration required. This is test coverage only; runtime
+  behavior, IPC channels, event payloads, storage, settings, credentials,
+  provider policy, hosted URLs, and local execution are unchanged.
+
 ### 2026-06-19 Renderer Dashboard Conversation Event Action Boundary
 
 - Finding: `useDashboardConversations` subscribed through the conversation

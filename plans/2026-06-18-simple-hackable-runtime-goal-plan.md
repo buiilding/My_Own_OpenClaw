@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer stop target source predicate boundary slice
+  by adding `isStopTurnTargetFromCurrentTurn` and
+  `isStopTurnTargetFromPendingTurn` to `desktopStopTurnRuntime`.
+  `useStopTurnHandler` now consumes those predicates instead of comparing raw
+  `sdk-current-turn` / `pending-turn` source strings, while keeping playback
+  stop, pending-turn clearing, stopped-turn acceptance, and SDK stop dispatch.
+  Validation: focused desktop stop-turn runtime and renderer chat runtime
+  boundary tests plus stale source-string scans, docs listing, and diff checks.
+  No migration required; stop target values, pending-turn clearing, stopped-turn
+  projection, IPC, storage, credentials, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
+
+- 2026-06-19: completed a renderer feature import boundary guard slice by
+  tightening `RendererAppRuntimeBoundary.test.ts` so active feature source files
+  are scanned for direct app-provider internals, renderer infrastructure/IPC
+  symbols, and backend-wire helper imports. The guard now reports exact
+  file-token offenders while keeping app-runtime facades as the owner-correct
+  route for provider state, transport state, and backend-wire normalization.
+  Validation: focused renderer app-runtime boundary test, docs listing, related
+  commit search, explicit stale-import source scans, and diff checks. No
+  migration required; tests only, with runtime behavior, IPC channels, event
+  payloads, storage, settings, credentials, provider policy, hosted URLs, and
+  local execution unchanged.
+
 - 2026-06-19: completed a renderer dashboard conversation event action
   boundary slice by moving SDK `user_message` / `assistant_message`
   classification for recent-list reloads and title-visibility polling into

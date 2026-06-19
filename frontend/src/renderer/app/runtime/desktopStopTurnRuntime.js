@@ -63,6 +63,14 @@ export function buildStoppedCurrentTurnProjection(currentTurnProjection) {
   };
 }
 
+export function isStopTurnTargetFromCurrentTurn(stopTarget) {
+  return stopTarget?.source === 'sdk-current-turn';
+}
+
+export function isStopTurnTargetFromPendingTurn(stopTarget) {
+  return stopTarget?.source === 'pending-turn';
+}
+
 function isStoppableCurrentTurnProjection(currentTurnProjection) {
   if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
     return false;

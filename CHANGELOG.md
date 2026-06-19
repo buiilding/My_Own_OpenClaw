@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: scan renderer feature source files for direct app-provider,
+  infrastructure/IPC, and backend-wire imports so app-runtime boundary
+  regressions are caught repo-wide. No migration required.
+- renderer/runtime: classify stop-turn target sources behind
+  `desktopStopTurnRuntime` predicates so `useStopTurnHandler` no longer
+  branches on raw target source strings. No migration required.
 - renderer/runtime: classify SDK conversation events for dashboard recent-list
   reload and title-poll actions in `desktopDashboardConversationLoadRuntime`
   before `useDashboardConversations` performs the UI side effect. No migration

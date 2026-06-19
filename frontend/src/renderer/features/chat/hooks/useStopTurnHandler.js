@@ -6,7 +6,11 @@ import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopPendingTurnRuntimeClient } from '../../../app/runtime/desktopPendingTurnRuntimeClient';
-import { resolveStopTurnTarget } from '../../../app/runtime/desktopStopTurnRuntime';
+import {
+  isStopTurnTargetFromCurrentTurn,
+  isStopTurnTargetFromPendingTurn,
+  resolveStopTurnTarget,
+} from '../../../app/runtime/desktopStopTurnRuntime';
 
 export function useStopTurnHandler({
   enabled = true,
@@ -38,14 +42,14 @@ export function useStopTurnHandler({
     acceptStoppedTurn({
       conversationRef: stopTarget.conversationRef,
       turnRef: stopTarget.turnRef,
-      currentTurnProjection: stopTarget.source === 'sdk-current-turn'
+      currentTurnProjection: isStopTurnTargetFromCurrentTurn(stopTarget)
         ? currentTurnProjection
         : null,
     });
     if (typeof stopPlayback === 'function') {
       stopPlayback();
     }
-    if (stopTarget.source === 'pending-turn') {
+    if (isStopTurnTargetFromPendingTurn(stopTarget)) {
       try {
         DesktopPendingTurnRuntimeClient.clear({
           conversationRef: stopTarget.conversationRef,

@@ -32,6 +32,26 @@ async function listSourceFiles(dir: string): Promise<string[]> {
   return files;
 }
 
+async function collectSourceNeedleOffenders(
+  root: string,
+  forbiddenNeedles: string[],
+): Promise<string[]> {
+  const files = await listSourceFiles(root);
+  const offenders: string[] = [];
+
+  for (const file of files) {
+    const relativePath = normalizeRelativePath(path.relative(root, file));
+    const source = await fs.readFile(file, 'utf8');
+    for (const needle of forbiddenNeedles) {
+      if (source.includes(needle)) {
+        offenders.push(`${relativePath} -> ${needle}`);
+      }
+    }
+  }
+
+  return offenders;
+}
+
 describe('renderer app runtime boundary', () => {
   test('renderer skin and SDK facade use desktop-runtime UI wording', async () => {
     const skinSource = await fs.readFile(
@@ -868,10 +888,8 @@ describe('renderer app runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer feature modules read app provider state through runtime facades', async () => {
+  test('renderer feature modules stay behind app runtime facades for provider and transport state', async () => {
     const featureRoot = path.join(rendererRoot, 'features');
-    const files = await listSourceFiles(featureRoot);
-    const offenders: string[] = [];
     const runtimeClientSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopRendererConfigRuntimeClient.js'),
       'utf8',
@@ -887,17 +905,23 @@ describe('renderer app runtime boundary', () => {
       'app/providers/ChatProvider',
       'useAppConfigContext',
       'useAppStatusContext',
+      'infrastructure/',
+      'IpcBridge',
+      'INVOKE_CHANNELS',
+      'ON_CHANNELS',
+      'SEND_CHANNELS',
+      'window.ipc',
+      'types/backendEvents',
+      'events/backendEvents',
+      'normalizeBackendEventToConversationEvent',
+      'subscribeRawBackendEvents',
+      'ON_CHANNELS.FROM_BACKEND',
+      'WINDIE_FROM_BACKEND',
+      'from-backend',
     ];
 
-    for (const file of files) {
-      const relativePath = normalizeRelativePath(path.relative(featureRoot, file));
-      const source = await fs.readFile(file, 'utf8');
-      if (forbiddenProviderNeedles.some((needle) => source.includes(needle))) {
-        offenders.push(relativePath);
-      }
-    }
-
-    expect(offenders).toEqual([]);
+    await expect(collectSourceNeedleOffenders(featureRoot, forbiddenProviderNeedles))
+      .resolves.toEqual([]);
     expect(runtimeClientSource).toContain('useDesktopRendererConfigContext');
     expect(runtimeClientSource).toContain('useAppConfigContext');
   });
