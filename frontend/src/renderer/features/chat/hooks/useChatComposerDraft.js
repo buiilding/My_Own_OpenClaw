@@ -5,8 +5,10 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranscription } from './useTranscription';
 import { buildOutgoingMessage } from '../../../app/runtime/desktopMessageInputRuntime';
-import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
-import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
+import {
+  parseClipboardImageItems,
+  parseSelectedComposerFiles,
+} from '../../../app/runtime/desktopComposerAttachmentRuntime';
 
 export function useChatComposerDraft({
   isSubmitBlocked = false,

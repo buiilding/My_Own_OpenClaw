@@ -456,8 +456,8 @@ describe('renderer chat runtime boundary', () => {
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
     );
-    const dataUrlImageSource = await fs.readFile(
-      path.join(chatRoot, 'utils/dataUrlImageUtils.js'),
+    const composerAttachmentSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js'),
       'utf8',
     );
     const chatStreamEventSource = await fs.readFile(
@@ -480,7 +480,7 @@ describe('renderer chat runtime boundary', () => {
       screenshotSource,
       resolvedScreenshotSource,
       replayActionsSource,
-      dataUrlImageSource,
+      composerAttachmentSource,
       chatStreamEventSource,
     ]) {
       expect(source).not.toContain('infrastructure/services/screenshotMessageState');
@@ -491,7 +491,7 @@ describe('renderer chat runtime boundary', () => {
     expect(resolvedScreenshotSource).toContain('desktopMessageScreenshotRuntime');
     expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(replayActionsSource).toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
-    expect(dataUrlImageSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
+    expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
     expect(chatStreamEventSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
     expect(artifactClientSource).toContain('DesktopRuntimeEndpointClient.buildArtifactUrl');
     expect(artifactClientSource).toContain('resolveScreenshotAttachmentState');
@@ -1438,6 +1438,34 @@ describe('renderer chat runtime boundary', () => {
     expect(messageInputRuntimeSource).not.toContain('features/chat');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageInput.js'),
+    )).rejects.toThrow();
+  });
+
+  test('chat composer attachment parsing stays behind app runtime facade', async () => {
+    const composerDraftSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatComposerDraft.js'),
+      'utf8',
+    );
+    const composerAttachmentSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js'),
+      'utf8',
+    );
+
+    expect(composerDraftSource).toContain('desktopComposerAttachmentRuntime');
+    expect(composerDraftSource).not.toContain('clipboardImageUtils');
+    expect(composerDraftSource).not.toContain('fileAttachmentUtils');
+    expect(composerAttachmentSource).toContain('parseClipboardImageItems');
+    expect(composerAttachmentSource).toContain('parseSelectedComposerFiles');
+    expect(composerAttachmentSource).toContain('parseBase64ImageDataUrl');
+    expect(composerAttachmentSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/dataUrlImageUtils.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/clipboardImageUtils.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/fileAttachmentUtils.js'),
     )).rejects.toThrow();
   });
 

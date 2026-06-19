@@ -21,7 +21,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/app/runtime/desktopMessageSendUiRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatPillSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
-- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
+- `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopStopTurnRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnSurfaceRuntime.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
@@ -160,7 +160,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - response/typing overlays in main process use the reported chat visual anchor height so their vertical position follows the visible pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
 - response overlay content now stays inside one fixed response frame (`236px`) instead of stepping the overlay height while tokens stream.
-- clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
+- clipboard image parsing is shared through `desktopComposerAttachmentRuntime.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: main still owns the native window bounds, but multiline typing and preview growth now move the whole chat/response stack upward through one anchor-height contract instead of a separate resize IPC.
 
 ## Drag Movement Runtime

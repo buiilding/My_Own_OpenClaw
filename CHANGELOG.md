@@ -80,6 +80,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/transcription-region: move voice transcription-region edit
   reconciliation helpers into the renderer app-runtime facade consumed by the
   chat composer transcription hook. No migration required.
+- renderer/composer-attachments: move data URL, clipboard image, and selected
+  file attachment parsing into the renderer app-runtime facade consumed by the
+  chat composer draft hook. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

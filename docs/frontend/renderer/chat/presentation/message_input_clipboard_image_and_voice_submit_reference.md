@@ -13,16 +13,13 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useMessageInputUiBindings.js`
 - `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
-- `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
+- `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 - `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
 - `tests/frontend/MessageInput.test.jsx`
 - `tests/frontend/DesktopMessageInputRuntime.test.js`
-- `tests/frontend/ClipboardImageUtils.test.js`
-- `tests/frontend/FileAttachmentUtils.test.js`
+- `tests/frontend/DesktopComposerAttachmentRuntime.test.js`
 
 ## Input State Surface
 

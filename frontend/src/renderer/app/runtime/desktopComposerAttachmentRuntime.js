@@ -1,11 +1,8 @@
 /**
- * Provides the file attachment utils module for the renderer UI.
+ * Provides renderer composer attachment parsing helpers.
  */
 
-import {
-  parseBase64ImageDataUrl,
-  readFileAsDataUrl,
-} from './dataUrlImageUtils';
+import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 
 const IMAGE_FILE_EXTENSIONS = new Set([
   '.png',
@@ -50,6 +47,63 @@ function isImageFile(file) {
   return IMAGE_FILE_EXTENSIONS.has(extension);
 }
 
+export function readFileAsDataUrl(
+  file,
+  {
+    loadErrorMessage = 'Failed to load image data.',
+    readErrorMessage = 'Failed to read image file.',
+  } = {},
+) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error(loadErrorMessage));
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error(readErrorMessage));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+export function parseBase64ImageDataUrl(dataUrl, fallbackContentType = null) {
+  const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
+  if (!match) {
+    return null;
+  }
+  const contentType = DesktopArtifactRuntimeClient.normalizeArtifactImageContentType(
+    match[1] || fallbackContentType,
+  );
+  return {
+    base64: match[2],
+    contentType,
+    extension: DesktopArtifactRuntimeClient.resolveArtifactImageExtension(contentType),
+    previewUrl: dataUrl,
+  };
+}
+
+function parseDataUrlImage(
+  dataUrl,
+  fallbackContentType = null,
+) {
+  const parsedImage = parseBase64ImageDataUrl(dataUrl, fallbackContentType);
+  if (!parsedImage) {
+    return null;
+  }
+
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    base64: parsedImage.base64,
+    contentType: parsedImage.contentType,
+    filename: `clipboard-image.${parsedImage.extension}`,
+    previewUrl: parsedImage.previewUrl,
+  };
+}
+
 function parseDataUrlAttachmentImage(dataUrl, fallbackContentType = null, filename = null) {
   const parsedImage = parseBase64ImageDataUrl(dataUrl, fallbackContentType);
   if (!parsedImage) {
@@ -85,6 +139,27 @@ function resolveFilePath(file) {
     }
   }
   return null;
+}
+
+export async function parseClipboardImageItems(clipboardItems = []) {
+  const imageItems = Array.from(clipboardItems).filter((item) => item?.type?.startsWith('image/'));
+  if (imageItems.length === 0) {
+    return [];
+  }
+  const parsedImages = (await Promise.all(
+    imageItems.map(async (imageItem) => {
+      const imageFile = imageItem.getAsFile();
+      if (!imageFile) {
+        return null;
+      }
+      const dataUrl = await readFileAsDataUrl(imageFile, {
+        loadErrorMessage: 'Failed to load pasted image data.',
+        readErrorMessage: 'Failed to read pasted image.',
+      });
+      return parseDataUrlImage(dataUrl, imageItem.type || imageFile.type || null);
+    }),
+  )).filter(Boolean);
+  return parsedImages;
 }
 
 export async function parseSelectedComposerFiles(fileList = []) {

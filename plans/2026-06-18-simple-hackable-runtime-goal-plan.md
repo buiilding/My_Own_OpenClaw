@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer composer attachment runtime-boundary slice
+  by consolidating data URL parsing, clipboard image normalization, and
+  selected-file attachment bucketing from chat feature utilities into
+  `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`.
+  `useChatComposerDraft`, focused tests, docs, folder structure, and renderer
+  chat boundary guards now route through the app-runtime owner, and the old
+  chat utility paths are deleted. Validation: focused desktop composer
+  attachment runtime, message input, renderer chat boundary, docs listing,
+  stale old-path scan, frontend lint, and diff checks. No migration required;
+  FileReader behavior, base64 data URL parsing, clipboard image payload shape,
+  selected image/readable-file bucketing, attachment IDs, preview URLs,
+  content-type normalization, IPC payloads, storage, credentials, permissions,
+  hosted routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer transcription-region runtime-boundary slice
   by moving voice transcription append/replace and edit/paste offset
   reconciliation helpers from

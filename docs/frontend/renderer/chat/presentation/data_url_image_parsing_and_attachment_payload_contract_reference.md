@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for renderer chat attachment parsing primitives: shared FileReader data-URL helpers, base64/content-type normalization, clipboard/file attachment shaping, and outgoing payload contract coupling."
 read_when:
-  - When changing chat attachment parsing helpers under `frontend/src/renderer/features/chat/utils/*`.
+  - When changing chat attachment parsing helpers under `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`.
   - When debugging missing image previews, wrong attachment filenames/content types, or attachment-only send payload regressions.
 title: "Data-URL Image Parsing and Attachment Payload Contract Reference"
 ---
@@ -10,19 +10,16 @@ title: "Data-URL Image Parsing and Attachment Payload Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
+- `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
-- `tests/frontend/ClipboardImageUtils.test.js`
-- `tests/frontend/FileAttachmentUtils.test.js`
+- `tests/frontend/DesktopComposerAttachmentRuntime.test.js`
 - `tests/frontend/MessageInput.test.jsx`
 
 ## Shared Data-URL Primitive Contract
 
-`dataUrlImageUtils.js` provides shared parsing primitives used by clipboard and file-attachment flows.
+`desktopComposerAttachmentRuntime.js` provides shared parsing primitives used by clipboard and file-attachment flows.
 
 ### `readFileAsDataUrl(file, options)`
 
@@ -40,8 +37,8 @@ Behavior:
 
 - requires `data:<type>;base64,<payload>` format
 - returns `null` when input does not match the expected data-URL base64 pattern
-- normalizes content type through `ArtifactImageUtils.normalizeArtifactImageContentType`
-- derives extension through `ArtifactImageUtils.resolveArtifactImageExtension`
+- normalizes content type through `DesktopArtifactRuntimeClient.normalizeArtifactImageContentType`
+- derives extension through `DesktopArtifactRuntimeClient.resolveArtifactImageExtension`
 
 Returned shape:
 
@@ -131,13 +128,11 @@ Attachment-only fallback text:
 
 ## Test-Backed Invariants
 
-`tests/frontend/ClipboardImageUtils.test.js`:
+`tests/frontend/DesktopComposerAttachmentRuntime.test.js`:
 
+- data URL parsing and FileReader error behavior stay stable
 - non-image clipboard items are ignored
 - parsed image payload includes base64/contentType/filename/previewUrl
-
-`tests/frontend/FileAttachmentUtils.test.js`:
-
 - separates image attachments from readable files
 - ignores non-image files without usable file path
 
@@ -151,7 +146,7 @@ Attachment-only fallback text:
 ## Drift Hotspots
 
 1. Changing data-URL regex contract can silently break both clipboard and file-picker image ingestion.
-2. Diverging `contentType` normalization from `ArtifactImageUtils` causes extension/content-type mismatch in artifact upload paths.
+2. Diverging `contentType` normalization from `DesktopArtifactRuntimeClient` causes extension/content-type mismatch in artifact upload paths.
 3. Removing readable-file path resolution fallback (`path|filepath|webkitRelativePath`) can drop file attachments without user-visible errors.
 4. Changing attachment-only fallback text without sender-doc alignment can break downstream prompt expectations/tests.
 

@@ -35,8 +35,8 @@ flowchart LR
 
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| Pasted image is not previewed | Composer paste parsing | `MessageInput.jsx`, `clipboardImageUtils.js`, `dataUrlImageUtils.js` | `tests/frontend/MessageInput.test.jsx`, `ClipboardImageUtils.test.js` |
-| Selected image file is treated like readable text | File attachment bucketing | `fileAttachmentUtils.js`, `desktopAttachmentPresentationRuntime.js`, `MessageInput.jsx` | `FileAttachmentUtils.test.js`, `MessageInput.test.jsx`, `AttachmentPresentationRuntime.test.js` |
+| Pasted image is not previewed | Composer paste parsing | `MessageInput.jsx`, `desktopComposerAttachmentRuntime.js` | `tests/frontend/MessageInput.test.jsx`, `DesktopComposerAttachmentRuntime.test.js` |
+| Selected image file is treated like readable text | File attachment bucketing | `desktopComposerAttachmentRuntime.js`, `desktopAttachmentPresentationRuntime.js`, `MessageInput.jsx` | `DesktopComposerAttachmentRuntime.test.js`, `MessageInput.test.jsx`, `AttachmentPresentationRuntime.test.js` |
 | Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `desktopMessageInputRuntime.js`, `MessageInput.jsx` | `DesktopMessageInputRuntime.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |

@@ -2,7 +2,7 @@
 summary: "Renderer chat presentation docs sub-hub for message input/list/thinking rendering contracts and response-overlay presentation helpers."
 read_when:
   - When changing `MessageInput`, `MessageList`, `ThinkingDisplay`, or response-overlay chat presentation components.
-  - When modifying chat presentation utility helpers under `frontend/src/renderer/features/chat/utils/*`.
+  - When modifying chat presentation utility helpers under `frontend/src/renderer/app/runtime/*`.
 title: "Renderer Chat Presentation Docs Hub"
 ---
 
@@ -47,9 +47,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/app/runtime/desktopMessageInputRuntime.js`
-- `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
+- `frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
@@ -58,8 +56,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/MessageInput.test.jsx`
-- `tests/frontend/ClipboardImageUtils.test.js`
-- `tests/frontend/FileAttachmentUtils.test.js`
+- `tests/frontend/DesktopComposerAttachmentRuntime.test.js`
 - `tests/frontend/DesktopMessageInputRuntime.test.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
