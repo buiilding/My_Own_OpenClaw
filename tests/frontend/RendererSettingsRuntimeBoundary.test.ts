@@ -62,6 +62,10 @@ describe('renderer settings runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts'),
       'utf8',
     );
+    const appStatusProviderSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/providers/AppStatusProvider.jsx'),
+      'utf8',
+    );
     const sessionClientSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts'),
       'utf8',
@@ -72,9 +76,15 @@ describe('renderer settings runtime boundary', () => {
     );
 
     expect(offenders).toEqual([]);
+    expect(providerFiles).toContain('app/providers/AppStatusProvider.jsx');
+    expect(appStatusProviderSource).toContain('isSettingsUpdateError');
+    expect(appStatusProviderSource).not.toContain('Failed to update settings');
+    expect(appStatusProviderSource).not.toContain('payload?.message');
     expect(appConfigClientSource).toContain('INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG');
     expect(appConfigClientSource).toContain('INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG');
     expect(appConfigClientSource).toContain('ON_CHANNELS.BACKEND_SETTINGS_EVENT');
+    expect(appConfigClientSource).toContain('normalizeDesktopSettingsEvent');
+    expect(appConfigClientSource).toContain('isSettingsUpdateError');
     expect(sessionClientSource).toContain('INVOKE_CHANNELS.GET_CLIENT_USER_ID');
     expect(sessionClientSource).toContain('ON_CHANNELS.IPC_STATUS');
     expect(voiceClientSource).toContain('ON_CHANNELS.WAKEWORD_TOGGLE');

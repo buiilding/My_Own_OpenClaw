@@ -44,7 +44,7 @@ export function AppStatusProvider({ children }) {
         scheduleIdleReset();
         break;
       case 'error':
-        if (data.payload?.message?.includes('Failed to update settings')) {
+        if (data.isSettingsUpdateError) {
           clearTimer(saveTimeoutId);
           setSaveStatus('error');
           scheduleIdleReset();

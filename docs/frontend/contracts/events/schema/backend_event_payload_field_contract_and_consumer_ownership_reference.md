@@ -140,7 +140,7 @@ Used by:
 Used by:
 
 - chat stream error row synthesis
-- status provider save-error detection (`Failed to update settings` substring)
+- app-config runtime save-error classification for status providers
 
 ## Non-Typed Backend Event Consumers
 

@@ -51,7 +51,7 @@ Core behavior:
 
 ## Event Payload Contracts (`desktopChatStreamEventPayloadRuntime.ts`)
 
-- `shouldIgnoreStreamError` suppresses known settings-update transport noise (`"Failed to update settings"`) from user-visible assistant error rows.
+- `shouldIgnoreStreamError` suppresses known settings-update transport noise through `desktopSettingsUpdateErrorRuntime` from user-visible assistant error rows.
 - `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildRuntimeArtifactUrl(ref)` when URL missing.
 - Tool-call and tool-output correlation id normalization is owned by the SDK
   helper surface imported through `agentSdkClient`, not by

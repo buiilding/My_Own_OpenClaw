@@ -9,8 +9,8 @@ import type {
   ConversationEvent,
   JsonRecord,
 } from './desktopConversationRuntimeContracts';
+import { isSettingsUpdateErrorPayload } from './desktopSettingsUpdateErrorRuntime';
 
-const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
   'failed to parse streamed tool-call arguments',
   'raw arguments preview:',
@@ -237,8 +237,7 @@ export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined
     normalizedMessage.includes(marker) || normalizedContent.includes(marker)
   ));
   return (
-    (typeof message === 'string' && message.includes(SETTINGS_UPDATE_ERROR_TEXT))
-    || (typeof content === 'string' && content.includes(SETTINGS_UPDATE_ERROR_TEXT))
+    isSettingsUpdateErrorPayload(payload)
     || isRecoverableToolParseError
   );
 }

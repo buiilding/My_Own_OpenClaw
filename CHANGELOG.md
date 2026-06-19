@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move settings-update error event classification behind a
+  shared app-runtime helper and the desktop app config runtime client so
+  `AppStatusProvider` consumes normalized settings status events. No migration
+  required.
 - renderer/runtime: normalize workspace access update payloads in the desktop
   workspace runtime client so chat and workspace settings consume normalized
   workspace selections. No migration required.

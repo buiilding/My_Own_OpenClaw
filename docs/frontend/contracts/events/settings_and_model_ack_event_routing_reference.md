@@ -13,6 +13,8 @@ title: "Settings and Model ACK Event Routing Reference"
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
@@ -57,11 +59,13 @@ Important:
 
 ## Settings Save Status Flow (`settings-updated` and error)
 
-`AppStatusProvider` listens on `backend-settings-event` and updates
-`saveStatus`:
+`AppStatusProvider` listens through
+`DesktopAppConfigRuntimeClient.onSettingsEvent(...)`, which normalizes the
+host event and classifies settings-update failures before provider code sees
+them. The provider updates `saveStatus` from the normalized event:
 
 - `settings-updated` -> `success` -> auto-reset to `idle` after 3s
-- `error` containing text `Failed to update settings` -> `error` -> auto-reset to `idle` after 3s
+- `error` with `isSettingsUpdateError=true` -> `error` -> auto-reset to `idle` after 3s
 
 `setSaving()` behavior:
 
@@ -73,15 +77,18 @@ Important:
 `useChatStream` suppresses assistant error rows for settings failures via:
 
 - `shouldIgnoreStreamError(...)`
-- message/content includes `Failed to update settings`
+- `desktopSettingsUpdateErrorRuntime` matching the shared backend failure text
 
 This prevents settings-update failures from appearing as chat conversation errors while still allowing `AppStatusProvider` to reflect failure state.
 
 ## Drift Hotspot: Error Text Coupling
 
-`AppStatusProvider` and `shouldIgnoreStreamError(...)` both depend on substring `Failed to update settings`.
+`DesktopAppConfigRuntimeClient` and `shouldIgnoreStreamError(...)` both route
+through `desktopSettingsUpdateErrorRuntime` for the settings-update failure
+substring.
 
-If backend error text changes, both save-status failure detection and chat-error suppression can drift.
+If backend error text changes, update that shared runtime classifier plus the
+save-status and chat-error suppression coverage together.
 
 ## Initial Sync Context
 
@@ -107,7 +114,7 @@ If save status remains `saving`:
 1. verify backend emits `settings-updated` or error event
 2. verify `ipc_backend_event_channels.cjs` routes the event to
    `backend-settings-event`
-3. verify error text still matches expected substring when failure path is intended
+3. verify the runtime classifier still recognizes the backend failure text when the failure path is intended
 4. check 10s fallback timeout behavior in `setSaving()`
 
 ## Related Pages

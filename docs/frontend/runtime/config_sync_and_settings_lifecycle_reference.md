@@ -13,6 +13,8 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopAppConfigRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
@@ -76,7 +78,7 @@ Tracks transient save state machine:
 
 - `saving` set when UI triggers config update callback
 - transitions to `success` when backend emits `settings-updated`
-- transitions to `error` on settings-runtime update failure message
+- transitions to `error` on runtime-normalized settings-update failure events
 - auto-resets to `idle` after timeout window
 
 ## Renderer Persistence Layers
@@ -179,7 +181,7 @@ Renderer uses this to:
 `AppStatusProvider` separately listens on the settings event channel for:
 
 - `settings-updated`
-- settings-related `error`
+- settings-related `error` normalized by `DesktopAppConfigRuntimeClient`
 
 This split keeps model-list behavior independent from save-status UX behavior.
 

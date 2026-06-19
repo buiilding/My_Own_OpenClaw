@@ -17,6 +17,7 @@ title: "App Provider Coordinator and Save-Status Runtime Reference"
 - `frontend/src/renderer/app/runtime/desktopClientSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopSettingsUpdateErrorRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
@@ -133,7 +134,8 @@ Shared commit path:
 `AppConfigProvider` and `AppStatusProvider` own renderer state machines only.
 Desktop host transport is routed through app runtime clients:
 
-- `DesktopAppConfigRuntimeClient` owns renderer config disk persistence and settings-event fan-out.
+- `DesktopAppConfigRuntimeClient` owns renderer config disk persistence and normalized settings-event fan-out, including settings-update failure classification for save-status consumers.
+- `desktopSettingsUpdateErrorRuntime.ts` owns the shared settings-update failure text classifier used by settings-event normalization and chat stream error suppression.
 - `DesktopClientSessionRuntimeClient` owns main-session snapshots and connection status fan-out.
 - `DesktopConversationSessionRuntimeClient` owns shared session-helper rule routing for runtime clients.
 - `DesktopSettingsEventRuntimeClient` owns model-list settings-event payload handling for providers.
@@ -156,7 +158,7 @@ Transitions:
 
 - `setSaving()` -> `saving`, with 10s timeout fallback to `error`
 - backend `settings-updated` -> `success`, then auto-reset to `idle` after 3s
-- backend `error` containing `"Failed to update settings"` -> `error`, then auto-reset after 3s
+- normalized settings-update error event -> `error`, then auto-reset after 3s
 
 Cleanup:
 
@@ -183,7 +185,7 @@ Net effect:
 1. changing filter/persistence helpers and bypassing the renderer-managed config boundary
 2. registering duplicate model-list fetches across windows
 3. removing shallow-change guard and causing write storms
-4. changing save-status error string matching without aligned backend message text
+4. changing settings-update failure classification without updating the shared runtime classifier and backend message contract
 
 ## Related Pages
 
@@ -198,7 +200,7 @@ Net effect:
 If settings button shows perpetual saving:
 
 1. verify `registerSaveStatusCallback` is called by coordinator
-2. verify the settings runtime emits `settings-updated` or matching failure error message
+2. verify the settings runtime emits `settings-updated` or a failure event classified by `DesktopAppConfigRuntimeClient`
 3. inspect timeout path in `AppStatusProvider` and timer cleanup
 
 If updates appear in UI but not backend:

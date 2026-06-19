@@ -110,7 +110,7 @@ Effects:
 Consumes `backend-settings-event` payloads:
 
 - `settings-updated`
-- `error` containing settings-update failure text
+- normalized settings-update failure errors from `DesktopAppConfigRuntimeClient`
 
 Effects:
 
