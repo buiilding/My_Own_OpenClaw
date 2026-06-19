@@ -1,12 +1,12 @@
 ---
-summary: "Local Runtime Sidecar core docs sub-hub for JSON-RPC protocol/error semantics, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle."
+summary: "Local-runtime core docs sub-hub for JSON-RPC protocol/error semantics, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle backed by Python sidecar implementations."
 read_when:
   - When changing `frontend/src/main/python/core/*` modules.
   - When debugging sidecar protocol parse/dispatch failures, stdout framing, or remote semantic client connectivity.
-title: "Local Runtime Sidecar Core Docs Hub"
+title: "Local-Runtime Core Docs Hub"
 ---
 
-# Local Runtime Sidecar Core Docs Hub
+# Local-Runtime Core Docs Hub
 
 ## Deep Pages
 
@@ -17,7 +17,7 @@ title: "Local Runtime Sidecar Core Docs Hub"
 
 ## Related Pages
 
-- [Local Runtime Sidecar Docs Hub](../README.md)
+- [Local Runtime Python Implementation Docs Hub](../README.md)
 - [Local Runtime JSON-RPC Reference](../local_backend_jsonrpc_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
 - [Frontend Main Local-Runtime Process Lifecycle Reference](../../main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)

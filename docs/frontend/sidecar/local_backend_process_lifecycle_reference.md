@@ -3,10 +3,10 @@ summary: "SDK-owned local-runtime daemon lifecycle reference for desktop launch 
 read_when:
   - When changing desktop sidecar daemon startup, readiness status, or helper RPC routing.
   - When debugging sidecar startup failures, local-runtime-status drift, or Electron helper calls that cannot reach the sidecar daemon.
-title: "SDK-Owned Sidecar Lifecycle Reference"
+title: "SDK-Owned Local-Runtime Lifecycle Reference"
 ---
 
-# SDK-Owned Sidecar Lifecycle Reference
+# SDK-Owned Local-Runtime Lifecycle Reference
 
 ## Canonical Modules
 

@@ -146,6 +146,6 @@ Renderer wakeword hook adds cooldown/threshold gate on top of service output.
 
 ## Related Pages
 
-- [Local Runtime Sidecar Services Docs Hub](README.md)
-- [Sidecar Service Protocol Docs Hub](protocols/README.md)
+- [Local-Runtime Services Docs Hub](README.md)
+- [Local-Runtime Service Protocol Docs Hub](protocols/README.md)
 - [Wakeword Bridge and Audio Framing Reference](../wakeword_bridge_and_audio_framing_reference.md)

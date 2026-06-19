@@ -212,4 +212,4 @@ When a method changes, update the closest docs in the same commit:
 - [IPC Change Workflow](../ipc_change_workflow.md)
 - [Local-Runtime RPC Handler Registry and Payload-Mapper Reference](../main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
-- [SDK-Owned Sidecar Lifecycle Reference](local_backend_process_lifecycle_reference.md)
+- [SDK-Owned Local-Runtime Lifecycle Reference](local_backend_process_lifecycle_reference.md)

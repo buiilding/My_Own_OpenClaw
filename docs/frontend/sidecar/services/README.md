@@ -1,23 +1,23 @@
 ---
-summary: "Local Runtime Sidecar services docs sub-hub for standalone Python service entrypoints such as wakeword subprocess model/bootstrap binary framing."
+summary: "Local-runtime services docs sub-hub for standalone Python service entrypoints such as wakeword subprocess model/bootstrap binary framing."
 read_when:
   - When changing `frontend/src/main/python/wakeword_service.py`.
   - When debugging standalone sidecar service startup/shutdown behavior or protocol-frame mismatches.
-title: "Local Runtime Sidecar Services Docs Hub"
+title: "Local-Runtime Services Docs Hub"
 ---
 
-# Local Runtime Sidecar Services Docs Hub
+# Local-Runtime Services Docs Hub
 
 ## Deep Pages
 
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](wakeword_service_model_bootstrap_and_binary_framing_reference.md)
-- [Sidecar Service Protocol Docs Hub](protocols/README.md)
+- [Local-Runtime Service Protocol Docs Hub](protocols/README.md)
 
 ## Related Pages
 
-- [Local Runtime Sidecar Docs Hub](../README.md)
-- [Local Runtime Sidecar Core Docs Hub](../core/README.md)
-- [SDK-Owned Sidecar Lifecycle Reference](../local_backend_process_lifecycle_reference.md)
+- [Local Runtime Python Implementation Docs Hub](../README.md)
+- [Local-Runtime Core Docs Hub](../core/README.md)
+- [SDK-Owned Local-Runtime Lifecycle Reference](../local_backend_process_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](../wakeword_bridge_and_audio_framing_reference.md)
 
 ## Code Scope

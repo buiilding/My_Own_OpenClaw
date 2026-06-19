@@ -160,7 +160,7 @@ Validate:
 Read:
 
 - [Browser Action Surface](browser_action_surface.md)
-- [Local Runtime Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
+- [Local-Runtime Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 
 Edit:
 
@@ -292,7 +292,7 @@ Before committing a browser change:
 - [Browser Action Surface](browser_action_surface.md)
 - [Browser Troubleshooting](browser_troubleshooting.md)
 - [Browser Tool](../tools/browser.md)
-- [Local Runtime Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
+- [Local-Runtime Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 - [ADR 004: Browser Extension Auto-Attach Boundary](../adr/004-browser-extension-auto-attach.md)
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md)
 - [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md)

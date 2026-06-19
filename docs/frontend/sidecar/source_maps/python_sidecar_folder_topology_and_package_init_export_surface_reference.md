@@ -61,6 +61,6 @@ When moving sidecar modules:
 
 ## Related Docs
 
-- [Local Runtime Sidecar Source Maps Docs Hub](README.md)
-- [Local Runtime Sidecar Docs Hub](../README.md)
+- [Local-Runtime Source Maps Docs Hub](README.md)
+- [Local Runtime Python Implementation Docs Hub](../README.md)
 - [Local-Runtime Browser Docs Hub](../browser/README.md)

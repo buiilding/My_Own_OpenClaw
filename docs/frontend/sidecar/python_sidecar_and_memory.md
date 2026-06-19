@@ -155,8 +155,8 @@ Main process bridge responsibilities:
 
 ## Related Pages
 
-- [Sidecar Core Docs Hub](core/README.md)
-- [Sidecar Services Docs Hub](services/README.md)
+- [Local-Runtime Core Docs Hub](core/README.md)
+- [Local-Runtime Services Docs Hub](services/README.md)
 - [Backend Config Env-Precedence Reference](core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
 - [Remote Semantic Client Reference](core/remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
 - [JSON-RPC Protocol and Stdout Framing Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)

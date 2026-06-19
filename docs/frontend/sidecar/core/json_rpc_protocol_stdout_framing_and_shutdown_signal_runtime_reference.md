@@ -126,6 +126,6 @@ Contract:
 
 ## Related Pages
 
-- [Local Runtime Sidecar Core Docs Hub](README.md)
+- [Local-Runtime Core Docs Hub](README.md)
 - [Backend Config Env-Precedence Reference](backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
 - [Local Runtime JSON-RPC Reference](../local_backend_jsonrpc_reference.md)

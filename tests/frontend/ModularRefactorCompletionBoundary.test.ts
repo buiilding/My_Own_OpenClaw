@@ -786,8 +786,13 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar/README.md'),
       read('docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md'),
+      read('docs/frontend/sidecar/local_backend_process_lifecycle_reference.md'),
       read('docs/frontend/sidecar/python_sidecar_and_memory.md'),
       read('docs/frontend/sidecar/sidecar_runtime_change_workflow.md'),
+      read('docs/frontend/sidecar/core/README.md'),
+      read('docs/frontend/sidecar/services/README.md'),
+      read('docs/frontend/sidecar/services/protocols/README.md'),
+      read('docs/frontend/sidecar/source_maps/README.md'),
       read('docs/frontend/sidecar/system_state/README.md'),
       read('docs/frontend/sidecar/system_state/platform/README.md'),
       read('docs/frontend/sidecar/browser/README.md'),
@@ -822,6 +827,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local-Runtime Browser Chrome Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Docs Hub');
     expect(docText).toContain('Local-Runtime System-State Platform Docs Hub');
+    expect(docText).toContain('Local-Runtime Core Docs Hub');
+    expect(docText).toContain('Local-Runtime Services Docs Hub');
+    expect(docText).toContain('Local-Runtime Source Maps Docs Hub');
+    expect(docText).toContain('Local-Runtime Service Protocol Docs Hub');
+    expect(docText).toContain('SDK-Owned Local-Runtime Lifecycle Reference');
     expect(docText).not.toContain('[Sidecar Tool Change Workflow]');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('Sidecar Tool Change Workflow');
@@ -855,6 +865,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar System-State Docs Hub');
     expect(docText).not.toContain('Sidecar System-State Platform Docs Hub');
     expect(docText).not.toContain('Sidecar System-State Collection and Platform Adapter Reference');
+    expect(docText).not.toContain('Sidecar Core Docs Hub');
+    expect(docText).not.toContain('Sidecar Services Docs Hub');
+    expect(docText).not.toContain('Sidecar Source Maps Docs Hub');
+    expect(docText).not.toContain('Sidecar Service Protocol Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Core Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Services Docs Hub');
+    expect(docText).not.toContain('Local Runtime Sidecar Source Maps Docs Hub');
+    expect(docText).not.toContain('SDK-Owned Sidecar Lifecycle Reference');
+    expect(docText).not.toContain('Local Runtime Sidecar Browser Stack');
     expect(docText).not.toContain('title: "Sidecar Tool Change Workflow"');
     expect(docText).not.toContain('title: "Sidecar Runtime Change Workflow"');
   });

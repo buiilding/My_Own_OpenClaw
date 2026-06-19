@@ -123,6 +123,6 @@ Validated behaviors:
 
 ## Related Pages
 
-- [Local Runtime Sidecar Core Docs Hub](README.md)
+- [Local-Runtime Core Docs Hub](README.md)
 - [Remote Semantic Client Summarize Payload, Timeout, and Error-Surface Contract Reference](remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)

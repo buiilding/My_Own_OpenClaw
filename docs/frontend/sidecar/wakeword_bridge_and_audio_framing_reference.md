@@ -167,7 +167,7 @@ If audio chunks appear ignored:
 
 ## Related Pages
 
-- [Sidecar Services Docs Hub](services/README.md)
+- [Local-Runtime Services Docs Hub](services/README.md)
 - [Wakeword Bridge Runtime Helper Reference](../main/wakeword_bridge_runtime_helper_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 - [Frontend Renderer Wakeword Detection IPC Capture and Cooldown Reference](../renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md)

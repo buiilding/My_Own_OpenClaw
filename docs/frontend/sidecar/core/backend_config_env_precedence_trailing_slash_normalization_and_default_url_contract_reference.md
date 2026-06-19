@@ -84,5 +84,5 @@ Each consumer applies additional endpoint-specific path suffixes on top of this 
 
 ## Related Pages
 
-- [Local Runtime Sidecar Core Docs Hub](README.md)
+- [Local-Runtime Core Docs Hub](README.md)
 - [Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference](remote_api_client_base_session_lifecycle_timeout_and_error_wrapper_contract_reference.md)
