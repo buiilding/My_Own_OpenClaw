@@ -96,6 +96,30 @@ export function isCompactionFailedConversationStreamEvent(
   return event?.type === 'compaction_failed';
 }
 
+export function isSystemPromptConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'system_prompt';
+}
+
+export function isUserMessageMetadataConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'user_message_metadata';
+}
+
+export function isAssistantMessageConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'assistant_message';
+}
+
+export function isToolSchemasMetadataConversationStreamEvent(
+  event: ConversationTypeEvent | null | undefined,
+): boolean {
+  return event?.type === 'tool_schemas_metadata';
+}
+
 function shouldIgnoreForStaleTurn(
   event: TurnRefEvent,
   conversationRef?: string | null,

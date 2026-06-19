@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Metadata Stream Event Classification Boundary
+
+- Finding: `useChatStream` routed supported, tool display-only, and compaction
+  stream classifications through `desktopChatStreamEventRuntime`, but still
+  compared raw SDK metadata/transparency event strings before choosing the
+  metadata handlers.
+- Change: added system prompt, user message metadata, assistant message, and
+  tool schema metadata predicates to `desktopChatStreamEventRuntime` and routed
+  the hook through them. The runtime facade owns metadata event grouping while
+  renderer handlers keep payload projection into existing rows.
+- Validation: focused desktop chat stream event runtime and renderer chat
+  runtime boundary tests plus docs listing, related commit search, stale inline
+  metadata event-type scans, and diff checks.
+- Compatibility: no migration required. SDK conversation event names and
+  payloads, metadata/transparency row projection, stream dispatch behavior,
+  IPC, storage, settings, credentials, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Compaction Stream Event Classification Boundary
 
 - Finding: `useChatStream` used app-runtime helpers for supported stream

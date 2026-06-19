@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: classify SDK metadata/transparency stream events in
+  `desktopChatStreamEventRuntime` so `useChatStream` no longer branches on raw
+  metadata event-type strings. No migration required.
 - renderer/runtime: classify SDK compaction stream event phases in
   `desktopChatStreamEventRuntime` so `useChatStream` no longer branches on raw
   compaction event-type strings. No migration required.

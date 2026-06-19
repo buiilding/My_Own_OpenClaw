@@ -69,6 +69,12 @@ falling through to completion handling.
 used by the chat stream dispatcher. The compaction handlers still validate the
 exact event shape before mutating thinking/debug state or replay snapshots.
 
+Metadata and transparency dispatch classification also belongs to
+`desktopChatStreamEventRuntime`: system prompt, user message metadata, assistant
+message metadata, and tool schema metadata predicates route SDK events to the
+renderer metadata handlers. The handlers own payload projection into existing
+rows; the feature hook only wires predicate to handler.
+
 ## Event Ingress and Conversation Routing
 
 `desktopChatStreamIngressRuntime` listener flow:

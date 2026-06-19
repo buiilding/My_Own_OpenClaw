@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer metadata stream event classification slice
+  by adding system prompt, user message metadata, assistant message, and tool
+  schema metadata predicates to `desktopChatStreamEventRuntime`. `useChatStream`
+  now asks the app-runtime helper which metadata/transparency handler should
+  receive SDK metadata events, while renderer handlers keep payload projection
+  into existing rows. Validation: focused desktop chat stream event runtime and
+  renderer chat runtime boundary tests plus docs listing, related commit
+  search, stale inline metadata event-type scans, and diff checks. No migration
+  required; SDK conversation event names and payloads, metadata/transparency row
+  projection, stream dispatch behavior, IPC, storage, settings, credentials,
+  provider-policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer compaction stream event classification slice
   by adding compaction start, completed, and failed predicates to
   `desktopChatStreamEventRuntime`. `useChatStream` now asks the app-runtime

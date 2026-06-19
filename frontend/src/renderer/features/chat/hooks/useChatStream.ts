@@ -23,11 +23,15 @@ import {
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import { DesktopConversationRuntimeEventClient } from '../../../app/runtime/desktopConversationRuntimeEventClient';
 import {
+  isAssistantMessageConversationStreamEvent,
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
   isSupportedConversationStreamEvent,
+  isSystemPromptConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
+  isToolSchemasMetadataConversationStreamEvent,
+  isUserMessageMetadataConversationStreamEvent,
   recordTrackingEvent as recordTrackingEventRuntime,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
@@ -168,19 +172,19 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleContextCompactionFailed(event);
       return true;
     }
-    if (event.type === 'system_prompt') {
+    if (isSystemPromptConversationStreamEvent(event)) {
       handleSystemPrompt(event);
       return true;
     }
-    if (event.type === 'user_message_metadata') {
+    if (isUserMessageMetadataConversationStreamEvent(event)) {
       handleUserMessageFull(event);
       return true;
     }
-    if (event.type === 'assistant_message') {
+    if (isAssistantMessageConversationStreamEvent(event)) {
       handleAssistantMessageFull(event);
       return true;
     }
-    if (event.type === 'tool_schemas_metadata') {
+    if (isToolSchemasMetadataConversationStreamEvent(event)) {
       handleToolSchemas(event);
       return true;
     }

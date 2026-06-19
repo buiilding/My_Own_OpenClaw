@@ -4,11 +4,15 @@
 
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  isAssistantMessageConversationStreamEvent,
   isCompactionCompletedConversationStreamEvent,
   isCompactionFailedConversationStreamEvent,
   isCompactionStartedConversationStreamEvent,
   isSupportedConversationStreamEvent,
+  isSystemPromptConversationStreamEvent,
   isToolDisplayOnlyConversationStreamEvent,
+  isToolSchemasMetadataConversationStreamEvent,
+  isUserMessageMetadataConversationStreamEvent,
   recordTrackingEvent,
   shouldIgnoreConversationEventForStaleTurn,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
@@ -138,6 +142,24 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(isCompactionFailedConversationStreamEvent({ type: 'compaction_failed' })).toBe(true);
     expect(isCompactionFailedConversationStreamEvent({ type: 'compaction_started' })).toBe(false);
     expect(isCompactionFailedConversationStreamEvent(null)).toBe(false);
+  });
+
+  test('classifies metadata conversation stream events', () => {
+    expect(isSystemPromptConversationStreamEvent({ type: 'system_prompt' })).toBe(true);
+    expect(isSystemPromptConversationStreamEvent({ type: 'assistant_message' })).toBe(false);
+    expect(isSystemPromptConversationStreamEvent(null)).toBe(false);
+
+    expect(isUserMessageMetadataConversationStreamEvent({ type: 'user_message_metadata' })).toBe(true);
+    expect(isUserMessageMetadataConversationStreamEvent({ type: 'system_prompt' })).toBe(false);
+    expect(isUserMessageMetadataConversationStreamEvent(null)).toBe(false);
+
+    expect(isAssistantMessageConversationStreamEvent({ type: 'assistant_message' })).toBe(true);
+    expect(isAssistantMessageConversationStreamEvent({ type: 'user_message_metadata' })).toBe(false);
+    expect(isAssistantMessageConversationStreamEvent(null)).toBe(false);
+
+    expect(isToolSchemasMetadataConversationStreamEvent({ type: 'tool_schemas_metadata' })).toBe(true);
+    expect(isToolSchemasMetadataConversationStreamEvent({ type: 'assistant_message' })).toBe(false);
+    expect(isToolSchemasMetadataConversationStreamEvent(null)).toBe(false);
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
