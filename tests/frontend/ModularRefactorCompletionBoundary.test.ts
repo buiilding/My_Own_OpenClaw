@@ -784,15 +784,27 @@ describe('modular sdk refactor completion boundary', () => {
 
   test('debug error docs route local failures through local runtime owners', async () => {
     const docs = await Promise.all([
+      read('docs/debug/README.md'),
       read('docs/debug/error_failure_change_workflow.md'),
+      read('docs/debug/runtime_traces.md'),
       read('docs/debug/symptom_playbooks.md'),
     ]);
     const docText = docs.join('\n');
 
     expect(docText).toContain('Local Runtime Process Lifecycle Change Workflow');
     expect(docText).toContain('Local-Runtime Registry and Result Contract');
-    expect(docText).toContain('local-runtime tool registration backed by the Python sidecar registry');
+    expect(docText).toContain('local-runtime tool registration backed by the Python implementation registry');
+    expect(docText).toContain('local-runtime wakeword service backed by Python');
+    expect(docText).toContain('local-runtime browser adapter backed by the Browser Use CLI');
+    expect(docText).toContain('local-runtime trace paths');
+    expect(docText).toContain('local-runtime backend URL failures');
+    expect(docText).toContain('Enable local-runtime Python debug');
     expect(docText).not.toContain('or sidecar registry');
+    expect(docText).not.toContain('sidecar wakeword service');
+    expect(docText).not.toContain('sidecar Browser Use CLI adapter');
+    expect(docText).not.toContain('sidecar trace paths');
+    expect(docText).not.toContain('sidecar backend URL failures');
+    expect(docText).not.toContain('Enable sidecar debug');
     expect(docText).not.toContain('[Sidecar Runtime Change Workflow]');
     expect(docText).not.toContain('[Tool Registry Result Contract Reference]');
     expect(docText).not.toContain('| Sidecar ToolResult/registry |');

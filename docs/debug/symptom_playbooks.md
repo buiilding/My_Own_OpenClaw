@@ -63,7 +63,7 @@ Validate:
 
 ## Tool Call Appears But Does Not Execute
 
-Likely boundary: backend tool event, Agent SDK tool routing, Electron main bridge, or local-runtime tool registration backed by the Python sidecar registry.
+Likely boundary: backend tool event, Agent SDK tool routing, Electron main bridge, or local-runtime tool registration backed by the Python implementation registry.
 
 Inspect:
 
@@ -175,7 +175,7 @@ Validate:
 
 ## Voice Or Wakeword Does Not Trigger
 
-Likely boundary: renderer microphone flow, Electron wakeword bridge, sidecar wakeword service, or backend transcription websocket.
+Likely boundary: renderer microphone flow, Electron wakeword bridge, local-runtime wakeword service backed by Python, or backend transcription websocket.
 
 Inspect:
 
@@ -202,7 +202,7 @@ Validate:
 
 ## Browser Automation Fails
 
-Likely boundary: backend schema, sidecar Browser Use CLI adapter, Chromium runtime availability, Browser Use session state, or permission probe.
+Likely boundary: backend schema, local-runtime browser adapter backed by the Browser Use CLI, Chromium runtime availability, Browser Use session state, or permission probe.
 
 Inspect:
 

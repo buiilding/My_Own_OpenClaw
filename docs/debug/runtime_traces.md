@@ -1,7 +1,7 @@
 ---
 summary: "Runtime trace guide for one-message trace playbook debugging across renderer action, main bridge, SDK runtime, backend stream, local-runtime tool execution, SDK projection, renderer display, chat pill phases, renderer trace platform labeling after deprecated navigator.platform removal, tool screenshots, overlay windows, local-runtime JSON-RPC, backend websocket events, persistent app diagnostics, and app diagnostics CLI inspection helpers such as queryDiagnosticEvents, inspectDiagnosticTrace, listDiagnosticPathDefinitions, diagnosticsDatabasePath, and appUserDataRoot."
 read_when:
-  - When debugging event ordering across backend, Electron main, renderer, or sidecar.
+  - When debugging event ordering across backend, Electron main, renderer, or local runtime.
   - When tracing one user message through renderer action, main bridge handoff, SDK runtime dispatch, backend stream, local-runtime tool execution, SDK projection, and renderer display.
   - When changing stream handling, overlay phases, screenshot capture, tool execution, or websocket routing.
   - When stale code, tests, or docs mention `navigator.platform` in renderer trace logging; renderer trace labels use `navigator.userAgentData.platform` with user-agent fallback.
@@ -535,7 +535,7 @@ RPC issues by combining Electron bridge logs with Python sidecar stderr logs.
 | Python sidecar protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
 | Tool registry | `frontend/src/main/python/tools/registry.py` |
 
-Enable sidecar debug:
+Enable local-runtime Python debug:
 
 ```bash
 cd frontend

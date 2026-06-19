@@ -22,13 +22,13 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 
 ## Debug Pages
 
-- [Logging](logging.md) maps backend, Electron, renderer, and sidecar log controls.
+- [Logging](logging.md) maps backend, Electron, renderer, local-runtime Python, and packaged app log controls.
 - [Observability Change Workflow](observability_change_workflow.md) routes new logs, traces, metrics, diagnostic flags, and evidence signals to the right runtime.
 - [Error and Failure Change Workflow](error_failure_change_workflow.md) routes exception mapping, websocket/HTTP errors, IPC failures, local-runtime ToolResult failures, renderer error UI, retries, and sanitized logs.
-- [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags.
-- [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and sidecar trace paths.
-- [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and sidecar backend URL failures.
-- [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process health checks.
+- [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, local-runtime Python, VM worker, and packaged-app debug flags.
+- [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and local-runtime trace paths.
+- [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and local-runtime backend URL failures.
+- [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, local-runtime Python sidecar, wakeword, VM worker, and Cloudflare process health checks.
 - [Symptom Playbooks](symptom_playbooks.md) maps common failures to code roots and validation.
 - [Test Selection](test_selection.md) maps changed subsystems to focused tests and full-suite commands.
 
@@ -44,7 +44,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 ## Rules For Agents
 
 - Do not patch the visible UI symptom until the producing event or state contract is verified.
-- For backend, SDK/main, renderer, and sidecar drift, prefer adding or extending parity tests over importing implementation code across boundaries.
+- For backend, SDK/main, renderer, and local-runtime drift, prefer adding or extending parity tests over importing implementation code across boundaries.
 - For overlay timing bugs, write down the phase sequence first. Mixing focus, capture, content protection, and visibility changes in one patch makes regressions hard to isolate.
 - For local tool bugs, verify the producer and execution boundary: backend schema/event, Agent SDK tool router, Electron local-runtime bridge, and local-runtime executable result.
 - For hosted backend bugs, do not assume local Electron state is wrong until the websocket or HTTP payload is inspected.
