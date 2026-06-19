@@ -57,6 +57,8 @@ This keeps overlay window lightweight:
 - global drag window listeners (`mousemove`/`mouseup`/`blur`)
 - visual-anchor sync through `DesktopWindowRuntimeClient` from measured shell
   height plus compact-height cleanup on unmount
+- text-entry activation reason reporting through `DesktopWindowRuntimeClient`;
+  the runtime client assembles the host-shaped `{ reason }` IPC payload
 
 Resulting behavior in `useChatMessageSender`:
 
@@ -67,7 +69,9 @@ Resulting behavior in `useChatMessageSender`:
 Minimal pill control inventory in current production `MinimalChatPill`:
 
 - the chat pill shell now owns a bumped top contour that houses the close control as part of one silhouette
-- settings button opens the dashboard/chat surface via `DesktopWindowRuntimeClient`
+- settings button opens the dashboard/chat surface via
+  `DesktopWindowRuntimeClient.showMainWindowWithValues(...)`; the runtime
+  client assembles the host-shaped main-window options
 - attachment button opens the native file picker for image/file attachments
 - screenshot button toggles overlay auto screenshot (`include_query_screenshot`)
 - sound button toggles text-to-speech replies (`speech_mode_enabled`)
@@ -102,8 +106,10 @@ Right-side action button parity with dashboard composer:
 
 Dashboard handoff affordance:
 
-- chatbox settings icon invokes `DesktopWindowRuntimeClient.showMainWindow(...)` with `{ maximize: true }`.
-- this requests expanded dashboard view before focus handoff.
+- chatbox settings icon invokes `DesktopWindowRuntimeClient.showMainWindowWithValues(...)`
+  with the chat open-target, maximize value, and handoff reason.
+- this requests expanded dashboard view before focus handoff while keeping
+  host-shaped window option assembly in the runtime client.
 
 `electron:dev` compaction harness:
 

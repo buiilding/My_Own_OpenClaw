@@ -14,9 +14,7 @@ function WakewordController() {
   const handleWakewordDetected = useCallback(() => {
     console.log('[WakewordController] Wakeword detected!');
     DesktopVoiceRuntimeClient.wakewordDetected();
-    DesktopWindowRuntimeClient.showChatbox({
-      reason: 'wakeword',
-    }).catch((error) => {
+    DesktopWindowRuntimeClient.showChatboxWithValues(null, 'wakeword').catch((error) => {
       console.warn('[WakewordController] Failed to show chatbox:', error);
     });
   }, []);

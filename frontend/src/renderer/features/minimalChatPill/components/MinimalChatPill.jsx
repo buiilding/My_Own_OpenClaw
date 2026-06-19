@@ -202,9 +202,7 @@ function MinimalChatPill() {
   }, []);
 
   const activateTextEntry = useCallback(() => {
-    DesktopWindowRuntimeClient.activateChatboxTextEntry({
-      reason: 'text-entry',
-    }).catch((error) => {
+    DesktopWindowRuntimeClient.activateChatboxTextEntryForReason('text-entry').catch((error) => {
       console.warn('[MinimalChatPill] Failed to activate text entry:', error);
     });
   }, []);
@@ -528,11 +526,12 @@ function MinimalChatPill() {
 
   const handleOpenConfig = useCallback(async () => {
     try {
-      await DesktopWindowRuntimeClient.showMainWindow({
-        maximize: true,
-        open: 'chat',
-        reason: 'chat-pill-settings',
-      });
+      await DesktopWindowRuntimeClient.showMainWindowWithValues(
+        null,
+        true,
+        'chat',
+        'chat-pill-settings',
+      );
     } catch (error) {
       console.warn('[MinimalChatPill] Failed to show main window:', error);
     }
@@ -540,7 +539,7 @@ function MinimalChatPill() {
 
   const handleHideChatbox = useCallback(async () => {
     try {
-      await DesktopWindowRuntimeClient.hideChatbox({ reason: 'user' });
+      await DesktopWindowRuntimeClient.hideChatboxForReason('user');
     } catch (error) {
       console.warn('[MinimalChatPill] Failed to hide chat window:', error);
     }

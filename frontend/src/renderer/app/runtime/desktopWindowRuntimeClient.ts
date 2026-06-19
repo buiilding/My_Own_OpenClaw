@@ -60,6 +60,66 @@ function optionalPositiveInteger(value: unknown): number | null {
   return Number.isFinite(normalized) && normalized > 0 ? normalized : null;
 }
 
+function optionalBoolean(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null;
+}
+
+function optionalNonEmptyString(value: unknown): string | null {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || null;
+}
+
+export function buildShowChatboxOptions(
+  focus: unknown = null,
+  reason: unknown = null,
+): ShowChatboxOptions {
+  const options: ShowChatboxOptions = {};
+  const normalizedFocus = optionalBoolean(focus);
+  if (normalizedFocus !== null) {
+    options.focus = normalizedFocus;
+  }
+  const normalizedReason = optionalNonEmptyString(reason);
+  if (normalizedReason) {
+    options.reason = normalizedReason;
+  }
+  return options;
+}
+
+export function buildHideChatboxOptions(reason: unknown = null): HideChatboxOptions {
+  const options: HideChatboxOptions = {};
+  const normalizedReason = optionalNonEmptyString(reason);
+  if (normalizedReason) {
+    options.reason = normalizedReason;
+  }
+  return options;
+}
+
+export function buildShowMainWindowOptions(
+  focus: unknown = null,
+  maximize: unknown = null,
+  open: unknown = null,
+  reason: unknown = null,
+): ShowMainWindowOptions {
+  const options: ShowMainWindowOptions = {};
+  const normalizedFocus = optionalBoolean(focus);
+  if (normalizedFocus !== null) {
+    options.focus = normalizedFocus;
+  }
+  const normalizedMaximize = optionalBoolean(maximize);
+  if (normalizedMaximize !== null) {
+    options.maximize = normalizedMaximize;
+  }
+  const normalizedOpen = optionalNonEmptyString(open);
+  if (normalizedOpen) {
+    options.open = normalizedOpen;
+  }
+  const normalizedReason = optionalNonEmptyString(reason);
+  if (normalizedReason) {
+    options.reason = normalizedReason;
+  }
+  return options;
+}
+
 export function buildChatboxVisualAnchorHeightPayload(
   height: unknown,
   frameHeight: unknown = null,
@@ -81,17 +141,47 @@ export function buildChatboxHitTestPayload(active: unknown): ChatboxHitTestPaylo
   };
 }
 
+export function buildChatboxTextEntryActivationPayload(
+  reason: unknown,
+): ActivateChatboxTextEntryPayload {
+  const normalizedReason = typeof reason === 'string' ? reason.trim() : '';
+  return normalizedReason ? { reason: normalizedReason } : {};
+}
+
 export const DesktopWindowRuntimeClient = {
   showChatbox(options: ShowChatboxOptions = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, options);
+  },
+
+  showChatboxWithValues(focus: unknown = null, reason: unknown = null): Promise<unknown> {
+    return DesktopWindowRuntimeClient.showChatbox(
+      buildShowChatboxOptions(focus, reason),
+    );
   },
 
   hideChatbox(options: HideChatboxOptions = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX, options);
   },
 
+  hideChatboxForReason(reason: unknown = null): Promise<unknown> {
+    return DesktopWindowRuntimeClient.hideChatbox(
+      buildHideChatboxOptions(reason),
+    );
+  },
+
   showMainWindow(options: ShowMainWindowOptions = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, options);
+  },
+
+  showMainWindowWithValues(
+    focus: unknown = null,
+    maximize: unknown = null,
+    open: unknown = null,
+    reason: unknown = null,
+  ): Promise<unknown> {
+    return DesktopWindowRuntimeClient.showMainWindow(
+      buildShowMainWindowOptions(focus, maximize, open, reason),
+    );
   },
 
   setChatboxVisualAnchorHeight(payload: ChatboxVisualAnchorHeightPayload): Promise<unknown> {
@@ -109,6 +199,12 @@ export const DesktopWindowRuntimeClient = {
 
   activateChatboxTextEntry(payload: ActivateChatboxTextEntryPayload = {}): Promise<unknown> {
     return IpcBridge.invoke(INVOKE_CHANNELS.ACTIVATE_CHATBOX_TEXT_ENTRY, payload);
+  },
+
+  activateChatboxTextEntryForReason(reason: unknown): Promise<unknown> {
+    return DesktopWindowRuntimeClient.activateChatboxTextEntry(
+      buildChatboxTextEntryActivationPayload(reason),
+    );
   },
 
   setChatboxHitTestActive(payload: ChatboxHitTestPayload): Promise<unknown> {

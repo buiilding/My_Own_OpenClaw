@@ -28,7 +28,12 @@ export function useMainWindowControls({ warningPrefix = 'MainWindowControls' } =
   }, [invokeWindowAction]);
 
   const showMainWindow = useCallback((options = {}) => {
-    return invokeWindowAction(() => DesktopWindowRuntimeClient.showMainWindow(options), 'show main window');
+    return invokeWindowAction(() => DesktopWindowRuntimeClient.showMainWindowWithValues(
+      options?.focus,
+      options?.maximize,
+      options?.open,
+      options?.reason,
+    ), 'show main window');
   }, [invokeWindowAction]);
 
   return {

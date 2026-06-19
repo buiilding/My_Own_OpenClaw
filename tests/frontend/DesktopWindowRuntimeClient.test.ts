@@ -41,7 +41,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import {
   DesktopWindowRuntimeClient,
   buildChatboxHitTestPayload,
+  buildChatboxTextEntryActivationPayload,
   buildChatboxVisualAnchorHeightPayload,
+  buildHideChatboxOptions,
+  buildShowChatboxOptions,
+  buildShowMainWindowOptions,
   resolveMainWindowOpenTarget,
 } from '../../frontend/src/renderer/app/runtime/desktopWindowRuntimeClient';
 
@@ -83,6 +87,52 @@ describe('DesktopWindowRuntimeClient', () => {
 
     expect(mockInvoke).toHaveBeenCalledWith('set-chatbox-hit-test-active', {
       active: true,
+    });
+  });
+
+  test('builds window visibility command options at the runtime boundary', async () => {
+    expect(buildShowChatboxOptions(false, ' startup ')).toEqual({
+      focus: false,
+      reason: 'startup',
+    });
+    expect(buildShowChatboxOptions('yes', '')).toEqual({});
+    expect(buildHideChatboxOptions(' user ')).toEqual({ reason: 'user' });
+    expect(buildHideChatboxOptions(12)).toEqual({});
+    expect(buildShowMainWindowOptions(true, false, ' chat ', ' settings ')).toEqual({
+      focus: true,
+      maximize: false,
+      open: 'chat',
+      reason: 'settings',
+    });
+
+    await DesktopWindowRuntimeClient.showChatboxWithValues(false, 'restore');
+    await DesktopWindowRuntimeClient.hideChatboxForReason('user');
+    await DesktopWindowRuntimeClient.showMainWindowWithValues(null, true, 'chat', 'settings');
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'show-chatbox', {
+      focus: false,
+      reason: 'restore',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'hide-chatbox', {
+      reason: 'user',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'show-main-window', {
+      maximize: true,
+      open: 'chat',
+      reason: 'settings',
+    });
+  });
+
+  test('builds chatbox text-entry activation payloads at the runtime boundary', async () => {
+    expect(buildChatboxTextEntryActivationPayload(' text-entry ')).toEqual({
+      reason: 'text-entry',
+    });
+    expect(buildChatboxTextEntryActivationPayload(12)).toEqual({});
+
+    await DesktopWindowRuntimeClient.activateChatboxTextEntryForReason('text-entry');
+
+    expect(mockInvoke).toHaveBeenCalledWith('activate-chatbox-text-entry', {
+      reason: 'text-entry',
     });
   });
 

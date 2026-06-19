@@ -185,12 +185,15 @@ commands used by generic runtime flows, such as restoring the chatbox after
 overlay-origin sends, applying startup surface visibility, handling wakeword
 chatbox restore, main-window controls, and minimal chatbox overlay focus, drag,
 hit-test, visual-anchor, text-entry, hide/show commands, and main-window
-open-target fan-out plus open-target payload normalization. It also owns
-chatbox visual-anchor height payload assembly from value-level height and
-optional frame-height inputs, and chatbox hit-test payload assembly from
-boolean active-state inputs. Callers keep UI policy and call this runtime client
-instead of importing window IPC channel constants, parsing host-shaped window
-event payloads directly, or assembling native window payload objects.
+open-target fan-out plus open-target payload normalization. It assembles
+chatbox/main-window visibility option payloads from value-level focus,
+maximize, open-target, and reason inputs. It also owns chatbox visual-anchor
+height payload assembly from value-level height and optional frame-height
+inputs, chatbox hit-test payload assembly from boolean active-state inputs, and
+chatbox text-entry activation payloads from value-level reason inputs. Callers
+keep UI policy and call this runtime client instead of importing window IPC
+channel constants, parsing host-shaped window event payloads directly, or
+assembling native window payload objects.
 
 `desktopResponseOverlayRuntimeClient.ts` owns renderer response overlay window
 IPC for responsebox size, hit-test, visibility fan-out, visibility payload

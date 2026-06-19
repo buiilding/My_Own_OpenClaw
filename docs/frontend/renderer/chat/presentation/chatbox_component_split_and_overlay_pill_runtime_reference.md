@@ -77,8 +77,9 @@ compaction behind its loop lock.
 - explicit refocus only on the chatbox-focus event via `DesktopWindowRuntimeClient`
 - wakeword STT trigger via `DesktopWindowRuntimeClient` starts STT session only when `wakeword_stt_enabled === true`
 - loop lock blocks refocus and blurs input while active
-- unfocused textarea pointer-down requests native text-entry activation, but
-  must not consume a press-and-hold drag gesture
+- unfocused textarea pointer-down reports a text-entry activation reason through
+  `DesktopWindowRuntimeClient.activateChatboxTextEntryForReason(...)`, but must
+  not consume a press-and-hold drag gesture
 
 ### Drag and Move IPC
 

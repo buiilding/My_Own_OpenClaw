@@ -56,19 +56,25 @@ Routing behavior:
   - render `DashboardShell` immediately
   - pass `vmModeEnabled={true}`
   - bypass desktop onboarding slideshow
-  - request `show-main-window({ focus: true })` through `DesktopWindowRuntimeClient`
+  - request a focused main-window startup restore through
+    `DesktopWindowRuntimeClient.showMainWindowWithValues(...)`
 - VM mode disabled + onboarding incomplete:
   - do not mount `WakewordController`
   - render `DesktopOnboardingSlideshow`
   - inject stop-agent shortcut label from
     `DesktopShortcutRuntimeClient.getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
-  - request `show-main-window({ focus: true, open: 'onboarding' })` through `DesktopWindowRuntimeClient`
+  - request a focused onboarding main-window restore through
+    `DesktopWindowRuntimeClient.showMainWindowWithValues(...)`; the runtime
+    client assembles the host-shaped `show-main-window` options
   - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
 - VM mode disabled + onboarding complete:
   - mount `WakewordController`
   - render `DashboardShell`
   - pass `vmModeEnabled={false}`
-  - request `show-chatbox({ focus: true, reason: "startup" })` through `DesktopWindowRuntimeClient` so cold start lands on the minimal chat pill unless Electron main has persisted user-hidden chat-pill intent
+  - request a focused startup chatbox restore through
+    `DesktopWindowRuntimeClient.showChatboxWithValues(...)` so cold start lands
+    on the minimal chat pill unless Electron main has persisted user-hidden
+    chat-pill intent
 
 Pre-bootstrap startup behavior:
 
@@ -133,8 +139,9 @@ Navigation behavior:
   summon; Electron main may suppress it when the user previously closed the
   minimal chat pill or when the same renderer startup-surface handoff is
   replayed after the initial startup decision
-- onboarding completion uses `show-chatbox({ reason: "onboarding-complete" })`
-  so the first-run wizard can still intentionally land on the minimal chat pill
+- onboarding completion uses `DesktopWindowRuntimeClient.showChatboxWithValues(...)`
+  with the `onboarding-complete` reason so the first-run wizard can still
+  intentionally land on the minimal chat pill
 - `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
 - the final slide warns when permissions remain missing and points the user to Settings for follow-up
 - while onboarding is active, closing the main window hides onboarding without restoring the minimal chat pill; reopening the app restores onboarding until the wizard is completed
@@ -170,7 +177,8 @@ The same permission store also powers focused settings checks such as Browser au
 `tests/frontend/AppPermissionGate.test.jsx`:
 
 - non-VM mode renders onboarding while `needsOnboarding` is true
-- non-VM mode renders dashboard after permission onboarding completes while requesting `show-chatbox({ focus: true })`
+- non-VM mode renders dashboard after permission onboarding completes while
+  requesting focused chatbox restore through `DesktopWindowRuntimeClient`
 - non-VM mode does not flash onboarding during pre-bootstrap startup when persisted onboarding completion is already true
 - onboarding completion transition moves the visible surface from onboarding/main-window to the chat pill
 

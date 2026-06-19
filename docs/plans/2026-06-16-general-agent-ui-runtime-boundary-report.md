@@ -174,6 +174,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Window Command Option Value Boundary
+
+- Finding: app startup, wakeword restore, send-surface restore, minimal chat
+  settings/hide actions, and main-window controls routed through
+  `DesktopWindowRuntimeClient`, but still assembled or forwarded host-shaped
+  chatbox/main-window visibility and text-entry option payloads locally.
+- Change: added value-level show-chatbox, hide-chatbox, show-main-window, and
+  text-entry activation option builders to the desktop window runtime client.
+  Renderer callers now pass focus, maximize, open-target, and reason values
+  while the runtime client assembles host payloads.
+- Validation: passed focused desktop window runtime client, app startup,
+  permission gate, wakeword controller boundary, chatbox mouse-ignore, renderer
+  chat boundary, renderer voice boundary, and docs-index tests plus docs search,
+  related commit search, stale host-shaped window command option scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. `show-chatbox`, `hide-chatbox`,
+  `show-main-window`, and `activate-chatbox-text-entry` IPC channel names, host
+  payload shapes, startup/onboarding/wakeword restore behavior, dashboard
+  handoff behavior, text-entry focus timing, press-and-hold drag behavior,
+  pointer/mouse-leave/blur policy, storage, provider policy, hosted URLs,
+  permissions, and local-runtime execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Hit-Test Payload Value Boundary
 
 - Finding: `MinimalChatPill` and `MinimalResponseOverlay` routed through

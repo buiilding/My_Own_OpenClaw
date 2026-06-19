@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: route chatbox/main-window visibility options and chatbox
+  text-entry activation payload assembly through `DesktopWindowRuntimeClient`
+  value helpers so renderer UI code no longer assembles host-shaped window
+  command option objects. No migration required.
 - renderer/runtime: route chatbox and responsebox hit-test IPC payload assembly
   through desktop runtime clients so minimal chat/response components report
   active-state values instead of host-shaped `{ active }` payloads. No

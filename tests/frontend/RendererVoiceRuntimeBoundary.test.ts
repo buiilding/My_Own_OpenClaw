@@ -16,7 +16,8 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('infrastructure/api/client');
     expect(source).not.toContain('ApiClient.');
     expect(source).toContain('DesktopVoiceRuntimeClient.wakewordDetected');
-    expect(source).toContain('DesktopWindowRuntimeClient.showChatbox');
+    expect(source).toContain('DesktopWindowRuntimeClient.showChatboxWithValues');
+    expect(source).not.toContain('DesktopWindowRuntimeClient.showChatbox({');
     expect(source).not.toContain('SHOW_CHATBOX');
     expect(source).not.toContain('IpcBridge.invoke');
   });

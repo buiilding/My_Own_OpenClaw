@@ -115,10 +115,14 @@ Startup rules:
   a first-frame onboarding flash.
 - After bootstrap finishes, `needsOnboarding` is authoritative so manifest
   version changes can route users back into onboarding.
-- `dashboard-vm` invokes `show-main-window({ focus: true })`.
-- `onboarding` invokes `show-main-window({ focus: true, open: 'onboarding' })`.
-- normal `dashboard` invokes `show-chatbox({ focus: true })` so desktop startup
-  lands on the minimal chat pill.
+- `dashboard-vm` invokes focused main-window restore through
+  `DesktopWindowRuntimeClient.showMainWindowWithValues(...)`.
+- `onboarding` invokes focused onboarding main-window restore through
+  `DesktopWindowRuntimeClient.showMainWindowWithValues(...)`.
+- normal `dashboard` invokes focused chatbox restore through
+  `DesktopWindowRuntimeClient.showChatboxWithValues(...)` so desktop startup
+  lands on the minimal chat pill. The runtime client assembles the host-shaped
+  window command options.
 
 ### 4. Inspect permission onboarding state
 
@@ -177,7 +181,7 @@ Read:
 Surface rules:
 
 - VM mode starts the main window and skips overlay/tray/hotkey setup.
-- `showMainWindow({ open: 'onboarding' })` sets main-window mode and primary
+- main-window restore with the `onboarding` open target sets main-window mode and primary
   surface to onboarding.
 - normal dashboard mode and onboarding are both main-window modes, but they must
   stay distinguishable for close/reopen and second-instance focus.

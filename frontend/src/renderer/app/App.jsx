@@ -72,37 +72,42 @@ function AppContent() {
     async function applyStartupSurface() {
       try {
         if (startupSurface === 'dashboard-vm') {
-          await DesktopWindowRuntimeClient.showMainWindow({
-            focus: true,
-            reason: 'startup-vm',
-          });
+          await DesktopWindowRuntimeClient.showMainWindowWithValues(
+            true,
+            null,
+            null,
+            'startup-vm',
+          );
           return;
         }
 
         if (startupSurface === 'onboarding') {
-          await DesktopWindowRuntimeClient.showMainWindow({
-            focus: true,
-            open: 'onboarding',
-            reason: 'startup-onboarding',
-          });
+          await DesktopWindowRuntimeClient.showMainWindowWithValues(
+            true,
+            null,
+            'onboarding',
+            'startup-onboarding',
+          );
           return;
         }
 
-        const showChatboxResult = await DesktopWindowRuntimeClient.showChatbox({
-          focus: true,
-          reason: previousStartupSurface === 'onboarding'
+        const showChatboxResult = await DesktopWindowRuntimeClient.showChatboxWithValues(
+          true,
+          previousStartupSurface === 'onboarding'
             ? 'onboarding-complete'
             : 'startup',
-        });
+        );
         if (
           previousStartupSurface !== 'onboarding'
           && showChatboxResult?.suppressed === true
           && showChatboxResult?.reason === CHAT_PILL_USER_HIDDEN_REASON
         ) {
-          await DesktopWindowRuntimeClient.showMainWindow({
-            focus: true,
-            reason: STARTUP_DASHBOARD_FALLBACK_REASON,
-          });
+          await DesktopWindowRuntimeClient.showMainWindowWithValues(
+            true,
+            null,
+            null,
+            STARTUP_DASHBOARD_FALLBACK_REASON,
+          );
         }
       } catch (error) {
         console.warn('[App] Failed to apply startup surface:', error);

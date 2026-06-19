@@ -211,7 +211,7 @@ async function runSendSurfaceWindowPolicy({
 }): Promise<void> {
   if (shouldReturnToChatboxOnSend) {
     try {
-      await DesktopWindowRuntimeClient.showChatbox({ focus: false });
+      await DesktopWindowRuntimeClient.showChatboxWithValues(false);
     } catch (error) {
       console.warn('[useChatMessageSender] Failed to show chatbox:', error);
     }

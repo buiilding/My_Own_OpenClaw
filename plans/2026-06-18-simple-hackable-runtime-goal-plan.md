@@ -275,6 +275,24 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer window command option value boundary slice
+  by adding value-level show-chatbox, hide-chatbox, show-main-window, and
+  text-entry activation option builders to `DesktopWindowRuntimeClient`.
+  App startup, wakeword restore, send-surface restore, minimal chat settings
+  and hide actions, and main-window controls now pass focus, maximize,
+  open-target, and reason values while the runtime client assembles
+  host-shaped IPC option payloads. Validation passed for focused desktop window
+  runtime client, app startup, permission gate, wakeword controller boundary,
+  chatbox mouse-ignore, renderer chat boundary, renderer voice boundary, and
+  docs-index tests plus docs search, related commit search, stale host-shaped
+  window command option scan, docs listing, and diff checks. No migration
+  required; `show-chatbox`, `hide-chatbox`, `show-main-window`, and
+  `activate-chatbox-text-entry` IPC channel names, host payload shapes,
+  startup/onboarding/wakeword restore behavior, dashboard handoff behavior,
+  text-entry focus timing,
+  press-and-hold drag behavior, pointer/mouse-leave/blur policy, storage,
+  provider policy, hosted URLs, permissions, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer hit-test payload value boundary slice by
   adding `buildChatboxHitTestPayload(...)` /
   `setChatboxHitTestActiveValue(...)` and

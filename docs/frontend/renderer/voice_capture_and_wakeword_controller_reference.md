@@ -160,7 +160,7 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 `WakewordController` callback on detection:
 
 1. `DesktopVoiceRuntimeClient.wakewordDetected()` -> send backend `wakeword-detected` message
-2. `DesktopWindowRuntimeClient.showChatbox(...)` -> reveal chat UI
+2. `DesktopWindowRuntimeClient.showChatboxWithValues(...)` -> reveal chat UI
 
 Hook startup:
 
