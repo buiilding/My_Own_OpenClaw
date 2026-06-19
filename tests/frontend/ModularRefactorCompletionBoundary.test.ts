@@ -1427,6 +1427,8 @@ describe('modular sdk refactor completion boundary', () => {
         'Add or change a sidecar JSON-RPC method',
         'Sidecar process lifecycle/readiness',
         'Sidecar transcript store methods',
+        'Main IPC, Backend Relay, and Sidecar Bridge',
+        'Sidecar scoped host bridge',
         'Local Runtime Sidecar Implementation Domains',
         'Local Runtime Sidecar Capability Catalog',
         'Sidecar backend HTTP clients',

@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route the frontend capability matrix bridge section and
+  scoped host-bridge labels through local-runtime wording instead of Sidecar
+  Bridge public labels while keeping concrete Python sidecar paths explicit.
+  No migration required.
 - docs/frontend: route local-runtime Python inventory section titles and hosted
   helper-client labels away from Local Runtime Sidecar public wording while
   keeping concrete Python sidecar paths explicit. No migration required.

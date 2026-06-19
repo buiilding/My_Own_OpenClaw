@@ -32,7 +32,7 @@ This matrix maps frontend capabilities to implementation files.
 | Main/chat visibility transitions | `frontend/src/main/surfaces/window_visibility_runtime.cjs`, `frontend/src/main/surfaces/overlay_visibility_handler.cjs` | Focus/hide/show policy across chat, response overlay, and main window. |
 | Overlay query-capture blur prep | `frontend/src/main/surfaces/main_window_runtime.cjs`, `frontend/src/main/ipc.cjs` | Blurs WindieOS windows and waits briefly before capture without restoring another app to foreground. |
 
-## 2) Main IPC, Backend Relay, and Sidecar Bridge
+## 2) Main IPC, Backend Relay, and Local-Runtime Bridge
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ This matrix maps frontend capabilities to implementation files.
 | Query payload construction | `frontend/src/main/ipc/ipc_query_runtime.cjs` | Adds system/memory context and query metadata before send. |
 | Desktop UI config load/save | `frontend/src/main/ipc/ipc_desktop_ui_config.cjs` | Disk + in-memory config snapshot ownership. |
 | Python sidecar daemon lifecycle | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_launch_options.cjs`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/app/runtime_paths.cjs` | SDK-owned daemon startup/reuse, desktop launch options, readiness/status snapshots, and shutdown. |
-| Sidecar scoped host bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, `frontend/src/main/sidecar/local_runtime_window_visibility.cjs` | SDK local runtime RPC routing for host-only helpers plus host window/screenshot wrapper behavior. |
+| Local-runtime scoped host bridge | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs`, `frontend/src/main/sidecar/local_runtime_window_visibility.cjs` | SDK local runtime RPC routing for host-only helpers plus host window/screenshot wrapper behavior. |
 | Wakeword subprocess bridge | `frontend/src/main/wakeword/wakeword_bridge.cjs`, `frontend/src/main/wakeword/wakeword_bridge_runtime.cjs` | Binary framing for wakeword audio input/output messages, plus helper-owned stderr status parsing and payload normalization. |
 
 ## 3) Preload Trust Boundary

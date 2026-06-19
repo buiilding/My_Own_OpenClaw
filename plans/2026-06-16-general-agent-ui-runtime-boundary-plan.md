@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Frontend Capability Matrix Local-Runtime Bridge Labels
+
+- Finding: the active frontend capability-to-file matrix still presented the
+  main bridge section and scoped host bridge row as Sidecar Bridge public
+  labels even though recent main code moved the bridge root to local-runtime
+  ownership.
+- Change: renamed the section and scoped host-bridge row to local-runtime bridge
+  wording while preserving concrete Python sidecar and main/sidecar paths as
+  implementation evidence, and added exact modular docs guards for the retired
+  labels.
+- Validation: focused modular boundary guard, docs listing, exact stale label
+  scan, and diff checks.
+- Compatibility: no migration required. Inventory-only docs changed; no code
+  path, JSON-RPC method, IPC channel, storage, credential, permission, hosted
+  route, provider policy, packaging, or local execution behavior changed.
+
 ### 2026-06-19 Frontend Inventory Local-Runtime Python Section Labels
 
 - Finding: active frontend inventory docs still used sidecar-flavored public
