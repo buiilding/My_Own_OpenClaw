@@ -2009,7 +2009,12 @@ describe('renderer chat runtime boundary', () => {
     expect(syncSource).not.toContain('responseOverlayLayoutContract');
     expect(syncSource).not.toContain('payload?.visible');
     expect(syncSource).not.toContain('payload.visible');
+    expect(syncSource).toContain('setResponseboxSizeValues');
+    expect(syncSource).not.toContain('setResponseboxSize({');
+    expect(viewModelSource).toContain('setResponseboxSizeValues');
+    expect(viewModelSource).not.toContain('setResponseboxSize({');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload');
+    expect(clientSource).toContain('buildResponseboxSizePayload');
     expect(clientSource).toContain('normalizeResponseOverlayVisibilityPayload(payload).visible');
     expect(layoutRuntimeSource).toContain('getRoundedFrameSize');
     expect(layoutRuntimeSource).toContain('RESPONSE_OVERLAY_LAYOUT_MODE');

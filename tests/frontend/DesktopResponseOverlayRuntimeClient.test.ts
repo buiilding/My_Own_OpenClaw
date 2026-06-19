@@ -26,6 +26,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 import {
   DesktopResponseOverlayRuntimeClient,
+  buildResponseboxSizePayload,
   normalizeResponseOverlayVisibilityPayload,
 } from '../../frontend/src/renderer/app/runtime/desktopResponseOverlayRuntimeClient';
 
@@ -66,5 +67,61 @@ describe('DesktopResponseOverlayRuntimeClient', () => {
 
     unsubscribe?.();
     expect(visibilityListener).toBeNull();
+  });
+
+  test('builds responsebox size payloads from renderer values', () => {
+    expect(buildResponseboxSizePayload({
+      visible: true,
+      width: 240.8,
+      height: 120,
+      compactHover: true,
+      turnRef: ' turn-1 ',
+      staleGuardRef: ' guard-1 ',
+    })).toEqual({
+      visible: true,
+      width: 240.8,
+      height: 120,
+      compact_hover: true,
+      turn_ref: 'turn-1',
+      stale_guard_ref: 'guard-1',
+    });
+    expect(buildResponseboxSizePayload({
+      visible: false,
+      width: 'bad',
+      height: null,
+      turnRef: '',
+      staleGuardRef: undefined,
+      dismissed: true,
+    })).toEqual({
+      visible: false,
+      width: 0,
+      height: 0,
+      turn_ref: null,
+      stale_guard_ref: null,
+      dismissed: true,
+    });
+  });
+
+  test('value-level size commands invoke responsebox size payloads', async () => {
+    await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
+      visible: true,
+      width: 320,
+      height: 236,
+      compactHover: false,
+      turnRef: 'turn-2',
+      staleGuardRef: 'turn-2',
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'set-responsebox-size',
+      {
+        visible: true,
+        width: 320,
+        height: 236,
+        compact_hover: false,
+        turn_ref: 'turn-2',
+        stale_guard_ref: 'turn-2',
+      },
+    );
   });
 });

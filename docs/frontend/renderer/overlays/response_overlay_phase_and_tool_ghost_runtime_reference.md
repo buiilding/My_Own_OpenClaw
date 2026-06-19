@@ -126,8 +126,8 @@ Contract ownership:
 - `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
 - `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary: current-turn presentation state, response-entry derivation, rendered markdown payloads, closeability, and stale-response suppression during preflight/awaiting.
 - `useResponseOverlayWindowSync(...)` owns response-window sizing policy and
-  visibility re-report behavior, delegating responsebox IPC and visibility
-  payload normalization/boolean subscription projection to
+  visibility re-report behavior, delegating responsebox size payload assembly,
+  IPC, and visibility payload normalization/boolean subscription projection to
   `DesktopResponseOverlayRuntimeClient`.
 - `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
@@ -164,6 +164,12 @@ Scroll behavior:
 
 - hidden: `{ visible: false, width: 0, height: 0 }`
 - shown: `{ visible: true, width, height, compact_hover }`
+
+Renderer hooks call
+`DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues(...)` with
+camelCase value fields. The runtime client maps those values to host payload
+fields such as `compact_hover`, `turn_ref`, `stale_guard_ref`, and
+`dismissed`.
 
 Layout-specific sizing:
 

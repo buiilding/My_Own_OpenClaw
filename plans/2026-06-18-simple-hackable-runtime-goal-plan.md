@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer responsebox size payload boundary slice by
+  adding a responsebox size payload builder and value-level method to
+  `DesktopResponseOverlayRuntimeClient`. Response overlay window-sync and close
+  paths now pass renderer values while the runtime client assembles
+  `compact_hover`, `turn_ref`, `stale_guard_ref`, and `dismissed` host payload
+  fields. Validation: passed focused response overlay runtime client, response
+  overlay state, renderer chat boundary, and docs-index tests plus docs search,
+  related commit search, stale responsebox raw payload scan, docs listing, and
+  diff checks. No migration required; responsebox IPC channel names, host
+  payload shape, visibility re-report timing, fixed-size/awaiting sizing
+  policy, dismissal behavior, storage, provider policy, hosted URLs,
+  permissions, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer stream ingress value boundary slice by
   routing chat stream ingress conversation identity, turn-map registration, and
   transcript user binding through `desktopChatStreamEventRuntime` and
@@ -282,9 +294,9 @@ For each completed slice, record:
   `event.conversationRef`, `event.turnRef`, and `event.payload.userId` reads.
   Ingress still owns fail-safe projection sync, turn-map registration,
   transcript session sync, and handler dispatch ordering. Validation: passed
-  focused ingress runtime, event payload runtime, renderer chat boundary, and
-  docs-index tests plus docs search, related commit search, stale raw ingress
-  field scan, docs listing, and diff checks. No migration required; SDK
+  focused ingress runtime, event payload runtime, event runtime, renderer chat
+  boundary, and docs-index tests plus docs search, related commit search, stale
+  raw ingress field scan, docs listing, and diff checks. No migration required; SDK
   conversation-event shape, `windie:conversation-event` IPC delivery,
   transcript session storage, turn routing behavior, provider policy, hosted
   URLs, permissions, and local execution behavior are unchanged.

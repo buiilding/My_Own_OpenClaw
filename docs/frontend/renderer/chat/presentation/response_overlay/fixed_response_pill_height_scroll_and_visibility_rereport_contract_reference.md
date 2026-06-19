@@ -53,7 +53,12 @@ Closeability:
 
 Main-process size updates are sent through:
 
-- `DesktopResponseOverlayRuntimeClient.setResponseboxSize({ visible, width, height, compact_hover })`
+- `DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({ visible, width, height, compactHover, turnRef, staleGuardRef })`
+
+The runtime client owns conversion from renderer value names to the
+`set-responsebox-size` host payload (`compact_hover`, `turn_ref`,
+`stale_guard_ref`, and optional `dismissed`). The window-sync hook owns only
+visibility, measurement, dedupe, and re-report timing.
 
 Behavior:
 

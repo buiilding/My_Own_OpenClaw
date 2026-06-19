@@ -93,12 +93,12 @@ export function useResponseOverlayWindowSync({
           width: 0,
           height: 0,
         }, overlayIntent?.conversationRef || null);
-        await DesktopResponseOverlayRuntimeClient.setResponseboxSize({
+        await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
           visible: false,
           width: 0,
           height: 0,
-          turn_ref: turnRef,
-          stale_guard_ref: staleGuardRef,
+          turnRef,
+          staleGuardRef,
         });
       } catch (error) {
         console.warn('[MinimalResponseOverlay] Failed to hide response overlay:', error);
@@ -168,13 +168,13 @@ export function useResponseOverlayWindowSync({
         width,
         height,
       }, overlayIntent?.conversationRef || null);
-      await DesktopResponseOverlayRuntimeClient.setResponseboxSize({
+      await DesktopResponseOverlayRuntimeClient.setResponseboxSizeValues({
         visible: true,
         width,
         height,
-        compact_hover: Boolean(compactHover),
-        turn_ref: turnRef,
-        stale_guard_ref: staleGuardRef,
+        compactHover: Boolean(compactHover),
+        turnRef,
+        staleGuardRef,
       });
     } catch (error) {
       console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);

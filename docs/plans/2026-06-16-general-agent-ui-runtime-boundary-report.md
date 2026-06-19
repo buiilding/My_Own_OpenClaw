@@ -174,6 +174,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Responsebox Size Payload Boundary
+
+- Finding: `DesktopResponseOverlayRuntimeClient` owned responsebox IPC channel
+  calls and visibility normalization, but response overlay hooks still built
+  host-shaped size payloads with `compact_hover`, `turn_ref`,
+  `stale_guard_ref`, and `dismissed` fields.
+- Change: added a responsebox size payload builder and value-level runtime
+  client method. The window-sync and close paths now pass renderer values while
+  the runtime client assembles the host IPC payload.
+- Validation: passed focused response overlay runtime client, response overlay
+  state, renderer chat boundary, and docs-index tests plus docs search, related
+  commit search, stale responsebox raw payload scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Responsebox IPC channel names, host
+  payload shape, visibility re-report timing, fixed-size/awaiting sizing
+  policy, dismissal behavior, storage, provider policy, hosted URLs,
+  permissions, and local-runtime execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Stream Ingress Value Boundary
 
 - Finding: chat stream ingress orchestration was already centralized in
@@ -185,9 +203,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktopChatStreamEventPayloadRuntime` helper values. Ingress still owns
   fail-safe projection, turn-map, transcript-session, and handler dispatch
   ordering.
-- Validation: passed focused ingress runtime, event payload runtime, renderer
-  chat boundary, and docs-index tests plus docs search, related commit search,
-  stale raw ingress field scan, docs listing, and diff checks.
+- Validation: passed focused ingress runtime, event payload runtime, event
+  runtime, renderer chat boundary, and docs-index tests plus docs search,
+  related commit search, stale raw ingress field scan, docs listing, and diff
+  checks.
 - Compatibility: no migration required. SDK conversation-event shape,
   `windie:conversation-event` IPC delivery, transcript session storage, turn
   routing behavior, provider policy, hosted URLs, permissions, and local

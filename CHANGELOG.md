@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: assemble responsebox size IPC payloads inside
+  `desktopResponseOverlayRuntimeClient` so response overlay hooks report
+  value-level size, turn, stale-guard, hover, and dismissal fields. No
+  migration required.
 - renderer/runtime: route chat stream ingress conversation identity, turn
   identity, and transcript user binding through app-runtime stream event helper
   values instead of raw SDK event fields. No migration required.
