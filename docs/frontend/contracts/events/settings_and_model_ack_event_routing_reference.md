@@ -14,7 +14,7 @@ title: "Settings and Model ACK Event Routing Reference"
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/runtime/desktopSettingsEventRuntimeClient.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRuntimeTransport.ts`
 - `frontend/src/main/ipc.cjs`
 - `backend/src/api/handlers/settings.py`

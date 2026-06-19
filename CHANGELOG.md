@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat-stream: delete the duplicate chat-stream event utility path and
+  route terminal error filtering, error text fallback, and screenshot
+  attachment normalization through `desktopChatStreamEventPayloadRuntime`. No
+  migration required.
 - renderer/trace: move stream, chat-pill, response-surface, and live-surface
   diagnostic trace helpers into a renderer app-runtime facade with injectable
   chat workspace snapshots. No migration required.

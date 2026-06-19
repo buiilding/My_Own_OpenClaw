@@ -10,7 +10,7 @@ import {
 import {
   resolveErrorText,
   shouldIgnoreStreamError,
-} from '../../utils/chatStream/chatStreamEventUtils';
+} from '../../../../app/runtime/desktopChatStreamEventPayloadRuntime';
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { ConversationEvent } from '../../../../app/runtime/desktopConversationRuntimeContracts';

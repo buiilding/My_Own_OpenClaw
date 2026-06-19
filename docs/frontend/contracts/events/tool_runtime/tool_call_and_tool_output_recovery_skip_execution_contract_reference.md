@@ -12,7 +12,7 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/src/runtime/Agent.ts`
 - `backend/src/agent/execution/interaction_loop.py`

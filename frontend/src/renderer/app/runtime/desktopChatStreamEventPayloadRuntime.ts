@@ -1,8 +1,8 @@
 ﻿/**
- * Provides the chat stream event utils module for the renderer UI.
+ * Normalizes renderer chat stream event payloads for UI side effects.
  */
 
-import { DesktopArtifactRuntimeClient } from '../../../../app/runtime/desktopArtifactRuntimeClient';
+import { DesktopArtifactRuntimeClient } from './desktopArtifactRuntimeClient';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [

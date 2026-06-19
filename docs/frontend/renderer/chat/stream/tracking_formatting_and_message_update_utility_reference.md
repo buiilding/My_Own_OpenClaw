@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for chat stream utility modules: tracking reducer semantics, app-runtime thinking text accumulation, screenshot/correlation extraction, and message-target resolution rules."
 read_when:
-  - When changing `desktopChatStreamTrackingRuntime`, `desktopChatStreamThinkingRuntime`, `chatStreamEventUtils`, or `chatStreamMessageUpdates`.
+  - When changing `desktopChatStreamTrackingRuntime`, `desktopChatStreamThinkingRuntime`, `desktopChatStreamEventPayloadRuntime`, or `chatStreamMessageUpdates`.
   - When debugging chunk-append duplication, tool-output correlation IDs, or stream terminal-state timestamps.
 title: "Tracking, Formatting, and Message-Update Utility Reference"
 ---
@@ -12,7 +12,7 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -49,13 +49,13 @@ Core behavior:
   tool message-state builders used by chat-stream handlers and SDK display-row
   projection, not through separate chat-stream formatting exports.
 
-## Event Utility Contracts (`chatStreamEventUtils.ts`)
+## Event Payload Contracts (`desktopChatStreamEventPayloadRuntime.ts`)
 
 - `shouldIgnoreStreamError` suppresses known settings-update transport noise (`"Failed to update settings"`) from user-visible assistant error rows.
 - `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildRuntimeArtifactUrl(ref)` when URL missing.
 - Tool-call and tool-output correlation id normalization is owned by the SDK
   helper surface imported through `agentSdkClient`, not by
-  `chatStreamEventUtils`.
+  `desktopChatStreamEventPayloadRuntime`.
 - `resolveErrorText` precedence:
 1. payload content string
 2. payload message string
@@ -87,7 +87,7 @@ Metadata normalization:
 - tool counters and completion timestamp
 - terminal error state writes (`phase='error'`, `lastError`, `completedAt`)
 
-`tests/frontend/ChatStreamEventUtils.test.ts` locks:
+`tests/frontend/DesktopChatStreamEventPayloadRuntime.test.ts` locks:
 
 - screenshot attachment normalization, stream-error suppression, and error-text
   fallback behavior

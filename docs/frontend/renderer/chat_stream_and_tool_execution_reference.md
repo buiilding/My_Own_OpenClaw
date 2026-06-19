@@ -34,7 +34,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`

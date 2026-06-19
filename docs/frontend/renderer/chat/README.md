@@ -62,6 +62,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamThinkingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnProjectionEffectsRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopRendererTraceRuntime.ts`
@@ -70,7 +71,6 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
@@ -94,6 +94,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/DesktopChatSendStateRuntime.test.ts`
 - `tests/frontend/DesktopChatModelOptionsRuntime.test.js`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
+- `tests/frontend/DesktopChatStreamEventPayloadRuntime.test.ts`
 - `tests/frontend/ChatStreamMessageUpdates.test.ts`
 - `tests/frontend/DesktopChatStreamThinkingRuntime.test.ts`
 - `tests/frontend/DesktopCurrentTurnProjectionEffectsRuntime.test.ts`

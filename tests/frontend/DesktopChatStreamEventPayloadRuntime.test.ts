@@ -1,14 +1,14 @@
 /**
- * Covers chat stream event utils. behavior in the frontend test suite.
+ * Covers desktop chat stream event payload runtime behavior in the frontend test suite.
  */
 
 import {
   buildScreenshotAttachment,
   resolveErrorText,
   shouldIgnoreStreamError,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime';
 
-describe('chatStreamEventUtils', () => {
+describe('desktopChatStreamEventPayloadRuntime', () => {
   test('shouldIgnoreStreamError matches settings-update failures', () => {
     expect(shouldIgnoreStreamError({ message: 'Failed to update settings: x' })).toBe(true);
     expect(shouldIgnoreStreamError({ content: 'Failed to update settings: y' })).toBe(true);

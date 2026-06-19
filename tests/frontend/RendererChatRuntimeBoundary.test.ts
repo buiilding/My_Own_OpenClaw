@@ -477,8 +477,8 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopComposerAttachmentRuntime.js'),
       'utf8',
     );
-    const chatStreamEventSource = await fs.readFile(
-      path.join(chatRoot, 'utils/chatStream/chatStreamEventUtils.ts'),
+    const chatStreamEventPayloadSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts'),
       'utf8',
     );
     const artifactClientSource = await fs.readFile(
@@ -498,7 +498,7 @@ describe('renderer chat runtime boundary', () => {
       resolvedScreenshotSource,
       replayActionsSource,
       composerAttachmentSource,
-      chatStreamEventSource,
+      chatStreamEventPayloadSource,
     ]) {
       expect(source).not.toContain('infrastructure/services/screenshotMessageState');
       expect(source).not.toContain('infrastructure/services/ArtifactImageUtils');
@@ -509,13 +509,16 @@ describe('renderer chat runtime boundary', () => {
     expect(resolvedScreenshotSource).toContain('DesktopArtifactRuntimeClient.inferArtifactRefFromUrl');
     expect(replayActionsSource).toContain('DesktopArtifactRuntimeClient.resolveReplayScreenshotState');
     expect(composerAttachmentSource).toContain('DesktopArtifactRuntimeClient.resolveArtifactImageExtension');
-    expect(chatStreamEventSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
+    expect(chatStreamEventPayloadSource).toContain('DesktopArtifactRuntimeClient.buildRemoteScreenshotAttachment');
     expect(artifactClientSource).toContain('DesktopRuntimeEndpointClient.buildArtifactUrl');
     expect(artifactClientSource).toContain('resolveScreenshotAttachmentState');
     expect(artifactClientSource).toContain('normalizeArtifactImageContentType');
     expect(endpointClientSource).toContain('buildRuntimeArtifactUrl');
     await expect(fs.stat(
       path.join(chatRoot, 'utils/message/messageScreenshots.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatStream/chatStreamEventUtils.ts'),
     )).rejects.toThrow();
   });
 

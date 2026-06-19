@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat Stream Event Payload Runtime Boundary
+
+- Finding: terminal stream error filtering, fallback error text, and screenshot
+  attachment payload normalization still lived under chat stream feature
+  utilities even though they adapt streamed payloads to renderer app-runtime
+  artifact behavior.
+- Change: moved the helpers into
+  `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`,
+  routed terminal stream handlers and focused tests through the app-runtime
+  owner, and deleted the old
+  `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+  path with a renderer boundary guard.
+- Validation: focused desktop chat stream event payload runtime, chat stream
+  terminal handlers, renderer chat boundary, docs listing, stale old-path scan,
+  frontend lint, and diff checks.
+- Compatibility: no migration required. Settings-update error suppression,
+  recoverable streamed tool-call parse filtering, fallback error text,
+  screenshot ref/url normalization, artifact URL construction, IPC payloads,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Trace Runtime Boundary
 
 - Finding: stream, chat-pill, response-surface, and live-surface diagnostic

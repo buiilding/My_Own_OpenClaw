@@ -275,6 +275,22 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-stream event-payload
+  runtime-boundary slice by deleting the duplicate
+  `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+  path and routing terminal error filtering, error text fallback, and
+  screenshot attachment normalization through
+  `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`.
+  `useChatStreamTerminalHandlers`, focused tests, active docs, folder
+  structure, and renderer chat boundary guards now consume the app-runtime
+  owner directly. Validation: focused desktop chat stream event payload
+  runtime, chat stream terminal handlers, renderer chat boundary, docs listing,
+  stale old-path scan, frontend lint, and diff checks. No migration required;
+  settings-update error suppression text, recoverable streamed tool-call parse
+  filtering, fallback error text, screenshot ref/url normalization, artifact
+  URL construction, IPC payloads, storage, credentials, permissions, hosted
+  routes, provider policy, packaging, and local execution behavior are
+  unchanged.
 - 2026-06-19: completed a renderer trace runtime-boundary slice by moving
   stream, chat-pill, response-surface, and live-surface diagnostic trace
   helpers from
