@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Chat Stream Model Context Runtime Boundary
+
+- Finding: the stream model/provider context type was split across two
+  feature utility files, with `chatStreamTypes.ts` extending a base type from
+  `transcriptModelContext.ts`, even though stream handlers are consuming a
+  renderer runtime contract.
+- Change: collapsed the model/provider and thinking-capability context into
+  `frontend/src/renderer/app/runtime/desktopChatStreamModelContextRuntime.ts`,
+  routed stream handlers through the app-runtime type, and deleted the old
+  type-only feature utility files.
+- Validation: focused renderer chat boundary, docs listing, stale old-path
+  scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Runtime payloads, model/provider
+  values, thinking capability flags, transcript rows, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Chat Stream Message Update Runtime Boundary
 
 - Finding: stream message target selection plus system/user/assistant metadata

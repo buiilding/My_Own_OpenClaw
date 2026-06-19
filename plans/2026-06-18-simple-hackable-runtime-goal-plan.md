@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer chat-stream model-context
+  runtime-boundary slice by collapsing the type-only
+  `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts` and
+  `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
+  paths into
+  `frontend/src/renderer/app/runtime/desktopChatStreamModelContextRuntime.ts`.
+  Stream handlers now import the app-runtime model/provider plus thinking
+  capability context directly, and the old feature utility paths are deleted.
+  Validation: focused renderer chat boundary, docs listing, stale old-path
+  scan, frontend lint, and diff checks. No migration required; runtime
+  payloads, model/provider values, thinking capability flags, transcript rows,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer chat-stream message-update
   runtime-boundary slice by moving message target selection and
   system/user/assistant metadata update payload builders from

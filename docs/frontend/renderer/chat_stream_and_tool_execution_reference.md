@@ -35,10 +35,9 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamMessageUpdateRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventPayloadRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamModelContextRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopModelThinkingRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
 - `packages/windie-sdk-js/src/events/backendEvents.ts`
@@ -382,9 +381,11 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 
 Model metadata contract:
 
-- `transcriptModelContext.ts` owns the shared `{ modelId, modelProvider }` base used by transcript tool-output helpers
-- `chatStreamTypes.ts` extends that base with chat-stream-only thinking capability flags
-- SDK/local-runtime tool-output helpers consume the shared base directly so transcript model metadata shape no longer drifts between the two codepaths
+- `desktopChatStreamModelContextRuntime.ts` owns the shared
+  `{ modelId, modelProvider, supportsThinking, supportsThinkingTextStream }`
+  context used by stream handlers.
+- SDK/local-runtime tool-output helpers consume SDK event metadata directly so
+  transcript model metadata shape no longer drifts between codepaths.
 
 Streaming-complete transcript write nuance:
 

@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/chat-stream: collapse transcript model/provider and thinking-capable
+  stream context types into `desktopChatStreamModelContextRuntime`. No
+  migration required.
 - renderer/chat-stream: move stream message target selection and metadata
   update payload builders into `desktopChatStreamMessageUpdateRuntime`. No
   migration required.

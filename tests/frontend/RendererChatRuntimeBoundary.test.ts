@@ -150,6 +150,36 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordToolMessage');
   });
 
+  test('chat stream model context type is owned by app runtime facade', async () => {
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const localUserHandlerSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamLocalUserHandler.ts'),
+      'utf8',
+    );
+    const modelContextSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamModelContextRuntime.ts'),
+      'utf8',
+    );
+
+    for (const source of [streamSource, localUserHandlerSource]) {
+      expect(source).toContain('desktopChatStreamModelContextRuntime');
+      expect(source).not.toContain('utils/chatStream/chatStreamTypes');
+      expect(source).not.toContain('utils/transcriptModelContext');
+    }
+    expect(modelContextSource).toContain('modelProvider');
+    expect(modelContextSource).toContain('supportsThinkingTextStream');
+    expect(modelContextSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatStream/chatStreamTypes.ts'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/transcriptModelContext.ts'),
+    )).rejects.toThrow();
+  });
+
   test('chat feature code does not use the live-turn facade for transcript session identity', async () => {
     const files = await listSourceFiles(chatRoot);
     const offenders: string[] = [];

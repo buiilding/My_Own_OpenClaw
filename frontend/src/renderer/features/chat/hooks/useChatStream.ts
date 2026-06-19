@@ -9,7 +9,7 @@ import {
 } from '../stores/chatStore';
 import { useDesktopRendererConfigContext } from '../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { resolveThinkingCapabilities } from '../../../app/runtime/desktopModelThinkingRuntime';
-import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
+import { type TranscriptModelContext } from '../../../app/runtime/desktopChatStreamModelContextRuntime';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
 import { useLatestRef } from '../../../app/runtime/desktopRendererHooksRuntimeClient';
