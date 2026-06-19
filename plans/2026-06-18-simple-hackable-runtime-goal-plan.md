@@ -314,6 +314,18 @@ For each completed slice, record:
   projection, stream tracking terminal patch, SDK stop dispatch, IPC payloads,
   storage, credentials, permissions, hosted routes, provider policy, packaging,
   and local execution behavior are unchanged.
+- 2026-06-19: completed a renderer message source-tag runtime-boundary slice by
+  moving dev/source tag label resolution from
+  `frontend/src/renderer/features/chat/utils/message/sourceTags.js` into
+  `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`.
+  Message source badges, thinking labels, docs, focused tests, and renderer
+  chat boundary guards now route through the app-runtime owner, and the old
+  chat message utility path is deleted. Validation: focused message source
+  badge, thinking display, renderer chat boundary, docs listing, stale old-path
+  scan, frontend lint, and diff checks. No migration required; source tag
+  labels, dev-UI gating, message token usage tags, thinking display labels,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer tool-output wrapper deletion by removing
   the unused `frontend/src/renderer/features/chat/utils/toolOutputMessages.ts`
   path after current-turn and stream message paths converged on

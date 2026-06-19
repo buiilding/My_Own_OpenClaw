@@ -300,6 +300,23 @@ Each completed slice should report:
   dispatch, IPC payloads, storage, credentials, permissions, hosted routes,
   provider policy, packaging, and local execution behavior are unchanged.
 
+### 2026-06-19 Renderer Message Source Tag Runtime Boundary
+
+- Finding: dev/source badge label resolution lived under chat message
+  utilities even though it consumes app-runtime presentation source channels
+  and is shared by message badges plus thinking labels.
+- Change: moved `resolveSourceTag(...)` to
+  `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`,
+  routed message badge and thinking display components through that
+  app-runtime facade, deleted the old chat utility path, and refreshed docs
+  plus boundary guards.
+- Validation: focused message source badge, thinking display, renderer chat
+  boundary, docs listing, stale old-path scan, frontend lint, and diff checks.
+- Compatibility: no migration required. Source tag labels, dev-UI gating,
+  message token usage tags, thinking display labels, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Dev-UI Flag Runtime Boundary
 
 - Finding: chat message surfaces and the minimal pill both read the shared

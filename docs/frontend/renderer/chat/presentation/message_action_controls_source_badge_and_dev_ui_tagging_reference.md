@@ -16,8 +16,9 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/features/chat/utils/message/messageTokenUsage.js`
-- `frontend/src/renderer/features/chat/utils/message/sourceTags.js`
+- `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
+- `tests/frontend/DesktopMessageSourceTagRuntime.test.js`
 - `tests/frontend/DesktopDevUiRuntime.test.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageSourceBadge.test.jsx`
@@ -96,7 +97,8 @@ Source fallback normalization:
 - `sourceEventType`: fallback `transcript`
 - `sourceChannel`: fallback `unknown`
 
-Badge label is resolved via `resolveSourceTag(sourceEventType, sourceChannel)`:
+Badge label is resolved via
+`desktopMessageSourceTagRuntime.resolveSourceTag(sourceEventType, sourceChannel)`:
 
 - known event/channel names map to fixed labels
 - renderer presentation metadata uses `sdk:conversation-event`,

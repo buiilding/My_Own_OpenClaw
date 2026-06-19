@@ -51,7 +51,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/features/chat/utils/message/messageListClasses.js`
-- `frontend/src/renderer/features/chat/utils/message/sourceTags.js`
+- `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopDevUiRuntime.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/MessageInput.test.jsx`

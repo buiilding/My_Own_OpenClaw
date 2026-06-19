@@ -1,12 +1,12 @@
 /**
- * Provides the source tags module for the renderer UI.
+ * Provides renderer message source tag labels for presentation surfaces.
  */
 
 import {
   SDK_CONVERSATION_EVENT_SOURCE_CHANNEL,
   SDK_CURRENT_TURN_SOURCE_CHANNEL,
   SDK_DISPLAY_ROWS_SOURCE_CHANNEL,
-} from '../../../../app/runtime/desktopPresentationSourceChannels';
+} from './desktopPresentationSourceChannels';
 
 const SOURCE_EVENT_LABELS = {
   'llm-thought': 'thinking token',

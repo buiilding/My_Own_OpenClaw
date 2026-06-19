@@ -54,6 +54,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/stop-turn: move stop target resolution and terminal current-turn
   projection helpers from chat state utilities into the renderer app-runtime
   facade consumed by the stop hook and chat store. No migration required.
+- renderer/source-tags: move dev/source tag label resolution from chat message
+  utilities into the renderer app-runtime presentation facade used by message
+  badges and thinking labels. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

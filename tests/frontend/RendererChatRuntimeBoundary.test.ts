@@ -597,6 +597,31 @@ describe('renderer chat runtime boundary', () => {
     expect(markdownClientSource).toContain('infrastructure/llmOutputContract');
   });
 
+  test('message source tags stay behind the app runtime presentation facade', async () => {
+    const sourceBadgeSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/MessageSourceBadge.jsx'),
+      'utf8',
+    );
+    const thinkingDisplaySource = await fs.readFile(
+      path.join(chatRoot, 'components/message/ThinkingDisplay.jsx'),
+      'utf8',
+    );
+    const sourceTagRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js'),
+      'utf8',
+    );
+
+    expect(sourceBadgeSource).toContain('desktopMessageSourceTagRuntime');
+    expect(thinkingDisplaySource).toContain('desktopMessageSourceTagRuntime');
+    expect(sourceBadgeSource).not.toContain('utils/message/sourceTags');
+    expect(thinkingDisplaySource).not.toContain('utils/message/sourceTags');
+    expect(sourceTagRuntimeSource).toContain('desktopPresentationSourceChannels');
+    expect(sourceTagRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/sourceTags.js'),
+    )).rejects.toThrow();
+  });
+
   test('chat message state helpers route transcript builders through app runtime client', async () => {
     const files = [
       path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
@@ -1043,6 +1068,31 @@ describe('renderer chat runtime boundary', () => {
     expect(userMessageSource).toContain('DesktopArtifactRuntimeClient.showImageContextMenu');
     expect(clientSource).toContain('INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE');
     expect(clientSource).toContain('INVOKE_CHANNELS.SHOW_IMAGE_CONTEXT_MENU');
+  });
+
+  test('message source tag labels stay behind app runtime presentation facade', async () => {
+    const sourceBadgeSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/MessageSourceBadge.jsx'),
+      'utf8',
+    );
+    const thinkingDisplaySource = await fs.readFile(
+      path.join(chatRoot, 'components/message/ThinkingDisplay.jsx'),
+      'utf8',
+    );
+    const sourceTagRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js'),
+      'utf8',
+    );
+
+    expect(sourceBadgeSource).toContain('desktopMessageSourceTagRuntime');
+    expect(thinkingDisplaySource).toContain('desktopMessageSourceTagRuntime');
+    expect(sourceBadgeSource).not.toContain('utils/message/sourceTags');
+    expect(thinkingDisplaySource).not.toContain('utils/message/sourceTags');
+    expect(sourceTagRuntimeSource).toContain('desktopPresentationSourceChannels');
+    expect(sourceTagRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/sourceTags.js'),
+    )).rejects.toThrow();
   });
 
   test('chat session and transport hooks route main session IPC through app runtime client', async () => {
