@@ -131,10 +131,10 @@ Each completed slice should report:
   Renderer callers now pass focus, maximize, open-target, and reason values
   while the runtime client assembles host payloads.
 - Validation: passed focused desktop window runtime client, app startup,
-  permission gate, wakeword controller boundary, chatbox mouse-ignore, renderer
-  chat boundary, renderer voice boundary, and docs-index tests plus docs search,
-  related commit search, stale host-shaped window command option scan, docs
-  listing, and diff checks.
+  permission gate, wakeword controller boundary, send-surface preparation,
+  chatbox mouse-ignore, renderer chat boundary, renderer voice boundary, and
+  docs-index tests plus docs search, related commit search, stale host-shaped
+  window command option scan, docs listing, and diff checks.
 - Compatibility: no migration required. `show-chatbox`, `hide-chatbox`,
   `show-main-window`, and `activate-chatbox-text-entry` IPC channel names, host
   payload shapes, startup/onboarding/wakeword restore behavior, dashboard
