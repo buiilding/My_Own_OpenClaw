@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/platforms: route active platform and permission authority wording
+  through local-runtime platform adapters instead of sidecar platform adapter
+  labels. No migration required.
 - docs/permissions: route desktop onboarding permission guidance through
   renderer app-runtime permission facades instead of the removed permission
   utility glob. No migration required.

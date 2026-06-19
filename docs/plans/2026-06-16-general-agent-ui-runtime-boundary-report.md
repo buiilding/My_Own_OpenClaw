@@ -173,6 +173,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Platform Adapter Local-Runtime Label Boundary
+
+- Security permission authority docs, platform hub docs, Windows platform docs,
+  docs search results, and recent platform-authority commits were inspected
+  after the desktop permission runtime-facade docs slice.
+- Finding: active security/platform docs still used sidecar platform adapter
+  labels even though current platform authority guidance routes reusable
+  ownership through Electron main, local-runtime platform adapters, permission
+  services, and packaging scripts.
+- Change: reworded those active docs to local-runtime platform adapters while
+  preserving concrete Python sidecar implementation paths, and extended the
+  modular guard to read the platform hub, Windows page, and permission
+  authority workflow.
+- Validation: focused modular boundary test, docs listing, stale phrase scan,
+  and diff checks.
+- Compatibility: no migration required. Platform adapters, permission behavior,
+  input/window actions, screenshot policy, packaging scripts, IPC, credentials,
+  provider policy, backend APIs, storage, and local execution are unchanged.
+
 ### 2026-06-19 Desktop Permission Runtime-Facade Docs Boundary
 
 - Desktop onboarding permission docs, renderer permission runtime references,

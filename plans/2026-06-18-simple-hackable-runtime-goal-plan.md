@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a platform adapter local-runtime label slice by
+  rewording active security permission authority, platform hub, and Windows
+  platform docs from sidecar platform adapter labels to local-runtime platform
+  adapter ownership while preserving concrete Python sidecar implementation
+  paths. The modular stale-doc guard now reads the platform hub, Windows page,
+  and permission authority workflow for this retired label. Validation:
+  focused modular boundary test, docs listing, stale phrase scan, and diff
+  checks. No migration required; documentation/test only, with no platform
+  adapter, permission behavior, input/window action, screenshot policy,
+  packaging script, IPC, credential, provider-policy, backend API, storage, or
+  local execution change.
+
 - 2026-06-19: completed a desktop permission runtime-facade docs slice by
   replacing stale removed-permission-utility guidance in
   `docs/desktop/onboarding_permissions.md` with the current renderer

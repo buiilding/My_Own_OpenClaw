@@ -1,19 +1,19 @@
 ---
-summary: "Windows WindieOS platform guide for packaging, reinstall, sidecar platform behavior, window handling, and screenshot policy."
+summary: "Windows WindieOS platform guide for packaging, reinstall, local-runtime platform behavior, window handling, and screenshot policy."
 read_when:
-  - When changing Windows packaging, permissions, screenshot behavior, or sidecar platform adapters.
+  - When changing Windows packaging, permissions, screenshot behavior, or local-runtime platform adapters.
 title: "Windows"
 ---
 
 # Windows
 
-Windows behavior is mostly implemented through Electron main window policy, sidecar platform adapters, Electron Builder NSIS packaging, and the Windows reinstall helper.
+Windows behavior is mostly implemented through Electron main window policy, local-runtime platform adapters, Electron Builder NSIS packaging, and the Windows reinstall helper.
 
 ## Key Areas
 
 - Windows package target: `frontend/package.json` `package:win`
 - Reinstall helper: `<windie> reinstall win`
-- Sidecar adapter: `frontend/src/main/python/core/platform/windows.py`
+- Local-runtime platform adapter: `frontend/src/main/python/core/platform/windows.py`
 - Window/platform policy: `frontend/src/main/surfaces/window_platform_policy.cjs`
 - CI smoke helper: `scripts/ci/smoke-windows-packages.ps1`
 
@@ -24,7 +24,7 @@ Windows behavior is mostly implemented through Electron main window policy, side
 - PowerShell should not invoke `./scripts/committer.sh` directly; use Git Bash or plain `git add`/`git commit`.
 - Keep Windows package checks separate from Linux/macOS package assumptions.
 - Treat Developer Mode, PowerShell execution policy, and NSIS install behavior as packaging concerns before changing app runtime code.
-- Host-window switching belongs in the sidecar Win32 adapter; WindieOS overlay policy belongs in Electron main.
+- Host-window switching belongs in the local-runtime Win32 adapter; WindieOS overlay policy belongs in Electron main.
 
 ## Related Docs
 

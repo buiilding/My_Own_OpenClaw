@@ -29,7 +29,7 @@ Permissions are not just UI state. They control whether WindieOS can see the scr
 3. Register IPC behavior through `permission_ipc_runtime.cjs` only if the renderer needs a new operation.
 4. Update renderer onboarding/control-center display, permission runtime client, or skin copy only after the main service can report truthfully.
 5. Update local-runtime tool behavior to fail clearly when the capability is unavailable.
-6. Add tests for manifest display, main permission service, renderer state, and sidecar/platform behavior where applicable.
+6. Add tests for manifest display, main permission service, renderer state, and local-runtime platform behavior where applicable.
 7. Update platform docs if the behavior differs on macOS, Windows, or Linux.
 
 Do not mark a permission granted just because the user clicked a button. The source of truth is the OS probe or the privileged operation result.
@@ -39,7 +39,7 @@ Do not mark a permission granted just because the user clicked a button. The sou
 | Capability | UI owner | Enforcement owner | Notes |
 | --- | --- | --- | --- |
 | Screen capture | Onboarding and permissions store | Main permission service and screenshot/capture path | Linux overlay hide/restore is platform policy, not permission state. |
-| Input control | Permissions UI | Main/sidecar platform adapters for mouse/keyboard/window actions | macOS automation/accessibility and Windows/Linux input paths differ. |
+| Input control | Permissions UI | Main and local-runtime platform adapters for mouse/keyboard/window actions | macOS automation/accessibility and Windows/Linux input paths differ. |
 | Microphone | Voice/onboarding UI | Main microphone permission service and renderer capture flow | Voice UI should surface denied/not-ready separately from STT provider failure. |
 | Browser automation | Browser/session UI and permission surface | Dedicated browser runtime and sidecar browser tools | Browser availability is not the same as arbitrary user Chrome control. |
 | Workspace/repo context | Chat/settings surfaces | Main workspace access/runtime helpers | Do not treat workspace access as broad filesystem permission. |
