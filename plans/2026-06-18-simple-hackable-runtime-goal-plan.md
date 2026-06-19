@@ -275,6 +275,22 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer onboarding slide-state runtime-boundary
+  slice by moving permission-slide counting, active-index clamping,
+  permission-vs-stop-slide classification, and onboarding title/body selection
+  from `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js`
+  into
+  `frontend/src/renderer/app/runtime/desktopOnboardingSlideRuntime.js`.
+  `DesktopOnboardingSlideshow`, focused tests, active startup/onboarding docs,
+  app-runtime inventory, and boundary guards now consume the app-runtime owner
+  while the old feature utility path is deleted. Validation: focused
+  onboarding slide-state, slideshow, and renderer app-runtime boundary tests,
+  docs listing, stale old-path scan, frontend lint, and diff checks. No
+  migration required; onboarding slide order, index clamping, title/body copy,
+  stop-shortcut slide behavior, permission manifest consumption, storage, IPC,
+  credentials, permissions, hosted routes, provider policy, packaging, and local
+  execution behavior are unchanged.
+
 - 2026-06-19: completed an agent-definition docs wording slice by routing SDK,
   AgentClient runtime, and API reference client-manifest docs through hosted
   backend, client tool-schema sync, backend default tools, and built-in
