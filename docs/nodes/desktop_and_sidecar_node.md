@@ -131,7 +131,7 @@ For a desktop-sidecar bug, identify the last successful boundary:
 | main-process window/overlay behavior | main overlay/window tests |
 | sidecar JSON-RPC mapping | sidecar JSON-RPC protocol tests and main bridge mapper tests |
 | sidecar tool implementation | focused sidecar pytest for the tool |
-| backend-visible local tool contract | backend remote-tool/schema tests plus sidecar parity tests |
+| backend-visible local tool contract | backend remote-tool/schema tests plus local-runtime executable parity tests |
 | wakeword service or bridge | wakeword bridge/service tests and voice hook tests |
 
 ## Related Docs

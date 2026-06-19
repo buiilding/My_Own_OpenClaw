@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed an extension/tool parity local-runtime label slice by
+  routing tool-system helper rewrite text, extension authoring rules, plugin
+  surface validation, and CLI validation commands through local-runtime
+  executable argument/parity wording instead of sidecar executable/parity
+  ownership. Python sidecar registry and sidecar pytest references remain where
+  they identify implementation evidence. The modular boundary guard now rejects
+  retired sidecar executable/parity/argument labels. Validation:
+  `bin\windie.cmd test frontend --
+  ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs list`,
+  exact stale extension/tool parity label scan, and `git diff --check`. No
+  migration required; no runtime code, plugin manifest, `argument_resolution`,
+  tool schema, executable manifest, registry loading, IPC, credential,
+  permission, hosted route, provider policy, or local execution behavior
+  changed.
 - 2026-06-18: completed a docs-directory and agent-routing quick-card
   owner-label slice by routing first-read runtime/security summaries,
   model-visible tool parity guidance, local screenshot/memory/capability/
@@ -282,10 +296,12 @@ For each completed slice, record:
   local-runtime boundary labels instead of sidecar-as-public-owner wording.
   The guard now rejects the retired sidecar boundary/parity/argument phrases
   while preserving Python sidecar implementation and test references where they
-  identify concrete code. Validation: pending in this slice. No migration
-  required; no trust-boundary behavior, auth, IPC, credential, permission, tool
-  schema, executable payload, storage, hosted route, provider policy, packaging,
-  or local execution behavior changed.
+  identify concrete code. Validation: `bin\windie.cmd test frontend --
+  ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs list`,
+  exact stale sidecar boundary/parity/argument phrase scan, and
+  `git diff --check`. No migration required; no trust-boundary behavior, auth,
+  IPC, credential, permission, tool schema, executable payload, storage, hosted
+  route, provider policy, packaging, or local execution behavior changed.
 - 2026-06-18: completed a Python sidecar architecture local-runtime label
   slice by routing the sidecar architecture page, local-runtime Python
   implementation docs hub, daemon reference, routing quick cards, docs

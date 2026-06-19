@@ -338,9 +338,9 @@ Tools are automatically registered:
 5. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()` or marked non-client-executable in `backend/src/tools/tool_catalog.py`.
    - `web_search` is the current backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.
    - `grounded_mouse_action` and `grounded_scroll_action` are model-visible
-     helper tools that backend preparation rewrites to sidecar-executable
+     helper tools that backend preparation rewrites to local-runtime executable
      `mouse_control` and `scroll_control` calls; they must not appear in the
-     sidecar executable manifest.
+     local-runtime executable manifest.
 
 ## Coordinate Resolution
 

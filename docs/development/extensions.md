@@ -112,10 +112,11 @@ Rules:
 - `schema` points to a JSON Schema file inside the plugin directory.
 - `entrypoint` is `file.py:function` inside the plugin directory.
 - `argument_resolution` is usually `passthrough`; use `backend_grounding` only
-  when the backend prepares executable sidecar arguments.
+  when the backend prepares executable local-runtime arguments.
 - Contribution manifests use the documented snake_case field names only;
   alternate aliases and camelCase keys are rejected at load time.
-- Plugin tools always execute in the Python sidecar.
+- Plugin tools always execute through the local runtime, currently backed by
+  the Python sidecar.
 - Plugin entrypoints must return native `tools.result.ToolResult` values.
 - Sidecar-generated Python module names for loaded entrypoint files are
   internal loader details; extension contracts are `name`, `schema`, and
@@ -208,7 +209,7 @@ is required for desktop-control integrations such as CUA Driver.
    `client_tool_manifest`.
 4. The backend validates and policy-projects the client manifest.
 5. Local plugin tool calls route through SDK local-runtime execution to the
-   sidecar tool registry.
+   Python sidecar-backed tool registry.
 6. MCP tool calls route through the MCP runtime.
 
 ## Validation

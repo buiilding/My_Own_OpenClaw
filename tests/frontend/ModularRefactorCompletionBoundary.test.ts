@@ -513,10 +513,12 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/concepts/agent_loop.md'),
       read('docs/concepts/prompt_and_tool_context.md'),
       read('docs/concepts/safety_boundaries.md'),
+      read('docs/cli/validation_commands.md'),
       read('docs/debug/runtime_traces.md'),
       read('docs/development/agent_architecture_reference.md'),
       read('docs/development/agent_routing_quick_cards.md'),
       read('docs/development/agent_runtime_ownership_and_change_routing.md'),
+      read('docs/development/extensions.md'),
       read('docs/development/tool_development.md'),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/sidecar_tool_change_workflow.md'),
@@ -647,6 +649,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('Local-Runtime Tool Catalog and Execution Model');
     expect(toolRoutingDocText).toContain('executable local-runtime tool manifest');
     expect(toolRoutingDocText).toContain('local-runtime computer-control implementation');
+    expect(toolRoutingDocText).toContain('local-runtime executable parity tests');
+    expect(toolRoutingDocText).toContain('executable local-runtime arguments');
     expect(toolRoutingDocText).toContain('Python sidecar adapters must remain synchronized');
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
@@ -693,6 +697,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('registered sidecar tools');
     expect(toolRoutingDocText).not.toContain('proof that the sidecar directly accepts');
     expect(toolRoutingDocText).not.toContain('sidecar registry implementation');
+    expect(toolRoutingDocText).not.toContain('sidecar-executable');
+    expect(toolRoutingDocText).not.toContain('sidecar executable manifest');
+    expect(toolRoutingDocText).not.toContain('executable sidecar arguments');
+    expect(toolRoutingDocText).not.toContain('no sidecar parity');
+    expect(toolRoutingDocText).not.toContain('sidecar parity tests');
     expect(localRuntimePayloadDocText).not.toContain('sidecar payload');
     expect(localRuntimePayloadDocText).not.toContain('sidecar validation');
     expect(localRuntimePayloadDocText).not.toContain('executable sidecar payload');

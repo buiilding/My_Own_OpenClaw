@@ -70,7 +70,7 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [Diagnostic Flags](../debug/diagnostic_flags.md) for enabling the narrowest backend, Electron, renderer, sidecar, VM worker, or packaged-app debug signal.
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and local-runtime endpoint drift.
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
-- [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
+- [Tools Hub](../tools/README.md) for model-facing and local-runtime executable tools.
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and tool-result contracts.
 - [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md) for changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, sudo prompt behavior, working directories, process sessions, output formatting, and local tool results.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) for browser action schemas, shared contracts, local-runtime execution, Python sidecar adapters, CDP launch, snapshots, refs, files, Electron bridge, and renderer browser controls.

@@ -38,7 +38,7 @@ PowerShell and `./scripts/python-in-env.sh` on Unix-like shells.
 | sidecar JSON-RPC/tool | `<python-in-env> sidecar python -m pytest tests/sidecar/<focused_test>.py -q` |
 | frontend renderer/hook/store | `<windie> test frontend -- <test_file>` |
 | Electron main/IPC | focused Jest/CJS test under `tests/frontend`, then `<windie> test frontend` if shared |
-| tool schema parity | backend schema tests plus sidecar parity tests |
+| tool schema parity | backend schema tests plus local-runtime executable parity tests |
 | docs-only | `<windie> docs list`, focused markdown link check, `git diff --check` |
 | packaging | target OS package command plus smoke helper where available |
 

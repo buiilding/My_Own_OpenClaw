@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-18 Extension Tool Parity Local-Runtime Labels
+
+- Finding: tool-system, extension authoring, plugin surface, and validation
+  command docs still described helper-tool rewrites, backend-only tool
+  validation, plugin execution, and parity checks as sidecar executable/parity
+  ownership instead of local-runtime executable ownership.
+- Change: routed those labels through local-runtime executable arguments,
+  local-runtime executable parity, and local-runtime plugin execution while
+  preserving Python sidecar registry/test references as implementation
+  evidence.
+- Validation: focused modular-boundary guard, docs listing, exact stale
+  extension/tool parity label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, plugin manifests,
+  `argument_resolution`, tool schemas, executable manifests, registry loading,
+  IPC, credentials, permissions, hosted routes, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-18 Python Sidecar Architecture Local-Runtime Labels
 
 - Finding: the Python sidecar architecture, sidecar docs hub, daemon reference,

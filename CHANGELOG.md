@@ -27,6 +27,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/public: route remaining docs hub, prompt/tool-context, and runtime-node
+  parity labels through local-runtime executable wording instead of
+  sidecar-executable/parity wording. No migration required.
+- docs/extensions: route helper-tool rewrite, plugin execution, backend-only
+  tool, and validation-command parity labels through local-runtime executable
+  wording instead of sidecar parity/argument wording. No migration required.
 - docs/development: route first-read docs directory and agent-routing quick-card
   owner labels through local-runtime boundary, executable parity, capture,
   memory, credential, wakeword, and packaging wording while preserving Python

@@ -165,4 +165,4 @@ Question the design when:
 - Prompt-context changes need evidence from prompt construction, provider input,
   and transparency output when those surfaces differ.
 - Tool-context changes need separate proof for model-visible schema exposure
-  and sidecar-executable argument preparation.
+  and local-runtime executable argument preparation.
