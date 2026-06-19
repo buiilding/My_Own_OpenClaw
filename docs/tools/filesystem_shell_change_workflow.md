@@ -3,7 +3,7 @@ summary: "Workflow for changing or debugging WindieOS filesystem and shell tools
 read_when:
   - When changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, `open_app`, or `wait`.
   - When a file edit, file read, shell command, background process, sudo prompt, working directory, output truncation, or local tool result behaves differently from what the model requested.
-  - When deciding whether a filesystem/shell bug belongs to backend schema/policy, SDK/main tool dispatch, Electron main bridge payload shaping, sidecar executable code, or result formatting.
+  - When deciding whether a filesystem/shell bug belongs to backend schema/policy, SDK/main tool dispatch, Electron main bridge payload shaping, local-runtime executable code, or result formatting.
 title: "Filesystem and Shell Change Workflow"
 ---
 

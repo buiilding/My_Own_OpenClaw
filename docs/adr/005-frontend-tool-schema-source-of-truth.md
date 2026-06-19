@@ -1,7 +1,7 @@
 ---
 summary: "ADR 005 for the desktop client/local-runtime executable tool manifest source of truth while preserving backend-owned model-facing policy and import-independent parity."
 read_when:
-  - When changing backend tool schemas, sidecar executable tool manifests, schema parity tests, tool catalog generation, or provider-visible tool policy.
+  - When changing backend tool schemas, local-runtime executable tool manifests, schema parity tests, tool catalog generation, or provider-visible tool policy.
   - When evaluating whether the desktop client/local-runtime manifest pipeline should publish executable tool manifests consumed by the backend.
 title: "ADR 005: Desktop Client Tool Manifest Source of Truth"
 ---
@@ -19,7 +19,7 @@ checks, policy filtering, provider projection, and backend-native tools.
 WindieOS has two related but distinct tool contracts:
 
 - backend model-facing schemas: what the LLM sees and what policy/capability gates can expose
-- sidecar executable tools: what actually runs on the user's machine
+- local-runtime executable tools: what actually runs on the user's machine
 
 Historically, the backend owned the local model-facing tool catalog and emitted tool calls to the frontend. The sidecar owned local tool execution. That left local tools split across two runtimes and made drift easy.
 
@@ -39,8 +39,8 @@ Current rules:
 - Electron consumes `frontend/src/main/generated/builtin_tool_manifest.json`
 - the generated manifest is produced from `frontend/src/main/python/tools/manifest.py`
 - built-in manifest entries keep `schema` for backend validation/capability
-  reporting and `executable_schema` for direct sidecar arguments when grounded
-  tools need backend preparation before execution
+  reporting and `executable_schema` for direct local-runtime arguments when
+  grounded tools need backend preparation before execution
 - backend owns client-manifest envelope/trust checks, model-facing policy gates,
   provider adaptation, capability narrowing, and backend-native tools
 - backend validates tool arguments only for backend-executed tools; local

@@ -17,7 +17,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 | Hosted backend | Agent loop, providers, tool schemas, websocket events, SDK routes, OCR/vision/TTS/STT | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` |
 | Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, SDK local-runtime host/status context | `frontend/src/main` |
 | React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, projected tool state | `frontend/src/renderer` |
-| Python sidecar | Local executable tools, memory store, browser runtime, screenshots, shell/process execution | `frontend/src/main/python` |
+| local-runtime implementation | Local executable tools, memory store, browser runtime, screenshots, shell/process execution backed by the Python sidecar | `frontend/src/main/python` |
 | Tests | Contract drift and runtime regressions | `tests/backend`, `tests/frontend`, `tests/sidecar` |
 
 ## Debug Pages
@@ -46,7 +46,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 - Do not patch the visible UI symptom until the producing event or state contract is verified.
 - For backend, SDK/main, renderer, and sidecar drift, prefer adding or extending parity tests over importing implementation code across boundaries.
 - For overlay timing bugs, write down the phase sequence first. Mixing focus, capture, content protection, and visibility changes in one patch makes regressions hard to isolate.
-- For local tool bugs, verify the producer and execution boundary: backend schema/event, Agent SDK tool router, Electron local-runtime bridge, and Python sidecar executable result.
+- For local tool bugs, verify the producer and execution boundary: backend schema/event, Agent SDK tool router, Electron local-runtime bridge, and local-runtime executable result.
 - For hosted backend bugs, do not assume local Electron state is wrong until the websocket or HTTP payload is inspected.
 
 ## Evidence Notes

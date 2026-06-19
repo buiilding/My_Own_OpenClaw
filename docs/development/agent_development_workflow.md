@@ -81,7 +81,7 @@ Keep each patch around one behavior boundary:
 
 - schema plus parser tests
 - IPC channel plus bridge tests
-- sidecar executable plus sidecar tests
+- local-runtime executable plus sidecar tests
 - renderer UI state plus renderer tests
 - docs-only routing update plus docs listing/link checks
 

@@ -25,9 +25,9 @@ Check whether the change touched:
 - websocket event name or payload
 - Electron IPC channel
 - preload allowlist
-- sidecar JSON-RPC method or payload
+- local-runtime JSON-RPC method or payload
 - model-facing tool schema
-- sidecar executable tool schema/result
+- local-runtime executable tool schema/result
 - environment variable or config field
 - transcript/session identifier
 - artifact reference shape

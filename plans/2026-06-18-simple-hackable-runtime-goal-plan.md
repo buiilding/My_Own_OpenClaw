@@ -275,20 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-18: completed a security trust-boundary owner-label slice by routing
+  the security boundary matrix, security change playbook, docs hub, and docs
+  entrypoint through local-runtime trust-boundary wording instead of sidecar as
+  the public security boundary. Python sidecar implementation references remain
+  where they identify concrete executor code. Validation: `bin\windie.cmd test
+  frontend -- ModularRefactorCompletionBoundary --runInBand`,
+  `bin\windie.cmd docs list`, exact stale security trust-boundary label scan,
+  and `git diff --check`. No migration required; no trust-boundary behavior,
+  auth, IPC, credential, permission, tool schema, executable payload, storage,
+  hosted route, provider policy, or local execution behavior changed.
 - 2026-06-18: completed a tool catalog local-runtime executable label slice by
   routing first-read frontend/docs hub entries, frontend architecture runtime
-  notes, channel/tool-system summaries, the tools hub, tool catalog matrix,
-  schema-policy workflow, and troubleshooting docs through local-runtime
-  executable ownership instead of Python-sidecar-as-owner labels. Python sidecar
-  paths, registry details, packaging notes, and sidecar tests remain where they
-  identify the concrete implementation. The modular docs guard now rejects the
-  retired Python sidecar executable owner, executor, registry/runtime, and
-  first-read frontend sidecar runtime phrases. Validation: `bin\windie.cmd test
-  frontend -- ModularRefactorCompletionBoundary --runInBand`,
-  `bin\windie.cmd docs list`, exact stale tool-owner label scan, and
-  `git diff --check`. No migration required; no tool name, schema, manifest,
-  IPC, JSON-RPC, parity test, credential, permission, storage, hosted route,
-  provider policy, packaging, or local execution behavior changed.
+  notes, ADR/debug/development/plugin workflows, channel/tool-system summaries,
+  the tools hub, tool catalog matrix, schema-policy workflow, filesystem/shell
+  workflow, and troubleshooting docs through local-runtime executable ownership
+  instead of Python-sidecar-as-owner labels. Python sidecar paths, registry
+  details, packaging notes, and sidecar tests remain where they identify the
+  concrete implementation. The modular docs guard now rejects the retired
+  Python sidecar executable owner, executor, registry/runtime, and first-read
+  frontend sidecar runtime phrases. Validation: `bin\windie.cmd test frontend
+  -- ModularRefactorCompletionBoundary --runInBand`, `bin\windie.cmd docs
+  list`, exact stale tool-owner label scan, and `git diff --check`. No
+  migration required; no tool name, schema, manifest, IPC, JSON-RPC, parity
+  test, credential, permission, storage, hosted route, provider policy,
+  packaging, or local execution behavior changed.
 - 2026-06-18: completed a public runtime route-map label slice by routing
   architecture overview, communication flow, runtime node matrix, backend
   cross-layer inventory, operations triage, main-process workflows, and

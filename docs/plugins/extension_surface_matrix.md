@@ -1,7 +1,7 @@
 ---
 summary: "Matrix of current WindieOS extension surfaces with owner files, registration points, docs, and validation targets."
 read_when:
-  - When adding or modifying a tool, provider, inference adapter, SDK route, sidecar action, browser integration, or renderer feature.
+  - When adding or modifying a tool, provider, inference adapter, SDK route, local-runtime action, browser integration, or renderer feature.
   - When deciding which current extension point should satisfy a plugin-like request.
 title: "Extension Surface Matrix"
 ---
@@ -14,7 +14,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 | --- | --- | --- | --- |
 | Backend remote tool | backend tool catalog/registry and policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools`, `backend/src/tools/registry.py`, `backend/src/tools/tool_policy.py` | backend tool contract/schema/policy tests |
 | Backend SDK tool | SDK `Tool` and `ToolContext` | `backend/src/sdk/tool.py`, `backend/src/sdk/context.py`, `backend/src/tools/templates` | SDK tool contract tests |
-| Sidecar executable tool | Python sidecar registry and manifest-owned exposed tool names | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/manifest.py`, domain tool folders | sidecar pytest tests, parity tests |
+| Local-runtime executable tool | Python sidecar registry and manifest-owned exposed tool names | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/manifest.py`, domain tool folders | sidecar pytest tests, parity tests |
 | Backend-only tool | backend registry only | `backend/src/tools/registry.py`, domain implementation | backend tool tests and docs explaining no sidecar parity |
 | LLM provider | provider factory + config + model catalog | `backend/src/llm/providers`, `backend/src/llm/providers/factory.py`, `backend/src/llm/models/models_config.py`, `backend/src/core/config` | provider factory/config/model-list/stream tests |
 | Inference provider | capability router/adapter | `backend/src/core/inference`, `backend/src/core/interfaces`, `backend/src/services/ocr`, `backend/src/services/vision`, embedding services | provider health/circuit/tool-output tests |
@@ -38,7 +38,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 For each extension type:
 
 - backend tool: `docs/tools/`, `docs/backend/tools/`, and this matrix
-- sidecar tool: `docs/tools/`, `docs/frontend/sidecar/tools/`, and [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
+- local-runtime tool: `docs/tools/`, `docs/frontend/sidecar/tools/`, and [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
 - provider: `docs/providers/` and provider-specific page
 - SDK route: `docs/sdk/` and `docs/reference/http_api_surface.md`
 - renderer/main feature: relevant `docs/desktop/`, `docs/frontend/`, and [Channels Hub](../channels/README.md) if routing changes
@@ -48,7 +48,7 @@ For each extension type:
 
 - registration point is explicit.
 - model visibility is covered by backend policy tests.
-- sidecar executable behavior is covered when local actions exist.
+- local-runtime executable behavior is covered when local actions exist.
 - provider credentials are loaded from config/env, not hardcoded.
 - SDK clients update when public routes change.
 - docs and changelog mention the extension surface.

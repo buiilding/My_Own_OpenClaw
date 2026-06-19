@@ -30,7 +30,7 @@ Start every change by identifying the owning runtime before editing code.
 | --- | --- | --- |
 | Backend API route | `docs/backend/api/api_route_change_workflow.md` | Route schema, service code, tests, docs, changelog |
 | SDK route or client method | `docs/sdk/sdk_route_change_workflow.md` | Backend route models, TS/Python clients, examples or tests, docs, changelog |
-| Model-visible tool | `docs/tools/tool_schema_policy_change_workflow.md` | Backend catalog/policy, sidecar executable contract if local, SDK/main dispatch, tests, docs, changelog |
+| Model-visible tool | `docs/tools/tool_schema_policy_change_workflow.md` | Backend catalog/policy, local-runtime executable contract if local, SDK/main dispatch, tests, docs, changelog |
 | Filesystem or shell behavior | `docs/tools/filesystem_shell_change_workflow.md` | Backend schema/policy, SDK/main dispatch, Electron argument shaping, local execution, result formatting, tests |
 | Browser automation | `docs/browser/browser_change_workflow.md` | Backend schema, shared browser contract, local-runtime browser execution, Python sidecar adapters, Electron bridge, renderer controls, tests |
 | Renderer/main/local-runtime ownership bug | `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md` | Identify the producer before editing the consumer |

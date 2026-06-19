@@ -34,9 +34,9 @@ contracts.
 - [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
-- [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
+- [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and local-runtime boundaries
 - [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, local-runtime remote-client auth headers, and secret logging
-- [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
+- [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, local-runtime actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and tool-result contracts
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
@@ -97,7 +97,7 @@ contracts.
 - [**Command Matrix**](cli/command_matrix.md) - Detailed command lookup for current scripts and package commands
 
 ### Concepts, Tools, Providers
-- [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
+- [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and local-runtime boundaries
 - [**Sessions and Conversations**](concepts/sessions_and_conversations.md) - User/session/conversation identity, transcript replay, backend rehydrate, and conversation-scoped routing
 - [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Owner routing for user/session/conversation/turn identity, transcript sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
@@ -159,7 +159,7 @@ contracts.
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
-- [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
+- [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs local-runtime executable tool contract
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract validation
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, local-runtime executors, policy gates, and tests
 - [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main runtime, sidecar, result ingress, and history

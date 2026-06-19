@@ -76,7 +76,7 @@ Backend tool catalog/policy
   -> backend tool-call events
   -> SDK tool coordination
   -> SDK local runtime client
-  -> Python sidecar executable manifest/registry
+  -> local-runtime executable manifest/registry backed by Python sidecar code
   -> local tool result
   -> SDK tool-result return
   -> backend history
@@ -285,7 +285,7 @@ Frontend tool flow:
 ```text
 backend model-visible tool call
   -> SDK tool coordinator
-  -> Python sidecar executable tool
+  -> local-runtime executable tool
   -> SDK tool result return
   -> backend history
 ```
@@ -309,7 +309,7 @@ portion as the dashboard instead of maintaining a divergent response model.
   `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and
   `windie:status` -> renderer projection and transcript side effects.
 - Tool turn: backend model-visible tool call -> Agent SDK tool router ->
-  sidecar executable tool -> SDK result return -> backend history.
+  local-runtime executable tool -> SDK result return -> backend history.
 - Conversation history: renderer-visible transcript and local-runtime-backed SDK store
   are durable local authority; backend sessions are inference state that can be
   rebuilt from local transcript.

@@ -116,7 +116,7 @@ Built-in manifest entries intentionally separate schema roles:
 
 - `schema` is the backend-validation client-manifest schema. For grounded tools,
   it can include backend-preparation fields such as OCR or prediction targets.
-- `executable_schema` is the sidecar executable argument schema. It describes
+- `executable_schema` is the local-runtime executable argument schema. It describes
   what the Python tool implementation can run after backend preparation.
 - `argument_resolution` explains whether those two schemas are expected to be
   identical (`passthrough`) or transformed by backend grounding

@@ -27,10 +27,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/tools: route first-read tool/frontend hubs, catalog/channel/tool-system
-  executor labels, and schema-policy workflows through local-runtime executable
-  ownership while keeping Python sidecar paths/tests as implementation
-  evidence. No migration required.
+- docs/tools: route first-read tool/frontend hubs, ADR/debug/development/plugin
+  workflows, catalog/channel/tool-system executor labels, and schema-policy
+  docs through local-runtime executable ownership while keeping Python sidecar
+  paths/tests as implementation evidence. No migration required.
+- docs/security: route security trust-boundary and playbook labels through
+  local-runtime wording while keeping Python sidecar implementation references
+  explicit. No migration required.
 - docs/runtime: route remaining public architecture, operations, node, and
   frontend workflow owner labels through local-runtime implementation wording
   while preserving Python sidecar implementation breadcrumbs. No migration

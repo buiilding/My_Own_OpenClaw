@@ -2,7 +2,7 @@
 summary: "Security change playbook for WindieOS auth, IPC, validation, credential, permission, tool-policy, and local execution changes."
 read_when:
   - When implementing or reviewing a security-sensitive WindieOS change.
-  - When deciding which tests and docs must move with an auth, IPC, validation, credential, permission, tool, or sidecar change.
+  - When deciding which tests and docs must move with an auth, IPC, validation, credential, permission, tool, local-runtime, or Python sidecar implementation change.
 title: "Security Change Playbook"
 ---
 
@@ -116,8 +116,8 @@ Likely code:
 
 - `frontend/src/main/permission*`
 - `frontend/src/renderer/features/onboarding/**`
-- platform-specific main/sidecar adapters
-- sidecar computer/browser tool implementations
+- platform-specific main/local-runtime adapters
+- Python sidecar computer/browser tool implementations
 
 Validate:
 
@@ -126,7 +126,7 @@ Validate:
 - denied permissions hide or fail local tools cleanly.
 - platform-specific screenshot/input behavior remains isolated.
 
-## Tool Policy or Sidecar Execution
+## Tool Policy or Local-Runtime Execution
 
 Read:
 
@@ -149,7 +149,7 @@ Validate:
 
 - model-visible schema narrows as intended.
 - parser validation matches visible tools.
-- sidecar validates executable payloads independently.
+- local-runtime execution validates executable payloads independently.
 - tool-result ingress preserves request ids and failure outputs.
 - local filesystem/shell/browser/computer tests cover risky edge cases.
 

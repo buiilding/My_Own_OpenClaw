@@ -589,6 +589,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Python sidecar tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
     expect(docText).toContain('Local runtime implementation');
+    expect(docText).toContain('Local-runtime boundaries should');
+    expect(docText).toContain('Tool Policy or Local-Runtime Execution');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
     expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('SDK desktop agent');
@@ -610,6 +612,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('executable sidecar local tools');
     expect(docText).not.toContain('routes it to the sidecar');
     expect(docText).not.toContain('The sidecar sends MCP `tools/call`');
+    expect(docText).not.toContain('sidecar, or SDK trust boundaries');
+    expect(docText).not.toContain('tool, or sidecar change');
+    expect(docText).not.toContain('Sidecar boundaries should');
+    expect(docText).not.toContain('Tool Policy or Sidecar Execution');
+    expect(docText).not.toContain('platform-specific main/sidecar adapters');
+    expect(docText).not.toMatch(/(?<!Python )sidecar computer\/browser tool implementations/);
     expect(browserToolOverviewText).not.toContain('sidecar runtime execution');
     expect(browserToolOverviewText).not.toContain('sidecar runtime, CDP launch');
     expect(browserToolOverviewText).not.toContain('Update sidecar runtime argument handling');

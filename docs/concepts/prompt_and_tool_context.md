@@ -61,7 +61,7 @@ That means tool schema visibility is narrowed by:
 - provider/inference health,
 - provider-specific schema projection.
 
-The sidecar executable registry is intentionally separate. Parity is enforced through contracts and tests, not imports from backend into frontend or sidecar.
+The local-runtime executable registry is intentionally separate. Parity is enforced through contracts and tests, not imports from backend into frontend or sidecar.
 
 ## Tool Schema Projection Path
 
@@ -76,7 +76,7 @@ Tool schemas are not copied directly from the registry into the model request. T
 
 | Boundary | Shape | Owner files | Question before adding another adapter |
 | --- | --- | --- | --- |
-| registry -> policy | canonical backend tool declarations | `backend/src/tools`, `backend/src/tools/tool_policy.py` | Is this a model-facing capability, or only a sidecar executable helper? |
+| registry -> policy | canonical backend tool declarations | `backend/src/tools`, `backend/src/tools/tool_policy.py` | Is this a model-facing capability, or only a local-runtime executable helper? |
 | policy -> provider projection | policy-filtered function/computer schemas; direct projection calls reapply `ToolPolicy.from_config(...)` so config availability and disabled-tool gates are still enforced | `backend/src/tools/provider_projection.py`, provider adapters | Does the provider require this dialect, or are we working around a local parser bug? |
 | provider request -> parser | provider-native tool call chunks | `backend/src/agent/llm`, `backend/src/llm/parser_types.py` | Can the parser preserve the original model intent and IDs? |
 | backend event -> SDK/main execution | executable tool event payload | `backend/src/api/processing/formatters`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Are model-facing args and executable args being confused? |

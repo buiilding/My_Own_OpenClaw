@@ -66,7 +66,7 @@ Check:
 
 ### Web Search
 
-`web_search` is backend/provider-owned and is not a sidecar executable tool.
+`web_search` is backend/provider-owned and is not a local-runtime executable tool.
 For the detailed execution-mode and result contract, start with
 [Web Search Tool](web_search.md).
 

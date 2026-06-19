@@ -51,7 +51,7 @@ For a report that is not yet tied to a subsystem, start with [Triage Routes](tri
 
 ## Diagnostic Rule
 
-Do not patch the first failing UI symptom until you know whether the producer contract is valid. Many WindieOS bugs are contract drift across backend formatter/schema, Electron bridge mapping, renderer guards, and sidecar executable tools.
+Do not patch the first failing UI symptom until you know whether the producer contract is valid. Many WindieOS bugs are contract drift across backend formatter/schema, Electron bridge mapping, renderer guards, and local-runtime executable tools.
 
 For cross-runtime failures, capture at least one producer-side signal and one
 consumer-side signal before deciding ownership. Examples include a backend

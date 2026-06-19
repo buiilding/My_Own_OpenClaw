@@ -2,7 +2,7 @@
 summary: "Tool troubleshooting guide for routing WindieOS tool visibility, schema, dispatch, local execution, result, artifact, and replay failures to the right owner."
 read_when:
   - When a model-visible tool is missing, malformed, not executing, returning the wrong result, or breaking replay.
-  - When deciding which backend, renderer, Electron main, or Python sidecar tests should cover a tool regression.
+  - When deciding which backend, renderer, Electron main, or local-runtime implementation tests should cover a tool regression.
 title: "Tool Troubleshooting"
 ---
 
@@ -18,8 +18,8 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool schema missing fields | owning schema source or provider projection | client manifest source, `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/provider_projection.py` |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
 | Backend logs tool call but local runtime never runs it | websocket formatter/outgoing event or SDK main-runtime tool router | backend formatter tests, SDK/main runtime tests |
-| SDK/main says unknown tool | Python sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
-| Python sidecar returns `Tool not found` | Python sidecar registration/import failure | Python sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
+| SDK/main says unknown tool | local-runtime registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
+| Local runtime returns `Tool not found` | local-runtime implementation registration/import failure | Python sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
 | Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |
 | Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |

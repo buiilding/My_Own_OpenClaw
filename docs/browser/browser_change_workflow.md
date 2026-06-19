@@ -50,7 +50,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 4. Backend validation accepts or rejects the action before dispatch.
 5. SDK/main tool routing receives the remote tool call and invokes the local
    execute-tool runtime directly.
-6. SDK local runtime invokes the Python sidecar executable tool adapter, with Electron main supplying display/window context.
+6. SDK local runtime invokes the local-runtime executable browser adapter backed by the Python sidecar, with Electron main supplying display/window context.
 7. Python sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
 9. `BrowserUseEngineRuntime.execute()` maps the canonical action to Browser Use CLI daemon commands.
