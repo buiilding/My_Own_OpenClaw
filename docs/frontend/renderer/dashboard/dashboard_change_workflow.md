@@ -48,7 +48,7 @@ the owner map before changing code.
 | Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `desktopWorkspaceRuntimeClient.ts`, `desktopConversationStore.ts`, `desktopConversationSessionRuntime.ts`, `conversationWorkspaceBinding.js`, Electron main SDK runtime registry | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationWorkspaceBinding.test.js`, `tests/frontend/IpcMainConversationRuntimeRegistry.test.cjs` |
 | Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `desktopConversationStore.ts`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/DesktopConversationStore.test.ts`, `tests/frontend/UseDashboardConversations.test.jsx` |
 | Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, `DesktopMemoryRuntimeClient`, memory runtime contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory runtime/sidecar tests |
-| Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `modelSelectionUtils.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
+| Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `app/runtime/desktopModelSelectionRuntime.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
 | Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/DesktopSettingsEventRuntimeClient.test.ts` |
 | Usage panel changes from placeholder to real data | `components/sections/UsageSection.jsx`, token/usage event consumers, backend token-count docs | `tests/frontend/UsageSection.test.jsx`, token-count renderer/backend tests when data becomes real |
 | Dashboard layout, shell styles, responsive behavior | `frontend/src/renderer/styles/DashboardShell.css`, `CloneSettings.css`, shell components | focused frontend render/layout tests; visual/manual checks for large UI changes |
@@ -157,7 +157,7 @@ Memory section:
 Models section:
 
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
-- `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
+- `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`

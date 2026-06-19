@@ -1,5 +1,5 @@
 /**
- * Provides the model selection utils module for the renderer UI.
+ * Provides shared renderer model-selection reconciliation for chat and settings UI.
  */
 
 const EMPTY_MODEL_SELECTION = { id: '', provider: '' };

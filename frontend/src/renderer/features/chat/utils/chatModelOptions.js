@@ -3,7 +3,7 @@
  */
 
 import { formatProviderDisplayLabel } from '../../../app/skin/desktopRuntimeConfig';
-import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
+import { getCurrentModels } from '../../../app/runtime/desktopModelSelectionRuntime';
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
 const REASONING_MODE_LABELS = Object.freeze({

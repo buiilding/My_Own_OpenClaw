@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer model-selection app-runtime facade slice by
+  moving shared model selection reconciliation and config patch shaping from
+  dashboard utilities into
+  `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`, routing
+  chat and dashboard consumers through that facade, removing the dashboard
+  utility module, and updating renderer docs/guards to keep the deleted
+  dashboard utility path from returning. Validation: focused model-selection
+  utility tests, renderer chat runtime boundary guard, modular boundary guard,
+  docs listing, exact stale path scan, and diff checks. No migration required;
+  renderer helper ownership, docs, and tests changed only, with no selected
+  model config key, update-settings payload, model catalog data, provider key
+  handling, backend validation, IPC channel, storage, credential, permission,
+  hosted route, provider policy, packaging, or local execution behavior changed.
 - 2026-06-19: completed an install packaging local-runtime Python label slice
   by routing docs hub, frontend architecture packaged-install copy, install
   troubleshooting, and packaging reinstall runbook labels away from sidecar

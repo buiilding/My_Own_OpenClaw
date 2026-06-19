@@ -237,7 +237,7 @@ Primary files:
   - `ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js`, `ApiKeysSection.jsx`
   - `SettingsSection.jsx`, `UsageSection.jsx`
 - Utilities/hooks:
-  - `utils/modelSelectionUtils.js`
+  - `app/runtime/desktopModelSelectionRuntime.js`
   - `hooks/useDashboardConversations.js`
   - `utils/conversationGroups.js`
   - transcript session identity is read through `frontend/src/renderer/app/runtime/desktopTranscriptSessionInfoRuntimeClient.js`

@@ -7,9 +7,9 @@ import {
   evaluateModelSelection,
   getCurrentModels,
   getFallbackModelSelection,
-} from '../../frontend/src/renderer/features/dashboard/utils/modelSelectionUtils';
+} from '../../frontend/src/renderer/app/runtime/desktopModelSelectionRuntime';
 
-describe('modelSelectionUtils', () => {
+describe('desktopModelSelectionRuntime', () => {
   const sampleModels = [
     { id: 'gpt-5', provider: 'openai' },
     { id: 'claude-sonnet', provider: 'anthropic' },

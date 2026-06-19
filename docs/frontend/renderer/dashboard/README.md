@@ -44,7 +44,7 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
-- `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
+- `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `tests/frontend/DashboardShell.test.jsx`
 - `tests/frontend/MemorySection.test.jsx`
 - `tests/frontend/ModelsSection.test.jsx`

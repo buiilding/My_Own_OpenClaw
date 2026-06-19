@@ -15,7 +15,7 @@ title: "Models Section Selection Reconciliation and Dashboard Storage Contract R
 - `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
 - `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`
-- `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
+- `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 - `tests/frontend/ModelsSection.test.jsx`
 - `tests/frontend/ModelCardData.test.js`
@@ -80,7 +80,7 @@ Provider cards are derived by `toProviderCards(...)`:
 - `provider-mismatch`: auto-select canonical provider match for selected id
 - `valid`: no-op
 
-Canonicalization rules in `modelSelectionUtils`:
+Canonicalization rules in `desktopModelSelectionRuntime`:
 
 - candidate models for same id sorted by provider asc
 - first sorted provider chosen for mismatch recovery

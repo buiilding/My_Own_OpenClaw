@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/model-selection: move shared model selection reconciliation and
+  config patch helpers from dashboard utilities into the renderer app-runtime
+  facade used by both chat and dashboard. No migration required.
 - docs/install: route docs-hub, frontend architecture, install troubleshooting,
   and packaging runbook packaging labels through bundled local-runtime Python
   wording instead of sidecar runtime packaging labels. No migration required.

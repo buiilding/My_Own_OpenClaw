@@ -13,7 +13,7 @@ import {
   evaluateModelSelection,
   getCurrentModels,
   getFallbackModelSelection,
-} from '../../utils/modelSelectionUtils';
+} from '../../../../app/runtime/desktopModelSelectionRuntime';
 import ApiKeysSection from './ApiKeysSection';
 import {
   normalizeProviderLabel,

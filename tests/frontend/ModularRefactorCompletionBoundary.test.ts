@@ -1867,6 +1867,9 @@ describe('modular sdk refactor completion boundary', () => {
         'bundled Python sidecar runtime',
         'Packaged sidecar uses `resources/python-runtime`',
         'bytecode-only sidecar sources',
+        'features/dashboard/utils/modelSelectionUtils.js',
+        'dashboard/utils/modelSelectionUtils',
+        'modelSelectionUtils.js',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

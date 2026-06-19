@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Model Selection App-Runtime Facade
+
+- Finding: model selection reconciliation and config patch shaping lived under
+  dashboard utilities even though both dashboard model cards and chat model
+  options consumed the same behavior.
+- Change: moved the shared model-selection helpers into
+  `frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js`, routed
+  chat and dashboard consumers through that app-runtime facade, removed the
+  dashboard utility module, and updated renderer docs/guards to keep the deleted
+  dashboard utility path from returning.
+- Validation: focused model-selection utility tests, renderer chat runtime
+  boundary guard, modular boundary guard, docs listing, exact stale path scan,
+  and diff checks.
+- Compatibility: no migration required. Renderer helper ownership, docs, and
+  tests changed only; selected model config keys, update-settings payloads,
+  model catalog data, provider key handling, backend validation, IPC channels,
+  storage, credentials, permissions, hosted routes, provider policy, packaging,
+  and local execution behavior are unchanged.
+
 ### 2026-06-19 Install Packaging Local-Runtime Python Labels
 
 - Finding: docs hub routing, frontend architecture packaged-install copy,

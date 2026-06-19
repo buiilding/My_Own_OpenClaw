@@ -34,6 +34,7 @@ frontend/src/renderer/
 │   │   ├── desktopConversationSessionRuntime.ts # Renderer transcript/chat conversation identity helper rules
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
+│   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
 │   │   ├── desktopRendererHooksRuntimeClient.ts # Renderer shared React hook facade for feature clients
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopPresentationSourceChannels.js # Renderer presentation source-channel labels
@@ -164,8 +165,7 @@ frontend/src/renderer/
 │   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
 │   │
 │   │   └── utils/                       # Dashboard helpers
-│   │       ├── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
-│   │       └── modelSelectionUtils.js   # modelSelectionUtils - Selection reconciliation and config payload shaping helpers
+│   │       └── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
 │   │
 │   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI

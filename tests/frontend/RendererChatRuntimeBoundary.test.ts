@@ -1256,6 +1256,29 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat and dashboard model selection share app runtime reconciliation', async () => {
+    const chatModelOptionsSource = await fs.readFile(
+      path.join(chatRoot, 'utils/chatModelOptions.js'),
+      'utf8',
+    );
+    const modelsSectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx'),
+      'utf8',
+    );
+    const modelRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopModelSelectionRuntime.js'),
+      'utf8',
+    );
+
+    expect(chatModelOptionsSource).toContain('desktopModelSelectionRuntime');
+    expect(chatModelOptionsSource).not.toContain('dashboard/utils/modelSelectionUtils');
+    expect(modelsSectionSource).toContain('desktopModelSelectionRuntime');
+    expect(modelRuntimeSource).toContain('buildModelConfigUpdate');
+    await expect(fs.stat(
+      path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js'),
+    )).rejects.toThrow();
+  });
+
   test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
