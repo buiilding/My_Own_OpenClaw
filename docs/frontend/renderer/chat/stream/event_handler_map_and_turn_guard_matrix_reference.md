@@ -104,7 +104,9 @@ Reason: `user_message` establishes turn/workspace state and seeds optimistic UI 
 - `useConversationRuntimeProjectionStream`:
   - listens to SDK current-turn projections and passes accepted projections to `desktopCurrentTurnProjectionEffectsRuntime.ts`
   - keeps per-conversation/turn cursors so repeated projections do not duplicate text-delta or tool-event side effects
-  - merges SDK display rows with renderer-only annotations for transcript display
+- `desktopConversationDisplayProjection.ts`:
+  - projects SDK display rows into chat messages for transcript display
+  - merges renderer-only annotations and pending optimistic user rows into SDK display messages without duplicating SDK-projected user turns
 - `desktopCurrentTurnProjectionEffectsRuntime.ts`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows

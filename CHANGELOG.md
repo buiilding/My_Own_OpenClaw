@@ -27,6 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move SDK display-row annotation and optimistic user-row merge
+  rules into `desktopConversationDisplayProjection` so
+  `useConversationRuntimeProjectionStream` only wires subscriptions, projection
+  side effects, and chat-store writes. No migration required.
 - docs/sdk: route API reference OCR/vision helper-route wording through local
   runtime process terminology instead of local backend process wording. No
   migration required.

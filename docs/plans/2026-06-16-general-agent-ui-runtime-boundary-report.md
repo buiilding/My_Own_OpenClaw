@@ -174,6 +174,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Display Projection Annotation Merge Boundary
+
+- Finding: `desktopConversationDisplayProjection` already routed SDK display
+  rows through the app-runtime facade, but `useConversationRuntimeProjectionStream`
+  still owned renderer-only annotation merge and pending optimistic user-row
+  preservation/dedupe logic.
+- Change: moved that pure merge rule into
+  `mergeRendererAnnotationsIntoSdkMessages(...)` in
+  `desktopConversationDisplayProjection`. The hook now keeps subscription,
+  current-turn side-effect, and chat-store write orchestration without
+  classifying renderer-composed optimistic user rows locally.
+- Validation: focused display projection, projection-stream integration, and
+  renderer chat runtime boundary tests plus docs search, related commit search,
+  stale hook raw optimistic-row scans, and diff checks.
+- Compatibility: no migration required. SDK display rows, `windie:rows`,
+  pending-turn payloads, renderer annotation fields, chat store state shape,
+  IPC, storage, settings, credentials, permissions, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Conversation Replay Row Selection Boundary
 
 - Finding: `useConversationReplayActions` delegated replay shaping and payload

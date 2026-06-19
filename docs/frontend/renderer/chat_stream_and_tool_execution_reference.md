@@ -1,11 +1,11 @@
 ---
-summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, SDK conversation-event handling, removed chatStreamTransparency helper behavior, local tool execution boundary, thinking status ownership, SDK-projected tool display semantics, and private mergeRendererAnnotations runtime-projection annotation merge behavior."
+summary: "Renderer chat runtime deep reference: provider coordination, message-send lifecycle, SDK conversation-event handling, removed chatStreamTransparency helper behavior, local tool execution boundary, thinking status ownership, SDK-projected tool display semantics, and app-runtime display-row annotation merge behavior."
 read_when:
   - When changing renderer chat hooks, stream event handling, or projected tool display callbacks.
   - When debugging stale-turn tool cancellation, transcript writes, or streaming state drift.
   - When debugging current-turn projection side effects such as send-latch cleanup, thinking text, streamTracking updates, or duplicate tool-event tracking.
   - When resolving stale references to removed `chatStreamTransparency.ts`, `ChatStreamTransparency.test.ts`, or `ChatStreamThinkingStatusUtils.test.ts` helper/test paths.
-  - When stale code, tests, or docs mention exported `mergeRendererAnnotations` or direct renderer annotation-merge helpers; the merge is an internal `useConversationRuntimeProjectionStream` detail.
+  - When stale code, tests, or docs mention exported `mergeRendererAnnotations` or direct renderer annotation-merge helpers; the merge now routes through `desktopConversationDisplayProjection.ts`.
 title: "Chat Stream and Tool Execution Reference"
 ---
 
@@ -128,14 +128,18 @@ Thinking status constants from `desktopChatStreamThinkingRuntime.ts`:
 uses `sdk:display-rows` as its source label; the `windie:rows` name is only the
 Electron IPC transport channel.
 
-Renderer-only annotations such as prompt transparency, tool schemas, full message
-details, feedback, and token counts are merged back into matching SDK-projected
-messages inside the hook. Pending optimistic user rows from the local composer
-remain visible until the SDK display rows include the same turn.
+Renderer-only annotations such as prompt transparency, tool schemas, full
+message details, feedback, and token counts are merged back into matching
+SDK-projected messages by `desktopConversationDisplayProjection.ts`. The same
+app-runtime facade preserves pending optimistic user rows from the local
+composer until the SDK display rows include the same turn. The hook owns
+subscription wiring and store writes; it does not own display-row annotation or
+optimistic-row merge semantics.
 
-`mergeRendererAnnotations` is intentionally private. Stale searches for the
-removed export should route here; tests should drive the public hook listener
-and SDK row projection behavior instead of importing the helper directly.
+The old exported `mergeRendererAnnotations` helper remains removed. Stale
+searches for that name should route to `mergeRendererAnnotationsIntoSdkMessages`
+in `desktopConversationDisplayProjection.ts` and tests should exercise the
+app-runtime facade or the public hook listener.
 
 The hook delegates current-turn UI side effects to
 `desktopCurrentTurnProjectionEffectsRuntime.ts`. That runtime reducer owns cursor-based delta

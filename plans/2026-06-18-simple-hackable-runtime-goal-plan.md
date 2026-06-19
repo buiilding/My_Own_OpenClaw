@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer SDK display-row annotation merge boundary
+  slice by moving renderer-only annotation merge and pending optimistic user-row
+  preservation from `useConversationRuntimeProjectionStream` into
+  `desktopConversationDisplayProjection`. The hook now wires projection
+  subscriptions, current-turn side effects, and chat-store writes while the
+  app-runtime display projection facade owns SDK row to chat-message projection
+  plus optimistic user turn dedupe. Validation: focused display projection,
+  projection-stream integration, and renderer chat runtime boundary tests plus
+  docs search, related commit search, stale hook raw optimistic-row scans, and
+  diff checks. No migration required; SDK display rows, `windie:rows`,
+  pending-turn payloads, renderer annotation fields, chat store state shape,
+  IPC, storage, settings, credentials, permissions, provider policy, hosted
+  URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer conversation replay row-selection boundary
   slice by moving edit/resend editable-user lookup and assistant retry
   prior-user lookup from `useConversationReplayActions` into

@@ -557,7 +557,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(streamSource).not.toContain('assistant_delta');
     expect(streamSource).not.toContain('reasoning_delta');
-    expect(projectionSource).toContain('SdkCurrentTurnProjection');
+    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
     expect(projectionSource).toContain('desktopCurrentTurnProjectionEffectsRuntime');
     expect(projectionSource).toContain('applyCurrentTurnProjectionSideEffects');
     expect(projectionSideEffectsSource).toContain('setThinkingStatus');
@@ -713,11 +713,22 @@ describe('renderer chat runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeEventClient.ts'),
       'utf8',
     );
+    const displayProjectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationDisplayProjection.ts'),
+      'utf8',
+    );
 
     expect(projectionSource).not.toContain('DESKTOP_RUNTIME_ON_CHANNELS');
     expect(projectionSource).not.toContain('IpcBridge.on');
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationDisplayProjection');
+    expect(projectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(projectionSource).not.toContain('function mergeRendererAnnotations');
+    expect(projectionSource).not.toContain('function pendingOptimisticUserMessages');
+    expect(projectionSource).not.toContain('function isOptimisticUserMessage');
+    expect(projectionSource).not.toContain("message.sender === 'user'");
+    expect(projectionSource).not.toContain("sourceEventType === 'renderer-compose'");
+    expect(projectionSource).not.toContain("sourceChannel === 'renderer-local'");
     expect(projectionSource).not.toContain('function isCurrentTurnProjection');
     expect(projectionSource).not.toContain('function isSdkDisplayRows');
     expect(projectionSource).not.toContain('payload && typeof payload');
@@ -729,6 +740,10 @@ describe('renderer chat runtime boundary', () => {
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
     expect(eventClientSource).toContain('normalizeCurrentTurnProjectionEvent');
     expect(eventClientSource).toContain('normalizeDisplayRowsProjectionEvent');
+    expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).toContain('renderer-compose');
+    expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).not.toContain('features/chat');
   });
 
   test('dashboard conversation resume projects display rows through app runtime client', async () => {
@@ -744,6 +759,10 @@ describe('renderer chat runtime boundary', () => {
     expect(dashboardHookSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(dashboardHookSource).toContain('desktopConversationDisplayProjection');
     expect(displayProjectionSource).toContain('sdkDisplayChatMessageProjection');
+    expect(displayProjectionSource).toContain('mergeRendererAnnotationsIntoSdkMessages');
+    expect(displayProjectionSource).toContain("message.sender === 'user'");
+    expect(displayProjectionSource).toContain("sourceEventType === 'renderer-compose'");
+    expect(displayProjectionSource).toContain("sourceChannel === 'renderer-local'");
   });
 
   test('chat markdown display reads renderer markdown helpers through app runtime client', async () => {
