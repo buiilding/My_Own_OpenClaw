@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a local-runtime JSON-RPC public channel slice by
+  relabeling public channel, node, architecture-pipeline, docs hub, and browser
+  reference surfaces from sidecar JSON-RPC and Desktop and Sidecar Node wording
+  to local-runtime JSON-RPC and Desktop and Local Runtime Node wording. The
+  desktop-node lifecycle diagram now shows SDK/main local-runtime coordination
+  with renderer SDK projections instead of renderer-initiated local tool
+  execution, while concrete Python sidecar JSON-RPC wording remains where it
+  names the implementation protocol. Validation: focused modular boundary
+  test, docs listing, stale public-label scan, and diff checks. No migration
+  required; documentation/test only, with no JSON-RPC method name, payload
+  shape, IPC channel, SDK local-runtime execution, Python sidecar behavior,
+  backend tool-result ingress, credential, provider-policy, storage, or hosted
+  URL change.
+
 - 2026-06-19: completed an architecture local-runtime tool ownership slice by
   rewording agent-system, backend-architecture, and tool-system docs from
   sidecar-as-owner labels to SDK/main local-runtime dispatch,

@@ -59,7 +59,7 @@ Patch the producer or enforcing node first. Do not normalize malformed data in a
 
 Read:
 
-- [Desktop and Sidecar Node](desktop_and_sidecar_node.md)
+- [Desktop and Local Runtime Node](desktop_and_sidecar_node.md)
 - [Local Tool Channels](../channels/sidecar_and_tool_channels.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
@@ -113,7 +113,7 @@ Validate backend run-control tests and frontend VM worker/runtime-mode tests.
 ## Deep Docs
 
 - [Runtime Node Matrix](runtime_node_matrix.md)
-- [Desktop and Sidecar Node](desktop_and_sidecar_node.md)
+- [Desktop and Local Runtime Node](desktop_and_sidecar_node.md)
 - [VM Worker Node](vm_worker_node.md)
 - [Current vs Future Nodes](current_vs_future_nodes.md)
 - [Channels Hub](../channels/README.md)

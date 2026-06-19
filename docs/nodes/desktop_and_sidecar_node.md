@@ -111,7 +111,7 @@ Do not route dictation audio through the wakeword service. Dictation uses `/ws/t
 
 ## Debug Checklist
 
-For a desktop-sidecar bug, identify the last successful boundary:
+For a desktop/local-runtime bug, identify the last successful boundary:
 
 - UI action happened: renderer event handler fired.
 - IPC bridge accepted the channel: preload and main handler are registered.

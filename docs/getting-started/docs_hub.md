@@ -179,7 +179,7 @@ Read:
 
 - [Runtime Nodes Hub](../nodes/README.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
-- [Desktop and Sidecar Node](../nodes/desktop_and_sidecar_node.md)
+- [Desktop and Local Runtime Node](../nodes/desktop_and_sidecar_node.md)
 - [VM Worker Node](../nodes/vm_worker_node.md)
 - [Current vs Future Nodes](../nodes/current_vs_future_nodes.md)
 
@@ -596,7 +596,7 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Runtime Nodes Hub](../nodes/README.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
-- [Desktop and Sidecar Node](../nodes/desktop_and_sidecar_node.md)
+- [Desktop and Local Runtime Node](../nodes/desktop_and_sidecar_node.md)
 - [VM Worker Node](../nodes/vm_worker_node.md)
 - [Current vs Future Nodes](../nodes/current_vs_future_nodes.md)
 
