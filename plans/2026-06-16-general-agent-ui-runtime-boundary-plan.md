@@ -122,15 +122,16 @@ Each completed slice should report:
 
 ### 2026-06-19 Tool Registry Hub Local-Runtime Labels
 
-- Finding: first-read docs and the Python sidecar implementation overview still
-  used Sidecar Tool Registry hub/heading labels even though the reusable
-  registry/result boundary is local-runtime tool execution backed by the
-  Python sidecar registry module.
+- Finding: first-read docs, the Python sidecar implementation overview, and a
+  backend parity reference still used Sidecar Tool Registry or sidecar runtime
+  labels even though the reusable registry/result boundary is local-runtime
+  tool execution backed by the Python sidecar registry module.
 - Change: renamed registry hub labels and the implementation overview heading
-  to local-runtime tool-registry wording while preserving Python sidecar module
-  paths and sidecar tests as concrete implementation evidence.
+  to local-runtime tool-registry wording, and routed backend parity failure
+  wording through local-runtime execution, while preserving Python sidecar
+  module paths and sidecar tests as concrete implementation evidence.
 - Validation: focused modular-boundary guard, docs listing, exact stale
-  registry-hub label scan, and diff checks.
+  registry-hub/parity label scan, and diff checks.
 - Compatibility: no migration required. Docs and boundary tests changed only;
   tool names, schemas, manifests, registries, IPC channels, JSON-RPC methods,
   runtime code, storage, credentials, permissions, hosted routes, provider

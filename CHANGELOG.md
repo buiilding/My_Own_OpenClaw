@@ -27,9 +27,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs/registry: route tool-registry hub labels through local-runtime wording
-  instead of sidecar registry hub names while keeping Python sidecar registry
-  implementation paths and tests explicit. No migration required.
+- docs/registry: route tool-registry hub labels and backend parity-failure
+  wording through local-runtime wording instead of sidecar registry/runtime
+  owner names while keeping Python sidecar registry implementation paths and
+  tests explicit. No migration required.
 - docs/workflows: route active sidecar tool/runtime workflow link labels and
   workflow titles through local-runtime tool and Python implementation wording
   while keeping Python sidecar paths as implementation evidence, including
