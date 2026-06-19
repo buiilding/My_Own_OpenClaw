@@ -173,9 +173,12 @@ consume these app-runtime facades instead of root renderer utilities.
 `desktopShortcutRuntimeClient.ts` owns renderer shortcut labels, supported
 global-stop shortcut options, shortcut accelerator normalization, focused-window
 stop-key matching, and global-stop shortcut status presentation values for
-fallback and registration-failure notices. General settings keeps rendering,
-copy, and config-patch behavior while consuming shortcut status presentation
-from this runtime client instead of reading raw shortcut status fields.
+fallback and registration-failure notices. It also resolves whether a shortcut
+status snapshot contains a persistable fallback accelerator. General settings
+keeps rendering, copy, and config-patch behavior while consuming shortcut
+status presentation from this runtime client; app config provider keeps state
+and persistence orchestration while consuming fallback accelerator values
+instead of reading raw shortcut status fields.
 
 `desktopPendingTurnRuntimeClient.ts` owns the renderer adapter for the desktop
 pending-turn IPC send channel. Chat hooks and message-send utilities update

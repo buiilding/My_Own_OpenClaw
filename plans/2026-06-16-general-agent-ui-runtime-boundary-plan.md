@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Global Stop Shortcut Fallback Persistence Boundary
+
+- Finding: `desktopShortcutRuntimeClient` owned global stop shortcut labels,
+  supported options, accelerator normalization, focused-window stop-key
+  matching, and notice presentation, but `AppConfigProvider` still read raw
+  shortcut fallback and registration fields before saving a resolved fallback
+  binding.
+- Change: added fallback-accelerator resolution to
+  `desktopShortcutRuntimeClient`. `AppConfigProvider` now keeps config state and
+  persistence orchestration while consuming a runtime-owned fallback accelerator
+  value.
+- Validation: passed focused desktop shortcut runtime client, AppConfigProvider
+  storage/IPC, and renderer settings boundary tests plus docs search, related
+  commit search, stale raw shortcut-status field scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. Global stop shortcut status payloads,
+  local shortcut config persistence format, shortcut fallback behavior,
+  focused-window stop-key matching, IPC channels, storage, provider policy,
+  hosted URLs, permissions, credentials, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 Renderer Global Stop Shortcut Status Presentation Boundary
 
 - Finding: `desktopShortcutRuntimeClient` owned global stop shortcut labels,

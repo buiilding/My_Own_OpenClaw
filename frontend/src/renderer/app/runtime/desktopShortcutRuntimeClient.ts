@@ -48,6 +48,22 @@ export function getGlobalAgentStopShortcutStatusPresentation(
   };
 }
 
+export function resolveGlobalAgentStopShortcutFallbackAccelerator(
+  status: unknown,
+): string | null {
+  const source = recordOrEmpty(status);
+  const resolvedAccelerator = optionalText(source.resolvedAccelerator);
+  if (
+    source.registrationFailed === true
+    || source.usingFallback !== true
+    || resolvedAccelerator === null
+  ) {
+    return null;
+  }
+  const trimmedAccelerator = resolvedAccelerator.trim();
+  return trimmedAccelerator || null;
+}
+
 export const DesktopShortcutRuntimeClient = {
   getAgentStopShortcutLabel,
 
@@ -56,6 +72,8 @@ export const DesktopShortcutRuntimeClient = {
   getGlobalAgentStopShortcutOptions,
 
   getGlobalAgentStopShortcutStatusPresentation,
+
+  resolveGlobalAgentStopShortcutFallbackAccelerator,
 
   normalizeGlobalAgentStopShortcutAccelerator,
 

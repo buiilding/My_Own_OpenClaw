@@ -5,6 +5,7 @@
 import {
   DesktopShortcutRuntimeClient,
   getGlobalAgentStopShortcutStatusPresentation,
+  resolveGlobalAgentStopShortcutFallbackAccelerator,
 } from '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient';
 
 describe('DesktopShortcutRuntimeClient', () => {
@@ -58,5 +59,30 @@ describe('DesktopShortcutRuntimeClient', () => {
       fallbackLabel: '',
       showRegistrationFailure: false,
     });
+  });
+
+  test('resolves persistable global stop shortcut fallback accelerators', () => {
+    expect(resolveGlobalAgentStopShortcutFallbackAccelerator({
+      resolvedAccelerator: ' CommandOrControl+Shift+. ',
+      usingFallback: true,
+      registrationFailed: false,
+    })).toBe('CommandOrControl+Shift+.');
+    expect(
+      DesktopShortcutRuntimeClient.resolveGlobalAgentStopShortcutFallbackAccelerator({
+        resolvedAccelerator: 'CommandOrControl+Shift+.',
+        usingFallback: true,
+        registrationFailed: true,
+      }),
+    ).toBeNull();
+    expect(resolveGlobalAgentStopShortcutFallbackAccelerator({
+      resolvedAccelerator: '   ',
+      usingFallback: true,
+      registrationFailed: false,
+    })).toBeNull();
+    expect(resolveGlobalAgentStopShortcutFallbackAccelerator({
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+      usingFallback: false,
+      registrationFailed: false,
+    })).toBeNull();
   });
 });

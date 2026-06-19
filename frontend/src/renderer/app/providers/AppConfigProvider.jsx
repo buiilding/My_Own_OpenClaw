@@ -25,6 +25,7 @@ import {
   useDesktopSettingsEventHandlers,
 } from '../runtime/desktopSettingsEventRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
+import { DesktopShortcutRuntimeClient } from '../runtime/desktopShortcutRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopVoiceRuntimeClient } from '../runtime/desktopVoiceRuntimeClient';
 import { RENDERER_STORAGE_KEYS } from '../skin/desktopRuntimeConfig';
@@ -171,11 +172,8 @@ export function AppConfigProvider({ children }) {
     }
 
     const fallbackAccelerator = (
-      shortcutStatus?.registrationFailed !== true
-      && shortcutStatus?.usingFallback === true
-      && typeof shortcutStatus?.resolvedAccelerator === 'string'
-      && shortcutStatus.resolvedAccelerator.trim().length > 0
-    ) ? shortcutStatus.resolvedAccelerator.trim() : null;
+      DesktopShortcutRuntimeClient.resolveGlobalAgentStopShortcutFallbackAccelerator(shortcutStatus)
+    );
     if (
       fallbackAccelerator
       && configRef.current?.global_agent_stop_shortcut !== fallbackAccelerator

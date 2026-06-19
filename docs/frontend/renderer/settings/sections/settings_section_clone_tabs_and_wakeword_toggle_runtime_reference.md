@@ -102,10 +102,15 @@ storage. The dashboard thread uses it to either:
 `GeneralSettingsTab` emits local config patches for `global_agent_stop_shortcut`
 selection. It reads supported shortcut options, shortcut labels, and fallback /
 registration-failure presentation through `DesktopShortcutRuntimeClient`.
+`AppConfigProvider` also asks the same runtime client whether an IPC shortcut
+status snapshot contains a resolved fallback accelerator that should be saved
+back to renderer config.
 
 The tab should keep rendering and copy local, but it should not read raw
 `globalAgentStopShortcutStatus` fallback fields such as `usingFallback`,
 `requestedAccelerator`, `resolvedAccelerator`, or `registrationFailed` directly.
+Config-provider persistence should likewise avoid parsing raw shortcut status
+fallback fields directly.
 
 ## Appearance Tab Ownership Model
 

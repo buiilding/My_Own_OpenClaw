@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: move global stop shortcut fallback persistence resolution
+  into `desktopShortcutRuntimeClient` so `AppConfigProvider` no longer reads raw
+  shortcut fallback or registration fields before saving the resolved binding.
+  No migration required.
 - renderer/runtime: move global stop shortcut status presentation into
   `desktopShortcutRuntimeClient` so `GeneralSettingsTab` no longer reads raw
   shortcut fallback or registration-failure fields while rendering shortcut

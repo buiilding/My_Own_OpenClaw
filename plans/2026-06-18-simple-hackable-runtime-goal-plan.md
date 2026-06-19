@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: moved global stop shortcut fallback persistence resolution into
+  `desktopShortcutRuntimeClient`. `AppConfigProvider` now keeps config state and
+  persistence orchestration while consuming a runtime-owned fallback accelerator
+  value instead of reading raw shortcut fallback and registration fields before
+  saving a resolved binding. Validation passed focused desktop shortcut runtime
+  client, AppConfigProvider storage/IPC, and renderer settings boundary tests
+  plus docs search, related commit search, stale raw shortcut-status field
+  scan, docs listing, and diff checks. No migration required; global stop
+  shortcut status payloads, local shortcut config persistence format, shortcut
+  fallback behavior, focused-window stop-key matching, IPC channels, storage,
+  provider policy, hosted URLs, permissions, credentials, and local execution
+  behavior are unchanged.
+
 - 2026-06-19: moved global stop shortcut status presentation into
   `desktopShortcutRuntimeClient`. `GeneralSettingsTab` now asks the runtime
   client whether to show fallback or registration-failure notices and which

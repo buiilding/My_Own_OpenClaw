@@ -163,6 +163,10 @@ describe('renderer settings runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopShortcutRuntimeClient.ts'),
       'utf8',
     );
+    const appConfigProviderSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/providers/AppConfigProvider.jsx'),
+      'utf8',
+    );
 
     for (const source of [generalSettingsSource, configStorageSource]) {
       expect(source).not.toContain('infrastructure/shortcuts/agentStopShortcut');
@@ -178,9 +182,17 @@ describe('renderer settings runtime boundary', () => {
     expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus?.requestedAccelerator');
     expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus.resolvedAccelerator');
     expect(generalSettingsSource).not.toContain('globalAgentStopShortcutStatus.requestedAccelerator');
+    expect(appConfigProviderSource).toContain(
+      'DesktopShortcutRuntimeClient.resolveGlobalAgentStopShortcutFallbackAccelerator',
+    );
+    expect(appConfigProviderSource).not.toContain('shortcutStatus?.registrationFailed');
+    expect(appConfigProviderSource).not.toContain('shortcutStatus?.usingFallback');
+    expect(appConfigProviderSource).not.toContain('shortcutStatus?.resolvedAccelerator');
+    expect(appConfigProviderSource).not.toContain('shortcutStatus.resolvedAccelerator');
     expect(configStorageSource).toContain('DesktopShortcutRuntimeClient.normalizeGlobalAgentStopShortcutAccelerator');
     expect(shortcutClientSource).toContain('normalizeGlobalAgentStopShortcutAccelerator');
     expect(shortcutClientSource).toContain('getGlobalAgentStopShortcutStatusPresentation');
+    expect(shortcutClientSource).toContain('resolveGlobalAgentStopShortcutFallbackAccelerator');
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/utils/configStorage.js'),
     )).rejects.toThrow();
