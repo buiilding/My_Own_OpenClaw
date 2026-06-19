@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer conversation projection event runtime slice
+  by moving SDK current-turn and display-row projection payload validation into
+  `desktopConversationRuntimeEventClient`. `useConversationRuntimeProjectionStream`
+  now consumes normalized `onCurrentTurnProjection(...)` and
+  `onDisplayRowsProjection(...)` events while keeping pending-turn replay,
+  stale-turn side effects, display-row message merging, and store writes local
+  to the hook. Validation: focused desktop conversation runtime event client,
+  conversation projection stream, and renderer chat runtime boundary tests,
+  stale raw projection payload scan, docs listing, and diff checks. No
+  migration required; conversation runtime channel names, SDK current-turn and
+  display-row payload shapes, pending-turn fan-out, transcript/display-row
+  projection behavior, IPC allowlists, storage, credentials, provider-policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed a renderer MCP enablement result runtime slice by
   moving toggle-result projection from `McpsSection` into
   `desktopMcpRuntimeClient`. The runtime client now returns

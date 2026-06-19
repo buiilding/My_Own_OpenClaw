@@ -5,9 +5,6 @@
 import { useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import type { ChatMessage, SdkCurrentTurnProjection } from '../stores/chatStore';
-import type {
-  SdkDisplayRow,
-} from '../../../app/runtime/desktopConversationRuntimeContracts';
 import {
   buildChatMessagesFromSdkDisplayRows,
 } from '../../../app/runtime/desktopConversationDisplayProjection';
@@ -25,41 +22,6 @@ import {
   shouldAcceptCurrentTurnBeforeLocalSend,
   type ProjectionCursor,
 } from '../../../app/runtime/desktopCurrentTurnProjectionEffectsRuntime';
-
-function isCurrentTurnProjection(value: unknown): value is SdkCurrentTurnProjection {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const projection = value as Partial<SdkCurrentTurnProjection>;
-  return typeof projection.conversationRef === 'string'
-    && typeof projection.phase === 'string'
-    && typeof projection.assistantText === 'string'
-    && Array.isArray(projection.toolEvents);
-}
-
-function isSdkDisplayRow(value: unknown): value is SdkDisplayRow {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const row = value as Partial<SdkDisplayRow>;
-  return typeof row.id === 'string'
-    && typeof row.conversationRef === 'string'
-    && typeof row.type === 'string'
-    && typeof row.role === 'string';
-}
-
-function isSdkDisplayRows(value: unknown): value is SdkDisplayRow[] {
-  return Array.isArray(value) && value.every(isSdkDisplayRow);
-}
-
-function resolveRowsConversationRef(rows: SdkDisplayRow[]): string | null {
-  for (const row of rows) {
-    if (typeof row.conversationRef === 'string' && row.conversationRef.trim()) {
-      return row.conversationRef;
-    }
-  }
-  return null;
-}
 
 function normalizeTurnRef(turnRef: string | null | undefined): string | null {
   return typeof turnRef === 'string' && turnRef.trim()
@@ -175,19 +137,11 @@ export function useConversationRuntimeProjectionStream(): void {
   }, [applyPendingTurnBroadcast]);
 
   useEffect(() => {
-    const removeListener = DesktopConversationRuntimeEventClient.onCurrentTurn((payload: unknown) => {
-      const payloadRecord = payload && typeof payload === 'object'
-        ? payload as Record<string, unknown>
-        : {};
-      const currentTurn = isCurrentTurnProjection(payload)
-        ? payload
-        : payloadRecord.currentTurn;
-      if (!isCurrentTurnProjection(currentTurn)) {
+    const removeListener = DesktopConversationRuntimeEventClient.onCurrentTurnProjection((event) => {
+      const { currentTurn, conversationRef } = event;
+      if (!currentTurn || !conversationRef) {
         return;
       }
-      const conversationRef = typeof payloadRecord.conversationRef === 'string'
-        ? payloadRecord.conversationRef
-        : currentTurn.conversationRef;
 
       setLatestCurrentTurnProjection(currentTurn);
       setCurrentTurnProjection(currentTurn, conversationRef);
@@ -258,15 +212,12 @@ export function useConversationRuntimeProjectionStream(): void {
   ]);
 
   useEffect(() => {
-    const removeListener = DesktopConversationRuntimeEventClient.onDisplayRows((payload: unknown) => {
-      if (!isSdkDisplayRows(payload)) {
-        return;
-      }
-      const conversationRef = resolveRowsConversationRef(payload);
+    const removeListener = DesktopConversationRuntimeEventClient.onDisplayRowsProjection((event) => {
+      const { rows, conversationRef } = event;
       if (!conversationRef) {
         return;
       }
-      const sdkMessages = buildChatMessagesFromSdkDisplayRows(payload);
+      const sdkMessages = buildChatMessagesFromSdkDisplayRows(rows);
       const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
       setMessages(
         mergeRendererAnnotations(sdkMessages, workspace.messages),

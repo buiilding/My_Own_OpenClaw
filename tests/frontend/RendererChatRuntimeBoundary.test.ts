@@ -659,12 +659,17 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).not.toContain('IpcBridge.on');
     expect(projectionSource).not.toContain('infrastructure/transcript/sdkDisplayChatMessageProjection');
     expect(projectionSource).toContain('desktopConversationDisplayProjection');
+    expect(projectionSource).not.toContain('function isCurrentTurnProjection');
+    expect(projectionSource).not.toContain('function isSdkDisplayRows');
+    expect(projectionSource).not.toContain('payload && typeof payload');
     expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onPendingTurn');
-    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurn');
-    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onDisplayRows');
+    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onCurrentTurnProjection');
+    expect(projectionSource).toContain('DesktopConversationRuntimeEventClient.onDisplayRowsProjection');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.PENDING_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.CURRENT_TURN');
     expect(eventClientSource).toContain('DESKTOP_RUNTIME_ON_CHANNELS.ROWS');
+    expect(eventClientSource).toContain('normalizeCurrentTurnProjectionEvent');
+    expect(eventClientSource).toContain('normalizeDisplayRowsProjectionEvent');
   });
 
   test('dashboard conversation resume projects display rows through app runtime client', async () => {

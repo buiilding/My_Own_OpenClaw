@@ -274,11 +274,13 @@ wizard state to this app-runtime facade instead of a feature utility.
 
 `desktopConversationRuntimeEventClient.ts` owns renderer subscriptions for the
 SDK conversation runtime fan-out channels: conversation events, pending turns,
-current-turn projections, and display rows. `useChatStream`,
-`useDashboardConversations`, and `useConversationRuntimeProjectionStream` retain
-validation, stale-turn policy, list refresh/title polling, projection side
-effects, and display-row merging while delegating channel names and
-`IpcBridge.on(...)` calls to this app runtime client.
+current-turn projections, and display rows. It also normalizes current-turn
+projection envelopes and display-row payloads into explicit projection events
+before chat hooks consume them. `useChatStream`, `useDashboardConversations`,
+and `useConversationRuntimeProjectionStream` retain stale-turn policy, list
+refresh/title polling, projection side effects, and display-row merging while
+delegating channel names, `IpcBridge.on(...)` calls, and SDK projection payload
+validation to this app runtime client.
 
 `desktopActiveChatSessionRuntime.ts` owns active chat-session reset behavior
 shared by new-chat, dashboard conversation delete, and clear-chat flows. Chat

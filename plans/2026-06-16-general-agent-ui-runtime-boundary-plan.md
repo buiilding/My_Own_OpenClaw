@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Conversation Projection Event Runtime Boundary
+
+- Finding: `useConversationRuntimeProjectionStream` subscribed through
+  `DesktopConversationRuntimeEventClient`, but still owned SDK current-turn and
+  display-row payload validation plus conversation-ref extraction locally.
+- Change: moved current-turn envelope and display-row projection normalization
+  into `desktopConversationRuntimeEventClient` as explicit projection event
+  subscriptions. The chat hook now keeps stale-turn policy, projection side
+  effects, annotation merging, and store updates.
+- Validation: focused desktop conversation runtime event client and renderer
+  chat runtime boundary tests, stale projection payload guard scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Conversation runtime fan-out channel
+  names, current-turn and display-row payload shapes, SDK projection contracts,
+  chat-store merging behavior, IPC, storage, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer MCP Enablement Result Runtime Boundary
 
 - Finding: `McpsSection` consumed normalized MCP registries from

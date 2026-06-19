@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/runtime: normalize SDK current-turn and display-row projection
+  events in the desktop conversation runtime event client before chat
+  projection hooks consume them. No migration required.
 - renderer/runtime: normalize MCP enablement result status and error messages
   in the desktop MCP runtime client before the dashboard MCP section consumes
   toggle results. No migration required.
