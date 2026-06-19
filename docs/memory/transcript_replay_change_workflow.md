@@ -77,8 +77,9 @@ flowchart LR
    - Replay should not invent backend-only history fields for UI display.
    - Local snapshots should not replace durable transcript storage unless the code explicitly uses them as a fallback.
    - Edit/resend and try-again must cut by canonical SDK event or payload
-     message id. Do not restore user-message ordinal fallback or latest-user
-     retry fallback for renderer-only transcript ids.
+     message id. Renderer replay row-index selection is owned by
+     `desktopConversationReplayRuntime.js`; do not restore user-message ordinal
+     fallback or latest-user retry fallback for renderer-only transcript ids.
 
 5. Preserve rehydrate shape.
    - SDK `buildRehydrateSnapshot(...)` should emit backend-compatible entries

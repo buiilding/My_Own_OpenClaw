@@ -23,6 +23,8 @@ import {
   buildPreparedReplayDesktopChatTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
+  findReplayEditableUserMessageIndex,
+  resolveReplayRetryMessageIndexes,
 } from '../../../app/runtime/desktopConversationReplayRuntime';
 import { dispatchPreparedDesktopChatTurn } from '../../../app/runtime/desktopChatSendPreparationRuntime';
 
@@ -158,9 +160,7 @@ export function useConversationReplayActions({
       return;
     }
 
-    const userIndex = messages.findIndex(
-      (message) => message.id === userMessageId && message.sender === 'user',
-    );
+    const userIndex = findReplayEditableUserMessageIndex(messages, userMessageId);
     if (userIndex < 0) {
       return;
     }
@@ -208,20 +208,7 @@ export function useConversationReplayActions({
   ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
-    const assistantIndex = messages.findIndex(
-      (message) => message.id === assistantMessageId && message.sender === 'assistant',
-    );
-    if (assistantIndex < 0) {
-      return;
-    }
-
-    let userIndex = -1;
-    for (let index = assistantIndex; index >= 0; index -= 1) {
-      if (messages[index]?.sender === 'user') {
-        userIndex = index;
-        break;
-      }
-    }
+    const { userIndex } = resolveReplayRetryMessageIndexes(messages, assistantMessageId);
     if (userIndex < 0) {
       return;
     }

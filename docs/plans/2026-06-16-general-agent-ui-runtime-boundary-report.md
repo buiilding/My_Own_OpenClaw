@@ -174,6 +174,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-19 Renderer Conversation Replay Row Selection Boundary
+
+- Finding: `useConversationReplayActions` delegated replay shaping and payload
+  preparation to `desktopConversationReplayRuntime`, but still searched raw
+  user/assistant rows locally to select edit/resend and retry targets.
+- Change: added replay row-index selection helpers to
+  `desktopConversationReplayRuntime` and routed edit/resend plus retry
+  callbacks through them. The hook still owns UI callbacks, screenshot replay
+  state, continuity calls, and prepared-turn dispatch.
+- Validation: focused desktop conversation replay runtime, conversation replay
+  action, and renderer chat runtime boundary tests plus transcript replay docs
+  search, related commit search, stale hook sender-row scans, and diff checks.
+- Compatibility: no migration required. Replay command payloads, continuity
+  service calls, screenshot refs, SDK display rows, IPC, storage, settings,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 SDK API Reference Local-Runtime Process Wording
 
 - Finding: `docs/reference/api_reference.md` correctly split hosted backend

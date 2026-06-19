@@ -82,6 +82,8 @@ Key files:
 - backend rehydrate dispatch: `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`,
 - tool-message reconstruction and replay payload/turn shaping:
   `desktopConversationReplayRuntime.js`,
+- edit/resend and try-again replay row-index selection:
+  `desktopConversationReplayRuntime.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.
 
 ## Tests

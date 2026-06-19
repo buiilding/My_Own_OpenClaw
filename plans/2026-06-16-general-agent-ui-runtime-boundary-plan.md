@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Conversation Replay Row Selection Boundary
+
+- Finding: replay context/payload shaping already lived in
+  `desktopConversationReplayRuntime`, but `useConversationReplayActions` still
+  performed raw user/assistant row searches when choosing edit/resend and retry
+  targets.
+- Change: moved replay editable-user and assistant-retry row-index selection
+  into `desktopConversationReplayRuntime`, leaving the hook to wire UI
+  callbacks, screenshot replay state, continuity service calls, and prepared
+  live-turn dispatch.
+- Validation: focused desktop conversation replay runtime, conversation replay
+  action, and renderer chat runtime boundary tests plus transcript replay docs
+  search, related commit search, stale hook sender-row scans, and diff checks.
+- Compatibility: no migration required. Replay command payloads, continuity
+  service calls, screenshot refs, SDK display rows, IPC, storage, settings,
+  credentials, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-19 SDK API Reference Local-Runtime Process Wording
 
 - Finding: hosted SDK OCR/vision API docs still told SDK consumers they should

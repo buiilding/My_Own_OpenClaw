@@ -6,9 +6,45 @@ import {
   buildPreparedReplayDesktopChatTurn,
   buildReplayContextMessages,
   buildReplayPreparationPayload,
+  findReplayEditableUserMessageIndex,
+  resolveReplayRetryMessageIndexes,
 } from '../../frontend/src/renderer/app/runtime/desktopConversationReplayRuntime';
 
 describe('desktopConversationReplayRuntime', () => {
+  test('findReplayEditableUserMessageIndex only selects matching user rows', () => {
+    const messages = [
+      { id: 'assistant-1', sender: 'assistant' },
+      { id: 'user-1', sender: 'user' },
+      { id: 'assistant-user-id', sender: 'assistant' },
+    ];
+
+    expect(findReplayEditableUserMessageIndex(messages, 'user-1')).toBe(1);
+    expect(findReplayEditableUserMessageIndex(messages, 'assistant-user-id')).toBe(-1);
+    expect(findReplayEditableUserMessageIndex(messages, 'missing')).toBe(-1);
+  });
+
+  test('resolveReplayRetryMessageIndexes selects the prior user for an assistant retry', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user' },
+      { id: 'assistant-1', sender: 'assistant' },
+      { id: 'tool-1', sender: 'assistant', type: 'tool-output' },
+      { id: 'assistant-2', sender: 'assistant' },
+    ];
+
+    expect(resolveReplayRetryMessageIndexes(messages, 'assistant-2')).toEqual({
+      assistantIndex: 3,
+      userIndex: 0,
+    });
+    expect(resolveReplayRetryMessageIndexes(messages, 'user-1')).toEqual({
+      assistantIndex: -1,
+      userIndex: -1,
+    });
+    expect(resolveReplayRetryMessageIndexes([{ id: 'assistant-1', sender: 'assistant' }], 'assistant-1')).toEqual({
+      assistantIndex: 0,
+      userIndex: -1,
+    });
+  });
+
   test('keeps non-tool rows and matched tool call/output pairs', () => {
     const messages = [
       { id: 'm-1', type: 'llm-text', text: 'assistant intro' },

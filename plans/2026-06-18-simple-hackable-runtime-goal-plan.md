@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer conversation replay row-selection boundary
+  slice by moving edit/resend editable-user lookup and assistant retry
+  prior-user lookup from `useConversationReplayActions` into
+  `desktopConversationReplayRuntime`. The hook now wires UI callbacks,
+  screenshot replay state, continuity calls, and prepared-turn dispatch while
+  replay row selection is tested at the app-runtime owner. Validation: focused
+  desktop conversation replay runtime, conversation replay action, and renderer
+  chat runtime boundary tests plus transcript replay docs search, related
+  commit search, stale hook sender-row scans, and diff checks. No migration
+  required; replay command payloads, continuity service calls, screenshot refs,
+  SDK display rows, IPC, storage, settings, credentials, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-19: completed an SDK API reference local-runtime process wording
   slice by replacing hosted OCR/vision helper-route mentions of "local backend
   process" with "local runtime process" and extending the modular docs boundary

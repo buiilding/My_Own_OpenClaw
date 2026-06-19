@@ -85,6 +85,41 @@ function isReplayToolOutputMessage(message) {
   return TOOL_OUTPUT_MESSAGE_TYPES.has(normalizeReplayMessageType(message));
 }
 
+function isReplayUserMessage(message) {
+  return message?.sender === 'user';
+}
+
+function isReplayAssistantMessage(message) {
+  return message?.sender === 'assistant';
+}
+
+export function findReplayEditableUserMessageIndex(messages, userMessageId) {
+  if (!Array.isArray(messages) || typeof userMessageId !== 'string' || !userMessageId) {
+    return -1;
+  }
+  return messages.findIndex(
+    (message) => message?.id === userMessageId && isReplayUserMessage(message),
+  );
+}
+
+export function resolveReplayRetryMessageIndexes(messages, assistantMessageId) {
+  if (!Array.isArray(messages) || typeof assistantMessageId !== 'string' || !assistantMessageId) {
+    return { assistantIndex: -1, userIndex: -1 };
+  }
+  const assistantIndex = messages.findIndex(
+    (message) => message?.id === assistantMessageId && isReplayAssistantMessage(message),
+  );
+  if (assistantIndex < 0) {
+    return { assistantIndex: -1, userIndex: -1 };
+  }
+  for (let index = assistantIndex; index >= 0; index -= 1) {
+    if (isReplayUserMessage(messages[index])) {
+      return { assistantIndex, userIndex: index };
+    }
+  }
+  return { assistantIndex, userIndex: -1 };
+}
+
 function findMatchingPendingToolCallIndex(pendingCalls, outputCorrelationId) {
   if (!Array.isArray(pendingCalls) || pendingCalls.length === 0) {
     return -1;

@@ -1138,6 +1138,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('dispatchPreparedDesktopChatTurn');
     expect(source).toContain('buildReplayPreparationPayload');
     expect(source).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(source).toContain('findReplayEditableUserMessageIndex');
+    expect(source).toContain('resolveReplayRetryMessageIndexes');
+    expect(source).not.toContain("message.sender === 'user'");
+    expect(source).not.toContain("message.sender === 'assistant'");
+    expect(source).not.toContain("messages[index]?.sender === 'user'");
     expect(source).not.toContain('screenshot_ref');
     expect(source).not.toContain('screenshot_refs');
     expect(source).not.toContain('screenshot_url');
@@ -1149,6 +1154,8 @@ describe('renderer chat runtime boundary', () => {
     expect(replayRuntimeSource).toContain('buildReplayContextMessages');
     expect(replayRuntimeSource).toContain('buildReplayPreparationPayload');
     expect(replayRuntimeSource).toContain('buildPreparedReplayDesktopChatTurn');
+    expect(replayRuntimeSource).toContain('findReplayEditableUserMessageIndex');
+    expect(replayRuntimeSource).toContain('resolveReplayRetryMessageIndexes');
     expect(replayRuntimeSource).toContain('screenshot_ref');
     expect(replayRuntimeSource).toContain('attachment_filenames');
     expect(replayRuntimeSource).not.toContain('features/chat');
