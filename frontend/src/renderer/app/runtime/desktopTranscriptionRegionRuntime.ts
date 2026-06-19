@@ -1,5 +1,5 @@
 /**
- * Provides the transcription regions module for the renderer UI.
+ * Provides renderer transcription-region edit reconciliation helpers.
  */
 
 type TranscriptionRegion = {

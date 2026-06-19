@@ -10,7 +10,7 @@ import {
   replaceTranscriptionText,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
-} from '../utils/transcriptionRegions';
+} from '../../../app/runtime/desktopTranscriptionRegionRuntime';
 
 /**
  * Hook to manage input state and voice transcription updates.

@@ -11,7 +11,7 @@ title: "Transcription Region State Machine and Input Edit Reconciliation Referen
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
-- `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 
@@ -28,6 +28,9 @@ title: "Transcription Region State Machine and Input Edit Reconciliation Referen
 Runtime invariant:
 
 - only one active transcription replacement region is tracked at a time
+- append, replace, input-change, and paste offset rules are owned by
+  `desktopTranscriptionRegionRuntime.ts`; `useTranscription` keeps React state
+  and mutable refs around that app-runtime facade.
 
 ## Transcript Update State Machine
 

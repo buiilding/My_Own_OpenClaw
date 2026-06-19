@@ -29,5 +29,5 @@ title: "Frontend Renderer Voice Utils Docs Hub"
 - `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
-- `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`

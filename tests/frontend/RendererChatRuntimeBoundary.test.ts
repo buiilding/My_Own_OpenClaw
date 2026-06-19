@@ -1441,6 +1441,26 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat composer transcription-region reconciliation stays behind app runtime facade', async () => {
+    const transcriptionHookSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useTranscription.ts'),
+      'utf8',
+    );
+    const transcriptionRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts'),
+      'utf8',
+    );
+
+    expect(transcriptionHookSource).toContain('desktopTranscriptionRegionRuntime');
+    expect(transcriptionHookSource).not.toContain('utils/transcriptionRegions');
+    expect(transcriptionRuntimeSource).toContain('updateRegionAfterInputChange');
+    expect(transcriptionRuntimeSource).toContain('updateRegionAfterPaste');
+    expect(transcriptionRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/transcriptionRegions.ts'),
+    )).rejects.toThrow();
+  });
+
   test('minimal response overlay routes responsebox IPC through app runtime client', async () => {
     const overlaySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx'),

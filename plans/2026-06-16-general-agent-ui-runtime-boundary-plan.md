@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Transcription Region Runtime Boundary
+
+- Finding: voice transcription-region append/replace and edit/paste offset
+  reconciliation were pure renderer presentation/input state helpers, but the
+  rules still lived under chat feature utilities while voice docs routed to
+  them as shared behavior.
+- Change: moved the helpers to
+  `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`,
+  routed `useTranscription`, focused tests, docs, folder structure, and
+  renderer chat boundary guards through that app-runtime facade, and removed
+  the old chat utility path.
+- Validation: focused desktop transcription-region runtime, transcription
+  hook, renderer chat runtime boundary, docs listing, frontend lint, stale
+  old-path scan, and diff checks.
+- Compatibility: no migration required. Transcription append/replace behavior,
+  input-change and paste offset rules, cursor placement, voice gateway
+  payloads, IPC payloads, storage, credentials, permissions, hosted routes,
+  provider policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Message List and Chat Model Options Runtime Boundary
 
 - Finding: message-list auto-scroll predicates, conversation-switch scroll

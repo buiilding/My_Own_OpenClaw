@@ -275,6 +275,20 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer transcription-region runtime-boundary slice
+  by moving voice transcription append/replace and edit/paste offset
+  reconciliation helpers from
+  `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts` to
+  `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`.
+  `useTranscription`, focused tests, docs, folder structure, and renderer chat
+  boundary guards now route through the app-runtime owner, and the old chat
+  utility path is deleted. Validation: focused desktop transcription-region
+  runtime, transcription hook, renderer chat boundary, docs listing, stale
+  old-path scan, frontend lint, and diff checks. No migration required;
+  transcription append/replace behavior, input-change and paste offset rules,
+  cursor placement, voice gateway payloads, IPC payloads, storage,
+  credentials, permissions, hosted routes, provider policy, packaging, and
+  local execution behavior are unchanged.
 - 2026-06-19: completed a renderer message-list and chat model-options
   runtime-boundary slice by
   moving auto-scroll predicates, conversation-switch scroll targeting, action

@@ -1,5 +1,5 @@
 /**
- * Covers transcription regions. behavior in the frontend test suite.
+ * Covers desktop transcription region runtime behavior in the frontend test suite.
  */
 
 import {
@@ -9,9 +9,9 @@ import {
   replaceTranscriptionText,
   updateRegionAfterInputChange,
   updateRegionAfterPaste,
-} from '../../frontend/src/renderer/features/chat/utils/transcriptionRegions';
+} from '../../frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime';
 
-describe('transcriptionRegions', () => {
+describe('desktopTranscriptionRegionRuntime', () => {
   test('appends transcription text and marks active region at end', () => {
     const appended = appendTranscriptionText('base', 'hello');
     expect(appended).toEqual({

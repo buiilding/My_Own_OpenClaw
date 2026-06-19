@@ -47,6 +47,7 @@ frontend/src/renderer/
 │   │   ├── desktopMessageTokenUsageRuntime.js # Renderer dev token usage tag facade for message badges
 │   │   ├── desktopThreadFindRuntime.js # Renderer thread-find match projection facade
 │   │   ├── desktopThreadPresentationRuntime.js # Renderer durable thread plus SDK live current-turn message presentation facade
+│   │   ├── desktopTranscriptionRegionRuntime.ts # Renderer transcription-region edit reconciliation facade
 │   │   ├── desktopOverlayTurnLifecycleRuntime.js # Renderer overlay turn lifecycle enum, phase groups, and resolver facade
 │   │   ├── desktopResponseOverlayLayoutRuntime.js # Renderer response overlay layout constants, mode, and frame-size helpers
 │   │   ├── desktopResponseOverlayPhaseRuntime.js # Renderer response overlay phase enum and preflight guard facade
@@ -156,7 +157,6 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
-│   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   ├── hooks/                       # Dashboard business logic hooks

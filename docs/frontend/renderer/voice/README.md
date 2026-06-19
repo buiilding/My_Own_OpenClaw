@@ -38,6 +38,6 @@ title: "Frontend Renderer Voice Docs Hub"
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
-- `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptionRegionRuntime.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `tests/frontend/MessageInput.test.jsx`

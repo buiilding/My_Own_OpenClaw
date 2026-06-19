@@ -77,6 +77,9 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/chat-model-options: move chat provider/model/reasoning option
   projection into the renderer app-runtime facade consumed by chat header
   surfaces. No migration required.
+- renderer/transcription-region: move voice transcription-region edit
+  reconciliation helpers into the renderer app-runtime facade consumed by the
+  chat composer transcription hook. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration
