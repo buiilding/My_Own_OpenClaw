@@ -15,7 +15,7 @@ import { buildMessageClassName } from '../../../../app/runtime/desktopMessageCla
 import {
   shouldRenderAssistantActions,
   shouldRenderUserActions,
-} from '../../utils/message/messageListState';
+} from '../../../../app/runtime/desktopMessageListRuntime';
 
 
 const MessageItem = memo(function MessageItem({

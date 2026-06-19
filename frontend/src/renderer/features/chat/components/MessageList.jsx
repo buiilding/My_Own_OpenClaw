@@ -14,7 +14,7 @@ import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import {
   resolveCompactionStatusText,
-} from '../utils/message/messageListState';
+} from '../../../app/runtime/desktopMessageListRuntime';
 import { resolveConversationToolSchemas } from '../../../app/runtime/desktopMessageTransparencyRuntime';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';

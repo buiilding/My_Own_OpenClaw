@@ -682,6 +682,36 @@ describe('renderer chat runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('message-list scroll and action state stays behind app runtime facade', async () => {
+    const messageListSource = await fs.readFile(
+      path.join(chatRoot, 'components/MessageList.jsx'),
+      'utf8',
+    );
+    const messageItemSource = await fs.readFile(
+      path.join(chatRoot, 'components/message/MessageItem.jsx'),
+      'utf8',
+    );
+    const autoScrollSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useMessageListAutoScroll.js'),
+      'utf8',
+    );
+    const messageListRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime.js'),
+      'utf8',
+    );
+
+    for (const source of [messageListSource, messageItemSource, autoScrollSource]) {
+      expect(source).toContain('desktopMessageListRuntime');
+      expect(source).not.toContain('utils/message/messageListState');
+    }
+    expect(messageListRuntimeSource).toContain('resolveCompactionStatusText');
+    expect(messageListRuntimeSource).toContain('shouldAutoScrollForAgentLoopMessageUpdate');
+    expect(messageListRuntimeSource).not.toContain('features/chat');
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/message/messageListState.js'),
+    )).rejects.toThrow();
+  });
+
   test('chat message state helpers route transcript builders through app runtime client', async () => {
     const files = [
       path.join(chatRoot, 'utils/chatStream/chatStreamMessageUpdates.ts'),
@@ -1476,7 +1506,15 @@ describe('renderer chat runtime boundary', () => {
 
   test('chat and dashboard model selection share app runtime reconciliation', async () => {
     const chatModelOptionsSource = await fs.readFile(
-      path.join(chatRoot, 'utils/chatModelOptions.js'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js'),
+      'utf8',
+    );
+    const chatInterfaceSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterface.jsx'),
+      'utf8',
+    );
+    const headerControlsSource = await fs.readFile(
+      path.join(chatRoot, 'components/ChatInterfaceHeaderControls.jsx'),
       'utf8',
     );
     const modelsSectionSource = await fs.readFile(
@@ -1489,11 +1527,18 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(chatModelOptionsSource).toContain('desktopModelSelectionRuntime');
+    expect(chatModelOptionsSource).toContain('desktopRuntimeConfig');
+    expect(chatModelOptionsSource).not.toContain('features/chat');
     expect(chatModelOptionsSource).not.toContain('dashboard/utils/modelSelectionUtils');
+    expect(chatInterfaceSource).toContain('desktopChatModelOptionsRuntime');
+    expect(headerControlsSource).toContain('desktopChatModelOptionsRuntime');
     expect(modelsSectionSource).toContain('desktopModelSelectionRuntime');
     expect(modelRuntimeSource).toContain('buildModelConfigUpdate');
     await expect(fs.stat(
       path.resolve(__dirname, '../../frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js'),
+    )).rejects.toThrow();
+    await expect(fs.stat(
+      path.join(chatRoot, 'utils/chatModelOptions.js'),
     )).rejects.toThrow();
   });
 

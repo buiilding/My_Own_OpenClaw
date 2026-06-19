@@ -199,7 +199,7 @@ describe('renderer skin/config boundary', () => {
       'utf8',
     );
     const chatModelOptionsSource = fs.readFileSync(
-      path.join(rendererRoot, 'features/chat/utils/chatModelOptions.js'),
+      path.join(rendererRoot, 'app/runtime/desktopChatModelOptionsRuntime.js'),
       'utf8',
     );
 

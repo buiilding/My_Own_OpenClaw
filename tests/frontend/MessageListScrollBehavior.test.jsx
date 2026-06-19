@@ -13,7 +13,7 @@ import MessageList from '../../frontend/src/renderer/features/chat/components/Me
 import {
   shouldAutoScrollForAgentLoopMessageUpdate,
   shouldForceScrollForNewUserMessage,
-} from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
+} from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
 
 function applyScrollMetrics(element, { scrollHeight, clientHeight, scrollTop }) {
   Object.defineProperty(element, 'scrollHeight', {

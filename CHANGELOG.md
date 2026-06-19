@@ -71,6 +71,12 @@ All notable changes to WindieOS will be documented in this file.
 - renderer/message-runtime: move markdown message render-model construction,
   thread-find match projection, and outgoing message payload normalization into
   renderer app-runtime presentation facades. No migration required.
+- renderer/message-list: move message-list scroll, action, and compaction
+  presentation state helpers into the renderer app-runtime facade. No migration
+  required.
+- renderer/chat-model-options: move chat provider/model/reasoning option
+  projection into the renderer app-runtime facade consumed by chat header
+  surfaces. No migration required.
 - docs/debug: route JSON-RPC trace and test-selection labels through
   local-runtime Python wording instead of a public sidecar trace owner while
   preserving sidecar stdout/stderr as concrete process details. No migration

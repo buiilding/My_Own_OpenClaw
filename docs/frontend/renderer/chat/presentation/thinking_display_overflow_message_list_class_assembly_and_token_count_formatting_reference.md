@@ -15,11 +15,13 @@ title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
+- `tests/frontend/DesktopMessageListRuntime.test.js`
 - `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
 - `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 - `tests/frontend/ChatStore.test.ts`
@@ -40,7 +42,8 @@ Overflow behavior:
 
 ## Message List Ordering and Auto-Scroll Contract
 
-`MessageList`:
+`MessageList` consumes scroll/action/compaction state helpers from
+`frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`:
 
 - memoizes message rows through `MessageItem`
 - resolves row class names via `buildMessageClassName(message)`
@@ -105,6 +108,8 @@ Important:
   - confirms conversation selection changes force an instant near-bottom jump (`top = maxScrollTop - 72`) even after manual scroll-up in previous thread
 - `DesktopMessageClassRuntime.test.js`:
   - verifies class assembly for sender/type/screenshot/streaming state
+- `DesktopMessageListRuntime.test.js`:
+  - verifies compaction status metadata and assistant/user action gating
 - `DesktopMessageScreenshotRuntime.test.js`:
   - verifies screenshot attachment detection and static source resolution
 - `ChatStore.test.ts`:

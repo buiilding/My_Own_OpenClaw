@@ -275,6 +275,26 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-19: completed a renderer message-list and chat model-options
+  runtime-boundary slice by
+  moving auto-scroll predicates, conversation-switch scroll targeting, action
+  visibility, and compaction status labels from
+  `frontend/src/renderer/features/chat/utils/message/messageListState.js` to
+  `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`, and by
+  moving chat provider/model/reasoning option projection from
+  `frontend/src/renderer/features/chat/utils/chatModelOptions.js` to
+  `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`.
+  MessageList, MessageItem, the auto-scroll hook, chat header surfaces, focused
+  tests, docs, and renderer chat/skin boundary guards now route through the
+  app-runtime owners, and the old chat utility paths are deleted. Validation:
+  focused desktop message-list runtime, desktop chat model options runtime,
+  message-list scroll behavior, renderer chat boundary, renderer skin/config
+  boundary, docs listing, stale old-path scan, frontend lint, and diff checks.
+  No migration required; scroll thresholds, conversation-switch target offset,
+  assistant/user action visibility, compaction status metadata,
+  provider/model/reasoning option ordering, selected-model fallback behavior,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
 - 2026-06-19: completed a renderer markdown, thread-find, and message-input
   runtime-boundary slice by moving markdown render-model construction from
   `frontend/src/renderer/features/chat/utils/message/markdownMessageRendering.js`

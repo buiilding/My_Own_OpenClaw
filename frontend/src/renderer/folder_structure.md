@@ -39,6 +39,7 @@ frontend/src/renderer/
 │   │   ├── desktopLiveTurnSurfaceRuntime.js # Renderer SDK current-turn surface/overlay preflight state facade
 │   │   ├── desktopMessageClassRuntime.js # Renderer message row class-name assembly facade
 │   │   ├── desktopMessageInputRuntime.js # Renderer outgoing message payload normalization facade
+│   │   ├── desktopMessageListRuntime.js # Renderer message-list scroll/action/compaction presentation state facade
 │   │   ├── desktopMessageSendUiRuntime.ts # Renderer main-window vs overlay-chatbox send-surface UI policy facade
 │   │   ├── desktopMessageScreenshotRuntime.js # Renderer message screenshot attachment descriptor facade
 │   │   ├── desktopMessageSourceTagRuntime.js # Renderer dev/source tag label facade for message badges and thinking labels
@@ -59,6 +60,7 @@ frontend/src/renderer/
 │   │   ├── desktopInteractionRuntimeClient.ts # Renderer interaction diagnostics facade for feature-level breadcrumbs
 │   │   ├── desktopMarkdownMessageRuntime.js # Renderer markdown message render-model facade
 │   │   ├── desktopMarkdownRuntimeClient.ts # Renderer markdown, find highlighting, and LLM output normalization facade
+│   │   ├── desktopChatModelOptionsRuntime.js # Renderer chat provider/model/reasoning option projection facade
 │   │   ├── desktopModelThinkingRuntime.ts # Renderer model-catalog thinking capability facade for stream presentation
 │   │   ├── desktopModelSelectionRuntime.js # Renderer shared model-selection reconciliation and config patch helpers
 │   │   ├── desktopPermissionGrantEffectsRuntime.js # Renderer permission post-grant config effects shared by onboarding and settings
@@ -153,7 +155,6 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thinking text accumulation helper
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
-│   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers
 │   │       │   ├── useResolvedMessageScreenshots.js # useResolvedMessageScreenshots - React hook for async artifact image resolution
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │

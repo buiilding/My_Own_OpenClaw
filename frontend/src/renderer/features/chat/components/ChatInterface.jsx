@@ -33,7 +33,7 @@ import {
   resolveProviderModels,
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
-} from '../utils/chatModelOptions';
+} from '../../../app/runtime/desktopChatModelOptionsRuntime';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../../../app/runtime/desktopDevUiRuntime';
 import { useChatSurfaceController } from '../hooks/useChatSurfaceController';

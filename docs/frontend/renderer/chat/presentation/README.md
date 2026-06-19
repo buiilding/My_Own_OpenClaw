@@ -51,6 +51,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/app/runtime/desktopMessageClassRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageScreenshotRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageSourceTagRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTokenUsageRuntime.js`
@@ -63,6 +64,7 @@ title: "Renderer Chat Presentation Docs Hub"
 - `tests/frontend/MessageListAssistantActions.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
+- `tests/frontend/DesktopMessageListRuntime.test.js`
 - `tests/frontend/DesktopMessageScreenshotRuntime.test.js`
 - `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`

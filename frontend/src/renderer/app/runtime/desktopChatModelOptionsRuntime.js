@@ -1,9 +1,9 @@
 /**
- * Provides the chat model options module for the renderer UI.
+ * Provides renderer chat model/provider option projection for presentation surfaces.
  */
 
-import { formatProviderDisplayLabel } from '../../../app/skin/desktopRuntimeConfig';
-import { getCurrentModels } from '../../../app/runtime/desktopModelSelectionRuntime';
+import { formatProviderDisplayLabel } from '../skin/desktopRuntimeConfig';
+import { getCurrentModels } from './desktopModelSelectionRuntime';
 
 const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
 const REASONING_MODE_LABELS = Object.freeze({

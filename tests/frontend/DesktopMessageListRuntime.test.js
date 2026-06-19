@@ -1,16 +1,16 @@
 /**
- * Covers message list state. behavior in the frontend test suite.
+ * Covers desktop message list runtime behavior in the frontend test suite.
  */
 
 import {
   resolveCompactionStatusText,
   shouldRenderAssistantActions,
   shouldRenderUserActions,
-} from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
+} from '../../frontend/src/renderer/app/runtime/desktopMessageListRuntime';
 import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime';
 import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/app/runtime/desktopOverlayTurnLifecycleRuntime';
 
-describe('messageListState', () => {
+describe('desktopMessageListRuntime', () => {
   test('awaiting-dot target picks latest user row only while awaiting reply', () => {
     const awaitingState = resolveCurrentTurnPresentationState({
       phase: 'idle',

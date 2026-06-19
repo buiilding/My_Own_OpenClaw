@@ -1,5 +1,5 @@
 /**
- * Covers chat model option behavior in the frontend test suite.
+ * Covers desktop chat model options runtime behavior in the frontend test suite.
  */
 
 import {
@@ -11,9 +11,9 @@ import {
   resolveProviderModels,
   resolveSelectedReasoningMode,
   resolveSelectedModelOption,
-} from '../../frontend/src/renderer/features/chat/utils/chatModelOptions';
+} from '../../frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime';
 
-describe('chatModelOptions', () => {
+describe('desktopChatModelOptionsRuntime', () => {
   test('formats known and hyphenated providers', () => {
     expect(formatProviderLabel('openai')).toBe('OpenAI');
     expect(formatProviderLabel('openrouter')).toBe('OpenRouter');

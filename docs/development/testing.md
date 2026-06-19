@@ -68,6 +68,7 @@ npm run audit:knip
 - Active chat-session reset behavior shared by chat and dashboard is covered directly by `tests/frontend/ResetActiveChatSession.test.ts`.
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx` and `tests/frontend/DesktopMessageInputRuntime.test.js`.
+- Message-list scroll/action/compaction presentation state is covered directly by `tests/frontend/DesktopMessageListRuntime.test.js` and `tests/frontend/MessageListScrollBehavior.test.jsx`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/DesktopMessageClassRuntime.test.js`.
 - Screenshot URL/data-URL resolution behavior is covered directly by `tests/frontend/DesktopMessageScreenshotRuntime.test.js`.
 - Tool-output source and token metadata formatting behavior is covered directly by `tests/frontend/MessageSourceBadge.test.jsx` and `tests/frontend/DesktopMessageTokenUsageRuntime.test.js`.
@@ -77,5 +78,6 @@ npm run audit:knip
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
 - Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.
+- Chat header provider/model/reasoning option projection is covered directly by `tests/frontend/DesktopChatModelOptionsRuntime.test.js`.
 - Shared renderer model selection/filter/reconciliation runtime behavior is covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
 - Dashboard model card and provider behavior is covered directly by `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelCardData.test.js`, and `tests/frontend/ModelSelectionUtils.test.js`.

@@ -75,7 +75,7 @@ Do not remove a model id without checking persisted renderer config and backend 
 | Model list service | `tests/backend/test_model_service.py` |
 | Provider routing | `tests/backend/test_provider_factory_helpers.py`, provider-specific tests |
 | Reasoning/native capability flags | `tests/backend/test_provider_native_reasoning.py`, `tests/frontend/ModelThinkingCapabilities.test.ts` |
-| Frontend model picker | `tests/frontend/ModelCardData.test.js`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ChatModelOptions.test.js` |
+| Frontend model picker | `tests/frontend/ModelCardData.test.js`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/DesktopChatModelOptionsRuntime.test.js` |
 | Settings persistence/sync | `tests/frontend/AppConfigProvider.models.test.tsx`, `tests/frontend/IpcSettingsSync.test.cjs` |
 
 ## Related Docs

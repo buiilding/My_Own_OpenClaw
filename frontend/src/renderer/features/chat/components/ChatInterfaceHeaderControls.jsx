@@ -5,7 +5,7 @@
 import { Brain, ChevronDown, Search, Volume2, Workflow } from 'lucide-react';
 import MainWindowControls from '../../../components/MainWindowControls';
 import ChatBrowserSessionControl from './ChatBrowserSessionControl';
-import { formatProviderLabel } from '../utils/chatModelOptions';
+import { formatProviderLabel } from '../../../app/runtime/desktopChatModelOptionsRuntime';
 
 function renderModelLabel(label, supportsThinking) {
   return (

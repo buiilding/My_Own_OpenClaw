@@ -1,5 +1,5 @@
 /**
- * Provides the message list state module for the renderer UI.
+ * Provides renderer message-list presentation state helpers for chat surfaces.
  */
 
 const MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX = 24;

@@ -120,6 +120,30 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Renderer Message List and Chat Model Options Runtime Boundary
+
+- Finding: message-list auto-scroll predicates, conversation-switch scroll
+  targeting, action visibility, and compaction status labels were pure
+  presentation state helpers used by chat UI components and hooks. Chat
+  provider/model/reasoning option projection was likewise shared presentation
+  policy for header surfaces. Both still lived under chat feature utilities.
+- Change: moved the helpers to
+  `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`, moved chat
+  model options to
+  `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`, routed
+  MessageList, MessageItem, the auto-scroll hook, chat header surfaces, and
+  tests through those app-runtime facades, and removed the old chat utility
+  paths.
+- Validation: focused desktop message-list runtime, desktop chat model options
+  runtime, message-list scroll behavior, renderer chat runtime boundary,
+  renderer skin/config boundary, docs listing, frontend lint, stale old-path
+  scan, and diff checks.
+- Compatibility: no migration required. Scroll thresholds, conversation-switch
+  target offset, assistant/user action visibility, compaction status metadata,
+  provider/model/reasoning option ordering, selected-model fallback behavior,
+  IPC payloads, storage, credentials, permissions, hosted routes, provider
+  policy, packaging, and local execution behavior are unchanged.
+
 ### 2026-06-19 Renderer Markdown, Thread-Find, and Message Input Runtime Boundary
 
 - Finding: markdown render-model construction and thread-find match projection

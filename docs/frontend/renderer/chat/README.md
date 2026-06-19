@@ -59,9 +59,11 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/app/runtime/desktopChatLoopUiRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopCurrentTurnPresentationRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopMarkdownMessageRuntime.js`
+- `frontend/src/renderer/app/runtime/desktopMessageListRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopThreadFindRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopMessageTransparencyRuntime.js`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
@@ -86,10 +88,12 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
 - `tests/frontend/ChatStore.test.ts`
+- `tests/frontend/DesktopChatModelOptionsRuntime.test.js`
 - `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
 - `tests/frontend/ChatStreamMessageUpdates.test.ts`
 - `tests/frontend/ChatStreamFormatting.test.ts`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
+- `tests/frontend/DesktopMessageListRuntime.test.js`
 - `tests/frontend/DesktopMessageClassRuntime.test.js`
 - `tests/frontend/DesktopThreadFindRuntime.test.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`

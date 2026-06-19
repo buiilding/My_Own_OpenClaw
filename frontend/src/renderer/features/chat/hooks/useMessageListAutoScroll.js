@@ -12,7 +12,7 @@ import {
   scrollToConversationSwitchTarget,
   shouldAutoScrollForAgentLoopMessageUpdate,
   shouldForceScrollForNewUserMessage,
-} from '../utils/message/messageListState';
+} from '../../../app/runtime/desktopMessageListRuntime';
 
 function shouldAutoScrollForThinkingTextUpdate(previousMessages, nextMessages) {
   if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {

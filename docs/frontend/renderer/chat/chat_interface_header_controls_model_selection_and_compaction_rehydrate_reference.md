@@ -12,7 +12,7 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterfaceHeaderControls.jsx`
-- `frontend/src/renderer/features/chat/utils/chatModelOptions.js`
+- `frontend/src/renderer/app/runtime/desktopChatModelOptionsRuntime.js`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopWindowRuntimeClient.ts`
@@ -147,7 +147,7 @@ When `useChatLoopUiState` reports disconnected transport:
 
 ## Drift Hotspots
 
-1. Changing provider/model fallback rules without matching `chatModelOptions` helpers can leave impossible selected-model combinations.
+1. Changing provider/model fallback rules without matching `desktopChatModelOptionsRuntime.js` helpers can leave impossible selected-model combinations.
 2. Removing `waitForNextPaint()` before compaction can hide status transition timing in UI during manual compaction.
 3. Bypassing `DesktopLiveTurnRuntimeClient.stop(...)` can send stop signals outside the SDK runtime/transport boundary.
 
