@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/getting-started: rename the overview diagram desktop boundary from
+  Electron frontend UI to desktop client / SDK host UI. No migration required.
 - backend/docs: route local tool parity and exposed-tool registry wording
   through local-runtime ownership backed by Python sidecar modules. No
   migration required.

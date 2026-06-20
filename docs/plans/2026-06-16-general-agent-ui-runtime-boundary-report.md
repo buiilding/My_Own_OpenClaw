@@ -230,8 +230,25 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   desktop client / SDK host instead of an Electron frontend.
   Tool parity docs now route exposed-tool registry/set wording through
   local-runtime ownership backed by Python sidecar modules.
+  The getting-started overview diagram now labels the desktop boundary as a
+  desktop client / SDK host UI instead of an Electron frontend UI.
 
 ## Inspection Log
+
+### 2026-06-20 Getting-Started Overview Desktop Host Label
+
+- Finding: `docs/getting-started/overview.md` still labeled the public
+  overview diagram desktop box as `Electron Frontend (UI)`, even though the
+  current public boundary is renderer UI plus Electron main as an Agent SDK
+  host.
+- Change: renamed that diagram box to `Desktop Client / SDK Host (UI)` and
+  added the retired label to the broad docs inventory guard.
+- Validation: passed focused modular boundary test, docs listing, stale
+  getting-started frontend-label scan, and diff check.
+- Compatibility: no migration required. Public docs routing, runtime topology,
+  IPC channels, websocket routes, SDK/main dispatch, renderer display, storage,
+  credentials, permissions, provider policy, local-runtime routing, and hosted
+  URLs are unchanged.
 
 ### 2026-06-20 Tool Parity Exposed-Registry Wording
 

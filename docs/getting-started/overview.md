@@ -71,7 +71,7 @@ Current focus areas:
 
 ```text
 ┌─────────────────────────────────────────────────┐
-│           Electron Frontend (UI)                │
+│        Desktop Client / SDK Host (UI)           │
 │  ┌──────────────────────────────────────────┐  │
 │  │  React Components                        │  │
 │  │  - ChatInterface                         │  │

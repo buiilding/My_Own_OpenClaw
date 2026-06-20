@@ -1677,6 +1677,7 @@ describe('modular sdk refactor completion boundary', () => {
         'backward compatibility',
         'compatibility path',
         'Frontend Tool Execution Service',
+        'Electron Frontend',
         'Renderer invokes tool',
         'renderer dispatch',
         'renderer tool-runner',

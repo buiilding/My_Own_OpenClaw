@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Getting-Started Overview Desktop Host Label
+
+- Finding: `docs/getting-started/overview.md` still labeled the public
+  overview diagram desktop box as `Electron Frontend (UI)`, even though the
+  current public boundary is renderer UI plus Electron main as an Agent SDK
+  host.
+- Change: renamed that diagram box to `Desktop Client / SDK Host (UI)` and
+  added the retired label to the broad docs inventory guard.
+- Validation: passed focused modular boundary test, docs listing, stale
+  getting-started frontend-label scan, and diff check.
+- Compatibility: no migration required. Public docs routing, runtime topology,
+  IPC channels, websocket routes, SDK/main dispatch, renderer display, storage,
+  credentials, permissions, provider policy, local-runtime routing, and hosted
+  URLs are unchanged.
+
 ### 2026-06-20 Tool Parity Exposed-Registry Wording
 
 - Finding: prompt/context debugging docs and backend tool registry/bridge
