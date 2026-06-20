@@ -10,16 +10,16 @@
 
 const DEFAULT_LOOPBACK_BACKEND_HOST = '127.0.0.1';
 const DEFAULT_LOOPBACK_BACKEND_PORT = '8765';
-const DEFAULT_HOSTED_BACKEND_ENV = Object.freeze({
+const DEFAULT_ENDPOINT_DEFAULT_ENV = Object.freeze({
   defaultHttpUrl: 'AGENT_DEFAULT_BACKEND_HTTP_URL',
   defaultWsUrl: 'AGENT_DEFAULT_BACKEND_WS_URL',
 });
-const DEFAULT_HOSTED_BACKEND = Object.freeze({
+const DEFAULT_ENDPOINT_DEFAULTS = Object.freeze({
   httpUrl: `http://${DEFAULT_LOOPBACK_BACKEND_HOST}:${DEFAULT_LOOPBACK_BACKEND_PORT}`,
   wsUrl: `ws://${DEFAULT_LOOPBACK_BACKEND_HOST}:${DEFAULT_LOOPBACK_BACKEND_PORT}/ws`,
-  env: DEFAULT_HOSTED_BACKEND_ENV,
+  env: DEFAULT_ENDPOINT_DEFAULT_ENV,
 });
-let configuredHostedBackend = normalizeHostedBackendConfig();
+let configuredEndpointDefaults = normalizeEndpointDefaults();
 
 function trimTrailingSlash(value) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -113,9 +113,9 @@ function dedupeEndpointCandidates(candidates = []) {
   return normalized;
 }
 
-function normalizeHostedBackendConfig(hostedBackend = DEFAULT_HOSTED_BACKEND) {
-  const config = hostedBackend && typeof hostedBackend === 'object'
-    ? hostedBackend
+function normalizeEndpointDefaults(endpointDefaults = DEFAULT_ENDPOINT_DEFAULTS) {
+  const config = endpointDefaults && typeof endpointDefaults === 'object'
+    ? endpointDefaults
     : {};
   const envConfig = config.env && typeof config.env === 'object'
     ? config.env
@@ -126,27 +126,27 @@ function normalizeHostedBackendConfig(hostedBackend = DEFAULT_HOSTED_BACKEND) {
     env: {
       defaultHttpUrl: typeof envConfig.defaultHttpUrl === 'string'
         ? envConfig.defaultHttpUrl
-        : DEFAULT_HOSTED_BACKEND_ENV.defaultHttpUrl,
+        : DEFAULT_ENDPOINT_DEFAULT_ENV.defaultHttpUrl,
       defaultWsUrl: typeof envConfig.defaultWsUrl === 'string'
         ? envConfig.defaultWsUrl
-        : DEFAULT_HOSTED_BACKEND_ENV.defaultWsUrl,
+        : DEFAULT_ENDPOINT_DEFAULT_ENV.defaultWsUrl,
     },
   };
 }
 
-function configureBackendEndpointRuntime(hostedBackend = DEFAULT_HOSTED_BACKEND) {
-  configuredHostedBackend = normalizeHostedBackendConfig(hostedBackend);
-  return configuredHostedBackend;
+function configureBackendEndpointRuntime(endpointDefaults = DEFAULT_ENDPOINT_DEFAULTS) {
+  configuredEndpointDefaults = normalizeEndpointDefaults(endpointDefaults);
+  return configuredEndpointDefaults;
 }
 
-function resolveHostedDefaultEndpoints(env, hostedBackend = configuredHostedBackend) {
-  const hostedConfig = normalizeHostedBackendConfig(hostedBackend);
+function resolveConfiguredDefaultEndpoints(env, endpointDefaults = configuredEndpointDefaults) {
+  const defaultConfig = normalizeEndpointDefaults(endpointDefaults);
   const explicitDefaultHttpUrl = normalizeUrl(
-    env[hostedConfig.env.defaultHttpUrl],
+    env[defaultConfig.env.defaultHttpUrl],
     ['http:', 'https:'],
   );
   const explicitDefaultWsUrl = normalizeUrl(
-    env[hostedConfig.env.defaultWsUrl],
+    env[defaultConfig.env.defaultWsUrl],
     ['ws:', 'wss:'],
   );
   if (explicitDefaultHttpUrl && explicitDefaultWsUrl) {
@@ -165,8 +165,8 @@ function resolveHostedDefaultEndpoints(env, hostedBackend = configuredHostedBack
     };
   }
   return {
-    httpUrl: hostedConfig.httpUrl,
-    wsUrl: hostedConfig.wsUrl,
+    httpUrl: defaultConfig.httpUrl,
+    wsUrl: defaultConfig.wsUrl,
   };
 }
 
@@ -204,7 +204,11 @@ function resolveBackendEndpoints(env = process.env, options = {}) {
 }
 
 function resolveBackendEndpointCandidates(env = process.env, options = {}) {
-  const hostedBackend = options?.hostedBackend || configuredHostedBackend;
+  const endpointDefaults = (
+    options?.endpointDefaults
+    || options?.hostedBackend
+    || configuredEndpointDefaults
+  );
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
   const explicitHostOrPortOverride = (
@@ -231,7 +235,7 @@ function resolveBackendEndpointCandidates(env = process.env, options = {}) {
   }
 
   return dedupeEndpointCandidates([
-    resolveHostedDefaultEndpoints(env, hostedBackend),
+    resolveConfiguredDefaultEndpoints(env, endpointDefaults),
   ]);
 }
 
@@ -257,7 +261,7 @@ function resolvePreferredArtifactHttpUrl(activeHttpUrl, endpointCandidates = [])
   return (
     normalizeUrl(loopbackCandidate?.httpUrl, ['http:', 'https:'])
     || normalizeUrl(activeHttpUrl, ['http:', 'https:'])
-    || resolveHostedDefaultEndpoints({}).httpUrl
+    || resolveConfiguredDefaultEndpoints({}).httpUrl
   );
 }
 

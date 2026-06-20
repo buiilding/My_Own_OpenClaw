@@ -26,6 +26,9 @@ title: "Runtime Paths and Endpoints"
 main process relays. The reusable resolver has generic loopback defaults; the
 WindieOS desktop and `<windie>` CLI configure hosted defaults through
 `mainHostSkin.hostedBackend` at their composition roots.
+Internally the resolver treats these as host-supplied endpoint defaults so
+generic Electron hosts can provide non-Windie defaults without adopting hosted
+backend naming.
 
 Supported env vars (priority order):
 
@@ -74,7 +77,7 @@ Returned object:
 - `wsUrl`
 - `wsOrigin` (set to `httpUrl` for ws client origin header)
 
-`resolveBackendEndpointCandidates(env, { isPackaged })` returns the ordered candidate list
+`resolveBackendEndpointCandidates(env, { endpointDefaults })` returns the ordered candidate list
 used by the IPC websocket bridge:
 
 - generic resolver without host configuration: loopback default only

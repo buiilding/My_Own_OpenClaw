@@ -203,8 +203,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Backend validation docs now route the input validation/client settings patch
   guard through a client-settings-named docs path instead of the retired
   frontend-named patch guard path.
+  Electron main backend endpoint resolution now names its reusable generic
+  fallback configuration as endpoint defaults while WindieOS hosted URLs stay
+  injected by host skin.
 
 ## Inspection Log
+
+### 2026-06-20 Main Backend Endpoint Default Naming Boundary
+
+- Finding: `backend_endpoints.cjs` was already generic and received WindieOS
+  hosted URLs from `mainHostSkin.hostedBackend`, but its internal fallback
+  config was still named `DEFAULT_HOSTED_BACKEND` even though the generic
+  default is loopback.
+- Change: renamed the generic fallback config and normalization helpers to
+  endpoint-default terminology, added an `endpointDefaults` option while
+  preserving the existing host-skin `hostedBackend` option, and updated the
+  endpoint reference.
+- Validation: passed focused backend endpoint tests, main host skin boundary
+  test, docs listing, stale hosted-internal naming scan, and diff check.
+- Compatibility: no migration required. WindieOS hosted defaults, env
+  precedence, explicit endpoint overrides, loopback fallback behavior,
+  artifact URL selection, local-runtime env propagation, storage, credentials,
+  permissions, provider policy, and hosted URLs are unchanged.
 
 ### 2026-06-20 Backend Client Settings Patch Guard Docs Route
 

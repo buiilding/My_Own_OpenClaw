@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/endpoints: rename generic backend endpoint default internals away from
+  hosted-backend wording while keeping WindieOS hosted defaults supplied by the
+  host skin. No migration required.
 - backend/docs: rename the input validation docs route from frontend patch
   guard to client settings patch guard and update backlinks. No migration
   required.

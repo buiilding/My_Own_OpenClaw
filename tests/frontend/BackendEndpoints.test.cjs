@@ -61,7 +61,11 @@ describe('backend_endpoints hosted defaults', () => {
     expect(source).toContain('DEFAULT_LOOPBACK_BACKEND_PORT');
     expect(source).toContain('configureBackendEndpointRuntime');
     expect(source).not.toContain('mainHostSkin');
-    expect(source).toContain('normalizeHostedBackendConfig');
+    expect(source).toContain('normalizeEndpointDefaults');
+    expect(source).toContain('resolveConfiguredDefaultEndpoints');
+    expect(source).not.toContain('DEFAULT_HOSTED_BACKEND');
+    expect(source).not.toContain('normalizeHostedBackendConfig');
+    expect(source).not.toContain('resolveHostedDefaultEndpoints');
     expect(source).toContain(
       'Backend endpoint resolution for Electron main process and local runtime consumers.',
     );
@@ -120,6 +124,26 @@ describe('backend_endpoints hosted defaults', () => {
       httpUrl: 'https://agent.example.com',
       wsUrl: 'wss://agent.example.com/ws',
       wsOrigin: 'https://agent.example.com',
+    });
+  });
+
+  test('supports generic endpoint defaults without hosted naming', () => {
+    const env = {
+      AGENT_DEFAULT_BACKEND_HTTP_URL: 'https://agent-default.example.com/',
+    };
+    const endpointDefaults = {
+      httpUrl: 'https://fallback.example.com',
+      wsUrl: 'wss://fallback.example.com/ws',
+      env: {
+        defaultHttpUrl: 'AGENT_DEFAULT_BACKEND_HTTP_URL',
+        defaultWsUrl: 'AGENT_DEFAULT_BACKEND_WS_URL',
+      },
+    };
+
+    expect(resolveBackendEndpoints(env, { endpointDefaults })).toEqual({
+      httpUrl: 'https://agent-default.example.com',
+      wsUrl: 'wss://agent-default.example.com/ws',
+      wsOrigin: 'https://agent-default.example.com',
     });
   });
 
