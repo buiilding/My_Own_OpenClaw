@@ -7,7 +7,7 @@ def test_resolve_raw_user_query_prefers_user_query_tag_and_unescapes_xml() -> No
     final_content = """
 <system_context>
   <os_state>
-    <active_window>WindieOS</active_window>
+    <active_window>Project Alpha Notes</active_window>
   </os_state>
 </system_context>
 
@@ -31,7 +31,7 @@ def test_resolve_raw_user_query_falls_back_when_user_query_tag_missing() -> None
     final_content = """
 <system_context>
   <os_state>
-    <active_window>WindieOS</active_window>
+    <active_window>Project Alpha Notes</active_window>
   </os_state>
 </system_context>
 """

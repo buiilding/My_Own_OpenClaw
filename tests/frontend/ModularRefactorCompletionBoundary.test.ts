@@ -421,6 +421,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('/work/project-alpha');
   });
 
+  test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
+    const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
+
+    expect(source).not.toContain('<active_window>WindieOS</active_window>');
+    expect(source).toContain('<active_window>Project Alpha Notes</active_window>');
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),

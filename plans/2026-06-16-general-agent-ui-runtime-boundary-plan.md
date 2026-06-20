@@ -18496,3 +18496,19 @@ Each completed slice should report:
   fields, dashboard row shape, IPC channels, storage, credentials, permissions,
   hosted backend URLs, provider policy, and local-runtime behavior are
   unchanged.
+
+### 2026-06-20 Backend user-query sanitization fixture neutrality
+
+- Finding: backend raw user-query sanitization tests exercise strict
+  `<user_query>` extraction from rendered prompt content, but their
+  `<active_window>` sample still used WindieOS identity as arbitrary desktop
+  context.
+- Change: switched that active-window fixture to neutral `Project Alpha Notes`
+  text and extended the modular boundary guard so the retired product-shaped
+  active-window sample stays out of backend user-query sanitization coverage.
+- Validation: focused backend raw user-query sanitization test, focused modular
+  boundary test, exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Raw query extraction, XML unescaping,
+  fallback behavior, prompt content shape, stored history fields, IPC/WebSocket
+  contracts, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and local-runtime behavior are unchanged.
