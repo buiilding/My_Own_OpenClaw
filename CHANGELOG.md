@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move backend message observer registration and fan-out into
+  `ipc_backend_message_observers.cjs`, preserving invalid-payload ignoring,
+  observer exception isolation, unsubscribe behavior, and test reset cleanup.
+  No migration required.
 - main/ipc: move Agent SDK command execution helpers into
   `ipc_agent_sdk_runtime_commands.cjs`, including query payload resource and
   metadata separation, stop pending-turn cleanup, settings update, model list,

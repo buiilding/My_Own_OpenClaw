@@ -75,7 +75,8 @@ Responsibilities:
 - Starts `AgentClient.wakeUp(...)` through `ipc_agent_wakeup_runtime.cjs`,
   keeps active adapter lifecycle state in `ipc_agent_runtime_lifecycle.cjs`,
   uses the returned `agent.conversation(...)` runtime, routes SDK command
-  execution through `ipc_agent_sdk_runtime_commands.cjs`, and delegates backend websocket
+  execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
+  observer fan-out in `ipc_backend_message_observers.cjs`, and delegates backend websocket
   construction, SDK local-runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).

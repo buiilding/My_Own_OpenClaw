@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Backend Message Observer Boundary
+
+- Finding: `ipc.cjs` still owned backend-message observer storage and fan-out
+  directly through a mutable `Set`, including invalid payload filtering,
+  observer exception isolation, unsubscribe callbacks, and test reset cleanup.
+- Change: added `ipc_backend_message_observers.cjs` to own backend-message
+  observer registration and notification. `ipc.cjs` now delegates observer
+  registration, backend event fan-out, and test reset cleanup to that registry.
+- Validation: focused observer coverage for registration, notification,
+  unsubscribe, reset, invalid observer handling, non-object payload ignoring,
+  exception logging, and a boundary guard that keeps the observer `Set` out of
+  `ipc.cjs`.
+- Compatibility: no migration required. VM worker/backend observer subscription
+  shape, backend event payloads, fan-out timing, logging behavior, renderer IPC
+  channels, storage, credentials, permissions, hosted URLs, provider policy, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent SDK Runtime Command Boundary
 
 - Finding: after extracting active-agent lifecycle state, `ipc.cjs` still owned

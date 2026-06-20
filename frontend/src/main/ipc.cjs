@@ -62,6 +62,9 @@ const {
   createAgentSdkRuntimeCommands,
 } = require('./ipc/ipc_agent_sdk_runtime_commands.cjs');
 const {
+  createBackendMessageObserverRegistry,
+} = require('./ipc/ipc_backend_message_observers.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -249,7 +252,6 @@ let currentServerUserId = null;
 let currentConversationRef = null;
 let activeQueryContext = null;
 let latestDesktopUiConfig = null;
-const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
@@ -265,6 +267,9 @@ const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
+const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
+  log,
+});
 const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
   startAgent,
   getAgentClient,
@@ -416,19 +421,6 @@ function log(message) {
 
 function logMainRuntime(message) {
   console.log(message);
-}
-
-function notifyBackendMessageObservers(data) {
-  if (!data || typeof data !== 'object') {
-    return;
-  }
-  for (const observer of backendMessageObservers) {
-    try {
-      observer(data);
-    } catch (error) {
-      log(`Backend message observer error: ${error}`);
-    }
-  }
 }
 
 async function loadCachedDesktopUiConfigFromDisk() {
@@ -782,7 +774,7 @@ function handleAgentBackendEvent(rendererData) {
   }
   ipcEventReplayState.appendForActiveTurn(rendererData);
   noteBackendTraffic(`message:${rendererData?.type || 'unknown'}`);
-  notifyBackendMessageObservers(rendererData);
+  backendMessageObserverRegistry.notify(rendererData);
   processBackendMessageData(rendererData, {
     setCurrentSessionId: (value) => {
       currentSessionId = value;
@@ -848,7 +840,7 @@ function shutdownIpcForTests() {
   resetBackendSessionState();
   resetIpcProcessStateForTests();
   rendererWindows = new Set();
-  backendMessageObservers.clear();
+  backendMessageObserverRegistry.reset();
   applyResponseOverlayPhase = null;
   onBeforeOverlayQueryCapture = null;
   setAgentLoopStopShortcutEnabled = null;
@@ -1141,13 +1133,7 @@ function getLatestDesktopUiConfig() {
 }
 
 function registerBackendMessageObserver(observer) {
-  if (typeof observer !== 'function') {
-    return () => {};
-  }
-  backendMessageObservers.add(observer);
-  return () => {
-    backendMessageObservers.delete(observer);
-  };
+  return backendMessageObserverRegistry.register(observer);
 }
 
 function getBackendConnectionState() {
