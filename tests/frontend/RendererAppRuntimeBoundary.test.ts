@@ -424,6 +424,8 @@ describe('renderer app runtime boundary', () => {
     expect(source).toContain('Forwarding/helper facade with current boundary value');
     expect(source).toContain('Removed forwarding-only adapter');
     expect(source).toContain('Removed migration shims');
+    expect(source).toContain('desktopStreamPhaseRuntime.js');
+    expect(source).not.toContain('desktopStreamPhaseRuntime.ts');
     expect(source).toContain('desktopStorageRuntimeClient.js');
     expect(source).toContain('Do not delete a helper merely because it forwards');
     expect(source.match(/`desktopWorkspaceRuntimeClient\.ts` owns/g) || []).toHaveLength(1);

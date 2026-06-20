@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: aligned the renderer app-runtime inventory with the live
+  `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
+  boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.
+  Validation covered the focused renderer app-runtime boundary test, docs
+  listing, live app-runtime inventory scan, stale filename scan, and diff
+  check. No migration required; runtime code, IPC channels, SDK dispatch,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 - 2026-06-20: routed README transcript, prompt/tool boundary, install matrix,
   capture artifact, IPC mapper, channels, packaging, code-surface, and protocol
   surface labels through SDK/main local-runtime dispatch, local-runtime launch

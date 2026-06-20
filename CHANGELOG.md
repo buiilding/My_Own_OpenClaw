@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: align the renderer app-runtime inventory with the live
+  `desktopStreamPhaseRuntime.js` state/rule facade and guard against the stale
+  TypeScript filename. No migration required.
 - docs/tools: route backend registry parity labels through backend/local-runtime
   exposed-tool wording and describe backend-declared built-ins as locally
   executable requirements instead of backend client-executable tool names. No

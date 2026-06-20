@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer App-Runtime Inventory Filename
+
+- Finding: the renderer transport command reference listed
+  `desktopStreamPhaseRuntime.ts`, but the live state/rule facade is
+  `frontend/src/renderer/app/runtime/desktopStreamPhaseRuntime.js`.
+- Change: updated the canonical module inventory and state/rule facade table to
+  name the live `.js` module, and extended the renderer boundary guard against
+  the stale `.ts` filename.
+- Validation: focused renderer app-runtime boundary test, docs listing, live
+  app-runtime inventory scan, stale filename scan, and diff check.
+- Compatibility: no migration required. Runtime code, IPC channels, SDK
+  dispatch, storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-20 Local-Runtime Bridge and Launch Labels
 
 - Finding: README transcript, prompt/tool boundary, install matrix, capture
