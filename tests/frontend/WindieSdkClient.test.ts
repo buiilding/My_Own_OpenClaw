@@ -3085,6 +3085,12 @@ describe('Agent SDK client behavior', () => {
     );
 
     for (const source of [runtimeEnvSource, runtimeEnvCjsSource]) {
+      expect(source).toContain('AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS');
+      expect(source).toContain("backendUrl: 'WINDIE_BACKEND_URL'");
+      expect(source).toContain("installToken: 'WINDIE_API_KEY'");
+      expect(source).toContain("localRuntimeDaemonScript: 'WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT'");
+      expect(source).toContain("localRuntimePython: 'WINDIE_PYTHON'");
+      expect(source).toContain("localRuntimeDaemonDiscoveryFile: 'WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE'");
       expect(source).toContain('AGENT_BACKEND_URL_ENV_KEYS');
       expect(source).toContain('WINDIE_BACKEND_URL');
       expect(source).toContain('AGENT_INSTALL_TOKEN_ENV_KEYS');

@@ -4,29 +4,37 @@
 
 export type AgentRuntimeEnv = Record<string, string | undefined>;
 
+export const AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS = Object.freeze({
+  backendUrl: 'WINDIE_BACKEND_URL',
+  installToken: 'WINDIE_API_KEY',
+  localRuntimeDaemonScript: 'WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT',
+  localRuntimePython: 'WINDIE_PYTHON',
+  localRuntimeDaemonDiscoveryFile: 'WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE',
+});
+
 export const AGENT_BACKEND_URL_ENV_KEYS = Object.freeze([
   'AGENT_BACKEND_URL',
-  'WINDIE_BACKEND_URL',
+  AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS.backendUrl,
 ]);
 
 export const AGENT_INSTALL_TOKEN_ENV_KEYS = Object.freeze([
   'AGENT_INSTALL_TOKEN',
-  'WINDIE_API_KEY',
+  AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS.installToken,
 ]);
 
 export const AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT_ENV_KEYS = Object.freeze([
   'AGENT_LOCAL_RUNTIME_DAEMON_SCRIPT',
-  'WINDIE_LOCAL_RUNTIME_DAEMON_SCRIPT',
+  AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS.localRuntimeDaemonScript,
 ]);
 
 export const AGENT_LOCAL_RUNTIME_PYTHON_ENV_KEYS = Object.freeze([
   'AGENT_LOCAL_RUNTIME_PYTHON',
-  'WINDIE_PYTHON',
+  AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS.localRuntimePython,
 ]);
 
 export const AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE_ENV_KEYS = Object.freeze([
   'AGENT_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE',
-  'WINDIE_LOCAL_RUNTIME_DAEMON_DISCOVERY_FILE',
+  AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS.localRuntimeDaemonDiscoveryFile,
 ]);
 
 export const AGENT_BACKEND_URL_REQUIRED_MESSAGE = (

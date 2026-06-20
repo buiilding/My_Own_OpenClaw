@@ -46,6 +46,10 @@ All notable changes to WindieOS will be documented in this file.
   generic `AGENT_WAKEWORD_NAME` / WindieOS alias env injection instead of
   hardcoding the product wakeword choice in the bridge path. No migration
   required.
+- sdk: name legacy `WINDIE_*` environment fallbacks through
+  `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS` while preserving the generic
+  `AGENT_*` key precedence and existing compatibility aliases. No migration
+  required.
 - renderer/sdk: remove the retired renderer `agentSdkClient.ts` SDK re-export
   facade; renderer app-runtime contracts now import the SDK package directly
   and active docs route hosted TypeScript client work to `packages/windie-sdk-js`.

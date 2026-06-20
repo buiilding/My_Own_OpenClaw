@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Runtime Env Compatibility Map
+
+- Finding: SDK runtime env fallback arrays preserved the required `WINDIE_*`
+  aliases, but the alias literals still sat directly inside generic `AGENT_*`
+  key groups, making the reusable env contract read as mixed product and
+  generic names.
+- Change: introduced `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS` as the explicit
+  compatibility map for legacy Windie env names, then built the generic SDK env
+  key groups from that map while leaving `AgentClient` and local-runtime
+  provider call sites on the named generic groups.
+- Validation: focused SDK client env tests, exact RuntimeEnv compatibility-map
+  scans, docs listing, and diff checks.
+- Compatibility: no migration required. `AGENT_*` precedence, supported
+  `WINDIE_*` aliases, required error messages, backend URL/install-token
+  resolution, local-runtime daemon discovery/Python resolution, hosted routes,
+  credentials, permissions, provider policy, storage, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Wakeword Model Host-Skin Boundary
 
 - Finding: Electron main already kept WindieOS wakeword stderr markers in host

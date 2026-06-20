@@ -458,7 +458,8 @@ SDK env fallback names are defined in `runtime/RuntimeEnv` as named key groups.
 The reusable `AgentClient` and local-runtime provider consume those key groups
 instead of spelling product-specific compatibility aliases inside orchestration
 methods. Generic hosts should prefer `AGENT_*`; the legacy `WINDIE_*` names
-remain compatibility aliases in the env contract only.
+remain compatibility aliases in the `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS`
+contract only.
 
 Set both `memory: false` and `persistence: false` when a client wants a
 stateless backend-only session and does not request local builtins, module

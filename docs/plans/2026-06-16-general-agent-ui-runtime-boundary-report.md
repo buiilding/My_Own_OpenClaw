@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: wakeword subprocess startup now receives the
-  WindieOS wakeword model id through host skin config and generic
-  `AGENT_WAKEWORD_NAME` / WindieOS alias env injection instead of relying only
-  on the local-runtime compatibility default.
+- Latest completed slice: SDK runtime env fallback aliases now live behind the
+  explicit `AGENT_RUNTIME_WINDIE_COMPAT_ENV_KEYS` compatibility map while the
+  generic `AGENT_*` key groups and existing Windie aliases keep the same
+  behavior.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -175,7 +175,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime wording instead of sidecar-facing SDK labels. Wakeword startup
   now routes the preferred model id from Electron host skin through generic
   wakeword-name env injection while preserving the WindieOS alias and default
-  `hey_jarvis` behavior.
+  `hey_jarvis` behavior. SDK runtime env compatibility aliases now sit in an
+  explicit Windie compatibility map consumed by generic `AGENT_*` key groups,
+  keeping alias support out of SDK orchestration call sites.
   Renderer message-send preparation now routes send-surface chatbox restore
   through a renderer app runtime window client instead of invoking the window
   IPC channel directly.
