@@ -163,7 +163,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Config Sync and Settings Lifecycle Reference](runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Audio Chunk Playback and Stop Semantics Reference](runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 
-### Sidecar
+### Local-Runtime Python
 
 - [Local Runtime Python Implementation Docs Hub](sidecar/README.md)
 - [Local-Runtime Core Docs Hub](sidecar/core/README.md)
@@ -176,7 +176,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Local-Runtime System Tools Docs Hub](sidecar/tools/system/README.md)
 - [Local Runtime Memory Docs Hub](sidecar/memory/README.md)
 - [Local Runtime Memory Storage Docs Hub](sidecar/memory/storage/README.md)
-- [Python Sidecar and Memory](sidecar/python_sidecar_and_memory.md)
+- [Local-Runtime Python and Memory](sidecar/python_sidecar_and_memory.md)
 - [Local Runtime JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Local-Runtime System-State Collection and Platform Adapter Reference](sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Local-Runtime Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
@@ -245,6 +245,6 @@ This hub documents WindieOS frontend implementation details across Electron main
 ## Evidence Notes
 
 - Frontend fixes should identify whether the evidence comes from Electron main,
-  SDK runtime, renderer state, or sidecar output.
+  SDK runtime, renderer state, or local-runtime Python output.
 - For stale UI, verify the active selector inputs before patching the rendered
   component that displays the stale state.

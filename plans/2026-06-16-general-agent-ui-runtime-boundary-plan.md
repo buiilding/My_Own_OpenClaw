@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 First-Read Local-Runtime Python Navigation Labels
+
+- Finding: top-level docs, frontend docs navigation, architecture
+  implementation docs, and local-runtime memory docs still exposed Python
+  Sidecar/Sidecar labels as public navigation titles even though the intended
+  reusable boundary is local-runtime Python.
+- Change: routed those headings, links, and evidence notes through
+  local-runtime Python wording while preserving concrete `sidecar/` doc paths,
+  `sidecar_daemon.py`, and packaged runtime behavior.
+- Validation: focused modular docs boundary test, exact stale navigation-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, doc paths, daemon
+  filenames, bundled runtime behavior, SDK local-runtime behavior, JSON-RPC
+  payloads, IPC payloads, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Active Local-Runtime Python Owner Labels
 
 - Finding: active API, backend, frontend, operations, security, extension, and

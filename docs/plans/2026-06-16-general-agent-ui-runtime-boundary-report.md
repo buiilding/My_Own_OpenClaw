@@ -12,10 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: remaining active API, backend, frontend, operations,
-  security, and extension docs now route implementation owner labels through
-  local-runtime Python wording instead of Python sidecar labels, with the
-  focused active-label scan reduced to the non-visible Mermaid alias.
+- Latest completed slice: top-level docs, frontend docs navigation,
+  architecture implementation docs, and local-runtime memory docs now route
+  public navigation labels through local-runtime Python wording instead of
+  Python Sidecar/Sidecar labels, while keeping concrete sidecar paths and
+  daemon names intact.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +245,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 First-Read Local-Runtime Python Navigation Labels
+
+- Finding: top-level docs, frontend docs navigation, architecture
+  implementation docs, and local-runtime memory docs still exposed Python
+  Sidecar/Sidecar labels as public navigation titles even though the intended
+  reusable boundary is local-runtime Python.
+- Change: routed those headings, links, and evidence notes through
+  local-runtime Python wording while preserving concrete `sidecar/` doc paths,
+  `sidecar_daemon.py`, and packaged runtime behavior.
+- Validation: focused modular docs boundary test, exact stale navigation-label
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, doc paths, daemon
+  filenames, bundled runtime behavior, SDK local-runtime behavior, JSON-RPC
+  payloads, IPC payloads, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Active Local-Runtime Python Owner Labels
 

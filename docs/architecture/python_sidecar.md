@@ -4,7 +4,7 @@ read_when:
   - When changing the local-runtime Python implementation or local-runtime IPC.
 ---
 
-# Python Sidecar
+# Local-Runtime Python Implementation
 
 ## Overview
 
@@ -27,8 +27,8 @@ The intended open-source distribution is UI + sidecar + SDK. Users should not ne
 Release contract:
 - End users do not need Python preinstalled.
 - Installer ships a bundled runtime under `resources/python-runtime`.
-- Sidecar and wakeword services run from bundled runtime in packaged apps.
-- The sidecar now includes a transport-only hosted SDK client in `frontend/src/main/python/windie/sdk.py` for direct developer-facing calls to `/api/artifacts/*`, `/api/sdk/*`, and `/ws`.
+- Local-runtime Python and wakeword services run from bundled runtime in packaged apps.
+- The local-runtime Python package now includes a transport-only hosted SDK client in `frontend/src/main/python/windie/sdk.py` for direct developer-facing calls to `/api/artifacts/*`, `/api/sdk/*`, and `/ws`.
 - Python SDK callers import `AgentSdkClient` from the public `windie` package. The old `core` package re-export and `WindieSdkClient`/`WindieSdkAgentSession` aliases have been removed.
 
 **Key files:**
@@ -90,7 +90,7 @@ Protocol output notes:
   `LocalRuntimeService` through the daemon, not through a direct stdin/stdout
   `local_backend.py` process.
 
-## Sidecar Daemon HTTP Runtime
+## Local-Runtime Daemon HTTP Runtime
 
 The SDK-owned local runtime talks to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints. This daemon is the local-runtime HTTP/WebSocket boundary used by `AgentClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
 

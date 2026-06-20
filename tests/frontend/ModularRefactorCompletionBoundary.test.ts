@@ -302,6 +302,9 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/install/uninstall_reinstall_reset.md'),
       read('docs/frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md'),
       read('docs/getting-started/docs_hub.md'),
+      read('docs/frontend/README.md'),
+      read('docs/frontend/sidecar/README.md'),
+      read('docs/frontend/sidecar/python_sidecar_and_memory.md'),
       read('docs/architecture/python_sidecar.md'),
       read('docs/concepts/runtime_model.md'),
       read('docs/operations/deployment.md'),
@@ -350,6 +353,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('sidecar remote-client auth');
     expect(docText).not.toContain('sidecar auth headers');
     expect(docText).not.toContain('Sidecar Docs');
+    expect(docText).not.toContain('# Python Sidecar');
+    expect(docText).not.toContain('### Sidecar');
+    expect(docText).not.toContain('Python Sidecar and Memory');
+    expect(docText).not.toContain('sidecar output');
     expect(docText).not.toContain('Python sidecar runtime, memory');
     expect(docText).not.toContain('Electron frontend, Python sidecar');
     expect(docText).not.toContain('SDK local runtime (Python sidecar daemon)');

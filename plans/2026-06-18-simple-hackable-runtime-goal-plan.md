@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a first-read local-runtime Python navigation label
+  slice by routing top-level docs, frontend docs navigation, architecture
+  implementation title, and local-runtime memory doc title through
+  local-runtime Python wording instead of Python Sidecar/Sidecar public labels.
+  Validation: focused modular docs boundary test, exact stale navigation-label
+  scan, docs listing, and diff checks. No migration required; no runtime code,
+  doc path, daemon filename, bundled runtime behavior, SDK local-runtime
+  behavior, JSON-RPC payload, IPC payload, storage, credential, permission,
+  hosted URL, provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed an active local-runtime Python owner-label sweep by
   routing remaining active API, backend, frontend, operations, security,
   extension, and local-runtime docs through local-runtime Python wording

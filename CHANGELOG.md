@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route first-read local-runtime Python navigation headings and
+  links through local-runtime Python wording instead of Python Sidecar/Sidecar
+  public labels. No migration required.
 - docs(runtime): route remaining active Python sidecar owner labels through
   local-runtime Python wording across API, backend, frontend, operations,
   security, and extension docs. No migration required.

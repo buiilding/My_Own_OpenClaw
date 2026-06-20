@@ -3,12 +3,12 @@ summary: "Local-runtime Python implementation behind the local-runtime boundary:
 read_when:
   - When changing local-runtime tools backed by local-runtime Python implementation, local-runtime memory persistence/search, or subprocess protocol behavior.
   - When debugging local-runtime Python readiness, request correlation, or memory summarization cadence.
-title: "Python Sidecar and Memory"
+title: "Local-Runtime Python and Memory"
 ---
 
-# Python Sidecar and Memory
+# Local-Runtime Python and Memory
 
-## Sidecar Services
+## Local-Runtime Python Services
 
 Primary Python entrypoints under `frontend/src/main/python`:
 
