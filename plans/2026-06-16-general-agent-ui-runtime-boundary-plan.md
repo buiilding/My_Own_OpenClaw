@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Wake-Up Runtime Boundary
+
+- Finding: after extracting the direct wake-up adapter and AgentClient factory,
+  `ipc.cjs` still owned wake-up orchestration inline: install-auth gating,
+  workspace resolution, `AgentClient.wakeUp(...)` option assembly, test-mode
+  builtins/MCP/memory/persistence disabling, adapter construction, and
+  diagnostics.
+- Change: added `ipc_agent_wakeup_runtime.cjs` to own Agent SDK wake-up
+  orchestration. `ipc.cjs` now keeps active-agent caching and mutable host
+  state while injecting install-auth, workspace, host skin name, MCP config,
+  local tool lifecycle, direct adapter dependencies, diagnostics, and logging.
+- Validation: focused wake-up runtime coverage for explicit and fallback
+  workspace handling, install-auth gating, MCP config handoff, test-mode
+  disabling, direct adapter construction, diagnostics, logging, and a boundary
+  guard that keeps `client.wakeUp(...)` out of `ipc.cjs`.
+- Compatibility: no migration required. `AgentClient.wakeUp(...)` inputs,
+  test-mode behavior, direct wake adapter behavior, renderer IPC channels,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Electron Agent Client Factory Boundary
 
 - Finding: `ipc.cjs` still shaped `AgentClient` constructor options inline:

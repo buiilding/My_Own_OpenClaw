@@ -69,13 +69,21 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
     );
+    const agentWakeupRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs'),
+      'utf8',
+    );
     expect(source).toContain('createElectronAgentClientRuntime({');
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
-    expect(source).toContain('client.wakeUp({');
-    expect(source).toContain('createDirectWakeUpAgentAdapter({');
+    expect(source).toContain('startAgentRuntime({ reason, workspacePath }');
+    expect(source).not.toContain('client.wakeUp({');
+    expect(agentWakeupRuntimeSource).toContain('client.wakeUp({');
+    expect(source).toContain('createDirectWakeUpAgentAdapter,');
+    expect(source).not.toContain('createDirectWakeUpAgentAdapter({');
+    expect(agentWakeupRuntimeSource).toContain('createDirectWakeUpAgentAdapter({');
     expect(source).not.toContain('function createDirectWakeUpAgentAdapter');
     expect(source).not.toContain('agent.conversation({');
     expect(source).not.toContain('buildConversationTerminalStatus(event, workspacePath)');
@@ -129,14 +137,14 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('stopQueryThroughAgentSdkRuntime');
     expect(source).toContain('requestModelListThroughAgentSdkRuntime');
     expect(source).toContain('sendWakewordDetectedThroughAgentSdkRuntime');
-    const wakeCall = source.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
+    const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
-    expect(wakeCall).toContain('name: ipcHostCopy.identity.sdkAgentName');
+    expect(wakeCall).toContain('name: getSdkAgentName()');
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
-    expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
-    expect(wakeCall).toContain("mcps: process.env.NODE_ENV === 'test'");
+    expect(wakeCall).toContain("builtins: testMode ? [] : 'default'");
+    expect(wakeCall).toContain('mcps: testMode');
     expect(wakeCall).toContain('getEnabledMcpServerSpecsForConfig({ config: getDesktopUiConfigForMcpRegistry() })');
-    expect(wakeCall).toContain('localToolLifecycle');
+    expect(wakeCall).toContain('localToolLifecycle: getLocalToolLifecycle()');
     expect(wakeCall).not.toContain('conversationRef:');
     expect(source).toContain('onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup');
     expect(source).toContain('createMcpRefreshRuntime({');
@@ -156,6 +164,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('handleAgentBackendCloseEvent({ closeReason, shouldReconnect }');
     expect(source).not.toContain('Active query interrupted by backend disconnect');
     expect(agentBackendCloseRuntimeSource).toContain('Active query interrupted by backend disconnect');
+    expect(source).not.toContain("action: 'runtime.wakeup'");
+    expect(agentWakeupRuntimeSource).toContain("action: 'runtime.wakeup'");
     expect(source).not.toContain(`${retiredProductPrefix} SDK runtime`);
     expect(source).not.toContain(`${retiredProductName('Client')} wakeUp runtime started`);
     expect(source).not.toContain(`Failed to send query through ${retiredProductName('Agent')}`);

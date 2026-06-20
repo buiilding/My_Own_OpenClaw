@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK wake-up orchestration into
+  `ipc_agent_wakeup_runtime.cjs`, including install-auth gating, wake-up option
+  assembly, test-mode MCP/memory/persistence disabling, direct wake adapter
+  construction, and wake-up diagnostics. No migration required.
 - main/ipc: move Electron `AgentClient` constructor option shaping into
   `ipc_electron_agent_client_factory.cjs`, including managed endpoint mapping,
   SDK `autoLocalRuntime` launch-option wiring, test-mode local-runtime

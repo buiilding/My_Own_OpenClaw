@@ -53,6 +53,9 @@ const {
   createElectronAgentClient: createElectronAgentClientRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
+  startAgentRuntime,
+} = require('./ipc/ipc_agent_wakeup_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -570,24 +573,18 @@ function getAgentClient() {
 }
 
 async function startAgent({ reason = 'request', workspacePath = null } = {}) {
-  await ensureInstallAuthState();
-  const resolvedWorkspacePath = workspacePath || resolveWorkspacePathForAgent() || undefined;
-  const client = getAgentClient();
-  const agent = await client.wakeUp({
-    installAuth: buildDesktopInstallAuth(),
-    name: ipcHostCopy.identity.sdkAgentName,
-    workspacePath: resolvedWorkspacePath,
-    builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
-    mcps: process.env.NODE_ENV === 'test'
-      ? []
-      : getEnabledMcpServerSpecsForConfig({ config: getDesktopUiConfigForMcpRegistry() }),
-    ...(process.env.NODE_ENV === 'test' ? { memory: false, persistence: false } : {}),
-    localToolLifecycle,
-  });
-  const adapter = createDirectWakeUpAgentAdapter({
-    agent,
-    workspacePath: resolvedWorkspacePath || null,
-    deps: {
+  return startAgentRuntime({ reason, workspacePath }, {
+    ensureInstallAuthState,
+    resolveWorkspacePathForAgent,
+    getAgentClient,
+    buildDesktopInstallAuth,
+    getSdkAgentName: () => ipcHostCopy.identity.sdkAgentName,
+    isTest: () => process.env.NODE_ENV === 'test',
+    getEnabledMcpServerSpecsForConfig,
+    getDesktopUiConfigForMcpRegistry,
+    getLocalToolLifecycle: () => localToolLifecycle,
+    createDirectWakeUpAgentAdapter,
+    buildDirectWakeUpAgentAdapterDeps: () => ({
       broadcastToRenderers,
       resolveRuntimeConversationRef,
       setLatestCurrentTurnProjection: (currentTurnProjection) => {
@@ -607,17 +604,10 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
       handleAgentBackendEvent,
       refreshMcpServersForConfig,
       getMcpClientInfo: () => ipcHostCopy.identity.mcpClientInfo,
-    },
+    }),
+    appendIpcBridgeDiagnostic,
+    log,
   });
-  appendIpcBridgeDiagnostic({
-    action: 'runtime.wakeup',
-    phase: 'sdk',
-    status: 'succeeded',
-    statusReason: reason,
-    hasWorkspacePath: Boolean(resolvedWorkspacePath),
-  });
-  log(`Agent SDK wakeUp runtime started for ${reason}.`);
-  return adapter;
 }
 
 async function ensureAgent({ reason = 'request', workspacePath = null } = {}) {

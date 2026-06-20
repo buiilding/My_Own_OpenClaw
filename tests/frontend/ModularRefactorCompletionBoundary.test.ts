@@ -34,11 +34,16 @@ describe('modular sdk refactor completion boundary', () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
     const directWakeUpAdapterSource = await read('frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
     const electronAgentClientFactorySource = await read('frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
+    const agentWakeupRuntimeSource = await read('frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
     expect(ipcSource).toContain('createElectronAgentClientRuntime({');
     expect(ipcSource).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
-    expect(ipcSource).toContain('client.wakeUp({');
-    expect(ipcSource).toContain('createDirectWakeUpAgentAdapter({');
+    expect(ipcSource).toContain('startAgentRuntime({ reason, workspacePath }');
+    expect(ipcSource).not.toContain('client.wakeUp({');
+    expect(agentWakeupRuntimeSource).toContain('client.wakeUp({');
+    expect(ipcSource).toContain('createDirectWakeUpAgentAdapter,');
+    expect(ipcSource).not.toContain('createDirectWakeUpAgentAdapter({');
+    expect(agentWakeupRuntimeSource).toContain('createDirectWakeUpAgentAdapter({');
     expect(ipcSource).not.toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
     expect(ipcSource).toContain('localToolLifecycle');
@@ -54,12 +59,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('createManagedBackendSession');
     expect(ipcSource).not.toContain('routeSdkToolEventToLocalRuntime');
     expect(ipcSource).not.toContain('executeLocalTool:');
-    const wakeCall = ipcSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
+    const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
-    expect(wakeCall).toContain('name: ipcHostCopy.identity.sdkAgentName');
+    expect(wakeCall).toContain('name: getSdkAgentName()');
     expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
-    expect(wakeCall).toContain("builtins: process.env.NODE_ENV === 'test' ? [] : 'default'");
-    expect(wakeCall).toContain('localToolLifecycle');
+    expect(wakeCall).toContain("builtins: testMode ? [] : 'default'");
+    expect(wakeCall).toContain('localToolLifecycle: getLocalToolLifecycle()');
     expect(wakeCall).not.toContain('conversationRef:');
   });
 

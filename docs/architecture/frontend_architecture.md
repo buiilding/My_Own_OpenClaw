@@ -191,8 +191,9 @@ New-chat behavior:
    from SDK projections. Renderer does not persist duplicate live tool rows.
 
 Electron main does not own the local tool-routing algorithm.
-`ipc.cjs` starts `AgentClient.wakeUp(...)` directly with install auth, the
-active workspace, default builtins, and Electron's local tool lifecycle hook.
+`ipc_agent_wakeup_runtime.cjs` starts `AgentClient.wakeUp(...)` with install
+auth, the active workspace, default builtins, and Electron's local tool
+lifecycle hook.
 The SDK owns standalone local-runtime startup/reuse, executable tool manifest
 discovery, local tool execution, single and bundled tool-call coordination, display
 rows/current-turn projections, and backend tool-result return. Electron main
@@ -317,8 +318,9 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing composition root for backend-bound work.
-  - Imports `AgentClient` directly, starts `client.wakeUp(...)`, and uses the
-    returned `agent.conversation(...)` runtime for sends and stream projection.
+  - Imports `AgentClient` directly, delegates `client.wakeUp(...)` option
+    assembly to `ipc_agent_wakeup_runtime.cjs`, and uses the returned
+    `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,
     display rows, and current-turn projection to the SDK runtime.
