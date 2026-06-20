@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move the direct `AgentClient.wakeUp(...)` adapter into
+  `ipc_direct_wake_up_agent_adapter.cjs`, including conversation-runtime handle
+  caching, SDK event fan-out, inference-context rehydration, replay
+  invalidation, and MCP refresh forwarding. No migration required.
 - main/ipc: move global stop shortcut target resolution and SDK-shaped stop
   execution into `ipc_stop_target_runtime.cjs`, keeping native shortcut
   registration in the shortcut runtime and `ipc.cjs` as host-state wiring. No

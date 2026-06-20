@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -20,6 +20,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
 - `frontend/src/main/ipc/ipc_install_auth_runtime.cjs`
+- `frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs`
 - `packages/windie-sdk-js/src/runtime/AgentClient.ts`
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
@@ -139,6 +140,25 @@ Own Agent SDK runtime lifecycle construction:
 - emits normalized conversation events and current-turn projections for Electron
   main to convert into renderer rows/status and forward
 - emits interrupted active-query events when the backend closes during an active loop phase
+
+### `ipc_direct_wake_up_agent_adapter.cjs`
+
+Owns the Electron-main adapter around a direct `AgentClient.wakeUp(...)` result:
+
+- creates and caches `agent.conversation(...)` runtime handles by conversation
+  ref
+- subscribes to SDK conversation events and forwards renderer status,
+  conversation-event, memory-store, rows, and current-turn channels
+- clears renderer pending-turn state when SDK current-turn projection catches
+  up to the pending row
+- rehydrates stored conversation context before sends, compaction, edit, and
+  retry paths that need backend inference context
+- invalidates and reloads conversation snapshots after replay/rewrite/append
+  commands
+- closes selected runtime handles on conversation delete and all runtime
+  handles on clear/adapter close
+- refreshes MCP servers through the SDK local runtime with injected host client
+  identity
 
 ### `ipc_backend_endpoint_state.cjs`
 
@@ -409,6 +429,10 @@ generic `to-backend` router or direct chat query IPC handlers.
     to `ipc_install_auth_runtime.cjs`.
 21. global stop shortcut target selection and SDK-shaped stop execution
     delegate to `ipc_stop_target_runtime.cjs`.
+22. direct `AgentClient.wakeUp(...)` adapter behavior, conversation-runtime
+    handle caching, SDK event fan-out, inference-context rehydration, replay
+    invalidation, and MCP refresh forwarding delegate to
+    `ipc_direct_wake_up_agent_adapter.cjs`.
 
 ## Drift Hotspots
 

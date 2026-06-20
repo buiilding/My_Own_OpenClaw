@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Direct Wake-Up Agent Adapter Boundary
+
+- Finding: `ipc.cjs` already used `AgentClient.wakeUp(...)` directly, but it
+  still implemented the returned-agent adapter inline: conversation-runtime
+  handle caching, SDK event fan-out, pending-turn cleanup, rehydrate-before-send
+  inference context, replay invalidation, edit/retry forwarding, and MCP refresh
+  forwarding all lived in the IPC relay root.
+- Change: added `ipc_direct_wake_up_agent_adapter.cjs` to own the direct
+  wake-up adapter. `ipc.cjs` now composes the adapter by injecting renderer
+  fan-out, current/pending turn state callbacks, tracing, workspace resolution,
+  backend event handling, terminal-status projection, and MCP refresh identity.
+- Validation: focused direct wake-up adapter coverage for SDK snapshot fan-out,
+  pending-turn cleanup, rehydrate-before-send, replay/edit forwarding, runtime
+  handle cleanup, raw backend event forwarding, and MCP refresh forwarding.
+- Compatibility: no migration required. `AgentClient.wakeUp(...)` inputs,
+  `agent.conversation(...)` behavior, SDK command names, renderer IPC channels,
+  current-turn/rows/status payloads, replay/edit/retry behavior, MCP refresh
+  behavior, storage, credentials, permissions, hosted URLs, provider policy, and
+  local execution behavior are unchanged.
+
 ### 2026-06-19 Main Stop Target Runtime Boundary
 
 - Finding: global stop shortcut registration already lived in the shortcut

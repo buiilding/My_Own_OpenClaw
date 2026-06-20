@@ -45,12 +45,23 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs'),
       'utf8',
     );
+    const directWakeUpAdapterSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs'),
+      'utf8',
+    );
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('client.wakeUp({');
-    expect(source).toContain('agent.conversation({');
-    expect(source).toContain('buildConversationTerminalStatus(event, workspacePath)');
+    expect(source).toContain('createDirectWakeUpAgentAdapter({');
+    expect(source).not.toContain('function createDirectWakeUpAgentAdapter');
+    expect(source).not.toContain('agent.conversation({');
+    expect(source).not.toContain('buildConversationTerminalStatus(event, workspacePath)');
+    expect(directWakeUpAdapterSource).toContain('function createDirectWakeUpAgentAdapter');
+    expect(directWakeUpAdapterSource).toContain('agent.conversation({');
+    expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
+    expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
+    expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
     expect(source).toContain('resolveWorkspacePathForAgentPayload(payload, latestDesktopUiConfig)');
     expect(source).not.toContain('event.payload?.error');
     expect(source).not.toContain('payload?.workspace_path');
