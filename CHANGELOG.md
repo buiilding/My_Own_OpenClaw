@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli/extensions: make generated local-runtime plugin scaffold copy and success
+  output use generic contribution labels instead of embedding WindieOS identity
+  in the plugin artifact. No migration required.
 - docs/renderer: route voice transcription provider details and playback
   topology through the desktop voice/audio runtime boundary instead of naming
   backend provider internals in renderer docs. No migration required.

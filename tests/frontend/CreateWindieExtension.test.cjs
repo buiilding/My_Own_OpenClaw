@@ -5,6 +5,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const childProcess = require('child_process');
 
 const {
   createWindieExtension,
@@ -35,12 +36,12 @@ describe('create-windie-extension scaffold', () => {
     const pluginReadmeText = fs.readFileSync(path.join(result.pluginDir, 'README.md'), 'utf8');
     const skillReadmeText = fs.readFileSync(path.join(result.skillDir, 'README.md'), 'utf8');
 
-    expect(pluginManifestText).toContain('Starter WindieOS local-runtime plugin');
+    expect(pluginManifestText).toContain('Starter local-runtime plugin');
     expect(pluginReadmeText).toContain('local-runtime plugin generated');
     expect(pluginReadmeText).toContain('Python entrypoint executed by the local runtime');
     expect(skillReadmeText).toContain('local-runtime plugin');
     expect(`${pluginManifestText}\n${pluginReadmeText}\n${skillReadmeText}`).not.toMatch(
-      /Windie sidecar plugin|sidecar plugin|local sidecar entrypoint/,
+      /Starter WindieOS local-runtime plugin|Windie sidecar plugin|sidecar plugin|local sidecar entrypoint/,
     );
 
     const loaded = loadAgentExtensionRegistry({ contributionsDir: contributionRoot });
@@ -76,6 +77,22 @@ describe('create-windie-extension scaffold', () => {
       extensionId: 'repo-agent',
       contributionsDir: contributionRoot,
     })).toThrow(/already exists/);
+  });
+
+  test('prints generic contribution labels after scaffold creation', () => {
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-contribution-scaffold-'));
+    const scriptPath = path.resolve(__dirname, '../../scripts/create-windie-extension.cjs');
+
+    const output = childProcess.execFileSync(
+      process.execPath,
+      [scriptPath, 'repo-agent', '--dir', contributionRoot],
+      { encoding: 'utf8' },
+    );
+
+    expect(output).toContain('Created local-runtime plugin at');
+    expect(output).toContain('Created prompt skill at');
+    expect(output).not.toContain('Created Windie plugin');
+    expect(output).not.toContain('Created Windie skill');
   });
 
   test('parses command arguments', () => {

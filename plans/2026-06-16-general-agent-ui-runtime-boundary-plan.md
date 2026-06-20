@@ -18250,3 +18250,20 @@ Each completed slice should report:
   provider selection, provider/model config, audio chunk event payloads,
   renderer playback behavior, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Extension scaffold generated-copy boundary
+
+- Finding: `<windie> extension create` already writes the current divided
+  plugin/skill contribution layout, but generated plugin metadata, generated
+  README copy, and CLI success output still embedded WindieOS identity in the
+  plugin/skill artifact labels.
+- Change: changed the scaffolded plugin description and README to generic
+  local-runtime plugin wording, changed CLI success output to local-runtime
+  plugin and prompt skill labels, and extended the scaffold test so the retired
+  starter WindieOS plugin phrase stays absent.
+- Validation: focused create-extension scaffold test, exact stale scaffold-copy
+  scan, docs listing, and diff checks.
+- Compatibility: no migration required. CLI command name, generated directory
+  layout, `plugin.json` schema fields, Python entrypoints, skill front matter,
+  manifest loading, permissions, credentials, IPC channels, local-runtime
+  execution, hosted backend URLs, and provider policy are unchanged.

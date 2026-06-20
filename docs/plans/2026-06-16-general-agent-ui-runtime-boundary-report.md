@@ -7434,3 +7434,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer playback behavior, IPC channels, storage, credentials, permissions,
   hosted backend URLs, and local-runtime behavior are unchanged; no migration
   is required.
+- `<windie> extension create` now generates plugin metadata and README copy
+  with generic local-runtime plugin labels, and its success output names the
+  generated local-runtime plugin and prompt skill contribution types instead of
+  embedding WindieOS identity in the plugin artifact labels. CLI command names,
+  generated directory layout, `plugin.json` schema fields, Python entrypoints,
+  skill front matter, manifest loading, permissions, credentials, IPC channels,
+  local-runtime execution, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.
