@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: compose repeated client/backend session snapshots through
+  `ipc_session_context_runtime.cjs`, keeping status, query, SDK invoke, and
+  transcript-session sync state shape decisions out of `ipc.cjs`. No migration
+  required.
 - docs/main: align first-read Electron main docs with the current helper owners
   for status broadcasts, install-auth context, pending-turn cache storage, and
   MCP refresh. No migration required.

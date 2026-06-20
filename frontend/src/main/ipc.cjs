@@ -94,6 +94,9 @@ const {
   createIpcStatusPayloads,
 } = require('./ipc/ipc_status_payloads.cjs');
 const {
+  createIpcSessionContextRuntime,
+} = require('./ipc/ipc_session_context_runtime.cjs');
+const {
   createIpcHostCopyRuntime,
 } = require('./ipc/ipc_host_copy_runtime.cjs');
 const {
@@ -353,12 +356,14 @@ const installAuthContextRuntime = createInstallAuthContextRuntime({
   clearInstallAuthStateFromDisk,
   log,
 });
+const ipcSessionContextRuntime = createIpcSessionContextRuntime({
+  backendSessionState,
+  installAuthContextRuntime,
+  backendConnectionGateState,
+  getActiveAgent: () => agentRuntimeLifecycle.getActiveAgent(),
+});
 const ipcStatusPayloads = createIpcStatusPayloads({
-  getState: () => ({
-    currentUserId: installAuthContextRuntime.getCurrentUserId(),
-    ...backendSessionState.getSnapshot(),
-    isConnected: backendConnectionGateState.getConnected(),
-  }),
+  getState: () => ipcSessionContextRuntime.getStatusState(),
   getRuntimeEndpointSnapshot: () => ({
     runtimeWsUrl: backendEndpointState.getWsUrl(),
     runtimeHttpUrl: backendEndpointState.getHttpUrl(),
@@ -472,7 +477,7 @@ const mcpRefreshRuntime = createMcpRefreshRuntime({
   log,
 });
 const agentConnectionEventsRuntime = createAgentConnectionEventsRuntime({
-  getCurrentUserId: () => installAuthContextRuntime.getCurrentUserId(),
+  getCurrentUserId: () => ipcSessionContextRuntime.getCurrentUserId(),
   setCurrentServerUserId: (value) => {
     backendSessionState.setServerUserId(value);
   },
@@ -535,7 +540,7 @@ const agentBackendCloseRuntime = createAgentBackendCloseRuntime({
   setActiveQueryContext: (value) => activeQueryContextState.set(value),
   getCurrentSessionId: () => backendSessionState.getSessionId(),
   getCurrentServerUserId: () => backendSessionState.getServerUserId(),
-  getCurrentUserId: () => installAuthContextRuntime.getCurrentUserId(),
+  getCurrentUserId: () => ipcSessionContextRuntime.getCurrentUserId(),
   getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
   buildQueryInterrupted,
   handleAgentBackendEvent,
@@ -606,11 +611,7 @@ const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
   isDefaultAgentDefinition,
 });
 const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
-  getState: () => ({
-    ...backendSessionState.getSnapshot(),
-    currentUserId: installAuthContextRuntime.getCurrentUserId(),
-    isFirstQuery: backendConnectionGateState.getFirstQuery(),
-  }),
+  getState: () => ipcSessionContextRuntime.getQueryState(),
   setCurrentConversationRef: (conversationRef) => {
     backendSessionState.setConversationRef(conversationRef);
   },
@@ -667,10 +668,7 @@ const automatedQueryRuntime = createAutomatedQueryRuntime({
     attachAgentDefinitionContext(payload),
   ),
   sendQueryThroughAgentSdkRuntime,
-  getState: () => ({
-    currentUserId: installAuthContextRuntime.getCurrentUserId(),
-    isFirstQuery: backendConnectionGateState.getFirstQuery(),
-  }),
+  getState: () => ipcSessionContextRuntime.getQueryState(),
   setCurrentConversationRef: (conversationRef) => {
     backendSessionState.setConversationRef(conversationRef);
   },
@@ -682,13 +680,7 @@ const automatedQueryRuntime = createAutomatedQueryRuntime({
 const agentSdkInvokeHandlerRuntime = createAgentSdkInvokeHandlerRuntime({
   invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE,
   deps: {
-    getState: () => ({
-      currentConversationRef: backendSessionState.getConversationRef(),
-      currentSessionId: backendSessionState.getSessionId(),
-      currentUserId: installAuthContextRuntime.getCurrentUserId(),
-      isConnected: backendConnectionGateState.getConnected(),
-      agent: agentRuntimeLifecycle.getActiveAgent(),
-    }),
+    getState: () => ipcSessionContextRuntime.getAgentSdkInvokeState(),
     ensureAgent,
     resolveWorkspacePathForAgent,
     sendSettingsUpdate,
@@ -725,13 +717,7 @@ const imageInteractionHandlersRuntime = createImageInteractionHandlersRuntime({
 const clientSessionHandlersRuntime = createClientSessionHandlersRuntime({
   getClientSessionState: () => ipcStatusPayloads.getClientSessionState(),
   getRuntimeEndpointSnapshot: () => ipcStatusPayloads.getRuntimeEndpointSnapshot(),
-  setTranscriptSessionState: ({
-    currentConversationRef: nextConversationRef,
-    currentUserId: nextUserId,
-  }) => {
-    backendSessionState.setConversationRef(nextConversationRef);
-    installAuthContextRuntime.setCurrentUserId(nextUserId);
-  },
+  setTranscriptSessionState: (state) => ipcSessionContextRuntime.setTranscriptSessionState(state),
   broadcastToRenderers,
 });
 const extensionMcpHandlersRuntime = createExtensionMcpHandlersRuntime({

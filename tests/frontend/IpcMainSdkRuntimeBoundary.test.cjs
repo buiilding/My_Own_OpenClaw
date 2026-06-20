@@ -160,6 +160,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_status_payloads.cjs'),
       'utf8',
     );
+    const sessionContextRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_session_context_runtime.cjs'),
+      'utf8',
+    );
     const hostCopyRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_copy_runtime.cjs'),
       'utf8',
@@ -347,6 +351,16 @@ describe('main ipc sdk runtime boundary', () => {
     expect(backendMessageObserversSource).toContain('const observers = new Set();');
     expect(backendMessageObserversSource).toContain('for (const observer of observers)');
     expect(source).toContain('createIpcStatusPayloads({');
+    expect(source).toContain('createIpcSessionContextRuntime({');
+    expect(source).toContain('ipcSessionContextRuntime.getStatusState()');
+    expect(source).toContain('ipcSessionContextRuntime.getQueryState()');
+    expect(source).toContain('ipcSessionContextRuntime.getAgentSdkInvokeState()');
+    expect(source).toContain('ipcSessionContextRuntime.setTranscriptSessionState(state)');
+    expect(source).not.toContain('currentUserId: installAuthContextRuntime.getCurrentUserId()');
+    expect(source).not.toContain('...backendSessionState.getSnapshot()');
+    expect(source).not.toContain('isFirstQuery: backendConnectionGateState.getFirstQuery()');
+    expect(sessionContextRuntimeSource).toContain('currentUserId: getCurrentUserId()');
+    expect(sessionContextRuntimeSource).toContain('isFirstQuery: Boolean(call(backendConnectionGateState');
     expect(source).toContain('ipcStatusPayloads.broadcastConnectionStatus(connected)');
     expect(source).not.toContain("broadcastToRenderers('ipc-status'");
     expect(source).not.toContain('function buildIpcStatusPayload(connected)');

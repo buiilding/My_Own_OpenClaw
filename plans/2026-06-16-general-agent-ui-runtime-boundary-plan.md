@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Session Context Runtime Boundary
+
+- Finding: `ipc.cjs` rebuilt the same client/backend session context in several
+  dependency bags: status payload state, chat query state, automated-query
+  state, SDK invoke state, and transcript-session sync updates.
+- Change: added `ipc_session_context_runtime.cjs` to compose backend session
+  identity, install-auth user identity, connection/first-query gate state, and
+  active Agent SDK adapter lookup into named status/query/SDK-invoke snapshots.
+  Transcript-session sync now applies through the same context instead of
+  mutating backend session and install-auth owners directly in `ipc.cjs`.
+- Validation: focused session-context and main SDK runtime boundary tests
+  verify snapshot shapes, transcript-sync state application, and source guards
+  that keep repeated session snapshot construction out of `ipc.cjs`.
+- Compatibility: no migration required. Session ids, server/client user ids,
+  conversation refs, query initial/sequential behavior, SDK invoke state,
+  transcript-session sync, renderer IPC channels, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Electron Main First-Read Helper Ownership Wording
 
 - Finding: first-read Electron main docs still said `ipc.cjs` kept

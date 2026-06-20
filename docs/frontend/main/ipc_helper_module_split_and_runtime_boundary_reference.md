@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_direct_wake_up_agent_adapter_deps.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_runtime_config.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_host_option_state.cjs`, `ipc_initialization_runtime.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_image_interaction_handlers.cjs`, `ipc_process_reset_runtime.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_cache.cjs`, `ipc_live_turn_state.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_backend_session_state.cjs`, `ipc_backend_connection_gate_state.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, `ipc_install_auth_context_runtime.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_direct_wake_up_agent_adapter_deps.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_conversation_event_projection.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_response_overlay_phase_runtime.cjs`, `ipc_host_runtime_config.cjs`, `ipc_host_copy_runtime.cjs`, `ipc_host_option_state.cjs`, `ipc_initialization_runtime.cjs`, `ipc_app_diagnostics_runtime.cjs`, `ipc_renderer_windows.cjs`, `ipc_image_interaction_handlers.cjs`, `ipc_process_reset_runtime.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_cache.cjs`, `ipc_live_turn_state.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_agent_backend_event_runtime.cjs`, `ipc_active_query_context.cjs`, `ipc_backend_session_state.cjs`, `ipc_backend_connection_gate_state.cjs`, `ipc_runtime_conversation_ref.cjs`, `ipc_agent_client_lifecycle.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, `ipc_agent_runtime_lifecycle.cjs`, `ipc_agent_sdk_runtime_commands.cjs`, `ipc_backend_message_observers.cjs`, `ipc_status_payloads.cjs`, `ipc_session_context_runtime.cjs`, `ipc_install_auth_context_runtime.cjs`, or `ipc_install_auth_identity_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -71,6 +71,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`
 - `frontend/src/main/ipc/ipc_backend_message_observers.cjs`
 - `frontend/src/main/ipc/ipc_status_payloads.cjs`
+- `frontend/src/main/ipc/ipc_session_context_runtime.cjs`
 - `frontend/src/main/ipc/ipc_install_auth_context_runtime.cjs`
 - `frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
@@ -408,6 +409,20 @@ Owns Electron-main status payload shaping:
   main-process callers
 - keeps endpoint/status field naming and renderer status channel selection in
   one helper while `ipc.cjs` supplies live host state and renderer fan-out
+
+### `ipc_session_context_runtime.cjs`
+
+Owns Electron-main client/backend session context snapshots:
+
+- composes backend session identity, current install-auth user identity,
+  connection gate state, first-query state, and active Agent SDK adapter lookup
+  into named snapshots
+- exposes status, query, and SDK-invoke state readers consumed by focused IPC
+  runtimes
+- applies transcript-session sync state back to the backend session and
+  install-auth context owners
+- keeps repeated session snapshot shape decisions out of the `ipc.cjs` relay
+  root
 
 ### `ipc_install_auth_identity_runtime.cjs`
 
@@ -1024,7 +1039,10 @@ generic `to-backend` router or direct chat query IPC handlers.
     including renderer `ipc-status` broadcast channel selection, runtime URL
     fields, user/session/conversation fields, connection state, and global stop
     shortcut status projection, delegates to `ipc_status_payloads.cjs`.
-47. install-auth identity normalization, including token/user/install
+47. client/backend session context snapshots, including status/query/SDK-invoke
+    state and transcript-session sync state application, delegate to
+    `ipc_session_context_runtime.cjs`.
+48. install-auth identity normalization, including token/user/install
     trimming, server-user fallback initialization, reset behavior, and
     `autoRegister: false`, delegates to
     `ipc_install_auth_identity_runtime.cjs` behind the composed
