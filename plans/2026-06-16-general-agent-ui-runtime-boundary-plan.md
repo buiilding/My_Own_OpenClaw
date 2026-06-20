@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Public Route Local-Runtime Python Labels
+
+- Finding: README, web surface, tool-schema, source-map, transcript reference,
+  and install troubleshooting docs still used sidecar/Python sidecar route
+  labels for local-runtime Python dependencies, resolution, hosted API
+  independence, payload rejection, source ownership, transcript RPC diagrams,
+  and troubleshooting command groups.
+- Change: routed those labels through local-runtime Python wording while
+  preserving concrete `sidecar` CLI commands, environment variable names,
+  daemon filenames, and executable implementation paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  public-route label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, command names, CLI
+  aliases, environment variables, daemon filenames, JSON-RPC payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 First-Read Local-Runtime Python Setup Labels
 
 - Finding: concepts, quick-start, installation, and troubleshooting docs still

@@ -172,10 +172,10 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm method-level policy allows the requested coordinate method.
 - Confirm backend preparation is not stripping grounded-only fields too early.
 
-### Python Sidecar Rejects a Payload
+### Local-Runtime Python Rejects a Payload
 
 - Confirm backend preparation converts model-facing fields into local-runtime executable fields.
-- Confirm the manifest `schema` and Python sidecar `entrypoint` agree on executable arg names.
+- Confirm the manifest `schema` and local-runtime Python `entrypoint` agree on executable arg names.
 - Confirm `argument_resolution` matches the actual backend preparation path.
 - Confirm exact-parity local-runtime executable schema matches the accepted client schema where expected.
 - Confirm intentional exceptions are documented in parity tests.

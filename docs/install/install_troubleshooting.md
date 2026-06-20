@@ -43,7 +43,7 @@ Frontend:
 <windie> start dev
 ```
 
-Sidecar:
+Local-runtime Python:
 
 ```bash
 <windie> test sidecar

@@ -148,7 +148,7 @@ cd frontend
 npm install
 ```
 
-Install sidecar dependencies:
+Install local-runtime Python dependencies:
 
 ```bash
 cd ..
@@ -188,7 +188,7 @@ directly into a topic:
 | Section | What it covers |
 | --- | --- |
 | [Quick Start](docs/getting-started/quick_start.md) | Install dependencies and run WindieOS from source. |
-| [Installation](docs/getting-started/installation.md) | Source install, endpoint overrides, sidecar Python resolution, and verification. |
+| [Installation](docs/getting-started/installation.md) | Source install, endpoint overrides, local-runtime Python resolution, and verification. |
 | [User Guide](docs/getting-started/user_guide.md) | Chat pill, dashboard, browser-use, memory, and stop/redirect behavior. |
 | [Frontend Architecture](docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and local-runtime ownership. |
 | [Communication Flow](docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |

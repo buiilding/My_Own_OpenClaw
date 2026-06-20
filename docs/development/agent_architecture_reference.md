@@ -181,7 +181,7 @@ Key entry points:
   `frontend/src/renderer/features/dashboard/`,
   `frontend/src/renderer/infrastructure/api/`,
   `frontend/src/renderer/app/runtime/`.
-- Sidecar: `frontend/src/main/python/local_backend.py`,
+- Local-runtime Python implementation: `frontend/src/main/python/local_backend.py`,
   `frontend/src/main/python/sidecar_daemon.py`,
   `frontend/src/main/python/tools/manifest.py`,
   `frontend/src/main/python/tools/registry.py`.

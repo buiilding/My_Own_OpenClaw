@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: first-read concepts, install, quick-start, and
-  troubleshooting docs now describe local-runtime Python setup/status/logs
-  instead of Python sidecar setup/runtime labels, with a focused docs boundary
-  guard against those retired phrases.
+- Latest completed slice: public install, hosted API, tool rejection,
+  source-map, transcript, and troubleshooting route docs now describe
+  local-runtime Python ownership instead of Python sidecar/sidecar route labels,
+  with focused docs boundary guards against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +244,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Public Route Local-Runtime Python Labels
+
+- Finding: README, web surface, tool-schema, source-map, transcript reference,
+  and install troubleshooting docs still used sidecar/Python sidecar route
+  labels for local-runtime Python dependencies, resolution, hosted API
+  independence, payload rejection, source ownership, transcript RPC diagrams,
+  and troubleshooting command groups.
+- Change: routed those labels through local-runtime Python wording while
+  preserving concrete `sidecar` CLI commands, environment variable names,
+  daemon filenames, and executable implementation paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  public-route label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, command names, CLI
+  aliases, environment variables, daemon filenames, JSON-RPC payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 First-Read Local-Runtime Python Setup Labels
 

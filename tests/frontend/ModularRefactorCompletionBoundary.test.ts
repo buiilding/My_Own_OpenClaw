@@ -361,6 +361,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar implementation');
     expect(docText).not.toContain('sidecar runtime packaging');
     expect(docText).not.toContain('client, sidecar, and SDKs');
+    expect(docText).not.toContain('Install sidecar dependencies');
+    expect(docText).not.toContain('sidecar Python resolution');
+    expect(docText).not.toContain('Python sidecar for hosted API calls');
     expect(docText).not.toContain('System prompt sent to frontend');
     expect(docText).not.toContain('Tool schemas sent to frontend');
   });
@@ -943,6 +946,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('The sidecar calls `tools/list`');
     expect(docText).not.toContain('the sidecar calls the entrypoint');
     expect(docText).not.toContain('backend/renderer/sidecar change routing');
+    expect(docText).not.toContain('### Python Sidecar Rejects a Payload');
+    expect(docText).not.toContain('Python sidecar `entrypoint`');
     expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
     expect(docText).not.toContain('Python sidecar local tool');

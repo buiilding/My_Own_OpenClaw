@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a public-route local-runtime Python label slice by
+  routing README install/resolution copy, hosted API rules, tool-schema payload
+  rejection, source-map ownership, transcript RPC diagrams, and install
+  troubleshooting command groups through local-runtime Python wording instead
+  of Python sidecar/sidecar route labels. Validation: focused modular docs
+  boundary test, docs listing, exact stale public-route label scan, and diff
+  checks. No migration required; no runtime code, command name, CLI alias,
+  environment variable, daemon filename, JSON-RPC payload, IPC payload,
+  storage, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
 - 2026-06-20: completed a first-read local-runtime Python setup label slice by
   routing concepts, quick-start, installation, and troubleshooting docs through
   local-runtime Python setup/status/log wording instead of Python sidecar

@@ -38,7 +38,7 @@ WindieOS is desktop-first. Web-facing surfaces are either the public landing pag
 ## Rules
 
 - Hosted backend APIs should be documented in route-level reference docs, not only in frontend code comments.
-- SDK consumers should not need Electron IPC or the Python sidecar for hosted API calls.
+- SDK consumers should not need Electron IPC or local-runtime Python for hosted API calls.
 - Local desktop tools remain local-runtime executed; do not expose local filesystem/shell/computer control as generic hosted web endpoints.
 - New public routes need auth, CORS, payload, client, and test coverage decisions.
 

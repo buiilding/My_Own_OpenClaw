@@ -88,11 +88,11 @@ sequenceDiagram
   participant Backend
   participant SDK as Agent SDK runtime
   participant Main as Electron main
-  participant Sidecar
+  participant RuntimePython as Local-runtime Python
   Backend->>SDK: tool-call with request_id/correlation key or tool-bundle with bundle_id
   SDK->>Main: execute local tool through local-runtime bridge
-  Main->>Sidecar: daemon/JSON-RPC method with executable args
-  Sidecar-->>Main: ToolResult success/data/error
+  Main->>RuntimePython: daemon/JSON-RPC method with executable args
+  RuntimePython-->>Main: ToolResult success/data/error
   Main-->>SDK: local execution result
   SDK->>Backend: tool-result request_id or tool-bundle-result bundle_id
   SDK-->>Renderer: display-only tool events
