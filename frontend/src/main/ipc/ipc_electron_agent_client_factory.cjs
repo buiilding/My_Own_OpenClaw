@@ -110,9 +110,55 @@ function createElectronAgentClient({
   });
 }
 
+function createElectronAgentClientFactoryRuntime({
+  AgentClient,
+  backendEndpointState,
+  getDesktopLocalRuntimeLaunchConfig = () => null,
+  getWebSocketImpl = () => null,
+  reconnectIntervalMs,
+  connectTimeoutMs,
+  idleDisconnectTimeoutMs,
+  onBackendOpen = () => {},
+  onBackendClose = () => {},
+  onBackendError = () => {},
+  onBackendHandshakeError = () => {},
+  onBackendMessageError = () => {},
+  onBackendSend = () => {},
+  onBackendFallback = () => {},
+  isTest = false,
+  createClient = createElectronAgentClient,
+  logMainRuntime = () => {},
+} = {}) {
+  function createClientInstance() {
+    return createClient({
+      AgentClient,
+      backendEndpointState,
+      desktopLocalRuntimeLaunchConfig: getDesktopLocalRuntimeLaunchConfig(),
+      WebSocketImpl: getWebSocketImpl(),
+      reconnectIntervalMs,
+      connectTimeoutMs,
+      idleDisconnectTimeoutMs,
+      onBackendOpen,
+      onBackendClose,
+      onBackendError,
+      onBackendHandshakeError,
+      onBackendMessageError,
+      onBackendSend,
+      onBackendFallback,
+      isTest: typeof isTest === 'function' ? isTest() : isTest,
+      logMainRuntime,
+    });
+  }
+
+  return {
+    createClient: createClientInstance,
+  };
+}
+
 module.exports = {
   buildDesktopLocalRuntimeLaunchOptionsForAgent,
   buildDesktopLocalRuntimeOptions,
   buildManagedBackendEndpoints,
   createElectronAgentClient,
+  createElectronAgentClientFactoryRuntime,
 };

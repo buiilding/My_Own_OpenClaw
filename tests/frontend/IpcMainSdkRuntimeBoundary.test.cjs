@@ -187,10 +187,12 @@ describe('main ipc sdk runtime boundary', () => {
       ),
       'utf8',
     );
-    expect(source).toContain('createElectronAgentClientRuntime({');
+    expect(source).toContain('createElectronAgentClientFactoryRuntime({');
+    expect(source).toContain('electronAgentClientFactoryRuntime.createClient()');
     expect(source).not.toContain('new AgentClient({');
+    expect(electronAgentClientFactorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
-    expect(source).toContain('function createElectronAgentClient()');
+    expect(source).not.toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
     expect(source).toContain('startAgentRuntime({ reason, workspacePath }');
     expect(source).not.toContain('client.wakeUp({');

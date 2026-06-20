@@ -8,6 +8,7 @@ const {
   buildDesktopLocalRuntimeOptions,
   buildManagedBackendEndpoints,
   createElectronAgentClient,
+  createElectronAgentClientFactoryRuntime,
 } = require('../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
 
 function createEndpointState() {
@@ -142,6 +143,39 @@ describe('ipc_electron_agent_client_factory', () => {
     expect(logMainRuntime).toHaveBeenCalledWith('[Main][SDK] creating_client backend=https://primary.test');
   });
 
+  test('factory runtime resolves dynamic host options when creating clients', () => {
+    const createClient = jest.fn(() => ({ client: true }));
+    const WebSocketImpl = function TestSocket() {};
+    const onBackendOpen = jest.fn();
+    const logMainRuntime = jest.fn();
+    const runtime = createElectronAgentClientFactoryRuntime({
+      AgentClient: function FakeAgentClient() {},
+      backendEndpointState: createEndpointState(),
+      getDesktopLocalRuntimeLaunchConfig: () => ({ isPackaged: true }),
+      getWebSocketImpl: () => WebSocketImpl,
+      reconnectIntervalMs: 1000,
+      connectTimeoutMs: 10000,
+      idleDisconnectTimeoutMs: 1800000,
+      onBackendOpen,
+      isTest: () => true,
+      createClient,
+      logMainRuntime,
+    });
+
+    expect(runtime.createClient()).toEqual({ client: true });
+    expect(createClient).toHaveBeenCalledWith(expect.objectContaining({
+      backendEndpointState: expect.any(Object),
+      desktopLocalRuntimeLaunchConfig: { isPackaged: true },
+      WebSocketImpl,
+      reconnectIntervalMs: 1000,
+      connectTimeoutMs: 10000,
+      idleDisconnectTimeoutMs: 1800000,
+      onBackendOpen,
+      isTest: true,
+      logMainRuntime,
+    }));
+  });
+
   test('ipc.cjs delegates AgentClient construction to the factory module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -152,9 +186,12 @@ describe('ipc_electron_agent_client_factory', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('createElectronAgentClientRuntime({');
+    expect(mainSource).toContain('createElectronAgentClientFactoryRuntime({');
+    expect(mainSource).toContain('electronAgentClientFactoryRuntime.createClient()');
+    expect(mainSource).not.toContain('function createElectronAgentClient()');
     expect(mainSource).not.toContain('new AgentClient({');
     expect(mainSource).not.toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
+    expect(factorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(factorySource).toContain('new AgentClient({');
     expect(factorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
   });

@@ -36,8 +36,10 @@ describe('modular sdk refactor completion boundary', () => {
     const electronAgentClientFactorySource = await read('frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
     const agentWakeupRuntimeSource = await read('frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
     const hostOptionStateSource = await read('frontend/src/main/ipc/ipc_host_option_state.cjs');
-    expect(ipcSource).toContain('createElectronAgentClientRuntime({');
+    expect(ipcSource).toContain('createElectronAgentClientFactoryRuntime({');
+    expect(ipcSource).toContain('electronAgentClientFactoryRuntime.createClient()');
     expect(ipcSource).not.toContain('new AgentClient({');
+    expect(electronAgentClientFactorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
     expect(ipcSource).toContain('startAgentRuntime({ reason, workspacePath }');
     expect(ipcSource).not.toContain('client.wakeUp({');

@@ -193,6 +193,9 @@ Own Agent SDK runtime lifecycle construction:
 
 Owns Electron-main `AgentClient` constructor option shaping:
 
+- exposes `createElectronAgentClientFactoryRuntime(...)` so `ipc.cjs` composes
+  backend endpoints, host websocket options, desktop local-runtime launch
+  config, lifecycle callbacks, timeout policy, test mode, and logging once
 - maps backend endpoint state into SDK managed backend endpoint options
 - builds SDK `autoLocalRuntime` options from desktop launch config, backend HTTP
   URL, user-data root, and optional host websocket implementation

@@ -67,7 +67,7 @@ const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc/ipc_conversation_event_projection.cjs');
 const {
-  createElectronAgentClient: createElectronAgentClientRuntime,
+  createElectronAgentClientFactoryRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
   createAgentClientLifecycle,
@@ -332,8 +332,28 @@ const ipcStatusPayloads = createIpcStatusPayloads({
   }),
   getGlobalAgentStopShortcutStatus,
 });
+const electronAgentClientFactoryRuntime = createElectronAgentClientFactoryRuntime({
+  AgentClient,
+  backendEndpointState,
+  getDesktopLocalRuntimeLaunchConfig: () => hostOptionState.getDesktopLocalRuntimeLaunchConfig(),
+  getWebSocketImpl: () => hostOptionState.getAgentWebSocketImpl(),
+  reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+  connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
+  idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+  onBackendOpen: payload => handleAgentConnection({ type: 'open', ...payload }),
+  onBackendClose: payload => handleAgentConnection({ type: 'close', ...payload }),
+  onBackendError: payload => handleAgentConnection({ type: 'error', ...payload }),
+  onBackendHandshakeError: error => handleAgentConnection({ type: 'handshake-error', error }),
+  onBackendMessageError: error => handleAgentConnection({ type: 'message-error', error }),
+  onBackendSend: type => {
+    agentRuntimeLifecycle.noteBackendTraffic(`send:${type}`);
+  },
+  onBackendFallback: endpoint => handleAgentBackendFallback(endpoint),
+  isTest: () => process.env.NODE_ENV === 'test',
+  logMainRuntime,
+});
 const agentClientLifecycle = createAgentClientLifecycle({
-  createAgentClient: createElectronAgentClient,
+  createAgentClient: () => electronAgentClientFactoryRuntime.createClient(),
   logMainRuntime,
 });
 const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
@@ -728,29 +748,6 @@ function configureIpcHostRuntime(config = {}) {
 
 function configureIpcHostCopyRuntime(copy = {}) {
   ipcHostCopyRuntime.configure(copy);
-}
-
-function createElectronAgentClient() {
-  return createElectronAgentClientRuntime({
-    AgentClient,
-    backendEndpointState,
-    desktopLocalRuntimeLaunchConfig: hostOptionState.getDesktopLocalRuntimeLaunchConfig(),
-    WebSocketImpl: hostOptionState.getAgentWebSocketImpl(),
-    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
-    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
-    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-    onBackendOpen: payload => handleAgentConnection({ type: 'open', ...payload }),
-    onBackendClose: payload => handleAgentConnection({ type: 'close', ...payload }),
-    onBackendError: payload => handleAgentConnection({ type: 'error', ...payload }),
-    onBackendHandshakeError: error => handleAgentConnection({ type: 'handshake-error', error }),
-    onBackendMessageError: error => handleAgentConnection({ type: 'message-error', error }),
-    onBackendSend: type => {
-      agentRuntimeLifecycle.noteBackendTraffic(`send:${type}`);
-    },
-    onBackendFallback: endpoint => handleAgentBackendFallback(endpoint),
-    isTest: process.env.NODE_ENV === 'test',
-    logMainRuntime,
-  });
 }
 
 function getAgentClient() {

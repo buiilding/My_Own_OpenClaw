@@ -95,9 +95,10 @@ Responsibilities:
   `ipc_conversation_event_projection.cjs`, keeps cached desktop UI config in
   `ipc_desktop_ui_config_cache.cjs`, keeps live-turn cache state in
   `ipc_live_turn_state.cjs`, keeps cached AgentClient lifecycle in
-  `ipc_agent_client_lifecycle.cjs`, and delegates backend websocket
-  construction, SDK local-runtime bootstrap, envelope sends, close, reconnect
-  primitives, display rows, and current-turn projection to the SDK.
+  `ipc_agent_client_lifecycle.cjs`, composes Electron AgentClient construction
+  through `ipc_electron_agent_client_factory.cjs`, and delegates backend
+  websocket construction, SDK local-runtime bootstrap, envelope sends, close,
+  reconnect primitives, display rows, and current-turn projection to the SDK.
 - Injects backend session context (`userId`, `sessionId`, `conversation_ref`)
   from `ipc_backend_session_state.cjs`.
 - Gates first query on settings synchronization ACK using

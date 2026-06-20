@@ -120,6 +120,29 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Electron AgentClient Factory Runtime Boundary
+
+- Finding: `ipc_electron_agent_client_factory.cjs` owned SDK `AgentClient`
+  option shaping, managed backend endpoints, and desktop local-runtime launch
+  options, but `ipc.cjs` still kept a local `createElectronAgentClient()`
+  wrapper that assembled host websocket options, backend lifecycle callbacks,
+  reconnect/connect/idle timeouts, test-mode local-runtime suppression, and
+  logging for the factory.
+- Change: added `createElectronAgentClientFactoryRuntime(...)` so the factory
+  helper owns reusable AgentClient factory dependency composition. The
+  `AgentClient` lifecycle now receives a `createClient()` callback from the
+  composed runtime instead of calling an `ipc.cjs` construction wrapper.
+- Validation: focused factory and main SDK boundary coverage verifies dynamic
+  host option resolution, source guards that keep `new AgentClient(...)` and
+  the local construction wrapper out of `ipc.cjs`, and unchanged factory-owned
+  local-runtime launch option construction.
+- Compatibility: no migration required. Managed backend endpoint projection,
+  backend URL/ws/origin values, reconnect/connect/idle timeout policy,
+  backend lifecycle callbacks, desktop local-runtime launch options, packaged
+  launch config, host websocket injection, test local-runtime suppression,
+  renderer IPC, storage, credentials, permissions, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main SDK Invoke Handler Runtime Boundary
 
 - Finding: `ipc_agent_sdk_command_handlers.cjs` owned the strict
