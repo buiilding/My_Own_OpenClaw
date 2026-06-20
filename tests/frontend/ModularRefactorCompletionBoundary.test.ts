@@ -407,6 +407,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('project-alpha-agents-layers');
   });
 
+  test('MCP runtime tests keep configured client info fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/McpRuntime.test.cjs');
+
+    expect(source).not.toContain("name: 'WindieOS'");
+    expect(source).toContain("name: 'Desktop Agent'");
+  });
+
   test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
     const conversationMetadataText = await Promise.all([
       read('tests/frontend/ConversationGroups.test.js'),

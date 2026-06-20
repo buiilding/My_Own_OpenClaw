@@ -108,7 +108,7 @@ describe('MCP runtime', () => {
         args: ['server.cjs'],
       }],
       clientInfo: {
-        name: 'WindieOS',
+        name: 'Desktop Agent',
         version: '0.6.23',
       },
       spawnImpl: jest.fn(() => proc),
@@ -118,7 +118,7 @@ describe('MCP runtime', () => {
       .map((rawMessage) => JSON.parse(rawMessage.trim()))
       .find((message) => message.method === 'initialize');
     expect(initializeMessage.params.clientInfo).toEqual({
-      name: 'WindieOS',
+      name: 'Desktop Agent',
       version: '0.6.23',
     });
   });

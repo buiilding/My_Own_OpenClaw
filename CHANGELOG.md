@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral configured client info in MCP initialize coverage
+  instead of WindieOS-flavored arbitrary client fixture data. No migration
+  required.
+
 - tests/main: use neutral AGENTS.md workspace temp path samples in repo
   instruction runtime coverage instead of WindieOS-flavored fixture data. No
   migration required.

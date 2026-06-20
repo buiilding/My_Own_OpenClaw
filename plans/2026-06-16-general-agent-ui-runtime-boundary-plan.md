@@ -18634,3 +18634,18 @@ Each completed slice should report:
   git-root-to-workspace prompt layer ordering, prompt layer content shape, IPC
   channels, storage, permissions, hosted backend URLs, provider policy, and
   local-runtime behavior are unchanged.
+
+### 2026-06-20 MCP client-info fixture neutrality
+
+- Finding: MCP runtime tests exercise configured client-info forwarding into
+  MCP initialize requests, but the arbitrary configured client name still used
+  WindieOS identity.
+- Change: switched the configured client-info fixture to neutral `Desktop
+  Agent` text and extended the modular boundary guard so the retired
+  product-shaped MCP client-info fixture stays out of main MCP runtime coverage.
+- Validation: focused MCP runtime and modular boundary tests; exact retired
+  fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. MCP initialize payload forwarding,
+  manifest discovery, tool registration, IPC channels, storage, permissions,
+  hosted backend URLs, provider policy, and local-runtime behavior are
+  unchanged.

@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `66831d404` (`test(main): neutralize permission workspace fixtures`)
-- Latest completed slice: repo instruction runtime tests now use neutral
-  AGENTS.md workspace temp path samples instead of WindieOS-flavored fixtures.
+- Latest inspected plan checkpoint: `73b5878f1` (`test(main): neutralize repo instruction fixtures`)
+- Latest completed slice: MCP runtime tests now use neutral configured client
+  info instead of WindieOS-flavored arbitrary client fixture data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -97,6 +97,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Repo instruction runtime fixtures now use neutral AGENTS.md workspace temp
   paths while preserving file-to-parent resolution and git-root-to-workspace
   prompt layer ordering.
+  MCP runtime fixtures now use neutral configured client info while preserving
+  MCP initialize payload forwarding.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7598,3 +7600,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   prompt layer content shape, IPC channels, storage, permissions, hosted backend
   URLs, provider policy, and local-runtime behavior are unchanged; no migration
   is required.
+- MCP runtime fixture samples now use neutral configured client info instead of
+  WindieOS-flavored arbitrary client identity. MCP initialize payload
+  forwarding, manifest discovery, tool registration, IPC channels, storage,
+  permissions, hosted backend URLs, provider policy, and local-runtime behavior
+  are unchanged; no migration is required.
