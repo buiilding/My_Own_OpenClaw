@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: remove the unused relay-root `isPlainObject` helper after host-copy
+  normalization moved to focused runtime modules. No migration required.
 - main/ipc: move generic Electron agent-host copy defaults and host-skin copy
   normalization into `ipc_host_copy_runtime.cjs`, preserving SDK agent name,
   MCP client identity, query event copy, and `configureIpcHostCopyRuntime(...)`

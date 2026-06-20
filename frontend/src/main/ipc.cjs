@@ -1085,10 +1085,6 @@ function getBackendConnectionState() {
   return ipcStatusPayloads.getBackendConnectionState();
 }
 
-function isPlainObject(value) {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
 function appendAppDiagnostic(input = {}) {
   try {
     return appendDiagnosticEvent(input);
