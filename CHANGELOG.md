@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/docs: describe token-count and tool-schemas formatter outputs as
+  consumed by SDK/renderer typed message guards instead of frontend schema
+  guards. No migration required.
 - backend/tests: rename remote-tool parity test helpers and diagnostics from
   frontend-exposed tools to local-runtime exposed tools. No migration required.
 - docs/architecture: describe packaged browser feature-pack expectations as

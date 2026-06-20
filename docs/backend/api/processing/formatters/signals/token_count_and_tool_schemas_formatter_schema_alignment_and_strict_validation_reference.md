@@ -23,7 +23,7 @@ title: "Token Count and Tool Schemas Formatter Schema-Alignment and Strict-Valid
 - `TokenCountEvent` / `token_count` -> `TokenCountEventFormatter` -> outgoing `token-count`
 - `ToolSchemasEvent` / `tool_schemas` -> `ToolSchemasEventFormatter` -> outgoing `tool-schemas`
 
-These signals carry contract-sensitive payloads consumed by typed frontend schema guards.
+These signals carry contract-sensitive payloads consumed by SDK/renderer typed message guards.
 
 ## Token Count Payload Contract
 

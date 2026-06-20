@@ -122,3 +122,14 @@ def test_backend_protocol_docs_use_sdk_renderer_correlation_wording():
     assert "SDK/renderer event correlation expectations" in state_reference
     assert "frontend turn/session correlation" not in combined
     assert "frontend event correlation expectations" not in combined
+
+
+def test_backend_formatter_docs_use_sdk_renderer_typed_consumer_wording():
+    formatter_reference = _read(
+        "docs/backend/api/processing/formatters/signals/"
+        "token_count_and_tool_schemas_formatter_schema_alignment_and_strict_validation_reference.md"
+    )
+
+    assert "SDK/renderer typed message guards" in formatter_reference
+    assert "typed frontend schema guards" not in formatter_reference
+    assert "frontend schema guards" not in formatter_reference

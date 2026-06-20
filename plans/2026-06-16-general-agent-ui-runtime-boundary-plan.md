@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Backend Formatter Typed Consumer Wording
+
+- Finding: the token-count/tool-schemas formatter reference still described
+  contract-sensitive outgoing payloads as consumed by typed frontend schema
+  guards, even though the active boundary is backend formatter schema alignment
+  with SDK/renderer typed message consumers.
+- Change: reworded the formatter reference through SDK/renderer typed message
+  guards and added a backend runtime architecture guardrail to prevent the
+  stale frontend-schema-guard owner label from returning.
+- Validation: passed focused backend runtime architecture guardrail test,
+  docs listing, stale frontend schema guard scan, and diff check.
+- Compatibility: no migration required. Backend formatter output payloads,
+  outgoing schemas, websocket event types, SDK projection behavior, renderer
+  consumers, storage, credentials, permissions, hosted URLs, and provider
+  policy are unchanged.
+
 ### 2026-06-20 Backend Remote Tool Parity Test Naming
 
 - Finding: backend remote-tool parity tests still called the local-runtime tool

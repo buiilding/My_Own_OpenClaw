@@ -5422,3 +5422,6 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime Python dependencies instead of sidecar runtime deps.
 - Backend remote-tool parity tests now name the imported executable tool set as
   local-runtime exposed tools instead of frontend exposed tools.
+- Backend token-count/tool-schemas formatter docs now identify SDK/renderer
+  typed message guards as the consumers for contract-sensitive payloads instead
+  of frontend schema guards.
