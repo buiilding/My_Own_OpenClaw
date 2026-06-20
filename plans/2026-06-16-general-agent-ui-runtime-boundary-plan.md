@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Backend Tool Result Transformer Output Ownership Wording
+
+- Finding: the backend result transformer reference still described
+  `ToolResult.format_for_history` pass-through text as preformatted frontend
+  `output`, even though live tool-result ingress and `ToolResult.from_payload`
+  already describe SDK/local-runtime payload ownership.
+- Change: reworded the pass-through design intent to preformatted
+  SDK/local-runtime `output` and added a backend runtime architecture guardrail
+  against the stale frontend-owned output phrase.
+- Validation: passed focused backend runtime architecture guardrail test, docs
+  listing, stale preformatted frontend output scan, and diff check.
+- Compatibility: no migration required. Tool result formatting code, history
+  text precedence, screenshot extraction, compaction facts, SDK/local-runtime
+  result ingress, IPC, storage, credentials, permissions, provider policy, and
+  hosted URLs are unchanged.
+
 ### 2026-06-20 Renderer Voice Transcription Socket Lifecycle Boundary
 
 - Finding: `useVoiceMode` already delegated gateway creation, message dispatch,

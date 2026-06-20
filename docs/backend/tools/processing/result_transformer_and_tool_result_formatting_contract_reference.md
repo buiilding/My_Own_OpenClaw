@@ -119,7 +119,8 @@ Text precedence:
 
 Design intent:
 
-- backend does not validate or rewrite preformatted frontend `output`
+- backend does not validate or rewrite preformatted SDK/local-runtime
+  `output`
 - synthetic and payload-only tool results still produce deterministic history text
 
 ## `ToolResult.from_payload` Normalization Rules

@@ -133,3 +133,13 @@ def test_backend_formatter_docs_use_sdk_renderer_typed_consumer_wording():
     assert "SDK/renderer typed message guards" in formatter_reference
     assert "typed frontend schema guards" not in formatter_reference
     assert "frontend schema guards" not in formatter_reference
+
+
+def test_tool_result_transformer_docs_use_sdk_local_runtime_output_wording():
+    transformer_reference = _read(
+        "docs/backend/tools/processing/"
+        "result_transformer_and_tool_result_formatting_contract_reference.md"
+    )
+
+    assert "preformatted SDK/local-runtime" in transformer_reference
+    assert "preformatted frontend `output`" not in transformer_reference

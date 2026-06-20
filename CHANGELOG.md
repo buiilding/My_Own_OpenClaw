@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/docs: route `ToolResult.format_for_history` pass-through wording
+  through SDK/local-runtime output ownership instead of frontend-owned output.
+  No migration required.
 - frontend/renderer: move voice transcription socket ready-state, close, and
   conditional protocol-send checks behind the desktop voice runtime client so
   `useVoiceMode` stays on voice-session intent. No migration required.
