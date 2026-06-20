@@ -11,15 +11,19 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: public SDK examples now use neutral hosted
-  endpoint/provider/model placeholders and primary `AGENT_*` env names instead
-  of production WindieOS endpoint, concrete provider/model IDs, or Windie CLI
-  copy.
+- Latest inspected plan checkpoint: `083d69637` (`docs(extensions): neutralize scaffold artifact labels`)
+- Latest completed slice: generated extension scaffold artifacts now use
+  generic local-runtime plugin and prompt skill labels, and renderer voice docs
+  keep backend STT provider/model details behind the transcription gateway
+  boundary.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
-  identity. Renderer config reference docs now keep current OpenAI/GPT default
+  identity. Generated extension plugin artifacts use generic local-runtime
+  contribution copy while the `<windie>` CLI command remains product-owned.
+  Renderer voice docs name the desktop voice/audio runtime contract and
+  backend-owned transcription gateway boundary instead of embedding concrete STT
+  provider policy. Renderer config reference docs now keep current OpenAI/GPT default
   model values attached to the active WindieOS skin instead of the generic
   storage runtime, and the renderer workflow summary names desktop renderer
   state rather than WindieOS renderer state. Frontend capability inventory,

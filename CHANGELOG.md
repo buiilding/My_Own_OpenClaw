@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: refresh the general agent runtime-boundary report status to the
+  latest renderer voice and extension scaffold checkpoints. No migration
+  required.
 - cli/extensions: make generated local-runtime plugin scaffold copy and success
   output use generic contribution labels instead of embedding WindieOS identity
   in the plugin artifact. No migration required.
