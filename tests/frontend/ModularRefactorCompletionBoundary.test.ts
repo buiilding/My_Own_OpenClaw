@@ -347,6 +347,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('client, sidecar, and SDKs');
   });
 
+  test('architecture memory overview routes ownership through local runtime', async () => {
+    const memorySystem = await read('docs/architecture/memory_system.md');
+
+    expect(memorySystem).toContain('SDK local-runtime memory boundary');
+    expect(memorySystem).toContain('Local-runtime memory implementation (Python sidecar-backed)');
+    expect(memorySystem).toContain('Local Runtime Memory (Python sidecar-backed)');
+    expect(memorySystem).toContain('local-runtime memory implementation treats those errors as non-fatal');
+    expect(memorySystem).toContain('passes embeddings to the local-runtime memory store');
+    expect(memorySystem).toContain('local-runtime JSON-RPC envelope');
+    expect(memorySystem).not.toContain('frontend Python sidecar');
+    expect(memorySystem).not.toContain('Frontend Python Sidecar');
+    expect(memorySystem).not.toContain('The sidecar stores memory');
+    expect(memorySystem).not.toContain('passes embeddings to the sidecar');
+    expect(memorySystem).not.toContain('sidecar JSON-RPC envelope');
+  });
+
   test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/debug/runtime_traces.md'),

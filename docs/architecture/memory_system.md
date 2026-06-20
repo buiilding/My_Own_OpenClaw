@@ -8,33 +8,32 @@ read_when:
 
 ## Overview
 
-Memory is implemented in the **frontend Python sidecar**, not the backend. The sidecar stores episodic and semantic memory locally using SQLite + FAISS, and requests embeddings, semantic summaries, and conversation titles from the backend over HTTP.
+Memory is owned by the **SDK local-runtime memory boundary**, not the backend. The current desktop implementation is backed by Python sidecar modules that store episodic and semantic memory locally using SQLite + FAISS, while SDK/local-runtime clients request embeddings, semantic summaries, and conversation titles from the backend over HTTP.
 
 **Key locations:**
-- Sidecar implementation: `frontend/src/main/python/memory/`
+- Local-runtime memory implementation (Python sidecar-backed): `frontend/src/main/python/memory/`
 - Bulk destructive maintenance ops: `frontend/src/main/python/memory/admin.py`
-- Memory orchestration: `frontend/src/main/python/local_backend.py`
+- Local-runtime JSON-RPC orchestration: `frontend/src/main/python/local_backend.py`
 - Embeddings API (backend): `backend/src/api/routes/memory/embeddings/router.py`
 - Semantic summary API (backend): `backend/src/api/routes/memory/semantic/router.py`
 
 ## Architecture
 
 ```
-┌───────────────────────────────────────────────┐
-│ Frontend Python Sidecar                       │
-│  ├─ LocalMemoryStore (SQLite + FAISS)         │
-│  ├─ MemorySummarizer (semantic rollups)       │
-│  └─ LocalRuntimeService memory RPC handlers          │
-└───────────────────────────────────────────────┘
-                │                 ▲
-                │ HTTP            │ JSON-RPC
-                ▼                 │
-┌───────────────────────────────────────────────┐
-│ Backend API (FastAPI)                         │
-│  ├─ /api/embeddings/ (EmbeddingRouter)        │
-│  ├─ /api/semantic/summarize (LLM summary)     │
-│  └─ /api/semantic/title (conversation title) │
-└───────────────────────────────────────────────┘
++--------------------------------------------------+
+| Local Runtime Memory (Python sidecar-backed)    |
+|  - LocalMemoryStore (SQLite + FAISS)            |
+|  - MemorySummarizer (semantic rollups)          |
+|  - LocalRuntimeService memory RPC handlers      |
++--------------------------------------------------+
+                 | HTTP              ^ JSON-RPC
+                 v                   |
++--------------------------------------------------+
+| Backend API (FastAPI)                           |
+|  - /api/embeddings/ (EmbeddingRouter)           |
+|  - /api/semantic/summarize (LLM summary)        |
+|  - /api/semantic/title (conversation title)     |
++--------------------------------------------------+
 ```
 
 Backend embeddings are provider-routed. `embedding_backend` selects:
@@ -46,14 +45,16 @@ Backend embeddings are provider-routed. `embedding_backend` selects:
 - `disabled`: no embedding provider.
 
 The embedding route returns structured provider errors when a provider is
-disabled, unavailable, or circuit-broken after repeated failures. The sidecar
-treats those errors as non-fatal: memory search returns no prompt memories,
-memory writes are still stored in SQLite without vector IDs, and startup
-backfills/rebuilds wait until embeddings become available again.
+disabled, unavailable, or circuit-broken after repeated failures. The
+local-runtime memory implementation treats those errors as non-fatal: memory
+search returns no prompt memories, memory writes are still stored in SQLite
+without vector IDs, and startup backfills/rebuilds wait until embeddings
+become available again.
 
 ## Storage Layout
 
-The sidecar stores memory in a local user data directory:
+The local-runtime memory implementation stores memory in a local user data
+directory:
 - **Linux**: `~/.config/windieos/memory/`
 - **macOS**: `~/Library/Application Support/windieos/memory/`
 - **Windows**: `%APPDATA%/windieos/memory/`
@@ -97,10 +98,10 @@ $mem = Join-Path $env:APPDATA "windieos\\memory"; Remove-Item -Force `
 - Delegates bulk destructive reset flows to `memory/admin.py`
 - Delegates empty-index artifact cleanup to `memory/index_artifact_cleanup.py`
 - Stores caller-provided SDK embeddings and searches local FAISS/SQLite indexes
-- Chat history is not stored as memory rows. The sidecar stores visible chat replay in `conversation_events`.
+- Chat history is not stored as memory rows. The local-runtime store persists visible chat replay in `conversation_events`.
 - Episodic memory rows are durable memory facts/interaction pairs, not the visible chat log.
 - The SDK calls backend `/api/embeddings/` for retrieval and completed-turn
-  memory writes, then passes embeddings to the sidecar.
+  memory writes, then passes embeddings to the local-runtime memory store.
 - If backend embeddings fail, SDK memory retrieval/storage is skipped or logged
   as a non-fatal side effect; chat continues.
 
@@ -196,7 +197,7 @@ renderer-facing payload shapes.
 
 - `memories.list` lists completed interaction memories or semantic memories
   through SDK memory APIs. Renderer receives `{ memories, count }`, not the
-  sidecar JSON-RPC envelope.
+  local-runtime JSON-RPC envelope.
 - `conversation.load` loads chat history display and backend rehydrate
   snapshots through SDK projections over canonical `conversation_events`.
 - `conversations.list` and `conversations.search` list/search chat metadata
@@ -209,7 +210,7 @@ Renderer feature code must not call local-runtime JSON-RPC methods such as
 Current title behavior for chats:
 - A new chat can appear in `Your chats` after the first chat event is stored.
 - List/search reads derive the display title from the first user message or latest content in `conversation_events`.
-- Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into “request never hit FastAPI” versus “origin app received and failed the request.”
+- Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into â€œrequest never hit FastAPIâ€ versus â€œorigin app received and failed the request.â€
 
 ## Chat Transcript vs SDK Event State
 

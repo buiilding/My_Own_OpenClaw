@@ -208,8 +208,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   injected by host skin.
   Electron main backend parse and error-event diagnostics now use generic
   agent-backend wording consistently with connection/close logs.
+  The architecture memory overview now routes durable memory ownership through
+  SDK/local-runtime memory with Python sidecar modules identified as the
+  current backing implementation.
 
 ## Inspection Log
+
+### 2026-06-20 Architecture Memory Overview Local-Runtime Boundary
+
+- Finding: `docs/architecture/memory_system.md` still opened by assigning
+  memory ownership to the frontend Python sidecar, even though current docs and
+  runtime boundaries route durable memory through SDK/local-runtime memory with
+  Python sidecar modules as the backing implementation.
+- Change: reworded the overview, key locations, diagram, embedding failure
+  behavior, storage layout, and dashboard API notes through local-runtime
+  memory ownership while keeping concrete Python sidecar paths where they
+  identify implementation modules.
+- Validation: passed focused modular boundary test, docs listing, stale
+  frontend-sidecar memory-owner scan, and diff check.
+- Compatibility: no migration required. SQLite/FAISS paths, JSON-RPC method
+  names, SDK memory APIs, backend embedding/semantic routes, renderer memory
+  surfaces, storage, credentials, permissions, provider policy, local-runtime
+  routing, and hosted URLs are unchanged.
 
 ### 2026-06-20 Main Agent Backend Error Log Wording
 

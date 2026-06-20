@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- architecture/docs: route the memory system overview through SDK
+  local-runtime memory ownership while keeping Python sidecar implementation
+  breadcrumbs. No migration required.
 - main/logs: use generic agent-backend wording for Electron main backend parse
   and event error diagnostics. No migration required.
 - main/endpoints: rename generic backend endpoint default internals away from
