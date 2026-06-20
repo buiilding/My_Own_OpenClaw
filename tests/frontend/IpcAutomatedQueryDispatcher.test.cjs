@@ -4,7 +4,10 @@
 
 const {
   createAutomatedQueryDispatcher,
+  createAutomatedQueryRuntime,
 } = require('../../frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs');
+const fs = require('fs/promises');
+const path = require('path');
 
 function createHarness(overrides = {}) {
   let currentConversationRef = null;
@@ -162,5 +165,39 @@ describe('ipc_automated_query_dispatcher', () => {
 
     expect(deps.setCurrentConversationRef).toHaveBeenCalledWith('conv-existing');
     expect(deps.setFirstQuery).not.toHaveBeenCalled();
+  });
+
+  test('runtime wrapper exposes automated query dispatch through composed dependencies', async () => {
+    const { deps } = createHarness();
+    const runtime = createAutomatedQueryRuntime(deps);
+
+    await expect(runtime.sendAutomatedQuery({ text: 'inspect app' })).resolves.toEqual({
+      ok: true,
+      messageId: 'sdk-message-1',
+      queryMessageId: 'query-message-1',
+      conversationRef: 'vm-run-generated-conv',
+      userId: 'user-1',
+    });
+
+    expect(deps.ensureBackendConnection).toHaveBeenCalledWith('automated-query');
+    expect(deps.sendQueryThroughAgentSdkRuntime).toHaveBeenCalledTimes(1);
+  });
+
+  test('ipc.cjs delegates automated query runtime composition to the helper', async () => {
+    const mainSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+    const helperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs'),
+      'utf8',
+    );
+
+    expect(mainSource).toContain('createAutomatedQueryRuntime({');
+    expect(mainSource).toContain('automatedQueryRuntime.sendAutomatedQuery(options)');
+    expect(mainSource).not.toContain('createAutomatedQueryDispatcher({');
+    expect(mainSource).not.toContain('automatedQueryDispatcher.sendAutomatedQuery(options)');
+    expect(helperSource).toContain('function createAutomatedQueryRuntime');
+    expect(helperSource).toContain('createAutomatedQueryDispatcher(deps)');
   });
 });

@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: wrap VM automated-query dispatch dependency composition in
+  `createAutomatedQueryRuntime(...)`, keeping `sendAutomatedQuery(...)` as the
+  exported VM worker API while preserving backend connection, settings sync,
+  query payload enrichment, SDK runtime send, and first-query state behavior.
+  No migration required.
 - main/ipc: move renderer-window tracking and fan-out dependency wiring into
   `createRendererWindowRuntime(...)`, preserving overlay phase sync, current
   turn sync, pending-turn replay, buffered conversation-event replay, reset,

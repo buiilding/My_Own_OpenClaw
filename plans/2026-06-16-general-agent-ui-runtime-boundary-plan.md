@@ -120,6 +120,27 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Automated Query Runtime Boundary
+
+- Finding: `ipc_automated_query_dispatcher.cjs` already owned VM automated-query
+  dispatch behavior, but `ipc.cjs` still constructed the raw dispatcher near the
+  exported `sendAutomatedQuery(...)` function and held the dependency composition
+  for backend connection, settings sync, query payload building, agent-definition
+  enrichment, SDK runtime send, conversation state, first-query state, and id
+  generation at that export site.
+- Change: added `createAutomatedQueryRuntime(...)` so the automated-query helper
+  owns the reusable dispatcher composition surface. `ipc.cjs` now composes that
+  runtime with the other main IPC runtimes and leaves exported
+  `sendAutomatedQuery(...)` as a thin runtime call for the VM worker bridge.
+- Validation: focused automated-query coverage verifies the runtime wrapper and
+  source guards keep raw dispatcher construction out of `ipc.cjs`.
+- Compatibility: no migration required. VM worker assignment dispatch,
+  automated-query validation, backend connection readiness, settings sync,
+  query payload enrichment, agent-definition context attachment, SDK runtime
+  query send, generated conversation refs, first-query state transitions,
+  renderer IPC channels, storage, credentials, permissions, provider policy, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 Main Renderer Window Runtime Boundary
 
 - Finding: `ipc_renderer_windows.cjs` owned renderer-window storage, tracking,

@@ -88,6 +88,19 @@ function createAutomatedQueryDispatcher({
   };
 }
 
+function createAutomatedQueryRuntime(deps = {}) {
+  const dispatcher = createAutomatedQueryDispatcher(deps);
+
+  function sendAutomatedQuery(options = {}) {
+    return dispatcher.sendAutomatedQuery(options);
+  }
+
+  return {
+    sendAutomatedQuery,
+  };
+}
+
 module.exports = {
   createAutomatedQueryDispatcher,
+  createAutomatedQueryRuntime,
 };

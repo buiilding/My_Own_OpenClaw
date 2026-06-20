@@ -201,7 +201,7 @@ const {
   preserveSdkTurnInputFields,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
-  createAutomatedQueryDispatcher,
+  createAutomatedQueryRuntime,
 } = require('./ipc/ipc_automated_query_dispatcher.cjs');
 const {
   createIpcStartupStateRuntime,
@@ -645,6 +645,28 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
     traceRendererQuery: (input) => electronMainTraceLogger.traceRendererQuery(input),
   },
 });
+const automatedQueryRuntime = createAutomatedQueryRuntime({
+  prepareAutomatedQueryPayload,
+  ensureBackendConnection,
+  ensureInitialSettingsSync,
+  getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
+  buildQueryPayload,
+  attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
+    attachAgentDefinitionContext(payload),
+  ),
+  sendQueryThroughAgentSdkRuntime,
+  getState: () => ({
+    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+    isFirstQuery: backendConnectionGateState.getFirstQuery(),
+  }),
+  setCurrentConversationRef: (conversationRef) => {
+    backendSessionState.setConversationRef(conversationRef);
+  },
+  setFirstQuery: (nextValue) => {
+    backendConnectionGateState.setFirstQuery(nextValue);
+  },
+  uuidGenerator: uuidv4,
+});
 const agentSdkInvokeHandlerRuntime = createAgentSdkInvokeHandlerRuntime({
   invokeChannel: DESKTOP_RUNTIME_INVOKE_CHANNELS.INVOKE,
   deps: {
@@ -1006,32 +1028,8 @@ function attachAgentDefinitionContext(payload) {
   return agentDefinitionContextRuntime.attach(payload);
 }
 
-const automatedQueryDispatcher = createAutomatedQueryDispatcher({
-  prepareAutomatedQueryPayload,
-  ensureBackendConnection,
-  ensureInitialSettingsSync,
-  getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-  buildQueryPayload,
-  attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
-    attachAgentDefinitionContext(payload),
-  ),
-  sendQueryThroughAgentSdkRuntime,
-  getState: () => ({
-    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
-    isFirstQuery: backendConnectionGateState.getFirstQuery(),
-  }),
-  setCurrentConversationRef: (conversationRef) => {
-    backendSessionState.setConversationRef(conversationRef);
-  },
-  setFirstQuery: (nextValue) => {
-    backendConnectionGateState.setFirstQuery(nextValue);
-  },
-  uuidGenerator: uuidv4,
-  log,
-});
-
 async function sendAutomatedQuery(options = {}) {
-  return automatedQueryDispatcher.sendAutomatedQuery(options);
+  return automatedQueryRuntime.sendAutomatedQuery(options);
 }
 
 module.exports = {

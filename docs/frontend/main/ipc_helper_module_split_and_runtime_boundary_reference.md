@@ -143,6 +143,9 @@ Owns Agent SDK runtime workspace-path fallback resolution:
 
 Owns VM automated-query dispatch orchestration:
 
+- exposes `createAutomatedQueryRuntime(...)` so `ipc.cjs` composes VM worker
+  query dispatch dependencies once and exports `sendAutomatedQuery(...)` as a
+  thin runtime call
 - validates assigned-run query options through `prepareAutomatedQueryPayload`
 - connects the managed backend session for `automated-query`
 - waits for initial settings sync and any pending settings ACK
