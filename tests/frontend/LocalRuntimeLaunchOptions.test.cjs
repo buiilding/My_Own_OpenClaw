@@ -14,7 +14,7 @@ const {
   mainHostSkin,
 } = require('../../frontend/src/main/app/main_host_skin.cjs');
 
-function createWindieLocalRuntimeLaunchPlan(options = {}) {
+function createHostSkinLocalRuntimeLaunchPlan(options = {}) {
   return createDesktopLocalRuntimeLaunchPlan({
     daemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
     ...options,
@@ -24,6 +24,13 @@ function createWindieLocalRuntimeLaunchPlan(options = {}) {
 describe('desktop local runtime launch options', () => {
   test('removes the legacy auto-sidecar launch plan export', () => {
     expect(launchOptionsModule.createDesktopAutoSidecarLaunchPlan).toBeUndefined();
+  });
+
+  test('keeps test launch helpers named through the host skin boundary', () => {
+    const source = fs.readFileSync(__filename, 'utf8');
+
+    expect(source).toContain('createHostSkinLocalRuntimeLaunchPlan');
+    expect(source).not.toContain(['createWindie', 'LocalRuntimeLaunchPlan'].join(''));
   });
 
   test('removes the legacy local-backend node options helper export', () => {
@@ -201,7 +208,7 @@ describe('desktop local runtime launch options', () => {
       logLevel: 'AGENT_LOCAL_RUNTIME_LOG_LEVEL',
       userDataDir: 'AGENT_USER_DATA_DIR',
     });
-    const plan = createWindieLocalRuntimeLaunchPlan({
+    const plan = createHostSkinLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
       userDataRoot: '/tmp/agent-data',
     });
@@ -238,7 +245,7 @@ describe('desktop local runtime launch options', () => {
       process.env.AGENT_ENABLE_SEMANTIC_SUMMARIZER = '1';
       process.env.WINDIE_SIDECAR_LOG_LEVEL = 'DEBUG';
       process.env.AGENT_LOCAL_RUNTIME_LOG_LEVEL = 'INFO';
-      plan = createWindieLocalRuntimeLaunchPlan({
+      plan = createHostSkinLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
         localRuntimeEnv: mainHostSkin.localRuntime.env,
         authStatePath: '/tmp/auth.json',
@@ -298,7 +305,7 @@ describe('desktop local runtime launch options', () => {
   });
 
   test('desktop launch owns a fresh local runtime instead of reusing discovered daemons', () => {
-    const plan = createWindieLocalRuntimeLaunchPlan({
+    const plan = createHostSkinLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });
 
@@ -310,7 +317,7 @@ describe('desktop local runtime launch options', () => {
   });
 
   test('desktop launch uses a generic daemon discovery path by default', () => {
-    const plan = createWindieLocalRuntimeLaunchPlan({
+    const plan = createHostSkinLocalRuntimeLaunchPlan({
       backendEndpoints: { httpUrl: 'https://api.windieos.com' },
     });
 
@@ -331,7 +338,7 @@ describe('desktop local runtime launch options', () => {
         ...originalEnv,
         AGENT_LOCAL_RUNTIME_LOG_FILE: logFile,
       };
-      const plan = createWindieLocalRuntimeLaunchPlan({
+      const plan = createHostSkinLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
       });
 
@@ -370,7 +377,7 @@ describe('desktop local runtime launch options', () => {
         ...originalEnv,
         WINDIE_VERBOSE_LOCAL_RUNTIME_STDERR: '1',
       };
-      const plan = createWindieLocalRuntimeLaunchPlan({
+      const plan = createHostSkinLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
         localRuntimeEnv: mainHostSkin.localRuntime.env,
       });
@@ -398,7 +405,7 @@ describe('desktop local runtime launch options', () => {
         ...originalEnv,
         AGENT_MAIN_LOG_FILE: logFile,
       };
-      const plan = createWindieLocalRuntimeLaunchPlan({
+      const plan = createHostSkinLocalRuntimeLaunchPlan({
         backendEndpoints: { httpUrl: 'https://api.windieos.com' },
       });
 

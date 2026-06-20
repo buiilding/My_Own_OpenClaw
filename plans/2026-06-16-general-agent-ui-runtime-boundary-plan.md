@@ -17974,3 +17974,18 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime code, renderer behavior, IPC
   channels, SDK contracts, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-20 Local runtime launch test helper host-skin naming
+
+- Finding: the frontend local-runtime launch-options test still used a
+  product-prefixed helper, `createWindieLocalRuntimeLaunchPlan`, even though the
+  production launch path now injects the local-runtime daemon entrypoint through
+  the generic host-skin boundary.
+- Change: renamed the test helper to `createHostSkinLocalRuntimeLaunchPlan` and
+  added a focused assertion that the old test-only helper name stays retired.
+- Validation: focused local-runtime launch-options test, exact old-helper scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, launch option behavior,
+  host skin config, env precedence, local-runtime startup, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.

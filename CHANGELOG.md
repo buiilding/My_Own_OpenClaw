@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: rename the local-runtime launch-options test helper through the
+  host-skin boundary instead of the Windie-prefixed skin implementation name.
+  No migration required.
 - sdk/transport: rename the private managed backend websocket lifecycle module
   to `ManagedWebSocketSession` and keep `ManagedAgentSession` as the public
   managed hosted-session API. No public package-root API or storage migration

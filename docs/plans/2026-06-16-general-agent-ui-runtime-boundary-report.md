@@ -7328,3 +7328,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   placeholders. Runtime code, renderer behavior, IPC channels, SDK contracts,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged; no migration is required.
+- The local-runtime launch-options test helper now uses the
+  `createHostSkinLocalRuntimeLaunchPlan` name instead of a Windie-prefixed
+  helper while still exercising the same host-skin daemon entrypoint injection.
+  Runtime code, launch options, env precedence, local-runtime startup, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.
