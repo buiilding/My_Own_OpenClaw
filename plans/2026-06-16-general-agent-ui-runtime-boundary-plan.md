@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Runtime Conversation Ref Wiring Boundary
+
+- Finding: `ipc_runtime_conversation_ref.cjs` owned nested transport,
+  direct-alias, and cached fallback conversation-ref semantics, but `ipc.cjs`
+  still paired each input with the backend session state's current
+  conversation ref before calling the helper.
+- Change: added `createRuntimeConversationRefRuntime(...)` so the conversation
+  ref helper owns the reusable resolver runtime while `ipc.cjs` injects the
+  current conversation fallback reader once.
+- Validation: focused conversation-ref coverage verifies the runtime uses the
+  latest injected fallback on each resolve and source guards keep direct
+  input/fallback resolver calls out of `ipc.cjs`.
+- Compatibility: no migration required. Nested transport
+  `payload.conversation_ref` precedence, direct `conversation_ref` /
+  `conversationRef` aliases, cached conversation fallback, null/trim
+  semantics, SDK runtime command/replay callers, renderer IPC channels,
+  storage, credentials, permissions, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Workspace Path Runtime Wiring Boundary
 
 - Finding: `ipc_workspace_path_runtime.cjs` owned Agent SDK workspace-path

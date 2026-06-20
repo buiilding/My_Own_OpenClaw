@@ -292,11 +292,14 @@ describe('main ipc sdk runtime boundary', () => {
     expect(agentClientLifecycleSource).toContain('let agentClient = null;');
     expect(agentClientLifecycleSource).toContain('agentClient = createAgentClient();');
     expect(agentClientLifecycleSource).toContain('[Main][SDK] client_initialized');
-    expect(source).toContain(
+    expect(source).toContain('createRuntimeConversationRefRuntime({');
+    expect(source).toContain('runtimeConversationRefRuntime.resolve(input)');
+    expect(source).not.toContain(
       'resolveRuntimeConversationRefValue(input, backendSessionState.getConversationRef())',
     );
     expect(source).not.toContain('const fromPayload = payload && typeof payload ===');
     expect(runtimeConversationRefSource).toContain('payload.conversation_ref');
+    expect(runtimeConversationRefSource).toContain('function createRuntimeConversationRefRuntime');
     expect(runtimeConversationRefSource).toContain('input.conversation_ref || input.conversationRef');
     expect(source).toContain('createBackendSessionState()');
     expect(source).not.toContain('let currentSessionId = null');

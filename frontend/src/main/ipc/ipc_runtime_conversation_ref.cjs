@@ -23,7 +23,20 @@ function resolveRuntimeConversationRef(input = {}, fallbackConversationRef = nul
     || null;
 }
 
+function createRuntimeConversationRefRuntime({
+  getFallbackConversationRef = () => null,
+} = {}) {
+  function resolve(input = {}) {
+    return resolveRuntimeConversationRef(input, getFallbackConversationRef());
+  }
+
+  return {
+    resolve,
+  };
+}
+
 module.exports = {
+  createRuntimeConversationRefRuntime,
   normalizeOptionalString,
   resolveRuntimeConversationRef,
 };

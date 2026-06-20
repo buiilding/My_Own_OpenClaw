@@ -82,7 +82,8 @@ Responsibilities:
   `ipc_install_auth_identity_runtime.cjs`, routes backend event relay bookkeeping
   through `ipc_agent_backend_event_runtime.cjs`, applies response-overlay phase
   side effects through `ipc_response_overlay_phase_runtime.cjs`, resolves Agent
-  SDK runtime conversation refs through `ipc_runtime_conversation_ref.cjs`,
+  SDK runtime conversation refs through the `ipc_runtime_conversation_ref.cjs`
+  fallback wrapper,
   reads app-skin host copy through `ipc_host_copy_runtime.cjs`, routes
   app-diagnostic append failure handling through
   `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
@@ -95,8 +96,8 @@ Responsibilities:
   `ipc_desktop_ui_config_cache.cjs`, keeps live-turn cache state in
   `ipc_live_turn_state.cjs`, keeps cached AgentClient lifecycle in
   `ipc_agent_client_lifecycle.cjs`, and delegates backend websocket
-  construction, SDK local-runtime bootstrap, envelope sends, close,
-  reconnect primitives, display rows, and current-turn projection to the SDK.
+  construction, SDK local-runtime bootstrap, envelope sends, close, reconnect
+  primitives, display rows, and current-turn projection to the SDK.
 - Injects backend session context (`userId`, `sessionId`, `conversation_ref`)
   from `ipc_backend_session_state.cjs`.
 - Gates first query on settings synchronization ACK using

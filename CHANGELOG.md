@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK runtime conversation-ref fallback wiring into
+  `createRuntimeConversationRefRuntime(...)`, preserving nested transport
+  precedence, direct snake_case/camelCase aliases, cached conversation fallback,
+  and null trimming semantics. No migration required.
 - main/ipc: move Agent SDK workspace-path fallback dependency wiring into
   `createWorkspacePathRuntime(...)`, preserving command payload precedence,
   cached desktop UI config fallback, snake_case/camelCase input support, and

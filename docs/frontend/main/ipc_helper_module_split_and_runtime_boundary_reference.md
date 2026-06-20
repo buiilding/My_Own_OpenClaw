@@ -313,6 +313,8 @@ Owns Electron-main backend connection and first-query gate state:
 Owns Agent SDK runtime conversation-ref resolution at the Electron main
 boundary:
 
+- exposes `createRuntimeConversationRefRuntime(...)` so `ipc.cjs` composes the
+  current conversation fallback reader once
 - prefers nested transport `payload.conversation_ref`
 - falls back to direct `conversation_ref` and `conversationRef` aliases used by
   SDK runtime command/replay paths

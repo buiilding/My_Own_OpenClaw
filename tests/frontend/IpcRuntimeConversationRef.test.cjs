@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createRuntimeConversationRefRuntime,
   resolveRuntimeConversationRef,
 } = require('../../frontend/src/main/ipc/ipc_runtime_conversation_ref.cjs');
 
@@ -44,6 +45,17 @@ describe('ipc_runtime_conversation_ref', () => {
     }, ' fallback-conv ')).toBe('fallback-conv');
   });
 
+  test('runtime resolves against the latest fallback conversation ref', () => {
+    const fallbacks = [' fallback-1 ', ' fallback-2 '];
+    const runtime = createRuntimeConversationRefRuntime({
+      getFallbackConversationRef: jest.fn(() => fallbacks.shift()),
+    });
+
+    expect(runtime.resolve({})).toBe('fallback-1');
+    expect(runtime.resolve({ payload: {} })).toBe('fallback-2');
+    expect(runtime.resolve({ conversationRef: ' direct ' })).toBe('direct');
+  });
+
   test('ipc.cjs delegates runtime conversation reference resolution to the helper', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -54,11 +66,14 @@ describe('ipc_runtime_conversation_ref', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain(
+    expect(mainSource).toContain('createRuntimeConversationRefRuntime({');
+    expect(mainSource).toContain('runtimeConversationRefRuntime.resolve(input)');
+    expect(mainSource).not.toContain(
       'resolveRuntimeConversationRefValue(input, backendSessionState.getConversationRef())',
     );
     expect(mainSource).not.toContain('function normalizeOptionalString(value)');
     expect(mainSource).not.toContain('const fromPayload = payload && typeof payload ===');
+    expect(helperSource).toContain('function createRuntimeConversationRefRuntime');
     expect(helperSource).toContain('function resolveRuntimeConversationRef');
     expect(helperSource).toContain('payload.conversation_ref');
     expect(helperSource).toContain('input.conversation_ref || input.conversationRef');

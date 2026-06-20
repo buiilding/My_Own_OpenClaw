@@ -73,7 +73,7 @@ const {
   createAgentClientLifecycle,
 } = require('./ipc/ipc_agent_client_lifecycle.cjs');
 const {
-  resolveRuntimeConversationRef: resolveRuntimeConversationRefValue,
+  createRuntimeConversationRefRuntime,
 } = require('./ipc/ipc_runtime_conversation_ref.cjs');
 const {
   startAgentRuntime,
@@ -283,6 +283,9 @@ const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
 const backendSessionState = createBackendSessionState();
+const runtimeConversationRefRuntime = createRuntimeConversationRefRuntime({
+  getFallbackConversationRef: () => backendSessionState.getConversationRef(),
+});
 const backendConnectionGateState = createBackendConnectionGateState();
 const hostOptionState = createIpcHostOptionState();
 const desktopUiConfigCache = createDesktopUiConfigCache({
@@ -566,7 +569,7 @@ function handleAgentBackendFallback(endpointPayload = {}) {
 }
 
 function resolveRuntimeConversationRef(input = {}) {
-  return resolveRuntimeConversationRefValue(input, backendSessionState.getConversationRef());
+  return runtimeConversationRefRuntime.resolve(input);
 }
 
 function buildDesktopInstallAuth() {
