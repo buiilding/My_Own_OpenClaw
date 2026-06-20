@@ -77,6 +77,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_runtime_lifecycle.cjs'),
       'utf8',
     );
+    const agentSdkRuntimeCommandsSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs'),
+      'utf8',
+    );
     expect(source).toContain('createElectronAgentClientRuntime({');
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
@@ -137,10 +141,21 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('sendStopQueryToBackend');
     expect(source).not.toContain('requestModelListFromBackend');
     expect(source).not.toContain('sendWakewordDetectedToBackend');
+    expect(source).toContain('createAgentSdkRuntimeCommands({');
     expect(source).toContain('sendQueryThroughAgentSdkRuntime');
     expect(source).toContain('stopQueryThroughAgentSdkRuntime');
     expect(source).toContain('requestModelListThroughAgentSdkRuntime');
     expect(source).toContain('sendWakewordDetectedThroughAgentSdkRuntime');
+    expect(source).not.toContain('agent.run({');
+    expect(source).not.toContain('agent.stop({');
+    expect(source).not.toContain('agent.updateSettings(payload)');
+    expect(source).not.toContain('agent.requestModelList()');
+    expect(source).not.toContain('agent.wakewordDetected(payload)');
+    expect(agentSdkRuntimeCommandsSource).toContain('agent.run({');
+    expect(agentSdkRuntimeCommandsSource).toContain('agent.stop({');
+    expect(agentSdkRuntimeCommandsSource).toContain('agent.updateSettings(payload)');
+    expect(agentSdkRuntimeCommandsSource).toContain('agent.requestModelList()');
+    expect(agentSdkRuntimeCommandsSource).toContain('agent.wakewordDetected(payload)');
     const wakeCall = agentWakeupRuntimeSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
     expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
     expect(wakeCall).toContain('name: getSdkAgentName()');

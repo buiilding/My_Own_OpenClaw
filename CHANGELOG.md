@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK command execution helpers into
+  `ipc_agent_sdk_runtime_commands.cjs`, including query payload resource and
+  metadata separation, stop pending-turn cleanup, settings update, model list,
+  and wakeword-detected dispatch. No migration required.
 - main/ipc: move active Agent SDK adapter lifecycle state into
   `ipc_agent_runtime_lifecycle.cjs`, including pending wake-up coalescing,
   active adapter reuse, backend traffic/idle forwarding, local-runtime ensure

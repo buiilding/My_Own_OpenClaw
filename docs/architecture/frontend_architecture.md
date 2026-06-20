@@ -320,8 +320,9 @@ Primary modules:
   - Renderer-facing composition root for backend-bound work.
   - Imports `AgentClient` directly, delegates `client.wakeUp(...)` option
     assembly to `ipc_agent_wakeup_runtime.cjs`, keeps active adapter lifecycle
-    state in `ipc_agent_runtime_lifecycle.cjs`, and uses the returned
-    `agent.conversation(...)` runtime for sends and stream projection.
+    state in `ipc_agent_runtime_lifecycle.cjs`, routes direct SDK command
+    execution through `ipc_agent_sdk_runtime_commands.cjs`, and uses the
+    returned `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,
     display rows, and current-turn projection to the SDK runtime.

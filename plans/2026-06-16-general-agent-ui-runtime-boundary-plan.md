@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent SDK Runtime Command Boundary
+
+- Finding: after extracting active-agent lifecycle state, `ipc.cjs` still owned
+  the command execution bodies for renderer query send, stop, settings update,
+  model list, and wakeword-detected paths.
+- Change: added `ipc_agent_sdk_runtime_commands.cjs` to own Agent SDK command
+  execution helpers. `ipc.cjs` now injects agent ensure/access, workspace and
+  conversation resolution, pending-turn cleanup, and logging while keeping IPC
+  handler registration and query gate composition in the root.
+- Validation: focused command coverage for query resource/metadata separation,
+  query failure logging, stop pending-turn cleanup, no-active-agent stop
+  fallback, settings/model/wakeword dispatch reasons, and a boundary guard that
+  keeps direct `agent.run/stop/updateSettings/requestModelList/wakewordDetected`
+  calls out of `ipc.cjs`.
+- Compatibility: no migration required. Renderer IPC commands, query payload
+  shape, pending-turn cleanup behavior, settings/model/wakeword call timing,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Active Agent Runtime Lifecycle Boundary
 
 - Finding: after extracting AgentClient construction and wake-up orchestration,
