@@ -643,15 +643,10 @@ function isBackendRuntimeConnected() {
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  const conversationRef = backendSessionState.getConversationRef();
-  const agent = await ensureAgent({
-    reason,
-    conversationRef,
-  });
-  return agent.ensureConnected({
+  return agentRuntimeLifecycle.ensureBackendConnection({
     reason,
     timeoutMs,
-    conversationRef,
+    conversationRef: backendSessionState.getConversationRef(),
   });
 }
 

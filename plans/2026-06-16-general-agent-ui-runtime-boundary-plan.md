@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Runtime Backend Connection Boundary
+
+- Finding: `ipc_agent_runtime_lifecycle.cjs` owned active Agent SDK adapter
+  reuse, local-runtime ensuring, traffic, idle sync, connection checks, and
+  reset behavior, but `ipc.cjs` still called `agent.ensureConnected(...)`
+  directly for backend connection gates.
+- Change: moved backend connection ensuring into
+  `ipc_agent_runtime_lifecycle.cjs`; `ipc.cjs` now passes the current
+  conversation ref and timeout into the lifecycle helper.
+- Validation: focused lifecycle coverage verifies active adapter
+  `ensureConnected(...)` routing and source guards keep direct
+  `agent.ensureConnected(...)` calls out of `ipc.cjs`.
+- Compatibility: no migration required. Connection timeout behavior, current
+  conversation-ref forwarding, first-query/settings gates, renderer command
+  callers, renderer IPC channels, storage, credentials, permissions, provider
+  policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Direct Wake-Up Adapter Dependency Boundary
 
 - Finding: `startAgent(...)` delegated wake-up behavior to

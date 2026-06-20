@@ -64,6 +64,19 @@ function createAgentRuntimeLifecycle(deps = {}) {
     return Boolean(isConnected) && Boolean(activeAgent?.isConnected?.());
   }
 
+  async function ensureBackendConnection({
+    reason = 'request',
+    timeoutMs = undefined,
+    conversationRef = null,
+  } = {}) {
+    const agent = await ensureAgent({ reason });
+    return agent.ensureConnected({
+      reason,
+      timeoutMs,
+      conversationRef,
+    });
+  }
+
   function reset({ closeActiveAgent = false } = {}) {
     pendingAgentStartPromise = null;
     if (closeActiveAgent) {
@@ -80,6 +93,7 @@ function createAgentRuntimeLifecycle(deps = {}) {
     getKnownAgentLocalRuntime,
     ensureAgentLocalRuntime,
     isBackendRuntimeConnected,
+    ensureBackendConnection,
     reset,
   };
 }

@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move active Agent SDK adapter `ensureConnected(...)` routing into
+  `ipc_agent_runtime_lifecycle.cjs`, preserving current conversation-ref
+  forwarding, connection timeout behavior, first-query/settings gates, and
+  renderer command callers. No migration required.
 - main/ipc: move direct wake-up Agent adapter dependency construction into
   `ipc_direct_wake_up_agent_adapter_deps.cjs`, preserving renderer fan-out,
   current-turn and pending-turn updates, trace hooks, terminal status mapping,

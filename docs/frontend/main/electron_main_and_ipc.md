@@ -74,6 +74,7 @@ Responsibilities:
 - Adapts renderer IPC to the Agent SDK runtime.
 - Starts `AgentClient.wakeUp(...)` through `ipc_agent_wakeup_runtime.cjs`,
   keeps active adapter lifecycle state in `ipc_agent_runtime_lifecycle.cjs`,
+  routes backend `ensureConnected(...)` calls through that lifecycle helper,
   uses the returned `agent.conversation(...)` runtime, routes SDK command
   execution through `ipc_agent_sdk_runtime_commands.cjs`, keeps backend-message
   observer fan-out in `ipc_backend_message_observers.cjs`, shapes status payloads
