@@ -56,17 +56,17 @@ describe('conversationGroups', () => {
   test('groups conversations by workspace and sorts pinned chats first within each group', () => {
     const groups = buildWorkspaceConversationGroups([
       {
-        conversation_id: 'windie-1',
-        title: 'WindieOS issue',
-        workspace_path: '/work/WindieOS',
-        workspace_name: 'WindieOS',
+        conversation_id: 'project-alpha-1',
+        title: 'Project Alpha issue',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
         last_timestamp: isoDaysAgo(0),
       },
       {
-        conversation_id: 'windie-2',
-        title: 'WindieOS follow-up',
-        workspace_path: '/work/WindieOS',
-        workspace_name: 'WindieOS',
+        conversation_id: 'project-alpha-2',
+        title: 'Project Alpha follow-up',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
         last_timestamp: isoDaysAgo(1),
       },
       {
@@ -77,15 +77,15 @@ describe('conversationGroups', () => {
         last_timestamp: isoDaysAgo(2),
       },
     ], {
-      pinnedConversationRefs: ['windie-2'],
+      pinnedConversationRefs: ['project-alpha-2'],
     });
 
     expect(groups).toHaveLength(2);
     expect(groups[0]).toEqual(expect.objectContaining({
-      key: '/work/WindieOS',
-      title: 'WindieOS',
+      key: '/work/project-alpha',
+      title: 'Project Alpha',
     }));
-    expect(groups[0].items.map((item) => item.key)).toEqual(['windie-2', 'windie-1']);
+    expect(groups[0].items.map((item) => item.key)).toEqual(['project-alpha-2', 'project-alpha-1']);
     expect(groups[1]).toEqual(expect.objectContaining({
       key: '/work/Lodex',
       title: 'Lodex',

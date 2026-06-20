@@ -11,11 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `dc738220e` (`test(sdk): neutralize project query fixtures`)
-- Latest completed slice: remaining Agent SDK sample project/query fixtures now
-  use neutral values, and renderer desktop workspace runtime/binding fixtures
-  now use neutral project workspace samples instead of WindieOS-flavored fixture
-  data.
+- Latest inspected plan checkpoint: `cc215cc09` (`test(renderer): neutralize workspace fixtures`)
+- Latest completed slice: renderer desktop workspace runtime/binding fixtures
+  and renderer dashboard conversation metadata/live-turn fixtures now use
+  neutral project workspace samples instead of WindieOS-flavored fixture data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -66,10 +65,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   direct backend relay rather than a revived backend bridge. Agent SDK
   workspace and native web-search query fixtures now use neutral project
   samples while preserving package names and explicit legacy guards. Renderer
-  desktop workspace runtime and conversation-binding fixtures now use neutral
-  project workspace samples while preserving the same value-normalization and
-  session-storage contracts. Preload SDK-command validation failures use
-  generic Agent SDK wording while the
+  desktop workspace runtime, conversation-binding, dashboard conversation
+  metadata, and live-turn fixtures now use neutral project workspace samples
+  while preserving the same value-normalization, session-storage, SDK command,
+  and dashboard grouping/loading contracts. Preload SDK-command validation
+  failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
@@ -7524,3 +7524,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   binding keys, IPC channels, permissions, storage format, credentials, hosted
   backend URLs, provider policy, and local-runtime behavior are unchanged; no
   migration is required.
+- Renderer dashboard conversation metadata and live-turn fixture samples now
+  use neutral `project-alpha` workspace paths/names instead of
+  WindieOS-flavored sample data. Dashboard grouping, recent-conversation
+  metadata normalization, conversation library command mapping, desktop
+  conversation store metadata passthrough, live-turn `workspace_path`
+  normalization, new-chat workspace binding, IPC channels, permissions,
+  storage format, credentials, hosted backend URLs, provider policy, and
+  local-runtime behavior are unchanged; no migration is required.

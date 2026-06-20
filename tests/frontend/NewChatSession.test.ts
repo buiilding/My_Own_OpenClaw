@@ -47,8 +47,8 @@ describe('startNewChatSession', () => {
       setTokenCounts,
       setChatActiveConversationRef,
       workspace: {
-        activeWorkspaceName: 'WindieOS',
-        activeWorkspacePath: '/work/WindieOS',
+        activeWorkspaceName: 'Project Alpha',
+        activeWorkspacePath: '/work/project-alpha',
       },
     });
 
@@ -57,8 +57,8 @@ describe('startNewChatSession', () => {
     expect(setChatActiveConversationRef).toHaveBeenNthCalledWith(1, null);
     expect(setChatActiveConversationRef).toHaveBeenNthCalledWith(2, 'conv_new-chat-ref');
     expect(DesktopWorkspaceRuntimeClient.setConversationWorkspaceBinding).toHaveBeenCalledWith('conv_new-chat-ref', {
-      workspacePath: '/work/WindieOS',
-      workspaceName: 'WindieOS',
+      workspacePath: '/work/project-alpha',
+      workspaceName: 'Project Alpha',
     });
   });
 

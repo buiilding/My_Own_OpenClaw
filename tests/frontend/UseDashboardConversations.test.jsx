@@ -330,8 +330,8 @@ describe('useDashboardConversations', () => {
     await act(async () => {
       void result.current.handleOpenConversation({
         conversation_id: 'conv-open',
-        workspace_path: '/work/WindieOS',
-        workspace_name: 'WindieOS',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
       });
       await Promise.resolve();
     });
@@ -396,8 +396,8 @@ describe('useDashboardConversations', () => {
     await act(async () => {
       await result.current.handleOpenConversation({
         conversation_id: 'conv-active',
-        workspace_path: '/work/WindieOS',
-        workspace_name: 'WindieOS',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
       });
     });
 
@@ -447,8 +447,8 @@ describe('useDashboardConversations', () => {
     await act(async () => {
       void result.current.handleOpenConversation({
         conversation_id: 'conv-cached',
-        workspace_path: '/work/WindieOS',
-        workspace_name: 'WindieOS',
+        workspace_path: '/work/project-alpha',
+        workspace_name: 'Project Alpha',
       });
       await Promise.resolve();
     });

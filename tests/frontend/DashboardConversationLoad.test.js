@@ -31,8 +31,8 @@ describe('desktopDashboardConversationLoadRuntime', () => {
       lastMessage: 'last reply',
       updatedAt: '2026-06-19T12:00:00.000Z',
       eventCount: 4,
-      workspacePath: '/work/WindieOS',
-      workspaceName: 'WindieOS',
+      workspacePath: '/work/project-alpha',
+      workspaceName: 'Project Alpha',
       snippet: 'matched text',
       matchedRole: 'assistant',
     })).toEqual({
@@ -42,8 +42,8 @@ describe('desktopDashboardConversationLoadRuntime', () => {
       last_message: 'last reply',
       last_timestamp: '2026-06-19T12:00:00.000Z',
       entry_count: 4,
-      workspace_path: '/work/WindieOS',
-      workspace_name: 'WindieOS',
+      workspace_path: '/work/project-alpha',
+      workspace_name: 'Project Alpha',
       snippet: 'matched text',
       matched_role: 'assistant',
     });

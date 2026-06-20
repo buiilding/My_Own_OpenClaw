@@ -370,6 +370,29 @@ describe('modular sdk refactor completion boundary', () => {
     expect(workspaceTestText).toContain("activeWorkspaceName: 'Project Alpha'");
   });
 
+  test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
+    const conversationMetadataText = await Promise.all([
+      read('tests/frontend/ConversationGroups.test.js'),
+      read('tests/frontend/DashboardConversationLoad.test.js'),
+      read('tests/frontend/DesktopConversationLibraryClient.test.ts'),
+      read('tests/frontend/DesktopConversationStore.test.ts'),
+      read('tests/frontend/DesktopLiveTurnRuntimeClient.test.ts'),
+      read('tests/frontend/NewChatSession.test.ts'),
+      read('tests/frontend/UseDashboardConversations.test.jsx'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(conversationMetadataText).not.toContain('/work/WindieOS');
+    expect(conversationMetadataText).not.toContain('/workspace/WindieOS');
+    expect(conversationMetadataText).not.toContain('WindieOS issue');
+    expect(conversationMetadataText).not.toContain('WindieOS follow-up');
+    expect(conversationMetadataText).not.toContain("workspaceName: 'WindieOS'");
+    expect(conversationMetadataText).not.toContain("workspace_name: 'WindieOS'");
+    expect(conversationMetadataText).toContain('/work/project-alpha');
+    expect(conversationMetadataText).toContain('/workspace/project-alpha');
+    expect(conversationMetadataText).toContain('Project Alpha issue');
+    expect(conversationMetadataText).toContain("workspaceName: 'Project Alpha'");
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),

@@ -18420,3 +18420,25 @@ Each completed slice should report:
   workspace presentation, value-level selection comparison, session-storage
   binding keys, IPC channels, permissions, storage format, credentials, hosted
   backend URLs, provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Renderer conversation metadata fixture neutrality
+
+- Finding: renderer dashboard conversation grouping, dashboard conversation
+  load, desktop conversation library/store, live-turn send, new-chat session,
+  and dashboard conversation hook tests still used WindieOS-flavored workspace
+  names/paths as sample conversation metadata even though those fields are
+  caller/user project data.
+- Change: switched the affected renderer conversation metadata fixture values
+  to neutral `project-alpha` samples and extended the modular boundary guard so
+  retired product-shaped workspace/title samples stay out of those generic
+  renderer conversation tests.
+- Validation: focused conversation group, dashboard conversation load, desktop
+  conversation library, desktop conversation store, desktop live-turn runtime,
+  new chat session, dashboard conversation hook, and modular boundary tests;
+  exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Dashboard grouping, recent-conversation
+  metadata normalization, conversation library command mapping, desktop
+  conversation store metadata passthrough, live-turn `workspace_path`
+  normalization, new-chat workspace binding, IPC channels, permissions, storage
+  format, credentials, hosted backend URLs, provider policy, and local-runtime
+  behavior are unchanged.
