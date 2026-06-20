@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Settings and Transparency Docs Consumer Labels
+
+- Finding: provider/config workflows still described `Frontend settings`, and
+  API reference transparency events still said system prompts and tool schemas
+  were sent to the frontend even though renderer-managed settings and
+  SDK/renderer transparency consumers are the active boundary.
+- Change: reworded provider/config workflow settings ownership to
+  renderer-managed settings, reworded API transparency event delivery through
+  SDK/renderer consumers, and extended modular docs guards for the retired
+  phrases.
+- Validation: passed focused modular boundary test, docs listing, stale
+  frontend-settings/transparency-consumer scan, and diff check.
+- Compatibility: no migration required. Settings payloads, credential override
+  behavior, provider factory rules, websocket transparency event names/payloads,
+  renderer display, storage, credentials, permissions, provider policy,
+  local-runtime routing, and hosted URLs are unchanged.
+
 ### 2026-06-20 Getting-Started Overview Desktop Host Label
 
 - Finding: `docs/getting-started/overview.md` still labeled the public

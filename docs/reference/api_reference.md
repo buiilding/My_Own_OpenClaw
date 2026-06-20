@@ -1930,7 +1930,7 @@ Greeting message sent when wakeword is detected (after `wakeword-activated`).
 
 ### System Prompt Message
 
-System prompt sent to frontend for transparency display. Tool schemas are emitted separately as a `tool-schemas` event.
+System prompt emitted for SDK/renderer transparency display. Tool schemas are emitted separately as a `tool-schemas` event.
 
 **Type**: `system-prompt`
 
@@ -2013,7 +2013,7 @@ Full assistant message content for transparency display.
 
 ### Tool Schemas Message
 
-Tool schemas sent to frontend for transparency display (first message metadata window). These are canonical OpenAI/LiteLLM tool objects.
+Tool schemas emitted for SDK/renderer transparency display (first message metadata window). These are canonical OpenAI/LiteLLM tool objects.
 
 **Type**: `tool-schemas`
 

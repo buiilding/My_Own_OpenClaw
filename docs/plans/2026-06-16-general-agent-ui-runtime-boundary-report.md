@@ -232,8 +232,28 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime ownership backed by Python sidecar modules.
   The getting-started overview diagram now labels the desktop boundary as a
   desktop client / SDK host UI instead of an Electron frontend UI.
+  Provider/config workflows and API reference transparency docs now route
+  settings through renderer-managed settings and prompt/schema transparency
+  through SDK/renderer consumers.
 
 ## Inspection Log
+
+### 2026-06-20 Settings and Transparency Docs Consumer Labels
+
+- Finding: provider/config workflows still described `Frontend settings`, and
+  API reference transparency events still said system prompts and tool schemas
+  were sent to the frontend even though renderer-managed settings and
+  SDK/renderer transparency consumers are the active boundary.
+- Change: reworded provider/config workflow settings ownership to
+  renderer-managed settings, reworded API transparency event delivery through
+  SDK/renderer consumers, and extended modular docs guards for the retired
+  phrases.
+- Validation: passed focused modular boundary test, docs listing, stale
+  frontend-settings/transparency-consumer scan, and diff check.
+- Compatibility: no migration required. Settings payloads, credential override
+  behavior, provider factory rules, websocket transparency event names/payloads,
+  renderer display, storage, credentials, permissions, provider policy,
+  local-runtime routing, and hosted URLs are unchanged.
 
 ### 2026-06-20 Getting-Started Overview Desktop Host Label
 

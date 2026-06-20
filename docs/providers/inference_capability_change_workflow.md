@@ -36,7 +36,7 @@ deployment choices instead of cross-runtime rewrites.
 - SDK clients consume hosted embedding/title services for memory and naming.
   Local-runtime remote clients may consume hosted helper services such as
   semantic summarization, but must not import backend provider or router code.
-- Frontend settings can update allowed config fields, but must not duplicate
+- Renderer-managed settings can update allowed config fields, but must not duplicate
   provider factory rules.
 
 ## Fast Owner Map
@@ -178,7 +178,7 @@ Different callers need different follow-up docs:
 - SDK OCR/vision calls: inspect SDK route workflow and hosted client tests.
 - Memory routes: inspect memory route docs and sidecar remote client docs.
 - Voice/audio: inspect voice channel workflow and renderer voice docs.
-- Frontend settings: inspect model settings workflow and config sync docs.
+- Renderer-managed settings: inspect model settings workflow and config sync docs.
 
 Do not update only the provider adapter when a public route payload, tool
 visibility rule, or frontend status surface also changes.

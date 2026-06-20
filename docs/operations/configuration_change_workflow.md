@@ -145,7 +145,7 @@ Rules:
 - API keys must come from environment variables or an approved user-entered override path.
 - Docs and tests must use placeholder names, not real credentials.
 - Backend provider factories should receive normalized config, not renderer raw settings.
-- Frontend settings can display credential status or accept user-entered overrides only where product behavior already supports that path.
+- Renderer-managed settings can display credential status or accept user-entered overrides only where product behavior already supports that path.
 - Hosted install auth tokens are not provider API keys; document them separately.
 
 Start docs:
