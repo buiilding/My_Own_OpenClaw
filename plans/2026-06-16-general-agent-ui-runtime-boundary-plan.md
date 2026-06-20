@@ -18040,3 +18040,20 @@ Each completed slice should report:
   transcript storage, backend rehydrate payloads, IPC channels,
   local-runtime Python storage behavior, storage schemas, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Context enrichment test route rename
+
+- Finding: the SDK context-enrichment tests cover the generic
+  `ContextEnrichmentPipeline`, but the focused test path and validation docs
+  still used `WindieSdkContextEnrichment`, preserving a product-branded route
+  for reusable SDK query enrichment behavior.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkContextEnrichment.test.ts`, updated routing and
+  validation docs to the generic Agent SDK path, and extended the modular docs
+  guard against the retired test route.
+- Validation: focused Agent SDK context-enrichment test, modular docs boundary
+  test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK context enrichment,
+  model-facing query content, memory embedding/search behavior, IPC payloads,
+  local-runtime Python storage behavior, storage schemas, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.

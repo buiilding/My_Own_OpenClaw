@@ -7352,3 +7352,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   IPC channels, local-runtime Python storage behavior, storage schemas,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- The SDK context-enrichment focused test now lives at
+  `tests/frontend/AgentSdkContextEnrichment.test.ts`, with validation docs
+  routed away from the Windie-prefixed test name. Runtime code, SDK context
+  enrichment, model-facing query content, memory embedding/search behavior,
+  IPC payloads, local-runtime Python storage behavior, storage schemas,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.

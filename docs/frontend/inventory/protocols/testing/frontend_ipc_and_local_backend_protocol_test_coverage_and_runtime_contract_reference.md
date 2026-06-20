@@ -36,7 +36,7 @@ Primary protocol tests:
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcQueryRuntime.test.cjs`
-- `tests/frontend/WindieSdkContextEnrichment.test.ts`
+- `tests/frontend/AgentSdkContextEnrichment.test.ts`
 - `tests/frontend/LocalRuntimeBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
@@ -57,7 +57,7 @@ Primary protocol tests:
 | query-send orchestration + fallback eventing | `windie:invoke` command `conversation.send` + helpers (`ipc.cjs`) | `IpcMainBridge.query.test.cjs` | overlay pre-capture hook runs only for chatbox-origin sends; disconnected send synthesizes renderer-visible `error` event |
 | settings ACK gate before query | settings sync logic (`ipc.cjs`) | settings-gate tests in `IpcMainBridge.query.test.cjs` | first query waits for initial `update-settings` ACK when cached config exists; pending renderer settings ACK blocks query send |
 | outbound payload normalization | SDK `filterBackendPayload(...)` imported by Electron main direct payload senders | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys from the SDK-owned allowlist; client-supplied `screenshot_url` is removed from outbound payloads while keeping supported screenshot refs |
-| query-context enrichment + escaping | SDK `ContextEnrichmentPipeline.ts` | `WindieSdkContextEnrichment.test.ts` + query relay tests | memories, attachment context, and user query render into XML-like content; XML-sensitive values are escaped; disabled or unavailable memory retrieval has explicit fallback behavior |
+| query-context enrichment + escaping | SDK `ContextEnrichmentPipeline.ts` | `AgentSdkContextEnrichment.test.ts` + query relay tests | memories, attachment context, and user query render into XML-like content; XML-sensitive values are escaped; disabled or unavailable memory retrieval has explicit fallback behavior |
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
 | SDK local-runtime readiness safety | runtime state/reset + readiness status (`local_runtime_bridge.cjs`) | `LocalRuntimeBridge.lifecycle.test.cjs` | local-runtime provider failures resolve with standardized errors; stale status snapshots do not clobber current runtime state |
 | local runtime RPC shape mapping | handler registration + mapper utilities (`local_runtime_bridge.cjs`) | `LocalRuntimeBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
@@ -124,7 +124,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - renderer payload fields are filtered to the backend query contract
 - conversation refs and authenticated user ids are required before send
 
-`tests/frontend/WindieSdkContextEnrichment.test.ts` locks SDK model-facing content rendering:
+`tests/frontend/AgentSdkContextEnrichment.test.ts` locks SDK model-facing content rendering:
 - memory search uses backend embeddings and sidecar `search_memory_by_embedding` before backend query send
 - output content always includes:
   - `<episodic_memory> ... </episodic_memory>`

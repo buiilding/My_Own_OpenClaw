@@ -262,7 +262,7 @@ provider health and tool policy together.
 | Vision provider behavior | `./scripts/python-in-env backend pytest tests/backend/test_vision_service.py tests/backend/test_vision_coordinates.py tests/backend/test_vision_provider_loader.py tests/backend/test_remote_ocr_vision_providers.py` |
 | Embedding provider behavior | `./scripts/python-in-env backend pytest tests/backend/test_embeddings_*.py tests/backend/test_remote_embedding_provider.py tests/backend/test_openai_embedding_provider.py` |
 | SDK OCR/vision exposure | `./scripts/python-in-env backend pytest tests/backend/test_sdk_routes.py` and `cd frontend && npm run test -- WindieSdkClient` |
-| SDK memory embedding behavior | `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/WindieSdkContextEnrichment.test.ts ../tests/frontend/WindieSdkClient.test.ts --runInBand -t memory` and sidecar local-store tests |
+| SDK memory embedding behavior | `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/AgentSdkContextEnrichment.test.ts ../tests/frontend/WindieSdkClient.test.ts --runInBand -t memory` and sidecar local-store tests |
 | STT/TTS audio behavior | `./scripts/python-in-env backend pytest tests/backend/test_transcription_gateway.py tests/backend/test_openai_realtime_transcription.py tests/backend/test_tts_manager.py tests/backend/test_tts_session.py` |
 | Docs-only inference workflow updates | `<windie> docs list`, `git diff --check`, focused Markdown link checks |
 

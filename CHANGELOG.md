@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: rename the SDK context-enrichment focused test to
+  `AgentSdkContextEnrichment.test.ts` and update validation docs away from the
+  Windie-prefixed route. No migration required.
 - docs/memory: route transcript replay workflow summary through generic
   SDK-backed transcript projections instead of a WindieOS-branded SDK label. No
   migration required.

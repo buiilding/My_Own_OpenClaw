@@ -1903,6 +1903,7 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend outbound payload filter',
         'frontend command family',
         'FrontendBackendWebsocketContract',
+        'WindieSdkContextEnrichment',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
