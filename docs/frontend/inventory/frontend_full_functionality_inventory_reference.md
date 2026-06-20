@@ -301,7 +301,7 @@ Functionality:
   attachment display state.
 - Streaming TTS audio queue/decode/playback lifecycle.
 
-## 4) Python Sidecar Runtime Inventory
+## 4) Local-Runtime Python Implementation Inventory
 
 ### 4.1 Entrypoints
 

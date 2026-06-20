@@ -39,6 +39,20 @@ export type RendererResponseSurfaceSizeTraceValues = {
   height: unknown;
 };
 
+export type RendererChatPillStateTraceValues = {
+  source?: string;
+  action?: string;
+  conversationRef?: unknown;
+  turnRef?: unknown;
+  currentTurnPhase?: unknown;
+  liveTurnPhase?: unknown;
+  liveTurnSource?: unknown;
+  isSending?: boolean;
+  busy?: boolean;
+  stopAvailable?: boolean;
+  messageCount?: unknown;
+};
+
 let workspaceSnapshotResolver: RendererTraceWorkspaceSnapshotResolver | null = null;
 
 export function configureRendererTraceWorkspaceSnapshotResolver(
@@ -171,6 +185,33 @@ export function logRendererChatPillTrace(
     ...summarizeWorkspaceForTrace(conversationRef),
     ...data,
   });
+}
+
+export function buildRendererChatPillStateTracePayload(
+  values: RendererChatPillStateTraceValues,
+): Record<string, unknown> {
+  return {
+    source: traceString(values.source) || 'renderer-chat-pill-state',
+    action: traceString(values.action) || 'state-changed',
+    conversation_ref: traceString(values.conversationRef) || null,
+    turn_id: traceString(values.turnRef) || null,
+    current_turn_phase: traceString(values.currentTurnPhase) || null,
+    live_turn_phase: traceString(values.liveTurnPhase) || null,
+    live_turn_source: traceString(values.liveTurnSource) || null,
+    is_sending: values.isSending === true,
+    busy: values.busy === true,
+    stop_available: values.stopAvailable === true,
+    message_count: traceNumberOrZero(values.messageCount),
+  };
+}
+
+export function logRendererChatPillStateTrace(
+  values: RendererChatPillStateTraceValues,
+): void {
+  logRendererChatPillTrace(
+    buildRendererChatPillStateTracePayload(values),
+    traceString(values.conversationRef) || null,
+  );
 }
 
 export function logRendererLiveSurfaceTrace(

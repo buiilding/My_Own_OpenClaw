@@ -35,6 +35,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/tracing: move minimal chat-pill state diagnostic payload shaping into
+  `desktopRendererTraceRuntime` so the feature passes value-level state instead
+  of assembling snake_case trace fields directly. No migration required.
+- docs(runtime): route frontend inventory, IPC triage, and local-runtime
+  backend endpoint labels through local-runtime Python wording instead of
+  sidecar public-route labels. No migration required.
 - docs(runtime): route first-read local-runtime Python navigation headings and
   links through local-runtime Python wording instead of Python Sidecar/Sidecar
   public labels. No migration required.

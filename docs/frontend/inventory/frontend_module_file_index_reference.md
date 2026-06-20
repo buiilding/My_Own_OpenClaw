@@ -178,8 +178,8 @@ Useful local queries:
 
 - Main process handlers: `rg --files frontend/src/main | rg 'handler|bridge|ipc|overlay'`
 - Renderer chat runtime: `rg --files frontend/src/renderer/features/chat`
-- Sidecar tool modules: `rg --files frontend/src/main/python/tools`
-- Sidecar browser stack: `rg --files frontend/src/main/python/tools/browser`
+- Local-runtime Python tool modules: `rg --files frontend/src/main/python/tools`
+- Local-runtime Python browser stack: `rg --files frontend/src/main/python/tools/browser`
 - IPC channel usage: `rg -n "SEND_CHANNELS|INVOKE_CHANNELS|ON_CHANNELS|ipcMain|ipcRenderer" frontend/src`
 
 ## Related Docs

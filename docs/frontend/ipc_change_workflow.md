@@ -148,7 +148,7 @@ Before committing:
 | Handler never runs | Missing `ipcMain.handle`/`ipcMain.on` registration or wrong channel family. |
 | Event listener gets stale data | Main broadcaster, replay state, or renderer cleanup leak. |
 | Packaged app differs from dev | Main process channel registry injection or preload path/build packaging. |
-| Sidecar tool call returns unexpected payload | Local-runtime bridge helper, SDK local-runtime caller, or Python JSON-RPC handler. |
+| Local-runtime tool call returns unexpected payload | Local-runtime bridge helper, SDK local-runtime caller, or Python JSON-RPC handler. |
 | Renderer receives Electron event-like data | `preload.js` listener wrapper is bypassed or a custom bridge leaked privileged fields. |
 | Multiple duplicate stream/status events after navigation | Renderer listener cleanup is missing or a provider re-registers listeners without unmount cleanup. |
 | Invoke hangs or times out only for local tools | Local-runtime readiness, request correlation, timeout policy, or local-runtime JSON-RPC response shape. |

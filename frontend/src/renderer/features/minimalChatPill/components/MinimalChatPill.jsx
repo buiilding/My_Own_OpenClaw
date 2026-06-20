@@ -28,6 +28,7 @@ import {
 } from '../../../app/runtime/desktopChatboxLayoutRuntime';
 import {
   logRendererChatPillTrace,
+  logRendererChatPillStateTrace,
   logRendererLiveSurfaceTrace,
 } from '../../../app/runtime/desktopRendererTraceRuntime';
 import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
@@ -260,19 +261,17 @@ function MinimalChatPill() {
       return;
     }
     lastLoggedPillStateRef.current = nextPillStateSignature;
-    logRendererChatPillTrace({
-      source: 'renderer-chat-pill-state',
-      action: 'state-changed',
-      conversation_ref: sessionInfo?.conversationRef || null,
-      turn_id: currentTurnProjection?.turnRef || null,
-      current_turn_phase: currentTurnProjection?.phase || null,
-      live_turn_phase: liveTurnPhase,
-      live_turn_source: liveTurnSource,
-      is_sending: isSending,
+    logRendererChatPillStateTrace({
+      conversationRef: sessionInfo?.conversationRef || null,
+      turnRef: currentTurnProjection?.turnRef || null,
+      currentTurnPhase: currentTurnProjection?.phase || null,
+      liveTurnPhase,
+      liveTurnSource,
+      isSending,
       busy: loopInteractionLocked,
-      stop_available: loopInteractionLocked,
-      message_count: messages.length,
-    }, sessionInfo?.conversationRef || null);
+      stopAvailable: loopInteractionLocked,
+      messageCount: messages.length,
+    });
   }, [
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,

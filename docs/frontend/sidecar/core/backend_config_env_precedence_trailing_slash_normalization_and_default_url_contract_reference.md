@@ -24,7 +24,7 @@ Constants and function:
 - `LEGACY_BACKEND_HTTP_URL_ENV = "WINDIE_BACKEND_HTTP_URL"`
 - `get_backend_http_url() -> str`
 
-`get_backend_http_url()` is the canonical backend URL for sidecar backend-bound clients
+`get_backend_http_url()` is the canonical backend URL for local-runtime Python backend-bound clients
 when an explicit URL is not passed.
 
 ## Resolution Contract
@@ -38,10 +38,10 @@ Semantics:
 
 - empty strings are invalid and behave like missing config
 - trailing slashes are stripped
-- Electron main owns `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, host/port, and hosted-default precedence before launching the sidecar
-- the sidecar consumes the resolved `AGENT_BACKEND_HTTP_URL` value when no explicit `backend_url` is passed to a client
+- Electron main owns `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, host/port, and hosted-default precedence before launching local-runtime Python
+- local-runtime Python consumes the resolved `AGENT_BACKEND_HTTP_URL` value when no explicit `backend_url` is passed to a client
 - WindieOS Electron launches also mirror the resolved endpoint into `WINDIE_BACKEND_HTTP_URL` for compatibility with existing packaged/runtime env contracts
-- missing sidecar endpoint config raises a generic Agent SDK backend URL error
+- missing local-runtime backend endpoint config raises a generic Agent SDK backend URL error
 
 ## Normalization Contract
 
@@ -69,9 +69,9 @@ Each consumer applies additional endpoint-specific path suffixes on top of this 
 `tests/sidecar/test_backend_config.py` verifies:
 
 - missing or blank injected env fails fast
-- `AGENT_BACKEND_HTTP_URL` is the primary sidecar endpoint override
+- `AGENT_BACKEND_HTTP_URL` is the primary local-runtime Python backend endpoint override
 - `WINDIE_BACKEND_HTTP_URL` remains a legacy compatibility override
-- `BACKEND_HTTP_URL` is ignored in the sidecar because Electron main owns endpoint resolution
+- `BACKEND_HTTP_URL` is ignored by local-runtime Python because Electron main owns endpoint resolution
 - preservation of non-trailing path segments
 - stripping of multiple trailing slashes
 

@@ -275,6 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a frontend local-runtime route-label slice by routing
+  IPC troubleshooting, frontend inventory headings, source-map query labels,
+  change-path validation labels, and backend endpoint config docs through
+  local-runtime/local-runtime Python wording instead of sidecar public-route
+  labels. Validation: focused modular docs boundary test, exact stale
+  route-label scan, docs listing, and diff checks. No migration required; no
+  runtime code, endpoint env var, Python file path, JSON-RPC payload, IPC
+  payload, storage, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
+
+- 2026-06-20: completed a renderer chat-pill state trace payload boundary
+  slice by moving minimal chat-pill state diagnostic field shaping from
+  `MinimalChatPill.jsx` into `desktopRendererTraceRuntime.ts`.
+  `MinimalChatPill.jsx` now passes value-level conversation, turn, phase,
+  send/busy, stop-availability, and message-count inputs to
+  `logRendererChatPillStateTrace(...)` instead of assembling
+  `conversation_ref`, `current_turn_phase`, `live_turn_phase`, or
+  `message_count` directly. Validation: focused renderer app-runtime boundary
+  coverage and stale feature-code trace-field scan. No migration required;
+  diagnostic log labels, trace gating, workspace snapshot enrichment, renderer
+  state behavior, IPC payloads, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
 - 2026-06-20: completed a first-read local-runtime Python navigation label
   slice by routing top-level docs, frontend docs navigation, architecture
   implementation title, and local-runtime memory doc title through

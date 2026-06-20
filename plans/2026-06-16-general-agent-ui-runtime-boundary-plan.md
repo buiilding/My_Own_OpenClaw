@@ -120,6 +120,40 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Frontend Local-Runtime Route Labels
+
+- Finding: active IPC troubleshooting, frontend inventory, source-map query,
+  change-path validation, and backend endpoint config docs still used Sidecar
+  or sidecar labels for public route names even though the owner boundary is
+  local runtime/local-runtime Python.
+- Change: routed those labels through local-runtime/local-runtime Python
+  wording while preserving concrete `frontend/src/main/python/...` paths,
+  `AGENT_BACKEND_HTTP_URL`, `WINDIE_BACKEND_HTTP_URL`, and the Python JSON-RPC
+  handler implementation detail.
+- Validation: focused modular docs boundary test, exact stale route-label scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, endpoint env vars,
+  Python file paths, JSON-RPC payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
+### 2026-06-20 Renderer Chat-Pill State Trace Payload Boundary
+
+- Finding: `MinimalChatPill.jsx` still assembled chat-pill state diagnostics
+  with backend-style snake_case fields such as `conversation_ref`,
+  `current_turn_phase`, `live_turn_phase`, and `message_count` even though
+  `desktopRendererTraceRuntime.ts` owns renderer diagnostic field shaping.
+- Change: added chat-pill state trace payload normalization to
+  `desktopRendererTraceRuntime.ts`. The minimal chat pill now passes
+  value-level conversation, turn, phase, send/busy, stop-availability, and
+  message-count inputs to `logRendererChatPillStateTrace(...)`.
+- Validation: focused renderer app-runtime boundary coverage and stale
+  feature-code trace-field scan.
+- Compatibility: no migration required. Diagnostic log labels, trace gating,
+  workspace snapshot enrichment, renderer state behavior, IPC payloads,
+  storage, credentials, permissions, hosted URLs, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 First-Read Local-Runtime Python Navigation Labels
 
 - Finding: top-level docs, frontend docs navigation, architecture

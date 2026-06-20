@@ -53,7 +53,7 @@ Validation:
 
 - SDK tool coordinator tests (single + bundle).
 - Main local-runtime bridge tests.
-- Sidecar tool schema/registry tests.
+- Local-runtime Python tool schema/registry tests.
 
 ### 4) Modify local-runtime JSON-RPC method payload
 

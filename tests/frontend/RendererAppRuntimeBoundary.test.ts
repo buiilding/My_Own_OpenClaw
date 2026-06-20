@@ -214,6 +214,27 @@ describe('renderer app runtime boundary', () => {
     )).rejects.toThrow();
   });
 
+  test('chat pill state trace payload shaping stays behind the app runtime facade', async () => {
+    const traceRuntimeSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopRendererTraceRuntime.ts'),
+      'utf8',
+    );
+    const minimalPillSource = await fs.readFile(
+      path.join(rendererRoot, 'features/minimalChatPill/components/MinimalChatPill.jsx'),
+      'utf8',
+    );
+
+    expect(traceRuntimeSource).toContain('buildRendererChatPillStateTracePayload');
+    expect(traceRuntimeSource).toContain('logRendererChatPillStateTrace');
+    expect(traceRuntimeSource).toContain('conversation_ref');
+    expect(traceRuntimeSource).toContain('current_turn_phase');
+    expect(minimalPillSource).toContain('logRendererChatPillStateTrace');
+    expect(minimalPillSource).not.toContain('conversation_ref');
+    expect(minimalPillSource).not.toContain('current_turn_phase');
+    expect(minimalPillSource).not.toContain('live_turn_phase');
+    expect(minimalPillSource).not.toContain('message_count');
+  });
+
   test('response overlay phase contract stays behind the app runtime facade', async () => {
     const phaseRuntimeSource = await fs.readFile(
       path.join(appRoot, 'runtime/desktopResponseOverlayPhaseRuntime.js'),

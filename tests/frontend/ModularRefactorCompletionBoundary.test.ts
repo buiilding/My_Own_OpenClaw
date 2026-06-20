@@ -1762,6 +1762,17 @@ describe('modular sdk refactor completion boundary', () => {
         'Renderer, Electron main, and Python sidecar code',
         'desktop client or Python sidecar code',
         'Desktop client and Python sidecar code',
+        'Sidecar tool call returns unexpected payload',
+        'Python Sidecar Runtime Inventory',
+        'Sidecar tool modules',
+        'Sidecar browser stack',
+        'Sidecar tool schema/registry tests',
+        'sidecar backend-bound clients',
+        'launching the sidecar',
+        'the sidecar consumes the resolved `AGENT_BACKEND_HTTP_URL`',
+        'missing sidecar endpoint config',
+        'primary sidecar endpoint override',
+        '`BACKEND_HTTP_URL` is ignored in the sidecar',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

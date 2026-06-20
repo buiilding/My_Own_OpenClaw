@@ -195,9 +195,15 @@ to emit diagnostics and build redacted payloads, then call this runtime client
 instead of importing desktop IPC channel constants directly.
 
 `desktopRendererTraceRuntime.ts` owns renderer debug-trace gating, workspace
-snapshot enrichment, response-surface stream-trace envelope logging, and
-response-overlay size trace field shaping. Response overlay hooks pass
-value-level `layoutMode`, `showResponse`, `thinkingText`, `compactHover`,
+snapshot enrichment, response-surface stream-trace envelope logging,
+chat-pill state trace field shaping, and response-overlay size trace field
+shaping. Minimal chat-pill state effects pass value-level `conversationRef`,
+`turnRef`, `currentTurnPhase`, `liveTurnPhase`, `liveTurnSource`,
+`isSending`, `busy`, `stopAvailable`, and `messageCount` inputs; the trace
+runtime maps those values to diagnostic `conversation_ref`, `turn_id`,
+`current_turn_phase`, `live_turn_phase`, `live_turn_source`, `is_sending`,
+`busy`, `stop_available`, and `message_count` fields. Response overlay hooks
+pass value-level `layoutMode`, `showResponse`, `thinkingText`, `compactHover`,
 `turnRef`, and `staleGuardRef` inputs; the trace runtime maps those values to
 the existing diagnostic `layout_mode`, `show_response`, `thinking_text_length`,
 `compact_hover`, `turn_ref`, and `stale_guard_ref` fields.
