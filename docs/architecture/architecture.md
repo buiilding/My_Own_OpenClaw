@@ -75,7 +75,7 @@ This is not the primary open-source SDK contract. The default client contract is
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Electron Frontend                        │
+│                 Desktop Client / SDK Host                   │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  Renderer Process (React)                          │  │
 │  │  - ChatInterface                                     │  │

@@ -226,8 +226,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime bridge, security enforcement gaps through local-runtime Python
   implementation wording, and local memory storage through SDK local-runtime
   memory backed by Python sidecar modules.
+  The high-level architecture diagram now labels the desktop boundary as the
+  desktop client / SDK host instead of an Electron frontend.
 
 ## Inspection Log
+
+### 2026-06-20 Architecture Diagram Desktop Host Label
+
+- Finding: `docs/architecture/architecture.md` still labeled the desktop-side
+  boundary in its high-level diagram as `Electron Frontend`, even though the
+  current split is renderer UI plus Electron main as an Agent SDK host.
+- Change: renamed the diagram boundary to `Desktop Client / SDK Host` and
+  extended the modular architecture-overview guard for the retired label.
+- Validation: passed focused modular boundary test, docs listing, stale
+  architecture diagram frontend-label scan, and diff check.
+- Compatibility: no migration required. Runtime topology, IPC channels,
+  websocket routes, SDK/main dispatch, renderer display, storage, credentials,
+  permissions, provider policy, local-runtime routing, and hosted URLs are
+  unchanged.
 
 ### 2026-06-20 Architecture Overview Local-Runtime Labels
 

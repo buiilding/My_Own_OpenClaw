@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture Diagram Desktop Host Label
+
+- Finding: `docs/architecture/architecture.md` still labeled the desktop-side
+  boundary in its high-level diagram as `Electron Frontend`, even though the
+  current split is renderer UI plus Electron main as an Agent SDK host.
+- Change: renamed the diagram boundary to `Desktop Client / SDK Host` and
+  extended the modular architecture-overview guard for the retired label.
+- Validation: passed focused modular boundary test, docs listing, stale
+  architecture diagram frontend-label scan, and diff check.
+- Compatibility: no migration required. Runtime topology, IPC channels,
+  websocket routes, SDK/main dispatch, renderer display, storage, credentials,
+  permissions, provider policy, local-runtime routing, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Architecture Overview Local-Runtime Labels
 
 - Finding: `docs/architecture/architecture.md` and

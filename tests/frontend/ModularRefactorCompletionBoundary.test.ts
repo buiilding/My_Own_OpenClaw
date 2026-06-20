@@ -830,6 +830,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
     expect(architectureToolSystemText).toContain('desktop client/local-runtime and backend schema pairing');
     expect(architectureOverviewText).toContain('renderer UI, Electron main desktop host, SDK local runtime');
+    expect(architectureOverviewText).toContain('Desktop Client / SDK Host');
     expect(architectureOverviewText).toContain('Sanitized message sent to SDK/renderer consumers');
     expect(architectureOverviewText).toContain('not enforced in the local-runtime Python implementation by default');
     expect(architectureOverviewText).toContain('SDK local-runtime memory backed by Python sidecar modules');
@@ -873,6 +874,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).not.toContain('sidecar/local-runtime path');
     expect(architectureToolSystemText).not.toContain('not enforced in sidecar by default');
     expect(architectureOverviewText).not.toContain('frontend (Electron/React)');
+    expect(architectureOverviewText).not.toContain('Electron Frontend');
     expect(architectureOverviewText).not.toContain('Tool dispatched to Python sidecar through the sidecar daemon bridge');
     expect(architectureOverviewText).not.toContain('Sanitized message sent to frontend');
     expect(architectureOverviewText).not.toContain('not enforced in sidecar by default');
