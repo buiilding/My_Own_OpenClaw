@@ -68,6 +68,10 @@ const {
   registerPendingTurnHandlers,
 } = require('./ipc/ipc_pending_turn_handlers.cjs');
 const {
+  resolveMainStopTarget: resolveMainStopTargetRuntime,
+  triggerMainStopTarget,
+} = require('./ipc/ipc_stop_target_runtime.cjs');
+const {
   APP_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
@@ -1754,65 +1758,20 @@ async function appendMainProcessTraceEvent(input = {}) {
   return { stored: true, traceId: payload.traceId, spanId: payload.spanId };
 }
 
-const STOPPABLE_CURRENT_TURN_PHASES = new Set([
-  'awaiting',
-  'streaming',
-  'tool_call',
-  'tool_output',
-]);
-
-function isStoppableCurrentTurnProjection(currentTurnProjection) {
-  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
-    return false;
-  }
-  const phase = normalizeOptionalString(currentTurnProjection.phase);
-  return (
-    STOPPABLE_CURRENT_TURN_PHASES.has(phase)
-    || currentTurnProjection.presentation?.isBusy === true
-  );
-}
-
 function resolveMainStopTarget() {
-  if (isStoppableCurrentTurnProjection(latestCurrentTurnProjection)) {
-    const conversationRef = normalizeOptionalString(latestCurrentTurnProjection.conversationRef)
-      || currentConversationRef;
-    return {
-      source: 'sdk-current-turn',
-      conversationRef,
-      turnRef: normalizeOptionalString(latestCurrentTurnProjection.turnRef),
-      canStop: Boolean(conversationRef),
-    };
-  }
-  if (latestPendingTurn) {
-    return {
-      source: 'pending-turn',
-      conversationRef: latestPendingTurn.conversationRef,
-      turnRef: latestPendingTurn.turnRef,
-      canStop: true,
-    };
-  }
-  return {
-    source: 'idle',
-    conversationRef: currentConversationRef,
-    turnRef: null,
-    canStop: Boolean(currentConversationRef),
-  };
+  return resolveMainStopTargetRuntime({
+    latestCurrentTurnProjection,
+    latestPendingTurn,
+    currentConversationRef,
+  });
 }
 
 async function triggerStopQueryFromMain() {
-  const stopTarget = resolveMainStopTarget();
-  if (!stopTarget.canStop) {
-    return false;
-  }
-  const stopped = await stopQueryThroughAgentSdkRuntime({
-    conversation_ref: stopTarget.conversationRef,
-    turn_ref: stopTarget.turnRef,
+  return triggerMainStopTarget({
+    stopTarget: resolveMainStopTarget(),
+    stopQueryThroughAgentSdkRuntime,
+    setResponseOverlayPhase,
   });
-  if (!stopped) {
-    return false;
-  }
-  setResponseOverlayPhase('complete', 'stop-query');
-  return true;
 }
 
 function registerRendererWindow(win) {

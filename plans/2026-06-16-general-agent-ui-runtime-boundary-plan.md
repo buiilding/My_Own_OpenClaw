@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-19 Main Stop Target Runtime Boundary
+
+- Finding: global stop shortcut registration already lived in the shortcut
+  runtime, but `ipc.cjs` still owned the stop-target priority rule that chooses
+  SDK current turns before renderer pending turns and idle active-conversation
+  fallback.
+- Change: added `ipc_stop_target_runtime.cjs` to own stop-target projection and
+  SDK-shaped stop execution. `ipc.cjs` now injects latest current-turn state,
+  pending-turn state, active conversation state, and the Agent SDK stop
+  function.
+- Validation: focused stop-target runtime coverage for stoppable current-turn
+  phases, pending-turn fallback, idle fallback, SDK-shaped stop payloads, and
+  overlay completion only after successful stops.
+- Compatibility: no migration required. Shortcut accelerators, active-phase
+  registration, renderer `Esc` behavior, SDK stop payload shape, IPC channels,
+  response overlay phase names, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-19 Main Install Auth Runtime Boundary
 
 - Finding: install-auth persistence and backend validation helpers already

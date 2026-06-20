@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move global stop shortcut target resolution and SDK-shaped stop
+  execution into `ipc_stop_target_runtime.cjs`, keeping native shortcut
+  registration in the shortcut runtime and `ipc.cjs` as host-state wiring. No
+  migration required.
 - main/ipc: move install-auth header construction, cached-token validation,
   stale-token clearing, registration fallback, and pending ensure-state sharing
   into `ipc_install_auth_runtime.cjs` so `ipc.cjs` keeps host session state

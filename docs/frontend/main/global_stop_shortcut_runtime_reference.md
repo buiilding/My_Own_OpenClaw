@@ -26,9 +26,10 @@ the SDK-shaped query runtime:
    selected accelerator into `agent_stop_shortcut_runtime.cjs`.
 5. Electron main registers the accelerator only while an agent loop is active.
    When pressed, the runtime calls the current stop handler, which routes
-   through the active conversation/turn stop-query path. The handler targets
-   the latest SDK current turn first, a renderer pending turn second, and the
-   active conversation only as an idle fallback.
+   through `ipc_stop_target_runtime.cjs` into the active conversation/turn
+   stop-query path. The handler targets the latest SDK current turn first, a
+   renderer pending turn second, and the active conversation only as an idle
+   fallback.
 
 Focused chat and dashboard windows still support plain `Esc`; the renderer
 keyboard handler accepts the canonical DOM `KeyboardEvent.key === "Escape"`
@@ -55,6 +56,17 @@ for stop-from-anywhere behavior while another app has focus.
 
 Renderer components must not call `globalShortcut` directly. Main owns native
 registration and exposes state back to renderer through IPC status payloads.
+
+`frontend/src/main/ipc/ipc_stop_target_runtime.cjs` owns the target-resolution
+rule for an already-registered stop action:
+
+- SDK current-turn projections are stoppable during `awaiting`, `streaming`,
+  `tool_call`, `tool_output`, or when the SDK projection reports busy
+  presentation state.
+- Stoppable SDK current turns beat renderer pending-turn fallback.
+- Renderer pending turns beat idle active-conversation fallback.
+- A successful stop sends the SDK-shaped `{ conversation_ref, turn_ref }`
+  command and completes the response overlay phase.
 
 ## Platform Catalog
 
@@ -108,6 +120,7 @@ Focused tests:
 - `tests/frontend/SettingsSection.test.jsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+- `tests/frontend/IpcStopTargetRuntime.test.cjs`
 - `tests/frontend/IpcStartupState.test.cjs`
 - `tests/frontend/IpcDesktopUiConfigHandlers.test.cjs`
 

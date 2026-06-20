@@ -26,6 +26,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_client_session_handlers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_diagnostics_handlers.cjs`
 - `frontend/src/main/ipc/ipc_pending_turn_handlers.cjs`
+- `frontend/src/main/ipc/ipc_stop_target_runtime.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -189,6 +190,17 @@ Owns pending renderer turn IPC handler registration and payload acceptance:
   SDK current-turn cleanup paths
 - pending/clear broadcasts through the shared desktop runtime pending-turn
   channel constant
+
+### `ipc_stop_target_runtime.cjs`
+
+Owns main-process stop target resolution and stop execution:
+
+- chooses stoppable SDK current turns before renderer pending turns
+- falls back to the active conversation only when no current or pending turn is
+  available
+- sends SDK-shaped `conversation_ref` / `turn_ref` stop payloads through the
+  injected Agent SDK stop function
+- completes the response overlay phase only after a successful stop result
 
 ### `ipc_event_replay_state.cjs`
 
@@ -395,6 +407,8 @@ generic `to-backend` router or direct chat query IPC handlers.
 20. install-auth header construction, cached-token validation, stale-token
     clearing, registration fallback, and pending ensure-state sharing delegate
     to `ipc_install_auth_runtime.cjs`.
+21. global stop shortcut target selection and SDK-shaped stop execution
+    delegate to `ipc_stop_target_runtime.cjs`.
 
 ## Drift Hotspots
 
