@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Web Search Projection Provider Label Cleanup
+
+- Finding: synthetic provider-native `web_search` rows in SDK rehydrate
+  projection still exposed an OpenAI-specific display label.
+- Change: made SDK synthetic web-search labels provider-neutral, kept backend
+  docs as the provider-mode source of truth, and added package-boundary
+  coverage so the SDK projection label does not drift back.
+- Validation: focused SDK conversation/runtime and package-boundary tests,
+  exact stale SDK projection label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Stored events, synthetic tool ids,
+  backend provider policy, tool schemas, IPC, credentials, permissions, hosted
+  URLs, storage, and local execution behavior are unchanged.
+
 ### 2026-06-20 Renderer Dashboard Shell GPT Token Cleanup
 
 - Finding: generic renderer dashboard shell CSS still kept unreferenced

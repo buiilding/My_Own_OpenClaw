@@ -196,6 +196,24 @@ describe('@windie/sdk package boundary', () => {
     expect(agentSource).not.toContain('createAgentBackendTransport');
   });
 
+  test('keeps provider-specific web search labels out of SDK projections', () => {
+    const projectionSource = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/src/projections/conversationProjections.ts'),
+      'utf8',
+    );
+    const projectionCjsSource = fs.readFileSync(
+      path.resolve(__dirname, '../../packages/windie-sdk-js/cjs/projections/conversationProjections.js'),
+      'utf8',
+    );
+
+    expect(projectionSource).toContain('Native web_search activity:');
+    expect(projectionCjsSource).toContain('Native web_search activity:');
+    expect(projectionSource).not.toContain('OpenAI native web search');
+    expect(projectionSource).not.toContain('OpenAI native web_search activity');
+    expect(projectionCjsSource).not.toContain('OpenAI native web search');
+    expect(projectionCjsSource).not.toContain('OpenAI native web_search activity');
+  });
+
   test('exports generic backend socket factory helpers', () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, '../../packages/windie-sdk-js/src/transport/ManagedBackendSession.ts'),

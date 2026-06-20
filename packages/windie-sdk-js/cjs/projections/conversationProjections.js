@@ -1345,9 +1345,9 @@ function nativeWebSearchQuery(group) {
         }
     })));
     if (sourceHosts.length > 0) {
-        return `OpenAI native web search over ${sourceHosts.slice(0, 5).join(', ')}`;
+        return `Native web search over ${sourceHosts.slice(0, 5).join(', ')}`;
     }
-    return 'OpenAI native web search';
+    return 'Native web search';
 }
 function nativeWebSearchToolOutput(group) {
     const uniqueLines = [];
@@ -1360,7 +1360,7 @@ function nativeWebSearchToolOutput(group) {
         uniqueLines.push(entry.text);
     }
     return [
-        'OpenAI native web_search activity:',
+        'Native web_search activity:',
         ...uniqueLines.map(line => `- ${line}`),
     ].join('\n');
 }

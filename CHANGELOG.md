@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/projections: keep synthetic provider-native `web_search` rehydrate rows
+  provider-neutral instead of labeling them as OpenAI-specific; backend docs
+  still own provider mode selection. No migration required.
 - renderer/styles: remove unreferenced `cg-gpt-*` dashboard shell selectors and
   the matching `--ui-gpt-dot-bg` token so generic dashboard CSS no longer keeps
   provider-specific style names. No migration required.

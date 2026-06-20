@@ -1542,9 +1542,9 @@ function nativeWebSearchQuery(group: NativeWebSearchProgressGroup): string {
     }
   })));
   if (sourceHosts.length > 0) {
-    return `OpenAI native web search over ${sourceHosts.slice(0, 5).join(', ')}`;
+    return `Native web search over ${sourceHosts.slice(0, 5).join(', ')}`;
   }
-  return 'OpenAI native web search';
+  return 'Native web search';
 }
 
 function nativeWebSearchToolOutput(group: NativeWebSearchProgressGroup): string {
@@ -1558,7 +1558,7 @@ function nativeWebSearchToolOutput(group: NativeWebSearchProgressGroup): string 
     uniqueLines.push(entry.text);
   }
   return [
-    'OpenAI native web_search activity:',
+    'Native web_search activity:',
     ...uniqueLines.map(line => `- ${line}`),
   ].join('\n');
 }

@@ -56,9 +56,10 @@ backend logical `web_search` tool is not exposed as a function declaration.
   is needed but no API key resolves
 - fails before external calls when `web_search` is disabled by policy
 
-OpenAI native web search progress is projected back into SDK/renderer rows as a
-synthetic Windie `web_search` tool call/output pair. Gemini native and Brave
-logical search still flow through normal backend tool-call/tool-output handling.
+OpenAI native web search progress is normalized back into SDK/renderer rows as a
+provider-neutral synthetic `web_search` tool call/output pair. Gemini native
+and Brave logical search still flow through normal backend tool-call/tool-output
+handling.
 
 ## Configuration
 

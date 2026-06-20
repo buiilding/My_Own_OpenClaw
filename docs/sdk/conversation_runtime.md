@@ -425,6 +425,10 @@ Renderer UI/debug state may keep source labels such as `tool-call`,
 `tool-output`, and `web-search-progress`, but active tool rows and phase
 tracking should come from the SDK current-turn projection instead of a separate
 normalized-event live-state path.
+When provider-native web search progress has to be rehydrated as a synthetic
+`web_search` tool pair, the SDK projection uses provider-neutral display text.
+Backend web-search docs remain the source of truth for whether OpenAI native,
+Gemini native grounding, or Brave fulfillment produced the progress.
 
 Desktop local-user projection consumes SDK `user_message` directly for backend
 `local-user-message` echoes. Renderer UI/debug state may keep the source label

@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: renderer dashboard shell CSS no longer carries
-  unreferenced provider-specific `cg-gpt-*` selectors or `--ui-gpt-dot-bg`
-  token names.
+- Latest completed slice: SDK synthetic provider-native `web_search` rehydrate
+  rows now use provider-neutral display labels while backend docs retain
+  provider mode ownership.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -243,6 +243,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 SDK Web Search Projection Provider Label Cleanup
+
+- Finding: SDK conversation projections still labeled synthetic provider-native
+  `web_search` rehydrate rows as `OpenAI native` even though provider selection
+  and native-search mode policy are backend-owned details.
+- Change: changed the synthetic query/output labels to provider-neutral native
+  web-search wording in TypeScript and checked-in CJS projections, added SDK
+  package-boundary coverage, and updated SDK/tool docs to route provider mode
+  explanation to backend web-search docs.
+- Validation: focused SDK conversation/runtime and package-boundary tests,
+  exact stale SDK projection label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Stored event payloads, synthetic
+  `web_search` tool-call ids, provider policy, backend capability selection,
+  tool schemas, IPC payloads, credentials, permissions, hosted URLs, storage,
+  and local execution behavior are unchanged.
 
 ### 2026-06-20 Renderer Dashboard Shell GPT Token Cleanup
 

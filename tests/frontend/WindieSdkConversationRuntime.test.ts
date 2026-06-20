@@ -2184,7 +2184,7 @@ describe('Agent SDK conversation runtime core', () => {
         tool_name: 'web_search',
         tool_call_id: 'native-web-search:turn-1:req-search-1',
         content: [
-          'OpenAI native web_search activity:',
+          'Native web_search activity:',
           '- Searching web',
           '- Searched example.com',
         ].join('\n'),
