@@ -2,7 +2,7 @@
 summary: "Security change playbook for WindieOS auth, IPC, validation, credential, permission, tool-policy, and local execution changes."
 read_when:
   - When implementing or reviewing a security-sensitive WindieOS change.
-  - When deciding which tests and docs must move with an auth, IPC, validation, credential, permission, tool, local-runtime, or Python sidecar implementation change.
+  - When deciding which tests and docs must move with an auth, IPC, validation, credential, permission, tool, local-runtime, or local-runtime Python implementation change.
 title: "Security Change Playbook"
 ---
 

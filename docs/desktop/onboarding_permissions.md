@@ -25,7 +25,7 @@ WindieOS onboarding is a first-run gate for required local capabilities. It is r
 - Onboarding should not mount wakeword capture before the microphone permission step.
 - Opening OS settings is not the same as a granted permission; probe the real capability.
 - Permission control center in settings should reuse the same manifest, store behavior, and renderer app-runtime permission facades as onboarding.
-- Platform-specific permission behavior belongs in main process services, local-runtime platform adapters, or Python sidecar implementation details.
+- Platform-specific permission behavior belongs in main process services, local-runtime platform adapters, or local-runtime Python implementation details.
 
 ## Settings Re-Entry
 

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Boundary Hub Local-Runtime Python Labels
+
+- Finding: getting-started, security, onboarding, IPC, observability,
+  backend-tool, frontend inventory, system-state, architecture, and node hub
+  docs still used Python sidecar implementation labels for local-runtime
+  boundary routing, contracts, diagnostics, and add-tool checklist text.
+- Change: routed those labels through local-runtime Python implementation
+  wording while preserving concrete `frontend/src/main/python` paths,
+  Python JSON-RPC protocol names, and `tests/sidecar` command names.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  boundary-hub label scan, and diff check.
+- Compatibility: no migration required. Runtime code, tool schemas, local
+  runtime process behavior, JSON-RPC/daemon payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 Import-Boundary Local-Runtime Python Labels
 
 - Finding: channel, security, runtime-model, tool-schema, and runtime-node docs

@@ -1674,6 +1674,16 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar implementation performs the local action',
         '| Python sidecar implementation | concrete implementation',
         'preload, Python sidecar implementation, wakeword subprocess',
+        'Python sidecar implementation details',
+        'local-runtime, Python sidecar implementation, and SDK boundaries',
+        'when the Python sidecar implementation is involved behind the SDK local runtime',
+        'Python sidecar implementation change',
+        'Python sidecar implementation modules',
+        'Python sidecar implementation contracts',
+        'the Python sidecar implementation, main-process bridge',
+        'Python sidecar implementation logs to stderr',
+        'Add Python sidecar implementation + arg schema',
+        'Python sidecar tool catalogs',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

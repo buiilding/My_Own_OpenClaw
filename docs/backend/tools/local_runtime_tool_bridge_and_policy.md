@@ -94,9 +94,9 @@ Mismatch symptoms:
 When adding a tool:
 
 1. Add remote tool schema/stub on backend.
-2. Add Python sidecar implementation + arg schema.
+2. Add local-runtime Python implementation + arg schema.
 3. Add renderer/tool execution handling if required.
-4. Update docs for backend, SDK/main dispatch, and Python sidecar tool catalogs.
+4. Update docs for backend, SDK/main dispatch, and local-runtime Python tool catalogs.
 5. Add/adjust tests for contract parity.
 
 ## Deep References

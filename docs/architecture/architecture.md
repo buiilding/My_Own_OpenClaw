@@ -16,7 +16,7 @@ The intended product boundary is:
 
 - **Hosted backend control plane** for OCR, vision/prediction, agent orchestration, artifacts, and session state.
 - **SDK local-runtime execution plane** for actions that must touch the user's machine: screenshots, mouse, keyboard, browser/runtime control, local files, and local processes.
-- **Open-source client surface** made up of the UI, SDK local runtime, Python sidecar implementation, and SDK. The SDK should call the hosted backend when it needs backend-owned capabilities; it should not require users to run a backend locally just to use OCR, prediction, or hosted agent APIs.
+- **Open-source client surface** made up of the UI, SDK local runtime, local-runtime Python implementation, and SDK. The SDK should call the hosted backend when it needs backend-owned capabilities; it should not require users to run a backend locally just to use OCR, prediction, or hosted agent APIs.
 
 Current runtime topology includes both:
 

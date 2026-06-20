@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(boundaries): route getting-started, security, onboarding, IPC,
+  observability, backend-tool, and node hub labels through local-runtime Python
+  implementation wording instead of Python sidecar implementation boundary
+  labels. No migration required.
 - docs/runtime: route channel, security, runtime-model, tool-schema, and node
   ownership import-boundary labels through local-runtime Python implementation
   wording instead of Python sidecar implementation owner labels. No migration

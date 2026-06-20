@@ -1,14 +1,14 @@
 ---
-summary: "Desktop client contract map across renderer IPC channels, main-process handlers, SDK local-runtime callers, local-runtime JSON-RPC methods backed by Python sidecar modules, and backend stream/tool payload boundaries."
+summary: "Desktop client contract map across renderer IPC channels, main-process handlers, SDK local-runtime callers, local-runtime JSON-RPC methods backed by local-runtime Python modules, and backend stream/tool payload boundaries."
 read_when:
-  - When changing renderer/main/SDK local-runtime/Python sidecar implementation contracts for query, tool, memory, or voice flows.
+  - When changing renderer/main/SDK local-runtime/local-runtime Python implementation contracts for query, tool, memory, or voice flows.
   - When debugging IPC mismatch, missing event handling, or Python JSON-RPC payload drift.
 title: "Frontend IPC and Local-Runtime Contract Touchpoints Reference"
 ---
 
 # Frontend IPC and Local-Runtime Contract Touchpoints Reference
 
-This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, and backend contract boundaries with their paired modules.
+This reference maps renderer, Electron main, SDK local-runtime, local-runtime Python implementation, and backend contract boundaries with their paired modules.
 
 ## Renderer <-> Main IPC Touchpoints
 

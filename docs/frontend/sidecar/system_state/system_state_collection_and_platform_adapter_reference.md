@@ -2,7 +2,7 @@
 summary: "Local-runtime system-state reference for capture fields, per-field fallback defaults, platform-specific probes, Electron/renderer `get-system-state` integration semantics, and the removed `local_runtime_bridge.getSystemState` export."
 read_when:
   - When adding/removing system-state fields or changing per-field fallback/default values.
-  - When debugging active-window/mouse/screen/windows/stats drift across the Python sidecar implementation, main-process bridge, and renderer consumers.
+  - When debugging active-window/mouse/screen/windows/stats drift across the local-runtime Python implementation, main-process bridge, and renderer consumers.
   - When resolving removed `local_runtime_bridge.getSystemState` or `getSystemState` export references.
 title: "System-State Collection and Removed getSystemState Bridge Export Reference"
 ---

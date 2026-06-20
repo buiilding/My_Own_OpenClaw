@@ -103,7 +103,7 @@ Desktop host, renderer, and Python sidecar code must not import backend code for
 - [Help Hub](../help/README.md) for diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes.
 - [Triage Routes](../help/triage_routes.md) for mapping user-visible symptoms to the first likely runtime owner.
 - [Doctor Checklist](../help/doctor_checklist.md) for collecting environment, endpoint, sidecar, permission, packaging, and hosted evidence.
-- [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend, desktop host, renderer, local-runtime, Python sidecar implementation, and SDK boundaries.
+- [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend, desktop host, renderer, local-runtime, local-runtime Python implementation, and SDK boundaries.
 - [FAQ](../help/faq.md) for recurring source, packaged, endpoint, provider, tool, browser, permission, and memory questions.
 - [Web Surfaces](../web/README.md) for landing, hosted API/auth, SDK/client, artifact, websocket, and dashboard-adjacent web boundaries.
 - [Web Surface Matrix](../web/web_surface_matrix.md) for mapping web/API changes to owners and public contracts.
@@ -169,7 +169,7 @@ Likely code:
 - `frontend/src/renderer/infrastructure/ipc/**`
 - `backend/src/api/routes/**`
 - `backend/src/api/handlers/**`
-- `frontend/src/main/python/**` when the Python sidecar implementation is involved behind the SDK local runtime
+- `frontend/src/main/python/**` when the local-runtime Python implementation is involved behind the SDK local runtime
 
 Validate producer/consumer tests on both sides of the changed channel. Do not reuse another channel's private payload shape as an implicit compatibility shortcut.
 

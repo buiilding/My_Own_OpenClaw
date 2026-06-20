@@ -30,7 +30,7 @@ Use this hub when an agent needs to identify where a behavior runs before editin
 - Backend nodes expose model-facing contracts. Desktop/local-runtime code executes local actions and must not import backend modules for schema parity.
 - Renderer nodes never own durable hosted identity. Hosted identity comes from backend install auth and main-process token propagation.
 - Preload is a trust boundary, not an application feature layer. Add explicit channel allowlist entries only for concrete renderer needs.
-- The Python sidecar implementation logs to stderr and reserves stdout for JSON-RPC protocol frames.
+- The local-runtime Python implementation logs to stderr and reserves stdout for JSON-RPC protocol frames.
 - The wakeword service is not the generic local-runtime tool channel. Treat audio framing, model bootstrap, and wakeword status as a separate subprocess protocol.
 - The VM worker node uses `/api/runs/*` as a control plane and dispatches actual agent work through the normal backend websocket query path.
 - The Cloudflare/origin service node is deployment plumbing. Route or auth failures still belong to the hosted backend node unless the tunnel/origin process is unreachable.

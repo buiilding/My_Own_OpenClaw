@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a boundary-hub local-runtime Python label slice by
+  routing getting-started, security, onboarding, IPC, observability,
+  backend-tool, frontend inventory, system-state, architecture, and node hub
+  docs through local-runtime Python implementation wording instead of Python
+  sidecar implementation boundary labels. Validation covered the focused
+  modular docs boundary test, docs listing, exact stale boundary-hub label
+  scan, and diff check. No migration required; runtime code, tool schemas,
+  local runtime process behavior, JSON-RPC/daemon payloads, IPC payloads,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
+
 - 2026-06-20: completed an import-boundary local-runtime Python label slice by
   routing channel, security, runtime-model, tool-schema, and runtime-node docs
   through local-runtime Python implementation wording instead of Python sidecar
