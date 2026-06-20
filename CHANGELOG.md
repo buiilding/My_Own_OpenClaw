@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move client session snapshot and transcript-session sync handler
+  dependency wiring into `createClientSessionHandlersRuntime(...)`, preserving
+  `get-client-user-id`, `transcript-session-sync`, runtime endpoint snapshots,
+  session state updates, and renderer rebroadcasts. No migration required.
 - main/ipc: move image clipboard/context-menu handler dependency wiring into
   `createImageInteractionHandlersRuntime(...)`, preserving shared trusted
   backend artifact-origin policy and copy/context-menu behavior. No migration

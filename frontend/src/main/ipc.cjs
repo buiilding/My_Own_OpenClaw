@@ -106,7 +106,7 @@ const {
   registerExtensionMcpHandlers,
 } = require('./ipc/ipc_extension_mcp_handlers.cjs');
 const {
-  registerClientSessionHandlers,
+  createClientSessionHandlersRuntime,
 } = require('./ipc/ipc_client_session_handlers.cjs');
 const {
   clearInstallAuthStateFromDisk,
@@ -570,6 +570,18 @@ const imageInteractionHandlersRuntime = createImageInteractionHandlersRuntime({
   getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
   getBackendCandidates: () => backendEndpointState.getCandidates(),
 });
+const clientSessionHandlersRuntime = createClientSessionHandlersRuntime({
+  getClientSessionState: () => ipcStatusPayloads.getClientSessionState(),
+  getRuntimeEndpointSnapshot: () => ipcStatusPayloads.getRuntimeEndpointSnapshot(),
+  setTranscriptSessionState: ({
+    currentConversationRef: nextConversationRef,
+    currentUserId: nextUserId,
+  }) => {
+    backendSessionState.setConversationRef(nextConversationRef);
+    installAuthIdentityRuntime.setCurrentUserId(nextUserId);
+  },
+  broadcastToRenderers,
+});
 
 function buildInstallAuthHeaders() {
   return installAuthRuntime.buildInstallAuthHeaders();
@@ -902,19 +914,7 @@ function initializeIpc(win, options = {}) {
     mcpClientInfo: ipcHostCopyRuntime.getMcpClientInfo(),
   });
 
-  registerClientSessionHandlers({
-    ipcMain,
-    getClientSessionState: () => ipcStatusPayloads.getClientSessionState(),
-    getRuntimeEndpointSnapshot: () => ipcStatusPayloads.getRuntimeEndpointSnapshot(),
-    setTranscriptSessionState: ({
-      currentConversationRef: nextConversationRef,
-      currentUserId: nextUserId,
-    }) => {
-      backendSessionState.setConversationRef(nextConversationRef);
-      installAuthIdentityRuntime.setCurrentUserId(nextUserId);
-    },
-    broadcastToRenderers,
-  });
+  clientSessionHandlersRuntime.register({ ipcMain });
 
   artifactHandlersRuntime.register({ ipcMain });
 

@@ -105,8 +105,8 @@ Responsibilities:
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
 - Delegates client session snapshot and transcript-session sync channel
-  registration to a focused helper while keeping Agent SDK host session state
-  in `ipc.cjs`.
+  registration to a focused helper runtime while keeping Agent SDK host session
+  state in `ipc.cjs`.
 - Delegates renderer log and live-surface trace channel registration to a
   focused helper runtime while diagnostics runtimes keep normalization and
   redaction.

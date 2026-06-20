@@ -7,6 +7,7 @@ const path = require('path');
 
 const {
   buildClientSessionSnapshot,
+  createClientSessionHandlersRuntime,
   registerClientSessionHandlers,
 } = require('../../frontend/src/main/ipc/ipc_client_session_handlers.cjs');
 
@@ -143,6 +144,63 @@ describe('client session IPC handlers', () => {
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
 
+  test('runtime registers session handlers with injected state dependencies', async () => {
+    const handlers = {};
+    const listeners = {};
+    const ipcMain = {
+      handle: jest.fn((channel, handler) => {
+        handlers[channel] = handler;
+      }),
+      on: jest.fn((channel, listener) => {
+        listeners[channel] = listener;
+      }),
+    };
+    const setTranscriptSessionState = jest.fn();
+    const broadcastToRenderers = jest.fn();
+    const runtime = createClientSessionHandlersRuntime({
+      getClientSessionState: () => ({
+        currentUserId: 'runtime-user',
+        currentConversationRef: 'runtime-conv',
+        currentServerUserId: 'runtime-server-user',
+        currentSessionId: 'runtime-session',
+        isConnected: true,
+      }),
+      getRuntimeEndpointSnapshot: () => ({
+        runtimeWsUrl: 'wss://runtime.example/ws',
+        runtimeHttpUrl: 'https://runtime.example',
+      }),
+      setTranscriptSessionState,
+      broadcastToRenderers,
+    });
+
+    runtime.register({ ipcMain });
+
+    await expect(handlers['get-client-user-id']()).resolves.toEqual({
+      userId: 'runtime-user',
+      conversationRef: 'runtime-conv',
+      serverUserId: 'runtime-server-user',
+      sessionId: 'runtime-session',
+      isConnected: true,
+      runtimeWsUrl: 'wss://runtime.example/ws',
+      runtimeHttpUrl: 'https://runtime.example',
+      globalAgentStopShortcutStatus: null,
+    });
+
+    listeners['transcript-session-sync']({ sender: 'renderer-1' }, {
+      conversationRef: 'runtime-conv-2',
+      userId: 'runtime-user-2',
+    });
+
+    expect(setTranscriptSessionState).toHaveBeenCalledWith({
+      currentConversationRef: 'runtime-conv-2',
+      currentUserId: 'runtime-user-2',
+    });
+    expect(broadcastToRenderers).toHaveBeenCalledWith('transcript-session-sync', {
+      conversationRef: 'runtime-conv-2',
+      userId: 'runtime-user-2',
+    }, 'renderer-1');
+  });
+
   test('ipc.cjs delegates client session channel bodies to the helper module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -153,9 +211,13 @@ describe('client session IPC handlers', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('registerClientSessionHandlers({');
+    expect(mainSource).toContain('createClientSessionHandlersRuntime({');
+    expect(mainSource).toContain('clientSessionHandlersRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('registerClientSessionHandlers({');
     expect(mainSource).not.toContain("ipcMain.handle('get-client-user-id'");
     expect(mainSource).not.toContain("ipcMain.on('transcript-session-sync'");
+    expect(helperSource).toContain('function createClientSessionHandlersRuntime');
+    expect(helperSource).toContain('return registerClientSessionHandlers({');
     expect(helperSource).toContain("ipcMain.handle('get-client-user-id'");
     expect(helperSource).toContain("ipcMain.on('transcript-session-sync'");
   });

@@ -65,7 +65,31 @@ function registerClientSessionHandlers({
   });
 }
 
+function createClientSessionHandlersRuntime({
+  getClientSessionState,
+  getRuntimeEndpointSnapshot,
+  setTranscriptSessionState,
+  broadcastToRenderers,
+  applyTranscriptSync = applyTranscriptSessionSync,
+} = {}) {
+  function register({ ipcMain } = {}) {
+    return registerClientSessionHandlers({
+      ipcMain,
+      getClientSessionState,
+      getRuntimeEndpointSnapshot,
+      setTranscriptSessionState,
+      broadcastToRenderers,
+      applyTranscriptSync,
+    });
+  }
+
+  return {
+    register,
+  };
+}
+
 module.exports = {
   buildClientSessionSnapshot,
+  createClientSessionHandlersRuntime,
   registerClientSessionHandlers,
 };

@@ -443,6 +443,9 @@ Owns client session IPC handler registration:
 
 - `get-client-user-id`
 - `transcript-session-sync`
+- exposes `createClientSessionHandlersRuntime(...)` so `ipc.cjs` composes
+  session snapshot, endpoint snapshot, transcript-session state update, and
+  renderer broadcast dependencies once
 - client snapshot payload construction from injected Agent SDK host state and
   runtime endpoint URLs
 - transcript-session sync state updates through `ipc_transcript_session_sync.cjs`

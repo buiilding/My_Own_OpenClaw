@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Client Session Handler Runtime Boundary
+
+- Finding: `ipc_client_session_handlers.cjs` owned client-session snapshot and
+  transcript-session sync channel bodies, but `initializeIpc(...)` still passed
+  session snapshot, runtime endpoint snapshot, transcript-state update, and
+  renderer broadcast dependencies directly when registering the handlers.
+- Change: added `createClientSessionHandlersRuntime(...)` so the client-session
+  helper owns reusable handler dependency composition while `initializeIpc(...)`
+  only registers the already-composed runtime with `ipcMain`.
+- Validation: focused client-session coverage verifies the runtime combines
+  injected session/endpoints for snapshots, applies transcript sync through
+  injected state setters, rebroadcasts to sibling renderers, and source guards
+  keep direct client-session handler dependency wiring out of
+  `initializeIpc(...)`.
+- Compatibility: no migration required. `get-client-user-id` and
+  `transcript-session-sync` channel names, snapshot payload fields, runtime
+  endpoint fields, transcript-session sync normalization, session state
+  updates, renderer broadcasts, storage, credentials, permissions, provider
+  policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Image Interaction Handler Runtime Boundary
 
 - Finding: `ipc_image_interaction_handlers.cjs` owned shared clipboard image
