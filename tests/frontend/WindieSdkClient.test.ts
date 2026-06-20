@@ -25,7 +25,7 @@ import {
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
   type AgentLocalRuntimeClient,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src';
 
 const AgentClient = function AgentClient(
   options: ConstructorParameters<typeof AgentClientClass>[0] = {},

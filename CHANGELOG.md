@@ -46,6 +46,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: remove the chat store's extra `SdkCurrentTurnProjection`
   type alias and use the renderer runtime `CurrentTurnProjection` contract
   directly. No migration required.
+- tests/sdk: route pure Agent SDK tests directly to the package source instead
+  of the renderer SDK facade, leaving renderer integration tests on the facade.
+  No migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

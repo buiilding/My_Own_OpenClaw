@@ -15864,3 +15864,22 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime projections, store state shape,
   IPC payloads, persisted transcript data, credentials, permissions, hosted
   backend URLs, provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 SDK test package-boundary import cleanup
+
+- Finding: pure Agent SDK tests (`WindieSdkClient`,
+  `WindieSdkConversationRuntime`, `WindieSdkFileConversationStore`, and
+  `WindieSdkMockBackendE2E`) imported SDK symbols through the renderer
+  `agentSdkClient` facade, which made package behavior tests depend on the
+  renderer UI adapter rather than the SDK package boundary they cover.
+- Change: routed those SDK tests directly to `packages/windie-sdk-js/src` and
+  added package-boundary coverage that pure SDK tests do not import the renderer
+  SDK facade. Renderer integration tests that combine hooks/store state with SDK
+  contracts remain on the renderer facade.
+- Validation: focused SDK client, conversation runtime, file-store, mock-backend
+  E2E, and package-boundary Jest coverage, docs listing, exact import scan, and
+  diff checks.
+- Compatibility: no runtime or storage migration required. Production code,
+  renderer facade behavior, SDK exports, IPC payloads, credentials, permissions,
+  hosted backend URLs, provider policy, and local-runtime behavior are
+  unchanged.

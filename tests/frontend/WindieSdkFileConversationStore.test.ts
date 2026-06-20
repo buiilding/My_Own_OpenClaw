@@ -10,7 +10,7 @@ import {
   createConversationEvent,
   FileConversationStore,
   type ConversationEvent,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src';
 
 function event(
   type: ConversationEvent['type'],

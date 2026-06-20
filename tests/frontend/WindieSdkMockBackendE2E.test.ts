@@ -6,7 +6,7 @@ import {
   moduleTool,
   AgentClient,
   type AgentLocalRuntimeClient,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src';
 
 const WebSocket = require('../../frontend/node_modules/ws');
 const { createMockBackendServer } = require('../../scripts/mock-backend.cjs');

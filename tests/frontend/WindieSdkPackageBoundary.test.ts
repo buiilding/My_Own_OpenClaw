@@ -60,6 +60,21 @@ import {
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
+  test('SDK package tests import the package source directly', () => {
+    const sdkTestFiles = [
+      'tests/frontend/WindieSdkClient.test.ts',
+      'tests/frontend/WindieSdkConversationRuntime.test.ts',
+      'tests/frontend/WindieSdkFileConversationStore.test.ts',
+      'tests/frontend/WindieSdkMockBackendE2E.test.ts',
+    ];
+
+    for (const relativePath of sdkTestFiles) {
+      const source = fs.readFileSync(path.resolve(__dirname, '../..', relativePath), 'utf8');
+      expect(source).toContain("from '../../packages/windie-sdk-js/src'");
+      expect(source).not.toContain('frontend/src/renderer/infrastructure/api/agentSdkClient');
+    }
+  });
+
   test('exports the public agent runtime surface', () => {
     expect(AgentClient).toBeDefined();
     expect(Agent).toBeDefined();

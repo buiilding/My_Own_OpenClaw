@@ -23,7 +23,7 @@ import {
   type ConversationEvent,
   type AgentRuntimeEvent,
   type AgentStreamEvent,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src';
 import {
   normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
 } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';

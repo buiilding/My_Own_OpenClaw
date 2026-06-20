@@ -5751,3 +5751,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `SdkCurrentTurnProjection` alias. The state shape, SDK projection payloads,
   IPC channels, persisted transcript data, credentials, permissions, hosted
   backend URLs, provider policy, and local-runtime behavior are unchanged.
+- Pure Agent SDK frontend tests now import `packages/windie-sdk-js/src`
+  directly instead of routing through the renderer `agentSdkClient` facade,
+  with a package-boundary guard keeping those tests on the SDK package surface.
+  Renderer integration tests that exercise hooks/store behavior keep using the
+  renderer facade. Production code, SDK exports, IPC payloads, credentials,
+  permissions, hosted backend URLs, provider policy, storage, and local-runtime
+  behavior are unchanged.
