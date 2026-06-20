@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- architecture/docs: route system/backend overview error, security, local-tool,
+  and memory labels through SDK/renderer and local-runtime ownership. No
+  migration required.
 - architecture/docs: route agent-system settings and tool-send ownership through
   renderer-managed client settings and SDK/main local-runtime dispatch. No
   migration required.

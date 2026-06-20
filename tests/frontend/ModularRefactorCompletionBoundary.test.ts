@@ -792,6 +792,10 @@ describe('modular sdk refactor completion boundary', () => {
     ])).join('\n');
     const runtimeTraceText = await read('docs/debug/runtime_traces.md');
     const architectureToolSystemText = await read('docs/architecture/tool_system.md');
+    const architectureOverviewText = (await Promise.all([
+      read('docs/architecture/architecture.md'),
+      read('docs/architecture/backend_architecture.md'),
+    ])).join('\n');
 
     expect(docText).toContain('client-local runtime tool');
     expect(docText).toContain('local-runtime executable tool');
@@ -825,6 +829,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).toContain('desktop client manifest builder');
     expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
     expect(architectureToolSystemText).toContain('desktop client/local-runtime and backend schema pairing');
+    expect(architectureOverviewText).toContain('renderer UI, Electron main desktop host, SDK local runtime');
+    expect(architectureOverviewText).toContain('Sanitized message sent to SDK/renderer consumers');
+    expect(architectureOverviewText).toContain('not enforced in the local-runtime Python implementation by default');
+    expect(architectureOverviewText).toContain('SDK local-runtime memory backed by Python sidecar modules');
     expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
     expect(runtimeTraceText).toContain('Python sidecar protocol');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
@@ -864,6 +872,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).not.toContain('frontend/local runtime');
     expect(architectureToolSystemText).not.toContain('sidecar/local-runtime path');
     expect(architectureToolSystemText).not.toContain('not enforced in sidecar by default');
+    expect(architectureOverviewText).not.toContain('frontend (Electron/React)');
+    expect(architectureOverviewText).not.toContain('Tool dispatched to Python sidecar through the sidecar daemon bridge');
+    expect(architectureOverviewText).not.toContain('Sanitized message sent to frontend');
+    expect(architectureOverviewText).not.toContain('not enforced in sidecar by default');
+    expect(architectureOverviewText).not.toContain('Conversation history and memory stored locally via the Python sidecar');
     expect(runtimeTraceText).not.toContain('## Sidecar JSON-RPC Trace');
     expect(runtimeTraceText).not.toContain('Sidecar executed a registered tool');
     expect(docText).not.toMatch(/(?<!Python )sidecar computer\/browser tool implementations/);

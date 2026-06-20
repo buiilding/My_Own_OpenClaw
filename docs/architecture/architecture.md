@@ -10,7 +10,7 @@ For architecture navigation by ownership, state, and failure domain, start with 
 
 ## Overview
 
-WindieOS is built as a distributed system with a clear separation between frontend (Electron/React), SDK local runtime backed by the Python sidecar, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
+WindieOS is built as a distributed system with clear separation between the renderer UI, Electron main desktop host, SDK local runtime backed by the Python sidecar, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
 The intended product boundary is:
 
@@ -275,13 +275,13 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 9. ToolExecutionCoordinator routes execution to the SDK local-runtime client
    ↓
-10. Tool dispatched to Python sidecar through the sidecar daemon bridge
+10. Tool dispatched through the SDK local-runtime bridge backed by Python sidecar modules
     ↓
 11. Python sidecar executes tool
     ↓
-12. Sidecar captures screenshot (if computer-use tool)
+12. Local-runtime Python implementation captures screenshot (if computer-use tool)
     ↓
-13. Sidecar captures system state
+13. Local-runtime Python implementation captures system state
     ↓
 14. SDK/main result envelope normalizes output
     ↓
@@ -376,13 +376,13 @@ Core runtime services live under `backend/src/services/`:
 ## Security Architecture
 
 ### Tool Execution Security
-- **Permission Model**: `SecurityPolicy` defines permissions, not enforced in sidecar by default
+- **Permission Model**: `SecurityPolicy` defines permissions, not enforced in the local-runtime Python implementation by default
 - **Sandboxing**: No executor abstraction is exposed; add a concrete isolated execution boundary only with an implemented strategy
-- **Resource Limits**: Defined in `SecurityPolicy`, not enforced in sidecar by default
+- **Resource Limits**: Defined in `SecurityPolicy`, not enforced in the local-runtime Python implementation by default
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Data Security
-- **Local Memory Storage**: Conversation history and memory stored locally via the Python sidecar
+- **Local Memory Storage**: Conversation history and memory stored locally through SDK local-runtime memory backed by Python sidecar modules
 - **LLM API Access**: User input and screenshots sent to LLM providers via internet APIs (required for AI functionality)
 - **Encryption**: No encryption-at-rest by default; rely on OS disk encryption for local data
 - **Access Control**: User-based isolation
@@ -426,7 +426,7 @@ BaseException
 1. Error occurs in component
 2. Caught and wrapped in domain exception
 3. Logged with context
-4. Sanitized message sent to frontend
+4. Sanitized message sent to SDK/renderer consumers
 5. User-friendly error displayed
 
 ## Extension Points

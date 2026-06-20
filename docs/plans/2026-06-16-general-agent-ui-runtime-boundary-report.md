@@ -221,8 +221,33 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   The architecture agent-system overview now routes settings through
   renderer-managed client settings and tool sending through SDK/main
   local-runtime dispatch.
+  The high-level architecture and backend architecture overviews now route
+  error delivery to SDK/renderer consumers, local tool dispatch through the SDK
+  local-runtime bridge, security enforcement gaps through local-runtime Python
+  implementation wording, and local memory storage through SDK local-runtime
+  memory backed by Python sidecar modules.
 
 ## Inspection Log
+
+### 2026-06-20 Architecture Overview Local-Runtime Labels
+
+- Finding: `docs/architecture/architecture.md` and
+  `docs/architecture/backend_architecture.md` still had stale overview labels
+  for frontend-vs-backend separation, direct Python sidecar dispatch, sanitized
+  frontend error delivery, unqualified sidecar enforcement gaps, and local
+  memory storage directly via the Python sidecar.
+- Change: reworded those high-level overview paths around renderer UI,
+  Electron main desktop host, SDK local-runtime bridge, SDK/renderer consumers,
+  local-runtime Python implementation limits, and SDK local-runtime memory
+  backed by Python sidecar modules, with modular guard coverage for the retired
+  phrases.
+- Validation: passed focused modular boundary test, docs listing, stale
+  architecture overview owner-label scan, and diff check.
+- Compatibility: no migration required. Websocket events, error payloads,
+  permission policy objects, tool schemas, tool-call/result payloads, SDK/main
+  dispatch, Python sidecar modules, memory storage files, renderer display,
+  storage, credentials, permissions, provider policy, local-runtime routing,
+  and hosted URLs are unchanged.
 
 ### 2026-06-20 Architecture Agent System Runtime Boundary
 

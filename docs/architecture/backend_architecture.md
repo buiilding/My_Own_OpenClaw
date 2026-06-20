@@ -536,21 +536,21 @@ BaseException
 1. Error occurs in component
 2. Caught and wrapped in domain exception
 3. Logged with context
-4. Sanitized message sent to frontend
+4. Sanitized message sent to SDK/renderer consumers
 5. User-friendly error displayed
 
 ## Security
 
 ### Tool Execution Security
 
-- **Permission Model**: `SecurityPolicy` defines permissions, not enforced in sidecar by default
+- **Permission Model**: `SecurityPolicy` defines permissions, not enforced in the local-runtime Python implementation by default
 - **Sandboxing**: No executor abstraction is exposed; add a concrete isolated execution boundary only with an implemented strategy
-- **Resource Limits**: Defined in `SecurityPolicy`, not enforced in sidecar by default
+- **Resource Limits**: Defined in `SecurityPolicy`, not enforced in the local-runtime Python implementation by default
 - **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Data Security
 
-- **Local Memory Storage**: Conversation history and memory stored locally via the Python sidecar
+- **Local Memory Storage**: Conversation history and memory stored locally through SDK local-runtime memory backed by Python sidecar modules
 - **LLM API Access**: User input and screenshots sent to LLM providers via internet APIs (required for AI functionality)
 - **Encryption**: No encryption-at-rest by default; rely on OS disk encryption for local data
 - **Access Control**: User-based isolation
