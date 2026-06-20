@@ -41,8 +41,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('function createElectronAgentClientFactoryRuntime');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
-    expect(ipcSource).toContain('startAgentRuntime({ reason, workspacePath }');
+    expect(ipcSource).toContain('createAgentWakeupRuntime({');
+    expect(ipcSource).toContain('agentWakeupRuntime.start({ reason, workspacePath })');
+    expect(ipcSource).not.toContain('startAgentRuntime({ reason, workspacePath }');
     expect(ipcSource).not.toContain('client.wakeUp({');
+    expect(agentWakeupRuntimeSource).toContain('function createAgentWakeupRuntime');
     expect(agentWakeupRuntimeSource).toContain('client.wakeUp({');
     expect(ipcSource).toContain('createDirectWakeUpAgentAdapter,');
     expect(ipcSource).not.toContain('createDirectWakeUpAgentAdapter({');

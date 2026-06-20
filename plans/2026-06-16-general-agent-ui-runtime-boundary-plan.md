@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Wakeup Runtime Boundary
+
+- Finding: `ipc_agent_wakeup_runtime.cjs` owned `AgentClient.wakeUp(...)`
+  orchestration and direct wake-up adapter construction, but `startAgent(...)`
+  in `ipc.cjs` still assembled install-auth hydration, workspace fallback,
+  AgentClient access, SDK agent name, test mode, MCP enablement, local-tool
+  lifecycle, direct wake-up adapter dependencies, bridge diagnostics, and
+  logging on each wake-up.
+- Change: added `createAgentWakeupRuntime(...)` so the wake-up helper owns
+  reusable dependency composition. `startAgent(...)` now delegates to the
+  composed runtime with only the reason and workspace path supplied by the
+  Agent SDK lifecycle.
+- Validation: focused wake-up runtime and main SDK boundary coverage verifies
+  wrapper start behavior, source guards that keep direct
+  `startAgentRuntime(...)` dependency wiring out of `ipc.cjs`, and unchanged
+  low-level wake-up behavior.
+- Compatibility: no migration required. Install-auth hydration, explicit and
+  cached workspace path fallback, SDK agent name, test-mode builtins/MCP/memory
+  disabling, MCP enablement, local-tool lifecycle, direct wake-up adapter
+  construction, bridge diagnostics, renderer IPC, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Electron AgentClient Factory Runtime Boundary
 
 - Finding: `ipc_electron_agent_client_factory.cjs` owned SDK `AgentClient`

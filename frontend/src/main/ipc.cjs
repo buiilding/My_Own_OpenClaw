@@ -76,7 +76,7 @@ const {
   createRuntimeConversationRefRuntime,
 } = require('./ipc/ipc_runtime_conversation_ref.cjs');
 const {
-  startAgentRuntime,
+  createAgentWakeupRuntime,
 } = require('./ipc/ipc_agent_wakeup_runtime.cjs');
 const {
   createAgentRuntimeLifecycle,
@@ -511,6 +511,21 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   refreshMcpServersForConfig,
   getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
 });
+const agentWakeupRuntime = createAgentWakeupRuntime({
+  ensureInstallAuthState,
+  resolveWorkspacePathForAgent,
+  getAgentClient,
+  buildDesktopInstallAuth,
+  getSdkAgentName: () => ipcHostCopyRuntime.getSdkAgentName(),
+  isTest: () => process.env.NODE_ENV === 'test',
+  getEnabledMcpServerSpecsForConfig,
+  getDesktopUiConfigForMcpRegistry,
+  getLocalToolLifecycle: () => hostOptionState.getLocalToolLifecycle(),
+  createDirectWakeUpAgentAdapter,
+  buildDirectWakeUpAgentAdapterDeps: () => directWakeUpAgentAdapterDepsRuntime.build(),
+  appendIpcBridgeDiagnostic,
+  log,
+});
 const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
   getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
   platformName: process.platform,
@@ -755,21 +770,7 @@ function getAgentClient() {
 }
 
 async function startAgent({ reason = 'request', workspacePath = null } = {}) {
-  return startAgentRuntime({ reason, workspacePath }, {
-    ensureInstallAuthState,
-    resolveWorkspacePathForAgent,
-    getAgentClient,
-    buildDesktopInstallAuth,
-    getSdkAgentName: () => ipcHostCopyRuntime.getSdkAgentName(),
-    isTest: () => process.env.NODE_ENV === 'test',
-    getEnabledMcpServerSpecsForConfig,
-    getDesktopUiConfigForMcpRegistry,
-    getLocalToolLifecycle: () => hostOptionState.getLocalToolLifecycle(),
-    createDirectWakeUpAgentAdapter,
-    buildDirectWakeUpAgentAdapterDeps: () => directWakeUpAgentAdapterDepsRuntime.build(),
-    appendIpcBridgeDiagnostic,
-    log,
-  });
+  return agentWakeupRuntime.start({ reason, workspacePath });
 }
 
 async function ensureAgent({ reason = 'request', workspacePath = null } = {}) {

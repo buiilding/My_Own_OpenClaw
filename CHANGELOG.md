@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK wake-up dependency wiring into
+  `createAgentWakeupRuntime(...)`, preserving install-auth hydration, workspace
+  fallback, MCP enablement, local-tool lifecycle, direct wake-up adapter
+  construction, and wake-up diagnostics. No migration required.
 - main/ipc: move Electron `AgentClient` factory dependency wiring into
   `createElectronAgentClientFactoryRuntime(...)`, preserving managed backend
   endpoints, desktop local-runtime launch options, backend lifecycle callbacks,

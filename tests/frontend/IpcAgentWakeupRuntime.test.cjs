@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const {
+  createAgentWakeupRuntime,
   startAgentRuntime,
 } = require('../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
 
@@ -94,6 +95,26 @@ describe('ipc_agent_wakeup_runtime', () => {
     }));
   });
 
+  test('runtime wrapper starts agents through composed wake-up dependencies', async () => {
+    const deps = createWakeupDeps();
+    const runtime = createAgentWakeupRuntime(deps);
+
+    await expect(runtime.start({
+      reason: 'runtime',
+      workspacePath: '/repo/runtime',
+    })).resolves.toBe(deps.adapter);
+
+    const client = deps.getAgentClient.mock.results[0].value;
+    expect(client.wakeUp).toHaveBeenCalledWith(expect.objectContaining({
+      workspacePath: '/repo/runtime',
+      builtins: 'default',
+    }));
+    expect(deps.appendIpcBridgeDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      statusReason: 'runtime',
+      hasWorkspacePath: true,
+    }));
+  });
+
   test('ipc.cjs delegates AgentClient wakeUp orchestration to the helper module', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -104,9 +125,12 @@ describe('ipc_agent_wakeup_runtime', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('startAgentRuntime({ reason, workspacePath }');
+    expect(mainSource).toContain('createAgentWakeupRuntime({');
+    expect(mainSource).toContain('agentWakeupRuntime.start({ reason, workspacePath })');
+    expect(mainSource).not.toContain('startAgentRuntime({ reason, workspacePath }');
     expect(mainSource).not.toContain('const agent = await client.wakeUp({');
     expect(mainSource).not.toContain("action: 'runtime.wakeup'");
+    expect(helperSource).toContain('function createAgentWakeupRuntime');
     expect(helperSource).toContain('const agent = await client.wakeUp({');
     expect(helperSource).toContain("action: 'runtime.wakeup'");
   });

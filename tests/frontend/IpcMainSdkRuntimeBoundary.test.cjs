@@ -194,8 +194,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
     expect(source).not.toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
-    expect(source).toContain('startAgentRuntime({ reason, workspacePath }');
+    expect(source).toContain('createAgentWakeupRuntime({');
+    expect(source).toContain('agentWakeupRuntime.start({ reason, workspacePath })');
+    expect(source).not.toContain('startAgentRuntime({ reason, workspacePath }');
     expect(source).not.toContain('client.wakeUp({');
+    expect(agentWakeupRuntimeSource).toContain('function createAgentWakeupRuntime');
     expect(agentWakeupRuntimeSource).toContain('client.wakeUp({');
     expect(source).toContain('createDirectWakeUpAgentAdapter,');
     expect(source).not.toContain('createDirectWakeUpAgentAdapter({');

@@ -53,6 +53,17 @@ async function startAgentRuntime({
   return adapter;
 }
 
+function createAgentWakeupRuntime(deps = {}) {
+  async function start(input = {}) {
+    return startAgentRuntime(input, deps);
+  }
+
+  return {
+    start,
+  };
+}
+
 module.exports = {
+  createAgentWakeupRuntime,
   startAgentRuntime,
 };
