@@ -18181,3 +18181,21 @@ Each completed slice should report:
   runtime behavior, hosted backend payloads, local-runtime contracts,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged.
+
+### 2026-06-20 Agent conversation-store API test route rename
+
+- Finding: the conversation-store API test already imports `Agent`,
+  `LocalRuntimeConversationStore`, and generic conversation event contracts, and
+  its suite copy describes public Agent conversation-store APIs, but the
+  focused route still used the retired `WindieAgentConversationStoreApi`
+  filename from the compatibility-alias era.
+- Change: renamed the focused test to
+  `tests/frontend/AgentConversationStoreApi.test.ts` and extended the modular
+  route guard so the generic path exists while the retired branded route stays
+  absent.
+- Validation: focused Agent conversation-store API test, modular docs boundary
+  test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. SDK public Agent APIs,
+  conversation-store behavior, local-runtime store RPC payloads, transcript
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.

@@ -7406,3 +7406,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   name, runtime behavior, hosted backend payloads, local-runtime contracts,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- The public Agent conversation-store API focused test now lives at
+  `tests/frontend/AgentConversationStoreApi.test.ts`, with the retired
+  `WindieAgentConversationStoreApi` route guarded absent. SDK public Agent
+  APIs, conversation-store behavior, local-runtime store RPC payloads,
+  transcript storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged; no migration is required.

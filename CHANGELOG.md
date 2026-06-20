@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: rename the public Agent conversation-store API focused test to
+  `AgentConversationStoreApi.test.ts` after the suite moved off the
+  `WindieAgent` compatibility alias. No migration required.
 - tests/frontend: rename the SDK package-boundary focused test to
   `AgentSdkPackageBoundary.test.ts` while keeping `@windie/sdk` as the package
   name under test. No migration required.
