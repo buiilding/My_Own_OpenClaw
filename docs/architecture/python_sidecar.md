@@ -172,7 +172,7 @@ Wakeword detection runs as a separate Python subprocess:
   APIs; bundling the sidecar does not imply bundling a backend server.
 - Build is idempotent for bundled assets:
   - If wakeword model assets already exist, prefetch download is skipped.
-- Packaged app disables browser feature-pack runtime auto-install and expects the full sidecar runtime deps to be bundled.
+- Packaged app disables browser feature-pack runtime auto-install and expects the full local-runtime Python deps to be bundled.
 - Browser automation uses a system-installed Chrome/Chromium-family browser first and falls back to Playwright-installed Chromium only after explicit user consent.
 
 ## Troubleshooting

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: describe packaged browser feature-pack expectations as
+  bundled local-runtime Python dependencies instead of sidecar runtime deps. No
+  migration required.
 - docs/main: route the local-runtime lifecycle workflow through generic daemon
   ownership and packaged local-runtime Python launch wording instead of
   sidecar-owned lifecycle phrasing. No migration required.

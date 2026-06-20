@@ -5418,3 +5418,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   packaged local-runtime Python launch options, packaged local-runtime
   behavior, and local-runtime binary paths while preserving concrete
   `sidecar_daemon.py` implementation breadcrumbs.
+- Python sidecar architecture packaging expectations now describe bundled
+  local-runtime Python dependencies instead of sidecar runtime deps.

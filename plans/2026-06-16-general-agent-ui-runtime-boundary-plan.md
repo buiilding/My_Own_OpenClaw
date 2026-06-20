@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Python Sidecar Packaging Dependency Wording
+
+- Finding: the Python sidecar architecture doc still described packaged
+  browser feature-pack expectations as bundling full sidecar runtime deps,
+  which made a concrete implementation guide sound like the reusable runtime
+  dependency boundary was sidecar-owned.
+- Change: reworded the packaging expectation to bundled local-runtime Python
+  dependencies while leaving the Python sidecar implementation guide and
+  concrete `frontend/src/main/python` references intact.
+- Validation: passed focused modular docs boundary test, docs listing, stale
+  packaging phrase scan, and diff check.
+- Compatibility: no migration required. Runtime packaging behavior, bundled
+  dependency contents, feature-pack auto-install policy, browser automation,
+  IPC channels, storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
+
 ### 2026-06-20 Main Local-Runtime Lifecycle Docs Boundary
 
 - Finding: the main local-runtime process lifecycle workflow still described
