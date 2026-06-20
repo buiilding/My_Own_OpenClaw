@@ -112,7 +112,7 @@ contracts.
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
-- [**Local Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool routing, Python sidecar daemon execution, executable tools, and tool-result return path
+- [**Local Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool routing, SDK/main local-runtime execution, Python sidecar implementation, executable tools, and tool-result return path
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
 - [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
 - [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families

@@ -5083,6 +5083,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   state, storage, credentials, permissions, provider policy, hosted URLs, and
   local execution behavior are unchanged.
 
+### 2026-06-20 Local Tool Channel Hub Boundary
+
+- Finding: the docs hub still summarized Local Tool Channels as Python sidecar
+  daemon execution, which made the route label skip the SDK/main local-runtime
+  ownership boundary even though the linked channel docs already use
+  local-runtime wording.
+- Change: updated the docs hub summary to route through SDK/main local-runtime
+  execution with Python sidecar as implementation detail, and extended the
+  modular docs guard to reject the old hub wording.
+- Validation: passed focused frontend docs boundary test, docs listing, stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, local-runtime execution,
+  Python sidecar implementation, executable tool schemas, IPC channels,
+  transcript storage, settings, credentials, permissions, provider policy, and
+  hosted URLs are unchanged.
+
 ### 2026-06-20 Transcription and Overlay Event Docs Boundary
 
 - Finding: the backend endpoint reference still labeled `/ws/transcription`

@@ -389,6 +389,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/debug/error_failure_change_workflow.md'),
       read('docs/debug/test_selection.md'),
       read('docs/development/agent_architecture_reference.md'),
+      read('docs/README.md'),
       read('docs/frontend/README.md'),
       read('docs/frontend/contracts/ipc_channels_and_event_contracts.md'),
       read('docs/frontend/contracts/backend_event_consumer_matrix_reference.md'),
@@ -414,6 +415,7 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('SDK local runtime');
     expect(docText).toContain('SDK/main local runtime');
+    expect(docText).toContain('SDK/main local-runtime execution, Python sidecar implementation');
     expect(docText).toContain('SDK tool coordinator uses request ids');
     expect(docText).toContain('renderer stream tracking uses `turn_ref` + stream phase');
     expect(docText).toContain(
@@ -454,6 +456,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('through Electron main and the sidecar daemon');
     expect(docText).not.toContain('before sidecar execution');
     expect(docText).not.toContain('sidecar daemon startup/reuse');
+    expect(docText).not.toContain('Python sidecar daemon execution');
   });
 
   test('runtime routing docs use Agent SDK boundary wording', async () => {

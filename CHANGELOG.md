@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: update the Local Tool Channels hub summary to route through
+  SDK/main local-runtime execution with Python sidecar as implementation
+  detail. No migration required.
 - docs/events: route transcription endpoint and response-overlay side-effect
   wording through client/backend transcription and SDK conversation-event
   boundaries instead of renderer/backend-wire phrasing. No migration required.
