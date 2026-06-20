@@ -141,7 +141,9 @@ Main/backend stream context fields commonly present:
 Usage highlights:
 
 - chat stream uses `conversation_ref` for active-conversation filtering
-- tool runner uses `turn_ref` + stream phase for stale-turn rejection
+- SDK tool coordinator uses request ids for execution-side stale-turn handling
+- renderer stream tracking uses `turn_ref` + stream phase for display/transcript
+  stale-turn rejection
 - transcript writer uses `conversation_ref`/`user_id` to persist event rows
 
 ## Drift Hotspots

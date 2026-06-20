@@ -74,7 +74,7 @@ concern.
 ## Drift Hotspots
 
 1. Replacing frozen empty context with mutable object can create avoidable rerenders on provider remounts.
-2. Enabling tool runner/transcript flags in overlays can duplicate execution or transcript writes.
+2. Enabling execution/transcript side-effect flags in overlays can duplicate execution or transcript writes.
 3. Adding state into `ChatContext` without strict ownership rules can split source of truth against chat store/hooks.
 
 ## Related Pages

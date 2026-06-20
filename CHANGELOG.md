@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: refresh tool-runtime docs so SDK tool coordination owns
+  execution stale-turn handling while renderer docs describe display and
+  transcript side effects. No migration required.
 - docs/events: update docs hub and process-health event-consumption guidance
   to point at SDK projections and typed backend side-channel events instead of
   current-facing `from-backend` listener wording. No migration required.

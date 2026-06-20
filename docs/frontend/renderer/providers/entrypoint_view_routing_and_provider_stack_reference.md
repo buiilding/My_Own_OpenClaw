@@ -99,7 +99,7 @@ Overlay-only windows do not host this controller, avoiding duplicate detection s
 ## Drift Hotspots
 
 1. adding new `view` value in main process without matching renderer route
-2. enabling `ChatProvider` tool runner in overlay surfaces (can duplicate executions)
+2. enabling `ChatProvider` execution side effects in overlay surfaces (can duplicate executions)
 3. mounting `WakewordController` in multiple surfaces (duplicate wakeword events)
 4. reintroducing permission-gate dependencies in `App.jsx` and blocking normal shell startup
 5. changing provider order and breaking context hook assumptions

@@ -5083,6 +5083,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   state, storage, credentials, permissions, provider policy, hosted URLs, and
   local execution behavior are unchanged.
 
+### 2026-06-20 Renderer Tool Runtime Docs Boundary
+
+- Finding: renderer/backend event and provider docs still used deleted renderer
+  tool-runner wording for stale-turn rejection, validation, and overlay drift
+  hotspots even though local execution is now claimed by the SDK
+  `ToolExecutionCoordinator` and renderer surfaces only consume display and
+  transcript side effects.
+- Change: routed the event-consumer matrix, renderer state validation table,
+  and provider drift notes through SDK tool coordination plus renderer
+  stream/display side-effect wording, then extended the modular docs boundary
+  guard to reject the stale tool-runner phrases.
+- Validation: passed focused frontend docs boundary test, docs listing, stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK event shapes,
+  local-runtime execution, IPC channels, transcript storage, settings,
+  credentials, permissions, provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 IPC Workflow SDK Relay Drift Boundary
 
 - Finding: the IPC change workflow still told agents to debug backend relay

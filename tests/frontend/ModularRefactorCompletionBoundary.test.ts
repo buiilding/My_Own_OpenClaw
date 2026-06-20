@@ -385,17 +385,34 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/channels/sidecar_and_tool_channels.md'),
       read('docs/channels/channel_routing_matrix.md'),
       read('docs/frontend/README.md'),
+      read('docs/frontend/contracts/backend_event_consumer_matrix_reference.md'),
       read('docs/frontend/runtime/tool_execution_and_streaming.md'),
       read('docs/frontend/renderer/chat_stream_and_tool_execution_reference.md'),
+      read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
+      read(
+        'docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md',
+      ),
+      read(
+        'docs/frontend/renderer/providers/contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md',
+      ),
     ]);
     const docText = docs.join('\n');
 
     expect(docText).toContain('SDK local runtime');
     expect(docText).toContain('SDK/main local runtime');
+    expect(docText).toContain('SDK tool coordinator uses request ids');
+    expect(docText).toContain('renderer stream tracking uses `turn_ref` + stream phase');
+    expect(docText).toContain(
+      'WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolCallMessageState',
+    );
     expect(docText).toContain('local runtime daemon startup/reuse');
     expect(docText).not.toContain('SDK desktop runtime');
     expect(docText).not.toContain('SDK agent runtime');
+    expect(docText).not.toContain('tool runner uses `turn_ref`');
+    expect(docText).not.toContain('Tool runner/result dispatch');
+    expect(docText).not.toContain('ChatProvider` tool runner');
+    expect(docText).not.toContain('tool runner/transcript flags');
     expect(docText).not.toContain('remaining endpoint/install-auth/session lifecycle wiring');
     expect(docText).not.toContain('keeps install-auth identity state through');
     expect(docText).not.toContain('ipc.cjs` keeps the latest pending-turn cache');
