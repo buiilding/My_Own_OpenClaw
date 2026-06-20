@@ -194,6 +194,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Public SDK Local Runtime Example Boundary
+
+- Finding: the public TypeScript SDK README still showed `autoLocalRuntime`
+  configured through the repo-specific `scripts/python-in-env sidecar python`
+  launcher, and a renderer config persistence test used a sidecar-named fake
+  unknown field while asserting renderer allowlist behavior.
+- Change: changed the public README example to use an explicit generic daemon
+  script and Python command, added a modular docs guard against the old launcher
+  args, and renamed the renderer config fixture to `local_runtime_only_state`.
+- Validation: passed focused SDK README boundary test, app config persistence
+  test, docs listing, stale fixture/launcher scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK local-runtime daemon
+  launch behavior, auto-local-runtime option names, renderer config filtering,
+  persisted settings, IPC channels, storage, credentials, permissions,
+  provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Browser Schema Parity Route Filename Boundary
 
 - Finding: the browser schema parity reference had already been reworded to

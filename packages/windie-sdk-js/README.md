@@ -76,8 +76,8 @@ daemon discovery and startup:
 const client = new AgentClient({
   backendUrl: 'https://api.windieos.com',
   autoLocalRuntime: {
-    pythonCommand: './scripts/python-in-env',
-    pythonArgs: ['sidecar', 'python'],
+    daemonScript: './agent-local-runtime-daemon.py',
+    pythonCommand: 'python3',
   },
 });
 ```

@@ -149,7 +149,7 @@ describe('appConfigPersistence', () => {
           backend_only_state: { token: 'base-token' },
         },
         {
-          sidecar_only_state: { token: 'patch-token' },
+          local_runtime_only_state: { token: 'patch-token' },
         },
       ),
     ).toEqual({});

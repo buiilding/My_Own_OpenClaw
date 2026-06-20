@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/docs: keep the public TypeScript SDK auto-local-runtime README example on
+  an explicit generic daemon script instead of the repo-specific sidecar launcher
+  args, and refresh a renderer config fixture's unknown-field label. No
+  migration required.
 - docs/browser: rename the backend/local-runtime browser schema parity reference
   path away from the stale `backend_sidecar` filename and update docs/test
   routes to the local-runtime path. No migration required.

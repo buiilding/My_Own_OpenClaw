@@ -161,6 +161,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(readme).toContain('local-runtime plugin package registration');
     expect(readme).toContain('waking agents from external clients');
     expect(readme).not.toContain('waking Windie agents');
+    expect(readme).not.toContain("pythonArgs: ['sidecar', 'python']");
     expect(readme).not.toContain('local sidecar execution');
     expect(readme).not.toContain('sidecar module-tool registration');
     expect(readme).not.toContain('sidecar plugin package registration');

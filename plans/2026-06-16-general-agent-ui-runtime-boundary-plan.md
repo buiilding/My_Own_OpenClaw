@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Public SDK Local Runtime Example Boundary
+
+- Finding: the public TypeScript SDK README's `autoLocalRuntime` example still
+  used the repo-specific `scripts/python-in-env sidecar python` launcher shape,
+  and a renderer config persistence test used a sidecar-named fake unknown
+  field label.
+- Change: changed the package README example to pass an explicit generic daemon
+  script plus Python command, added a modular boundary guard against the old
+  sidecar launcher args in public SDK README copy, and renamed the renderer
+  unknown-field fixture to `local_runtime_only_state`.
+- Validation: passed focused SDK README boundary test, app config persistence
+  test, docs listing, stale fixture/launcher scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK local-runtime
+  provider behavior, daemon launch option shapes, renderer config filtering,
+  persisted settings, IPC channels, storage, credentials, permissions,
+  provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Browser Schema Parity Route Filename Boundary
 
 - Finding: the browser schema parity page title and body already used
