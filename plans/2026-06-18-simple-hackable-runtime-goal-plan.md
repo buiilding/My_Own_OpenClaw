@@ -275,6 +275,31 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed README transcript, prompt/tool boundary, install matrix,
+  capture artifact, IPC mapper, channels, packaging, code-surface, and protocol
+  surface labels through SDK/main local-runtime dispatch, local-runtime launch
+  path, local-runtime bridge, and local-runtime daemon status wording instead
+  of public `main/sidecar`, `SDK/main -> sidecar`, `sidecar launch path`,
+  `Python sidecar bridge`, or sidecar process/readiness owner labels.
+  Validation covered the modular docs boundary guard, docs search, related
+  commit search, stale bridge/launch/route phrase scan, docs listing, and diff
+  check. No migration required; file paths, JSON-RPC method names, params,
+  daemon endpoints, IPC channels, SDK/main dispatch, launch options, transcript
+  storage, artifact upload, storage, credentials, permissions, provider policy,
+  hosted URLs, and local-runtime behavior are unchanged.
+
+- 2026-06-20: routed tool troubleshooting, schema-policy, backend change-path,
+  browser schema, IPC/channel, transcript, packaging, and tool-system docs
+  through local-runtime daemon reachability, local-runtime bridge routing,
+  local-runtime executable schema, local-runtime validation, and
+  backend-vs-local-runtime schema parity instead of public sidecar
+  process/schema/route labels. Validation covered the modular docs boundary
+  guard, docs search, related commit search, stale schema/process/route phrase
+  scan, docs listing, and diff check. No migration required; JSON-RPC method
+  names, executable schemas, client manifests, backend tool schemas, IPC
+  payloads, launch paths, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 - 2026-06-20: routed performance, packaging, ownership-decision,
   system-state, protocol-surface, API-reference, source-map, and Python
   implementation workflow labels through local-runtime JSON-RPC,

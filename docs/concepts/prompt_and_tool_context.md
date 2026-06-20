@@ -80,7 +80,7 @@ Tool schemas are not copied directly from the registry into the model request. T
 | policy -> provider projection | policy-filtered function/computer schemas; direct projection calls reapply `ToolPolicy.from_config(...)` so config availability and disabled-tool gates are still enforced | `backend/src/tools/provider_projection.py`, provider adapters | Does the provider require this dialect, or are we working around a local parser bug? |
 | provider request -> parser | provider-native tool call chunks | `backend/src/agent/llm`, `backend/src/llm/parser_types.py` | Can the parser preserve the original model intent and IDs? |
 | backend event -> SDK/main execution | executable tool event payload | `backend/src/api/processing/formatters`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts` | Are model-facing args and executable args being confused? |
-| SDK/main -> sidecar | IPC/JSON-RPC executable params | `frontend/src/main/sidecar/local_runtime*.cjs`, `frontend/src/main/python/tools` | Is this the single JS/Python boundary mapper, or duplicated fallback logic? |
+| SDK/main -> local runtime | IPC/JSON-RPC executable params | `frontend/src/main/sidecar/local_runtime*.cjs`, `frontend/src/main/python/tools` | Is this the single JS/Python boundary mapper, or duplicated fallback logic? |
 
 ## Transparency Events
 

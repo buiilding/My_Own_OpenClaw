@@ -32,7 +32,7 @@ Validation:
 2. Update `backend/src/tools/schema_registry.py` if declaration normalization changes.
 3. Update tool-call formatter (`api/processing/formatters/tool_call.py`) if stream payload fields change.
 4. Update incoming tool-result schemas if correlation/id semantics changed.
-5. Sync sidecar schema and renderer tool payload handling.
+5. Sync local-runtime executable schema and renderer tool payload handling.
 
 Validation:
 

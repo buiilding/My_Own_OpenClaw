@@ -120,7 +120,7 @@ Read next:
 | Symptom | Owner to inspect |
 | --- | --- |
 | model never sees tool | backend tool schema/policy |
-| backend emits tool-call but no local action happens | SDK/main local-runtime routing or Python sidecar bridge |
+| backend emits tool-call but no local action happens | SDK/main local-runtime routing or Python sidecar implementation |
 | tool card appears twice or looks duplicated | SDK display projection or renderer card rendering |
 | local-runtime tool returns error before action | local-runtime tool validation or Python sidecar executor |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |

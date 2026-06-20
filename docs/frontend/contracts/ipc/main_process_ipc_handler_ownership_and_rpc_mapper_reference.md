@@ -2,7 +2,7 @@
 summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, and scoped local-runtime bridge channels."
 read_when:
   - When adding/removing `ipcMain.on/handle` registrations, including permission onboarding channels.
-  - When debugging renderer invoke/send calls that do not reach expected main/sidecar behavior.
+  - When debugging renderer invoke/send calls that do not reach expected SDK/main local-runtime behavior.
 title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ---
 
@@ -201,7 +201,7 @@ Notable behavior:
 
 - local browser tool execution uses an extended timeout (120s vs default 30s)
 - local tool args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including:
-  - non-object nested `system_use.arguments` values are passed through unchanged so sidecar schema validation remains authoritative
+  - non-object nested `system_use.arguments` values are passed through unchanged so local-runtime schema validation remains authoritative
   - deep-clone normalization for non-shell payloads
   - screenshot-only `display_bounds` default injection from display-affinity fallback
 - screenshot display-affinity precedence for local screenshot tool execution:

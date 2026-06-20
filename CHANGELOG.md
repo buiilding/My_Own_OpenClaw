@@ -35,6 +35,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/runtime: route transcript RPC, prompt/tool boundary, IPC protocol
+  matrix, launch-path, screenshot, channel, and code-surface labels through
+  SDK/main local-runtime dispatch and local-runtime bridge wording instead of
+  main/sidecar, SDK/main-to-sidecar, and sidecar launch/bridge owner labels.
+  No migration required.
+- docs/tools: route tool troubleshooting, schema-policy, backend playbook,
+  browser schema, IPC/channel, transcript, packaging, and tool-system parity
+  wording through local-runtime daemon, bridge, and executable schema labels
+  instead of sidecar process/schema/route labels. No migration required.
 - docs/runtime: route performance, packaging, ownership-decision, system-state,
   protocol-surface, and source-map wording through local-runtime JSON-RPC,
   backend-config, and local-runtime Python labels instead of sidecar

@@ -72,7 +72,7 @@ Boundary rule:
 
 - Desktop client and Python sidecar code must never import backend Python modules or depend on `backend.src.*` at runtime
 - desktop client/local-runtime and backend schema pairing must stay import-independent across that boundary
-- drift prevention comes from explicit backend-vs-sidecar schema parity tests run before production, not from cross-boundary runtime imports
+- drift prevention comes from explicit backend-vs-local-runtime schema parity tests run before production, not from cross-boundary runtime imports
 
 Wrapper reference artifact note:
 

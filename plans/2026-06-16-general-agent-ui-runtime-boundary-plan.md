@@ -120,6 +120,43 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Bridge and Launch Labels
+
+- Finding: README transcript, prompt/tool boundary, install matrix, capture
+  artifact, IPC mapper, channels, packaging, code-surface, and protocol surface
+  docs still used public `main/sidecar`, `SDK/main -> sidecar`, `sidecar launch
+  path`, `Python sidecar bridge`, or sidecar process/readiness labels for
+  reusable local-runtime bridge and launch routes.
+- Change: routed those labels through SDK/main local-runtime dispatch,
+  local-runtime launch path, local-runtime bridge, and local-runtime daemon
+  status wording while preserving `frontend/src/main/sidecar/...` paths where
+  they identify current source files.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale bridge/launch/route phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. File paths, JSON-RPC method names,
+  params, daemon endpoints, IPC channels, SDK/main dispatch, launch options,
+  transcript storage, artifact upload, storage, credentials, permissions,
+  provider policy, hosted URLs, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Local-Runtime Schema, Daemon, and Bridge Labels
+
+- Finding: tool troubleshooting, schema-policy, backend change-path, browser
+  schema, IPC/channel, transcript, packaging, and tool-system docs still used
+  public `sidecar process`, `Python sidecar schema`, `backend-vs-sidecar schema
+  parity`, `main/sidecar`, or sidecar launch/bridge labels for reusable
+  local-runtime reachability, bridge routing, and executable-schema contracts.
+- Change: routed those labels through local-runtime daemon reachability,
+  local-runtime bridge routing, local-runtime executable schema, local-runtime
+  validation, and backend-vs-local-runtime schema parity wording while
+  preserving Python sidecar module/test references where they identify concrete
+  implementation files.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale schema/process phrase scan, docs listing, and diff check.
+- Compatibility: no migration required. JSON-RPC method names, executable
+  schemas, client manifests, backend tool schemas, IPC payloads, launch paths,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
+
 ### 2026-06-20 Local-Runtime Protocol and Route Labels
 
 - Finding: performance, packaging, ownership-decision, system-state,

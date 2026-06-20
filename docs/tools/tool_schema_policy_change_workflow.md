@@ -98,14 +98,14 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
    - [Tool Contracts](tool_contracts.md)
    - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)
    - family-specific docs such as [Computer Tools](computer.md), [Browser Tool](browser.md), or [Filesystem and Shell Tools](filesystem_shell.md)
-   - sidecar docs when executable behavior changes
+   - local-runtime Python docs when executable behavior changes
 
 ## Change an Existing Tool Schema
 
 1. Find the model-facing owner from [Tool Catalog Matrix](tool_catalog_matrix.md).
 2. For client-local tools, edit the client/local-runtime manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
 3. Decide whether the local-runtime executable arguments must match:
-   - exact parity local tools: update the client manifest and Python sidecar schema together
+   - exact parity local tools: update the client manifest and local-runtime executable schema together
    - grounded tools: update backend preparation so model-facing fields are stripped or resolved before dispatch
    - backend-only tools: update backend parser/provider tests only
 4. Update shared field factories in `backend/src/tools/schema_fields.py` when multiple tools need the same wording or validation field.
@@ -163,7 +163,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm `frontend/src/main/python/tools/manifest.py` includes the tool if it is local-runtime executed.
 - Confirm `frontend/src/main/python/tools/registry.py` actually registers an implementation.
 - Confirm SDK/main tool dispatch recognizes the tool and preserves request ids.
-- Confirm Electron main can reach the sidecar process.
+- Confirm Electron main can reach the local-runtime daemon.
 
 ### Tool Args Are Rejected
 

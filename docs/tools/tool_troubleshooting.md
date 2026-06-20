@@ -64,7 +64,7 @@ Questions to answer:
 1. Did backend send a `tool-call` or `tool-bundle` event?
 2. Did the Agent SDK runtime receive the matching event type?
 3. Did SDK/main construct the executable local-runtime payload with the expected args?
-4. Did Electron main route JSON-RPC to the Python sidecar process?
+4. Did Electron main route JSON-RPC to the local-runtime daemon?
 5. Did the local-runtime executable registry backed by Python sidecar modules import the tool module lazily without import error?
 6. Did the executable tool return a native `ToolResult`?
 

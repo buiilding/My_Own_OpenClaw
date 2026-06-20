@@ -24,7 +24,7 @@ frontend app and do not need Python installed system-wide.
 
 ## Repository Pieces
 
-- Runtime-aware sidecar launch path resolution:
+- Runtime-aware local-runtime launch path resolution:
   - `frontend/src/main/app/runtime_paths.cjs`
   - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
   - `frontend/src/main/wakeword/wakeword_bridge.cjs`

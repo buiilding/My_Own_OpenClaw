@@ -50,12 +50,12 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | Channel | Main owner | Notes |
 |---|---|---|
 | `windie:invoke` | `main/ipc/ipc_agent_sdk_command_handlers.cjs` registered from `main/ipc.cjs` | Single SDK command router for renderer `window.agentSdk.invoke(command, payload)`; handles query/stop and SDK-shaped local runtime commands instead of exposing memory/conversation implementation RPC names directly through preload |
-| `capture-screenshot-attachment` | `main/sidecar/local_runtime_bridge.cjs` | Maps renderer screenshot attachment capture to local `screenshot` execution |
-| `read-attachment-file` | `main/sidecar/local_runtime_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
-| `run-browser-action` | `main/sidecar/local_runtime_bridge.cjs` | Maps browser session controls to local `browser` execution |
+| `capture-screenshot-attachment` | `main local-runtime bridge` | Maps renderer screenshot attachment capture to local `screenshot` execution |
+| `read-attachment-file` | `main local-runtime bridge` | Maps readable attachment context reads to local `read_file` execution |
+| `run-browser-action` | `main local-runtime bridge` | Maps browser session controls to local `browser` execution |
 | `upload-artifact` | `main/ipc.cjs` | Uploads base64 artifact to backend HTTP `/api/artifacts/` |
 | `fetch-artifact-image` | `main/ipc/ipc_artifact_handlers.cjs` | Fetches a backend artifact image through the authenticated artifact handler |
-| `get-system-state` | `main/sidecar/local_runtime_bridge.cjs` | Proxies to sidecar `get_system_state` |
+| `get-system-state` | `main local-runtime bridge` | Proxies to local-runtime `get_system_state` |
 | `get-client-user-id` | `main/ipc/ipc_client_session_handlers.cjs` | Returns connection/user/session/conversation snapshot |
 | `copy-image-to-clipboard` | `main/ipc/ipc_clipboard_image.cjs` | Copies a trusted image URL/data payload into the OS clipboard |
 | `show-image-context-menu` | `main/ipc/ipc_image_context_menu.cjs` | Opens the trusted image context menu and clipboard actions |
@@ -87,7 +87,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `window-minimize` | `main/surfaces/window_controls_ipc_runtime.cjs` | Minimize main window |
 | `window-toggle-maximize` | `main/surfaces/window_controls_ipc_runtime.cjs` | Toggle maximize state; macOS uses native fullscreen instead of Electron maximize |
 | `window-close` | `main/surfaces/window_controls_ipc_runtime.cjs` | Close main window |
-| `get-local-runtime-status` | `main/sidecar/local_runtime_bridge.cjs` | Wakes/reads SDK local-runtime status for renderer status surfaces |
+| `get-local-runtime-status` | `main local-runtime bridge` | Wakes/reads SDK local-runtime status for renderer status surfaces |
 
 ### `on`/`once` Channels (Main -> Renderer)
 
@@ -102,7 +102,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `windie:pending-turn` | `main/ipc/ipc_pending_turn_handlers.cjs` | Pending renderer user turn replay/clear events for secondary windows and startup handoff |
 | `transcript-session-sync` | `main/ipc/ipc_transcript_session_sync.cjs` | Normalized transcript session/conversation/user identity snapshot |
 | `ipc-status` | `main/ipc.cjs` | Backend connection + client/user/session snapshot |
-| `local-runtime-status` | `main/sidecar/local_runtime_bridge.cjs` | Local SDK sidecar process/readiness status |
+| `local-runtime-status` | `main local-runtime bridge` | Local-runtime daemon process/readiness status |
 | `log` | Reserved in preload/typed constants | Main-to-renderer log channel retained in allowlist for renderer listeners |
 | `wakeword-detected` | `main/wakeword_bridge.cjs` | Wakeword detection event (`model`, `confidence`, `score`) |
 | `wakeword-status` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` emits normalized status payloads) | Wakeword subprocess readiness/error |

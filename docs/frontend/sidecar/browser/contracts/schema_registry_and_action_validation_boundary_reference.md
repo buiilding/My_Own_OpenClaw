@@ -88,9 +88,9 @@ There is no browser-specific backend/local-runtime schema split anymore.
 Practical rule:
 
 - desktop client/Python sidecar code must never import backend code or rely on `backend.src.*`
-- browser schema parity is maintained by keeping backend remote-tool loading and sidecar
-  validation aligned around the shared contract without violating that boundary
-- the production safeguard against drift is backend-vs-sidecar schema parity testing before release, not direct frontend imports of backend modules
+- browser schema parity is maintained by keeping backend remote-tool loading and
+  local-runtime validation aligned around the shared contract without violating that boundary
+- the production safeguard against drift is backend-vs-local-runtime schema parity testing before release, not direct frontend imports of backend modules
 
 ## Test-Backed Coverage
 

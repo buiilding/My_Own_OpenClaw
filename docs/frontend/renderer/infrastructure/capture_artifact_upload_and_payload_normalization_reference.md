@@ -31,7 +31,7 @@ title: "Capture, Artifact URL, and Payload Normalization Reference"
 
 ## Screenshot Invocation and Display-Bounds Injection
 
-Main/sidecar screenshot behavior:
+SDK/main local-runtime screenshot behavior:
 
 - for `screenshot` tool:
   - args normalized to object

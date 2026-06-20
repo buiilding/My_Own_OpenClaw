@@ -12,13 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: performance, packaging, ownership-decision,
-  system-state, protocol-surface, API-reference, source-map, and Python
-  implementation workflow docs now use local-runtime JSON-RPC,
-  local-runtime backend-config, SDK/main local-runtime dispatch, and
-  local-runtime Python wording instead of public sidecar route/API/protocol
-  owner labels while preserving concrete Python sidecar implementation
-  references.
+- Latest completed slice: README transcript, prompt/tool boundary, install
+  matrix, capture artifact, IPC mapper, channels, packaging, code-surface, and
+  protocol surface docs now use SDK/main local-runtime dispatch,
+  local-runtime launch path, local-runtime bridge, and local-runtime daemon
+  status wording instead of public main/sidecar, SDK/main-to-sidecar, sidecar
+  launch, Python sidecar bridge, or sidecar process/readiness owner labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -6190,3 +6189,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   manifest fields, entrypoint arguments, backend URLs, environment-variable
   precedence, trailing-slash normalization, SDK dispatch, storage, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+- Tool troubleshooting, schema-policy, backend change-path, browser schema,
+  IPC/channel, transcript, packaging, and tool-system docs now describe
+  local-runtime daemon reachability, local-runtime bridge routing, and
+  local-runtime executable schema/backend-vs-local-runtime parity instead of
+  sidecar process/schema/route labels. Runtime code, JSON-RPC method names,
+  executable schemas, client manifests, backend tool schemas, IPC payloads,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.
