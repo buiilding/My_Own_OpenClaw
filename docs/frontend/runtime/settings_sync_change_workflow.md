@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for renderer settings-sync changes across renderer config storage, AppConfig/AppStatus providers, Electron disk persistence, update-settings ACK gating, backend session config, and model/provider UI."
+summary: "Workflow for renderer settings-sync changes across renderer config storage, AppConfig/AppStatus providers, Electron disk persistence, SDK settings command dispatch, update-settings ACK gating, backend session config, and model/provider UI."
 read_when:
-  - When changing a user-facing setting, config persistence, model picker, settings ACK behavior, first-query settings sync, or renderer-to-backend settings payload shape.
+  - When changing a user-facing setting, config persistence, model picker, settings ACK behavior, first-query settings sync, or renderer-to-SDK/main settings command shape.
   - When debugging stale settings, save-status drift, first-query settings races, model list fallback, or config fields that reappear after reload.
   - When deciding whether a setting belongs in renderer local storage, Electron
     disk config, backend session config, or local-runtime env.
@@ -20,8 +20,9 @@ For tab/control ownership, start with [Settings Surface Change Workflow](../rend
 2. renderer filters to renderer-owned settings fields.
 3. settings UI updates `AppConfigProvider`.
 4. renderer persists local storage and main-process disk config.
-5. renderer sends `update-settings` to Electron main.
-6. Electron main forwards sanitized settings to backend and waits for matching ACK.
+5. renderer sends the SDK-shaped `settings.update` command to Electron main.
+6. Electron main filters the backend settings payload, sends backend
+   `update-settings` through the Agent SDK runtime, and waits for matching ACK.
 7. backend validates allowed patch fields and rewires session/runtime config.
 8. backend emits `settings-updated` or an error.
 9. renderer updates save status and model/provider UI.
@@ -53,7 +54,8 @@ For tab/control ownership, start with [Settings Surface Change Workflow](../rend
 2. Update the owner first.
 3. Update `filterRendererConfig(...)` only if the field is renderer-owned or intentionally sent in `update-settings`.
 4. Update storage defaults and migration/cleanup if persisted shape changes.
-5. Update Electron disk persistence and ACK behavior if the sync protocol changes.
+5. Update Electron disk persistence, SDK command dispatch, and ACK behavior if
+   the sync protocol changes.
 6. Update backend settings validation and session rewire if backend behavior changes.
 7. Add tests at renderer storage, main ACK, and backend patch boundaries as needed.
 8. Update [Configuration Change Workflow](../../operations/configuration_change_workflow.md), [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md), and feature docs.

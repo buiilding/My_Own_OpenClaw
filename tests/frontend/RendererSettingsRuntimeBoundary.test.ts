@@ -395,6 +395,29 @@ describe('renderer settings runtime boundary', () => {
     expect(source).not.toContain('backend IPC');
   });
 
+  test('settings sync docs route renderer updates through SDK command IPC', async () => {
+    const docs = await Promise.all([
+      fs.readFile(
+        path.resolve(
+          __dirname,
+          '../../docs/frontend/runtime/config_sync_and_settings_lifecycle_reference.md',
+        ),
+        'utf8',
+      ),
+      fs.readFile(
+        path.resolve(__dirname, '../../docs/frontend/runtime/settings_sync_change_workflow.md'),
+        'utf8',
+      ),
+    ]);
+    const source = docs.join('\n');
+
+    expect(source).toContain('SDK-shaped `settings.update` command');
+    expect(source).toContain('through the Agent SDK runtime');
+    expect(source).toContain('renderer-to-SDK/main settings command shape');
+    expect(source).not.toContain('renderer sends `to-backend`');
+    expect(source).not.toContain('renderer-to-backend settings payload shape');
+  });
+
   test('app config provider routes settings events through app runtime client', async () => {
     const providerSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/renderer/app/providers/AppConfigProvider.jsx'),

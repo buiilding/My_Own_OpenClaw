@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Settings Sync SDK Command Docs Boundary
+
+- Finding: the settings lifecycle reference still described renderer settings
+  saves as a direct `to-backend` `update-settings` send, and the settings
+  workflow read hint still named renderer-to-backend settings payload shape,
+  even though renderer settings now go through
+  `DesktopSettingsRuntimeClient.updateSettings(...)`, the SDK-shaped
+  `settings.update` command, Electron main settings-sync runtime filtering, and
+  the Agent SDK backend websocket send path.
+- Change: updated the settings lifecycle and settings-sync workflow docs to
+  route renderer saves through SDK command IPC, identify
+  `ipc_settings_sync_runtime.cjs` as the ACK gate owner, and reserve
+  backend `update-settings` for the SDK runtime websocket message emitted by
+  Electron main.
+- Validation: added a renderer settings boundary guard that rejects the retired
+  `to-backend` settings lifecycle wording and requires SDK/main command-shape
+  routing.
+- Compatibility: no migration required. Renderer config fields, localStorage
+  keys, `frontend-config.json`, `windie:invoke`, backend `update-settings`
+  payloads, ACK IDs, settings events, credentials, permissions, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
+
 ### 2026-06-20 Architecture SDK Event Fan-Out Docs Boundary
 
 - Finding: first-read architecture docs still presented the retired generic

@@ -20,6 +20,8 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/runtime/desktopRendererConfigFilterRuntime.js`
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
+- `frontend/src/main/ipc/ipc_agent_sdk_runtime_commands.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
@@ -130,7 +132,10 @@ Renderer invokes:
 - `load-frontend-config`
 - `save-frontend-config`
 
-## Main-Process Settings Sync Gate (`ipc.cjs`)
+## Main-Process Settings Sync Gate
+
+Electron main composes the settings-sync runtime in `ipc.cjs`, but the
+settings ACK gate state lives in `ipc_settings_sync_runtime.cjs`.
 
 Key runtime state:
 
@@ -141,10 +146,15 @@ Key runtime state:
 
 `update-settings` flow:
 
-1. renderer sends `to-backend` type `update-settings`
-2. main calls `sendSettingsUpdate(...)`
-3. main sends websocket message with generated ID
-4. main waits for ACK (`settings-updated`) or timeout (`SETTINGS_SYNC_TIMEOUT_MS = 2500`)
+1. renderer calls `DesktopSettingsRuntimeClient.updateSettings(...)`, which
+   invokes the SDK-shaped `settings.update` command over `windie:invoke`
+2. Electron main routes that command through
+   `ipc_agent_sdk_runtime_commands.cjs` into `sendSettingsUpdate(...)`
+3. `ipc_settings_sync_runtime.cjs` filters the backend settings payload,
+   ensures the Agent SDK runtime is connected, and sends backend websocket
+   `update-settings` through the active SDK runtime
+4. main waits for ACK (`settings-updated`) or timeout
+   (`SETTINGS_SYNC_TIMEOUT_MS = 2500`)
 
 ACK resolution:
 
@@ -156,9 +166,10 @@ ACK resolution:
 
 Before forwarding `query` or `wakeword-detected`, main ensures one-time per-connection settings sync:
 
-1. call `ensureInitialSettingsSync()`
+1. call `ensureInitialSettingsSync()` on the settings-sync runtime
 2. lazily load cached disk config when needed
-3. send `update-settings` and await pending ACK promise
+3. send backend websocket `update-settings` through the Agent SDK runtime and
+   await the pending ACK promise
 4. only then continue sending query path
 
 Purpose:

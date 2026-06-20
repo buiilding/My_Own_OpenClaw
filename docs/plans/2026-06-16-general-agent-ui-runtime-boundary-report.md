@@ -131,6 +131,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   docs now route renderer/backend communication through `windie:invoke`, SDK
   projections, `windie:conversation-event`, and typed backend side-channel
   fan-out instead of the retired generic `to-backend`/`from-backend` relay.
+  Settings lifecycle docs now route renderer settings saves through the
+  SDK-shaped `settings.update` command and Electron main settings-sync runtime
+  instead of a removed renderer `to-backend` relay.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -4973,6 +4976,26 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   allowlists, SDK projection payloads, backend websocket payloads, storage,
   credentials, permissions, provider policy, hosted URLs, and local execution
   behavior are unchanged.
+
+### 2026-06-20 Settings Sync SDK Command Docs Boundary
+
+- Finding: the settings lifecycle reference still described renderer settings
+  saves as a direct `to-backend` `update-settings` send, and the settings-sync
+  workflow read hint still named renderer-to-backend settings payload shape,
+  even though live renderer settings updates go through the desktop settings
+  runtime facade and SDK-shaped `settings.update` command.
+- Change: updated the settings lifecycle and settings-sync workflow docs to
+  route renderer saves through SDK command IPC, identify
+  `ipc_settings_sync_runtime.cjs` as the ACK gate owner, and reserve backend
+  `update-settings` for the backend websocket message sent through the Agent
+  SDK runtime from Electron main.
+- Validation: added a focused renderer settings boundary guard that requires
+  SDK/main command-shape wording and rejects the retired `to-backend` settings
+  lifecycle phrases.
+- Compatibility: no migration required. Renderer config fields, localStorage
+  keys, `frontend-config.json`, `windie:invoke`, backend `update-settings`
+  payloads, ACK IDs, settings events, credentials, permissions, provider policy,
+  hosted URLs, and local execution behavior are unchanged.
 
 ## Remaining Findings
 
