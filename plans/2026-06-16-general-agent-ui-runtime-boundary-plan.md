@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Tool Pipeline Local-Runtime Python Labels
+
+- Finding: web-search, tool-schema policy, filesystem/shell flow, credential,
+  landing workflow, and agent-visible pipeline docs still used Python sidecar
+  or sidecar labels for local-runtime executable absence, helper visibility,
+  execute-tool JSON-RPC, remote-client auth, local runtime state, and
+  cross-runtime boundary examples.
+- Change: routed those labels through local-runtime Python/local-runtime
+  wording while preserving concrete Python file paths, sidecar test paths, and
+  backend-owned web-search behavior.
+- Validation: focused modular docs boundary test, exact stale tool/pipeline
+  label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, tool schemas, web-search
+  behavior, auth headers, environment variables, JSON-RPC payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Source-Map Local-Runtime Python Implementation Labels
 
 - Finding: renderer, local-runtime Python, and development source-map docs

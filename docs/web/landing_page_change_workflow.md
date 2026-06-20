@@ -12,7 +12,7 @@ title: "Landing Page Change Workflow"
 Use this workflow before changing the public WindieOS landing page. The landing
 page is a standalone browser-facing Vite entrypoint. It is not the Electron
 desktop dashboard, does not use Electron IPC, and should not depend on local
-sidecar state, user credentials, or backend websocket sessions.
+local-runtime state, user credentials, or backend websocket sessions.
 
 ## Boundary Rules
 

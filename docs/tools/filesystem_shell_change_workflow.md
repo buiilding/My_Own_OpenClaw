@@ -23,7 +23,7 @@ flowchart LR
     D --> E["Electron main local-runtime bridge"]
     E --> F["local_runtime_execute_tool_runtime.cjs"]
     F --> G["local_runtime_tool_args.cjs"]
-    G --> H["Python sidecar execute_tool JSON-RPC"]
+    G --> H["local-runtime Python execute_tool JSON-RPC"]
     H --> I["ToolRegistry.execute_tool"]
     I --> J["filesystem/system local-runtime tool implementation"]
     J --> K["ToolResult"]

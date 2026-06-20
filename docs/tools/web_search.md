@@ -9,8 +9,8 @@ title: "Web Search Tool"
 
 # Web Search Tool
 
-`web_search` is a backend-owned logical capability. It is not a sidecar
-executable tool and does not go through Electron main or the Python sidecar.
+`web_search` is a backend-owned logical capability. It is not a local-runtime
+executable tool and does not go through Electron main or local-runtime Python.
 
 ## Execution Modes
 

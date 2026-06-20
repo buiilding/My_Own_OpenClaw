@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: source maps and platform setup docs now describe
-  local-runtime Python implementation/setup ownership instead of Python
-  sidecar or mixed local-runtime/sidecar labels, with focused docs boundary
-  guards against those retired phrases.
+- Latest completed slice: tool, pipeline, web, and credential docs now route
+  local-runtime execution, remote-client auth, and runtime-boundary labels
+  through local-runtime Python wording instead of Python sidecar owner labels,
+  with focused docs boundary guards against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +244,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Tool Pipeline Local-Runtime Python Labels
+
+- Finding: web-search, tool-schema policy, filesystem/shell flow, credential,
+  landing workflow, and agent-visible pipeline docs still used Python sidecar
+  or sidecar labels for local-runtime executable absence, helper visibility,
+  execute-tool JSON-RPC, remote-client auth, local runtime state, and
+  cross-runtime boundary examples.
+- Change: routed those labels through local-runtime Python/local-runtime
+  wording while preserving concrete Python file paths, sidecar test paths, and
+  backend-owned web-search behavior.
+- Validation: focused modular docs boundary test, exact stale tool/pipeline
+  label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, tool schemas, web-search
+  behavior, auth headers, environment variables, JSON-RPC payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Source-Map Local-Runtime Python Implementation Labels
 

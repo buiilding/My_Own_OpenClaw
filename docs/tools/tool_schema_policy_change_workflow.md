@@ -42,7 +42,7 @@ The core rule is: backend owns backend remote tools, backend-tool argument valid
   and local-runtime availability status.
 - The local runtime owns local executable tool registry authority and actual local machine actions through the local-runtime Python implementation.
 - Backend-only tools such as `web_search` do not need local-runtime executable parity, but they still need policy and provider capability tests.
-- Local-runtime helper behavior implemented only inside the Python sidecar must not be model-visible until the backend catalog and policy deliberately expose it.
+- Local-runtime helper behavior implemented only inside local-runtime Python must not be model-visible until the backend catalog and policy deliberately expose it.
 - Exact schema parity is required only where accepted desktop client/local-runtime model-facing args are also local-runtime executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
 - Provider-native declarations may be added after canonical filtering, but policy must still prevent disabled grounded function schemas from leaking to the model.
 - Client manifest validation is partial and structural: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.

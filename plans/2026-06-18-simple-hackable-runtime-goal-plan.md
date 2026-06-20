@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a tool pipeline local-runtime Python label slice by
+  routing web-search, tool-schema policy, filesystem/shell flow, credential,
+  landing workflow, and agent-visible pipeline docs through local-runtime
+  Python/local-runtime wording instead of Python sidecar owner labels.
+  Validation: focused modular docs boundary test, exact stale tool/pipeline
+  label scan, docs listing, and diff checks. No migration required; no runtime
+  code, tool schema, web-search behavior, auth header, environment variable,
+  JSON-RPC payload, IPC payload, storage, credential, permission, hosted URL,
+  provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a source-map local-runtime Python implementation label
   slice by routing renderer, local-runtime Python, and development folder maps
   through local-runtime Python implementation wording instead of Python sidecar

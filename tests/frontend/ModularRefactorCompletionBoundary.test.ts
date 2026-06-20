@@ -955,6 +955,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('backend/renderer/sidecar change routing');
     expect(docText).not.toContain('### Python Sidecar Rejects a Payload');
     expect(docText).not.toContain('Python sidecar `entrypoint`');
+    expect(docText).not.toContain('Local-runtime helper behavior implemented only inside the Python sidecar');
+    expect(docText).not.toContain('Python sidecar execute_tool JSON-RPC');
     expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
     expect(docText).not.toContain('Python sidecar local tool');
@@ -1090,6 +1092,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('Python sidecar owns the concrete local tool implementations');
     expect(toolRoutingDocText).not.toContain('Python sidecar owns local executable tool registry entries');
     expect(toolRoutingDocText).not.toContain('Python sidecar-owned payloads');
+    expect(toolRoutingDocText).not.toContain('backend, Electron main, renderer, preload, and Python sidecar');
+    expect(toolRoutingDocText).not.toContain('renderer, Python sidecar, trusted/untrusted');
     expect(toolRoutingDocText).not.toContain('| Sidecar runtime |');
     expect(toolRoutingDocText).not.toContain('Local sidecar tool');
     expect(toolRoutingDocText).not.toContain('Sidecar owner');
@@ -1368,6 +1372,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('sidecar contract drift');
     expect(docText).not.toContain('sidecar expectations');
+    expect(docText).not.toContain('Python sidecar remote client base');
+    expect(docText).not.toContain('environment for Python sidecar remote clients');
     expect(docText).not.toContain('sidecar actions');
     expect(docText).not.toContain('sidecar action without losing ids');
     expect(docText).not.toContain('sidecar action adapter defaulting assumptions');
