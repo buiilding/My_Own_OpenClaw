@@ -17888,3 +17888,21 @@ Each completed slice should report:
   local-runtime startup, IPC channels, transcript session sync payloads,
   window/overlay behavior, SDK contracts, storage, credentials, permissions,
   hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Package SDK README neutral examples
+
+- Finding: `packages/windie-sdk-js/README.md` still used the production
+  WindieOS hosted URL plus concrete OpenAI/GPT and Mistral model examples after
+  the reusable SDK docs had already moved to hosted endpoint/provider/model
+  placeholders.
+- Change: replaced the package README examples with
+  `https://backend.example.com`, `hosted-provider`, and neutral model IDs while
+  preserving `listModels()`, wake-up model selection, `setModel`, per-turn
+  override, and auto-local-runtime examples; extended the modular public SDK
+  README guard against the retired concrete examples.
+- Validation: focused modular docs boundary test, exact stale SDK README
+  provider/endpoint scan, and diff checks.
+- Compatibility: no migration required. Package code, SDK APIs, endpoint
+  resolution, install auth, model-setting payloads, local-runtime startup,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.

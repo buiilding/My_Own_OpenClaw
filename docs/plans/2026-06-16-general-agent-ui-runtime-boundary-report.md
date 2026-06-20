@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: frontend inventory, renderer startup, backend runs,
-  IPC protocol, and local-runtime lifecycle docs now route remaining
-  product/main-runtime labels through desktop app windows, Electron main VM
-  worker, Electron main session state, and SDK-owned local-runtime wording.
+- Latest completed slice: package SDK README examples now use neutral hosted
+  endpoint/provider/model placeholders instead of production WindieOS endpoint
+  and concrete provider/model IDs.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -26,6 +25,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   renderer startup, backend runs, IPC protocol, and local-runtime lifecycle docs
   now use desktop app window, Electron main VM worker, Electron main session
   state, and SDK-owned local-runtime wording for the same owner boundaries. SDK
+  package README examples now use `https://backend.example.com`,
+  `hosted-provider`, and neutral model IDs while preserving the public
+  `AgentClient` flow and local-runtime setup example. SDK
   helper symbols that are not part of the public package boundary
   stay private behind higher-level runtime APIs, and renderer/main-private
   guard markers use generic desktop-agent naming. SDK internal diagnostics use

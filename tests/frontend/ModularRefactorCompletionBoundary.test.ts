@@ -160,7 +160,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(readme).toContain('local-runtime module-tool registration');
     expect(readme).toContain('local-runtime plugin package registration');
     expect(readme).toContain('waking agents from external clients');
+    expect(readme).toContain("backendUrl: 'https://backend.example.com'");
+    expect(readme).toContain("modelProvider: 'hosted-provider'");
+    expect(readme).toContain("modelId: 'other-hosted-model'");
     expect(readme).not.toContain('waking Windie agents');
+    expect(readme).not.toContain('https://api.windieos.com');
+    expect(readme).not.toContain("modelProvider: 'openai'");
+    expect(readme).not.toContain("modelId: 'gpt-5.4'");
+    expect(readme).not.toContain("modelProvider: 'mistral'");
+    expect(readme).not.toContain('mistral-large-latest');
     expect(readme).not.toContain("pythonArgs: ['sidecar', 'python']");
     expect(readme).not.toContain('local sidecar execution');
     expect(readme).not.toContain('sidecar module-tool registration');

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/docs: replace production WindieOS endpoint and concrete provider/model
+  examples in the package README with neutral hosted backend/provider/model
+  placeholders. No migration required.
 - docs/frontend: route remaining inventory, VM-worker, and local-runtime
   lifecycle labels through desktop app windows, Electron main VM worker, and
   SDK-owned local-runtime wording instead of WindieOS/main-runtime labels. No

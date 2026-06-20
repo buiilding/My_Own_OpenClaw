@@ -20,21 +20,22 @@ should model the high-level `AgentClient` path.
 ```ts
 import { AgentClient } from '@windie/sdk';
 
-const client = new AgentClient({ backendUrl: 'https://api.windieos.com' });
+const client = new AgentClient({ backendUrl: 'https://backend.example.com' });
 const catalog = await client.listModels();
+const selectedModelId = catalog.config?.selected_model_id ?? 'hosted-model';
 const agent = await client.wakeUp({
   plugins: [{ path: './plugins/repo-agent' }],
   model: {
-    modelProvider: 'openai',
-    modelId: 'gpt-5.4',
+    modelProvider: 'hosted-provider',
+    modelId: selectedModelId,
     modelMode: 'online',
     interactionMode: 'agent',
   },
 });
 
 await agent.setModel({
-  modelProvider: 'mistral',
-  modelId: 'mistral-large-latest',
+  modelProvider: 'other-hosted-provider',
+  modelId: 'other-hosted-model',
 });
 await agent.run('Inspect the repo and summarize what changed.');
 
@@ -42,8 +43,8 @@ const conversation = agent.conversation({ conversationRef: 'repo-checks' });
 for await (const event of conversation.stream({
   text: 'Run the tests and summarize failures.',
   model: {
-    modelProvider: 'openai',
-    modelId: catalog.config.selected_model_id,
+    modelProvider: 'hosted-provider',
+    modelId: selectedModelId,
   },
 })) {
   if (event.type === 'conversation_event' && event.event.type === 'assistant_delta') {
@@ -74,7 +75,7 @@ daemon discovery and startup:
 
 ```ts
 const client = new AgentClient({
-  backendUrl: 'https://api.windieos.com',
+  backendUrl: 'https://backend.example.com',
   autoLocalRuntime: {
     daemonScript: './agent-local-runtime-daemon.py',
     pythonCommand: 'python3',
