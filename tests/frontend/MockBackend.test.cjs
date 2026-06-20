@@ -91,7 +91,7 @@ describe('mock backend', () => {
     const toolOutput = await waitForEvent(events, 'tool-output');
     const complete = await waitForEvent(events, 'streaming-complete');
     expect(toolOutput.payload.output).toBe('mock tool result accepted');
-    expect(complete.payload.content).toBe('Mock response from Windie-agent backend.');
+    expect(complete.payload.content).toBe('Mock response from Agent SDK backend.');
     ws.close();
   });
 });

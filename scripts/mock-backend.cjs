@@ -17,7 +17,7 @@ function createMockBackendServer() {
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, service: 'windie-agent-mock-backend' }));
+      res.end(JSON.stringify({ ok: true, service: 'agent-sdk-mock-backend' }));
       return;
     }
     res.writeHead(404);
@@ -102,14 +102,14 @@ function createMockBackendServer() {
           }))
           : [];
         sendBackendEvent('system-prompt', {
-          content: 'Mock WindieOS system prompt.',
+          content: 'Mock Agent SDK system prompt.',
           tool_schemas: null,
           client_prompt_layers: promptLayers,
         }, routingEnvelope);
         sendBackendEvent('tool-schemas', { tool_schemas: toolSchemas }, routingEnvelope);
         sendBackendEvent('streaming-response', {
-          chunk: 'Mock response from Windie-agent backend. ',
-          text: 'Mock response from Windie-agent backend. ',
+          chunk: 'Mock response from Agent SDK backend. ',
+          text: 'Mock response from Agent SDK backend. ',
         }, routingEnvelope);
 
         const firstTool = handshakeTools[0];
@@ -125,8 +125,8 @@ function createMockBackendServer() {
         }
 
         sendBackendEvent('streaming-complete', {
-          content: 'Mock response from Windie-agent backend.',
-          final_response: 'Mock response from Windie-agent backend.',
+          content: 'Mock response from Agent SDK backend.',
+          final_response: 'Mock response from Agent SDK backend.',
         }, routingEnvelope);
         return;
       }
@@ -140,8 +140,8 @@ function createMockBackendServer() {
         }, pendingRoutingEnvelope);
         pendingToolCall = null;
         sendBackendEvent('streaming-complete', {
-          content: 'Mock response from Windie-agent backend.',
-          final_response: 'Mock response from Windie-agent backend.',
+          content: 'Mock response from Agent SDK backend.',
+          final_response: 'Mock response from Agent SDK backend.',
         }, pendingRoutingEnvelope);
         pendingRoutingEnvelope = {};
       }
@@ -156,7 +156,7 @@ if (require.main === module) {
   const { server } = createMockBackendServer();
   server.listen(port, () => {
     // eslint-disable-next-line no-console
-    console.log(`Windie-agent mock backend listening on ws://127.0.0.1:${port}/ws`);
+    console.log(`Agent SDK mock backend listening on ws://127.0.0.1:${port}/ws`);
   });
 }
 

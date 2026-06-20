@@ -238,6 +238,20 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Agent SDK Mock Backend Copy
+
+- Finding: the local SDK mock backend still returned Windie-agent/WindieOS copy
+  in health metadata, system-prompt fixtures, streamed responses, completion
+  fixtures, and startup logs even though it is reusable SDK developer tooling.
+- Change: replaced those fixture strings with generic Agent SDK mock-backend
+  wording and updated the focused mock-backend contract expectation.
+- Validation: focused mock-backend Jest coverage, docs search, related commit
+  search, stale mock-backend product-copy scan, and diff check.
+- Compatibility: no migration required. Mock websocket event shapes, health
+  response fields, tool-call/result flow, SDK transport behavior, storage,
+  credentials, permissions, provider policy, hosted URLs, and local-runtime
+  behavior are unchanged.
+
 ### 2026-06-20 Registry Table Local-Runtime Labels
 
 - Finding: active tool contract and frontend IPC/local-runtime protocol docs

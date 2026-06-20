@@ -275,6 +275,16 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: replaced Windie-agent/WindieOS fixture copy in the local SDK mock
+  backend's health metadata, system-prompt event, streamed/completion response,
+  and startup log with generic Agent SDK mock-backend wording. Validation
+  covered the focused mock-backend Jest test, docs search, related commit
+  search, stale mock-backend product-copy scan, and diff check. No migration
+  required; mock websocket event shapes, health response fields,
+  tool-call/result flow, SDK transport behavior, storage, credentials,
+  permissions, provider policy, hosted URLs, and local-runtime behavior are
+  unchanged.
+
 - 2026-06-20: routed active tool contract and frontend IPC/local-runtime
   protocol registry table labels through `Local-runtime executable registry`
   and `Python JSON-RPC Method Registry` instead of `Sidecar registry` and

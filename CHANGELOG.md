@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- scripts/sdk: make the local mock backend response, health service, system
+  prompt, and startup copy use generic Agent SDK wording instead of
+  Windie-agent/WindieOS fixture labels. No migration required.
 - docs/frontend: route active tool-contract and frontend protocol registry
   labels through local-runtime executable registry and Python JSON-RPC method
   registry wording instead of sidecar registry owner labels. No migration
