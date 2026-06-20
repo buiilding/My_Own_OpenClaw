@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route ADR 005, tool contract entrypoint, and local-runtime
+  backend-config wording through local-runtime dispatch and remote request
+  contracts instead of sidecar-owned execution/request labels. No migration
+  required.
 - docs/runtime: route install, operations, architecture, JSON-RPC protocol, and
   local-runtime Python workflow labels through local-runtime startup/request
   wording instead of sidecar startup/request owner labels. No migration

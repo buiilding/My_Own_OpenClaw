@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar backend endpoint config: injected endpoint ownership, missing-config failure, and trailing-slash normalization semantics."
+summary: "Deep reference for local-runtime backend endpoint config: injected endpoint ownership, missing-config failure, and trailing-slash normalization semantics."
 read_when:
-  - When changing `windie/_backend_config.py` or introducing new sidecar/backend endpoint env vars.
-  - When debugging sidecar requests targeting the wrong backend URL due to env precedence or slash-normalization drift.
+  - When changing `windie/_backend_config.py` or introducing new local-runtime/backend endpoint env vars.
+  - When debugging local-runtime remote requests targeting the wrong backend URL due to env precedence or slash-normalization drift.
 title: "Backend Config Env-Precedence, Trailing-Slash Normalization, and Required-URL Contract Reference"
 ---
 

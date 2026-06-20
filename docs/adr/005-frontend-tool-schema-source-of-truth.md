@@ -21,7 +21,7 @@ WindieOS has two related but distinct tool contracts:
 - backend model-facing schemas: what the LLM sees and what policy/capability gates can expose
 - local-runtime executable tools: what actually runs on the user's machine
 
-Historically, the backend owned the local model-facing tool catalog and emitted tool calls to the frontend. The sidecar owned local tool execution. That left local tools split across two runtimes and made drift easy.
+Historically, the backend owned the local model-facing tool catalog and emitted tool calls to the frontend while the Python implementation directly carried local execution. That left local tools split across two runtime contracts and made drift easy.
 
 The desktop client/local-runtime pipeline now publishes a versioned executable
 manifest for local built-in tools. The backend consumes the manifest during

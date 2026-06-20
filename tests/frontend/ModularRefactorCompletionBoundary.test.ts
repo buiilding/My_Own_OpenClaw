@@ -336,6 +336,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('client-local sidecar imports');
     expect(docText).not.toContain('Backend schema, shared browser contract, sidecar runtime, Electron bridge');
     expect(docText).not.toContain('Sidecar owns local execution');
+    expect(docText).not.toContain('The sidecar owned local tool execution');
     expect(docText).not.toContain('routes local work through the sidecar');
     expect(docText).not.toContain('desktop sidecar owns local execution');
     expect(docText).not.toContain('SDK and sidecar runtime');
@@ -900,6 +901,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('The sidecar starts each enabled MCP server');
     expect(docText).not.toContain('The sidecar sends MCP');
     expect(docText).not.toContain('The sidecar calls `tools/list`');
+    expect(docText).not.toContain('the sidecar calls the entrypoint');
     expect(docText).not.toContain('backend/renderer/sidecar change routing');
     expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
@@ -1940,6 +1942,7 @@ describe('modular sdk refactor completion boundary', () => {
         'Main/sidecar boundary:',
         'sidecar remains tool executor',
         'sidecar JSON-RPC call behind',
+        'sidecar requests targeting the wrong backend URL',
         'When adding/changing sidecar JSON-RPC methods',
         'daemon-backed sidecar calls',
         'sidecar startup failure',

@@ -3743,6 +3743,15 @@ For each completed slice, record:
   listing, and diff checks. No migration required; no runtime code, SDK export,
   IPC payload, local-runtime execution, storage, credential, permission, hosted
   URL, or provider-policy behavior changed.
+- 2026-06-20: completed a tool entrypoint/backend-config contract wording slice
+  by routing ADR 005, extension entrypoint, and local-runtime backend-config docs
+  through local-runtime dispatch, Python implementation wording, and
+  local-runtime remote requests instead of sidecar-owned execution/request
+  labels. Validation: focused modular docs boundary test, exact stale phrase
+  scan, docs listing, and diff checks. No migration required; no runtime code,
+  extension manifest field, entrypoint argument, backend URL, env precedence,
+  storage, credential, permission, hosted URL, or provider-policy behavior
+  changed.
 - 2026-06-18: completed the browser workflow hub-routing follow-up by aligning
   Browser Change Workflow links in the docs hub, browser hub, and getting-started
   hub with local-runtime execution and Python sidecar adapter wording. The

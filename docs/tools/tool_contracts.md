@@ -35,8 +35,9 @@ manifest and its accepted/rejected backend transparency instead of importing a
 separate manifest name list.
 
 Extension manifests use one developer-facing JSON Schema field: `schema`.
-Extension authors pair that with `entrypoint`; the sidecar calls the entrypoint
-with the arguments emitted for that tool.
+Extension authors pair that with `entrypoint`; local-runtime dispatch calls the
+entrypoint through the Python implementation with the arguments emitted for
+that tool.
 
 ## Contract Families
 

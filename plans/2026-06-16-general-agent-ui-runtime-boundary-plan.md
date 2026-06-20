@@ -16455,3 +16455,20 @@ Each completed slice should report:
 - Compatibility: no migration required. Runtime code, SDK exports, IPC
   payloads, local-runtime execution, storage, credentials, permissions, hosted
   backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Tool entrypoint and backend-config contract wording
+
+- Finding: ADR 005 still described historical local execution as sidecar-owned,
+  `docs/tools/tool_contracts.md` said the sidecar calls extension entrypoints,
+  and the local-runtime backend-config reference routed wrong-endpoint debugging
+  through sidecar requests.
+- Change: routed those public contract labels through local-runtime dispatch,
+  Python implementation wording, and local-runtime remote requests, and extended
+  the modular docs guard against the retired sidecar-owned execution/request
+  phrases.
+- Validation: focused modular docs boundary test, exact stale phrase scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, extension manifest fields,
+  entrypoint arguments, backend URLs, environment-variable precedence,
+  trailing-slash normalization, SDK dispatch, storage, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.

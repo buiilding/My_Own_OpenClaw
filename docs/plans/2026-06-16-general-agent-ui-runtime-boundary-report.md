@@ -6181,3 +6181,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   main-runtime labels. Runtime code, SDK exports, IPC payloads, local-runtime
   execution, storage, credentials, permissions, hosted backend URLs, and
   provider policy are unchanged.
+- ADR 005, tool contract, and local-runtime backend-config docs now describe the
+  local-runtime manifest/entrypoint/remote-request contract through
+  local-runtime dispatch and Python implementation wording instead of
+  sidecar-owned execution or sidecar request labels. Runtime code, extension
+  manifest fields, entrypoint arguments, backend URLs, environment-variable
+  precedence, trailing-slash normalization, SDK dispatch, storage, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
