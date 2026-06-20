@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 First-Read Local-Runtime Python Setup Labels
+
+- Finding: concepts, quick-start, installation, and troubleshooting docs still
+  described the public runtime split, dependency install, Electron launch
+  target, and tool-execution checks as Python sidecar concepts instead of
+  local-runtime Python setup/status/log evidence.
+- Change: routed those labels through local-runtime Python wording while
+  preserving concrete frontend Python dependency installation, Electron launch,
+  and local tool troubleshooting behavior.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  first-read setup label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, dependency files,
+  Electron launch behavior, tool execution, log sinks, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Execution Labels
 
 - Finding: architecture and platform workflow docs still said the sidecar

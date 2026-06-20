@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a first-read local-runtime Python setup label slice by
+  routing concepts, quick-start, installation, and troubleshooting docs through
+  local-runtime Python setup/status/log wording instead of Python sidecar
+  setup/runtime labels. Validation: focused modular docs boundary test, docs
+  listing, exact stale first-read setup label scan, and diff checks. No
+  migration required; no runtime code, dependency file, Electron launch
+  behavior, tool execution, log sink, IPC payload, storage, credential,
+  permission, hosted URL, provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a local-runtime execution label slice by routing
   architecture drag execution through local-runtime Python wording and platform
   local-tool execution through local runtime wording instead of sidecar

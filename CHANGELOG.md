@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(getting-started): route concepts, install, quick-start, and
+  troubleshooting local-runtime setup labels through local-runtime Python
+  wording instead of Python sidecar wording. No migration required.
 - docs(platform): route local drag/tool execution labels through local-runtime
   Python/local-runtime wording instead of sidecar execution wording. No
   migration required.

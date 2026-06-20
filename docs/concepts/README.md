@@ -12,7 +12,7 @@ WindieOS concepts are product and system explanations that sit above implementat
 
 ## Core Concepts
 
-- [Runtime Model](runtime_model.md) explains the hosted backend, Electron main host, renderer, and Python sidecar split.
+- [Runtime Model](runtime_model.md) explains the hosted backend, Electron main host, renderer, and local-runtime Python split.
 - [Sessions and Conversations](sessions_and_conversations.md) explains `user_id`, `session_id`, `conversation_ref`, transcript replay, backend rehydrate, and conversation-scoped routing.
 - [Agent Loop](agent_loop.md) explains query ingress, prompt construction, model streaming, tool turns, and completion.
 - [Streaming and Events](streaming_and_events.md) explains websocket event families, renderer consumers, correlation fields, and tool/audio event routing.

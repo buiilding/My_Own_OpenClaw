@@ -238,9 +238,9 @@ read_when:
    - Verify tool is registered
    - Check tool name matches
 
-2. **Check Python Sidecar**:
-   - Verify Python sidecar running
-   - Check sidecar logs
+2. **Check Local-Runtime Python**:
+   - Verify local-runtime Python is running
+   - Check local-runtime Python logs
 
 3. **Check Permissions**:
    - Local-runtime tools are not permission-gated by default

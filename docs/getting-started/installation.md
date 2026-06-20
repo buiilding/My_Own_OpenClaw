@@ -56,7 +56,7 @@ conda create -n jarvis python=3.11
 conda activate jarvis
 ```
 
-If you plan to run the Electron desktop app (whose main process starts the Python sidecar) and want a separate env:
+If you plan to run the Electron desktop app (whose main process starts local-runtime Python) and want a separate env:
 
 ```bash
 conda create -n frontend_jarvis python=3.11
@@ -86,7 +86,7 @@ cd frontend
 npm install
 ```
 
-#### Install Python Sidecar Dependencies
+#### Install Local-Runtime Python Dependencies
 
 The Electron app resolves Python from `CONDA_PREFIX` when set, otherwise
 `python3` (Linux/macOS) or `py` (Windows) from `PATH`. Install the sidecar

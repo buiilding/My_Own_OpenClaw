@@ -12,10 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: architecture and platform workflow docs now route
-  drag/tool execution through local-runtime Python/local-runtime wording
-  instead of sidecar execution labels, with a focused docs boundary guard
-  against those retired phrases.
+- Latest completed slice: first-read concepts, install, quick-start, and
+  troubleshooting docs now describe local-runtime Python setup/status/logs
+  instead of Python sidecar setup/runtime labels, with a focused docs boundary
+  guard against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +244,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 First-Read Local-Runtime Python Setup Labels
+
+- Finding: concepts, quick-start, installation, and troubleshooting docs still
+  described the public runtime split, dependency install, Electron launch
+  target, and tool-execution checks as Python sidecar concepts instead of
+  local-runtime Python setup/status/log evidence.
+- Change: routed those labels through local-runtime Python wording while
+  preserving concrete frontend Python dependency installation, Electron launch,
+  and local tool troubleshooting behavior.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  first-read setup label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, dependency files,
+  Electron launch behavior, tool execution, log sinks, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Execution Labels
 

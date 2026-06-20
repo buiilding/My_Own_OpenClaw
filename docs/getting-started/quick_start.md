@@ -50,7 +50,7 @@ cd frontend
 npm.cmd install
 ```
 
-Install Python sidecar dependencies (used for tool execution) into the same
+Install local-runtime Python dependencies (used for tool execution) into the same
 Python environment you will use to launch Electron:
 
 ```bash
