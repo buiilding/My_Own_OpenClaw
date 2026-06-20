@@ -132,7 +132,7 @@ Computer-control execution notes:
 
 ## Memory
 
-Local memory is backed by the Python sidecar implementation:
+Local memory is backed by the local-runtime Python implementation:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Durable title state in `frontend/src/main/python/memory/conversation_title_store.py`

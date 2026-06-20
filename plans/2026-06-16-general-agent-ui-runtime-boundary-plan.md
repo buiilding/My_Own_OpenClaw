@@ -123,8 +123,10 @@ Each completed slice should report:
 ### 2026-06-20 Tool Data-Flow Local-Runtime Python Labels
 
 - Finding: public architecture data-flow, communication, backend overview,
-  computer-tool, platform, and tool-lifecycle docs still described local
-  action ownership through Python sidecar implementation/backing labels.
+  reference, mobile-planning, computer-tool, platform, tool-lifecycle,
+  tool-registry, local-memory, inventory, docs-hub, and local-runtime Python
+  sub-hub docs still described local action ownership/backing through Python
+  sidecar implementation/backing labels.
 - Change: routed those labels through local-runtime Python implementation and
   local-runtime Python tool/executor wording while preserving concrete
   `frontend/src/main/python` paths.

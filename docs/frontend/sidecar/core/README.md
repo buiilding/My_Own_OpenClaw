@@ -1,5 +1,5 @@
 ---
-summary: "Local-runtime core docs sub-hub for JSON-RPC protocol/error semantics, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle backed by Python sidecar implementations."
+summary: "Local-runtime core docs sub-hub for JSON-RPC protocol/error semantics, stdout framing, backend URL resolution, remote semantic clients, and shared executor lifecycle backed by local-runtime Python implementations."
 read_when:
   - When changing `frontend/src/main/python/core/*` modules.
   - When debugging local-runtime protocol parse/dispatch failures, stdout framing, or remote semantic client connectivity.

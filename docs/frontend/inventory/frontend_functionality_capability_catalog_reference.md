@@ -210,7 +210,7 @@ Primary files:
 
 Capabilities:
 
-- Local-runtime JSON-RPC host backed by the Python sidecar implementation for
+- Local-runtime JSON-RPC host backed by the local-runtime Python implementation for
   tool execution, memory operations, and transcript persistence.
 - Core protocol runtime includes request framing, stdout JSON transport, shutdown handling, and platform adapters.
 - Memory runtime uses SQLite + FAISS with transcript search/list/get/delete and semantic summarization workflow.

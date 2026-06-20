@@ -1,5 +1,5 @@
 ---
-summary: "Local-runtime system-state platform docs sub-hub for probe-layer vs adapter-layer responsibilities, per-OS dependency requirements, and focus-switch matching semantics backed by Python sidecar implementations."
+summary: "Local-runtime system-state platform docs sub-hub for probe-layer vs adapter-layer responsibilities, per-OS dependency requirements, and focus-switch matching semantics backed by local-runtime Python implementations."
 read_when:
   - When changing `frontend/src/main/python/core/platform/*` or `core/system_state.py` platform behavior.
   - When debugging OS-specific drift between `get_system_state` capture outputs and `switch_window` window-activation behavior.

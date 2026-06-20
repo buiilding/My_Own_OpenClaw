@@ -1619,6 +1619,7 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar implementation does local work',
         'The Python sidecar implementation returns local tool results',
         'desktop actions through the Python sidecar implementation',
+        'backed by the Python sidecar implementation',
         'Local runtime, currently backed by Python sidecar tool implementations',
         'Local-runtime registry/exposed-name parity backed by Python sidecar implementation',
         'window operations through the Python sidecar implementation',

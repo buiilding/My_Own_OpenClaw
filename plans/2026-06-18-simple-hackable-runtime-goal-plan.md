@@ -277,11 +277,13 @@ For each completed slice, record:
 
 - 2026-06-20: completed a tool data-flow local-runtime Python label slice by
   routing public architecture data-flow, communication, backend overview,
-  computer-tool, platform, and tool-lifecycle docs through local-runtime
-  Python implementation/executor wording instead of Python sidecar
-  execution/backing route-owner labels. Validation covered the focused modular
-  docs boundary test, docs listing, exact stale tool data-flow label scan, and
-  diff check. No migration required; runtime code, local tool execution,
+  reference, mobile-planning, computer-tool, platform, tool-lifecycle, and
+  tool-registry, local-memory, inventory, docs-hub, and local-runtime Python
+  sub-hub docs through local-runtime Python implementation/executor wording
+  instead of Python sidecar execution/backing route-owner labels. Validation
+  covered the focused modular docs boundary test, docs listing, exact stale
+  tool data-flow label scan, and diff check. No migration required; runtime
+  code, local tool execution,
   JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
   credentials, permissions, hosted backend URLs, provider policy, and trust
   boundaries are unchanged.

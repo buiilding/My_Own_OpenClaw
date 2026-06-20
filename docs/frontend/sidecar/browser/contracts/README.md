@@ -1,5 +1,5 @@
 ---
-summary: "Local-runtime browser contracts docs sub-hub for action-schema registry and validation boundary semantics backed by Python sidecar implementations."
+summary: "Local-runtime browser contracts docs sub-hub for action-schema registry and validation boundary semantics backed by local-runtime Python implementations."
 read_when:
   - When changing `windie_shared/browser_contract*.py` action/field definitions.
   - When debugging browser payloads that pass backend parsing but fail local-runtime schema validation.
