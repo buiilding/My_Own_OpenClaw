@@ -35,6 +35,16 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: replace mojibake communication-flow arrows and memory
+  debugging quotes with ASCII runtime-flow text, and guard the core
+  architecture flow docs from unreadable encoding artifacts. No migration
+  required.
+- docs/architecture: route frontend architecture implementation notes,
+  communication-flow diagrams and flows, plus platform/window-lifecycle
+  screenshot references through local-runtime Python daemon, screenshot,
+  chat-event, title-update, and exposed-tool wording instead of
+  sidecar-as-public-owner labels, and guard core architecture docs against
+  mojibake debug-path text. No migration required.
 - docs/architecture: route first-read architecture, communication-flow, and
   source-map sidecar labels through local-runtime Python implementation wording
   instead of presenting the Python sidecar as a peer runtime owner. No

@@ -20,40 +20,31 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 ## Communication Layers
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│         Renderer Process (React)                        │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  React Components                                  │  │
-│  │  - ChatInterface                                   │  │
-│  │  - MessageInput                                    │  │
-│  │  - MessageList                                     │  │
-│  └───────────────────────────────────────────────────┘  │
-│                    ↕ IPC (preload.js)                     │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Main Process (Node.js)                           │  │
-│  │  - IPC Bridge (ipc.cjs)                            │  │
-│  │  - Agent SDK host                                   │  │
-│  └───────────────────────────────────────────────────┘  │
-│        ↕ WebSocket / HTTP (resolved by Electron main endpoint policy) │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Python Backend (FastAPI)                          │  │
-│  │  - WebSocket Routes                                 │  │
-│  │  - Message Handlers                                 │  │
-│  │  - Agent System                                     │  │
-│  └───────────────────────────────────────────────────┘  │
-│                    ↕ HTTP Control Plane (/api/runs/*)   │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  VM Run Control (FastAPI REST)                    │  │
-│  │  - Worker heartbeat / assignment                  │  │
-│  │  - Run control commands / event relay             │  │
-│  └───────────────────────────────────────────────────┘  │
+Renderer Process (React)
+  - Chat, dashboard, response overlay, settings
+  |
+  | IPC through preload allowlist (`window.agentSdk`, `window.ipc`)
+  v
+Electron Main / Agent SDK Host
+  - IPC routing, windows/overlays, endpoint policy, local host context
+  |
+  |-- SDK local-runtime RPC
+  |   v
+  |   Local-runtime Python implementation
+  |   - Local tools, memory, browser/system state, wakeword helpers
+  |
+  `-- Hosted/self-hosted backend WebSocket + HTTP
+      v
+      Backend control plane (FastAPI)
+      - WebSocket routes, agent loop, provider/tool policy
+      - `/api/runs/*` HTTP control plane when VM worker mode is active
 ```
 
 ## IPC Communication (Electron)
 
 ### IPC Channels
 
-#### Renderer → Main
+#### Renderer -> Main
 
 **`windie:invoke`**
 - Purpose: Send SDK-shaped runtime commands to Electron main
@@ -76,7 +67,7 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 - Format: `{}`
 - Usage: Stop wakeword service
 
-#### Main → Renderer
+#### Main -> Renderer
 
 **`windie:rows`, `windie:current-turn`, `windie:status`**
 - Purpose: Receive SDK conversation display rows, current-turn projection, and
@@ -183,9 +174,10 @@ This control plane is separate from the `/ws` streaming channel and exists to co
    - fallback local: `ws://127.0.0.1:8765/ws` and `http://127.0.0.1:8765`
 4. Packaged fallback: same hosted-first, local-second candidate order as source runs unless explicit `BACKEND_*` or host/port overrides collapse the list
 
-The resolved HTTP URL is also passed to the Python sidecar as `WINDIE_BACKEND_HTTP_URL`.
-The sidecar consumes that injected URL directly; it does not parse Electron endpoint
-aliases or retry alternate backend URLs.
+The resolved HTTP URL is also passed to the local-runtime Python process as
+`WINDIE_BACKEND_HTTP_URL`. The local-runtime Python implementation consumes
+that injected URL directly; it does not parse Electron endpoint aliases or
+retry alternate backend URLs.
 
 ### SDK Routing Model
 
@@ -232,7 +224,7 @@ availability is resolved by backend policy and provider health.
 Authorization: Bearer <install_token>
 ```
 
-**Outgoing (Client → Server)**:
+**Outgoing (Client -> Server)**:
 ```json
 {
   "id": "uuid-v4",
@@ -241,7 +233,7 @@ Authorization: Bearer <install_token>
 }
 ```
 
-**Incoming (Server → Client)**:
+**Incoming (Server -> Client)**:
 ```json
 {
   "id": "turn_123",
@@ -257,8 +249,9 @@ For backend query streams, `id` and `turn_ref` are turn correlation fields.
 They are intentionally the same for every event in one turn. `event_id` is the
 unique backend-produced event identity, and `sequence` is the backend-produced
 ordering number within that turn. SDK conversation stores use backend
-`event_id` as the durable event row id for backend events, while the sidecar
-assigns `message_index` as local append order for display and replay.
+`event_id` as the durable event row id for backend events, while the
+local-runtime transcript store assigns `message_index` as local append order
+for display and replay.
 
 ### Message Types
 
@@ -299,7 +292,7 @@ assigns `message_index` as local append order for display and replay.
   - `system_state` is optional; when present, `active_window` and `mouse_position` are required.
   - `output` is plain model-facing tool text; frontend runtime state does not get serialized into XML inside `output`.
   - `screenshot_ref`/`screenshot` are only sent for computer-use tool results.
-  - Automatic screenshot capture is monitor-scoped: Electron main resolves the sender/query display and passes both monitor bounds and virtual desktop bounds so sidecar screenshot capture can crop to one monitor.
+  - Automatic screenshot capture is monitor-scoped: Electron main resolves the sender/query display and passes both monitor bounds and virtual desktop bounds so local-runtime screenshot capture can crop to one monitor.
 - Response: Acknowledgment
 
 **`tool-bundle-result`**
@@ -433,33 +426,38 @@ Identity notes:
 - Purpose: Full assistant message payload for transparency.
 - Payload: `{ content }`
 
-## Memory HTTP Flow (Sidecar ↔ Backend)
+## Memory HTTP Flow (Local Runtime <-> Backend)
 
-The Python sidecar uses REST endpoints on the same FastAPI server for memory operations. In the product default this is the hosted backend `https://api.windieos.com`; local/self-hosted setups may instead point at `http://127.0.0.1:8765` or another explicit backend override. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
+The local-runtime memory implementation uses REST endpoints on the same FastAPI server for embeddings, semantic summaries, and conversation titles. In the product default this is the hosted backend `https://api.windieos.com`; local/self-hosted setups may instead point at `http://127.0.0.1:8765` or another explicit backend override. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
 
 ```
-┌──────────────────────────────┐          HTTP           ┌──────────────────────────────┐
-│ Python Sidecar (memory/)     │  ───────────────────▶   │ FastAPI REST (memory routes) │
-│ - LocalMemoryStore           │                         │ - /api/embeddings            │
-│ - MemorySummarizer           │                         │ - /api/semantic/summarize    │
-│ - Title runtime              │  ◀───────────────────   │ - /api/semantic/title        │
-└──────────────────────────────┘                         └──────────────────────────────┘
+Local-runtime Python memory implementation
+  - LocalMemoryStore
+  - MemorySummarizer
+  - Title runtime
+  |
+  | HTTP: /api/embeddings, /api/semantic/summarize, /api/semantic/title
+  v
+Backend API (FastAPI)
+  - Embedding provider routing
+  - Semantic summary and title routes
+  - Structured provider errors
 ```
 
 ### Embedding Flow
-1. Sidecar prepares episodic memory content.
+1. The local-runtime memory implementation prepares episodic memory content.
 2. `POST /api/embeddings/` returns the embedding vector.
-3. Sidecar stores embeddings in local FAISS indexes.
+3. The local-runtime memory implementation stores embeddings in local FAISS indexes.
 
 ### Semantic Summarization Flow
 1. MemorySummarizer batches episodic memories by conversation.
 2. `POST /api/semantic/summarize` returns summary + facts.
-3. Sidecar stores semantic memory and marks episodic memories as semanticized.
+3. The local-runtime memory implementation stores semantic memory and marks episodic memories as semanticized.
 
 ### Conversation Title Flow
 1. Transcript storage sees the first user turn and first assistant `llm-text` turn for a conversation.
 2. `POST /api/semantic/title` returns a short model-backed title.
-3. Sidecar saves the title for conversation-list/search reads while heuristic titles remain the fallback.
+3. The local-runtime transcript store saves the title for conversation-list/search reads while heuristic titles remain the fallback.
 
 ### Health Checks
 - `GET /api/embeddings/health`
@@ -471,68 +469,39 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
 
 ```
 1. User types message in UI
-   ↓
 2. useChatMessageSender hook handles message
-   ↓
 3. Screenshot capture runs only when `include_query_screenshot=true` (default enabled)
-   ↓
-4. If captured/pasted, screenshot artifact(s) uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`/`screenshot_refs`
-   ↓
-5. window.agentSdk.invoke('conversation.send', { screenshot_ref, screenshot_refs?, ... })
-   ↓
-6. Main process receives IPC message
-   ↓
-7. Main process resolves system state, artifacts, and local-runtime memory
-   context for the SDK command
-   ↓
+4. Captured/pasted screenshot artifacts upload via HTTP `/api/artifacts`
+5. Renderer sends `window.agentSdk.invoke('conversation.send', ...)`
+6. Electron main receives the SDK-shaped IPC command
+7. Electron main resolves system state, artifacts, and local-runtime memory context
 8. SDK runtime sends the backend WebSocket `query` message
-   ↓
-9. Backend validates message (`backend/src/api/schemas/incoming.py`)
-   ↓
-10. QueryHandler processes message
-   ↓
-11. AgentSession.process_query()
-    ↓
-12. LLM generates response
-    ↓
-13. Backend streams response chunks
-    ↓
+9. Backend validates the message (`backend/src/api/schemas/incoming.py`)
+10. QueryHandler processes the message
+11. AgentSession.process_query() runs the agent loop
+12. LLM/provider produces response chunks and tool calls
+13. Backend streams response events
 14. SDK runtime normalizes backend WebSocket messages into conversation events
-    ↓
-15. Main process forwards SDK projections and typed side-channel events via IPC
-    ↓
+15. Electron main forwards SDK projections and typed side-channel events via IPC
 16. Renderer runtime clients process SDK projections and typed events
-    ↓
-17. Chat store updated via Zustand
-    ↓
-18. UI updates with streaming response
+17. Chat store updates display state
+18. UI renders the streaming response
 ```
 
 ### Tool Execution Flow
 
 ```
-1. LLM generates tool call
-   ↓
-2. Backend sends tool-call message
-   ↓
-3. Main process receives via WebSocket
-   ↓
-4. SDK runtime normalizes the tool event and routes executable work to the local runtime adapter
-   ↓
-5. SDK local runtime calls the sidecar daemon; Electron main supplies desktop
-   host context for window/screenshot/artifact behavior
-   ↓
-6. Python sidecar executes the tool
-   ↓
-7. SDK `ToolExecutionCoordinator` builds the result envelope
-   ↓
-8. SDK runtime sends `tool-result` / `tool-bundle-result` back to backend
-   ↓
-9. Local display receives projected tool call/output events; computer-use capture policy stays in the SDK/main local execution path
-   ↓
-10. Backend processes result (centralized storage)
-    ↓
-11. Agent continues with next step
+1. LLM/provider generates a tool call
+2. Backend sends a `tool-call` or `tool-bundle` stream event
+3. SDK runtime receives the event through its backend transport
+4. SDK runtime normalizes the event and claims executable work
+5. SDK local runtime calls the local-runtime Python implementation
+6. Electron main supplies desktop host context for window/screenshot/artifact behavior
+7. Local-runtime Python tool code executes the action
+8. SDK ToolExecutionCoordinator builds the result envelope
+9. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend
+10. Renderer receives projected tool call/output display events
+11. Backend commits the result and continues the agent loop
 ```
 
 ### Settings Flow
@@ -550,19 +519,13 @@ Settings are persisted locally and synced to the backend session:
 ### Error Flow
 
 ```
-1. Error occurs in component
-   ↓
-2. Error caught and logged
-   ↓
-3. Error recorded through app diagnostics or SDK runtime state as appropriate
-   ↓
-4. Backend processes only backend-owned protocol/runtime errors
-   ↓
-5. SDK/runtime error events settle the affected turn or surface
-   ↓
-6. Renderer receives the projected error state
-   ↓
-7. Error displayed in UI
+1. Error occurs in a producer runtime or UI component
+2. Owning runtime records the diagnostic or error state
+3. Backend handles backend-owned protocol/runtime errors
+4. SDK/runtime error events settle the affected turn or surface
+5. Electron main forwards SDK projections or typed side-channel errors
+6. Renderer receives projected error state
+7. UI displays the error
 ```
 
 ### Error Message Format

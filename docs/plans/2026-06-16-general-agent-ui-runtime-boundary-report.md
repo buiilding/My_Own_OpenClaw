@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: first-read architecture, communication-flow, and
-  source-map docs now describe the local-runtime Python implementation instead
-  of presenting the Python sidecar as a peer runtime owner.
+- Latest completed slice: communication-flow arrows and memory debugging notes
+  now use readable ASCII runtime-flow text instead of mojibake encoding
+  artifacts.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -240,6 +240,43 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through SDK/renderer consumers.
 
 ## Inspection Log
+
+### 2026-06-20 Communication Flow Mojibake Cleanup
+
+- Finding: `docs/architecture/communication_flow.md` still contained mojibake
+  arrows in user-query, tool-execution, error, and transport labels, while
+  `docs/architecture/memory_system.md` had mojibake quotes in a hosted
+  debugging note.
+- Change: replaced the damaged flow arrows and debugging quotes with ASCII
+  runtime-flow text and added a modular docs guard against mojibake markers in
+  the core architecture flow docs.
+- Validation: focused modular docs boundary test, docs listing, exact mojibake
+  marker scan, and diff check.
+- Compatibility: no migration required. Runtime code, IPC payloads, websocket
+  events, local-runtime process startup, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and tool execution behavior are
+  unchanged.
+
+### 2026-06-20 Frontend Architecture Local-Runtime Labels
+
+- Finding: frontend architecture overview and implementation notes,
+  communication-flow diagrams and flows, plus platform/window-lifecycle
+  screenshot references still used sidecar public-owner labels for
+  local-runtime Python implementation, daemon startup, hosted SDK client,
+  dependency install, chat-event RPC names, screenshot capture, title updates,
+  and exposed tool surface.
+- Change: routed those notes and flow references through local-runtime Python
+  daemon, local-runtime chat-event/title/screenshot, local-runtime memory, and
+  local-runtime exposed-tool wording while preserving concrete
+  `frontend/src/main/python` and `main/sidecar/*` paths; cleaned a hosted
+  memory debugging quote mojibake path and guarded core architecture docs
+  against mojibake markers.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  frontend-architecture label scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK local-runtime
+  startup, screenshot behavior, conversation store metadata, tool registry
+  behavior, IPC channels, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
 
 ### 2026-06-20 JSON-RPC Validation and Workflow Labels
 

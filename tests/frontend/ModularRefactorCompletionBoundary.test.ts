@@ -368,6 +368,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(memorySystem).not.toContain('sidecar JSON-RPC envelope');
   });
 
+  test('core architecture flow docs avoid mojibake in debug paths', async () => {
+    const docs = await Promise.all([
+      read('docs/architecture/communication_flow.md'),
+      read('docs/architecture/memory_system.md'),
+    ]);
+    const mojibakeMarkers = [0x00e2, 0x00c3, 0xfffd].map((code) =>
+      String.fromCharCode(code),
+    );
+
+    for (const source of docs) {
+      for (const marker of mojibakeMarkers) {
+        expect(source).not.toContain(marker);
+      }
+    }
+  });
+
   test('runtime trace and transcript docs describe stores through local runtime boundary', async () => {
     const docs = await Promise.all([
       read('docs/debug/runtime_traces.md'),
@@ -1486,6 +1502,20 @@ describe('modular sdk refactor completion boundary', () => {
         'SDK local-runtime RPC between the desktop app and the local Python sidecar',
         'the sidecar performs local execution on the user',
         'main/python/           # local Python sidecar: tools, memory, browser, system',
+        'Local runtime implementation (Python sidecar)',
+        'starts/reuses the sidecar from bundled runtime paths',
+        'Sidecar now has a matching hosted SDK transport client',
+        'Python sidecar dependency install',
+        'sidecar chat-event RPC channels',
+        'Sidecar chat-event RPC names',
+        'Sidecar rewrites persist',
+        'sidecar conversation revision metadata',
+        'only sidecar daemon lifecycle and RPC transport path',
+        'sidecar screenshot capture',
+        'sidecar screenshot task directly',
+        '`sidecar-event` title updates',
+        'SDK runtime in Electron main and the sidecar daemon',
+        'Canonical sidecar-exposed tool surface',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

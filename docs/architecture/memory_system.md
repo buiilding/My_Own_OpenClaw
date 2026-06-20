@@ -210,7 +210,7 @@ Renderer feature code must not call local-runtime JSON-RPC methods such as
 Current title behavior for chats:
 - A new chat can appear in `Your chats` after the first chat event is stored.
 - List/search reads derive the display title from the first user message or latest content in `conversation_events`.
-- Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into â€œrequest never hit FastAPIâ€ versus â€œorigin app received and failed the request.â€
+- Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into "request never hit FastAPI" versus "origin app received and failed the request."
 
 ## Chat Transcript vs SDK Event State
 

@@ -120,6 +120,43 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Communication Flow Mojibake Cleanup
+
+- Finding: `docs/architecture/communication_flow.md` still contained mojibake
+  arrows in user-query, tool-execution, error, and transport labels, while
+  `docs/architecture/memory_system.md` had mojibake quotes in a hosted
+  debugging note.
+- Change: replaced the damaged flow arrows and debugging quotes with ASCII
+  runtime-flow text and added a modular docs guard against mojibake markers in
+  the core architecture flow docs.
+- Validation: focused modular docs boundary test, docs listing, exact mojibake
+  marker scan, and diff check.
+- Compatibility: no migration required. Runtime code, IPC payloads, websocket
+  events, local-runtime process startup, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and tool execution behavior are
+  unchanged.
+
+### 2026-06-20 Frontend Architecture Local-Runtime Labels
+
+- Finding: frontend architecture overview and implementation notes,
+  communication-flow diagrams and flows, plus platform/window-lifecycle
+  screenshot references still used sidecar public-owner labels for
+  local-runtime Python implementation, daemon startup, hosted SDK client,
+  dependency install, chat-event RPC names, screenshot capture, title updates,
+  and exposed tool surface.
+- Change: routed those notes and flow references through local-runtime Python
+  daemon, local-runtime chat-event/title/screenshot, local-runtime memory, and
+  local-runtime exposed-tool wording while preserving concrete
+  `frontend/src/main/python` and `main/sidecar/*` paths; cleaned a hosted
+  memory debugging quote mojibake path and guarded core architecture docs
+  against mojibake markers.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  frontend-architecture label scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK local-runtime
+  startup, screenshot behavior, conversation store metadata, tool registry
+  behavior, IPC channels, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 ### 2026-06-20 First-Read Architecture Local-Runtime Labels
 
 - Finding: first-read architecture and communication-flow docs still presented

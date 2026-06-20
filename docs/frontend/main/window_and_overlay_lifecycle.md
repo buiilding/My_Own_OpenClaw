@@ -303,8 +303,8 @@ For renderer-only deep dives:
 
 `local_runtime_window_visibility.cjs:withHiddenWindowForScreenshot(...)`:
 
-- calls the sidecar screenshot task directly without a platform visibility runtime
-- it does not perform a second hide/restore cycle around the sidecar screenshot task
+- calls the local-runtime screenshot task directly without a platform visibility runtime
+- it does not perform a second hide/restore cycle around the local-runtime screenshot task
 - result: dashboard-visible computer-use turns perform an explicit main-process dashboard-to-pill handoff before any computer-use local execution runs; after handoff, main hides the dashboard and restores the pill/response-overlay surface, while renderer capture orchestration remains scoped to renderer-initiated attachment flows
 
 For deeper focus/capture guard internals:

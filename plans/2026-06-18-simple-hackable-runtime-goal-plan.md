@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a communication-flow mojibake cleanup slice by
+  replacing unreadable user-query, tool-execution, error-flow, and transport
+  arrows plus memory debugging quotes with ASCII runtime-flow text. Validation
+  covered the focused modular docs boundary test, docs listing, exact mojibake
+  marker scan, and diff check. No migration required; runtime code, IPC
+  payloads, websocket events, local-runtime process startup, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and tool
+  execution behavior are unchanged.
+
+- 2026-06-20: completed a frontend architecture local-runtime label slice by
+  routing frontend architecture overview/implementation notes,
+  communication-flow diagrams and flows, plus platform/window-lifecycle
+  screenshot references for local-runtime Python implementation, daemon
+  startup, hosted SDK client, dependency install, chat-event RPC names,
+  screenshot capture, title updates, memory flow, and exposed tool surface
+  through local-runtime wording instead of sidecar public-owner labels.
+  The slice also cleaned hosted memory debugging quote mojibake and guarded
+  core architecture docs against mojibake markers. Validation covered the
+  focused modular docs boundary test, docs listing, exact stale
+  frontend-architecture label scan, and diff check. No migration required;
+  runtime code, SDK local-runtime startup, screenshot behavior, conversation
+  store metadata, tool registry behavior, IPC channels, storage, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.
+
 - 2026-06-20: completed a first-read architecture local-runtime label slice by
   routing the architecture hub, communication overview, and development
   source-map line through local-runtime Python implementation wording instead

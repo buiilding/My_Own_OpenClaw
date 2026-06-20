@@ -17,13 +17,13 @@ WindieOS frontend is a multi-runtime desktop stack:
 1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
 2. Main process (Electron/Node): window lifecycle, thin Agent SDK host wiring, SDK local-runtime bridge, wakeword subprocess bridge.
 3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
-4. Local runtime implementation (Python sidecar): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
+4. Local-runtime Python implementation: local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
 ## Packaged Install Contract
 
 - End users install one OS-specific WindieOS package (Windows/macOS/Linux).
 - Packaged app ships bundled local-runtime Python; no system Python prerequisite.
-- SDK local runtime starts/reuses the sidecar from bundled runtime paths; Electron main still starts wakeword and reports clear reinstall errors when runtime assets are missing.
+- SDK local runtime starts/reuses the bundled local-runtime Python daemon; Electron main still starts wakeword and reports clear reinstall errors when runtime assets are missing.
 - Bundled runtime is expected to include:
   - wakeword model assets
   - browser Python dependencies
@@ -95,11 +95,11 @@ Current runtime behavior also relies on these explicit seams:
   backend-event alias tables for `request_id`, `tool_call_id`,
   `correlation_id`, or `bundle_id`.
 - **Settings/model sync is facade-owned**: provider/config helpers build plain renderer config and model-selection data. Backend settings payload shaping and model command dispatch stay behind `app/runtime/desktopSettingsRuntimeClient.ts` and focused conversation runtime facades.
-- **Sidecar now has a matching hosted SDK transport client**: `frontend/src/main/python/windie/sdk.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
+- **Local-runtime Python now has a matching hosted SDK transport client**: `frontend/src/main/python/windie/sdk.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
 - **Permission runtime is split by capability domain**: `permissions/permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/shortcuts/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
 - **VM worker mode is runtime-flagged and run-API backed**: `app/runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `app/vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
-- **Local-runtime browser implementation is feature-pack aware**: `frontend/src/main/python/local_backend.py` and `core/feature_pack_installer.py` support on-demand Python sidecar dependency install into user-writable site-packages with packaged-app specific failure messaging.
+- **Local-runtime browser implementation is feature-pack aware**: `frontend/src/main/python/local_backend.py` and `core/feature_pack_installer.py` support on-demand local-runtime Python dependency install into user-writable site-packages with packaged-app specific failure messaging.
 - **Local-runtime tool contract is direct-name based**: `frontend/src/main/python/tools/registry.py` exposes concrete tool names from its local `TOOL_CATALOG` plus `switch_window` and `get_open_windows`; parity with backend remote schemas is tracked through `frontend/src/main/python/tools/manifest.py`.
 - **Wrapper artifacts are not live local-runtime tool names**: repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` schemas, but the current local-runtime implementation does not register or dispatch those names.
 
@@ -225,14 +225,14 @@ context, overlay, permission, and window behavior.
 5. Renderer-local conversation helpers request SDK snapshots through
    SDK-shaped commands such as `conversations.list`, `conversations.search`,
    `conversation.load`, and `conversations.delete`. Renderer feature code does
-   not call sidecar chat-event RPC channels or select storage table/record
+   not call local-runtime chat-event RPC channels or select storage table/record
    kinds.
 6. `LocalRuntimeConversationStore` is the canonical local-runtime-backed SDK conversation
-   store. Sidecar chat-event RPC names remain below the SDK/local-runtime
+   store. Local-runtime chat-event RPC names remain below the SDK/local-runtime
    boundary, while the desktop conversation store factory only supplies
    desktop write enrichment such as workspace binding, attachments, and
    compaction checkpoints before invoking SDK-shaped commands.
-   Sidecar rewrites persist the SDK rewrite revision in sidecar conversation
+   Local-runtime rewrites persist the SDK rewrite revision in local-runtime conversation
    revision metadata, not by editing preserved event payloads, so list metadata
    and `getRevision()` stay consistent with file and in-memory stores.
 7. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationContinuityService.loadLocalConversationSnapshot(...)`, `DesktopConversationContinuityService.rehydrateFromStore(...)`, or `DesktopConversationContinuityService.rehydrateMessages(...)`; the continuity runtime loads SDK rehydrate projections and sends backend rehydrate commands through the SDK conversation runtime transport so feature code does not shape provider history or IPC envelopes.
@@ -382,12 +382,12 @@ Primary modules:
   - Keeps dashboard/chat controls from independently choosing between transcript session and `chatStore.activeConversationRef`.
 - `main/sidecar/local_runtime_bridge.cjs`:
   - Registers scoped host IPC handlers for screenshot attachment, browser controls, and system state.
-  - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only sidecar daemon lifecycle and RPC transport path.
+  - Uses `AgentClient` local-runtime resolvers from `ipc.cjs` as the only local-runtime Python daemon lifecycle and RPC transport path.
   - Uses `local_runtime_supervisor.cjs` only for renderer-visible local-runtime readiness/status snapshots.
   - Keeps Electron-only screenshot display bounds, artifact upload, and window visibility behavior out of the SDK.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
-  - Screenshot args include virtual desktop bounds so sidecar screenshot capture can keep monitor targeting deterministic; Windows/Linux crop from all-displays captures when needed, while macOS uses direct bounded capture to avoid Retina scaling drift.
-  - Screenshot execution routes through `main/local_runtime_window_visibility.cjs`, which currently calls the sidecar screenshot task directly.
+  - Screenshot args include virtual desktop bounds so local-runtime screenshot capture can keep monitor targeting deterministic; Windows/Linux crop from all-displays captures when needed, while macOS uses direct bounded capture to avoid Retina scaling drift.
+  - Screenshot execution routes through `main/local_runtime_window_visibility.cjs`, which currently calls the local-runtime screenshot task directly.
 - `main/window_visibility_runtime.cjs`:
   - Dashboard opens from the chat pill now target the sender display work area directly, avoiding Linux window-manager maximize hops that can reopen on the old monitor.
 - `main/window_suppression_runtime.cjs`:
@@ -497,7 +497,7 @@ Primary modules:
   - Refreshes recent-chat metadata from public
     `windie:conversation-metadata-invalidated` events and reloads through
     SDK-shaped `conversations.list`; renderer code does not subscribe to raw
-    `sidecar-event` title updates.
+    local-runtime title updates.
 - `features/dashboard/components/sections/MemorySection.jsx`:
   - Unified episodic/semantic/procedural view.
   - Fetch/delete memory through SDK-shaped `memories.*` commands.
@@ -521,7 +521,7 @@ Primary modules:
 - `app/runtime/desktopConversationContinuityService.ts` and `app/runtime/desktopConversationLibraryClient.js`: replay, rehydrate, list/load/delete/search through the SDK `LocalRuntimeConversationStore` via the desktop conversation store factory.
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
-- `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the sidecar daemon.
+- `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the local-runtime Python executor.
 - Electron main owns screenshot-capture window policy through the local tool lifecycle and platform screenshot/content-protection runtimes; renderer surface orchestration is limited to system-capture focus logging.
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 
@@ -531,7 +531,7 @@ Primary modules:
   - JSON-RPC method registry for tool/system-state/transcript/memory operations.
   - Memory summarization watermark logic and transcript routing.
 - `tools/registry.py`:
-  - Canonical sidecar-exposed tool surface for backend contract parity.
+  - Canonical local-runtime exposed tool surface for backend contract parity.
 - `memory/local_store.py`:
   - SQLite + FAISS local storage.
   - Separate episodic/semantic stores and vector mapping sync.
