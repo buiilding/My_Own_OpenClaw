@@ -73,6 +73,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_active_query_context.cjs'),
       'utf8',
     );
+    const conversationEventProjectionSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_conversation_event_projection.cjs'),
+      'utf8',
+    );
     const electronAgentClientFactorySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
@@ -285,6 +289,10 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('let activeQueryContext = null');
     expect(source).not.toContain('activeQueryContext =');
     expect(activeQueryContextSource).toContain('let activeQueryContext = initialContext;');
+    expect(source).toContain('buildConversationEventFromBackendEvent(event');
+    expect(source).not.toContain('normalizeBackendEventToConversationEvent');
+    expect(conversationEventProjectionSource).toContain('normalizeBackendEventToConversationEvent');
+    expect(conversationEventProjectionSource).toContain('fallbackConversationRef: options.fallbackConversationRef');
     expect(source).not.toContain("action: 'runtime.wakeup'");
     expect(agentWakeupRuntimeSource).toContain("action: 'runtime.wakeup'");
     expect(source).not.toContain(`${retiredProductPrefix} SDK runtime`);

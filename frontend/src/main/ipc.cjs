@@ -56,6 +56,9 @@ const {
   createActiveQueryContextState,
 } = require('./ipc/ipc_active_query_context.cjs');
 const {
+  buildConversationEventFromBackendEvent,
+} = require('./ipc/ipc_conversation_event_projection.cjs');
+const {
   createElectronAgentClient: createElectronAgentClientRuntime,
 } = require('./ipc/ipc_electron_agent_client_factory.cjs');
 const {
@@ -238,9 +241,6 @@ const {
   TraceRecorder,
   createConversationEvent,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
-const {
-  normalizeBackendEventToConversationEvent,
-} = require('../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 const { logChatPillMainTrace } = require('./debug/chat_pill_trace_runtime.cjs');
 const {
   logLiveSurfaceTrace,
@@ -677,17 +677,6 @@ function refreshEnabledMcpServersAfterStartup(config) {
 
 function buildIpcStatusPayload(connected) {
   return ipcStatusPayloads.buildIpcStatusPayload(connected);
-}
-
-function buildConversationEventFromBackendEvent(event, options = {}) {
-  if (!event || typeof event !== 'object' || Array.isArray(event)) {
-    return null;
-  }
-  return normalizeBackendEventToConversationEvent(event, {
-    fallbackConversationRef: options.fallbackConversationRef,
-    fallbackRevisionId: options.fallbackRevisionId,
-    fallbackTurnRef: options.fallbackTurnRef,
-  });
 }
 
 function broadcastConnectionStatus(connected) {

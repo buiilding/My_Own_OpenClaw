@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Conversation Event Projection Boundary
+
+- Finding: `ipc.cjs` still imported the SDK backend event normalizer directly
+  and owned the replay-only wrapper that rejects invalid backend envelopes,
+  supplies fallback refs, and rebuilds SDK conversation events for late-mounted
+  renderer windows.
+- Change: added `ipc_conversation_event_projection.cjs` to own backend-event
+  to SDK conversation-event projection for replay fan-out. `ipc.cjs` now wires
+  renderer windows to the helper while `ipc_renderer_windows.cjs` remains the
+  generic window sync and broadcast owner.
+- Validation: focused projection coverage for normal replayable stream events,
+  scoped backend error fallback refs, invalid envelope rejection, non-error
+  missing-conversation rejection, and boundary guards that keep the SDK backend
+  normalizer import out of `ipc.cjs`.
+- Compatibility: no migration required. Replayed conversation event shapes,
+  SDK normalizer behavior, turn replay buffering, late-window fan-out,
+  renderer IPC channels, backend event payloads, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Active Query Context Boundary
 
 - Finding: `ipc.cjs` still owned mutable active query context storage directly,

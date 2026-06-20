@@ -12,6 +12,7 @@ title: "IPC Event Replay and Transcript Session Sync Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
+- `frontend/src/main/ipc/ipc_conversation_event_projection.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
@@ -72,7 +73,7 @@ Clone safety:
 1. sends current `response-overlay-phase`
 2. requests replay snapshot
 3. rebuilds SDK conversation events from the replay buffer and re-emits them on
-   `windie:conversation-event`
+   `windie:conversation-event` through `ipc_conversation_event_projection.cjs`
 
 Result:
 

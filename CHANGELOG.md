@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move backend-event to SDK conversation-event projection for
+  late-window replay into `ipc_conversation_event_projection.cjs`, preserving
+  invalid envelope rejection, SDK normalizer behavior, scoped error fallback
+  refs, and renderer replay fan-out. No migration required.
 - main/ipc: move active query context state into
   `ipc_active_query_context.cjs`, preserving query-send setup, backend-event
   accepted/terminal mutation, backend-close interruption lookup, and test reset
