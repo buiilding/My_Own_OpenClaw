@@ -21,6 +21,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/app/runtime/desktopRendererConfigStorageRuntime.js`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
 
 ## Config Ownership Boundary
 
@@ -107,6 +108,19 @@ Behavior:
 - save redacts provider API keys and OAuth access/refresh tokens before writing
 - load redacts provider API keys and OAuth access/refresh tokens before returning
 - atomic write (`.tmp` then rename)
+
+### Main-process persistence semantics (`ipc_desktop_ui_config_persistence_runtime.cjs`)
+
+Behavior:
+
+- renderer saves preserve the main-owned `agent_enabled_mcp_servers` allowlist
+  from the latest in-memory config, or from disk when the latest cache has not
+  hydrated that key yet
+- explicit MCP enablement toggles disable that preservation so the toggle result
+  is the persisted source of truth
+- provider secrets are redacted before the disk save helper is called
+- the latest main-process config cache advances only after a successful save
+- save diagnostics record the MCP preservation source and enabled-server counts
 
 Renderer invokes:
 

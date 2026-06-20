@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move desktop UI config MCP allowlist preservation, save
+  redaction, latest-cache updates, and MCP enablement diagnostics into
+  `ipc_desktop_ui_config_persistence_runtime.cjs` so `ipc.cjs` composes the
+  runtime instead of owning persistence semantics inline. No migration
+  required.
 - main/ipc: move query-level agent-definition context attachment into
   `ipc_agent_definition_context.cjs`, keeping `ipc.cjs` as wiring while a
   focused helper gathers custom instructions, workspace AGENTS.md layers,

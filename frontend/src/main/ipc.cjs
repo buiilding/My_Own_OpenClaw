@@ -31,6 +31,9 @@ const {
   saveDesktopUiConfigToDisk,
 } = require('./ipc/ipc_desktop_ui_config.cjs');
 const {
+  createDesktopUiConfigPersistenceRuntime,
+} = require('./ipc/ipc_desktop_ui_config_persistence_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -132,7 +135,6 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extensions/extension_manifest.cjs');
 const {
-  MCP_ENABLED_CONFIG_KEY,
   getEnabledMcpServerSpecsForConfig,
   listMcpServersForConfig,
   refreshMcpServersForConfig,
@@ -260,6 +262,23 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   ),
   log,
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
+});
+const {
+  getDesktopUiConfigForMcpRegistry,
+  persistDesktopUiConfigToDisk,
+  preserveMainOwnedDesktopUiConfigFields,
+} = createDesktopUiConfigPersistenceRuntime({
+  getLatestDesktopUiConfig: () => latestDesktopUiConfig,
+  setLatestDesktopUiConfig: (config) => {
+    latestDesktopUiConfig = config;
+  },
+  loadDesktopUiConfigFromDiskSync,
+  redactDesktopUiConfigProviderSecrets,
+  saveDesktopUiConfigToDisk,
+  isValidConfigPayload,
+  appendDiagnosticEvent,
+  mcpEnablementDiagnosticsPath: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
+  log,
 });
 const installAuthRuntime = createInstallAuthRuntime({
   getCurrentState: () => ({
@@ -396,100 +415,6 @@ function notifyBackendMessageObservers(data) {
 
 async function loadCachedDesktopUiConfigFromDisk() {
   return loadDesktopUiConfigFromDisk(log);
-}
-
-function preserveMainOwnedDesktopUiConfigFields(config, options = {}) {
-  const {
-    preserveMcpEnablement = true,
-  } = options;
-  if (!isValidConfigPayload(config)) {
-    return config;
-  }
-  if (!preserveMcpEnablement) {
-    return config;
-  }
-  const diskConfig = Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY])
-    ? null
-    : loadDesktopUiConfigFromDiskSync(log);
-  const enabledMcpServers = Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY])
-    ? latestDesktopUiConfig[MCP_ENABLED_CONFIG_KEY]
-    : diskConfig?.[MCP_ENABLED_CONFIG_KEY];
-  if (!Array.isArray(enabledMcpServers)) {
-    return config;
-  }
-  return {
-    ...config,
-    [MCP_ENABLED_CONFIG_KEY]: enabledMcpServers.filter((serverId) => typeof serverId === 'string'),
-  };
-}
-
-function getDesktopUiConfigForMcpRegistry() {
-  return preserveMainOwnedDesktopUiConfigFields(latestDesktopUiConfig || {});
-}
-
-function countMcpEnabledServersInConfig(config) {
-  return Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY])
-    ? config[MCP_ENABLED_CONFIG_KEY].filter((serverId) => typeof serverId === 'string').length
-    : 0;
-}
-
-function resolveMcpEnablementPreserveSource(config, options = {}) {
-  if (!isValidConfigPayload(config) || options.preserveMcpEnablement === false) {
-    return 'none';
-  }
-  if (Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY])) {
-    return 'latest';
-  }
-  const diskConfig = loadDesktopUiConfigFromDiskSync(log);
-  if (Array.isArray(diskConfig?.[MCP_ENABLED_CONFIG_KEY])) {
-    return 'disk';
-  }
-  return 'none';
-}
-
-function recordMcpEnablementDiagnostic(input = {}) {
-  try {
-    return appendDiagnosticEvent({
-      path: MCP_ENABLEMENT_DIAGNOSTICS_PATH,
-      traceId: input.traceId || `mcp-enable-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      runtime: 'electron-main',
-      ...input,
-    });
-  } catch {
-    return { stored: false };
-  }
-}
-
-async function persistDesktopUiConfigToDisk(config, options = {}) {
-  const preserveSource = resolveMcpEnablementPreserveSource(config, options);
-  const payloadHasEnabledKey = Array.isArray(config?.[MCP_ENABLED_CONFIG_KEY]);
-  const persistableConfig = redactDesktopUiConfigProviderSecrets(
-    preserveMainOwnedDesktopUiConfigFields(config, options),
-  );
-  const result = await saveDesktopUiConfigToDisk(persistableConfig, log);
-  recordMcpEnablementDiagnostic({
-    stage: result?.success === false ? 'config_save_failed' : 'config_saved',
-    status: result?.success === false ? 'failed' : 'succeeded',
-    data: {
-      phase: 'config_save',
-      preserveMcpEnablement: options.preserveMcpEnablement !== false,
-      preserveSource,
-      payloadHasEnabledKey,
-      latestHasEnabledKey: Array.isArray(latestDesktopUiConfig?.[MCP_ENABLED_CONFIG_KEY]),
-      persistedEnabledServerCount: countMcpEnabledServersInConfig(persistableConfig),
-      payloadEnabledServerCount: countMcpEnabledServersInConfig(config),
-    },
-    error: result?.success === false ? result.error : null,
-  });
-  if (
-    result?.success
-    && persistableConfig
-    && typeof persistableConfig === 'object'
-    && !Array.isArray(persistableConfig)
-  ) {
-    latestDesktopUiConfig = { ...persistableConfig };
-  }
-  return result;
 }
 
 function updateGlobalAgentStopShortcutStatus(status) {

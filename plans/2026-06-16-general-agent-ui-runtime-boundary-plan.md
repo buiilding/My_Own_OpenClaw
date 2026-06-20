@@ -120,6 +120,28 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Desktop UI Config Persistence Runtime Boundary
+
+- Finding: `ipc_desktop_ui_config.cjs` owned raw disk I/O and
+  `ipc_desktop_ui_config_handlers.cjs` owned the renderer channel bodies, but
+  `ipc.cjs` still owned main-process persistence semantics: preserving the
+  main-owned MCP allowlist across renderer saves, falling back to disk when the
+  latest cache had not hydrated that key, redacting before save, advancing the
+  latest cache, and writing MCP enablement diagnostics.
+- Change: added `ipc_desktop_ui_config_persistence_runtime.cjs` to own those
+  save semantics. `ipc.cjs` now composes the runtime by injecting the latest
+  config cache, validation, disk helpers, redaction, save helper, and
+  diagnostic writer.
+- Validation: focused desktop UI config persistence runtime coverage for latest
+  MCP allowlist preservation, disk fallback, explicit MCP-toggle
+  no-preservation saves, failed-save diagnostics, deterministic trace ids, and
+  a boundary guard that keeps the preservation algorithm out of `ipc.cjs`.
+- Compatibility: no migration required. `frontend-config.json`,
+  `load-frontend-config`, `save-frontend-config`, desktop UI config field
+  names, MCP allowlist field shape, diagnostics path, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Agent Definition Context Boundary
 
 - Finding: `electron_agent_definition_inputs.cjs` owned the Electron input

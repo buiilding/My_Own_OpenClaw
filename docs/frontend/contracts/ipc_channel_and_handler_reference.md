@@ -96,8 +96,11 @@ Behavior:
   `conversation.rehydrate`, `conversation.compact`,
   `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`, and
   `wakeword.detected`.
-- `load-frontend-config` -> loads persisted config JSON from userData
-- `save-frontend-config` -> redacted desktop UI config atomic temp-write + rename persistence
+- `load-frontend-config` -> loads persisted desktop UI config JSON from userData
+  through `ipc_desktop_ui_config_handlers.cjs`
+- `save-frontend-config` -> persists redacted desktop UI config through
+  `ipc_desktop_ui_config_persistence_runtime.cjs`, which preserves the
+  main-owned MCP allowlist unless an explicit MCP toggle disables preservation
 - `get-client-user-id` -> returns websocket user/session endpoint metadata via
   `ipc_client_session_handlers.cjs`
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`

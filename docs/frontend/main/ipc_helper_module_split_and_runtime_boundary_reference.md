@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, or `ipc_desktop_ui_config_persistence_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -40,6 +40,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_agent_sdk_command_handlers.cjs`
 - `frontend/src/main/ipc/ipc_desktop_ui_config.cjs`
+- `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -317,6 +318,19 @@ Owns persisted desktop UI config disk I/O:
 - `saveDesktopUiConfigToDisk` with tmp-write + rename replacement
 - the persisted filename remains `frontend-config.json` for compatibility
 
+### `ipc_desktop_ui_config_persistence_runtime.cjs`
+
+Owns Electron-main desktop UI config persistence semantics around the disk I/O helper:
+
+- preserves main-owned MCP enablement across renderer saves unless an explicit
+  MCP toggle disables preservation
+- falls back to the disk config allowlist when the latest in-memory config does
+  not yet contain the MCP allowlist
+- redacts provider secrets before saving and advances the latest config cache
+  only after successful persistence
+- records MCP enablement diagnostics for save success/failure, preservation
+  source, and enabled-server counts
+
 ### `ipc_desktop_ui_config_handlers.cjs`
 
 Owns desktop UI config IPC handler registration while preserving the legacy
@@ -429,7 +443,10 @@ generic `to-backend` router or direct chat query IPC handlers.
    `ipc_renderer_diagnostics_handlers.cjs`.
 15. pending renderer turn handler registration and payload normalization
    delegate to `ipc_pending_turn_handlers.cjs`.
-16. desktop UI config load/save handlers delegate to `ipc_desktop_ui_config.cjs`.
+16. desktop UI config disk I/O delegates to `ipc_desktop_ui_config.cjs`, while
+    MCP allowlist preservation, save redaction, latest-cache updates, and
+    enablement diagnostics delegate to
+    `ipc_desktop_ui_config_persistence_runtime.cjs`.
 17. SDK-shaped renderer command handler registration delegates to
    `ipc_agent_sdk_command_handlers.cjs`, which owns the `windie:invoke`
    allowlist and dispatches to explicit Agent SDK runtime/conversation methods.

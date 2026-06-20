@@ -130,10 +130,11 @@ That exposes `local_memory__search`.
    `agent_enabled_mcp_servers` allowlist.
    WindieOS also supplies the startup-only `WINDIE_ENABLED_MCPS` allowlist env
    key through the main host skin for development and automation runs.
-4. When a user enables a gated MCP from the dashboard, Electron main persists
-   the allowlist change and immediately runs a discovery pass. The manual
-   refresh action remains the retry path after installing binaries or granting
-   permissions.
+4. When a user enables a gated MCP from the dashboard,
+   `ipc_desktop_ui_config_persistence_runtime.cjs` persists the allowlist
+   change with MCP preservation disabled for that explicit toggle path, and
+   Electron main immediately runs a discovery pass. The manual refresh action
+   remains the retry path after installing binaries or granting permissions.
 5. Electron main sends enabled server specs to the SDK local runtime.
 6. The local runtime starts each enabled MCP server over stdio through the
    Python sidecar implementation.
@@ -202,8 +203,9 @@ app from depending on interactive shell PATH setup after the CUA installer runs.
 MCP enablement, registration, discovery, and execution emit persistent app
 diagnostics:
 
-- `mcp.enablement`: dashboard toggle, desktop UI config persistence, and registry
-  refresh/list after enablement changes.
+- `mcp.enablement`: dashboard toggle,
+  `ipc_desktop_ui_config_persistence_runtime.cjs` desktop UI config
+  persistence, and registry refresh/list after enablement changes.
 - `mcp.registration`: SDK/local-runtime registration through the local runtime
   `/mcps/register` boundary, including replace/reconcile and registered tool
   counts.
