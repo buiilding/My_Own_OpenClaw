@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK workspace-path fallback dependency wiring into
+  `createWorkspacePathRuntime(...)`, preserving command payload precedence,
+  cached desktop UI config fallback, snake_case/camelCase input support, and
+  null trimming semantics. No migration required.
 - main/ipc: move pending-turn state/fan-out dependency wiring into
   `createPendingTurnRuntime(...)`, preserving `windie:pending-turn`
   pending/clear payload normalization, removed alias rejection, replay/stop

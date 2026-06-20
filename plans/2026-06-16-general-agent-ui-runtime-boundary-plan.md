@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Workspace Path Runtime Wiring Boundary
+
+- Finding: `ipc_workspace_path_runtime.cjs` owned Agent SDK workspace-path
+  payload/config fallback resolution, but `ipc.cjs` still paired each payload
+  with the cached desktop UI config before calling the helper.
+- Change: added `createWorkspacePathRuntime(...)` so the workspace-path helper
+  owns the reusable resolver runtime while `ipc.cjs` injects the latest
+  desktop UI config reader once.
+- Validation: focused workspace-path coverage verifies the runtime uses the
+  latest injected config on each resolve and source guards keep direct
+  payload/config resolver calls out of `ipc.cjs`.
+- Compatibility: no migration required. Payload `workspace_path` /
+  `workspacePath` precedence, cached desktop UI config fallback,
+  null/trim semantics, SDK wake-up/query command callers, renderer IPC
+  channels, storage, credentials, permissions, provider policy, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Main Pending Turn Runtime Wiring Boundary
 
 - Finding: `ipc_pending_turn_handlers.cjs` owned pending-turn normalization,

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  createWorkspacePathRuntime,
   normalizeOptionalString,
   resolveWorkspacePathForAgentPayload,
 } = require('../../frontend/src/main/ipc/ipc_workspace_path_runtime.cjs');
@@ -39,5 +40,19 @@ describe('ipc_workspace_path_runtime', () => {
     })).toBe('C:/config-camel');
 
     expect(resolveWorkspacePathForAgentPayload({}, {})).toBeNull();
+  });
+
+  test('runtime resolves against the latest injected desktop config', () => {
+    const configs = [
+      { workspace_path: ' C:/first ' },
+      { workspacePath: ' C:/second ' },
+    ];
+    const runtime = createWorkspacePathRuntime({
+      getLatestDesktopUiConfig: jest.fn(() => configs.shift()),
+    });
+
+    expect(runtime.resolve({})).toBe('C:/first');
+    expect(runtime.resolve({})).toBe('C:/second');
+    expect(runtime.resolve({ workspace_path: ' C:/payload ' })).toBe('C:/payload');
   });
 });

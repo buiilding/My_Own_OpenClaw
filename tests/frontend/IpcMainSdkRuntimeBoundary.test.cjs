@@ -171,7 +171,10 @@ describe('main ipc sdk runtime boundary', () => {
     expect(directWakeUpAdapterSource).toContain('buildConversationTerminalStatus(event, workspacePath)');
     expect(directWakeUpAdapterSource).toContain('setLatestCurrentTurnProjection(snapshot.currentTurn || null)');
     expect(directWakeUpAdapterSource).toContain('pendingTurnMatchesCurrentTurn(latestPendingTurn, snapshot.currentTurn)');
-    expect(source).toContain('resolveWorkspacePathForAgentPayload(payload, desktopUiConfigCache.getRaw())');
+    expect(source).toContain('createWorkspacePathRuntime({');
+    expect(source).toContain('workspacePathRuntime.resolve(payload)');
+    expect(source).not.toContain('resolveWorkspacePathForAgentPayload(payload, desktopUiConfigCache.getRaw())');
+    expect(workspacePathRuntimeSource).toContain('function createWorkspacePathRuntime');
     expect(source).not.toContain('event.payload?.error');
     expect(source).not.toContain('payload?.workspace_path');
     expect(source).not.toContain('payload?.workspacePath');

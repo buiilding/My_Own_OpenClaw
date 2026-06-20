@@ -182,7 +182,7 @@ const {
   buildConversationTerminalStatus,
 } = require('./ipc/ipc_conversation_status_runtime.cjs');
 const {
-  resolveWorkspacePathForAgentPayload,
+  createWorkspacePathRuntime,
 } = require('./ipc/ipc_workspace_path_runtime.cjs');
 const {
   processBackendMessageData,
@@ -287,6 +287,9 @@ const backendConnectionGateState = createBackendConnectionGateState();
 const hostOptionState = createIpcHostOptionState();
 const desktopUiConfigCache = createDesktopUiConfigCache({
   isValidConfigPayload,
+});
+const workspacePathRuntime = createWorkspacePathRuntime({
+  getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
 });
 const liveTurnState = createIpcLiveTurnState();
 const pendingTurnRuntime = createPendingTurnRuntime({
@@ -551,7 +554,7 @@ function resetIpcProcessStateForTests() {
 }
 
 function resolveWorkspacePathForAgent(payload = {}) {
-  return resolveWorkspacePathForAgentPayload(payload, desktopUiConfigCache.getRaw());
+  return workspacePathRuntime.resolve(payload);
 }
 
 function handleAgentConnection(event = {}) {

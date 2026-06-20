@@ -118,6 +118,8 @@ Owns SDK conversation terminal-event to renderer status projection:
 
 Owns Agent SDK runtime workspace-path fallback resolution:
 
+- exposes `createWorkspacePathRuntime(...)` so `ipc.cjs` composes the cached
+  desktop UI config reader once
 - `resolveWorkspacePathForAgentPayload` prefers command payload
   `workspace_path` / `workspacePath`, then cached desktop UI config
   `workspace_path` / `workspacePath`.

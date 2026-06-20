@@ -137,8 +137,8 @@ Split boundary:
   Agent SDK methods as injected dependencies.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, SDK terminal
-  status projection, SDK workspace-path fallback resolution, and synthetic
-  query event broadcast paths.
+  status projection, SDK workspace-path fallback resolution through a cached
+  config runtime wrapper, and synthetic query event broadcast paths.
 - `electron_agent_definition_inputs.cjs` owns Electron-only collection of custom
   instructions, extension prompt layers, AGENTS.md layers, workspace path, and
   OS facts. The SDK package owns the final `agent_definition` object shape and

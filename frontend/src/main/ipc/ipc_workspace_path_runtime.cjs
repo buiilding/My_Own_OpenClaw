@@ -15,7 +15,23 @@ function resolveWorkspacePathForAgentPayload(payload = {}, desktopUiConfig = nul
   );
 }
 
+function createWorkspacePathRuntime({
+  getLatestDesktopUiConfig = () => null,
+} = {}) {
+  function resolve(payload = {}) {
+    return resolveWorkspacePathForAgentPayload(
+      payload,
+      getLatestDesktopUiConfig(),
+    );
+  }
+
+  return {
+    resolve,
+  };
+}
+
 module.exports = {
+  createWorkspacePathRuntime,
   normalizeOptionalString,
   resolveWorkspacePathForAgentPayload,
 };
