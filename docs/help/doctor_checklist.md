@@ -77,7 +77,7 @@ WINDIE_SIDECAR_LOG_LEVEL=DEBUG <windie> start desktop
 
 Confirm:
 
-- sidecar process starts
+- local-runtime Python process starts
 - stdout remains JSON-RPC protocol traffic only
 - stderr contains no import/runtime startup failure
 - the failing tool is registered in `frontend/src/main/python/tools/registry.py`

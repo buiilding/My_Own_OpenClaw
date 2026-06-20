@@ -2,7 +2,7 @@
 summary: "Frontend protocol error contract covering preload IPC validation failures, websocket bridge reconnect and send-failure synthesis, settings ACK timeout behavior, local-runtime JSON-RPC fallback responses, and wakeword subprocess/helper error status propagation."
 read_when:
   - When changing `preload.js`, `ipc.cjs`, `local_runtime_bridge.cjs`, `wakeword_bridge.cjs`, or `wakeword_bridge_runtime.cjs` error behavior.
-  - When debugging query send failures, settings-sync timeouts, or sidecar process startup failures.
+  - When debugging query send failures, settings-sync timeouts, or local-runtime startup failures.
 title: "Frontend IPC, WS Bridge, and Local Runtime Error-Recovery Contract Reference"
 ---
 

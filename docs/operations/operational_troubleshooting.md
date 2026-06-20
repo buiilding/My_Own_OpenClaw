@@ -172,7 +172,7 @@ Likely owner:
 Check:
 
 - package contains `resources/python-runtime`
-- sidecar process launch path from Electron logs
+- local-runtime launch path from Electron logs
 - `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` for a focused local run
 - platform package dependencies such as Linux `xdotool`
 

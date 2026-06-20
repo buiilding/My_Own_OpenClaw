@@ -151,6 +151,21 @@ Each completed slice should report:
   IPC payloads, storage contents, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
 
+### 2026-06-20 Local-Runtime Process Labels
+
+- Finding: platform, operations, doctor, protocol-error, packaged-build, and
+  development workflow docs still used sidecar-process labels for local-runtime
+  startup, launch path, and Electron host-status ownership.
+- Change: routed those public labels through local-runtime startup or
+  Electron host-status wording while preserving the packaged Python sidecar
+  process as the concrete bundled entrypoint.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  sidecar-process label scan, and diff check.
+- Compatibility: no migration required. Runtime code, packaged startup,
+  local-runtime status payloads, Python entrypoints, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, and provider policy are
+  unchanged.
+
 ### 2026-06-20 Renderer App-Runtime Inventory Filename
 
 - Finding: the renderer transport command reference listed

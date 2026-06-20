@@ -6209,3 +6209,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   packaged path resolution, auth-state env propagation, Browser Use adapter
   behavior, local-runtime startup, storage, credentials, permissions, hosted
   backend URLs, IPC payloads, and provider policy are unchanged.
+- Platform, operations, doctor, protocol-error, packaged-build, and development
+  workflow docs now route public sidecar-process labels through local-runtime
+  startup or Electron host-status wording while keeping the packaged Python
+  sidecar entrypoint explicit. Runtime code, packaged startup, local-runtime
+  status payloads, Python entrypoints, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.

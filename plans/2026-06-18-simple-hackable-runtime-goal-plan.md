@@ -294,6 +294,16 @@ For each completed slice, record:
   database schema, trace rows, IPC payloads, storage contents, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
 
+- 2026-06-20: completed a local-runtime process-label slice by routing
+  platform, operations, doctor, protocol-error, packaged-build, and development
+  workflow sidecar-process labels through local-runtime startup or Electron
+  host-status wording while preserving the packaged Python sidecar entrypoint.
+  Validation covered the focused modular docs boundary test, docs listing, exact
+  stale sidecar-process label scan, and diff check. No migration required;
+  runtime code, packaged startup, local-runtime status payloads, Python
+  entrypoints, IPC payloads, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.
+
 - 2026-06-20: aligned the renderer app-runtime inventory with the live
   `desktopStreamPhaseRuntime.js` state/rule facade and added a renderer
   boundary guard against the stale `desktopStreamPhaseRuntime.ts` filename.

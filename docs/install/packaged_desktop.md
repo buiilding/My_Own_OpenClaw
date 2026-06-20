@@ -9,10 +9,11 @@ title: "Packaged Desktop Builds"
 # Packaged Desktop Builds
 
 Packaged WindieOS builds are Electron apps with bundled local-runtime Python.
-The current implementation launches the Python sidecar process from that
-bundle. Use `<windie> ...` packaging commands from the repository root; they
-wrap the frontend package tasks and bundled local-runtime Python builder before
-Electron Builder.
+The current implementation starts local-runtime Python from that bundle; the
+Python sidecar process remains the concrete packaged entrypoint. Use
+`<windie> ...` packaging commands from the repository root; they wrap the
+frontend package tasks and bundled local-runtime Python builder before Electron
+Builder.
 
 Use [Install Decision Matrix](install_decision_matrix.md) before packaging if the change may be source-only. Packaged validation is required for bundled runtime paths, installed app paths, platform permissions, local reinstall helpers, and release artifacts.
 

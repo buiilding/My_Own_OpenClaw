@@ -82,7 +82,7 @@ Use this owner for:
 - screenshot hide/restore dispatch.
 - display-affinity selection for capture.
 - permission probe and grant IPC.
-- sidecar process launch parameters.
+- local-runtime launch parameters.
 
 Do not use this owner for:
 
