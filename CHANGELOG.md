@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: clarify that renderer config provider/model defaults are
+  skin-supplied through `desktopRuntimeConfig`, and make the renderer-state
+  workflow summary generic to the desktop renderer. No migration required.
 - sidecar/env: name WindieOS local-runtime Python env compatibility constants
   with `ENV_WINDIE_*` while keeping generic `AGENT_*` aliases primary and
   preserving the existing `WINDIE_*` env variable support. No migration

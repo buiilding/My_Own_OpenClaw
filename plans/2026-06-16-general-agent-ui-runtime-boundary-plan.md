@@ -17852,3 +17852,21 @@ Each completed slice should report:
   client manifests, local-runtime execution, Python sidecar modules, IPC
   payloads, storage, credentials, permissions, hosted backend URLs, and provider
   policy are unchanged.
+
+### 2026-06-20 Renderer config skin-default docs
+
+- Finding: the renderer config reference listed current OpenAI/GPT model
+  defaults under the generic default surface without first stating that those
+  concrete values come from the active WindieOS renderer skin through
+  `desktopRuntimeConfig`, and the renderer state workflow summary still used a
+  WindieOS-specific renderer-state label.
+- Change: clarified that generic config storage assembles defaults through the
+  skin facade, kept the current WindieOS skin defaults as skin-owned evidence,
+  changed the workflow summary to desktop renderer wording, and extended the
+  renderer/modular docs guards against the retired ownership wording.
+- Validation: focused renderer skin config boundary test, modular docs boundary
+  test, exact stale phrase scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, localStorage keys,
+  provider credential payloads, provider/model settings, appearance defaults,
+  IPC channels, hosted backend URLs, credentials, permissions, SDK contracts,
+  and local-runtime behavior are unchanged.

@@ -2961,6 +2961,7 @@ describe('modular sdk refactor completion boundary', () => {
         'features/dashboard/utils/modelSelectionUtils.js',
         'dashboard/utils/modelSelectionUtils',
         'modelSelectionUtils.js',
+        'Workflow for changing WindieOS renderer state',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

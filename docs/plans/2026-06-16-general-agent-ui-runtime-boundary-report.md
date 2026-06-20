@@ -12,13 +12,17 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: generic Electron main window, overlay,
-  display-affinity, and query-capture docs now describe desktop app
-  surfaces/windows instead of WindieOS-specific surface wording.
+- Latest completed slice: renderer config docs now make concrete
+  provider/model defaults skin-supplied through `desktopRuntimeConfig`, and the
+  renderer state workflow summary uses generic desktop renderer wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
-  identity. SDK helper symbols that are not part of the public package boundary
+  identity. Renderer config reference docs now keep current OpenAI/GPT default
+  model values attached to the active WindieOS skin instead of the generic
+  storage runtime, and the renderer workflow summary names desktop renderer
+  state rather than WindieOS renderer state. SDK helper symbols that are not
+  part of the public package boundary
   stay private behind higher-level runtime APIs, and renderer/main-private
   guard markers use generic desktop-agent naming. SDK internal diagnostics use
   generic Agent SDK wording while preserving current public Windie API names,

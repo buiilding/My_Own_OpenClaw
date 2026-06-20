@@ -20,6 +20,14 @@ const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/provide
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
 const storageSettingsPath = path.join(rendererRoot, 'app/skin/storageSettings.js');
 const appearanceSettingsPath = path.join(rendererRoot, 'app/skin/appearanceSettings.js');
+const rendererConfigReferencePath = path.resolve(
+  __dirname,
+  '../../docs/frontend/renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md',
+);
+const rendererStateWorkflowPath = path.resolve(
+  __dirname,
+  '../../docs/frontend/renderer/renderer_state_change_workflow.md',
+);
 const settingsRoot = path.join(rendererRoot, 'features/dashboard/components/sections/settings');
 const dashboardSectionsRoot = path.join(rendererRoot, 'features/dashboard/components/sections');
 const providerApiKeysPropTypesPath = path.join(dashboardSectionsRoot, 'providerApiKeysPropTypes.js');
@@ -263,6 +271,26 @@ describe('renderer skin/config boundary', () => {
     expect(configStorageSource).not.toContain('modelSelectionDefaults');
     expect(configStorageSource).not.toContain("model_provider: 'openai'");
     expect(configStorageSource).not.toContain("selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking'");
+  });
+
+  test('renderer config docs route default provider and model values through the skin', () => {
+    const configReferenceSource = fs.readFileSync(rendererConfigReferencePath, 'utf8');
+    const rendererStateWorkflowSource = fs.readFileSync(rendererStateWorkflowPath, 'utf8');
+
+    expect(configReferenceSource).toContain('The generic storage runtime assembles defaults through the');
+    expect(configReferenceSource).toContain('`desktopRuntimeConfig` facade');
+    expect(configReferenceSource).toContain('Concrete provider/model defaults');
+    expect(configReferenceSource).toContain('live in the active renderer skin');
+    expect(configReferenceSource).toContain('Current WindieOS skin defaults:');
+    expect(configReferenceSource).toContain('`model_provider: "openai"`');
+    expect(configReferenceSource).toContain('`selected_model_id: "gpt-5.4@@gpt-5-4-none-thinking"`');
+    expect(configReferenceSource).not.toContain(
+      'desktopRendererConfigStorageRuntime.js owns OpenAI defaults',
+    );
+    expect(configReferenceSource).not.toContain(
+      'desktopRendererConfigStorageRuntime.js owns GPT defaults',
+    );
+    expect(rendererStateWorkflowSource).not.toContain('Workflow for changing WindieOS renderer state');
   });
 
   test('provider model display fallbacks live in renderer skin config', () => {

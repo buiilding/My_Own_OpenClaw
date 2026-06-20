@@ -83,6 +83,14 @@ Storage compatibility note:
 
 Default config surface:
 
+The generic storage runtime assembles defaults through the
+`desktopRuntimeConfig` facade. Concrete provider/model defaults, provider key
+specs, and appearance palettes live in the active renderer skin so another
+desktop skin can replace them without changing
+`desktopRendererConfigStorageRuntime.js`.
+
+Current WindieOS skin defaults:
+
 - `model_mode: "online"`
 - `model_provider: "openai"`
 - `selected_model_id: "gpt-5.4@@gpt-5-4-none-thinking"`
@@ -97,8 +105,7 @@ Default config surface:
   - `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
   - localStorage stores `{ enabled: boolean, api_key: "" }`; raw API keys are scrubbed at this renderer persistence boundary
 - `appearance_mode: "system"`
-- `appearance_theme`: WindieOS skin-provided light/dark palette defaults from
-  the generic renderer `desktopRuntimeConfig` facade
+- `appearance_theme`: WindieOS skin-provided light/dark palette defaults
 
 Load semantics (`loadConfigFromStorage`):
 
