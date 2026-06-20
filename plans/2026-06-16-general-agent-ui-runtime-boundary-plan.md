@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main App Diagnostics Runtime Boundary
+
+- Finding: `ipc.cjs` still owned IPC-facing app diagnostic append error
+  handling directly, including the call into `appendDiagnosticEvent(...)`, the
+  diagnostic path fallback in failure logs, and the stable
+  `{ stored: false, reason }` failure envelope.
+- Change: added `ipc_app_diagnostics_runtime.cjs` to own the diagnostic append
+  wrapper. `ipc.cjs` now injects the diagnostic store append function and log
+  sink while delegating persistence failure handling to the helper.
+- Validation: focused runtime coverage for successful append forwarding,
+  event-path failure logging, default-path failure logging, and a source guard
+  that keeps diagnostic failure policy out of `ipc.cjs`.
+- Compatibility: no migration required. Diagnostic event payloads, diagnostic
+  storage paths, exported `appendAppDiagnostic(...)`, SDK command diagnostics,
+  renderer IPC channels, storage, credentials, permissions, hosted URLs,
+  provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Host Copy Runtime Boundary
 
 - Finding: `ipc.cjs` still owned generic Electron agent-host copy defaults and

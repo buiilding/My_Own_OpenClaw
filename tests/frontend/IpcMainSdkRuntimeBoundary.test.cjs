@@ -109,6 +109,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_copy_runtime.cjs'),
       'utf8',
     );
+    const appDiagnosticsRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_app_diagnostics_runtime.cjs'),
+      'utf8',
+    );
     const installAuthIdentitySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs'),
       'utf8',
@@ -206,6 +210,10 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('ipcHostCopy.identity');
     expect(source).not.toContain('ipcHostCopy.queryEvents');
     expect(hostCopyRuntimeSource).toContain('const DEFAULT_IPC_HOST_COPY = Object.freeze');
+    expect(source).toContain('createIpcAppDiagnosticsRuntime({');
+    expect(source).toContain('ipcAppDiagnosticsRuntime.appendAppDiagnostic(input)');
+    expect(source).not.toContain('[AppDiagnostics] failed to persist');
+    expect(appDiagnosticsRuntimeSource).toContain('[AppDiagnostics] failed to persist');
     expect(source).toContain('createInstallAuthIdentityRuntime({');
     expect(source).not.toContain('const installToken = typeof state.installToken');
     expect(source).not.toContain('autoRegister: false');

@@ -129,11 +129,13 @@ const {
   attachAgentDefinitionContext: attachAgentDefinitionContextRuntime,
 } = require('./ipc/ipc_agent_definition_context.cjs');
 const {
-  APP_DIAGNOSTICS_PATH,
   MCP_ENABLEMENT_DIAGNOSTICS_PATH,
   PERMISSION_PROBE_DIAGNOSTICS_PATH,
   appendDiagnosticEvent,
 } = require('./diagnostics/app_diagnostics_store.cjs');
+const {
+  createIpcAppDiagnosticsRuntime,
+} = require('./ipc/ipc_app_diagnostics_runtime.cjs');
 const {
   appendIpcBridgeDiagnostic,
 } = require('./diagnostics/app_diagnostics_runtime.cjs');
@@ -377,6 +379,10 @@ const mainProcessTraceRuntime = createMainProcessTraceRuntime({
   permissionProbeDiagnosticsPath: PERMISSION_PROBE_DIAGNOSTICS_PATH,
   TraceRecorder,
   createConversationEvent,
+});
+const ipcAppDiagnosticsRuntime = createIpcAppDiagnosticsRuntime({
+  appendDiagnosticEvent,
+  log,
 });
 const mcpRefreshRuntime = createMcpRefreshRuntime({
   getDesktopUiConfigForMcpRegistry,
@@ -1086,12 +1092,7 @@ function getBackendConnectionState() {
 }
 
 function appendAppDiagnostic(input = {}) {
-  try {
-    return appendDiagnosticEvent(input);
-  } catch (error) {
-    log(`[AppDiagnostics] failed to persist ${input.path || APP_DIAGNOSTICS_PATH}: ${error?.message || error}`);
-    return { stored: false, reason: error?.message || String(error) };
-  }
+  return ipcAppDiagnosticsRuntime.appendAppDiagnostic(input);
 }
 
 function attachAgentDefinitionContext(payload) {

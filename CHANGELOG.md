@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move IPC-facing app diagnostic append error handling into
+  `ipc_app_diagnostics_runtime.cjs`, preserving direct diagnostic event append,
+  failure logging, and stable `{ stored: false, reason }` failure results. No
+  migration required.
 - main/ipc: remove the unused relay-root `isPlainObject` helper after host-copy
   normalization moved to focused runtime modules. No migration required.
 - main/ipc: move generic Electron agent-host copy defaults and host-skin copy
