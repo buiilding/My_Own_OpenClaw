@@ -110,7 +110,7 @@ Responsibilities:
   focused helper while diagnostics runtimes keep normalization and redaction.
 - Delegates pending renderer turn relay registration to a focused helper while
   `ipc.cjs` keeps the latest pending-turn cache used by stop/current-turn
-  cleanup.
+  cleanup through the helper's runtime wrapper.
 - Delegates direct wake-up agent adapter behavior to a focused helper that owns
   `agent.conversation(...)` runtime handles, SDK event fan-out, inference
   context rehydration, replay invalidation, and MCP refresh forwarding; the

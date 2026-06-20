@@ -53,12 +53,18 @@ describe('ipc_live_turn_state', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_live_turn_state.cjs'),
       'utf8',
     );
+    const pendingTurnHelperSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_pending_turn_handlers.cjs'),
+      'utf8',
+    );
 
     expect(mainSource).toContain('createIpcLiveTurnState()');
     expect(mainSource).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(mainSource).toContain('liveTurnState.setLatestCurrentTurn(');
     expect(mainSource).toContain('liveTurnState.getLatestPendingTurn()');
-    expect(mainSource).toContain('liveTurnState.setLatestPendingTurn(');
+    expect(mainSource).toContain('createPendingTurnRuntime({');
+    expect(mainSource).not.toContain('liveTurnState.setLatestPendingTurn(');
+    expect(pendingTurnHelperSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
     expect(mainSource).not.toContain('let latestCurrentTurnProjection = null');
     expect(mainSource).not.toContain('let latestPendingTurn = null');
     expect(mainSource).not.toContain('latestCurrentTurnProjection = currentTurnProjection');

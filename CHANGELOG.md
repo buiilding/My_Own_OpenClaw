@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move pending-turn state/fan-out dependency wiring into
+  `createPendingTurnRuntime(...)`, preserving `windie:pending-turn`
+  pending/clear payload normalization, removed alias rejection, replay/stop
+  cleanup, SDK current-turn catch-up, and renderer broadcasts. No migration
+  required.
 - main/ipc: move query agent-definition context dependency wiring into
   `createAgentDefinitionContextRuntime(...)`, preserving latest desktop config
   custom instructions, platform facts, SDK builder/default checks, workspace

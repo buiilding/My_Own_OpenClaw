@@ -85,6 +85,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_live_turn_state.cjs'),
       'utf8',
     );
+    const pendingTurnHandlersSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_pending_turn_handlers.cjs'),
+      'utf8',
+    );
     const electronAgentClientFactorySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
@@ -355,7 +359,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('liveTurnState.getLatestCurrentTurn()');
     expect(source).toContain('liveTurnState.setLatestCurrentTurn(');
     expect(source).toContain('liveTurnState.getLatestPendingTurn()');
-    expect(source).toContain('liveTurnState.setLatestPendingTurn(');
+    expect(source).toContain('createPendingTurnRuntime({');
+    expect(source).toContain('pendingTurnRuntime.clear(input)');
+    expect(source).toContain('pendingTurnRuntime.register({ ipcMain })');
+    expect(source).not.toContain('liveTurnState.setLatestPendingTurn(');
+    expect(pendingTurnHandlersSource).toContain('function createPendingTurnRuntime');
+    expect(pendingTurnHandlersSource).toContain('liveTurnState.setLatestPendingTurn(pendingTurn)');
     expect(source).not.toContain('let latestCurrentTurnProjection = null');
     expect(source).not.toContain('let latestPendingTurn = null');
     expect(source).not.toContain('latestCurrentTurnProjection = currentTurnProjection');

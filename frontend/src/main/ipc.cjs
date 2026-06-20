@@ -134,9 +134,8 @@ const {
   registerRendererDiagnosticsHandlers,
 } = require('./ipc/ipc_renderer_diagnostics_handlers.cjs');
 const {
-  clearPendingTurnState,
+  createPendingTurnRuntime,
   pendingTurnMatchesCurrentTurn,
-  registerPendingTurnHandlers,
 } = require('./ipc/ipc_pending_turn_handlers.cjs');
 const {
   createIpcLiveTurnState,
@@ -290,6 +289,10 @@ const desktopUiConfigCache = createDesktopUiConfigCache({
   isValidConfigPayload,
 });
 const liveTurnState = createIpcLiveTurnState();
+const pendingTurnRuntime = createPendingTurnRuntime({
+  liveTurnState,
+  broadcastToRenderers,
+});
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
   responseOverlayPhaseState,
@@ -694,12 +697,7 @@ function trackRendererWindow(win) {
 }
 
 function clearLatestPendingTurn(input = {}) {
-  return clearPendingTurnState({
-    ...input,
-    getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
-    setLatestPendingTurn: (pendingTurn) => liveTurnState.setLatestPendingTurn(pendingTurn),
-    broadcastToRenderers,
-  });
+  return pendingTurnRuntime.clear(input);
 }
 
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
@@ -866,12 +864,7 @@ function initializeIpc(win, options = {}) {
     handleRendererLiveSurfaceTrace,
   });
 
-  registerPendingTurnHandlers({
-    ipcMain,
-    clearLatestPendingTurn,
-    setLatestPendingTurn: (pendingTurn) => liveTurnState.setLatestPendingTurn(pendingTurn),
-    broadcastToRenderers,
-  });
+  pendingTurnRuntime.register({ ipcMain });
 
   const {
     handleRendererChatQuery,

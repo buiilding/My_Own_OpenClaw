@@ -130,8 +130,49 @@ function registerPendingTurnHandlers({
   });
 }
 
+function createPendingTurnRuntime({
+  liveTurnState,
+  broadcastToRenderers,
+} = {}) {
+  function getLatestPendingTurn() {
+    return typeof liveTurnState?.getLatestPendingTurn === 'function'
+      ? liveTurnState.getLatestPendingTurn()
+      : null;
+  }
+
+  function setLatestPendingTurn(pendingTurn) {
+    if (typeof liveTurnState?.setLatestPendingTurn === 'function') {
+      liveTurnState.setLatestPendingTurn(pendingTurn);
+    }
+  }
+
+  function clear(input = {}) {
+    return clearPendingTurnState({
+      ...input,
+      getLatestPendingTurn,
+      setLatestPendingTurn,
+      broadcastToRenderers,
+    });
+  }
+
+  function register({ ipcMain } = {}) {
+    registerPendingTurnHandlers({
+      ipcMain,
+      setLatestPendingTurn,
+      clearLatestPendingTurn: clear,
+      broadcastToRenderers,
+    });
+  }
+
+  return {
+    clear,
+    register,
+  };
+}
+
 module.exports = {
   clearPendingTurnState,
+  createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,
   pendingTurnMatchesTarget,

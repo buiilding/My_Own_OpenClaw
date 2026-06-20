@@ -444,6 +444,8 @@ Owns renderer diagnostics IPC handler registration:
 Owns pending renderer turn IPC handler registration and payload acceptance:
 
 - `windie:pending-turn`
+- exposes `createPendingTurnRuntime(...)` so `ipc.cjs` composes pending-turn
+  live state and renderer fan-out once
 - pending-turn payload normalization and required identity checks
 - removed snake_case clear alias rejection
 - pending-turn cache clear/match primitives consumed by `ipc.cjs` stop and

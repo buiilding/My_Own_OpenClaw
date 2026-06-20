@@ -7,6 +7,7 @@ const path = require('path');
 
 const {
   clearPendingTurnState,
+  createPendingTurnRuntime,
   normalizePendingTurnPayload,
   pendingTurnMatchesCurrentTurn,
   registerPendingTurnHandlers,
@@ -156,6 +157,60 @@ describe('pending turn IPC handlers', () => {
     });
   });
 
+  test('runtime composes pending-turn state and renderer fan-out once', () => {
+    let latestPendingTurn = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    };
+    const listeners = {};
+    const ipcMain = {
+      on: jest.fn((channel, listener) => {
+        listeners[channel] = listener;
+      }),
+    };
+    const liveTurnState = {
+      getLatestPendingTurn: jest.fn(() => latestPendingTurn),
+      setLatestPendingTurn: jest.fn((pendingTurn) => {
+        latestPendingTurn = pendingTurn;
+      }),
+    };
+    const broadcastToRenderers = jest.fn();
+    const runtime = createPendingTurnRuntime({
+      liveTurnState,
+      broadcastToRenderers,
+    });
+
+    runtime.register({ ipcMain });
+
+    expect(runtime.clear({ broadcast: true })).toBe(true);
+    expect(liveTurnState.setLatestPendingTurn).toHaveBeenCalledWith(null);
+    expect(broadcastToRenderers).toHaveBeenCalledWith('windie:pending-turn', {
+      type: 'clear',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+    });
+
+    listeners['windie:pending-turn']({}, {
+      type: 'pending',
+      pendingTurn: {
+        conversationRef: 'conv-2',
+        turnRef: 'turn-2',
+        userMessageId: 'user-2',
+        text: 'next',
+        timestamp: '2026-06-20T00:00:00.000Z',
+      },
+    });
+
+    expect(liveTurnState.setLatestPendingTurn).toHaveBeenLastCalledWith({
+      conversationRef: 'conv-2',
+      turnRef: 'turn-2',
+      userMessageId: 'user-2',
+      text: 'next',
+      timestamp: '2026-06-20T00:00:00.000Z',
+      attachmentFilenames: null,
+    });
+  });
+
   test('matches SDK current turns by conversation and turn ref', () => {
     expect(pendingTurnMatchesCurrentTurn(
       { conversationRef: 'conv-1', turnRef: 'turn-1' },
@@ -177,8 +232,13 @@ describe('pending turn IPC handlers', () => {
       'utf8',
     );
 
-    expect(mainSource).toContain('registerPendingTurnHandlers({');
+    expect(mainSource).toContain('createPendingTurnRuntime({');
+    expect(mainSource).toContain('pendingTurnRuntime.clear(input)');
+    expect(mainSource).toContain('pendingTurnRuntime.register({ ipcMain })');
+    expect(mainSource).not.toContain('registerPendingTurnHandlers({');
+    expect(mainSource).not.toContain('clearPendingTurnState({');
     expect(mainSource).not.toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
+    expect(helperSource).toContain('function createPendingTurnRuntime');
     expect(helperSource).toContain('ipcMain.on(DESKTOP_RUNTIME_SEND_CHANNELS.PENDING_TURN');
   });
 });

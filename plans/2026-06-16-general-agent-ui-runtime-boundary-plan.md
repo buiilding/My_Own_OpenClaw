@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Pending Turn Runtime Wiring Boundary
+
+- Finding: `ipc_pending_turn_handlers.cjs` owned pending-turn normalization,
+  handler registration, clear matching, and broadcast construction, but
+  `ipc.cjs` still rebuilt the live-turn state and renderer fan-out dependency
+  object whenever pending-turn state was cleared.
+- Change: added `createPendingTurnRuntime(...)` so the pending-turn helper owns
+  reusable clear/register runtime wiring while `ipc.cjs` composes live-turn
+  state and renderer fan-out once.
+- Validation: focused pending-turn coverage verifies runtime clear/register
+  behavior and source guards keep per-call clear dependency wiring out of
+  `ipc.cjs`.
+- Compatibility: no migration required. `windie:pending-turn` channel names,
+  pending/clear payload shapes, removed alias rejection, pending-turn replay,
+  stop cleanup, SDK current-turn catch-up cleanup, renderer broadcasts, IPC
+  allowlists, storage, provider policy, hosted URLs, permissions, credentials,
+  and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Definition Context Runtime Boundary
 
 - Finding: `ipc_agent_definition_context.cjs` owned agent-definition context
