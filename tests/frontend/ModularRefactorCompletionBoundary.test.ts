@@ -227,6 +227,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/sdk/hosted_backend_clients.md'),
       read('docs/sdk/sdk_auth_and_error_handling.md'),
       read('docs/sdk/sdk_route_change_workflow.md'),
+      read('docs/sdk/query_planning_and_trace.md'),
       read('docs/sdk/tool_authoring.md'),
     ]);
     const sdkDocText = sdkDocs.join('\n');
@@ -271,6 +272,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('gpt-5.4');
     expect(sdkDocText).not.toContain('modelProvider: "openai"');
     expect(sdkDocText).not.toContain("model_provider: 'openai'");
+    expect(sdkDocText).not.toContain('WindieOS backend SDK tool authoring');
+    expect(sdkDocText).not.toContain('WindieOS exposes SDK routes');
+    expect(sdkDocText).not.toContain('WindieOS app needs during normal operation');
+    expect(sdkDocText).not.toContain('WindieOS renderer skin state');
     expect(apiReferenceText).not.toContain('local backend process just to use hosted OCR or prediction routes');
     expect(architectureText).not.toContain('sidecar-backed storage');
     expect(architectureText).not.toContain('sidecar-backed SDK store');

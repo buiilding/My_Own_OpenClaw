@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 SDK Docs Hosted Capability Labels
+
+- Finding: active SDK tool-authoring, query-planning, and hosted-client docs
+  still described reusable hosted SDK capability as WindieOS backend SDK tool
+  authoring, WindieOS-exposed SDK routes, or WindieOS app/renderer state.
+- Change: reworded those docs through hosted backend, hosted SDK route,
+  first-party desktop app, and renderer skin labels, and extended the modular
+  SDK docs guard to cover the query-planning doc and reject the stale
+  WindieOS-specific capability phrases.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  capability-label scan across `docs/sdk`, and diff checks.
+- Compatibility: no migration required. Runtime code, package names, hosted
+  routes, SDK exports, env aliases, credentials, permissions, storage, provider
+  policy, IPC payloads, and local execution behavior are unchanged.
+
 ### 2026-06-20 SDK Docs Provider Example Neutralization
 
 - Finding: reusable SDK runtime and hosted-client examples still used the

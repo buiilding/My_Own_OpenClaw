@@ -8,7 +8,7 @@ title: "Query Planning and Trace"
 
 # Query Planning and Trace
 
-WindieOS exposes SDK routes and clients that let developer tools inspect backend prompt/tool behavior without going through the Electron UI.
+Hosted SDK routes and clients let developer tools inspect backend prompt/tool behavior without going through the Electron UI.
 
 ## Capabilities
 

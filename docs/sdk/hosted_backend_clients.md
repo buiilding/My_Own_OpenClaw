@@ -60,8 +60,8 @@ That app-builder contract is: send user intent, receive SDK display rows/current
 turns, and let the SDK own websocket normalization, reconnect/idle lifecycle,
 local tool execution, tool-result return, and projection state.
 
-Desktop hosts should use the same agent/conversation methods for the control commands that the
-WindieOS app needs during normal operation:
+Desktop hosts should use the same agent/conversation methods for the control
+commands that a first-party desktop app needs during normal operation:
 
 ```ts
 await agent.ensureConnected();
@@ -83,7 +83,7 @@ generic agent-session contracts such as `AgentSessionRuntime`,
 `ManagedAgentSession`, and `createManagedAgentSession`. `AgentSession` and
 `ManagedAgentSession` are the canonical hosted-session modules. New app-builder code should
 prefer the generic names because the hosted websocket transport is an Agent SDK
-runtime concern rather than WindieOS renderer skin state.
+runtime concern rather than renderer skin state.
 The lower-level managed websocket implementation is private to the SDK transport
 package; package-root callers should not import `ManagedBackendSession` or
 `createManagedBackendSession`.

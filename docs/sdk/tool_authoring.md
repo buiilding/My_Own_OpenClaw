@@ -8,7 +8,7 @@ title: "Tool Authoring"
 
 # Tool Authoring
 
-WindieOS backend SDK tool authoring is separate from local runtime tool implementation. Use SDK tools for backend-owned capabilities; use local runtime tools for local machine control.
+Hosted backend SDK tool authoring is separate from local runtime tool implementation. Use SDK tools for backend-owned capabilities; use local runtime tools for local machine control.
 
 ## Template
 
