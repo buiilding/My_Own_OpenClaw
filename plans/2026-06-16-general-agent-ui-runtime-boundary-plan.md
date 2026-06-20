@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Install-Auth Context Runtime Boundary
+
+- Finding: install-auth identity normalization and cached/fresh install
+  registration were already in helper modules, but `ipc.cjs` still composed
+  both helpers directly, forwarded header/ensure/SDK-auth wrapper functions,
+  and reset identity plus registration as separate relay-root dependencies.
+- Change: added `ipc_install_auth_context_runtime.cjs` to compose identity
+  state, install registration, bearer headers, SDK `installAuth` option
+  shaping, current-user access, and reset behavior behind one main-process
+  context. `ipc.cjs` now injects that context into wake-up, chat, artifact,
+  status, session, and reset paths without importing the lower-level helpers.
+- Validation: focused install-auth context, identity, registration,
+  process-reset, and main SDK runtime boundary tests verify composed behavior,
+  source ownership, reset cleanup, and that direct identity/runtime
+  coordination stays out of `ipc.cjs`.
+- Compatibility: no migration required. Install-auth state files, backend
+  registration/validation requests, bearer headers, SDK wake-up auth options,
+  current user projection, renderer IPC channels, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Runtime Current Connection Boundary
 
 - Finding: `ipc_agent_runtime_lifecycle.cjs` owned active Agent SDK adapter

@@ -137,14 +137,23 @@ describe('ipc_install_auth_identity_runtime', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
       'utf8',
     );
+    const contextSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_context_runtime.cjs'),
+      'utf8',
+    );
     const helperSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs'),
       'utf8',
     );
 
-    expect(mainSource).toContain('createInstallAuthIdentityRuntime({');
-    expect(mainSource).toContain('installAuthIdentityRuntime.getCurrentUserId()');
-    expect(mainSource).toContain('installAuthIdentityRuntime.setCurrentUserId(');
+    expect(mainSource).toContain('createInstallAuthContextRuntime({');
+    expect(mainSource).toContain('installAuthContextRuntime.getCurrentUserId()');
+    expect(mainSource).toContain('installAuthContextRuntime.setCurrentUserId(');
+    expect(mainSource).not.toContain('createInstallAuthIdentityRuntime({');
+    expect(mainSource).not.toContain('installAuthIdentityRuntime');
+    expect(contextSource).toContain('createInstallAuthIdentityRuntime({');
+    expect(contextSource).toContain('identityRuntime.getCurrentUserId()');
+    expect(contextSource).toContain('identityRuntime.setCurrentUserId(userId)');
     expect(mainSource).not.toContain('let currentUserId = null');
     expect(mainSource).not.toContain('let currentInstallId = null');
     expect(mainSource).not.toContain('let currentInstallToken = null');

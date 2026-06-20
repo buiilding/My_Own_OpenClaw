@@ -119,11 +119,8 @@ const {
   validateInstallAuthStateWithBackend,
 } = require('./ipc/ipc_install_auth_state.cjs');
 const {
-  createInstallAuthRuntime,
-} = require('./ipc/ipc_install_auth_runtime.cjs');
-const {
-  createInstallAuthIdentityRuntime,
-} = require('./ipc/ipc_install_auth_identity_runtime.cjs');
+  createInstallAuthContextRuntime,
+} = require('./ipc/ipc_install_auth_context_runtime.cjs');
 const {
   isValidConfigPayload,
 } = require('./ipc/ipc_settings_sync.cjs');
@@ -342,15 +339,23 @@ const rendererWindowRuntime = createRendererWindowRuntime({
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
 });
-const installAuthIdentityRuntime = createInstallAuthIdentityRuntime({
+const installAuthContextRuntime = createInstallAuthContextRuntime({
   getCurrentServerUserId: () => backendSessionState.getServerUserId(),
   setCurrentServerUserId: (value) => {
     backendSessionState.setServerUserId(value);
   },
+  getEndpointCandidates: () => backendEndpointState.getCandidates(),
+  setActiveBackendEndpoint,
+  loadInstallAuthStateFromDisk,
+  validateInstallAuthStateWithBackend,
+  registerInstallWithBackend,
+  saveInstallAuthStateToDisk,
+  clearInstallAuthStateFromDisk,
+  log,
 });
 const ipcStatusPayloads = createIpcStatusPayloads({
   getState: () => ({
-    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+    currentUserId: installAuthContextRuntime.getCurrentUserId(),
     ...backendSessionState.getSnapshot(),
     isConnected: backendConnectionGateState.getConnected(),
   }),
@@ -465,20 +470,8 @@ const mcpRefreshRuntime = createMcpRefreshRuntime({
   isTest: () => process.env.NODE_ENV === 'test',
   log,
 });
-const installAuthRuntime = createInstallAuthRuntime({
-  getCurrentState: () => installAuthIdentityRuntime.getCurrentState(),
-  applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
-  getEndpointCandidates: () => backendEndpointState.getCandidates(),
-  setActiveBackendEndpoint,
-  loadInstallAuthStateFromDisk,
-  validateInstallAuthStateWithBackend,
-  registerInstallWithBackend,
-  saveInstallAuthStateToDisk,
-  clearInstallAuthStateFromDisk,
-  log,
-});
 const agentConnectionEventsRuntime = createAgentConnectionEventsRuntime({
-  getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
+  getCurrentUserId: () => installAuthContextRuntime.getCurrentUserId(),
   setCurrentServerUserId: (value) => {
     backendSessionState.setServerUserId(value);
   },
@@ -541,7 +534,7 @@ const agentBackendCloseRuntime = createAgentBackendCloseRuntime({
   setActiveQueryContext: (value) => activeQueryContextState.set(value),
   getCurrentSessionId: () => backendSessionState.getSessionId(),
   getCurrentServerUserId: () => backendSessionState.getServerUserId(),
-  getCurrentUserId: () => installAuthIdentityRuntime.getCurrentUserId(),
+  getCurrentUserId: () => installAuthContextRuntime.getCurrentUserId(),
   getQueryEventsCopy: () => ipcHostCopyRuntime.getQueryEvents(),
   buildQueryInterrupted,
   handleAgentBackendEvent,
@@ -558,11 +551,10 @@ const ipcProcessResetRuntime = createIpcProcessResetRuntime({
   currentTurnTraceLogger,
   electronMainTraceLogger,
   backendConnectionGateState,
-  installAuthIdentityRuntime,
+  installAuthContextRuntime,
   activeQueryContextState,
   desktopUiConfigCache,
   globalStopShortcutConfigRuntime,
-  installAuthRuntime,
   mcpRefreshRuntime,
   hostOptionState,
   rendererWindowRuntime,
@@ -592,10 +584,10 @@ const directWakeUpAgentAdapterDepsRuntime = createDirectWakeUpAgentAdapterDepsRu
   getMcpClientInfo: () => ipcHostCopyRuntime.getMcpClientInfo(),
 });
 const agentWakeupRuntime = createAgentWakeupRuntime({
-  ensureInstallAuthState,
+  ensureInstallAuthState: () => installAuthContextRuntime.ensureInstallAuthState(),
   resolveWorkspacePathForAgent,
   getAgentClient,
-  buildDesktopInstallAuth,
+  buildDesktopInstallAuth: () => installAuthContextRuntime.buildDesktopInstallAuth(),
   getSdkAgentName: () => ipcHostCopyRuntime.getSdkAgentName(),
   isTest: () => process.env.NODE_ENV === 'test',
   getEnabledMcpServerSpecsForConfig,
@@ -615,7 +607,7 @@ const agentDefinitionContextRuntime = createAgentDefinitionContextRuntime({
 const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
   getState: () => ({
     ...backendSessionState.getSnapshot(),
-    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+    currentUserId: installAuthContextRuntime.getCurrentUserId(),
     isFirstQuery: backendConnectionGateState.getFirstQuery(),
   }),
   setCurrentConversationRef: (conversationRef) => {
@@ -629,7 +621,7 @@ const chatQueryHandlerRuntime = createChatQueryHandlerRuntime({
     buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
     payload,
   ),
-  ensureInstallAuthState,
+  ensureInstallAuthState: () => installAuthContextRuntime.ensureInstallAuthState(),
   isBackendRuntimeConnected,
   ensureBackendConnection,
   ensureInitialSettingsSync,
@@ -675,7 +667,7 @@ const automatedQueryRuntime = createAutomatedQueryRuntime({
   ),
   sendQueryThroughAgentSdkRuntime,
   getState: () => ({
-    currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+    currentUserId: installAuthContextRuntime.getCurrentUserId(),
     isFirstQuery: backendConnectionGateState.getFirstQuery(),
   }),
   setCurrentConversationRef: (conversationRef) => {
@@ -692,7 +684,7 @@ const agentSdkInvokeHandlerRuntime = createAgentSdkInvokeHandlerRuntime({
     getState: () => ({
       currentConversationRef: backendSessionState.getConversationRef(),
       currentSessionId: backendSessionState.getSessionId(),
-      currentUserId: installAuthIdentityRuntime.getCurrentUserId(),
+      currentUserId: installAuthContextRuntime.getCurrentUserId(),
       isConnected: backendConnectionGateState.getConnected(),
       agent: agentRuntimeLifecycle.getActiveAgent(),
     }),
@@ -711,9 +703,9 @@ const agentSdkInvokeHandlerRuntime = createAgentSdkInvokeHandlerRuntime({
 const artifactHandlersRuntime = createArtifactHandlersRuntime({
   uploadArtifact,
   fetchArtifactImage,
-  ensureInstallAuthState,
+  ensureInstallAuthState: () => installAuthContextRuntime.ensureInstallAuthState(),
   getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
-  buildInstallAuthHeaders,
+  buildInstallAuthHeaders: () => installAuthContextRuntime.buildInstallAuthHeaders(),
 });
 const rendererDiagnosticsHandlersRuntime = createRendererDiagnosticsHandlersRuntime({
   handleRendererLog,
@@ -737,7 +729,7 @@ const clientSessionHandlersRuntime = createClientSessionHandlersRuntime({
     currentUserId: nextUserId,
   }) => {
     backendSessionState.setConversationRef(nextConversationRef);
-    installAuthIdentityRuntime.setCurrentUserId(nextUserId);
+    installAuthContextRuntime.setCurrentUserId(nextUserId);
   },
   broadcastToRenderers,
 });
@@ -764,7 +756,7 @@ const desktopUiConfigHandlersRuntime = createDesktopUiConfigHandlersRuntime({
 });
 const ipcStartupStateRuntime = createIpcStartupStateRuntime({
   loadInstallAuthStateFromDisk,
-  applyInstallAuthState: (state) => installAuthIdentityRuntime.applyInstallAuthState(state),
+  applyInstallAuthState: (state) => installAuthContextRuntime.applyInstallAuthState(state),
   loadCachedDesktopUiConfigFromDisk,
   isValidConfigPayload,
   applyShortcutStatusFallbackToConfig,
@@ -795,14 +787,6 @@ const ipcInitializationRuntime = createIpcInitializationRuntime({
   chatQueryHandlerRuntime,
   agentSdkInvokeHandlerRuntime,
 });
-
-function buildInstallAuthHeaders() {
-  return installAuthRuntime.buildInstallAuthHeaders();
-}
-
-async function ensureInstallAuthState() {
-  return installAuthRuntime.ensureInstallAuthState();
-}
 
 function applyShortcutStatusFallbackToConfig(config) {
   return globalStopShortcutConfigRuntime.applyShortcutStatusFallbackToConfig(config);
@@ -868,10 +852,6 @@ function handleAgentBackendFallback(endpointPayload = {}) {
 
 function resolveRuntimeConversationRef(input = {}) {
   return runtimeConversationRefRuntime.resolve(input);
-}
-
-function buildDesktopInstallAuth() {
-  return installAuthIdentityRuntime.buildDesktopInstallAuth();
 }
 
 function configureIpcHostRuntime(config = {}) {

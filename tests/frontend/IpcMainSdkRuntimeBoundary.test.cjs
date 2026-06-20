@@ -180,6 +180,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_identity_runtime.cjs'),
       'utf8',
     );
+    const installAuthContextSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_install_auth_context_runtime.cjs'),
+      'utf8',
+    );
     const backendSessionStateSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_backend_session_state.cjs'),
       'utf8',
@@ -359,12 +363,21 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('ipcAppDiagnosticsRuntime.appendAppDiagnostic(input)');
     expect(source).not.toContain('[AppDiagnostics] failed to persist');
     expect(appDiagnosticsRuntimeSource).toContain('[AppDiagnostics] failed to persist');
-    expect(source).toContain('createInstallAuthIdentityRuntime({');
+    expect(source).toContain('createInstallAuthContextRuntime({');
+    expect(source).toContain('installAuthContextRuntime.ensureInstallAuthState()');
+    expect(source).toContain('installAuthContextRuntime.buildDesktopInstallAuth()');
+    expect(source).toContain('installAuthContextRuntime.buildInstallAuthHeaders()');
+    expect(source).not.toContain('createInstallAuthIdentityRuntime({');
+    expect(source).not.toContain('createInstallAuthRuntime({');
+    expect(source).not.toContain('installAuthIdentityRuntime');
+    expect(source).not.toContain('installAuthRuntime');
     expect(source).not.toContain('const installToken = typeof state.installToken');
     expect(source).not.toContain('let currentUserId = null');
     expect(source).not.toContain('let currentInstallId = null');
     expect(source).not.toContain('let currentInstallToken = null');
     expect(source).not.toContain('autoRegister: false');
+    expect(installAuthContextSource).toContain('createInstallAuthIdentityRuntime({');
+    expect(installAuthContextSource).toContain('createInstallAuthRuntime({');
     expect(installAuthIdentitySource).toContain('const installToken = typeof state.installToken');
     expect(installAuthIdentitySource).toContain('let currentInstallToken = initialState.currentInstallToken');
     expect(installAuthIdentitySource).toContain('let currentUserId = initialState.currentUserId');

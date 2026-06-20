@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: compose install-auth identity, registration, SDK auth option, and
+  bearer-header helpers through `ipc_install_auth_context_runtime.cjs`, keeping
+  the IPC relay root from coordinating identity and registration runtimes
+  directly. No migration required.
 - main/ipc: move current-conversation backend connection composition into
   `ipc_agent_runtime_lifecycle.cjs`, keeping `ipc.cjs` from rebuilding
   `ensureConnected(...)` payloads with the active conversation ref and default

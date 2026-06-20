@@ -16,11 +16,10 @@ function createIpcProcessResetRuntime({
   currentTurnTraceLogger,
   electronMainTraceLogger,
   backendConnectionGateState,
-  installAuthIdentityRuntime,
+  installAuthContextRuntime,
   activeQueryContextState,
   desktopUiConfigCache,
   globalStopShortcutConfigRuntime,
-  installAuthRuntime,
   mcpRefreshRuntime,
   hostOptionState,
   rendererWindowRuntime,
@@ -41,12 +40,11 @@ function createIpcProcessResetRuntime({
 
   function resetIpcProcessStateForTests() {
     call(backendConnectionGateState, 'reset');
-    call(installAuthIdentityRuntime, 'reset');
+    call(installAuthContextRuntime, 'reset');
     call(backendSessionState, 'reset');
     call(activeQueryContextState, 'reset');
     call(desktopUiConfigCache, 'reset');
     call(globalStopShortcutConfigRuntime, 'reset');
-    call(installAuthRuntime, 'reset');
     call(mcpRefreshRuntime, 'reset');
     call(liveTurnState, 'reset');
     call(hostOptionState, 'reset');
@@ -60,7 +58,7 @@ function createIpcProcessResetRuntime({
     resetIpcProcessStateForTests();
     call(rendererWindowRuntime, 'reset');
     call(backendMessageObserverRegistry, 'reset');
-    call(installAuthRuntime, 'reset');
+    call(installAuthContextRuntime, 'reset');
     call(backendConnectionGateState, 'setConnected', false);
     call(mcpRefreshRuntime, 'reset');
     call(liveTurnState, 'resetPendingTurn');
