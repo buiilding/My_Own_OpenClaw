@@ -53,6 +53,7 @@ describe('wakeword_bridge', () => {
     mainWindow: suppliedMainWindow = null,
     runtimePaths = undefined,
     wakewordEnv = undefined,
+    wakewordModelName = undefined,
     injectedIpcMain = null,
   } = {}) => {
     jest.resetModules();
@@ -125,6 +126,7 @@ describe('wakeword_bridge', () => {
     bridge.initializeWakewordBridge(mainWindow, onWakewordDetected, {
       ...(runtimePaths ? { runtimePaths } : {}),
       ...(wakewordEnv ? { wakewordEnv } : {}),
+      ...(wakewordModelName ? { wakewordModelName } : {}),
       ...(injectedIpcMain ? { ipcMain: injectedIpcMain } : {}),
     });
 
@@ -554,6 +556,7 @@ describe('wakeword_bridge', () => {
         isPackaged: true,
         runtimePaths: mainHostSkin.runtimePaths,
         wakewordEnv: mainHostSkin.wakeword.env,
+        wakewordModelName: mainHostSkin.wakeword.modelName,
         mockExistsSync: (candidate) => {
           const normalizedCandidate = String(candidate || '').replace(/\\/g, '/');
           return (
@@ -568,8 +571,10 @@ describe('wakeword_bridge', () => {
       expect(spawnOptions.env).toEqual(expect.objectContaining({
         AGENT_PACKAGED_APP: '1',
         AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        AGENT_WAKEWORD_NAME: 'hey_jarvis',
         WINDIE_PACKAGED_APP: '1',
         WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        WINDIE_WAKEWORD_NAME: 'hey_jarvis',
         PYTHONDONTWRITEBYTECODE: '1',
       }));
     } finally {

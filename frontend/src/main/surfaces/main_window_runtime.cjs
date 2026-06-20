@@ -215,6 +215,7 @@ function createMainWindow({
   localRuntimeDaemonEntrypoint = null,
   localRuntimeEnv = null,
   wakewordEnv = null,
+  wakewordModelName = null,
   wakewordStderrLogMarkers = null,
   localRuntimeBridgeCopy = null,
   resolveAppIconPath = null,
@@ -289,6 +290,7 @@ function createMainWindow({
     bundledRuntimeCopy,
     runtimePaths,
     wakewordEnv,
+    wakewordModelName,
     wakewordStderrLogMarkers,
     ipcMain,
   });

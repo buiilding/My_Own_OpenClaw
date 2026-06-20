@@ -40,7 +40,23 @@ class _UnsupportedModel:
         self.sample_rate = sample_rate
 
 
-def test_resolve_wakeword_model_prefers_hey_jarvis():
+def test_resolve_wakeword_name_prefers_agent_env(monkeypatch):
+    monkeypatch.setenv(wakeword_service.ENV_WINDIE_WAKEWORD_NAME, "hey_jarvis")
+    monkeypatch.setenv(wakeword_service.ENV_AGENT_WAKEWORD_NAME, "custom_agent")
+
+    assert wakeword_service.resolve_wakeword_name() == "custom_agent"
+
+
+def test_resolve_wakeword_name_supports_windie_legacy_env(monkeypatch):
+    monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_NAME, raising=False)
+    monkeypatch.setenv(wakeword_service.ENV_WINDIE_WAKEWORD_NAME, "hey_jarvis")
+
+    assert wakeword_service.resolve_wakeword_name() == "hey_jarvis"
+
+
+def test_resolve_wakeword_model_prefers_hey_jarvis(monkeypatch):
+    monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_NAME, raising=False)
+    monkeypatch.delenv(wakeword_service.ENV_WINDIE_WAKEWORD_NAME, raising=False)
     module = SimpleNamespace(
         models={
             "timer": {"model_path": "/tmp/timer.onnx"},
@@ -54,7 +70,24 @@ def test_resolve_wakeword_model_prefers_hey_jarvis():
     assert model_path == "/tmp/hey_jarvis.onnx"
 
 
-def test_resolve_wakeword_model_supports_uppercase_models_map():
+def test_resolve_wakeword_model_supports_configured_name(monkeypatch):
+    monkeypatch.setenv(wakeword_service.ENV_AGENT_WAKEWORD_NAME, "timer")
+    module = SimpleNamespace(
+        models={
+            "timer": {"model_path": "/tmp/timer.onnx"},
+            "hey_jarvis": {"model_path": "/tmp/hey_jarvis.onnx"},
+        }
+    )
+
+    model_name, model_path = wakeword_service.resolve_wakeword_model(module)
+
+    assert model_name == "timer"
+    assert model_path == "/tmp/timer.onnx"
+
+
+def test_resolve_wakeword_model_supports_uppercase_models_map(monkeypatch):
+    monkeypatch.delenv(wakeword_service.ENV_AGENT_WAKEWORD_NAME, raising=False)
+    monkeypatch.delenv(wakeword_service.ENV_WINDIE_WAKEWORD_NAME, raising=False)
     module = SimpleNamespace(
         MODELS={
             "timer": {"model_path": "/tmp/timer.onnx"},

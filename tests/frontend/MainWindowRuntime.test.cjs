@@ -540,6 +540,11 @@ describe('main_window_runtime createMainWindow', () => {
       localRuntimeEnv: {
         backendHttpUrl: 'AGENT_BACKEND_HTTP_URL',
       },
+      wakewordEnv: {
+        modelName: 'AGENT_WAKEWORD_NAME',
+      },
+      wakewordModelName: 'desktop_wakeword',
+      wakewordStderrLogMarkers: ['desktop_wakeword'],
       localRuntimeBridgeCopy: {
         browserWarmupExplanation: 'Open the desktop browser',
       },
@@ -603,6 +608,9 @@ describe('main_window_runtime createMainWindow', () => {
         ipcMain: deps.ipcMain,
         bundledRuntimeCopy: deps.bundledRuntimeCopy,
         runtimePaths: deps.runtimePaths,
+        wakewordEnv: deps.wakewordEnv,
+        wakewordModelName: deps.wakewordModelName,
+        wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
       }),
     );
   });

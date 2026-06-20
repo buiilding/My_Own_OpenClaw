@@ -31,20 +31,25 @@ It is not JSON-RPC and does not share `JSONRPCProtocol`.
 
 Startup pipeline:
 
-1. `resolve_wakeword_model()` reads openWakeWord metadata (`models` or `MODELS`) and resolves the preferred model id/path.
+1. `resolve_wakeword_model()` reads the preferred model id from
+   `AGENT_WAKEWORD_NAME`, then `WINDIE_WAKEWORD_NAME`, then the compatibility
+   default, and resolves that id/path from openWakeWord metadata (`models` or
+   `MODELS`).
 2. `ensure_models_available()` first checks packaged model path, then checks user cache path (`AGENT_WAKEWORD_MODEL_DIR`, `WINDIE_WAKEWORD_MODEL_DIR`, or WindieOS user-data dir).
-3. if model is missing, `download_models(['hey_jarvis'], target_directory=<user-cache>)` is used when supported by the installed openWakeWord version.
+3. if model is missing, `download_models([<wakeword-name>], target_directory=<user-cache>)` is used when supported by the installed openWakeWord version.
 4. runtime resolves a concrete model file path from the writable cache and initializes `Model` with explicit `wakeword_model_paths`; model-name-only constructor fallback is not supported.
    When cached models are used, auxiliary feature-model paths (`melspectrogram`, `embedding_model`) are resolved from the same cache directory so ONNX fallback does not drift back to broken package-relative defaults.
 5. inference framework tries `tflite` first, falls back to `onnx` on failure
 
-Runtime model cache overrides are controlled by `AGENT_WAKEWORD_MODEL_DIR` with
+Runtime wakeword selection is controlled by `AGENT_WAKEWORD_NAME` with
+`WINDIE_WAKEWORD_NAME` preserved as the WindieOS host alias. Runtime model cache
+overrides are controlled by `AGENT_WAKEWORD_MODEL_DIR` with
 `WINDIE_WAKEWORD_MODEL_DIR` preserved as the WindieOS alias. Runtime model
 downloads are controlled by `AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD` with
 `WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD` preserved as the WindieOS host alias.
-Electron host-skin launches set both download keys when the skin uses the
-WindieOS alias, so generic Python wakeword code can prefer `AGENT_*`
-deterministically.
+Electron host-skin launches set both generic and WindieOS alias keys when the
+skin uses WindieOS env names, so generic Python wakeword code can prefer
+`AGENT_*` deterministically.
 
 Status payloads are written to stderr JSON lines:
 

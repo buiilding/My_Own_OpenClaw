@@ -311,6 +311,7 @@ const {
   localRuntimeDaemonEntrypoint: mainHostSkin.localRuntime.daemonEntrypoint,
   localRuntimeEnv: mainHostSkin.localRuntime.env,
   wakewordEnv: mainHostSkin.wakeword.env,
+  wakewordModelName: mainHostSkin.wakeword.modelName,
   wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers,
   localRuntimeBridgeCopy: {
     browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation,

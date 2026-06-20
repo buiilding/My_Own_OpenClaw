@@ -46,6 +46,7 @@ function createWindowBootstrapRuntime(deps) {
       localRuntimeDaemonEntrypoint: deps.localRuntimeDaemonEntrypoint,
       localRuntimeEnv: deps.localRuntimeEnv,
       wakewordEnv: deps.wakewordEnv,
+      wakewordModelName: deps.wakewordModelName,
       wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
       localRuntimeBridgeCopy: deps.localRuntimeBridgeCopy,
       getWindows: () => deps.getState().windows,

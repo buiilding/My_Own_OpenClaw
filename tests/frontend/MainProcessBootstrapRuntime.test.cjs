@@ -53,6 +53,7 @@ describe('main_process_bootstrap_runtime', () => {
         wakewordEnv: {
           packagedApp: 'WINDIE_PACKAGED_APP',
         },
+        wakewordModelName: 'hey_jarvis',
         wakewordStderrLogMarkers: ['hey_jarvis'],
         localRuntimeBridgeCopy: {
           browserWarmupExplanation: 'Open the WindieOS browser',
@@ -129,6 +130,7 @@ describe('main_process_bootstrap_runtime', () => {
       localRuntimeEnv: deps.localRuntimeEnv,
       ipcMain: deps.ipcMain,
       wakewordEnv: deps.wakewordEnv,
+      wakewordModelName: deps.wakewordModelName,
       wakewordStderrLogMarkers: deps.wakewordStderrLogMarkers,
       localRuntimeBridgeCopy: deps.localRuntimeBridgeCopy,
     }));

@@ -138,6 +138,8 @@ describe('main host skin/config boundary', () => {
     expect(skinSource).toContain('browserWarmupExplanation');
     expect(skinSource).toContain('wakeword');
     expect(skinSource).toContain("allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
+    expect(skinSource).toContain("modelName: 'WINDIE_WAKEWORD_NAME'");
+    expect(skinSource).toContain("modelName: 'hey_jarvis'");
   });
 
   test('shared permission manifest uses generic desktop-runtime descriptions', () => {
@@ -177,6 +179,7 @@ describe('main host skin/config boundary', () => {
     expect(indexSource).toContain('bundledRuntimeCopy: mainHostSkin.bundledRuntime');
     expect(indexSource).toContain('runtimePaths: mainHostSkin.runtimePaths');
     expect(indexSource).toContain('wakewordEnv: mainHostSkin.wakeword.env');
+    expect(indexSource).toContain('wakewordModelName: mainHostSkin.wakeword.modelName');
     expect(indexSource).toContain('wakewordStderrLogMarkers: mainHostSkin.wakeword.stderrLogMarkers');
     expect(indexSource).toContain('localRuntimeBridgeCopy: {');
     expect(indexSource).toContain('browserWarmupExplanation: mainHostSkin.localRuntime.browserWarmupExplanation');
@@ -424,13 +427,19 @@ describe('main host skin/config boundary', () => {
 
     expect(skinSource).toContain("packagedApp: 'WINDIE_PACKAGED_APP'");
     expect(skinSource).toContain("allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
+    expect(skinSource).toContain("modelName: 'WINDIE_WAKEWORD_NAME'");
+    expect(skinSource).toContain("modelName: 'hey_jarvis'");
     expect(wakewordSource).toContain("packagedApp: 'AGENT_PACKAGED_APP'");
     expect(wakewordSource).toContain("allowRuntimeDownload: 'AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD'");
+    expect(wakewordSource).toContain("modelName: 'AGENT_WAKEWORD_NAME'");
     expect(wakewordSource).toContain('resolveWakewordEnvConfig');
     expect(fs.readFileSync(indexPath, 'utf8')).toContain('wakewordEnv: mainHostSkin.wakeword.env');
+    expect(fs.readFileSync(indexPath, 'utf8')).toContain('wakewordModelName: mainHostSkin.wakeword.modelName');
     expect(mainWindowSource).toContain('wakewordEnv,');
+    expect(mainWindowSource).toContain('wakewordModelName,');
     expect(mainWindowSource).not.toContain('mainHostSkin?.wakeword?.env');
     expect(wakewordSource).not.toContain('WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD');
+    expect(wakewordSource).not.toContain('WINDIE_WAKEWORD_NAME');
     expect(wakewordSource).not.toContain('WINDIE_PACKAGED_APP');
   });
 

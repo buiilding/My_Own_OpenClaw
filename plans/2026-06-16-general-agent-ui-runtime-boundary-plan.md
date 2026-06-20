@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Wakeword Model Host-Skin Boundary
+
+- Finding: Electron main already kept WindieOS wakeword stderr markers in host
+  skin, but the wakeword subprocess path still lacked a first-class host-skin
+  handoff for the preferred model id, leaving the local-runtime service to rely
+  on its compatibility default.
+- Change: added a host-skin wakeword model name and env-key mapping, passed it
+  through bootstrap/main-window/wakeword bridge startup, and taught the Python
+  wakeword service to prefer `AGENT_WAKEWORD_NAME` before the WindieOS alias and
+  compatibility default.
+- Validation: focused wakeword bridge, main host-skin, main-window/bootstrap,
+  wakeword service tests, formatting checks, docs listing, exact wakeword env
+  scans, and diff checks.
+- Compatibility: no migration required. Existing default model id,
+  `WINDIE_WAKEWORD_*` aliases, subprocess protocol, wakeword IPC channels,
+  audio framing, model cache/download behavior, permissions, credentials,
+  storage, hosted backend URLs, provider policy, and local tool execution are
+  unchanged.
+
 ### 2026-06-20 SDK Auth and Persistence Label Cleanup
 
 - Finding: active SDK auth/error and conversation-runtime docs still used

@@ -62,7 +62,8 @@ Behavior:
       process reference
     - emits `wakeword-status { ready: false, error: <message> }`
 - for non-JSON lines:
-  - logs informational wakeword traces (`[Python]`, `DETECTED`, `hey_jarvis`)
+  - logs informational wakeword traces from generic markers (`[Python]`,
+    `DETECTED`) plus host-skin markers such as the WindieOS wakeword model id
   - logs error-like lines through error logger
 
 ### `resolveWakewordStartErrorMessage(...)`

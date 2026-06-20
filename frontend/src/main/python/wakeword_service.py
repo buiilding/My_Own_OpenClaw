@@ -21,8 +21,10 @@ import numpy as np
 from core.env_flags import env_flag_enabled
 from core.user_data_paths import app_user_data_root
 
-WAKEWORD_NAME = "hey_jarvis"
+DEFAULT_WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
+ENV_AGENT_WAKEWORD_NAME = "AGENT_WAKEWORD_NAME"
+ENV_WINDIE_WAKEWORD_NAME = "WINDIE_WAKEWORD_NAME"
 ENV_AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 ENV_WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 ENV_AGENT_WAKEWORD_MODEL_DIR = "AGENT_WAKEWORD_MODEL_DIR"
@@ -61,6 +63,14 @@ def _env_flag_enabled_any(names: tuple[str, ...], default: bool = True) -> bool:
     return default
 
 
+def resolve_wakeword_name() -> str:
+    for env_name in (ENV_AGENT_WAKEWORD_NAME, ENV_WINDIE_WAKEWORD_NAME):
+        configured_name = os.environ.get(env_name, "").strip()
+        if configured_name:
+            return configured_name
+    return DEFAULT_WAKEWORD_NAME
+
+
 def _load_download_models_func() -> Optional[Callable[[Iterable[str]], Any]]:
     try:
         utils_mod = importlib.import_module("openwakeword.utils")
@@ -79,13 +89,14 @@ def _resolve_openwakeword_models(openwakeword_mod: Any) -> Dict[str, Dict[str, A
 
 
 def resolve_wakeword_model(openwakeword_mod: Any) -> Tuple[str, Optional[str]]:
+    wakeword_name = resolve_wakeword_name()
     models = _resolve_openwakeword_models(openwakeword_mod)
     if not models:
-        return WAKEWORD_NAME, None
+        return wakeword_name, None
 
-    if WAKEWORD_NAME in models and isinstance(models[WAKEWORD_NAME], dict):
-        preferred_path = models[WAKEWORD_NAME].get("model_path")
-        return WAKEWORD_NAME, str(preferred_path) if preferred_path else None
+    if wakeword_name in models and isinstance(models[wakeword_name], dict):
+        preferred_path = models[wakeword_name].get("model_path")
+        return wakeword_name, str(preferred_path) if preferred_path else None
 
     for model_name, model_meta in models.items():
         if not isinstance(model_meta, dict):
@@ -94,7 +105,7 @@ def resolve_wakeword_model(openwakeword_mod: Any) -> Tuple[str, Optional[str]]:
         if model_path:
             return str(model_name), str(model_path)
 
-    return WAKEWORD_NAME, None
+    return wakeword_name, None
 
 
 def resolve_wakeword_model_directory() -> Path:

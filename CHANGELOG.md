@@ -42,6 +42,10 @@ All notable changes to WindieOS will be documented in this file.
 - docs/sdk: route SDK auth and conversation persistence wording through Python
   SDK and local-runtime labels instead of stale sidecar-facing client/storage
   labels. No migration required.
+- main/local-runtime: route the wakeword model id through host skin config and
+  generic `AGENT_WAKEWORD_NAME` / WindieOS alias env injection instead of
+  hardcoding the product wakeword choice in the bridge path. No migration
+  required.
 - renderer/sdk: remove the retired renderer `agentSdkClient.ts` SDK re-export
   facade; renderer app-runtime contracts now import the SDK package directly
   and active docs route hosted TypeScript client work to `packages/windie-sdk-js`.

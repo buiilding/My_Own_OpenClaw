@@ -223,9 +223,11 @@ const localRuntime = Object.freeze({
 });
 
 const wakeword = Object.freeze({
+  modelName: 'hey_jarvis',
   env: Object.freeze({
     packagedApp: 'WINDIE_PACKAGED_APP',
     allowRuntimeDownload: 'WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD',
+    modelName: 'WINDIE_WAKEWORD_NAME',
   }),
   stderrLogMarkers: Object.freeze(['hey_jarvis']),
 });

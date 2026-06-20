@@ -30,6 +30,7 @@ const MAX_WAKEWORD_RESULT_FRAME_BYTES = 64 * 1024;
 const DEFAULT_WAKEWORD_ENV = Object.freeze({
   packagedApp: 'AGENT_PACKAGED_APP',
   allowRuntimeDownload: 'AGENT_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD',
+  modelName: 'AGENT_WAKEWORD_NAME',
 });
 
 let pythonProcess = null;
@@ -56,6 +57,7 @@ function resolveWakewordEnvConfig(wakewordEnv = {}) {
       wakewordEnv?.allowRuntimeDownload,
       DEFAULT_WAKEWORD_ENV.allowRuntimeDownload,
     ),
+    modelName: normalizeEnvKey(wakewordEnv?.modelName, DEFAULT_WAKEWORD_ENV.modelName),
   });
 }
 
@@ -107,6 +109,9 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
   const packagedApp = Boolean(app && app.isPackaged);
   const wakewordEnvConfig = resolveWakewordEnvConfig(options.wakewordEnv);
   const wakewordStderrLogMarkers = options.wakewordStderrLogMarkers;
+  const wakewordModelName = typeof options.wakewordModelName === 'string'
+    ? options.wakewordModelName.trim()
+    : '';
   stderrBuffer = '';
 
   const startErrorMessage = resolveWakewordStartErrorMessage({
@@ -154,6 +159,14 @@ function startWakewordService(mainWindow, onWakewordDetected, options = {}) {
     [wakewordEnvConfig.allowRuntimeDownload]: allowRuntimeDownloadEnvValue,
     ...(wakewordEnvConfig.allowRuntimeDownload !== DEFAULT_WAKEWORD_ENV.allowRuntimeDownload
       ? { [DEFAULT_WAKEWORD_ENV.allowRuntimeDownload]: allowRuntimeDownloadEnvValue }
+      : {}),
+    ...(wakewordModelName
+      ? {
+          [wakewordEnvConfig.modelName]: wakewordModelName,
+          ...(wakewordEnvConfig.modelName !== DEFAULT_WAKEWORD_ENV.modelName
+            ? { [DEFAULT_WAKEWORD_ENV.modelName]: wakewordModelName }
+            : {}),
+        }
       : {}),
     ...(
       packagedApp
