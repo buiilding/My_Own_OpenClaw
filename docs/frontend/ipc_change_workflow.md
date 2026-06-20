@@ -22,7 +22,7 @@ flowchart LR
   Preload --> Main["ipcMain.handle/on owner"]
   Main --> MainHelper["Focused main helper module"]
   MainHelper --> LocalRuntimeBridge["Optional local runtime bridge helper"]
-  LocalRuntimeBridge --> Sidecar["local-runtime JSON-RPC method backed by Python sidecar"]
+  LocalRuntimeBridge --> Sidecar["local-runtime JSON-RPC method backed by local-runtime Python"]
   Main --> Broadcast["Optional webContents.send broadcaster"]
   Broadcast --> RendererListener["Renderer IpcBridge.on cleanup"]
 ```

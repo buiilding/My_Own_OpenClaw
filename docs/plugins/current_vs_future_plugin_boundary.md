@@ -24,7 +24,7 @@ Implemented today:
 - MCP servers under `mcps/*/mcp.json`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
 - skills under `skills/**/SKILL.md` forwarded through `agent_definition.prompt_layers`
 - backend tool registry and SDK tool base
-- local-runtime executable tools backed by the Python sidecar
+- local-runtime executable tools backed by local-runtime Python
 - LLM provider factory and model catalog
 - OCR/vision/embedding capability routers
 - hosted SDK routes and clients

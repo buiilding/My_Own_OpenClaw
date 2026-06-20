@@ -40,7 +40,7 @@ This is the canonical computer use screenshot guide.
 - OCR/vision services: `backend/src/services/screen_grounding/*`
 - Query screenshot resource resolver: `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - Main overlay capture guards: `frontend/src/main/overlays/*`
-- Python sidecar computer implementations: `frontend/src/main/python/tools/computer/*`
+- Local-runtime Python computer implementations: `frontend/src/main/python/tools/computer/*`
 
 ## Deep Docs
 

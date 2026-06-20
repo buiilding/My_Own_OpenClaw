@@ -8,7 +8,7 @@ title: "Transcript and Replay"
 
 # Transcript and Replay
 
-Renderer transcript rows are visible projections. Canonical client-runtime state is stored in SDK local-runtime `conversation_events` storage, backed by the Python sidecar SQLite store, and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
+Renderer transcript rows are visible projections. Canonical client-runtime state is stored in SDK local-runtime `conversation_events` storage, backed by the local-runtime Python SQLite store, and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
 
 For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK store/display projections, local-runtime event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
 

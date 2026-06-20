@@ -922,7 +922,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureOverviewText).toContain('not enforced in the local-runtime Python implementation by default');
     expect(architectureOverviewText).toContain('SDK local-runtime memory backed by local-runtime Python modules');
     expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
-    expect(runtimeTraceText).toContain('Python sidecar protocol');
+    expect(runtimeTraceText).toContain('Local-runtime Python protocol');
     expect(browserToolOverviewText).toContain('local-runtime execution, local-runtime Python adapters');
     expect(browserRouteDocText).toContain('local-runtime execution, local-runtime Python adapters');
     expect(docText).not.toContain('SDK desktop agent');
@@ -1458,7 +1458,8 @@ describe('modular sdk refactor completion boundary', () => {
     const docText = docs.join('\n');
 
     expect(docText).toContain('local-runtime validation');
-    expect(docText).toContain('local-runtime validation backed by Python sidecar');
+    expect(docText).toContain('local-runtime validation backed by local-runtime');
+    expect(docText).toContain('Python adapters');
     expect(docText).toContain('Backend-Local Runtime Browser Schema Parity');
     expect(docText).toContain('backend/local-runtime parity');
     expect(docText).toContain('local-runtime browser execution');
@@ -1706,6 +1707,13 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar tooling/tests',
         'sidecar tools evolved',
         'sidecar becomes sole source for all model-facing behavior',
+        'backed by the Python sidecar',
+        'backed by Python sidecar',
+        'backed by Python sidecar Browser Use engine',
+        'backed by Python sidecar Chrome detection',
+        'Python sidecar entrypoint',
+        'Python sidecar protocol',
+        'Python sidecar wakeword service',
         'desktop client/Python sidecar code',
         'Desktop host, renderer, and Python sidecar code',
         'Python sidecar code owns concrete executable implementations',
@@ -2610,6 +2618,14 @@ describe('modular sdk refactor completion boundary', () => {
         'Python sidecar says tool not found',
         'Python sidecar registry/schema/runtime',
         'Python sidecar startup owns local execution variables',
+        'Python sidecar browser validation',
+        'Python sidecar unit test for the executable tool',
+        'Python sidecar computer implementations',
+        'Python sidecar scoped host bridge',
+        'current Python sidecar read/edit internals',
+        'current Python sidecar shell/session internals',
+        'Python sidecar `ToolRegistry.execute_tool`',
+        'Python sidecar executes',
         'local-runtime Python sidecar process',
         'local-runtime Python sidecar',
         'Local-runtime Python sidecar',
@@ -2696,6 +2712,9 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar tool or backend tool-result ingress',
         'generic sidecar tool channel',
         'sidecar tool screenshots',
+        'sidecar browser tools',
+        'Cover sidecar behavior',
+        '| Sidecar daemon |',
         'Sidecar computer tools:',
         'model-visible sidecar tool',
         'If a Python sidecar tool cannot execute a visible tool',

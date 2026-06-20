@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route remaining local-runtime internals and implementation
+  backing labels through local-runtime Python wording instead of Python sidecar
+  owner labels. No migration required.
 - docs(tools): route local-runtime tool registration, validation, and tooling
   labels through local-runtime Python tool wording instead of sidecar tool
   owner labels. No migration required.

@@ -9,7 +9,7 @@ title: "Tools Hub"
 # Tools Hub
 
 WindieOS tools are split between desktop client/local-runtime manifest schemas,
-local-runtime executable implementations backed by the Python sidecar,
+local-runtime executable implementations backed by local-runtime Python,
 backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
 
 ## Tool Families

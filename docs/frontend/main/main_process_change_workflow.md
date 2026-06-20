@@ -79,7 +79,7 @@ When changing SDK local-runtime bridge behavior:
 - Keep request ids and readiness/error handling observable in main-process logs.
 - Do not parse or reinterpret model-facing backend tool schemas in main. The bridge maps executable payloads for local-runtime execution.
 - Keep screenshot/display/window helper shapes stable or update local-runtime Python tests and docs together.
-- Add main bridge tests plus local-runtime JSON-RPC/tool tests backed by Python sidecar coverage when Python payload shape changes.
+- Add main bridge tests plus local-runtime JSON-RPC/tool tests backed by local-runtime Python coverage when Python payload shape changes.
 
 ## Endpoint and Runtime Path Checklist
 

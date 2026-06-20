@@ -52,7 +52,7 @@ Main-process handler registration is split by responsibility:
 - permission registration: `permission_ipc_runtime.cjs` (wired by `index.cjs`)
 - chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
 - app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
-- Python sidecar scoped host bridge: `local_runtime_bridge.cjs`
+- Local-runtime scoped host bridge: `local_runtime_bridge.cjs`
 - wakeword audio process bridge: `wakeword_bridge.cjs`
 
 ## Handler Ownership Matrix

@@ -535,7 +535,7 @@ logs.
 | --- | --- |
 | Main bridge process lifecycle | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs` |
 | Main bridge request mapping | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/sidecar/local_runtime_tool_args.cjs`, SDK local-runtime store/client code |
-| Python sidecar protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
+| Local-runtime Python protocol | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/local_backend.py` |
 | Tool registry | `frontend/src/main/python/tools/registry.py` |
 
 Enable local-runtime Python debug:

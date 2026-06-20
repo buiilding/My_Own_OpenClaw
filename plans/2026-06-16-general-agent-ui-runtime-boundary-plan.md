@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Internals Labels
+
+- Finding: architecture, browser, voice/wakeword, debug, getting-started,
+  memory, plugin, tool, filesystem/shell, permission, IPC, and lifecycle docs
+  still used Python sidecar or sidecar-browser labels for implementation
+  backing, local tool internals, validation, host bridge, daemon, and shell
+  behavior.
+- Change: routed those labels through local-runtime Python implementation,
+  storage, service, protocol, validation, browser-tool, scoped-host-bridge,
+  daemon, and shell behavior wording while preserving concrete
+  `sidecar_daemon.py`, `tests/sidecar`, and `frontend/src/main/python`
+  implementation paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  internals-label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 ### 2026-06-20 Local-Runtime Python Tool Registration Labels
 
 - Finding: ADR alternatives, browser parity validation, platform validation,

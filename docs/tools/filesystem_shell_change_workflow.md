@@ -115,8 +115,8 @@ flowchart LR
 8. Update docs next to behavior.
    - Update this workflow when ownership or sequencing changes.
    - Update [Filesystem and Shell Tools](filesystem_shell.md) for user-facing behavior and high-level tool semantics.
-   - Update [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) for current Python sidecar read/edit internals.
-   - Update [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) for current Python sidecar shell/session internals.
+   - Update [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) for current local-runtime Python read/edit internals.
+   - Update [Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) for current local-runtime Python shell/session internals.
    - Update [Local-Runtime Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) when the cross-runtime path changes.
    - Update [Tool Catalog Matrix](tool_catalog_matrix.md) and [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) when model-facing schema, policy, or visibility changes.
    - Update [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) if path authority, sudo behavior, workspace access, or local permission semantics change.
@@ -148,14 +148,14 @@ If a listed test file has moved, search by the test stem before adding a new tes
 3. Check `AgentClient.wakeUp(...)` provides the SDK local runtime client and `agent.conversation(...)` dispatches the local runtime call through the SDK tool coordinator.
 4. Check `local_runtime_bridge.cjs` exposes `executeToolForBackend(...)`.
 5. Check `local_runtime_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.
-6. Check Python sidecar `ToolRegistry.execute_tool` has the executable name registered.
+6. Check local-runtime Python `ToolRegistry.execute_tool` has the executable name registered.
 7. Add or update one test at the failing boundary, then one adjacent contract test if drift is possible.
 
 ### Shell command uses the wrong sudo behavior
 
 1. Inspect `shell_tool.py` sudo command rewriting.
 2. Confirm `pkexec` is available on Linux when an OS authentication prompt is expected.
-3. Cover sidecar behavior with `tests/sidecar/test_shell_process_tool.py`.
+3. Cover local-runtime shell behavior with `tests/sidecar/test_shell_process_tool.py`.
 
 ### Shell process appears stuck
 

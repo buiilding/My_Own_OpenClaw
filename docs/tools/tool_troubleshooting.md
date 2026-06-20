@@ -23,7 +23,7 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
 | Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |
 | Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |
-| Browser action rejected | Python sidecar browser validation for local execution, backend validation for backend-owned browser capabilities | [Browser Action Surface](../browser/browser_action_surface.md) |
+| Browser action rejected | Local-runtime Python browser validation for local execution, backend validation for backend-owned browser capabilities | [Browser Action Surface](../browser/browser_action_surface.md) |
 
 ## Model Visibility Failures
 
@@ -107,7 +107,7 @@ For a tool regression fix, add the narrowest tests that cross the failing bounda
 
 - policy visibility bug: backend `ToolPolicy` test
 - schema drift: backend schema/registry test and local-runtime executable parity test if local execution is involved
-- local-runtime implementation bug: Python sidecar unit test for the executable tool
+- local-runtime implementation bug: local-runtime Python unit test for the executable tool
 - SDK/main dispatch bug: SDK runtime or IPC tool-router test
 - waiting/result bug: backend result receiver/storage/processor test
 - replay bug: renderer transcript or backend rehydrate/history test

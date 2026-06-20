@@ -24,7 +24,7 @@ WindieOS voice has three related paths: wakeword detection, transient voice dict
 ## Runtime Rules
 
 - Onboarding should not mount wakeword capture.
-- Wakeword capture streams through the Electron bridge to the local-runtime wakeword helper backed by the Python sidecar wakeword service.
+- Wakeword capture streams through the Electron bridge to the local-runtime wakeword helper backed by the local-runtime Python wakeword service.
 - Voice mode transcription uses the dedicated `/ws/transcription` backend websocket, not the normal agent `/ws` channel.
 - OpenAI and Nova STT modes share the renderer protocol.
 - TTS audio chunks arrive through backend stream events and are played by renderer audio services.

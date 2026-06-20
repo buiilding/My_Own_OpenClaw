@@ -21,7 +21,7 @@ Start every change by identifying the owning runtime before editing code.
 | Electron main | BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, desktop local-runtime launch option assembly, wakeword supervision, endpoint diagnostics, direct `AgentClient.wakeUp(...)` customer wiring | Agent loop, prompt compiler, durable conversation store, websocket lifecycle, local-tool routing authority, local-runtime daemon client/lifecycle ownership, or duplicate SDK runtime behavior |
 | Renderer | User-facing state and display, dashboard/chat/settings/voice surfaces, transcript projection display, display-only tool state | Backend websocket loops, durable transcript storage, tool execution, model sync, or local authority |
 | Preload | Narrow allowlisted bridge between renderer and main | Business logic or policy decisions |
-| local-runtime implementation | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution, currently backed by the Python sidecar | Backend orchestration, prompt policy, provider routing, or backend package imports |
+| local-runtime implementation | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution, currently backed by local-runtime Python | Backend orchestration, prompt policy, provider routing, or backend package imports |
 | Docs and tests | Durable contracts, routing maps, parity checks, and regression evidence | Runtime behavior |
 
 ## Change Routing

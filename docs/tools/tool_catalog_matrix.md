@@ -14,7 +14,7 @@ WindieOS tools are registered in two places by design:
   model-facing schemas and executable local actions.
 - Backend catalog: backend-owned tools plus fallback/default model-facing
   entries and tool policy owner.
-- Local-runtime executable registry: executable local action owner, currently backed by the Python sidecar.
+- Local-runtime executable registry: executable local action owner, currently backed by local-runtime Python.
 
 Do not import backend tool code into the sidecar to force parity. Keep parity explicit through shared contracts, exposed-name sets, and tests.
 

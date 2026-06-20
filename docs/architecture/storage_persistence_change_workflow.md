@@ -18,7 +18,7 @@ Use this workflow for storage shape, migration, retention, reset, and data-loss 
 | --- | --- | --- | --- |
 | Renderer browser storage | React renderer | renderer config subset, transcript session info, local snapshots | survives renderer reload when local/session storage survives |
 | Electron user-data files | Electron main | `frontend-config.json`, `install-auth.json`, permission state, endpoint-derived local config | survives app restart until user-data reset |
-| Local-runtime memory DB/index files | SDK local-runtime memory boundary, currently backed by the Python sidecar | transcript rows, episodic/semantic memories, conversation titles, FAISS indexes, semanticization watermark | survives app restart, must migrate defensively |
+| Local-runtime memory DB/index files | SDK local-runtime memory boundary, currently backed by local-runtime Python storage | transcript rows, episodic/semantic memories, conversation titles, FAISS indexes, semanticization watermark | survives app restart, must migrate defensively |
 | Backend disk stores | Hosted backend | artifacts, install-auth SQLite | survives backend process restart if path is persistent |
 | Backend process memory | Hosted backend | active sessions/history, tool futures, VM run registry, cache entries, OCR/vision loaded models | lost on process restart |
 | Packaged resource/runtime files | Electron package and build scripts | bundled Python runtime, feature-pack state, app resources | replaced by reinstall/package update |

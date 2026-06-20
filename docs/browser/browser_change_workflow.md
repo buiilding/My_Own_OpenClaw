@@ -16,8 +16,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 
 - The backend owns model-facing browser tool exposure and validation.
 - The shared Python browser contract is the schema source used by the backend
-  remote browser tool and local-runtime validation backed by Python sidecar
-  adapters.
+  remote browser tool and local-runtime validation backed by local-runtime
+  Python adapters.
 - The local runtime owns browser tool execution; the current Python sidecar
   adapters own Browser Use invocation, browser-local file helpers, and WindieOS
   result normalization.
@@ -34,9 +34,9 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | --- | --- | --- | --- | --- |
 | Browser tool visible/missing from model | Backend tool catalog/policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/browser/**` | `tests/backend/test_browser_remote_tool.py`, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
 | Browser action schema, fields, or action literals | Shared browser contract plus backend remote tool | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/shared_contract_loader.py`, `backend/src/tools/remote_tools/browser.py`, `frontend/src/main/python/tools/browser/browser_tool.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
-| Browser action runtime behavior | Local runtime browser adapter backed by Python sidecar Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
-| CDP launch, executable detection, or profile path | Local runtime browser launcher backed by Python sidecar Chrome detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
-| Snapshot text and Browser Use element indexes | Local runtime browser adapter backed by Python sidecar Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
+| Browser action runtime behavior | Local runtime browser adapter backed by local-runtime Python Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
+| CDP launch, executable detection, or profile path | Local runtime browser launcher backed by local-runtime Python Chrome detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
+| Snapshot text and Browser Use element indexes | Local runtime browser adapter backed by local-runtime Python Browser Use engine | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `frontend/src/renderer/app/runtime/desktopBrowserSessionRuntimeClient.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permissions/permission_service_browser.cjs`, `frontend/src/main/permissions/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Browser file or download behavior | Local runtime browser file store backed by local-runtime Python Browser Use adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | local-runtime Python browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
@@ -50,8 +50,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 4. Backend validation accepts or rejects the action before dispatch.
 5. SDK/main tool routing receives the remote tool call and invokes the local
    execute-tool runtime directly.
-6. SDK local runtime invokes the local-runtime executable browser adapter backed by the Python sidecar, with Electron main supplying display/window context.
-7. Python sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
+6. SDK local runtime invokes the local-runtime executable browser adapter backed by local-runtime Python, with Electron main supplying display/window context.
+7. The local-runtime Python `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
 9. `BrowserUseEngineRuntime.execute()` maps the canonical action to Browser Use CLI daemon commands.
 10. Browser Use performs CDP/Playwright work and the Python sidecar normalizes the result into a `ToolResult`.

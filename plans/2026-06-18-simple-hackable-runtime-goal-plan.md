@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python internals/backing-label slice by
+  routing architecture, browser, voice/wakeword, debug, getting-started, memory,
+  plugin, tool, filesystem/shell, permission, IPC, and lifecycle docs through
+  local-runtime Python implementation/storage/service/protocol/validation/
+  browser-tool/daemon wording instead of presenting Python sidecar or
+  sidecar-browser labels as reusable owners. The slice preserved concrete
+  `sidecar_daemon.py`, `tests/sidecar`, and `frontend/src/main/python` paths and
+  extended the modular docs guard against the retired phrases. Validation
+  covered the focused modular docs boundary test, docs listing, exact stale
+  internals-label scan, and diff checks. No migration required; runtime code,
+  executable behavior, tool schemas, JSON-RPC/daemon payloads, IPC payloads,
+  storage, credentials, permissions, hosted backend URLs, provider policy, and
+  trust boundaries are unchanged.
 - 2026-06-20: completed a local-runtime Python tool-registration label slice by
   routing ADR alternatives, browser parity validation, platform validation,
   overlay/surface workflows, local-runtime memory/tooling notes, and

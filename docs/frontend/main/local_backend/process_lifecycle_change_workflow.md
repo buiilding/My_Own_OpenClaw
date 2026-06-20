@@ -45,7 +45,7 @@ readiness/status broadcasts.
 | Endpoint/env inputs | `frontend/src/main/app/backend_endpoints.cjs`, `frontend/src/main/sidecar/local_runtime_utils.cjs` | Resolves backend URL/env and normalizes `NODE_OPTIONS`. |
 | Renderer readiness store | `frontend/src/renderer/infrastructure/runtime/localRuntimeStatusStore.js` | Bootstraps current status and subscribes to `local-runtime-status` events. |
 | Browser readiness consumer | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` | Gates browser session sync and controls on local-runtime readiness. |
-| Sidecar daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Hosts the app-session `LocalRuntimeService` implementation, `/rpc` endpoint, local-tool handlers, memory handlers, and chat-event storage behind SDK local-runtime ownership. |
+| Local-runtime Python daemon | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | Hosts the app-session `LocalRuntimeService` implementation, `/rpc` endpoint, local-tool handlers, memory handlers, and chat-event storage behind SDK local-runtime ownership. |
 
 ## Change Decision Tree
 
@@ -56,7 +56,7 @@ readiness/status broadcasts.
 | SDK provider fails or `/rpc` rejects | SDK local runtime provider and daemon client | `LocalRuntime.ts`, bridge lifecycle/RPC tests |
 | Browser controls wait forever despite local-runtime readiness | Renderer readiness consumer | `localRuntimeStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
-| Local tool result shape is wrong after Python sidecar executes | Tool execution contract, not lifecycle | [Local-Runtime Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
+| Local tool result shape is wrong after local-runtime Python executes | Tool execution contract, not lifecycle | [Local-Runtime Tool Change Workflow](../../sidecar_tool_change_workflow.md) |
 
 ## Lifecycle Contract
 

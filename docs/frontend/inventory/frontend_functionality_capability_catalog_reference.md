@@ -217,7 +217,7 @@ Capabilities:
 - Local-runtime remote clients call backend semantic routes with shared
   retry/error policy wrappers; embedding generation is SDK-owned.
 - Tool runtime exposes computer/filesystem/system/browser/memory tool suites with normalized result envelopes.
-- Browser stack uses local-runtime browser adapters backed by Python sidecar
+- Browser stack uses local-runtime browser adapters backed by local-runtime Python
   implementation over the official Browser Use CLI package.
 
 ## 9) Landing Surface Catalog

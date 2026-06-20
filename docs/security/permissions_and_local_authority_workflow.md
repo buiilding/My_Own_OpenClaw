@@ -41,7 +41,7 @@ Do not mark a permission granted just because the user clicked a button. The sou
 | Screen capture | Onboarding and permissions store | Main permission service and screenshot/capture path | Linux overlay hide/restore is platform policy, not permission state. |
 | Input control | Permissions UI | Main and local-runtime platform adapters for mouse/keyboard/window actions | macOS automation/accessibility and Windows/Linux input paths differ. |
 | Microphone | Voice/onboarding UI | Main microphone permission service and renderer capture flow | Voice UI should surface denied/not-ready separately from STT provider failure. |
-| Browser automation | Browser/session UI and permission surface | Dedicated browser runtime and sidecar browser tools | Browser availability is not the same as arbitrary user Chrome control. |
+| Browser automation | Browser/session UI and permission surface | Dedicated browser runtime and local-runtime Python browser tools | Browser availability is not the same as arbitrary user Chrome control. |
 | Workspace/repo context | Chat/settings surfaces | Main workspace access/runtime helpers | Do not treat workspace access as broad filesystem permission. |
 | Shell/filesystem tools | Tool policy and permissions UI | Backend tool visibility, main shell-execution authorization probe, plus local-runtime validation | Shell execution requires both an explicit persisted authorization grant and current runtime availability. Local execution must validate args even if model schema is narrow. |
 
