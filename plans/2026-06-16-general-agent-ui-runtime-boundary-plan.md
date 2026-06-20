@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Backend Remote Tool Parity Test Naming
+
+- Finding: backend remote-tool parity tests still called the local-runtime tool
+  registry import the "frontend exposed" tool set, even though the contract
+  being checked is backend model-facing schemas versus local-runtime executable
+  tools.
+- Change: renamed the parity helper, local variables, drift diagnostic, and
+  import-state test to local-runtime exposed tool wording while preserving the
+  same temporary import path and sys.modules restoration behavior.
+- Validation: passed focused backend remote-tool parity test, stale frontend
+  exposed tool naming scan, and diff check.
+- Compatibility: no migration required. Backend remote tool schemas,
+  local-runtime tool registry behavior, executable manifests, provider policy,
+  IPC, storage, credentials, permissions, and hosted URLs are unchanged.
+
 ### 2026-06-20 Python Sidecar Packaging Dependency Wording
 
 - Finding: the Python sidecar architecture doc still described packaged

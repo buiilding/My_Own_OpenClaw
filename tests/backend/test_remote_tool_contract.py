@@ -32,10 +32,10 @@ def _restore_import_state(
     sys.modules.update(tools_modules)
 
 
-def _load_frontend_exposed_tool_names() -> set[str]:
+def _load_local_runtime_exposed_tool_names() -> set[str]:
     repo_root = Path(__file__).resolve().parents[2]
-    frontend_python_dir = repo_root / "frontend" / "src" / "main" / "python"
-    frontend_python_path = str(frontend_python_dir)
+    local_runtime_python_dir = repo_root / "frontend" / "src" / "main" / "python"
+    local_runtime_python_path = str(local_runtime_python_dir)
     original_sys_path = list(sys.path)
     original_tools_modules = _snapshot_tools_modules()
 
@@ -43,8 +43,8 @@ def _load_frontend_exposed_tool_names() -> set[str]:
         for name in list(sys.modules):
             if name == "tools" or name.startswith("tools."):
                 sys.modules.pop(name, None)
-        if frontend_python_path not in sys.path:
-            sys.path.insert(0, frontend_python_path)
+        if local_runtime_python_path not in sys.path:
+            sys.path.insert(0, local_runtime_python_path)
 
         registry_module = import_module("tools.registry")
         return registry_module.ToolRegistry.get_exposed_tool_names()
@@ -55,26 +55,28 @@ def _load_frontend_exposed_tool_names() -> set[str]:
         )
 
 
-def test_backend_remote_tools_match_frontend_exposed_tools():
+def test_backend_remote_tools_match_local_runtime_exposed_tools():
     backend_remote_tools = set(get_all_remote_tool_classes().keys())
-    frontend_exposed_tools = _load_frontend_exposed_tool_names()
+    local_runtime_exposed_tools = _load_local_runtime_exposed_tool_names()
     backend_executable_tools = backend_remote_tools - DERIVED_BACKEND_GROUNDING_TOOLS
 
-    missing_in_backend = sorted(frontend_exposed_tools - backend_executable_tools)
-    missing_in_frontend = sorted(backend_executable_tools - frontend_exposed_tools)
+    missing_in_backend = sorted(local_runtime_exposed_tools - backend_executable_tools)
+    missing_in_local_runtime = sorted(
+        backend_executable_tools - local_runtime_exposed_tools
+    )
 
-    assert backend_executable_tools == frontend_exposed_tools, (
+    assert backend_executable_tools == local_runtime_exposed_tools, (
         "Remote tool contract drift detected.\n"
         f"Missing in backend remote schemas: {missing_in_backend}\n"
-        f"Missing in frontend exposed tool set: {missing_in_frontend}"
+        f"Missing in local-runtime exposed tool set: {missing_in_local_runtime}"
     )
 
 
-def test_frontend_registry_import_does_not_pollute_backend_import_state():
+def test_local_runtime_registry_import_does_not_pollute_backend_import_state():
     original_sys_path = list(sys.path)
     original_tools_modules = _snapshot_tools_modules()
 
-    _load_frontend_exposed_tool_names()
+    _load_local_runtime_exposed_tool_names()
 
     assert sys.path == original_sys_path
     assert _snapshot_tools_modules() == original_tools_modules

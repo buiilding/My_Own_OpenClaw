@@ -5420,3 +5420,5 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `sidecar_daemon.py` implementation breadcrumbs.
 - Python sidecar architecture packaging expectations now describe bundled
   local-runtime Python dependencies instead of sidecar runtime deps.
+- Backend remote-tool parity tests now name the imported executable tool set as
+  local-runtime exposed tools instead of frontend exposed tools.

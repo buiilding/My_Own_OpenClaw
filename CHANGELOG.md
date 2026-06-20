@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tests: rename remote-tool parity test helpers and diagnostics from
+  frontend-exposed tools to local-runtime exposed tools. No migration required.
 - docs/architecture: describe packaged browser feature-pack expectations as
   bundled local-runtime Python dependencies instead of sidecar runtime deps. No
   migration required.
