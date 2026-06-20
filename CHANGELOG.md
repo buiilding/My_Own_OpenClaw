@@ -35,6 +35,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move initialize-time host option handles into
+  `ipc_host_option_state.cjs`, preserving response overlay callbacks, overlay
+  pre-capture, global stop shortcut setters, local tool lifecycle, injected
+  websocket implementation, SDK live-turn sync, local-runtime launch config,
+  and test shutdown behavior. No migration required.
 - main/ipc: move in-memory install-auth identity storage into
   `ipc_install_auth_identity_runtime.cjs`, preserving install auth
   normalization, current user status/query wiring, server-user fallback,

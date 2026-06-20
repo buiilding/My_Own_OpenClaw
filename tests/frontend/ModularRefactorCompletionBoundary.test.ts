@@ -35,6 +35,7 @@ describe('modular sdk refactor completion boundary', () => {
     const directWakeUpAdapterSource = await read('frontend/src/main/ipc/ipc_direct_wake_up_agent_adapter.cjs');
     const electronAgentClientFactorySource = await read('frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs');
     const agentWakeupRuntimeSource = await read('frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs');
+    const hostOptionStateSource = await read('frontend/src/main/ipc/ipc_host_option_state.cjs');
     expect(ipcSource).toContain('createElectronAgentClientRuntime({');
     expect(ipcSource).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
@@ -46,8 +47,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(agentWakeupRuntimeSource).toContain('createDirectWakeUpAgentAdapter({');
     expect(ipcSource).not.toContain('agent.conversation({');
     expect(directWakeUpAdapterSource).toContain('agent.conversation({');
-    expect(ipcSource).toContain('localToolLifecycle');
-    expect(ipcSource).toContain('agentWebSocketImpl');
+    expect(ipcSource).toContain('hostOptionState.getLocalToolLifecycle()');
+    expect(ipcSource).toContain('hostOptionState.getAgentWebSocketImpl()');
+    expect(ipcSource).not.toContain('let localToolLifecycle = null');
+    expect(ipcSource).not.toContain('let agentWebSocketImpl = null');
+    expect(hostOptionStateSource).toContain('let localToolLifecycle = null;');
+    expect(hostOptionStateSource).toContain('let agentWebSocketImpl = null;');
     expect(ipcSource).not.toContain('windieAgentWebSocketImpl');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
     expect(ipcSource).not.toContain(`${retiredProductName('Agent')}.startDesktop`);

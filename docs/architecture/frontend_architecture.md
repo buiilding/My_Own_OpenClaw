@@ -329,7 +329,8 @@ Primary modules:
     response-overlay phase side effects through
     `ipc_response_overlay_phase_runtime.cjs`, resolves Agent SDK runtime
     conversation refs through `ipc_runtime_conversation_ref.cjs`, reads
-    app-skin host copy through `ipc_host_copy_runtime.cjs`, routes
+    app-skin host copy through `ipc_host_copy_runtime.cjs`, keeps
+    initialize-time host option handles in `ipc_host_option_state.cjs`, routes
     app-diagnostic append failure handling through
     `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
     `ipc_active_query_context.cjs`, projects replayed backend events through

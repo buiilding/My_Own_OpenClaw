@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Host Option State Boundary
+
+- Finding: `ipc.cjs` still owned mutable initialize-time host option handles
+  directly, including response-overlay callbacks, overlay pre-capture,
+  shortcut setter callbacks, local-tool lifecycle, injected websocket
+  implementation, SDK live-turn sync, and desktop local-runtime launch config.
+- Change: added `ipc_host_option_state.cjs` to normalize and store those host
+  option handles. `ipc.cjs` now consumes getters for response-overlay phase
+  side effects, startup hydration, desktop config handlers, AgentClient
+  construction, Agent SDK wake-up, and query pre-capture.
+- Validation: focused host option state coverage for callback/object
+  normalization, local-runtime launch config mapping, reset behavior, and
+  boundary guards that keep mutable option-handle storage out of `ipc.cjs`.
+- Compatibility: no migration required. `initializeIpc(...)` option names,
+  response-overlay behavior, pre-capture behavior, shortcut fallback behavior,
+  local tool lifecycle hooks, injected websocket behavior, local-runtime launch
+  config fields, renderer IPC channels, backend event payloads, storage,
+  credentials, permissions, hosted URLs, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Install Auth Identity State Boundary
 
 - Finding: `ipc_install_auth_identity_runtime.cjs` owned install-auth

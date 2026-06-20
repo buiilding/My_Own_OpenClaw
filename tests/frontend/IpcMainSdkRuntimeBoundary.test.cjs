@@ -125,6 +125,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_copy_runtime.cjs'),
       'utf8',
     );
+    const hostOptionStateSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_host_option_state.cjs'),
+      'utf8',
+    );
     const appDiagnosticsRuntimeSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_app_diagnostics_runtime.cjs'),
       'utf8',
@@ -179,12 +183,19 @@ describe('main ipc sdk runtime boundary', () => {
     expect(agentDefinitionContextSource).toContain('loadExtensionSkillPromptLayers()');
     expect(agentDefinitionContextSource).toContain('includeExtensionPromptLayers: false');
     expect(source).not.toContain("generatedAgentDefinition.mode === 'windie_default'");
-    expect(source).toContain('localToolLifecycle');
-    expect(source).toContain('agentWebSocketImpl');
+    expect(source).toContain('createIpcHostOptionState()');
+    expect(source).toContain('hostOptionState.getLocalToolLifecycle()');
+    expect(source).toContain('hostOptionState.getAgentWebSocketImpl()');
+    expect(source).not.toContain('let localToolLifecycle = null');
+    expect(source).not.toContain('let agentWebSocketImpl = null');
+    expect(hostOptionStateSource).toContain('let localToolLifecycle = null;');
+    expect(hostOptionStateSource).toContain('let agentWebSocketImpl = null;');
     expect(source).not.toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
     expect(electronAgentClientFactorySource).toContain('autoLocalRuntime: buildDesktopLocalRuntimeLaunchOptionsForAgent({');
     expect(electronAgentClientFactorySource).not.toContain('autoSidecar: buildDesktopLocalRuntimeLaunchOptionsForAgent()');
-    expect(source).toContain('desktopLocalRuntimeLaunchConfig');
+    expect(source).toContain('hostOptionState.getDesktopLocalRuntimeLaunchConfig()');
+    expect(source).not.toContain('let desktopLocalRuntimeLaunchConfig = null');
+    expect(hostOptionStateSource).toContain('let desktopLocalRuntimeLaunchConfig = null;');
     expect(source).not.toContain('createDesktopLocalRuntimeLaunchPlan');
     expect(electronAgentClientFactorySource).toContain('createDesktopLocalRuntimeLaunchPlan');
     expect(source).not.toContain('buildDesktopAutoSidecarOptionsForAgent');

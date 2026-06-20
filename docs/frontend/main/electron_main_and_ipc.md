@@ -87,7 +87,8 @@ Responsibilities:
   `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
   `ipc_active_query_context.cjs`, keeps backend session identity in
   `ipc_backend_session_state.cjs`, keeps backend connection/first-query gate
-  state in `ipc_backend_connection_gate_state.cjs`, projects replayed backend
+  state in `ipc_backend_connection_gate_state.cjs`, keeps host initialization
+  option state in `ipc_host_option_state.cjs`, projects replayed backend
   events through
   `ipc_conversation_event_projection.cjs`, keeps cached desktop UI config in
   `ipc_desktop_ui_config_cache.cjs`, keeps live-turn cache state in

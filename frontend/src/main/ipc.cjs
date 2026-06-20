@@ -92,6 +92,9 @@ const {
   createIpcHostCopyRuntime,
 } = require('./ipc/ipc_host_copy_runtime.cjs');
 const {
+  createIpcHostOptionState,
+} = require('./ipc/ipc_host_option_state.cjs');
+const {
   createDesktopUiConfigCache,
 } = require('./ipc/ipc_desktop_ui_config_cache.cjs');
 const {
@@ -270,19 +273,12 @@ const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 const ipcHostCopyRuntime = createIpcHostCopyRuntime();
 let rendererWindows = new Set();
-let applyResponseOverlayPhase = null;
-let onBeforeOverlayQueryCapture = null;
-let setAgentLoopStopShortcutEnabled = null;
-let setGlobalAgentStopShortcutAccelerator = null;
-let localToolLifecycle = null;
-let syncSdkLiveTurnSurfaceIntent = null;
-let agentWebSocketImpl = null;
-let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const activeQueryContextState = createActiveQueryContextState();
 const backendSessionState = createBackendSessionState();
 const backendConnectionGateState = createBackendConnectionGateState();
+const hostOptionState = createIpcHostOptionState();
 const desktopUiConfigCache = createDesktopUiConfigCache({
   isValidConfigPayload,
 });
@@ -291,8 +287,8 @@ const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
   responseOverlayPhaseState,
   logChatPillMainTrace,
-  getApplyResponseOverlayPhase: () => applyResponseOverlayPhase,
-  getSetAgentLoopStopShortcutEnabled: () => setAgentLoopStopShortcutEnabled,
+  getApplyResponseOverlayPhase: () => hostOptionState.getApplyResponseOverlayPhase(),
+  getSetAgentLoopStopShortcutEnabled: () => hostOptionState.getSetAgentLoopStopShortcutEnabled(),
   isAgentLoopStopShortcutPhase,
   syncBackendIdleDisconnectTimer,
   broadcastToRenderers,
@@ -483,7 +479,7 @@ function resetIpcProcessStateForTests() {
   installAuthRuntime.reset();
   mcpRefreshRuntime.reset();
   liveTurnState.reset();
-  syncSdkLiveTurnSurfaceIntent = null;
+  hostOptionState.reset();
   currentTurnTraceLogger.reset();
   electronMainTraceLogger.reset();
 }
@@ -548,8 +544,8 @@ function createElectronAgentClient() {
   return createElectronAgentClientRuntime({
     AgentClient,
     backendEndpointState,
-    desktopLocalRuntimeLaunchConfig,
-    WebSocketImpl: agentWebSocketImpl,
+    desktopLocalRuntimeLaunchConfig: hostOptionState.getDesktopLocalRuntimeLaunchConfig(),
+    WebSocketImpl: hostOptionState.getAgentWebSocketImpl(),
     reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
@@ -581,7 +577,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
     isTest: () => process.env.NODE_ENV === 'test',
     getEnabledMcpServerSpecsForConfig,
     getDesktopUiConfigForMcpRegistry,
-    getLocalToolLifecycle: () => localToolLifecycle,
+    getLocalToolLifecycle: () => hostOptionState.getLocalToolLifecycle(),
     createDirectWakeUpAgentAdapter,
     buildDirectWakeUpAgentAdapterDeps: () => ({
       broadcastToRenderers,
@@ -596,7 +592,7 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
       summarizeCurrentTurn,
       isDebugFlagEnabled,
       currentTurnTraceLogger,
-      getSyncSdkLiveTurnSurfaceIntent: () => syncSdkLiveTurnSurfaceIntent,
+      getSyncSdkLiveTurnSurfaceIntent: () => hostOptionState.getSyncSdkLiveTurnSurfaceIntent(),
       log,
       buildConversationTerminalStatus,
       resolveWorkspacePathForAgent,
@@ -770,58 +766,19 @@ function shutdownIpcForTests() {
   resetIpcProcessStateForTests();
   rendererWindows = new Set();
   backendMessageObserverRegistry.reset();
-  applyResponseOverlayPhase = null;
-  onBeforeOverlayQueryCapture = null;
-  setAgentLoopStopShortcutEnabled = null;
-  setGlobalAgentStopShortcutAccelerator = null;
-  localToolLifecycle = null;
-  syncSdkLiveTurnSurfaceIntent = null;
-  agentWebSocketImpl = null;
   installAuthRuntime.reset();
   backendConnectionGateState.setConnected(false);
   mcpRefreshRuntime.reset();
   liveTurnState.resetPendingTurn();
   agentClientLifecycle.shutdownAndReset();
   agentRuntimeLifecycle.reset({ closeActiveAgent: true });
-  desktopLocalRuntimeLaunchConfig = null;
 }
 
 function initializeIpc(win, options = {}) {
   refreshBackendEndpoints({
     isPackaged: options.isPackaged === true,
   });
-  applyResponseOverlayPhase = typeof options.applyResponseOverlayPhase === 'function'
-    ? options.applyResponseOverlayPhase
-    : null;
-  onBeforeOverlayQueryCapture = typeof options.onBeforeOverlayQueryCapture === 'function'
-    ? options.onBeforeOverlayQueryCapture
-    : null;
-  setAgentLoopStopShortcutEnabled =
-    typeof options.setAgentLoopStopShortcutEnabled === 'function'
-      ? options.setAgentLoopStopShortcutEnabled
-      : null;
-  setGlobalAgentStopShortcutAccelerator =
-    typeof options.setGlobalAgentStopShortcutAccelerator === 'function'
-      ? options.setGlobalAgentStopShortcutAccelerator
-      : null;
-  localToolLifecycle = options.localToolLifecycle && typeof options.localToolLifecycle === 'object'
-    ? options.localToolLifecycle
-    : null;
-  syncSdkLiveTurnSurfaceIntent = typeof options.syncSdkLiveTurnSurfaceIntent === 'function'
-    ? options.syncSdkLiveTurnSurfaceIntent
-    : null;
-  agentWebSocketImpl = typeof options.WebSocketImpl === 'function'
-    ? options.WebSocketImpl
-    : null;
-  desktopLocalRuntimeLaunchConfig = {
-    isPackaged: options.isPackaged === true,
-    permissionStatePath: options.permissionStatePath,
-    authStatePath: options.authStatePath,
-    copy: options.bundledRuntimeCopy,
-    daemonEntrypoint: options.localRuntimeDaemonEntrypoint,
-    localRuntimeEnv: options.localRuntimeEnv,
-    runtimePaths: options.runtimePaths,
-  };
+  hostOptionState.applyInitializeOptions(options);
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });
@@ -834,8 +791,9 @@ function initializeIpc(win, options = {}) {
     isValidConfigPayload,
     applyShortcutStatusFallbackToConfig,
     setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
-    setGlobalAgentStopShortcutAccelerator,
-    setAgentLoopStopShortcutEnabled,
+    setGlobalAgentStopShortcutAccelerator:
+      hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
+    setAgentLoopStopShortcutEnabled: hostOptionState.getSetAgentLoopStopShortcutEnabled(),
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     isAgentLoopStopShortcutPhase,
     onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup,
@@ -850,7 +808,8 @@ function initializeIpc(win, options = {}) {
     applyShortcutStatusFallbackToConfig,
     getLatestDesktopUiConfig: () => desktopUiConfigCache.getRaw(),
     setLatestDesktopUiConfig: (config) => desktopUiConfigCache.set(config),
-    setGlobalAgentStopShortcutAccelerator,
+    setGlobalAgentStopShortcutAccelerator:
+      hostOptionState.getSetGlobalAgentStopShortcutAccelerator(),
   });
 
   registerExtensionMcpHandlers({
@@ -959,7 +918,7 @@ function initializeIpc(win, options = {}) {
       BrowserWindow,
       screen,
       runBeforeOverlayQueryCapture,
-      onBeforeOverlayQueryCapture,
+      onBeforeOverlayQueryCapture: hostOptionState.getOnBeforeOverlayQueryCapture(),
       log,
       prepareRendererQueryPayload,
       resolveConversationRefFromPayload,
