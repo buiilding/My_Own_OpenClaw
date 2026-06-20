@@ -275,6 +275,19 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a first-read local-runtime execution-flow label slice
+  by routing the README SDK runtime diagram, install topology copy, docs hub
+  summaries, browser route labels, routing quick cards, system architecture
+  flow steps, tool execution lifecycle, and compact docs directory through
+  local-runtime Python implementation/executor wording instead of Python
+  sidecar execution/backing route-owner labels. Validation covered the focused
+  modular docs boundary test, docs listing, exact stale first-read
+  execution-label scan, and diff check. No migration required; runtime code,
+  local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a channel local-runtime executor-label slice by routing
   channel maps, local-tool failure routing, gateway troubleshooting, and
   browser-tool runtime split docs through SDK/main local-runtime routing and

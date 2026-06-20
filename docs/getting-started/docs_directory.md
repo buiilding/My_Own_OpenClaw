@@ -29,7 +29,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Agent Runtime Ownership and Change Routing](../development/agent_runtime_ownership_and_change_routing.md) - owner responsibilities and first docs for common change types.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) - owner selection by runtime and trust boundary.
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) - query, stream, tool result, settings, transcript, memory, artifact, permission, provider, and VM-run state.
-- [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) - what the model sees, what transports carry, what Python sidecar executes, and what transcript/history preserve.
+- [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) - what the model sees, what transports carry, what local-runtime Python executes, and what transcript/history preserve.
 - [Change Ownership Decision Tree](../architecture/change_ownership_decision_tree.md) - routing ambiguous implementation work.
 
 ## Backend and Prompting

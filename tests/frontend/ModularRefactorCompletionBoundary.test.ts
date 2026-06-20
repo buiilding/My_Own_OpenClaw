@@ -296,6 +296,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/web/web_surface_matrix.md'),
       read('docs/web/landing_page.md'),
       read('docs/getting-started/installation.md'),
+      read('docs/getting-started/docs_directory.md'),
       read('docs/help/doctor_checklist.md'),
       read('docs/install/uninstall_reinstall_reset.md'),
       read('docs/frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md'),
@@ -319,6 +320,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('System prompt emitted for SDK/renderer transparency display');
     expect(docText).toContain('Tool schemas emitted for SDK/renderer transparency display');
     expect(docText).toContain('Electron desktop app, local-runtime Python implementation');
+    expect(docText).toContain('SDK local runtime (local-runtime Python daemon)');
+    expect(docText).toContain('what local-runtime Python executes');
     expect(docText).not.toContain('hosted-backend plus local sidecar');
     expect(docText).not.toContain('local sidecar daemon');
     expect(docText).not.toContain('The local sidecar owns');
@@ -348,6 +351,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Sidecar Docs');
     expect(docText).not.toContain('Python sidecar runtime, memory');
     expect(docText).not.toContain('Electron frontend, Python sidecar');
+    expect(docText).not.toContain('SDK local runtime (Python sidecar daemon)');
+    expect(docText).not.toContain('SDK local runtime backed by the Python sidecar');
+    expect(docText).not.toContain('what Python sidecar executes');
+    expect(docText).not.toContain('desktop execution, backed by the Python sidecar implementation');
+    expect(docText).not.toContain('SDK/main local-runtime execution, Python sidecar implementation');
+    expect(docText).not.toContain('SDK/main local-runtime dispatch, Python sidecar implementation');
+    expect(docText).not.toContain('local-runtime execution, Python sidecar adapters');
     expect(docText).not.toContain('sidecar runtime packaging');
     expect(docText).not.toContain('client, sidecar, and SDKs');
     expect(docText).not.toContain('System prompt sent to frontend');
@@ -467,7 +477,7 @@ describe('modular sdk refactor completion boundary', () => {
 
     expect(docText).toContain('SDK local runtime');
     expect(docText).toContain('SDK/main local runtime');
-    expect(docText).toContain('SDK/main local-runtime execution, Python sidecar implementation');
+    expect(docText).toContain('SDK/main local-runtime execution, local-runtime Python implementation');
     expect(docText).toContain('SDK tool coordinator uses request ids');
     expect(docText).toContain('renderer stream tracking uses `turn_ref` + stream phase');
     expect(docText).toContain(
@@ -904,14 +914,16 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).toContain('local-runtime exposed-tool parity');
     expect(architectureToolSystemText).toContain('desktop client/local-runtime and backend schema pairing');
     expect(architectureOverviewText).toContain('renderer UI, Electron main desktop host, SDK local runtime');
+    expect(architectureOverviewText).toContain('SDK local runtime backed by the local-runtime Python implementation');
+    expect(architectureOverviewText).toContain('Local-runtime Python implementation executes local tools');
     expect(architectureOverviewText).toContain('Desktop Client / SDK Host');
     expect(architectureOverviewText).toContain('Sanitized message sent to SDK/renderer consumers');
     expect(architectureOverviewText).toContain('not enforced in the local-runtime Python implementation by default');
     expect(architectureOverviewText).toContain('SDK local-runtime memory backed by Python sidecar modules');
     expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
     expect(runtimeTraceText).toContain('Python sidecar protocol');
-    expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
-    expect(browserRouteDocText).toContain('local-runtime execution, Python sidecar adapters');
+    expect(browserToolOverviewText).toContain('local-runtime execution, local-runtime Python adapters');
+    expect(browserRouteDocText).toContain('local-runtime execution, local-runtime Python adapters');
     expect(docText).not.toContain('SDK desktop agent');
     expect(docText).not.toContain(`SDK desktop-${'agent'}`);
     expect(docText).not.toContain('frontend/sidecar-owned local schemas');
@@ -960,6 +972,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureToolSystemText).not.toContain('not enforced in sidecar by default');
     expect(architectureOverviewText).not.toContain('frontend (Electron/React)');
     expect(architectureOverviewText).not.toContain('Electron Frontend');
+    expect(architectureOverviewText).not.toContain('SDK local runtime backed by the Python sidecar');
+    expect(architectureOverviewText).not.toContain('Python sidecar executes local tools');
+    expect(architectureOverviewText).not.toContain('Python sidecar executes tool');
     expect(architectureOverviewText).not.toContain('Tool dispatched to Python sidecar through the sidecar daemon bridge');
     expect(architectureOverviewText).not.toContain('Sanitized message sent to frontend');
     expect(architectureOverviewText).not.toContain('not enforced in sidecar by default');
@@ -988,6 +1003,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).toContain('wait for tool results from SDK/main local-runtime dispatch');
     expect(toolRoutingDocText).toContain('stay behind the local-runtime boundary');
     expect(toolRoutingDocText).toContain('local-runtime/provider routes decide where work executes');
+    expect(toolRoutingDocText).toContain('The local-runtime Python executor runs the local action');
     expect(toolRoutingDocText).toContain('routes visibility, schema, dispatch, local-runtime execution, result, artifact, and replay failures');
     expect(toolRoutingDocText).toContain('Local-runtime tool execution uses the Python implementation');
     expect(toolRoutingDocText).toContain('local-runtime Python tests for the changed boundary');
@@ -1036,6 +1052,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar/provider routes decide where work executes');
     expect(toolRoutingDocText).not.toContain('routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures');
     expect(toolRoutingDocText).not.toContain('Tool execution happens in the Python sidecar');
+    expect(toolRoutingDocText).not.toContain('The Python sidecar executes the local action');
     expect(toolRoutingDocText).not.toContain('backend, SDK/main, renderer, and sidecar tests');
     expect(toolRoutingDocText).not.toContain('Keep local execution and local storage mechanics in the Python sidecar');
     expect(toolRoutingDocText).not.toContain('the sidecar performs local execution');
@@ -1592,6 +1609,11 @@ describe('modular sdk refactor completion boundary', () => {
         'SDK local-runtime vs Python sidecar executor split',
         'relay execution to the Python sidecar executor',
         'local-runtime tool validation or Python sidecar executor',
+        'desktop execution, backed by the Python sidecar implementation',
+        'SDK/main local-runtime execution, Python sidecar implementation',
+        'SDK/main local-runtime dispatch, Python sidecar implementation',
+        'local-runtime execution, Python sidecar adapters',
+        'process startup and reuse, Python sidecar implementation',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

@@ -10,7 +10,7 @@ For architecture navigation by ownership, state, and failure domain, start with 
 
 ## Overview
 
-WindieOS is built as a distributed system with clear separation between the renderer UI, Electron main desktop host, SDK local runtime backed by the Python sidecar, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
+WindieOS is built as a distributed system with clear separation between the renderer UI, Electron main desktop host, SDK local runtime backed by the local-runtime Python implementation, and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
 The intended product boundary is:
 
@@ -197,7 +197,7 @@ This is not the primary open-source SDK contract. The default client contract is
     ↓
 15. ToolExecutionCoordinator routes execution through the SDK local-runtime client
     ↓
-16. Python sidecar executes local tools and captures local state when required
+16. Local-runtime Python implementation executes local tools and captures local state when required
     ↓
 17. SDK runtime sends tool-result/tool-bundle-result back to backend
     ↓
@@ -277,7 +277,7 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 10. Tool dispatched through the SDK local-runtime bridge backed by Python sidecar modules
     ↓
-11. Python sidecar executes tool
+11. Local-runtime Python implementation executes tool
     ↓
 12. Local-runtime Python implementation captures screenshot (if computer-use tool)
     ↓

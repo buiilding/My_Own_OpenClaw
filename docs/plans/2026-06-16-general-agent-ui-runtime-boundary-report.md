@@ -12,11 +12,12 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: first-read, tool/security/development architecture,
-  channel maps, local-tool failure routing, gateway troubleshooting, and
-  browser-tool runtime split docs now route local execution through
-  local-runtime authority, SDK/main local-runtime, and local-runtime Python
-  implementation/executor wording instead of Python sidecar route-owner labels.
+- Latest completed slice: first-read SDK runtime diagrams, install topology
+  copy, docs hub summaries, browser route labels, routing quick cards, system
+  architecture flow steps, tool lifecycle steps, and compact docs-directory
+  labels now route local execution through local-runtime Python
+  implementation/executor wording instead of Python sidecar execution/backing
+  route-owner labels.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +246,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 First-Read Local-Runtime Execution Flow Labels
+
+- Finding: the README SDK runtime diagram, install topology copy, docs hub
+  summaries, browser route labels, routing quick cards, system architecture
+  flow steps, tool execution lifecycle, and compact docs directory still used
+  Python sidecar execution/backing wording where the reusable route owner is
+  the local runtime.
+- Change: routed those flow labels through local-runtime Python
+  implementation/executor wording while preserving Python implementation
+  details where the concrete process matters.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  first-read execution-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local tool execution,
+  JSON-RPC/daemon payloads, IPC payloads, tool-result envelopes, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 Channel Local-Runtime Executor Labels
 

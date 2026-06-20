@@ -148,7 +148,7 @@ There is no YAML config file. Configuration is split between:
 
 ## Hosted Backend
 
-The intended product topology uses a hosted backend with an SDK local runtime backed by the Python sidecar. In that mode, installation can add:
+The intended product topology uses a hosted backend with an SDK local runtime backed by the local-runtime Python implementation. In that mode, installation can add:
 - **Login**: OAuth or email/password.
 - **Secure token storage** in OS keychain.
 - **Plan selection** and billing portal access.

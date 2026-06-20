@@ -35,6 +35,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route first-read SDK runtime diagrams, install topology
+  copy, docs hub summaries, browser route labels, routing quick cards,
+  architecture flow steps, tool lifecycle steps, and compact docs-directory
+  labels through local-runtime Python implementation/executor wording instead
+  of Python sidecar execution/backing route-owner labels. No migration
+  required.
 - docs/channels: route local-tool channel maps, gateway troubleshooting, and
   browser-tool runtime split labels through SDK/main local-runtime and
   local-runtime Python executor wording instead of Python sidecar

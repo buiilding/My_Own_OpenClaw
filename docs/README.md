@@ -76,7 +76,7 @@ contracts.
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local-runtime bridge
 - [**Local Runtime Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Local-runtime Python process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
 - [**Local Runtime JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for SDK/main local-runtime JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
-- [**Local-Runtime Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and Python sidecar implementation
+- [**Local-Runtime Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, SDK/main dispatch, Electron bridge, and local-runtime Python implementation
 - [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
 - [**Backend LLM Provider Hub**](backend/llm/providers/README.md) - Base provider contract and provider-specific runtime docs for cloud/local integrations
 
@@ -112,7 +112,7 @@ contracts.
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
-- [**Local Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool routing, SDK/main local-runtime execution, Python sidecar implementation, executable tools, and tool-result return path
+- [**Local Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool routing, SDK/main local-runtime execution, local-runtime Python implementation, executable tools, and tool-result return path
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
 - [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
 - [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
@@ -162,13 +162,13 @@ contracts.
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs local-runtime executable tool contract
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, local-runtime executable parity, SDK/main dispatch, and result-contract validation
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, local-runtime executors, policy gates, and tests
-- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main local-runtime dispatch, Python sidecar implementation, result ingress, and history
+- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main local-runtime dispatch, local-runtime Python implementation, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser capability policy, and web-search exposure
 - [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, local execution, result, artifact, and replay failures
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
 - [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
-- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, local-runtime execution, Python sidecar adapters, CDP launch, Electron bridge, renderer controls, files, and tests
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, local-runtime execution, local-runtime Python adapters, CDP launch, Electron bridge, renderer controls, files, and tests
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
 - [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, local execution, sudo policy, sessions, results, and tests
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
@@ -422,7 +422,7 @@ contracts.
 - [**Backend Tool Preparation + Coordinate Resolution**](backend/tools/tool_preparation_and_coordinate_resolution_reference.md) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
 - [**Backend Tools Processing Hub**](backend/tools/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
 - [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
-- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, local-runtime execution, Python sidecar adapters, Electron, renderer, and tests
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, local-runtime execution, local-runtime Python adapters, Electron, renderer, and tests
 - [**Local-Runtime Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->local-runtime browser execution and CDP orchestration details backed by Python sidecar adapters
 - [**Local-Runtime Browser Action Runtime**](frontend/sidecar/browser_action_runtime_reference.md) - Browser Use CLI adapter action surface, payload rules, and timeout/error-code behavior
 - [**Local-Runtime Browser Docs Hub**](frontend/sidecar/browser/README.md) - Sub-hub for Browser Use CLI adapter and result normalization contracts
