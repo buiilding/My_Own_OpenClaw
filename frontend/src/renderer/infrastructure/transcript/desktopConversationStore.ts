@@ -16,7 +16,7 @@ import {
   type DisplayConversation,
   type SdkDisplayRow,
   type TraceTimelineEntry,
-} from '../api/agentSdkClient';
+} from '../../../../../packages/windie-sdk-js/src';
 import { invokeAgentSdkCommand } from '../../app/runtime/agentSdkCommandInvokeClient';
 
 export type DesktopTraceTimelineOptions = {

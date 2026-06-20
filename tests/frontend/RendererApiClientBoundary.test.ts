@@ -84,6 +84,35 @@ describe('renderer api client boundary', () => {
     expect(source).not.toContain(`${retiredProductType} as AgentModelSelection`);
   });
 
+  test('production renderer sdk facade imports stay behind app runtime contracts', async () => {
+    const files = await listSourceFiles(rendererRoot);
+    const offenders: string[] = [];
+    const allowedRelativePath = 'app/runtime/desktopConversationRuntimeContracts.ts';
+
+    for (const file of files) {
+      const relativePath = path.relative(rendererRoot, file).replace(/\\/g, '/');
+      if (relativePath === allowedRelativePath) {
+        continue;
+      }
+      const source = await fs.readFile(file, 'utf8');
+      if (
+        source.includes('infrastructure/api/agentSdkClient')
+        || source.includes('../api/agentSdkClient')
+        || source.includes('api/agentSdkClient')
+      ) {
+        offenders.push(relativePath);
+      }
+    }
+
+    const contractsSource = await fs.readFile(
+      path.join(rendererRoot, allowedRelativePath),
+      'utf8',
+    );
+
+    expect(offenders).toEqual([]);
+    expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
+  });
+
   test('renderer architecture docs do not restore deleted api client or app-import sdk facade labels', async () => {
     const docs = await Promise.all([
       fs.readFile(path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'), 'utf8'),

@@ -6,7 +6,7 @@ import type { ChatMessage } from '../../app/runtime/desktopChatMessageTypes';
 import {
   type SdkDisplayRow,
   type DisplayMessage,
-} from '../api/agentSdkClient';
+} from '../../../../../packages/windie-sdk-js/src';
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';

@@ -59,6 +59,9 @@ All notable changes to WindieOS will be documented in this file.
   deleted ApiClient stays retired and `agentSdkClient` is described as the SDK
   runtime/hosted transport facade, not an app-import route. No migration
   required.
+- frontend/renderer: route SDK-backed transcript store/projection adapters to
+  the SDK package source directly, leaving `agentSdkClient` imports behind the
+  app-runtime conversation contracts facade. No migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

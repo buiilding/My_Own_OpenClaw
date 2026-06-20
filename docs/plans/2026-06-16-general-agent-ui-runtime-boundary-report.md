@@ -5777,3 +5777,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Runtime code, SDK exports, IPC channels, hosted backend URLs,
   settings/model payloads, credentials, permissions, storage, provider policy,
   and local-runtime behavior are unchanged.
+- Renderer SDK-backed transcript store/projection adapters now import SDK
+  contracts from the package source directly. Production renderer
+  `agentSdkClient` imports are guarded behind
+  `desktopConversationRuntimeContracts.ts`; conversation store behavior,
+  display-row projection, SDK exports, IPC command strings, persisted
+  transcript data, credentials, permissions, hosted backend URLs, provider
+  policy, storage, and local-runtime behavior are unchanged.

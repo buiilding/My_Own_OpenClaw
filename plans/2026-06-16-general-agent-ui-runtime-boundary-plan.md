@@ -15934,3 +15934,20 @@ Each completed slice should report:
   channels, hosted backend URLs, settings/model payloads, credentials,
   permissions, storage, provider policy, and local-runtime behavior are
   unchanged.
+
+### 2026-06-20 Renderer transcript SDK package import cleanup
+
+- Finding: SDK-backed renderer transcript infrastructure adapters imported SDK
+  store/projection contracts through the renderer `agentSdkClient` facade even
+  though they are internal adapter implementations rather than app/feature
+  consumers of the facade.
+- Change: routed `desktopConversationStore.ts` and
+  `sdkDisplayChatMessageProjection.ts` directly to the SDK package source and
+  added a renderer API boundary guard so production `agentSdkClient` imports
+  stay behind `desktopConversationRuntimeContracts.ts`.
+- Validation: focused transcript store/projection/API-boundary Jest coverage,
+  production import scan, docs listing, and diff checks.
+- Compatibility: no migration required. Conversation store behavior, display
+  row projection, SDK exports, IPC command strings, persisted transcript data,
+  credentials, permissions, hosted backend URLs, provider policy, storage, and
+  local-runtime behavior are unchanged.
