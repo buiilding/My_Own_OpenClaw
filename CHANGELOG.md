@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK backend connection event adaptation and backend
+  fallback endpoint selection into `ipc_agent_connection_events.cjs`, keeping
+  interrupted-query close cleanup in `ipc.cjs` while the relay root injects
+  host state setters, diagnostics, and endpoint state. No migration required.
 - main/ipc: move MCP latest-config refresh and startup refresh gating into
   `ipc_mcp_refresh_runtime.cjs`, including SDK refresh, local registry fallback,
   enabled-server count checks, and pending startup refresh reset. No migration

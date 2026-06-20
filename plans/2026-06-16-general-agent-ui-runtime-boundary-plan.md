@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Agent Connection Event Adapter Boundary
+
+- Finding: `AgentClient.wakeUp(...)` and the direct wake-up adapter already
+  owned SDK websocket construction and conversation runtime fan-out, but
+  `ipc.cjs` still interpreted backend open/error/handshake/message events and
+  fallback endpoint payload aliases inline.
+- Change: added `ipc_agent_connection_events.cjs` to own Agent SDK backend
+  connection event adaptation, handshake user-id extraction, trace/log
+  diagnostics, renderer connection-status broadcast triggers, and fallback
+  endpoint candidate selection. `ipc.cjs` now injects mutable host state,
+  endpoint state, and the existing close-interruption callback.
+- Validation: focused connection-event runtime coverage for open, close,
+  error, handshake-error, message-error, fallback selection, and a boundary
+  guard that keeps event-type/fallback matching bodies out of `ipc.cjs`.
+- Compatibility: no migration required. SDK backend lifecycle callbacks,
+  handshake payload fields, reconnect behavior, renderer IPC status snapshots,
+  overlay phase names, endpoint candidate shape, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main MCP Refresh Runtime Boundary
 
 - Finding: extension/MCP IPC handler registration already lived in

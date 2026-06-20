@@ -57,6 +57,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_mcp_refresh_runtime.cjs'),
       'utf8',
     );
+    const agentConnectionEventSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_connection_events.cjs'),
+      'utf8',
+    );
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
@@ -130,7 +134,12 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[Main][SDK] creating_client backend=');
     expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');
     expect(source).toContain('[Main][SDK] local_runtime_ready reason=');
-    expect(source).toContain('[Main][Backend] connected user=');
+    expect(source).toContain('handleAgentConnectionEvent(event');
+    expect(source).toContain('handleAgentBackendFallbackEvent(endpointPayload');
+    expect(source).not.toContain('[Main][Backend] connected user=');
+    expect(source).not.toContain("event.type === 'open'");
+    expect(agentConnectionEventSource).toContain('[Main][Backend] connected user=');
+    expect(agentConnectionEventSource).toContain("event.type === 'open'");
     expect(source).not.toContain(`${retiredProductPrefix} SDK runtime`);
     expect(source).not.toContain(`${retiredProductName('Client')} wakeUp runtime started`);
     expect(source).not.toContain(`Failed to send query through ${retiredProductName('Agent')}`);

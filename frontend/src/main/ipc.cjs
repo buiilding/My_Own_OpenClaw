@@ -43,6 +43,10 @@ const {
   createMcpRefreshRuntime,
 } = require('./ipc/ipc_mcp_refresh_runtime.cjs');
 const {
+  handleAgentBackendFallbackEvent,
+  handleAgentConnectionEvent,
+} = require('./ipc/ipc_agent_connection_events.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -454,65 +458,37 @@ function resolveWorkspacePathForAgent(payload = {}) {
 }
 
 function handleAgentConnection(event = {}) {
-  if (event.type === 'open') {
-    const handshakeUserId = event.handshake && typeof event.handshake.user_id === 'string'
-      ? event.handshake.user_id
-      : null;
-    if (handshakeUserId) {
-      currentServerUserId = handshakeUserId;
-    }
-    isConnected = true;
-    isFirstQuery = true;
-    electronMainTraceLogger.traceBackendConnection(event);
-    resetSettingsSyncState();
-    setResponseOverlayPhase('idle', 'ws-open');
-    ipcEventReplayState.clear();
-    logMainRuntime(`[Main][Backend] connected user=${handshakeUserId || currentUserId || 'unknown'}`);
-    log('Successfully connected to agent backend through Agent SDK runtime.');
-    log(`Handshake sent with authenticated user_id: ${handshakeUserId || currentUserId || 'unknown'}`);
-    broadcastConnectionStatus(true);
-    return;
-  }
-  if (event.type === 'close') {
-    electronMainTraceLogger.traceBackendConnection(event);
-    logMainRuntime(`[Main][Backend] closed code=${event.code ?? 'unknown'} reason=${event.reason || 'unknown'}`);
-    handleAgentBackendClose(event);
-    return;
-  }
-  if (event.type === 'error') {
-    electronMainTraceLogger.traceBackendConnection(event);
-    logMainRuntime(`[Main][Backend] error message=${JSON.stringify(event.error?.message || String(event.error || 'unknown'))}`);
-    log(`WebSocket error: ${event.error?.message || event.error}`);
-    return;
-  }
-  if (event.type === 'handshake-error') {
-    electronMainTraceLogger.traceBackendConnection(event);
-    logMainRuntime(`[Main][Backend] handshake_error message=${JSON.stringify(event.error?.message || String(event.error || 'unknown'))}`);
-    log(`Error sending handshake: ${event.error}`);
-    return;
-  }
-  if (event.type === 'message-error') {
-    electronMainTraceLogger.traceBackendConnection(event);
-    logMainRuntime(`[Main][Backend] message_error message=${JSON.stringify(event.error?.message || String(event.error || 'unknown'))}`);
-    log(`Error parsing message from backend: ${event.error}`);
-  }
+  return handleAgentConnectionEvent(event, {
+    getCurrentUserId: () => currentUserId,
+    setCurrentServerUserId: (value) => {
+      currentServerUserId = value;
+    },
+    setConnected: (value) => {
+      isConnected = value;
+    },
+    setFirstQuery: (value) => {
+      isFirstQuery = value;
+    },
+    traceBackendConnection: (data) => electronMainTraceLogger.traceBackendConnection(data),
+    resetSettingsSyncState,
+    setResponseOverlayPhase,
+    clearEventReplayState: () => ipcEventReplayState.clear(),
+    logMainRuntime,
+    log,
+    broadcastConnectionStatus,
+    handleAgentBackendClose,
+  });
 }
 
 function handleAgentBackendFallback(endpointPayload = {}) {
-  const candidates = backendEndpointState.getCandidates();
-  const fallbackIndex = candidates.findIndex(candidate => (
-    candidate.wsUrl === endpointPayload.wsUrl
-    || candidate.httpUrl === endpointPayload.httpBaseUrl
-    || candidate.httpUrl === endpointPayload.httpUrl
-    || candidate.httpUrl === endpointPayload.backendUrl
-  ));
-  if (fallbackIndex >= 0) {
-    setActiveBackendEndpoint(fallbackIndex);
-  } else {
-    advanceToNextBackendEndpoint();
-  }
-  logMainRuntime(`[Main][Backend] fallback ws=${backendEndpointState.getEndpoint().wsUrl}`);
-  log(`Primary backend unavailable. Falling back to ${backendEndpointState.getEndpoint().wsUrl}.`);
+  return handleAgentBackendFallbackEvent(endpointPayload, {
+    getEndpointCandidates: () => backendEndpointState.getCandidates(),
+    setActiveBackendEndpoint,
+    advanceToNextBackendEndpoint,
+    getCurrentEndpoint: () => backendEndpointState.getEndpoint(),
+    logMainRuntime,
+    log,
+  });
 }
 
 function resolveRuntimeConversationRef(input = {}) {
