@@ -30,7 +30,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 
 - `main/**` owns process lifecycle, OS windowing, SDK-runtime adaptation, and local-runtime host context/status.
 - `preload.js` owns only safe channel exposure.
-- `renderer/**` owns UI state, event consumption, tool execution orchestration from UI.
+- `renderer/**` owns UI state, event consumption, tool execution display state, and user intent.
 - `main/python/**` implements executable tool/memory/system behavior and local runtime protocols behind the local-runtime boundary.
 - `landing/**` owns standalone marketing surface only.
 
@@ -38,8 +38,8 @@ title: "Frontend Domain Ownership Matrix Reference"
 
 - Patching renderer UI to compensate for malformed backend events instead of fixing main/backend contracts.
 - Patching main IPC logic for local-runtime tool argument shape issues that belong in local-runtime executable schemas.
-- Patching sidecar service logic for renderer state race conditions that belong in hooks/providers.
-- Editing preload allowlists to â€œfixâ€ missing main handlers.
+- Patching local-runtime Python service logic for renderer state race conditions that belong in hooks/providers.
+- Editing preload allowlists to "fix" missing main handlers.
 
 ## Fast Triage Map
 

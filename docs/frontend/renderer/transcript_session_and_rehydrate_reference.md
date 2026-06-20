@@ -134,7 +134,7 @@ events through `conversation.appendEvent`, `conversation.rewrite`,
 store commands.
 
 Direct `store-chat-event` calls and replay append mutation are not renderer
-feature-code surfaces; sidecar chat-event RPC names remain inside SDK
+feature-code surfaces; local-runtime chat-event RPC names remain inside SDK
 store/local-runtime internals.
 
 ## Call-Site Wiring Across Renderer

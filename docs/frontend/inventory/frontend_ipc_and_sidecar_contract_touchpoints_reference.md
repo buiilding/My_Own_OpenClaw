@@ -44,7 +44,7 @@ This reference maps renderer, Electron main, SDK local-runtime, Python sidecar, 
 | --- | --- | --- | --- |
 | SDK conversation/tool runtime | Tool registry | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `main/python/tools/registry.py`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | Tool names and correlation ids must match exactly |
 | Tool payload shaping | Tool result envelope | `ToolExecutionPayloads.ts`, `main/python/tools/result.py` | `success/error/output` key stability |
-| Tool arg models | Tool schema models | SDK/main payload builders, `main/python/tools/schemas.py` | Arg validation fails on sidecar |
+| Tool arg models | Tool schema models | SDK/main payload builders, `main/python/tools/schemas.py` | Arg validation fails in local-runtime Python |
 | Browser tool payloads | Browser Use engine runtime | SDK tool router + `tools/browser/{browser_tool,browser_use_engine}.py` | Browser action unavailable or malformed |
 
 ## Memory + Transcript Touchpoints

@@ -95,14 +95,14 @@ Primary files:
 Capabilities:
 
 - Starts and supervises the SDK local-runtime daemon, ping-readiness, and JSON-RPC request correlation.
-- Executes sidecar-exposed tools through scoped host helpers; memory and
+- Executes local-runtime exposed tools through scoped host helpers; memory and
   transcript persistence use SDK local-runtime store calls.
 - Routes screenshot tool execution through the local-runtime window-visibility path.
 - Streams wakeword audio binary frames and receives framed detection payloads.
 - Delegates wakeword stderr readiness/error parsing, startup/process error mapping, and audio chunk normalization to helper runtime module.
 - Provides permission list/check/request/probe IPC contracts for onboarding.
-- Sidecar spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
-- Sidecar readiness checks use bounded ping retry (`<=10` attempts, exponential backoff capped at `1000ms`) with stale-generation token guards.
+- Local-runtime Python spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
+- Local-runtime readiness checks use bounded ping retry (`<=10` attempts, exponential backoff capped at `1000ms`) with stale-generation token guards.
 - Local-runtime RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.
 - Screenshot tool execution currently calls the sidecar task directly; Linux hide/show ownership is SDK/main surface prep and renderer attachment capture orchestration.
 - Wakeword bridge uses length-prefixed binary frame protocol for audio/result streams and clears stale stdout/stderr buffers on restart/exit.

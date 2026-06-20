@@ -35,6 +35,14 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route inventory, main-process, websocket, protocol, and
+  transcript sidecar-daemon labels through SDK-owned local-runtime daemon and
+  local-runtime Python wording instead of sidecar-as-public-owner labels. No
+  migration required.
+- docs/frontend: route frontend inventory, main, transcript, protocol, and
+  domain-ownership daemon/chat-event labels through local-runtime wording while
+  keeping renderer ownership focused on UI intent/display state. No migration
+  required.
 - docs/tools: route screenshot capture, overlay policy, coordinate-resolution,
   artifact payload, and tool lifecycle docs through local-runtime screenshot
   wording instead of sidecar screenshot owner labels. No migration required.

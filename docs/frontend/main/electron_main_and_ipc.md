@@ -189,11 +189,11 @@ Responsibilities:
 
 - Supplies desktop launch facts, backend endpoint context, host window helpers,
   and artifact/screenshot adapters to the SDK local runtime provider.
-- Wakes/resolves the SDK-owned sidecar daemon and publishes normalized
+- Wakes/resolves the SDK-owned local-runtime daemon and publishes normalized
   `local-runtime-status` snapshots to renderer windows.
 - Routes Electron helper calls through SDK local-runtime `/rpc` and
   `executeTool(...)` APIs while keeping Python `LocalRuntimeService` method execution
-  inside the sidecar daemon.
+  inside the local-runtime daemon.
 - Converts local-runtime/provider failures into stable renderer-facing
   `{ success:false, error }` envelopes for helper IPC callers.
 

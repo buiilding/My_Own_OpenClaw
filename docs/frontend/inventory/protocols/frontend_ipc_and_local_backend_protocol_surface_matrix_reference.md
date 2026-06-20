@@ -172,7 +172,7 @@ Protocol behaviors:
 Transport:
 
 - SDK local-runtime HTTP `POST /rpc` sends JSON-RPC 2.0 envelopes to the
-  sidecar daemon, which dispatches them in-process through `LocalRuntimeService`.
+  local-runtime daemon, which dispatches them in-process through `LocalRuntimeService`.
 - Request correlation is owned by the SDK local-runtime HTTP client and the
   daemon JSON-RPC `id` envelope.
 - Default timeout `60000ms`; local browser tool execution uses `120000ms`.

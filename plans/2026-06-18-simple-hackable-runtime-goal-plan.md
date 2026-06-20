@@ -275,6 +275,30 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a frontend inventory local-runtime daemon label slice
+  by routing inventory, main-process, websocket, protocol, and renderer
+  transcript references through SDK-owned local-runtime daemon,
+  local-runtime exposed tools, local-runtime Python spawn/readiness, and
+  local-runtime chat-event/JSON-RPC wording instead of sidecar-daemon or
+  sidecar-exposed public-owner labels. Validation covered the focused modular
+  docs boundary test, docs listing, exact stale frontend daemon-label scan,
+  and diff check. No migration required; runtime code, local-runtime daemon
+  startup, JSON-RPC request dispatch, tool argument validation, chat-event
+  storage, IPC payloads, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and trust boundaries are unchanged.
+
+- 2026-06-20: completed a frontend inventory local-runtime label slice by
+  routing frontend inventory, main, transcript, protocol, and domain ownership
+  daemon/chat-event/tool-exposed/arg-validation wording through local-runtime
+  labels; routing renderer ownership through UI intent/display state; cleaning
+  mojibake quote text; and extending the modular docs guard to cover the
+  retired phrases and matrix. Validation covered the focused modular docs
+  boundary test, docs listing, exact mojibake marker scan, stale ownership
+  phrase scan, and diff check. No migration required; runtime code, renderer
+  behavior, IPC payloads, tool execution routing, local-runtime Python
+  behavior, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime screenshot label follow-up by routing
   coordinate-resolution, artifact payload, platform, screenshot overlay, and
   tool lifecycle docs through local-runtime screenshot result, invocation,

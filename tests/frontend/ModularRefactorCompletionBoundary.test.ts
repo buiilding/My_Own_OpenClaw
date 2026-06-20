@@ -372,6 +372,7 @@ describe('modular sdk refactor completion boundary', () => {
     const docs = await Promise.all([
       read('docs/architecture/communication_flow.md'),
       read('docs/architecture/memory_system.md'),
+      read('docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md'),
     ]);
     const mojibakeMarkers = [0x00e2, 0x00c3, 0xfffd].map((code) =>
       String.fromCharCode(code),
@@ -1519,9 +1520,21 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar screenshot result included',
         'sidecar screenshot data handling',
         'owns sidecar screenshot invocation',
+        'tool execution orchestration from UI',
+        'Patching sidecar service logic for renderer state race conditions',
         '`sidecar-event` title updates',
         'SDK runtime in Electron main and the sidecar daemon',
         'Canonical sidecar-exposed tool surface',
+        'sidecar-exposed tools through scoped host helpers',
+        'Sidecar spawn env',
+        'Sidecar readiness checks',
+        'SDK-owned sidecar daemon',
+        'inside the sidecar daemon',
+        'Python sidecar daemon lifecycle',
+        'Arg validation fails on sidecar',
+        'sidecar daemon-backed local-runtime bridge',
+        'sidecar daemon, which dispatches',
+        'sidecar chat-event RPC names remain',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

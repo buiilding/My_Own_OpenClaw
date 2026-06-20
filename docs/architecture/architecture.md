@@ -136,8 +136,8 @@ This is not the primary open-source SDK contract. The default client contract is
   coordination
 - **VM Worker Runtime**: Optional heartbeat/assignment relay loop for `/api/runs/*` when `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` are enabled
 - **Wakeword Bridge**: Python subprocess management for wakeword detection
-- **Local Runtime Daemon**: SDK-owned sidecar daemon for tool execution, system
-  state capture, and local memory
+- **Local Runtime Daemon**: SDK-owned local-runtime daemon for tool execution,
+  system state capture, and local memory
 
 ### Backend Architecture
 

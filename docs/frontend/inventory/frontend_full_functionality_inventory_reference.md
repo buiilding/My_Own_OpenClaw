@@ -109,14 +109,14 @@ Primary files:
 Functionality:
 
 - Builds desktop launch facts and host context for the SDK local runtime provider.
-- Wakes/resolves the SDK-owned sidecar daemon and publishes renderer-visible
+- Wakes/resolves the SDK-owned local-runtime daemon and publishes renderer-visible
   `local-runtime-status` snapshots.
 - Registers scoped host IPC handlers for attachment, browser, screenshot, and
   system-state helpers, and routes them through SDK local-runtime `/rpc` when
   needed.
 - Executes local tools through SDK `executeTool(...)` while preserving
   Electron-only screenshot, artifact, display, and window-visibility adapters.
-- Keeps Python `LocalRuntimeService` method execution inside the sidecar daemon.
+- Keeps Python `LocalRuntimeService` method execution inside the local-runtime daemon.
 
 ### 1.4 Wakeword + Permission Bridges
 

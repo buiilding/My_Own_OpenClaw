@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: screenshot capture and tool lifecycle docs now route
-  through local-runtime screenshot wording instead of sidecar screenshot owner
-  labels.
+- Latest completed slice: frontend inventory, main, transcript, protocol, and
+  domain-ownership docs now route daemon/chat-event labels through
+  local-runtime wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -240,6 +240,41 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through SDK/renderer consumers.
 
 ## Inspection Log
+
+### 2026-06-20 Frontend Inventory Local-Runtime Daemon Labels
+
+- Finding: frontend inventory, main-process, websocket, protocol, and renderer
+  transcript references still used sidecar-daemon or sidecar-exposed labels
+  for SDK-owned local-runtime daemon startup, scoped host helper execution,
+  JSON-RPC dispatch, chat-event internals, and Python validation failures.
+- Change: routed those references through SDK-owned local-runtime daemon,
+  local-runtime exposed tools, local-runtime Python spawn/readiness, and
+  local-runtime chat-event/JSON-RPC wording while preserving concrete
+  `frontend/src/main/sidecar/*` and `main/python/*` paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  frontend daemon-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, local-runtime daemon
+  startup, JSON-RPC request dispatch, tool argument validation, chat-event
+  storage, IPC payloads, storage, credentials, permissions, hosted backend
+  URLs, provider policy, and trust boundaries are unchanged.
+
+### 2026-06-20 Frontend Inventory Local-Runtime Labels
+
+- Finding: frontend inventory, main, transcript, protocol, and domain
+  ownership docs still used sidecar daemon/chat-event labels for SDK
+  local-runtime lifecycle, execution, and conversation-store internals. The
+  domain ownership matrix also described renderer ownership as tool-execution
+  orchestration and had mojibake quote text in preload allowlist guidance.
+- Change: routed daemon, chat-event, tool-exposed, and arg-validation wording
+  through local-runtime labels, routed renderer ownership through UI
+  intent/display state, cleaned the quote text, and extended the modular docs
+  guard to cover the retired phrases and the matrix.
+- Validation: focused modular docs boundary test, docs listing, exact mojibake
+  marker scan, stale ownership phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, renderer behavior, IPC
+  payloads, tool execution routing, local-runtime Python behavior, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Screenshot Label Follow-Up
 

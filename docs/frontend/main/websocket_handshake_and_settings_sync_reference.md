@@ -143,7 +143,7 @@ Backend local execution events are handled by the SDK runtime before renderer fa
 
 1. The SDK `ConversationRuntime` receives a backend `tool-call` or `tool-bundle`.
 2. `ToolExecutionCoordinator` executes the local call through the SDK local-runtime client.
-3. The local runtime uses the sidecar daemon-backed local-runtime bridge.
+3. The local runtime uses the local-runtime daemon-backed bridge.
 4. The SDK runtime sends `tool-result` or `tool-bundle-result` back over the SDK websocket.
 5. `ipc.cjs` receives only the renderer-safe copy for replay, session tracking,
    overlay state, typed side-channel fan-out, and SDK conversation projection.
