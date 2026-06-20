@@ -407,6 +407,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('project-alpha-agents-layers');
   });
 
+  test('main IPC tests keep temp path fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/IpcMainBridge.query.test.cjs'),
+      read('tests/frontend/IpcPersistenceConcurrency.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('windieos-query-agents');
+    expect(source).not.toContain('windieos-ipc-persist');
+    expect(source).toContain('project-alpha-query-agents');
+    expect(source).toContain('project-alpha-ipc-persist');
+  });
+
   test('MCP runtime tests keep configured client info fixtures product-neutral', async () => {
     const source = await read('tests/frontend/McpRuntime.test.cjs');
 

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral temp path samples in IPC query AGENTS.md and
+  persistence concurrency coverage instead of WindieOS-flavored fixture data. No
+  migration required.
+
 - tests/backend: use neutral query samples in backend web-search tool coverage
   instead of WindieOS-flavored query fixture data. No migration required.
 

@@ -15,7 +15,7 @@ describe('IPC persistence concurrency', () => {
 
   beforeEach(async () => {
     jest.resetModules();
-    userDataPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'windieos-ipc-persist-'));
+    userDataPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'project-alpha-ipc-persist-'));
     jest.doMock('electron', () => ({
       app: {
         getPath: jest.fn(() => userDataPath),

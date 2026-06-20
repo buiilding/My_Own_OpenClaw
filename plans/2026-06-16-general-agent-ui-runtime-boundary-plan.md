@@ -18668,3 +18668,19 @@ Each completed slice should report:
   native OpenAI/Gemini routing, native source query propagation, output
   formatting, credentials, permissions, hosted backend URLs, provider policy,
   and local-runtime behavior are unchanged.
+
+### 2026-06-20 Main IPC temp path fixture neutrality
+
+- Finding: main IPC query and persistence concurrency tests exercise local
+  AGENTS.md query layer attachment plus serialized desktop UI config and
+  install-auth writes, but their temp path prefixes still used WindieOS-flavored
+  directory names as arbitrary filesystem fixture data.
+- Change: switched those temp path prefixes to neutral `project-alpha` samples
+  and extended the modular boundary guard so the retired product-shaped query
+  AGENTS.md and IPC persistence temp paths stay out of main IPC coverage.
+- Validation: focused IPC query, IPC persistence concurrency, and modular
+  boundary tests; exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Local AGENTS.md query layer attachment,
+  serialized desktop UI config writes, serialized install-auth writes, IPC
+  channels, storage, permissions, hosted backend URLs, provider policy, and
+  local-runtime behavior are unchanged.

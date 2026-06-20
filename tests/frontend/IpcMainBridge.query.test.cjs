@@ -204,7 +204,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('attaches locally resolved AGENTS.md layers to outbound query agent definition', async () => {
-    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-query-agents-'));
+    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-query-agents-'));
     fs.mkdirSync(path.join(repoRoot, '.git'));
     fs.writeFileSync(path.join(repoRoot, 'AGENTS.md'), 'repo instructions\n', 'utf8');
 

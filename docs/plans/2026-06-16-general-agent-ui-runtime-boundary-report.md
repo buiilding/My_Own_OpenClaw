@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `d547efa24` (`test(main): neutralize mcp client info fixture`)
-- Latest completed slice: backend web-search tool tests now use neutral query
-  samples instead of WindieOS-flavored arbitrary search text.
+- Latest inspected plan checkpoint: `3ee4b2a56` (`test(backend): neutralize web search tool fixtures`)
+- Latest completed slice: main IPC tests now use neutral temp path samples
+  instead of WindieOS-flavored query AGENTS.md and persistence fixtures.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -103,6 +103,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   preserving Brave request parameter construction, Brave result normalization,
   missing config and disabled policy failures, native OpenAI/Gemini routing,
   native source query propagation, and output formatting.
+  Main IPC fixtures now use neutral temp paths while preserving local AGENTS.md
+  query layer attachment and serialized desktop UI config/install-auth writes.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7615,3 +7617,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   failures, native OpenAI/Gemini routing, native source query propagation,
   output formatting, credentials, permissions, hosted backend URLs, provider
   policy, and local-runtime behavior are unchanged; no migration is required.
+- Main IPC fixture samples now use neutral `project-alpha` temp path prefixes
+  instead of WindieOS-flavored query AGENTS.md and persistence sample
+  directories. Local AGENTS.md query layer attachment, serialized desktop UI
+  config writes, serialized install-auth writes, IPC channels, storage,
+  permissions, hosted backend URLs, provider policy, and local-runtime behavior
+  are unchanged; no migration is required.
