@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/renderer: route the renderer folder-structure streaming-response
+  diagram through Agent SDK websocket receive and projection ownership instead
+  of implying Electron main receives backend websocket events directly. No
+  migration required.
 - docs/voice: route frontend architecture and renderer folder wakeword flow
   wording through the local-runtime wakeword helper backed by the Python
   service instead of a direct main-to-Python service path. No migration

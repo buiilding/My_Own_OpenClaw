@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Folder Streaming Receive Docs Boundary
+
+- Finding: the renderer folder-structure streaming response diagram still
+  showed Electron main receiving backend WebSocket events before the SDK
+  projection step, even though the current boundary is Agent SDK runtime
+  websocket receive plus SDK projection, with Electron main forwarding SDK
+  outputs to renderer channels.
+- Change: updated the renderer folder-structure streaming diagram to route
+  backend WebSocket event receipt through the Agent SDK runtime before
+  current-turn/conversation-event projection.
+- Validation: extended the runtime-routing docs guard to require the Agent SDK
+  receive wording and reject the retired main-process websocket receive phrase.
+- Compatibility: no migration required. Runtime code, IPC channel names,
+  backend websocket payloads, SDK projection events, renderer stream handling,
+  storage, credentials, permissions, provider policy, hosted URLs, and local
+  execution behavior are unchanged.
+
 ### 2026-06-20 Frontend Wakeword Helper Flow Docs Boundary
 
 - Finding: the frontend architecture wakeword flow and renderer folder

@@ -5103,6 +5103,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Remaining Findings
 
+- Renderer folder-structure streaming response docs now show Agent SDK runtime
+  websocket receive/projection ownership instead of Electron main directly
+  receiving backend WebSocket events.
 - Frontend architecture and renderer folder-structure wakeword flow docs now
   route wakeword capture through the local-runtime wakeword helper backed by
   the Python service/subprocess instead of a direct Electron-main-to-Python

@@ -442,6 +442,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK projection channels, typed backend side-channel events');
     expect(docText).toContain('Agent SDK normalization/projection path, and typed Electron fan-out channel');
     expect(docText).toContain('SDK transport/projection, typed fan-out channel');
+    expect(docText).toContain('Agent SDK runtime receives the hosted backend WebSocket event');
     expect(docText).toContain('3. LOCAL-RUNTIME EXECUTION');
     expect(docText).not.toContain('SDK agent runtime');
     expect(docText).not.toContain('SDK agent-runtime');
@@ -459,6 +460,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Electron rebroadcast path');
     expect(docText).not.toContain('transport rebroadcast');
     expect(docText).not.toContain('Electron main rebroadcast');
+    expect(docText).not.toContain('Main process receives WebSocket event');
     expect(docText).not.toContain('3. SIDECAR EXECUTION');
     expect(docText).not.toContain('Frontend/sidecar owner');
     expect(docText).not.toContain('Frontend-owned payloads:');
