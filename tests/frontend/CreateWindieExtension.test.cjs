@@ -17,7 +17,7 @@ const {
 
 describe('create-windie-extension scaffold', () => {
   test('creates loadable divided plugin and skill contributions', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-contribution-scaffold-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contribution-scaffold-'));
 
     const result = createWindieExtension({
       extensionId: 'repo-agent',
@@ -70,7 +70,7 @@ describe('create-windie-extension scaffold', () => {
   });
 
   test('refuses to overwrite an existing extension folder', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-contribution-scaffold-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contribution-scaffold-'));
     fs.mkdirSync(path.join(contributionRoot, 'plugins', 'repo-agent'), { recursive: true });
 
     expect(() => createWindieExtension({
@@ -80,7 +80,7 @@ describe('create-windie-extension scaffold', () => {
   });
 
   test('prints generic contribution labels after scaffold creation', () => {
-    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-contribution-scaffold-'));
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-contribution-scaffold-'));
     const scriptPath = path.resolve(__dirname, '../../scripts/create-windie-extension.cjs');
 
     const output = childProcess.execFileSync(
@@ -99,14 +99,14 @@ describe('create-windie-extension scaffold', () => {
     expect(parseArgs([
       'repo-agent',
       '--dir',
-      '/tmp/windieos',
+      '/tmp/agent-contributions',
       '--name',
       'Repo Agent',
       '--tool',
       'inspect_repo',
     ])).toEqual({
       extensionId: 'repo-agent',
-      contributionsDir: '/tmp/windieos',
+      contributionsDir: '/tmp/agent-contributions',
       force: false,
       name: 'Repo Agent',
       toolName: 'inspect_repo',

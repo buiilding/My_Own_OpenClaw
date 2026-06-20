@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: use neutral contribution-root path samples in the
+  create-extension scaffold coverage instead of Windie-flavored fixture data. No
+  migration required.
+
 - tests/backend: use neutral temp TTS path samples in container config updater
   coverage instead of WindieOS-flavored fixture data, and assert updated config
   through the tool orchestrator's registry/context owners. No migration required.

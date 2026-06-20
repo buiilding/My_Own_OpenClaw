@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `cc468bb6c` (`test(main): neutralize ipc temp path fixtures`)
-- Latest completed slice: backend container config updater tests now use
-  neutral temp TTS path samples instead of WindieOS-flavored fixtures.
+- Latest inspected plan checkpoint: `9472dee63` (`test(backend): neutralize config updater fixtures`)
+- Latest completed slice: create-extension scaffold tests now use neutral
+  contribution-root path samples instead of Windie-flavored fixtures.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -107,6 +107,8 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   query layer attachment and serialized desktop UI config/install-auth writes.
   Backend container config updater fixtures now use neutral temp TTS paths while
   preserving DI config rebinding through current registry/context owners.
+  Extension scaffold tests now use neutral contribution-root temp paths while
+  preserving the Windie CLI command name and generated contribution layout.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7631,3 +7633,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   registry/context config resolution, model service config updates, credentials,
   permissions, hosted backend URLs, provider policy, and local-runtime behavior
   are unchanged; no migration is required.
+- Create-extension scaffold tests now use neutral contribution-root fixture
+  paths (`agent-contribution-scaffold-*` and `/tmp/agent-contributions`)
+  instead of Windie-flavored sample paths. The Windie CLI command name,
+  generated directory layout, `plugin.json` schema fields, Python entrypoints,
+  skill front matter, manifest loading, permissions, credentials, IPC channels,
+  local-runtime execution, hosted backend URLs, and provider policy are
+  unchanged; no migration is required.

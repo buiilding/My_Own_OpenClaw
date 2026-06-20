@@ -18699,3 +18699,19 @@ Each completed slice should report:
   reinitialization, tool orchestrator registry/context config resolution, model
   service config updates, credentials, permissions, hosted backend URLs,
   provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Extension scaffold contribution-root fixture neutrality
+
+- Finding: create-extension scaffold tests already validate generic generated
+  local-runtime plugin and prompt skill labels, but their arbitrary temp
+  contribution-root samples still used Windie-flavored path names.
+- Change: switched those contribution-root test fixtures to neutral
+  `agent-contribution` names and added a modular boundary guard for the retired
+  path samples.
+- Validation: focused create-extension scaffold and modular boundary tests;
+  exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. The Windie CLI command name, generated
+  directory layout, `plugin.json` schema fields, Python entrypoints, skill front
+  matter, manifest loading, permissions, credentials, IPC channels,
+  local-runtime execution, hosted backend URLs, and provider policy are
+  unchanged.

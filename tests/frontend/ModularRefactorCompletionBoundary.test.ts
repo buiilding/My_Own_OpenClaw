@@ -525,6 +525,15 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('/tmp/project-alpha-test-tts');
   });
 
+  test('extension scaffold tests keep contribution root fixtures product-neutral', async () => {
+    const source = await read('tests/frontend/CreateWindieExtension.test.cjs');
+
+    expect(source).not.toContain('windie-contribution-scaffold-');
+    expect(source).not.toContain('/tmp/windieos');
+    expect(source).toContain('agent-contribution-scaffold-');
+    expect(source).toContain('/tmp/agent-contributions');
+  });
+
   test('backend user-query sanitization tests keep desktop context fixtures product-neutral', async () => {
     const source = await read('tests/backend/test_agent_executor_user_query_sanitization.py');
 
