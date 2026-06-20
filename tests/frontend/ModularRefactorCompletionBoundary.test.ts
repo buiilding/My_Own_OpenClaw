@@ -358,6 +358,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('SDK/main local-runtime execution, Python sidecar implementation');
     expect(docText).not.toContain('SDK/main local-runtime dispatch, Python sidecar implementation');
     expect(docText).not.toContain('local-runtime execution, Python sidecar adapters');
+    expect(docText).not.toContain('Python sidecar implementation');
     expect(docText).not.toContain('sidecar runtime packaging');
     expect(docText).not.toContain('client, sidecar, and SDKs');
     expect(docText).not.toContain('System prompt sent to frontend');

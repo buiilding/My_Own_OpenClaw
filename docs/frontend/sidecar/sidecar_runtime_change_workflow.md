@@ -15,7 +15,7 @@ storage/search, system state, platform adapters, wakeword service protocol,
 backend URL clients, and JSON-RPC method handling. The Python sidecar provides
 the current concrete implementation for those surfaces.
 
-The Python sidecar implementation is not the model-facing policy owner. Backend
+The local-runtime Python implementation is not the model-facing policy owner. Backend
 owns model-visible tool schemas, provider policy, prompt construction, and
 hosted route auth. Electron main owns process startup, IPC channel registration,
 native windows, and request transport. Renderer owns UI state and tool-result

@@ -1,7 +1,7 @@
 ---
-summary: "Python sidecar implementation behind the SDK local-runtime boundary."
+summary: "Local-runtime Python implementation behind the SDK local-runtime boundary."
 read_when:
-  - When changing the Python sidecar implementation or local-runtime IPC.
+  - When changing the local-runtime Python implementation or local-runtime IPC.
 ---
 
 # Python Sidecar
@@ -14,7 +14,7 @@ main supplies desktop launch facts and host-only helpers, but does not own a
 standalone sidecar process or stdin/stdout transport.
 
 The local runtime is the local execution boundary, currently backed by the
-Python sidecar implementation. It is not a replacement backend. Its role in the
+local-runtime Python implementation. It is not a replacement backend. Its role in the
 product boundary is:
 
 - execute actions that must happen on the user's machine
@@ -111,7 +111,7 @@ The daemon does not own LLM inference, prompt policy, provider history, or conve
 
 ## Tools
 
-The Python sidecar implementation maintains a `ToolRegistry`
+The local-runtime Python implementation maintains a `ToolRegistry`
 (`frontend/src/main/python/tools/registry.py`) with tools for:
 - Computer control (mouse, keyboard, scroll, screenshot)
 - Filesystem (read/write/list/search)

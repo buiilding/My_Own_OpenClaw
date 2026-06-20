@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python implementation-label slice by
+  routing Python sidecar architecture, memory, workflow, and tool-catalog docs
+  through local-runtime Python implementation wording instead of Python sidecar
+  implementation labels. The slice preserved concrete Python sidecar process
+  facts where they identify the daemon or file paths and added a focused docs
+  guard against reintroducing the stale phrase. Validation covered the focused
+  modular docs boundary test, docs listing, exact stale
+  Python-sidecar-implementation label scan, and diff check. No migration
+  required; runtime code, executable behavior, tool schemas,
+  JSON-RPC/daemon payloads, IPC payloads, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime Python validation-label slice by
   routing channel, data-pipeline, development, JSON-RPC, settings,
   main-process, sidecar-tool, node, configuration, and tool-lifecycle docs

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route Python sidecar implementation labels in architecture,
+  memory, workflow, and tool-catalog docs through local-runtime Python
+  implementation wording. No migration required.
 - docs(runtime): route local-runtime validation labels through
   local-runtime Python tests and implementation wording instead of Python
   sidecar test or sidecar implementation owner labels. No migration required.

@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Implementation Labels
+
+- Finding: Python sidecar architecture, memory, workflow, and tool-catalog docs
+  still used Python sidecar implementation labels where the current boundary is
+  the local-runtime Python implementation behind the SDK local runtime.
+- Change: routed those labels through local-runtime Python implementation
+  wording and added a focused docs boundary guard against reintroducing the
+  stale phrase in the active first-read docs set.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  Python-sidecar-implementation label scan, and diff check.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  tool schemas, JSON-RPC/daemon payloads, IPC payloads, storage, credentials,
+  permissions, hosted backend URLs, provider policy, and trust boundaries are
+  unchanged.
+
 ### 2026-06-20 Local-Runtime Python Validation Labels
 
 - Finding: channel, data-pipeline, development, JSON-RPC, settings,

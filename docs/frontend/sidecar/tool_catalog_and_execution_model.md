@@ -77,7 +77,7 @@ Deep runtime reference:
 Current runtime note:
 
 - the live local-runtime registry exposes 14 direct tool names through the
-  Python sidecar implementation
+  local-runtime Python implementation
 - `computer_use` and `system_use` are not registered local-runtime tools in
   `frontend/src/main/python/tools/registry.py`
 - wrapper-shaped artifacts still exist under `model-facing/`, but they are not part of the current local execution path
