@@ -15831,3 +15831,21 @@ Each completed slice should report:
   provider-policy, local-runtime, or renderer migration required. Public SDK
   callers that imported `createAgentBackendTransport` must rename that import to
   `createAgentRuntimeTransport`.
+
+### 2026-06-20 SDK managed session root export narrowing
+
+- Finding: the SDK package root exposed both canonical `ManagedAgentSession`
+  APIs and the lower-level `ManagedBackendSession` lifecycle helper, even though
+  app-builder docs identify the agent-shaped managed session as the public
+  hosted-session module.
+- Change: stopped re-exporting `ManagedBackendSession` and
+  `createManagedBackendSession` from the package root, kept the implementation
+  module and its focused behavior tests, and documented the lower-level managed
+  websocket lifecycle as private to SDK transport internals.
+- Validation: focused managed-session/private-export/package-boundary Jest
+  coverage, docs listing, root-export stale scan, Node syntax checks, and diff
+  checks.
+- Compatibility: no storage, websocket payload, IPC, credential, permission,
+  provider-policy, renderer, or local-runtime migration required. Package-root
+  SDK callers should use `ManagedAgentSession` or `createManagedAgentSession`;
+  direct internal-module tests remain on the lower-level implementation.

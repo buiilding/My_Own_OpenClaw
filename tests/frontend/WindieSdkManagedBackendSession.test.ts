@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 
 import {
   createManagedBackendSession,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src/transport/ManagedBackendSession';
 
 class FakeSocket extends EventEmitter {
   readyState = 0;

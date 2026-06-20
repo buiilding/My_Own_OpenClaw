@@ -26,7 +26,6 @@ export * from './runtime/LocalRuntime.js';
 export * from './runtime/RuntimeEnv.js';
 export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
-export * from './transport/ManagedBackendSession.js';
 export * from './transport/ManagedAgentSession.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './tools/toolCorrelationIds.js';

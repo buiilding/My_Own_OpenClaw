@@ -69,6 +69,9 @@ Ownership rules:
   adapters use the runtime-named factory directly.
   `BackendSocketFactory.ts` exposes
   `createAgentBackendSocket` and `AgentBackendSocketOptions`.
+  The lower-level `ManagedBackendSession.ts` implementation is private to the
+  SDK transport package; the package root exposes the agent-shaped managed
+  session instead of a backend-named lifecycle class.
   `ManagedAgentSession.ts` is the canonical managed
   hosted session module through `ManagedAgentBackendEndpoint`,
   `ManagedAgentSessionOptions`, `ManagedAgentSession`, and
@@ -816,16 +819,17 @@ backend tool-call -> SDK conversation runtime -> SDK local runtime /execute-tool
 
 `AgentSession` is now transport-only. It connects, handshakes, sends
 queries/results, and emits backend-wire events. It does not execute local tools.
-`ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
-that need connection waiters, reconnect scheduling, endpoint advance, idle
-disconnect, typed backend sends, and backend-wire event parsing. Electron main consumes
+`ManagedAgentSession` is backed by an internal managed websocket lifecycle for
+connection waiters, reconnect scheduling, endpoint advance, idle disconnect,
+typed backend sends, and backend-wire event parsing. Electron main consumes
 that SDK package transport and only supplies host-specific socket construction,
 headers, handshake data, local tool execution, and renderer fan-out.
 Close metadata reports whether a reconnect was already scheduled as
 `reconnectScheduled`; endpoint fallback notifications remain on the explicit
 `onBackendFallback`/`onFallback` hooks.
-`ManagedBackendSessionOptions.createSocket` uses a direct `() => WebSocketLike`
-function type; there is no separate `ManagedBackendSocketFactory` alias.
+The internal managed websocket implementation uses a direct
+`() => WebSocketLike` socket factory; there is no separate
+`ManagedBackendSocketFactory` alias.
 An opened socket is not considered a connected managed session until handshake
 construction and `send()` both succeed. If handshake construction or the
 handshake send fails, the managed session closes and clears that socket,

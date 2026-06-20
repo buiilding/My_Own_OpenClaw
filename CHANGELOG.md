@@ -39,6 +39,10 @@ All notable changes to WindieOS will be documented in this file.
   public TypeScript SDK callers use the canonical
   `createAgentRuntimeTransport` conversation transport factory. Migration:
   rename imports to `createAgentRuntimeTransport`.
+- sdk/runtime: stop re-exporting the internal `ManagedBackendSession` lifecycle
+  helper from the package root; package callers should use
+  `ManagedAgentSession` or `createManagedAgentSession`. No storage, payload, or
+  runtime migration required.
 - docs: route provider/settings workflow and API transparency wording through
   renderer-managed settings and SDK/renderer consumers. No migration required.
 - docs/getting-started: rename the overview diagram desktop boundary from

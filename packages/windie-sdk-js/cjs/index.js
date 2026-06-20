@@ -42,7 +42,6 @@ __exportStar(require("./runtime/LocalRuntime.js"), exports);
 __exportStar(require("./runtime/RuntimeEnv.js"), exports);
 __exportStar(require("./transport/BackendSocketFactory.js"), exports);
 __exportStar(require("./transport/HostedBackendHttpClient.js"), exports);
-__exportStar(require("./transport/ManagedBackendSession.js"), exports);
 __exportStar(require("./transport/ManagedAgentSession.js"), exports);
 __exportStar(require("./tools/ToolExecutionCoordinator.js"), exports);
 __exportStar(require("./tools/toolCorrelationIds.js"), exports);

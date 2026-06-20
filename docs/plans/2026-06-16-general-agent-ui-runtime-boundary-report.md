@@ -5739,3 +5739,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   boundary expectations. Public SDK callers that used the alias should rename
   the import; no storage, IPC, websocket payload, credential, permission,
   provider-policy, local-runtime, or renderer migration is required.
+- SDK package-root managed-session exports now expose the agent-shaped managed
+  hosted session only. `ManagedBackendSession` and
+  `createManagedBackendSession` stay as lower-level transport implementation
+  module details with focused behavior coverage, while public package callers
+  use `ManagedAgentSession` / `createManagedAgentSession`. No storage, websocket
+  payload, IPC, credential, permission, provider-policy, renderer, or
+  local-runtime migration is required.
