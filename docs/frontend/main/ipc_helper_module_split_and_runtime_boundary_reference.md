@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, or `ipc_main_process_trace_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, or `ipc_mcp_refresh_runtime.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -43,6 +43,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_desktop_ui_config_persistence_runtime.cjs`
 - `frontend/src/main/ipc/ipc_global_stop_shortcut_config_runtime.cjs`
 - `frontend/src/main/ipc/ipc_main_process_trace_runtime.cjs`
+- `frontend/src/main/ipc/ipc_mcp_refresh_runtime.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -367,6 +368,18 @@ Owns Electron-main trace event routing:
   hidden `trace_event` conversation events
 - keeps trace input string/duration sanitization out of the IPC relay root
 
+### `ipc_mcp_refresh_runtime.cjs`
+
+Owns Electron-main MCP refresh orchestration:
+
+- refreshes the latest desktop UI config through the Agent SDK when the agent
+  is awake and supports `refreshMcpServers(...)`
+- falls back to the local MCP registry refresh in tests or when the live agent
+  has no SDK refresh method
+- gates startup refresh on enabled MCP server count and skips it in tests
+- stores and clears the pending startup refresh promise so startup hydration
+  cannot launch duplicate MCP refreshes
+
 ### SDK-Shaped Conversation Commands
 
 `ipc_agent_sdk_command_handlers.cjs` owns the strict `windie:invoke` command
@@ -496,6 +509,8 @@ generic `to-backend` router or direct chat query IPC handlers.
     persistence delegate to `ipc_global_stop_shortcut_config_runtime.cjs`.
 25. main-process trace event routing for app diagnostics versus SDK
     conversation trace rows delegates to `ipc_main_process_trace_runtime.cjs`.
+26. MCP latest-config refresh and startup enabled-server refresh gating delegate
+    to `ipc_mcp_refresh_runtime.cjs`.
 
 ## Drift Hotspots
 

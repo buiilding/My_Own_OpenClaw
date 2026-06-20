@@ -53,6 +53,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_definition_context.cjs'),
       'utf8',
     );
+    const mcpRefreshRuntimeSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_mcp_refresh_runtime.cjs'),
+      'utf8',
+    );
     expect(source).toContain('new AgentClient({');
     expect(source).toContain('function createElectronAgentClient()');
     expect(source).not.toContain('createDesktopAgentClient');
@@ -119,7 +123,9 @@ describe('main ipc sdk runtime boundary', () => {
     expect(wakeCall).toContain('localToolLifecycle');
     expect(wakeCall).not.toContain('conversationRef:');
     expect(source).toContain('onDesktopUiConfigLoaded: refreshEnabledMcpServersAfterStartup');
-    expect(source).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
+    expect(source).toContain('createMcpRefreshRuntime({');
+    expect(source).not.toContain("refreshMcpServersForLatestConfig('mcp-startup')");
+    expect(mcpRefreshRuntimeSource).toContain("refreshMcpServersForLatestConfig('mcp-startup')");
     expect(source).toContain('[Main][SDK] client_initialized');
     expect(source).toContain('[Main][SDK] creating_client backend=');
     expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');

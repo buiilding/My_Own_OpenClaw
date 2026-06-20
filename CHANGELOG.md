@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move MCP latest-config refresh and startup refresh gating into
+  `ipc_mcp_refresh_runtime.cjs`, including SDK refresh, local registry fallback,
+  enabled-server count checks, and pending startup refresh reset. No migration
+  required.
 - main/ipc: move main-process trace event routing into
   `ipc_main_process_trace_runtime.cjs`, preserving idle permission-probe app
   diagnostics and conversation-scoped SDK trace events while keeping `ipc.cjs`

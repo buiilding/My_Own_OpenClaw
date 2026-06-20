@@ -40,6 +40,9 @@ const {
   createMainProcessTraceRuntime,
 } = require('./ipc/ipc_main_process_trace_runtime.cjs');
 const {
+  createMcpRefreshRuntime,
+} = require('./ipc/ipc_mcp_refresh_runtime.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -242,7 +245,6 @@ let agentWebSocketImpl = null;
 let agentClient = null;
 let activeAgent = null;
 let pendingAgentStartPromise = null;
-let pendingStartupMcpRefreshPromise = null;
 let latestCurrentTurnProjection = null;
 let latestPendingTurn = null;
 let desktopLocalRuntimeLaunchConfig = null;
@@ -269,6 +271,7 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
 });
 const {
+  countMcpEnabledServersInConfig,
   getDesktopUiConfigForMcpRegistry,
   persistDesktopUiConfigToDisk,
   preserveMainOwnedDesktopUiConfigFields,
@@ -298,6 +301,15 @@ const mainProcessTraceRuntime = createMainProcessTraceRuntime({
   permissionProbeDiagnosticsPath: PERMISSION_PROBE_DIAGNOSTICS_PATH,
   TraceRecorder,
   createConversationEvent,
+});
+const mcpRefreshRuntime = createMcpRefreshRuntime({
+  getDesktopUiConfigForMcpRegistry,
+  countMcpEnabledServersInConfig,
+  ensureAgent,
+  refreshMcpServersForConfig,
+  getMcpClientInfo: () => ipcHostCopy.identity.mcpClientInfo,
+  isTest: () => process.env.NODE_ENV === 'test',
+  log,
 });
 const installAuthRuntime = createInstallAuthRuntime({
   getCurrentState: () => ({
@@ -425,7 +437,7 @@ function resetIpcProcessStateForTests() {
   latestDesktopUiConfig = null;
   globalStopShortcutConfigRuntime.reset();
   installAuthRuntime.reset();
-  pendingStartupMcpRefreshPromise = null;
+  mcpRefreshRuntime.reset();
   latestCurrentTurnProjection = null;
   latestPendingTurn = null;
   syncSdkLiveTurnSurfaceIntent = null;
@@ -724,33 +736,11 @@ async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_C
 }
 
 async function refreshMcpServersForLatestConfig(reason = 'mcp-refresh') {
-  const config = getDesktopUiConfigForMcpRegistry();
-  if (process.env.NODE_ENV !== 'test') {
-    const agent = await ensureAgent({ reason });
-    if (typeof agent.refreshMcpServers === 'function') {
-      return agent.refreshMcpServers({ config });
-    }
-  }
-  return refreshMcpServersForConfig({
-    config,
-    clientInfo: ipcHostCopy.identity.mcpClientInfo,
-  });
+  return mcpRefreshRuntime.refreshMcpServersForLatestConfig(reason);
 }
 
 function refreshEnabledMcpServersAfterStartup(config) {
-  if (process.env.NODE_ENV === 'test' || countMcpEnabledServersInConfig(config) === 0) {
-    return;
-  }
-  if (pendingStartupMcpRefreshPromise) {
-    return;
-  }
-  pendingStartupMcpRefreshPromise = refreshMcpServersForLatestConfig('mcp-startup')
-    .catch((error) => {
-      log(`Failed to refresh enabled MCP servers at startup: ${error?.message || error}`);
-    })
-    .finally(() => {
-      pendingStartupMcpRefreshPromise = null;
-    });
+  return mcpRefreshRuntime.refreshEnabledMcpServersAfterStartup(config);
 }
 
 function buildIpcStatusPayload(connected) {
@@ -952,7 +942,7 @@ function shutdownIpcForTests() {
   installAuthRuntime.reset();
   isConnected = false;
   pendingAgentStartPromise = null;
-  pendingStartupMcpRefreshPromise = null;
+  mcpRefreshRuntime.reset();
   latestPendingTurn = null;
   void agentClient?.shutdownLocalRuntime?.();
   agentClient = null;

@@ -133,8 +133,9 @@ That exposes `local_memory__search`.
 4. When a user enables a gated MCP from the dashboard,
    `ipc_desktop_ui_config_persistence_runtime.cjs` persists the allowlist
    change with MCP preservation disabled for that explicit toggle path, and
-   Electron main immediately runs a discovery pass. The manual refresh action
-   remains the retry path after installing binaries or granting permissions.
+   `ipc_mcp_refresh_runtime.cjs` immediately runs a discovery pass. The manual
+   refresh action remains the retry path after installing binaries or granting
+   permissions.
 5. Electron main sends enabled server specs to the SDK local runtime.
 6. The local runtime starts each enabled MCP server over stdio through the
    Python sidecar implementation.
@@ -236,6 +237,12 @@ route the enabled server specs through `Agent.registerMcps(...)`. The SDK
 then owns local-runtime registration, backend `replace_client_manifest`
 settings update, in-memory agent-definition mutation, and inclusion of the MCP
 tool schemas on the next message.
+
+`ipc_mcp_refresh_runtime.cjs` owns the Electron-main refresh decision after
+config changes and startup hydration: it prefers the live Agent SDK
+`refreshMcpServers(...)` path, falls back to registry refresh in tests or when
+the live agent does not expose that method, and skips startup refresh when the
+desktop UI config has no enabled MCP servers.
 
 The live manifest refresh has two observable checkpoints:
 

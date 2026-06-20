@@ -120,6 +120,30 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main MCP Refresh Runtime Boundary
+
+- Finding: extension/MCP IPC handler registration already lived in
+  `ipc_extension_mcp_handlers.cjs`, and desktop UI config MCP allowlist
+  preservation lived in `ipc_desktop_ui_config_persistence_runtime.cjs`, but
+  `ipc.cjs` still owned latest-config MCP refresh, startup refresh
+  enabled-count gating, local registry fallback, pending startup refresh state,
+  and reset cleanup. The startup path also referenced
+  `countMcpEnabledServersInConfig` without taking it from the persistence
+  runtime.
+- Change: added `ipc_mcp_refresh_runtime.cjs` to own MCP refresh orchestration.
+  `ipc.cjs` now injects latest config access, enabled-server counting,
+  `ensureAgent`, local registry refresh, MCP client info, test-mode detection,
+  and logging.
+- Validation: focused MCP refresh runtime coverage for Agent SDK refresh,
+  test/local-registry fallback, startup skip behavior, duplicate startup
+  refresh suppression, failure logging, pending reset behavior, and a boundary
+  guard that keeps startup refresh orchestration out of `ipc.cjs`.
+- Compatibility: no migration required. MCP dashboard IPC channels,
+  `agent_enabled_mcp_servers` config shape, SDK `refreshMcpServers(...)`,
+  local registry fallback behavior, diagnostics paths, storage, credentials,
+  permissions, hosted URLs, provider policy, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Process Trace Runtime Boundary
 
 - Finding: permission IPC already sanitized probe/request trace context before
