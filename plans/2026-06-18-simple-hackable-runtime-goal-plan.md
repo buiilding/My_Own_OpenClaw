@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed local-runtime JSON-RPC reference and Python
+  implementation workflow `summary`/`read_when` labels through local-runtime
+  method/startup wording instead of sidecar method/startup owner labels.
+  Validation covered the modular docs boundary guard, docs search, related
+  commit search, stale JSON-RPC label scan, docs listing, and diff check. No
+  migration required; JSON-RPC method names, params, daemon endpoints, IPC
+  channels, SDK/main dispatch, storage, credentials, permissions, provider
+  policy, hosted URLs, and local-runtime behavior are unchanged.
+
 - 2026-06-20: routed extension surface, install, release packaging,
   shared-schema, browser validation, platform, and historical runtime-design
   docs through local-runtime browser execution, backend/local-runtime schema

@@ -1,8 +1,8 @@
 ---
 summary: "Workflow for changing WindieOS local-runtime Python implementation behavior across JSON-RPC methods, local tools, memory services, browser automation, platform adapters, backend config, system state, and wakeword service boundaries."
 read_when:
-  - When changing `frontend/src/main/python`, sidecar JSON-RPC methods, local tool registry behavior, memory storage/search/summarization, browser runtime internals, system-state probes, platform adapters, backend URL resolution, or wakeword service framing.
-  - When a local tool, memory, browser, wakeword, system-state, or sidecar startup failure could belong to Electron main bridge, Python sidecar code, backend-hosted APIs, or renderer projection.
+  - When changing `frontend/src/main/python`, local-runtime JSON-RPC methods, local tool registry behavior, memory storage/search/summarization, browser runtime internals, system-state probes, platform adapters, backend URL resolution, or wakeword service framing.
+  - When a local tool, memory, browser, wakeword, system-state, or local-runtime startup failure could belong to Electron main bridge, Python sidecar code, backend-hosted APIs, or renderer projection.
 title: "Local-Runtime Python Implementation Change Workflow"
 ---
 

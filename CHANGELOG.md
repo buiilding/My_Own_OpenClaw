@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route local-runtime JSON-RPC reference and workflow
+  read-when labels through local-runtime method/startup wording instead of
+  sidecar method/startup owner labels. No migration required.
 - docs/runtime: route extension, install, packaging, shared-schema, and
   validation-boundary labels through local-runtime wording instead of sidecar
   runtime, backend/sidecar, and main/sidecar owner labels. No migration

@@ -238,6 +238,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Local-Runtime JSON-RPC Reference Labels
+
+- Finding: the local-runtime JSON-RPC reference and Python implementation
+  workflow still used sidecar method/startup labels in `summary` and
+  `read_when` text.
+- Change: routed those labels through local-runtime JSON-RPC method and
+  startup wording while keeping Python sidecar implementation references where
+  the docs point at concrete code.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale JSON-RPC label scan, docs listing, and diff check.
+- Compatibility: no migration required. JSON-RPC method names, params, daemon
+  endpoints, IPC channels, SDK/main dispatch, storage, credentials,
+  permissions, provider policy, hosted URLs, and local-runtime behavior are
+  unchanged.
+
 ### 2026-06-20 Runtime Boundary Owner-Label Follow-Up
 
 - Finding: extension surface, install, release packaging, shared-schema,
