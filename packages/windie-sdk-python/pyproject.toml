@@ -18,4 +18,4 @@ package-dir = { "" = "../../frontend/src/main/python" }
 
 [tool.setuptools.packages.find]
 where = ["../../frontend/src/main/python"]
-include = ["windie*"]
+include = ["windie", "windie.*"]

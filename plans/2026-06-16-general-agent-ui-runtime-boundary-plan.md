@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Python SDK Package Discovery Boundary
+
+- Finding: `packages/windie-sdk-python/pyproject.toml` discovered packages with
+  `include = ["windie*"]`, which could sweep the local-runtime
+  `windie_shared` browser contract package into the public hosted Python SDK
+  distribution because both packages currently live under
+  `frontend/src/main/python`.
+- Change: limited Python SDK package discovery to `windie` and `windie.*`,
+  documented that `windie_shared` remains an internal shared browser/local
+  runtime contract, and added a sidecar package-boundary guard for the
+  `pyproject.toml` include list.
+- Validation: passed focused sidecar package-boundary test, docs listing, SDK
+  package-discovery stale scan, and diff check.
+- Compatibility: no migration required. Runtime code, Python imports from the
+  checkout, local-runtime browser validation, backend browser schema loading,
+  SDK websocket payloads, tool schemas, IPC channels, transcript storage,
+  settings, credentials, permissions, provider policy, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Local Tool Channel Hub Boundary
 
 - Finding: the docs hub still summarized Local Tool Channels as Python sidecar

@@ -194,6 +194,23 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Python SDK Package Discovery Boundary
+
+- Finding: `packages/windie-sdk-python/pyproject.toml` used the broad
+  `windie*` package discovery pattern. Because the Python SDK source root is
+  currently `frontend/src/main/python`, that pattern also matched
+  `windie_shared`, the shared browser/local-runtime contract package used by
+  backend browser schema loading and local-runtime validation.
+- Change: narrowed SDK package discovery to `windie` and `windie.*`, documented
+  that `windie_shared` is not part of the public Python SDK distribution, and
+  added a sidecar package-boundary test over the `pyproject.toml` include list.
+- Validation: passed focused sidecar package-boundary test, docs listing, SDK
+  package-discovery stale scan, and diff check.
+- Compatibility: no migration required. Runtime code, local checkout imports,
+  local-runtime browser validation, backend browser schema loading, package
+  import names, SDK websocket payloads, tool schemas, storage, IPC, settings,
+  credentials, permissions, provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-19 Docs Search Runtime Cache
 
 - Finding: the required docs-search workflow had become slow enough that

@@ -115,7 +115,11 @@ Package boundary: `packages/windie-sdk-python`
 
 Python implementation path: `frontend/src/main/python/windie/sdk.py`
 
-The distribution name is `windie-sdk`; the import package is `windie`.
+The distribution name is `windie-sdk`; the public import package is `windie`.
+Package discovery is intentionally limited to `windie` and `windie.*` even
+though the implementation currently lives next to local-runtime Python modules.
+Shared browser/local-runtime contracts such as `windie_shared` are not part of
+the public Python SDK distribution.
 
 The Python client mirrors hosted backend route access for local-runtime/developer
 tooling. Agent sessions use `AgentSdkClient.wake_up(...)`, which builds the

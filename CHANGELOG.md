@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/python: limit `windie-sdk` package discovery to the public `windie`
+  package so local-runtime shared contracts are not swept into the hosted
+  Python SDK distribution. No migration required.
 - docs/channels: update the Local Tool Channels hub summary to route through
   SDK/main local-runtime execution with Python sidecar as implementation
   detail. No migration required.
