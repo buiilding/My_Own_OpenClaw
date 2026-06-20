@@ -120,6 +120,26 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Live Turn State Boundary
+
+- Finding: `ipc.cjs` still owned cached SDK current-turn projection and
+  renderer pending-turn state directly after pending-turn handler registration,
+  stop-target selection, direct wake-up adapter fan-out, and renderer-window
+  sync behavior had moved into focused helpers.
+- Change: added `ipc_live_turn_state.cjs` to own current-turn and pending-turn
+  cache storage, independent setters/getters, full reset, and pending-only
+  reset. `ipc.cjs` now injects live-turn accessors into direct wake-up adapter
+  deps, renderer-window sync, pending-turn handlers, stop-target resolution,
+  and test reset paths.
+- Validation: focused live-turn state coverage for independent current/pending
+  storage, pending-only reset, full reset, and boundary guards that keep
+  mutable live-turn cache storage out of `ipc.cjs`.
+- Compatibility: no migration required. SDK current-turn projection shapes,
+  pending-turn payloads, late-window sync, pending-turn cleanup, stop-target
+  priority, renderer IPC channels, backend event payloads, storage,
+  credentials, permissions, hosted URLs, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main Desktop UI Config Cache Boundary
 
 - Finding: desktop UI config disk I/O, persistence semantics, handler

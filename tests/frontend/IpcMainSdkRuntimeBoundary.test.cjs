@@ -81,6 +81,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_desktop_ui_config_cache.cjs'),
       'utf8',
     );
+    const liveTurnStateSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_live_turn_state.cjs'),
+      'utf8',
+    );
     const electronAgentClientFactorySource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs'),
       'utf8',
@@ -299,6 +303,17 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('let latestDesktopUiConfig = null');
     expect(source).not.toContain('latestDesktopUiConfig = config');
     expect(desktopUiConfigCacheSource).toContain('let latestDesktopUiConfig = initialConfig;');
+    expect(source).toContain('createIpcLiveTurnState()');
+    expect(source).toContain('liveTurnState.getLatestCurrentTurn()');
+    expect(source).toContain('liveTurnState.setLatestCurrentTurn(');
+    expect(source).toContain('liveTurnState.getLatestPendingTurn()');
+    expect(source).toContain('liveTurnState.setLatestPendingTurn(');
+    expect(source).not.toContain('let latestCurrentTurnProjection = null');
+    expect(source).not.toContain('let latestPendingTurn = null');
+    expect(source).not.toContain('latestCurrentTurnProjection = currentTurnProjection');
+    expect(source).not.toContain('latestPendingTurn = pendingTurn');
+    expect(liveTurnStateSource).toContain('let latestCurrentTurnProjection = initialCurrentTurn;');
+    expect(liveTurnStateSource).toContain('let latestPendingTurn = initialPendingTurn;');
     expect(source).toContain('buildConversationEventFromBackendEvent(event');
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
     expect(conversationEventProjectionSource).toContain('normalizeBackendEventToConversationEvent');

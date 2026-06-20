@@ -128,6 +128,9 @@ const {
   registerPendingTurnHandlers,
 } = require('./ipc/ipc_pending_turn_handlers.cjs');
 const {
+  createIpcLiveTurnState,
+} = require('./ipc/ipc_live_turn_state.cjs');
+const {
   resolveMainStopTarget: resolveMainStopTargetRuntime,
   triggerMainStopTarget,
 } = require('./ipc/ipc_stop_target_runtime.cjs');
@@ -276,8 +279,6 @@ let setGlobalAgentStopShortcutAccelerator = null;
 let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
 let agentWebSocketImpl = null;
-let latestCurrentTurnProjection = null;
-let latestPendingTurn = null;
 let desktopLocalRuntimeLaunchConfig = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
@@ -285,6 +286,7 @@ const activeQueryContextState = createActiveQueryContextState();
 const desktopUiConfigCache = createDesktopUiConfigCache({
   isValidConfigPayload,
 });
+const liveTurnState = createIpcLiveTurnState();
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
   responseOverlayPhaseState,
@@ -484,8 +486,7 @@ function resetBackendSessionState() {
   currentSessionId = null;
   currentServerUserId = null;
   currentConversationRef = null;
-  latestCurrentTurnProjection = null;
-  latestPendingTurn = null;
+  liveTurnState.reset();
   currentTurnTraceLogger.reset();
   electronMainTraceLogger.reset();
 }
@@ -504,8 +505,7 @@ function resetIpcProcessStateForTests() {
   globalStopShortcutConfigRuntime.reset();
   installAuthRuntime.reset();
   mcpRefreshRuntime.reset();
-  latestCurrentTurnProjection = null;
-  latestPendingTurn = null;
+  liveTurnState.reset();
   syncSdkLiveTurnSurfaceIntent = null;
   currentTurnTraceLogger.reset();
   electronMainTraceLogger.reset();
@@ -609,10 +609,10 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
     buildDirectWakeUpAgentAdapterDeps: () => ({
       broadcastToRenderers,
       resolveRuntimeConversationRef,
-      setLatestCurrentTurnProjection: (currentTurnProjection) => {
-        latestCurrentTurnProjection = currentTurnProjection;
-      },
-      getLatestPendingTurn: () => latestPendingTurn,
+      setLatestCurrentTurnProjection: (currentTurnProjection) => liveTurnState.setLatestCurrentTurn(
+        currentTurnProjection,
+      ),
+      getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
       pendingTurnMatchesCurrentTurn,
       clearLatestPendingTurn,
       logLiveSurfaceTrace,
@@ -697,8 +697,8 @@ function trackRendererWindow(win) {
     win,
     rendererWindows,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    getLatestCurrentTurn: () => latestCurrentTurnProjection,
-    getLatestPendingTurn: () => latestPendingTurn,
+    getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
+    getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
     getReplayEvents: () => ipcEventReplayState.snapshot(),
     buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
       fallbackConversationRef: currentConversationRef,
@@ -709,10 +709,8 @@ function trackRendererWindow(win) {
 function clearLatestPendingTurn(input = {}) {
   return clearPendingTurnState({
     ...input,
-    getLatestPendingTurn: () => latestPendingTurn,
-    setLatestPendingTurn: (pendingTurn) => {
-      latestPendingTurn = pendingTurn;
-    },
+    getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
+    setLatestPendingTurn: (pendingTurn) => liveTurnState.setLatestPendingTurn(pendingTurn),
     broadcastToRenderers,
   });
 }
@@ -802,7 +800,7 @@ function shutdownIpcForTests() {
   installAuthRuntime.reset();
   isConnected = false;
   mcpRefreshRuntime.reset();
-  latestPendingTurn = null;
+  liveTurnState.resetPendingTurn();
   agentClientLifecycle.shutdownAndReset();
   agentRuntimeLifecycle.reset({ closeActiveAgent: true });
   desktopLocalRuntimeLaunchConfig = null;
@@ -941,9 +939,7 @@ function initializeIpc(win, options = {}) {
   registerPendingTurnHandlers({
     ipcMain,
     clearLatestPendingTurn,
-    setLatestPendingTurn: (pendingTurn) => {
-      latestPendingTurn = pendingTurn;
-    },
+    setLatestPendingTurn: (pendingTurn) => liveTurnState.setLatestPendingTurn(pendingTurn),
     broadcastToRenderers,
   });
 
@@ -1041,8 +1037,8 @@ async function appendMainProcessTraceEvent(input = {}) {
 
 function resolveMainStopTarget() {
   return resolveMainStopTargetRuntime({
-    latestCurrentTurnProjection,
-    latestPendingTurn,
+    latestCurrentTurnProjection: liveTurnState.getLatestCurrentTurn(),
+    latestPendingTurn: liveTurnState.getLatestPendingTurn(),
     currentConversationRef,
   });
 }

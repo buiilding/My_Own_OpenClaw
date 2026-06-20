@@ -334,7 +334,8 @@ Primary modules:
     `ipc_app_diagnostics_runtime.cjs`, keeps active query context state in
     `ipc_active_query_context.cjs`, projects replayed backend events through
     `ipc_conversation_event_projection.cjs`, keeps cached desktop UI config in
-    `ipc_desktop_ui_config_cache.cjs`, keeps cached
+    `ipc_desktop_ui_config_cache.cjs`, keeps live-turn cache state in
+    `ipc_live_turn_state.cjs`, keeps cached
     AgentClient lifecycle in `ipc_agent_client_lifecycle.cjs`, and uses the returned
     `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle

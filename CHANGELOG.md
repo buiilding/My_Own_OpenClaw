@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move cached SDK current-turn and renderer pending-turn state into
+  `ipc_live_turn_state.cjs`, preserving late-window sync, pending-turn cleanup,
+  stop-target selection, and test reset behavior. No migration required.
 - main/ipc: move cached desktop UI config state into
   `ipc_desktop_ui_config_cache.cjs`, preserving raw internal access,
   validated cloned snapshots for exported callers, settings/startup/handler
