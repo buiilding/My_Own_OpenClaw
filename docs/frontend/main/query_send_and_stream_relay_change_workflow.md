@@ -26,7 +26,7 @@ chat component until the producer and relay contracts are identified.
 - The SDK runtime owns base user-row emission, turn resource resolution,
   backend websocket construction, envelope send/close primitives, and SDK-owned
   local tool-result routing.
-- The Python sidecar only supplies local enrichment data through JSON-RPC
+- Local-runtime Python only supplies local enrichment data through JSON-RPC
   helpers such as system state and memory search. It must not inspect backend
   schemas or construct model-facing websocket messages.
 - The hosted backend owns websocket message validation, query handler dispatch,

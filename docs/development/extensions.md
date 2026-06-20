@@ -116,9 +116,9 @@ Rules:
 - Contribution manifests use the documented snake_case field names only;
   alternate aliases and camelCase keys are rejected at load time.
 - Plugin tools always execute through the local runtime, currently backed by
-  the Python sidecar.
+  local-runtime Python.
 - Plugin entrypoints must return native `tools.result.ToolResult` values.
-- Sidecar-generated Python module names for loaded entrypoint files are
+- Local-runtime Python-generated module names for loaded entrypoint files are
   internal loader details; extension contracts are `name`, `schema`, and
   `entrypoint`.
 - Do not put a `tools/` folder under plugins; schema files live under

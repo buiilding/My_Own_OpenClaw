@@ -116,7 +116,7 @@ Electron main local execution:
 - prepares the active desktop surface before computer-use local execution
 - resolves screenshot display bounds from the active surface/display affinity
 - injects bounds through `local_runtime_tool_args.cjs`
-- sends normalized args to the Python sidecar
+- sends normalized args to local-runtime Python
 
 SDK/main screenshot paths:
 

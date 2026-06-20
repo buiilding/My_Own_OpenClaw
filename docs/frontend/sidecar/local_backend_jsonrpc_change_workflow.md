@@ -19,14 +19,14 @@ This workflow is narrower than the general [Local-Runtime Python Implementation 
 
 ## Boundary Rules
 
-- Renderer code must call SDK-shaped `window.agentSdk.invoke(...)` commands or typed host IPC channels; it must not talk to the Python sidecar directly.
+- Renderer code must call SDK-shaped `window.agentSdk.invoke(...)` commands or typed host IPC channels; it must not talk to local-runtime Python directly.
 - Electron main owns scoped host channel registration, request correlation, process readiness, timeouts, and screenshot/artifact wrappers.
-- The local runtime owns method registration, handler signatures, local validation, tool dispatch, memory storage, system-state collection, and local utility calls; the Python sidecar currently implements those handlers.
+- The local runtime owns method registration, handler signatures, local validation, tool dispatch, memory storage, system-state collection, and local utility calls; local-runtime Python currently implements those handlers.
 - Backend owns model-facing tool schemas and prompt policy. Do not import backend code into the sidecar to reuse those schemas.
 - JSON-RPC method params must be JSON objects. Arrays, strings, and other non-object params are rejected by `JSONRPCProtocol`.
 - Return JSON-serializable values only. Convert local exceptions into explicit JSON-RPC errors or `{ success:false, error }` envelopes at the right boundary.
 - Keep stdout reserved for JSON-RPC responses. Logs belong on stderr through
-  the Python sidecar logger.
+  the local-runtime Python logger.
 
 ## Fast Owner Map
 

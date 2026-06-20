@@ -772,6 +772,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/tool_execution_lifecycle.md'),
       read('docs/tools/filesystem_shell.md'),
       read('docs/tools/filesystem_shell_change_workflow.md'),
+      read('docs/tools/web_search.md'),
       read('docs/tools/browser.md'),
       read('docs/tools/computer.md'),
       read('docs/sdk/conversation_runtime.md'),
@@ -839,6 +840,8 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/tool_catalog_matrix.md'),
       read('docs/tools/filesystem_shell.md'),
       read('docs/tools/filesystem_shell_change_workflow.md'),
+      read('docs/tools/web_search.md'),
+      read('docs/web/landing_page_change_workflow.md'),
       read('docs/tools/browser.md'),
       read('docs/tools/computer.md'),
       read('docs/sdk/conversation_runtime.md'),
@@ -957,6 +960,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Python sidecar `entrypoint`');
     expect(docText).not.toContain('Local-runtime helper behavior implemented only inside the Python sidecar');
     expect(docText).not.toContain('Python sidecar execute_tool JSON-RPC');
+    expect(docText).not.toContain('Python sidecar remote client base');
+    expect(docText).not.toContain('Python sidecar remote clients');
+    expect(docText).not.toContain('not a sidecar executable tool');
+    expect(docText).not.toContain('local sidecar state');
     expect(docText).not.toContain('Local Runtime Sidecar Hub');
     expect(docText).not.toContain('executable sidecar local tools');
     expect(docText).not.toContain('Python sidecar local tool');

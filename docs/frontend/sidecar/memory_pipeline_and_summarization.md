@@ -40,7 +40,7 @@ The SDK owns backend embedding calls for memory. It calls the backend
 `POST /api/embeddings/` route, then sends vectors into the local runtime through
 `search_memory_by_embedding` and `store_memory_by_embedding`.
 
-The Python sidecar backs local-runtime SQLite/FAISS storage. It persists
+Local-runtime Python backs local-runtime SQLite/FAISS storage. It persists
 `embedding_space.json` to detect embedding-space version or dimension changes
 and clears local vector mappings when the caller-provided embedding space
 changes.

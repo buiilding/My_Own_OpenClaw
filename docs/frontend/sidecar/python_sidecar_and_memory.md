@@ -2,7 +2,7 @@
 summary: "Local-runtime Python implementation behind the local-runtime boundary: JSON-RPC service, tool registry, memory stores, semantic consolidation, and wakeword service."
 read_when:
   - When changing local-runtime tools backed by local-runtime Python implementation, local-runtime memory persistence/search, or subprocess protocol behavior.
-  - When debugging local-runtime/Python sidecar readiness, request correlation, or memory summarization cadence.
+  - When debugging local-runtime Python readiness, request correlation, or memory summarization cadence.
 title: "Python Sidecar and Memory"
 ---
 

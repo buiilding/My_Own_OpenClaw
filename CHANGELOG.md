@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route remaining active Python sidecar owner labels through
+  local-runtime Python wording across API, backend, frontend, operations,
+  security, and extension docs. No migration required.
 - docs(tools): route tool, pipeline, and credential boundary labels through
   local-runtime Python wording instead of Python sidecar owner labels. No
   migration required.

@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Active Local-Runtime Python Owner Labels
+
+- Finding: active API, backend, frontend, operations, security, extension, and
+  local-runtime docs still used Python sidecar labels for implementation owner
+  descriptions, local enrichment, query settings validation, remote clients,
+  screenshot transport, memory storage, and direct-call guidance.
+- Change: routed those owner labels through local-runtime Python wording while
+  preserving concrete `sidecar` directory names, doc filenames, test paths,
+  and Mermaid participant aliases where the visible label is already
+  local-runtime Python.
+- Validation: focused modular docs boundary test, active stale-label scan,
+  docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, doc paths, test paths,
+  tool schemas, auth behavior, environment variables, JSON-RPC payloads, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Tool Pipeline Local-Runtime Python Labels
 
 - Finding: web-search, tool-schema policy, filesystem/shell flow, credential,

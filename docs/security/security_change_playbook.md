@@ -117,7 +117,7 @@ Likely code:
 - `frontend/src/main/permission*`
 - `frontend/src/renderer/features/onboarding/**`
 - platform-specific main/local-runtime adapters
-- Python sidecar computer/browser tool implementations
+- local-runtime Python computer/browser tool implementations
 
 Validate:
 

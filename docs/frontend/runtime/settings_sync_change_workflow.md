@@ -159,7 +159,7 @@ Validation:
 - Backend patch validation covers accepted and rejected fields.
 - First-query sync still prevents stale settings from reaching the backend.
 - Model/provider changes update catalog, picker, and provider docs together.
-- Local-runtime implementation env changes are validated through Python sidecar
+- Local-runtime implementation env changes are validated through local-runtime Python
   startup or focused local-runtime Python tests.
 - Docs and changelog list defaults and propagation behavior.
 

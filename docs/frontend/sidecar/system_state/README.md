@@ -2,7 +2,7 @@
 summary: "Local-runtime system-state docs hub for field collection semantics, platform adapters, and renderer/main JSON-RPC consumption paths backed by local-runtime Python implementations."
 read_when:
   - When changing `core/system_state.py` field contracts, fallback behavior, or platform probe logic.
-  - When debugging `get-system-state` failures between renderer, Electron main, and Python sidecar.
+  - When debugging `get-system-state` failures between renderer, Electron main, and local-runtime Python.
 title: "Local-Runtime System-State Docs Hub"
 ---
 

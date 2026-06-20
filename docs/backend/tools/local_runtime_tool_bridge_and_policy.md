@@ -86,7 +86,7 @@ must remain locally executable in:
 Mismatch symptoms:
 
 - backend emits tool call that the local runtime cannot execute
-- Python sidecar warns: built-in local-runtime tools are unavailable
+- local-runtime Python warns: built-in local-runtime tools are unavailable
 - query loop waits/fails until timeout/error path
 
 ## Change Workflow

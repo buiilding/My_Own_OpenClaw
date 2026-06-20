@@ -186,7 +186,7 @@ Provider note:
 
 These REST endpoints live on the same FastAPI server as the WebSocket. In the default product topology that means the hosted backend at `https://api.windieos.com`; local or self-hosted deployments may instead use `http://127.0.0.1:8765`.
 
-They are used by the Python sidecar for embeddings, semantic summarization, and async conversation-title generation.
+They are used by local-runtime Python for embeddings, semantic summarization, and async conversation-title generation.
 
 Hosted requests on `/api/*` require `Authorization: Bearer <install_token>`
 except for `/api/install/register`.

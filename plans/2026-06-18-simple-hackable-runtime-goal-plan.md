@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed an active local-runtime Python owner-label sweep by
+  routing remaining active API, backend, frontend, operations, security,
+  extension, and local-runtime docs through local-runtime Python wording
+  instead of Python sidecar owner labels. Validation: focused modular docs
+  boundary test, active stale-label scan, docs listing, and diff checks. No
+  migration required; no runtime code, doc path, test path, tool schema, auth
+  behavior, environment variable, JSON-RPC payload, IPC payload, storage,
+  credential, permission, hosted URL, provider-policy, or trust-boundary
+  behavior changed.
 - 2026-06-20: completed a tool pipeline local-runtime Python label slice by
   routing web-search, tool-schema policy, filesystem/shell flow, credential,
   landing workflow, and agent-visible pipeline docs through local-runtime

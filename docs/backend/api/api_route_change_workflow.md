@@ -32,7 +32,7 @@ Do not treat API work as only a router edit. Most changes move through several l
 ## Boundary Rules
 
 - Backend API owns hosted route contracts, validation, auth, message dispatch, and formatter output.
-- Backend API does not own Electron window behavior, renderer presentation, or Python sidecar local execution.
+- Backend API does not own Electron window behavior, renderer presentation, or local-runtime Python local execution.
 - Do not trust renderer-provided user identity on hosted auth paths; use installed auth context where required.
 - Keep route request/response models close to the route package unless there is an established shared schema.
 - Keep outgoing websocket payload changes aligned with formatter specs and SDK/renderer consumers.

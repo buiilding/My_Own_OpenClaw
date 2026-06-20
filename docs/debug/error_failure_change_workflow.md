@@ -215,7 +215,7 @@ Validate:
 | UI shows generic error but backend logs validation detail | websocket sanitizer and renderer display contract | backend API error mapping or renderer consumer |
 | Query send fails while disconnected | synthetic query failure event and websocket bridge state | Electron main IPC bridge |
 | Settings save spins then fails | ACK map, timeout, backend `settings-updated`/`error` id | Electron settings sync or backend handler |
-| Tool call hangs after local-runtime tool failure | Python sidecar `ToolResult`, Electron relay, backend result storage | local-runtime tool implementation or backend tool-result ingress |
+| Tool call hangs after local-runtime tool failure | local-runtime Python `ToolResult`, Electron relay, backend result storage | local-runtime tool implementation or backend tool-result ingress |
 | Tool failure visible but not saved in transcript | SDK runtime/store projection and structured failure contract | SDK runtime/store or renderer projection |
 | Local-runtime startup times out | process spawn/path/readiness status | Electron local runtime bridge or packaged runtime |
 | Provider exception leaks details | provider error mapping and sanitizer path | backend provider/inference layer |
