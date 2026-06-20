@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route local-runtime validation labels through
+  local-runtime Python tests and implementation wording instead of Python
+  sidecar test or sidecar implementation owner labels. No migration required.
 - docs(runtime): route local-runtime implementation backing labels through
   local-runtime Python modules and desktop client/local-runtime schema wording
   instead of Python sidecar module or generic client-local labels. No migration

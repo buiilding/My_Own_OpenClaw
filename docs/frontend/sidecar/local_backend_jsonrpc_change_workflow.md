@@ -32,15 +32,15 @@ This workflow is narrower than the general [Local-Runtime Python Implementation 
 
 | Change or symptom | First owner | Code roots | Tests |
 | --- | --- | --- | --- |
-| Add a renderer-visible local-runtime capability | SDK command/facade plus Python JSON-RPC handler registry | SDK runtime command owner, renderer facade, `frontend/src/main/python/local_backend.py` | SDK command tests, focused renderer facade tests, Python sidecar handler tests |
-| Add a main-only Python helper | main bridge helper plus Python JSON-RPC handler registry | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, Python sidecar handler tests |
+| Add a renderer-visible local-runtime capability | SDK command/facade plus Python JSON-RPC handler registry | SDK runtime command owner, renderer facade, `frontend/src/main/python/local_backend.py` | SDK command tests, focused renderer facade tests, local-runtime Python handler tests |
+| Add a main-only Python helper | main bridge helper plus Python JSON-RPC handler registry | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py` | focused frontend bridge tests, local-runtime Python handler tests |
 | Change JSON-RPC protocol validation | protocol core | `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_json_rpc_protocol.py` |
 | Change request timeout or timeout error shape | SDK daemon client plus bridge timeout policy | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_timeout_policy.cjs` | SDK client tests and local-runtime bridge tests |
-| Change local-runtime readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, Python sidecar daemon tests |
-| Change memory method payloads | SDK local-runtime store plus Python memory mixin | SDK local-runtime store code, `frontend/src/main/python/local_backend_memory_handlers.py` | SDK local-runtime store tests, Python sidecar memory/conversation tests |
-| Change `execute_tool` behavior | SDK/main local tool runtime plus local-runtime executable registry backed by local-runtime Python modules | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, Python sidecar tool tests |
+| Change local-runtime readiness or status event behavior | SDK local runtime provider plus main supervisor and daemon status handlers | `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/sidecar/local_runtime_supervisor.cjs`, `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, SDK provider tests, local-runtime Python daemon tests |
+| Change memory method payloads | SDK local-runtime store plus Python memory mixin | SDK local-runtime store code, `frontend/src/main/python/local_backend_memory_handlers.py` | SDK local-runtime store tests, local-runtime Python memory/conversation tests |
+| Change `execute_tool` behavior | SDK/main local tool runtime plus local-runtime executable registry backed by local-runtime Python modules | `frontend/src/main/sidecar/local_runtime_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, local-runtime Python tool tests |
 | Change browser runtime install/warmup methods | main bridge helper plus local-runtime browser feature-pack handling | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-runtime tests |
-| Change macOS automation permission method | main permission bridge plus Python sidecar platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation Python sidecar tests |
+| Change macOS automation permission method | main permission bridge plus local-runtime Python platform helper | `frontend/src/main/sidecar/local_runtime_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation local-runtime Python tests |
 
 ## Method Families
 
@@ -186,10 +186,10 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | Changed surface | Validation |
 | --- | --- |
 | JSON-RPC protocol validation | `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py` |
-| LocalRuntimeService method registry or handler | `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py` plus focused Python sidecar tests |
+| LocalRuntimeService method registry or handler | `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py` plus focused local-runtime Python tests |
 | Memory RPC method or SDK local-runtime caller | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` plus focused SDK local-runtime store tests |
 | Electron bridge handler | `cd frontend && npm run test -- LocalRuntimeBridge.rpc` |
-| Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused Python sidecar tool tests |
+| Execute-tool bridge behavior | `cd frontend && npm run test -- LocalRuntimeBridge ToolExecution` plus focused local-runtime Python tool tests |
 | Preload/renderer IPC channel addition | `cd frontend && npm run test -- PreloadIpcChannels IpcBridge` |
 | Local-runtime Python process lifecycle/readiness | local-runtime bridge lifecycle tests and `tests/sidecar/test_sidecar_daemon.py` when shutdown changes |
 | Docs-only JSON-RPC changes | `<windie> docs list`, `git diff --check`, focused Markdown link checks |

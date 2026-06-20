@@ -36,7 +36,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | 2. Decide executable payload | `frontend/src/main/python/tools` and local-runtime executable registry docs | The local runtime owns what can actually run locally; the executable registry documents the current local-runtime Python implementation. |
 | 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a local-runtime executable action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | SDK result envelope builder, backend tool-result handler, Python sidecar tool result models | Backend history needs consistent success/error output. |
-| 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, Python sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |
+| 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, local-runtime Python tool tests | Drift is caught by producer and consumer tests, not imports. |
 | 6. Update docs | Tool docs, local-runtime implementation docs, code-change routing docs | Agents should know where to modify the next related behavior. |
 
 ## Tool Families
@@ -74,9 +74,9 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Change type | Minimum validation |
 | --- | --- |
 | Backend schema or policy only | Focused backend schema/policy tests and `<windie> docs list`. |
-| Sidecar implementation only | Focused sidecar tests for the tool plus shared schema parity if exposed. |
+| Local-runtime Python implementation only | Focused local-runtime Python tests for the tool plus shared schema parity if exposed. |
 | SDK/main dispatch/envelope | Focused SDK/main tool-coordinator tests and backend result handler tests if envelope changes. |
-| Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, Python sidecar tool tests, and `<windie> docs list`. |
+| Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, local-runtime Python tool tests, and `<windie> docs list`. |
 | Browser tool change | Browser backend tests, local-runtime browser implementation tests, and browser runtime docs update. |
 
 ## Related Docs

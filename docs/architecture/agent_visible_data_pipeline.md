@@ -113,7 +113,7 @@ Question the design when you see any of these:
 | --- | --- |
 | Prompt/tool visibility | backend prompt, tool policy, registry, provider projection, and transparency tests |
 | Websocket event shape | backend formatter/schema tests plus renderer backend-event guard/consumer tests |
-| IPC or JSON-RPC mapper | preload/channel parity tests, main bridge tests, Python sidecar protocol tests |
+| IPC or JSON-RPC mapper | preload/channel parity tests, main bridge tests, local-runtime Python protocol tests |
 | Tool execution path | backend tool-turn tests, SDK coordinator/runtime tests, main IPC tool-router tests, and local-runtime executable tests backed by Python sidecar pytest |
 | Tool result/history shape | backend result ingress/transform/history tests plus transcript replay tests |
 | Transcript/replay shape | renderer transcript queue tests, local-runtime transcript storage tests, backend rehydrate tests |

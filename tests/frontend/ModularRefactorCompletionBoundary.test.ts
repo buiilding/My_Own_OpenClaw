@@ -896,7 +896,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('SDK/main local-runtime migration');
     expect(docText).toContain('local-runtime transcript store backed by local-runtime Python modules');
     expect(docText).toContain('SDK/main local-runtime dispatch, local-runtime executable registry implementation');
-    expect(docText).toContain('Python sidecar tests for implementation parity');
+    expect(docText).toContain('local-runtime Python tests for implementation parity');
     expect(docText).toContain('The local runtime owns local tool execution');
     expect(docText).toContain('Local runtime implementation');
     expect(docText).toContain('backend/renderer/local-runtime change routing');

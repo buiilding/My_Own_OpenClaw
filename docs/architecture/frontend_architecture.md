@@ -1,7 +1,7 @@
 ---
 summary: "Current WindieOS frontend architecture across Electron main, React renderer, preload IPC boundary, and local-runtime implementation."
 read_when:
-  - When changing renderer, main, local-runtime, or sidecar implementation ownership boundaries.
+  - When changing renderer, main, local-runtime, or local-runtime Python implementation ownership boundaries.
   - When changing query, stream, tool, wakeword, or transcript flow across frontend processes.
 title: "Frontend Architecture"
 ---

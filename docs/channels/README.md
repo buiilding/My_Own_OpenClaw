@@ -126,7 +126,7 @@ Likely code:
 - executable local tool under `frontend/src/main/python/tools`
 - IPC bridge only when a new local bridge channel is required
 
-Validate backend schema tests, SDK runtime/router tests, Python sidecar tool tests, renderer projection tests, and schema parity tests.
+Validate backend schema tests, SDK runtime/router tests, local-runtime Python tool tests, renderer projection tests, and schema parity tests.
 
 ## Deep Docs
 

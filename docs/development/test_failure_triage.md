@@ -48,7 +48,7 @@ Do not assume plain `python` has backend or local-runtime test dependencies.
 | Signal | Likely drift |
 | --- | --- |
 | backend test passes, frontend event test fails | emitted payload shape changed without consumer update |
-| Python sidecar test passes, backend schema test fails | local-runtime executable args/result changed without model-facing/parity update |
+| local-runtime Python test passes, backend schema test fails | local-runtime executable args/result changed without model-facing/parity update |
 | renderer test passes, replay/rehydrate fails | transcript/session identifier drift |
 | source test passes, package smoke fails | packaged runtime or installed path assumption |
 | docs link check fails | hub/reference path not updated after add/move/rename |

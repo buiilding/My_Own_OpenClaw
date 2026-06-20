@@ -48,7 +48,7 @@ Owner: SDK/main local execution with local-runtime implementation and backend/cl
 
 Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), and [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md).
 
-Validate schema visibility, working-directory handling, process/session behavior, sudo policy, output formatting, and local-runtime/Python sidecar tests. Keep local machine authority in the local runtime.
+Validate schema visibility, working-directory handling, process/session behavior, sudo policy, output formatting, and local-runtime Python tests. Keep local machine authority in the local runtime.
 
 Avoid: moving filesystem or shell execution into backend code to make a local failure easier to reproduce.
 

@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python validation-label slice by
+  routing channel, data-pipeline, development, JSON-RPC, settings,
+  main-process, sidecar-tool, node, configuration, and tool-lifecycle docs
+  through local-runtime Python
+  test and implementation wording instead of Python sidecar test or sidecar
+  implementation owner labels. Validation covered the focused modular docs
+  boundary test, docs listing, exact stale Python-sidecar-test label scan, and
+  diff check. No migration required; runtime code, test commands, executable
+  tool behavior, JSON-RPC/daemon payloads, IPC payloads, tool schemas, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime Python module-backing label slice by
   routing architecture, tool, MCP, storage, memory, artifact, JSON-RPC,
   reference, and developer docs through local-runtime Python modules and

@@ -55,7 +55,7 @@ envelope orchestration.
 3. **Keep local-runtime implementation and model-facing contracts aligned deliberately.** For tool changes, read [Local-Runtime Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
 4. **Update the owner module first.** Fix registry/method/tool/storage/platform code at the owner layer before adding tolerance in callers.
 5. **Normalize errors at the boundary.** Convert local exceptions into local-runtime result errors or JSON-RPC errors with useful but non-secret messages.
-6. **Add focused Python sidecar tests.** Prefer unit tests around the exact tool, method, memory helper, browser contract, or platform adapter.
+6. **Add focused local-runtime Python tests.** Prefer unit tests around the exact tool, method, memory helper, browser contract, or platform adapter.
 7. **Update docs and changelog.** Link new local-runtime Python surfaces from this workflow and the relevant sub-hub.
 
 ## JSON-RPC Method Checklist
@@ -68,7 +68,7 @@ When adding or changing a method:
 - Add or update Electron main bridge code only for scoped host channels that require Electron authority.
 - Keep snake_case local-runtime JSON-RPC params and document any camelCase bridge mapping.
 - Return stable JSON-serializable payloads.
-- Add Python sidecar protocol tests and SDK/local-runtime caller tests when the renderer-visible payload changes.
+- Add local-runtime Python protocol tests and SDK/local-runtime caller tests when the renderer-visible payload changes.
 
 ## Tool Runtime Checklist
 

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Validation Labels
+
+- Finding: channel, data-pipeline, development, JSON-RPC, settings,
+  main-process, sidecar-tool, node, configuration, and tool-lifecycle docs still
+  used Python sidecar test or sidecar implementation wording for validation and
+  owner labels.
+- Change: routed those labels through local-runtime Python tests and
+  local-runtime Python implementation wording while preserving concrete
+  `<windie> test sidecar`, `tests/sidecar`, and Python implementation paths.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  Python-sidecar-test label scan, and diff check.
+- Compatibility: no migration required. Runtime code, test commands,
+  executable tool behavior, JSON-RPC/daemon payloads, IPC payloads, tool
+  schemas, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Python Module Backing Labels
 
 - Finding: architecture, tool, MCP, storage, memory, artifact, JSON-RPC,

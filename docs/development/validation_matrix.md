@@ -16,7 +16,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | --- | --- |
 | docs listing/front matter | `<windie> docs list` |
 | all Python backend tests | `<windie> test backend` |
-| all Python sidecar tests | `<windie> test sidecar` |
+| all local-runtime Python tests | `<windie> test sidecar` |
 | backend + sidecar + frontend CI tests when `frontend/node_modules` exists | `<windie> test all` |
 | frontend Jest CI | `<windie> test frontend` |
 | frontend typecheck | `cd frontend && npm run typecheck` |

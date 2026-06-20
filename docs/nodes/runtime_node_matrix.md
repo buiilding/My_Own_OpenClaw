@@ -59,7 +59,7 @@ Examples:
 | websocket message schema or formatter | backend schema/handler/formatter tests plus renderer event consumer tests if UI consumes it |
 | preload IPC | preload allowlist and IPC parity tests |
 | renderer stream handling | renderer stream hook/store tests |
-| local-runtime executable tool | Python sidecar tool tests plus backend/schema parity tests when the tool is model-visible |
+| local-runtime executable tool | local-runtime Python tool tests plus backend/schema parity tests when the tool is model-visible |
 | wakeword protocol | wakeword bridge/service tests plus voice capture tests |
 | VM worker | backend runs service/routes and frontend VM worker/runtime-mode tests |
 | Cloudflare/deployment scripts | script dry-run/smoke checks where available plus operations docs review |
