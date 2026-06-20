@@ -7446,3 +7446,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   skill front matter, manifest loading, permissions, credentials, IPC channels,
   local-runtime execution, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- SDK route/auth docs now label Python validation rows as Python SDK package
+  client and Python SDK remote auth/error wrapper coverage while preserving the
+  current local-runtime Python test-suite paths and CLI wrapper. Python SDK
+  package code, test file locations, CLI test commands, local-runtime Python env
+  selection, hosted SDK routes, credentials, permissions, IPC channels, storage,
+  provider policy, and local execution are unchanged; no migration is required.

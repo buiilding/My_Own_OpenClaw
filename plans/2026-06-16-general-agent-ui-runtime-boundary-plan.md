@@ -18267,3 +18267,20 @@ Each completed slice should report:
   layout, `plugin.json` schema fields, Python entrypoints, skill front matter,
   manifest loading, permissions, credentials, IPC channels, local-runtime
   execution, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 SDK Python validation row ownership wording
+
+- Finding: active SDK route/auth docs still labeled Python validation rows as a
+  broad "Python hosted client" or "Remote client" surface even though the
+  current owner is the Python SDK package/client code, with focused tests
+  living under the local-runtime Python test suite.
+- Change: renamed the SDK validation rows to Python SDK package client and
+  Python SDK remote auth/error wrapper wording, switched the focused route
+  command to the Windie CLI test wrapper, and extended the SDK docs boundary
+  guard against the stale labels.
+- Validation: focused modular SDK docs boundary test, docs listing, exact stale
+  label scan, and diff checks.
+- Compatibility: no migration required. Python SDK package code, test file
+  locations, CLI test commands, local-runtime Python env selection, hosted SDK
+  routes, credentials, permissions, IPC channels, storage, provider policy, and
+  local execution are unchanged.

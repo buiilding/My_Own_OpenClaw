@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/sdk: clarify Python SDK validation rows as Python SDK package and
+  remote-client coverage while preserving the current local-runtime Python test
+  suite paths. No migration required.
 - docs/plans: refresh the general agent runtime-boundary report status to the
   latest renderer voice and extension scaffold checkpoints. No migration
   required.

@@ -265,6 +265,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).toContain('local-runtime module-tool SDK example');
     expect(sdkDocText).toContain('local-runtime plugin SDK example');
     expect(sdkDocText).toContain('local runtime tool manifest');
+    expect(sdkDocText).toContain('Python SDK package client change');
+    expect(sdkDocText).toContain('Python SDK package client behavior');
+    expect(sdkDocText).toContain('Python SDK remote auth/error wrappers');
     expect(sdkDocText).toContain('local runtime tool-result data');
     expect(sdkDocText).toContain('local-runtime-backed default conversation store');
     expect(apiReferenceText).toContain('local runtime process just to use hosted OCR or prediction routes');
@@ -284,6 +287,9 @@ describe('modular sdk refactor completion boundary', () => {
     expect(sdkDocText).not.toContain('sidecar-backed SDK store');
     expect(sdkDocText).not.toContain('Sidecar/developer client configuration');
     expect(sdkDocText).not.toContain('Sidecar remote clients');
+    expect(sdkDocText).not.toContain('Python hosted client change');
+    expect(sdkDocText).not.toContain('| Python client behavior |');
+    expect(sdkDocText).not.toContain('Remote client auth/error wrappers');
     expect(sdkDocText).not.toContain('minimal sidecar module-tool');
     expect(sdkDocText).not.toContain('runnable sidecar plugin');
     expect(sdkDocText).not.toContain('sidecar local tool implementation');
