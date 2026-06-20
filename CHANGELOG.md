@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral project workspace samples in desktop
+  conversation continuity search metadata coverage instead of WindieOS-flavored
+  fixture data. No migration required.
+
 - tests/backend: use neutral project workspace samples in query execution,
   rehydrate, prompt manager, and session manager coverage instead of
   WindieOS-flavored fixture data. No migration required.

@@ -18478,3 +18478,21 @@ Each completed slice should report:
   updates, prompt rendering semantics, conversation history system prompt
   refresh, IPC/WebSocket contracts, storage, credentials, permissions, hosted
   backend URLs, provider policy, and local-runtime behavior are unchanged.
+
+### 2026-06-20 Desktop conversation continuity metadata fixture neutrality
+
+- Finding: desktop conversation continuity search metadata tests exercise the
+  SDK-owned metadata projection into dashboard/local-runtime row fields, but
+  still used a WindieOS-flavored workspace name as generic user/project
+  metadata.
+- Change: switched that continuity search fixture to neutral `project-alpha`
+  workspace values and extended the renderer conversation metadata guard so the
+  retired product-shaped workspace name stays out of continuity projection
+  coverage.
+- Validation: focused desktop conversation continuity service test, focused
+  modular boundary test, exact retired fixture scan, docs listing, and diff
+  checks.
+- Compatibility: no migration required. SDK command names, metadata projection
+  fields, dashboard row shape, IPC channels, storage, credentials, permissions,
+  hosted backend URLs, provider policy, and local-runtime behavior are
+  unchanged.

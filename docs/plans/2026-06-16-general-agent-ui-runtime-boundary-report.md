@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f5b243c41` (`test(sidecar): neutralize chat event store fixtures`)
-- Latest completed slice: backend query execution, rehydrate, prompt manager,
-  and session manager workspace-context fixtures now use neutral project
-  samples instead of WindieOS-flavored fixture data.
+- Latest inspected plan checkpoint: `e28ca71e1` (`test(backend): neutralize workspace context fixtures`)
+- Latest completed slice: desktop conversation continuity search metadata
+  fixtures now use neutral project workspace samples instead of
+  WindieOS-flavored fixture data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -73,7 +73,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   SQLite conversation listing semantics. Backend query execution, rehydrate,
   prompt manager, and session manager workspace-context fixtures now use neutral
   project samples while preserving workspace forwarding, rehydrate session
-  updates, prompt rendering, and active session prompt refresh behavior. Preload
+  updates, prompt rendering, and active session prompt refresh behavior. Desktop
+  conversation continuity search metadata fixtures now use neutral project
+  samples while preserving SDK metadata-to-dashboard row projection. Preload
   SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK

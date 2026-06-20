@@ -377,6 +377,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('tests/frontend/DesktopConversationLibraryClient.test.ts'),
       read('tests/frontend/DesktopConversationStore.test.ts'),
       read('tests/frontend/DesktopLiveTurnRuntimeClient.test.ts'),
+      read('tests/frontend/DesktopConversationContinuityService.test.ts'),
       read('tests/frontend/NewChatSession.test.ts'),
       read('tests/frontend/UseDashboardConversations.test.jsx'),
     ]).then(sources => sources.join('\n'));
@@ -388,9 +389,11 @@ describe('modular sdk refactor completion boundary', () => {
     expect(conversationMetadataText).not.toContain("workspaceName: 'WindieOS'");
     expect(conversationMetadataText).not.toContain("workspace_name: 'WindieOS'");
     expect(conversationMetadataText).toContain('/work/project-alpha');
+    expect(conversationMetadataText).toContain('/repo/project-alpha');
     expect(conversationMetadataText).toContain('/workspace/project-alpha');
     expect(conversationMetadataText).toContain('Project Alpha issue');
     expect(conversationMetadataText).toContain("workspaceName: 'Project Alpha'");
+    expect(conversationMetadataText).toContain("workspace_name: 'Project Alpha'");
   });
 
   test('local-runtime chat event store tests keep workspace fixtures product-neutral', async () => {
