@@ -154,7 +154,7 @@ Because model_dump strategies differ by tool class:
 
 Integration consequence:
 
-- sidecar adapters must tolerate both sparse and fully-populated payload forms
+- local-runtime adapters must tolerate both sparse and fully-populated payload forms
 
 ## Registry and Export Wiring
 
@@ -178,7 +178,7 @@ This enforces backend-side parse constraints before remote envelope creation.
 
 Runtime boundary reminder:
 
-- backend validation success does not guarantee local execution success; the sidecar may apply stricter action-specific runtime checks
+- backend validation success does not guarantee local execution success; the local-runtime implementation may apply stricter action-specific runtime checks
 
 ## Debug Checklist
 
@@ -192,7 +192,7 @@ If payload fields seem missing:
 
 1. check whether tool is browser (sparse `model_dump`) or non-browser (full `model_dump`)
 2. inspect schema defaults for omitted fields
-3. verify sidecar action adapter defaulting assumptions
+3. verify local-runtime action adapter defaulting assumptions
 4. for browser tools, verify whether missing fields/actions are absent from the canonical backend browser args model rather than dropped later at runtime
 
 ## Related Docs

@@ -73,7 +73,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 
 - `backend/src/api/schemas/incoming.py` and `backend/src/api/contracts/message_types.py`
 - `backend/src/api/contracts/formatter_specs.py` and `backend/src/api/processing/formatters/*.py`
-- backend tool schemas under `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contracts under `frontend/src/main/python/windie_shared/browser_contract*.py`, and sidecar tool schemas under `frontend/src/main/python/tools/schemas.py`
+- backend tool schemas under `backend/src/tools/{computer,filesystem,system}/schemas.py`, browser shared contracts under `frontend/src/main/python/windie_shared/browser_contract*.py`, and local-runtime Python tool schemas under `frontend/src/main/python/tools/schemas.py`
 - `backend/src/llm/parser.py` and `backend/src/llm/parser_validation.py`
 - `backend/src/agent/tools/waiting/{handler,receiver,router}.py` and `backend/src/tools/{single_tool_execution,bundle_execution,orchestrator}.py`
 - `backend/src/agent/compaction/engine.py` and `backend/src/api/handlers/compact_history.py`

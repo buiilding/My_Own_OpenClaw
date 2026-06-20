@@ -99,12 +99,12 @@ Practical rule:
 - strict grouped contract parity with backend remote-tool validation
 - canonical-only action set
 - strict field validation through `BrowserControlArgs`
-- sidecar browser runtime modules do not import the backend package
+- local-runtime browser implementation modules do not import the backend package
 
 Operational expectation:
 
 - if a browser field/action changes, update both sides and rerun parity coverage before shipping
-- do not bypass drift by making sidecar runtime imports reach into backend packages
+- do not bypass drift by making local-runtime Python imports reach into backend packages
 
 ## Related Pages
 

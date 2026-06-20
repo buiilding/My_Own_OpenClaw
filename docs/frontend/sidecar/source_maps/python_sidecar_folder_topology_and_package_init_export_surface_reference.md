@@ -46,10 +46,11 @@ The retired `tools/memory` package no longer defines a sidecar tool export;
 local memory is handled through sidecar JSON-RPC methods and memory runtime
 modules.
 
-Sidecar runtime and shared modules should not publish `__all__` wildcard export
-lists. Direct imports from owner modules keep package boundaries visible. The
-current exception is `frontend/src/main/python/windie/__init__.py`, which is the
-public Python SDK entrypoint for external callers.
+Local-runtime Python implementation and shared modules should not publish
+`__all__` wildcard export lists. Direct imports from owner modules keep package
+boundaries visible. The current exception is
+`frontend/src/main/python/windie/__init__.py`, which is the public Python SDK
+entrypoint for external callers.
 
 ## Refactor Safety Checklist
 

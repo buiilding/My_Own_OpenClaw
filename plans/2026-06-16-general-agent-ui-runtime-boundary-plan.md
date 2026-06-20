@@ -120,6 +120,41 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Tool Request Local-Runtime Contract Labels
+
+- Finding: tool workflow, session/transcript, backend remote-tool,
+  extension-point, and cross-layer contract docs still used `sidecar action`,
+  `sidecar expectations`, `sidecar may execute`, and backend/sidecar parity
+  labels in public routing text.
+- Change: reworded those paths through local-runtime executable actions,
+  local-runtime JSON-RPC boundaries, local-runtime adapters, extension-point
+  routing, and local-runtime Python implementation parity while preserving
+  exact Python sidecar filenames and tests where they are implementation
+  evidence.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, stale sidecar action/parity scan, docs listing, and diff check.
+- Compatibility: no migration required. Tool names, schemas, request/bundle
+  IDs, JSON-RPC method names, IPC channels, SDK/main dispatch, storage,
+  credentials, permissions, provider policy, hosted URLs, and local-runtime
+  behavior are unchanged.
+
+### 2026-06-20 Local-Runtime Python Import Boundary Labels
+
+- Finding: architecture and browser parity docs still described import
+  independence through `Python sidecar runtime` and `sidecar runtime imports`
+  labels even though the public boundary is the local-runtime Python
+  implementation staying independent from backend packages.
+- Change: reworded the architecture hub, Python sidecar overview, source-map
+  export guidance, and browser contract validation guidance through
+  local-runtime Python implementation/import labels, and extended the modular
+  stale-label guard for the retired phrases.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, active-doc stale import-label scan, docs listing, and diff check.
+- Compatibility: no migration required. Import paths, package exports,
+  browser schema parity, process launch, JSON-RPC method names, IPC channels,
+  SDK/main dispatch, storage, credentials, permissions, provider policy, hosted
+  URLs, and local-runtime behavior are unchanged.
+
 ### 2026-06-20 Frontend Python Tree Local-Runtime Label
 
 - Finding: the frontend architecture source-tree still labeled

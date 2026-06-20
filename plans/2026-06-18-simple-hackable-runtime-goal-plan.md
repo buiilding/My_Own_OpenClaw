@@ -275,6 +275,28 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed tool workflow, session/transcript, backend remote-tool,
+  extension-point, and cross-layer contract wording through local-runtime
+  executable actions, local-runtime JSON-RPC boundaries, local-runtime
+  adapters, extension-point routing, and local-runtime Python implementation
+  parity instead of unqualified `sidecar action`, `sidecar expectations`,
+  `sidecar may execute`, and backend/sidecar parity labels. Validation covered
+  the modular docs boundary guard, docs search, related commit search, stale
+  sidecar action/parity scan, docs listing, and diff check. No migration
+  required; tool names, schemas, request/bundle IDs, JSON-RPC method names, IPC
+  channels, SDK/main dispatch, storage, credentials, permissions, provider
+  policy, hosted URLs, and local-runtime behavior are unchanged.
+
+- 2026-06-20: routed architecture and browser parity import-boundary wording
+  through local-runtime Python implementation/import labels instead of `Python
+  sidecar runtime`, `Sidecar runtime`, and `sidecar runtime imports` phrases.
+  Validation covered the modular docs boundary guard, docs search, related
+  commit search, active-doc stale import-label scan, docs listing, and diff
+  check. No migration required; import paths, package exports, browser schema
+  parity, process launch, JSON-RPC method names, IPC channels, SDK/main
+  dispatch, storage, credentials, permissions, provider policy, hosted URLs,
+  and local-runtime behavior are unchanged.
+
 - 2026-06-20: routed the frontend architecture source-tree label for
   `frontend/src/main/python/` through `Local-runtime Python implementation
   (tools, memory, system, browser)` instead of `Sidecar runtime (tools, memory,

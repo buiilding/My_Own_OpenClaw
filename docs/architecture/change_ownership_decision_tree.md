@@ -30,7 +30,7 @@ Use this before touching code when ownership is ambiguous.
 6. Does it change package output, bundled Python, signing, or installed app state?
    - Yes: install/operations/platform ownership.
    - Read [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md).
-7. Does it create an extension point for tools, providers, SDK routes, or sidecar actions?
+7. Does it create an extension point for tools, providers, SDK routes, or local-runtime actions?
    - Yes: read [Extension Points](extension_points.md) and [Plugins and Extensions Hub](../plugins/README.md).
 
 ## If Two Owners Seem Valid

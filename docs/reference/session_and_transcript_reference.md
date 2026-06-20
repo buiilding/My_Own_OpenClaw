@@ -14,7 +14,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 
 ## Identifier Rules
 
-- Keep external JS surfaces camelCase when that is the established renderer contract, but normalize to snake_case at the backend websocket and sidecar JSON-RPC boundaries.
+- Keep external JS surfaces camelCase when that is the established renderer contract, but normalize to snake_case at the backend websocket and local-runtime JSON-RPC boundaries.
 - Normalize aliases once at the boundary. Do not let every renderer component, main-process handler, or local-runtime RPC method accept its own field variants.
 - Treat `conversation_ref`, `turn_ref`, `request_id`, `tool_call_id`, `correlation_id`, and `bundle_id` as pipeline keys, not display metadata.
 - Keep visible transcript identifiers separate from backend provider-history identifiers. A transcript row can be user-facing; backend history must remain provider-replay-safe.
@@ -30,7 +30,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 | `session_id` / `sessionId` | string | backend websocket/session runtime | backend session manager | stream events, live runtime diagnostics | events can be impossible to join to a backend runtime, but `conversation_ref` routes user-visible state |
 | `conversation_ref` / `conversationRef` | string | SDK conversation runtime, renderer send path, or VM run metadata | SDK conversation runtime plus backend session registry | active conversation filtering, backend history, transcript persistence, rehydrate, VM run metadata | wrong chat resumes, stale events land in the visible thread, or backend history is created under a new conversation |
 | `turn_ref` | string | SDK conversation runtime for chat turns; backend compaction control path for compaction operations | SDK runtime and backend stream event correlation | stale-turn filtering, SDK user row, overlay intent traces; compaction operation diagnostics | late turn-stream events can update the wrong active turn or leave the UI awaiting forever; treating compaction operation ids as active chat turns can drop durable checkpoints |
-| `request_id` | string | backend tool-call dispatch | backend session pending-tool registry | SDK result relay, `tool-result` ingress, backend waiter cleanup | sidecar may execute, but backend never resumes the agent loop |
+| `request_id` | string | backend tool-call dispatch | backend session pending-tool registry | SDK result relay, `tool-result` ingress, backend waiter cleanup | local runtime may execute, but backend never resumes the agent loop |
 | `bundle_id` | string | backend bundled-tool dispatch | backend session pending-bundle registry | SDK bundle execution, `tool-bundle-result` ingress, bundle history | partial bundle results cannot be matched and backend may keep waiting |
 | `tool_call_id` | string | provider/tool parser or backend history staging | backend provider-history builder | provider replay, tool-output linkage, rehydrate repair | provider history can reject replay or attach output to the wrong assistant call |
 | `correlation_id` | string | SDK runtime, Electron bridge, or transcript writer | renderer transcript/tool UI projection | UI/tool execution correlation across live and stored rows | visible tool-call and tool-output rows become orphaned even if backend history is correct |
@@ -51,10 +51,10 @@ Do not let every consumer implement its own alias parser.
 Current boundary examples:
 
 - Renderer transcript and settings calls use camelCase values such as `userId`, `conversationRef`, `messageIndex`, and `structuredPayload`.
-- SDK local-runtime store code maps those values into sidecar JSON-RPC params such as `user_id`, `conversation_ref`, `message_index`, and `structured_payload`.
+- SDK local-runtime store code maps those values into local-runtime JSON-RPC params such as `user_id`, `conversation_ref`, `message_index`, and `structured_payload`.
 - Query websocket payloads are validated by `backend/src/api/schemas/incoming.py` as snake_case payload fields, including required `conversation_ref`.
 - Tool-result websocket payloads are validated as `request_id`, `success`, `data`, and `error`; bundle results use `bundle_id`, `status`, `step_results`, and optional capture fields.
-- Backend outgoing events may carry tool call payloads without the same names the Python sidecar executes. The renderer must preserve backend correlation keys instead of manufacturing replacement IDs.
+- Backend outgoing events may carry tool call payloads without the same names the local-runtime executable action uses. The renderer must preserve backend correlation keys instead of manufacturing replacement IDs.
 
 ## Query Identity Path
 

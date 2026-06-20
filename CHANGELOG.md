@@ -35,6 +35,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: route backend remote-tool request correlation, payload parity,
+  session transcript, extension-point, and cross-layer contract wording through
+  local-runtime contracts instead of unqualified sidecar
+  action/expectation/parity labels. No migration required.
+- docs/architecture: route local-runtime Python import-boundary wording through
+  implementation labels instead of sidecar runtime import labels across
+  architecture and browser parity docs. No migration required.
 - docs/architecture: route the frontend source-tree `python/` label through
   local-runtime Python implementation wording instead of a sidecar runtime
   owner label. No migration required.

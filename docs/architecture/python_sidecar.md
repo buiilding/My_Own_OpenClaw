@@ -54,10 +54,10 @@ The bridge:
 - Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
   `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
   silently switch the sidecar back to a base Conda interpreter.
-- Python sidecar runtime modules do not import backend Python packages at
-  startup. Client-side tool exposure and memory-type normalization are kept
-  local to the local-runtime implementation, while tests enforce parity against
-  backend tool contracts.
+- Local-runtime Python implementation modules do not import backend Python
+  packages at startup. Client-side tool exposure and memory-type normalization
+  are kept local to the local-runtime implementation, while tests enforce
+  parity against backend tool contracts.
 - Backend-bound Python SDK clients require an explicit `backend_url` or injected
   `AGENT_BACKEND_HTTP_URL`; `WINDIE_BACKEND_HTTP_URL` remains a WindieOS
   compatibility alias and there is no hosted URL fallback inside the sidecar.

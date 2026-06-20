@@ -2,7 +2,7 @@
 summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: catalog-driven remote tool registration, canonical schema caching rules, direct model-facing declaration assembly, capability extraction fallbacks, and backend/client-local exposed-tool parity tests."
 read_when:
   - When changing backend tool declaration generation, schema cache behavior, or remote-tool registration paths.
-  - When debugging missing/invalid tool schemas, catalog-driven declaration drift, request-id correlation, or sidecar contract drift.
+  - When debugging missing/invalid tool schemas, catalog-driven declaration drift, request-id correlation, or local-runtime contract drift.
 title: "Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference"
 ---
 
@@ -82,7 +82,7 @@ Wrapper boundary:
 
 - wrapper names are not part of `backend/src/tools/tool_catalog.py`, are not
   returned by `get_all_remote_tool_classes()`, and are not included in
-  backend/sidecar remote parity tests
+  backend/local-runtime remote parity tests
 
 ## Declaration and Capability APIs
 
@@ -210,8 +210,8 @@ Intentional exclusion from this parity guard:
 
 Field-level shared-schema guard:
 
-- `tests/sidecar/test_shared_tool_schema_parity.py` compares backend and sidecar
-  Pydantic schema contracts for shared non-browser tools where exact parity is
+- `tests/sidecar/test_shared_tool_schema_parity.py` compares backend and
+  local-runtime Python implementation Pydantic schema contracts for shared non-browser tools where exact parity is
   expected (`keyboard_control`, `switch_window`, `wait`, `run_shell_command`,
   `open_app`, `process`, `read_file`, `replace`, `get_open_windows`,
   `get_system_stats`, plus replace support models).

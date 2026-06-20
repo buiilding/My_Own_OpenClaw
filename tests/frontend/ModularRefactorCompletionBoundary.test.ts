@@ -1274,6 +1274,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('missing in sidecar runtime');
     expect(docText).not.toContain('Sidecar Tool Registry Exposed Schema');
     expect(docText).not.toContain('Local Runtime Sidecar Tool Registry Exposed Schema');
+    expect(docText).not.toContain('sidecar contract drift');
+    expect(docText).not.toContain('sidecar expectations');
+    expect(docText).not.toContain('sidecar actions');
+    expect(docText).not.toContain('sidecar action without losing ids');
+    expect(docText).not.toContain('sidecar action adapter defaulting assumptions');
+    expect(docText).not.toContain('backend/sidecar remote parity tests');
+    expect(docText).not.toContain('compares backend and sidecar');
     expect(docText).not.toContain('Sidecar Tools Docs Hub');
     expect(docText).not.toContain('Sidecar Computer Tools Docs Hub');
     expect(docText).not.toContain('Sidecar System Tools Docs Hub');
@@ -1902,7 +1909,12 @@ describe('modular sdk refactor completion boundary', () => {
         'Frontend and sidecar code must not import backend code',
         'frontend/sidecar must not import backend schema code',
         'frontend/sidecar Python must never import backend Python modules',
+        'Python sidecar runtime modules do not import backend Python packages',
+        'Python sidecar runtime imports independent',
         'frontend/sidecar runtime imports independent',
+        'Sidecar runtime and shared modules',
+        'sidecar browser runtime modules do not import',
+        'sidecar runtime imports reach into backend packages',
         'frontend/sidecar code import backend modules',
         'frontend/sidecar code must never import backend code',
         'Client-local runtime and sidecar code must not import',

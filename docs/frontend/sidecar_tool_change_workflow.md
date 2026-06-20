@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS local-runtime tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC, and sidecar tests."
+summary: "Workflow for changing WindieOS local-runtime tools across backend model schema, SDK runtime dispatch, Electron local-runtime bridge, Python JSON-RPC implementation, and local-runtime tests."
 read_when:
   - When adding, changing, or debugging a local executable tool.
   - When a model-visible tool call reaches the SDK runtime but fails in local-runtime execution.
@@ -34,7 +34,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | --- | --- | --- |
 | 1. Decide model-facing behavior | `backend/src/tools` and [Tool Catalog Matrix](../tools/tool_catalog_matrix.md) | The backend owns what the model can request. |
 | 2. Decide executable payload | `frontend/src/main/python/tools` and local-runtime executable registry docs | The local runtime owns what can actually run locally; the executable registry documents the current Python sidecar implementation. |
-| 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a sidecar action without losing ids, artifacts, or display context. |
+| 3. Map backend call to local execution | SDK `ToolExecutionCoordinator`, Electron SDK tool router, and Electron local-runtime bridge | Tool-call shape must become a local-runtime executable action without losing ids, artifacts, or display context. |
 | 4. Normalize result envelope | SDK result envelope builder, backend tool-result handler, Python sidecar tool result models | Backend history needs consistent success/error output. |
 | 5. Add validation | Backend schema tests, SDK/main tool-coordinator tests, Python sidecar tool tests | Drift is caught by producer and consumer tests, not imports. |
 | 6. Update docs | Tool docs, local-runtime implementation docs, code-change routing docs | Agents should know where to modify the next related behavior. |
@@ -54,7 +54,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Field or behavior | Owner | Rule |
 | --- | --- | --- |
 | Tool name and call id | Backend event plus SDK tool coordinator | Preserve ids through execution and result submission. |
-| Success/failure status | Sidecar result and SDK result envelope | Failures should be explicit and serializable, not thrown away. |
+| Success/failure status | Local-runtime result and SDK result envelope | Failures should be explicit and serializable, not thrown away. |
 | Screenshot/artifact refs | Electron capture/upload plus backend artifact route | Upload artifacts before backend result submission when model history needs durable refs. |
 | Display/window context | Electron bridge, renderer-visible surface state, sidecar platform tools | Capture context at the boundary closest to the UI event, then pass normalized payloads. |
 | Backend history entry | Backend tool-result handler | Tool output must re-enter backend history under the correct conversation/turn. |
@@ -63,8 +63,8 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 
 | Drift | Fix |
 | --- | --- |
-| Backend schema accepts a field that sidecar rejects | Update sidecar validator/mapper or remove the model-facing field, then add parity coverage. |
-| Sidecar supports an action the model cannot call | Decide whether to expose it in backend schema or keep it internal-only and document that boundary. |
+| Backend schema accepts a field that the local runtime rejects | Update the local-runtime validator/mapper or remove the model-facing field, then add parity coverage. |
+| Local runtime supports an action the model cannot call | Decide whether to expose it in backend schema or keep it internal-only and document that boundary. |
 | SDK/main drops payload fields | Update SDK tool payload normalization, backend envelope builder, and focused frontend tests. |
 | Tool works alone but bundle fails | Inspect bundle runner ordering, result aggregation, and backend `tool-bundle-result` handling. |
 | Screenshot tool changes break overlay behavior | Read platform screenshot/overlay policy and surface orchestrator docs before editing capture code. |
@@ -77,7 +77,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Sidecar implementation only | Focused sidecar tests for the tool plus shared schema parity if exposed. |
 | SDK/main dispatch/envelope | Focused SDK/main tool-coordinator tests and backend result handler tests if envelope changes. |
 | Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, Python sidecar tool tests, and `<windie> docs list`. |
-| Browser tool change | Browser backend tests, sidecar browser tests, and browser runtime docs update. |
+| Browser tool change | Browser backend tests, local-runtime browser implementation tests, and browser runtime docs update. |
 
 ## Related Docs
 
