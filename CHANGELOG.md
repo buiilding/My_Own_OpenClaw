@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: rename the SDK model-selection focused test to
+  `AgentSdkModelSelection.test.ts` so the test route matches the generic Agent
+  SDK settings helper. No migration required.
 - tests/frontend: rename the managed websocket session focused test to
   `AgentSdkManagedWebSocketSession.test.ts` so the private SDK transport route
   matches the generic `ManagedWebSocketSession` helper. No migration required.

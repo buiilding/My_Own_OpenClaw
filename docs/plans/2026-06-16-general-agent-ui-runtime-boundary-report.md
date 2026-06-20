@@ -7366,3 +7366,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   websocket payloads, reconnect/fallback behavior, local-runtime behavior,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged; no migration is required.
+- The SDK model-selection focused test now lives at
+  `tests/frontend/AgentSdkModelSelection.test.ts`, matching the generic Agent
+  SDK settings helper it covers. Runtime code, SDK model-selection patch
+  behavior, backend settings payload keys, renderer settings behavior, IPC
+  payloads, storage, credentials, permissions, hosted backend URLs, and provider
+  policy are unchanged; no migration is required.

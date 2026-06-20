@@ -18074,3 +18074,20 @@ Each completed slice should report:
   behavior, public SDK exports, websocket payloads, reconnect/fallback behavior,
   local-runtime behavior, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-20 Model selection test route rename
+
+- Finding: the SDK model-selection test imports the generic
+  `settings/modelSelection` helper and already describes Agent SDK behavior, but
+  the focused test route still used the product-branded
+  `WindieSdkModelSelection` filename.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkModelSelection.test.ts` and extended the modular
+  route guard so the generic test path exists while the retired branded path
+  stays absent.
+- Validation: focused Agent SDK model-selection test, modular docs boundary
+  test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, SDK model-selection
+  patch behavior, backend settings payload keys, renderer settings behavior,
+  IPC payloads, storage, credentials, permissions, hosted backend URLs, and
+  provider policy are unchanged.
