@@ -1,5 +1,5 @@
 ---
-summary: "Renderer-main IPC contract and SDK conversation event contract used by chat stream, tool runner, settings lifecycle, and permission onboarding channels."
+summary: "Renderer-main IPC contract and SDK conversation event contract used by chat stream projections, tool display, settings lifecycle, and permission onboarding channels."
 read_when:
   - When adding/changing IPC channels.
   - When debugging renderer/main/backend event mismatches.

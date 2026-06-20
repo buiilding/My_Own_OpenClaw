@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/tools: replace current-facing `ToolResultEnvelope` validation routes
+  with SDK result-envelope, local-runtime, and renderer tool-display checks.
+  No migration required.
 - docs/runtime: route current-facing tool validation and evidence commands
   through SDK/local-runtime and renderer display tests instead of removed
   renderer ToolRunner targets. No migration required.

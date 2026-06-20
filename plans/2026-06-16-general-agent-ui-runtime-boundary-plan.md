@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Tool Result Envelope Docs SDK Boundary
+
+- Finding: current-facing IPC, test-selection, local-runtime tool workflow, and
+  capture payload docs still named the retired `ToolResultEnvelope` helper or
+  old frontend executable-tool wording, even though result envelope ownership
+  now lives in SDK tool coordination plus backend/local-runtime contracts.
+- Change: replaced those references with SDK result-envelope, local-runtime
+  executable-tool, and renderer tool-display wording, and extended the modular
+  boundary guard to reject the retired helper/test names in current docs.
+- Validation: passed focused frontend docs boundary test, docs listing, stale
+  phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, SDK event shapes,
+  local-runtime execution, IPC channels, transcript storage, settings,
+  credentials, permissions, provider policy, and hosted URLs are unchanged.
+
 ### 2026-06-20 Tool Validation Docs SDK Runtime Boundary
 
 - Finding: current-facing docs hub, evidence, validation, websocket event,

@@ -387,16 +387,22 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/channels/websocket_event_contract_change_workflow.md'),
       read('docs/cli/validation_commands.md'),
       read('docs/debug/error_failure_change_workflow.md'),
+      read('docs/debug/test_selection.md'),
       read('docs/development/agent_architecture_reference.md'),
       read('docs/frontend/README.md'),
+      read('docs/frontend/contracts/ipc_channels_and_event_contracts.md'),
       read('docs/frontend/contracts/backend_event_consumer_matrix_reference.md'),
       read('docs/frontend/inventory/frontend_full_functionality_inventory_reference.md'),
       read('docs/frontend/runtime/tool_execution_and_streaming.md'),
       read('docs/frontend/renderer/chat_stream_and_tool_execution_reference.md'),
+      read(
+        'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
+      ),
       read('docs/frontend/renderer/renderer_state_change_workflow.md'),
       read('docs/frontend/renderer/transcript_session_and_rehydrate_reference.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/operations/evidence_collection_runbook.md'),
+      read('docs/frontend/sidecar_tool_change_workflow.md'),
       read(
         'docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md',
       ),
@@ -415,6 +421,9 @@ describe('modular sdk refactor completion boundary', () => {
     );
     expect(docText).toContain('SDK stream projection consumption, tool display');
     expect(docText).toContain('SDK projection event type, tool display state');
+    expect(docText).toContain('chat stream projections, tool display');
+    expect(docText).toContain('SDK result envelope and renderer tool display');
+    expect(docText).toContain('SDK result envelope builder');
     expect(docText).toContain('SDK tool coordination');
     expect(docText).toContain('local runtime daemon startup/reuse');
     expect(docText).not.toContain('SDK desktop runtime');
@@ -429,6 +438,12 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('frontend `ToolRunner`');
     expect(docText).not.toContain('Renderer tool failure UI/persistence');
     expect(docText).not.toContain('ToolRunnerFailureContracts ToolExecutionResultDispatch ToolResultEnvelope');
+    expect(docText).not.toContain('chat stream, tool runner');
+    expect(docText).not.toContain('frontend executable tools');
+    expect(docText).not.toContain('Tool result envelope |');
+    expect(docText).not.toContain('ToolResultEnvelope.test.ts');
+    expect(docText).not.toContain('ToolResultContractParity.test.ts');
+    expect(docText).not.toContain('`ToolResultEnvelope`');
     expect(docText).not.toContain('chat stream + tool runner hooks');
     expect(docText).not.toContain('websocket loop, tool runner');
     expect(docText).not.toContain('remaining endpoint/install-auth/session lifecycle wiring');

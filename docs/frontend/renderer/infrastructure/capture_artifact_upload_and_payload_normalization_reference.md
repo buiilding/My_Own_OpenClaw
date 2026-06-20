@@ -209,7 +209,7 @@ Bundle helpers standardize UI/backend interchange:
   - always includes `error` key (nullable)
   - includes top-level `screenshot_ref`/`capture_meta` when available from an explicit or post-action screenshot
 
-Correlation contract is inherited from `ToolResultEnvelope`:
+Correlation contract is inherited from the SDK result envelope:
 
 - single tool -> `payload.request_id`
 - bundle -> `payload.bundle_id`

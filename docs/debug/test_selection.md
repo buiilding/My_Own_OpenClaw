@@ -55,8 +55,8 @@ Run tests on both sides of the boundary when a payload crosses processes.
 
 | Contract | Run |
 | --- | --- |
-| Backend model-facing tool schema and frontend executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
-| Tool result envelope | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
+| Backend model-facing tool schema and local-runtime executable tools | `<windie> test backend -- tests/backend/test_remote_tool_contract.py -q` plus `<windie> test sidecar -- tests/sidecar/test_shared_tool_schema_parity.py -q` |
+| SDK result envelope and renderer tool display | `<windie> test backend -- tests/backend/test_incoming_tool_result_schemas.py -q` plus `<windie> test frontend -- WindieSdkConversationRuntime LocalRuntimeExecuteToolRuntime ToolOutputMessageState ToolOutputContent` |
 | Response overlay phase names | `<windie> test frontend -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
 | Transcript/replay/display rows | `<windie> test frontend -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationRuntimeProjectionStream.test.ts SdkDisplayChatMessageProjection.test.ts` |
 | Artifact refs and URLs | `<windie> test backend -- tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `<windie> test frontend -- RuntimeEndpointStore.test.ts IpcArtifactFetch.test.cjs` |
