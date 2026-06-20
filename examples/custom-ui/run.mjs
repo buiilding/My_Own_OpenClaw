@@ -36,22 +36,22 @@ function createServer() {
       res.end(JSON.stringify({
         config: {
           model_mode: 'online',
-          model_provider: 'openai',
-          selected_model_id: 'gpt-5.4',
+          model_provider: 'hosted-provider',
+          selected_model_id: 'hosted-model',
           interaction_mode: 'agent',
         },
         models: [
           {
-            id: 'gpt-5.4',
-            provider: 'openai',
-            label: 'GPT-5.4',
+            id: 'hosted-model',
+            provider: 'hosted-provider',
+            label: 'Hosted Model',
             model_mode: 'online',
             supports_tools: true,
           },
           {
-            id: 'mistral-large-latest',
-            provider: 'mistral',
-            label: 'Mistral Large',
+            id: 'other-hosted-model',
+            provider: 'other-hosted-provider',
+            label: 'Other Hosted Model',
             model_mode: 'online',
             supports_tools: true,
           },

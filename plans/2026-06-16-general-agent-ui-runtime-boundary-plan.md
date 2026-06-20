@@ -17923,3 +17923,23 @@ Each completed slice should report:
   settings sync payload shape, backend incoming contracts, SDK transport
   contracts, IPC channels, storage, credentials, permissions, hosted backend
   URLs, and provider policy are unchanged.
+
+### 2026-06-20 Public example provider neutrality
+
+- Finding: public SDK examples still used production `api.windieos.com`,
+  Windie-specific install-token/env/copy, and concrete OpenAI/GPT/Mistral model
+  examples even though the reusable SDK README and hosted-client docs now use
+  neutral hosted endpoint/provider/model placeholders.
+- Change: switched `simple-chat-cli` docs to `AGENT_BACKEND_URL` and
+  `AGENT_INSTALL_TOKEN`, removed its hardcoded model selection and Windie CLI
+  copy, and changed mock model catalogs in `cli-agent` and `custom-ui` to
+  neutral hosted provider/model IDs. The mock-hosted `cli-agent` now opts out
+  of built-ins, memory, and persistence so it runs without a local-runtime
+  daemon path. Extended the public examples guard against the retired concrete
+  examples.
+- Validation: focused modular docs/examples boundary test, exact stale example
+  endpoint/provider/model scan, non-interactive `cli-agent` example run, and
+  diff checks.
+- Compatibility: no migration required. SDK APIs, mock backend behavior,
+  example websocket flow, install-auth payload shape, storage, credentials,
+  permissions, hosted backend URLs, and provider policy are unchanged.

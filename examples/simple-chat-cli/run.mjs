@@ -13,10 +13,10 @@ const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, "../..");
 
 const { AgentClient } = await loadLocalAgentSdk(repoRoot);
-const installToken = process.env.WINDIE_INSTALL_TOKEN;
+const installToken = process.env.AGENT_INSTALL_TOKEN;
 
 if (!installToken) {
-  throw new Error("Set WINDIE_INSTALL_TOKEN before running this example.");
+  throw new Error("Set AGENT_INSTALL_TOKEN before running this example.");
 }
 
 const agent = await new AgentClient().wakeUp({
@@ -24,13 +24,7 @@ const agent = await new AgentClient().wakeUp({
     userId: "peter",
     installToken,
   },
-  systemPrompt: undefined, // Use the default WindieOS system prompt.
-  model: {
-    modelProvider: "openai",
-    modelId: "gpt-5.4@@gpt-5-4-medium-thinking",
-    modelMode: "online",
-    interactionMode: "agent",
-  },
+  systemPrompt: undefined, // Use the hosted backend default system prompt.
   builtins: ["computer"],
 });
 
@@ -58,7 +52,7 @@ rl.on("SIGINT", () => shutdown(130));
 process.once("SIGINT", () => shutdown(130));
 process.once("SIGTERM", () => shutdown(143));
 
-stdout.write("Windie CLI. Type /exit to quit.\n\n");
+stdout.write("Agent CLI. Type /exit to quit.\n\n");
 
 function isReadlineClosedError(error) {
   return (

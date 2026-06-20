@@ -23,8 +23,8 @@ function send(socket, type, payload = {}, extra = {}) {
 function createMockBackend() {
   const modelConfig = {
     model_mode: 'online',
-    model_provider: 'openai',
-    selected_model_id: 'gpt-5.4',
+    model_provider: 'hosted-provider',
+    selected_model_id: 'hosted-model',
     interaction_mode: 'agent',
   };
   const modelUpdates = [];
@@ -36,16 +36,16 @@ function createMockBackend() {
         config: modelConfig,
         models: [
           {
-            id: 'gpt-5.4',
-            provider: 'openai',
-            label: 'GPT-5.4',
+            id: 'hosted-model',
+            provider: 'hosted-provider',
+            label: 'Hosted Model',
             model_mode: 'online',
             supports_tools: true,
           },
           {
-            id: 'mistral-large-latest',
-            provider: 'mistral',
-            label: 'Mistral Large',
+            id: 'other-hosted-model',
+            provider: 'other-hosted-provider',
+            label: 'Other Hosted Model',
             model_mode: 'online',
             supports_tools: true,
           },
@@ -126,14 +126,14 @@ const client = new AgentClient({
   WebSocketImpl,
 });
 const initialModel = {
-  modelProvider: 'openai',
-  modelId: 'gpt-5.4',
+  modelProvider: 'hosted-provider',
+  modelId: 'hosted-model',
   modelMode: 'online',
   interactionMode: 'agent',
 };
 const nextModel = {
-  modelProvider: 'mistral',
-  modelId: 'mistral-large-latest',
+  modelProvider: 'other-hosted-provider',
+  modelId: 'other-hosted-model',
   modelMode: 'online',
   interactionMode: 'agent',
 };
@@ -148,6 +148,9 @@ try {
     name: 'CLI Agent Example',
     systemPrompt: 'You are a concise CLI demo agent.',
     model: initialModel,
+    builtins: [],
+    memory: false,
+    persistence: false,
   });
   await agent.setModel(nextModel);
 

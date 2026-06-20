@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples: replace production WindieOS endpoint, concrete provider/model, and
+  Windie-specific CLI copy in public SDK examples with neutral hosted
+  backend/provider/model placeholders and primary `AGENT_*` env names. No
+  migration required.
 - main/sdk: remove the Electron main backend-payload compatibility facade and
   import the SDK-owned `filterBackendPayload` contract directly from settings
   sync. No migration required.

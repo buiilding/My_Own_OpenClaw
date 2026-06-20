@@ -1,13 +1,13 @@
 # Simple Chat CLI
 
-Interactive Node CLI that connects to the remote WindieOS backend through the
+Interactive Node CLI that connects to a hosted backend through the
 local TypeScript SDK build and renders normalized `chat.stream(...)` events.
 
 Run from the repo root:
 
 ```bash
-WINDIE_BACKEND_URL=https://api.windieos.com \
-WINDIE_INSTALL_TOKEN=<install-token> \
+AGENT_BACKEND_URL=https://backend.example.com \
+AGENT_INSTALL_TOKEN=<install-token> \
 node examples/simple-chat-cli/run.mjs
 ```
 
@@ -18,13 +18,13 @@ and errors from the SDK stream. Final assistant message events are received as
 the canonical completed message, but the example does not print them when
 assistant deltas have already streamed.
 
-The SDK requires an explicit backend endpoint through `WINDIE_BACKEND_URL` or
+The SDK requires an explicit backend endpoint through `AGENT_BACKEND_URL` or
 `new AgentClient({ backendUrl })`. This example also requires
-`WINDIE_INSTALL_TOKEN` and does not register a temporary install identity.
+`AGENT_INSTALL_TOKEN` and does not register a temporary install identity.
 To reuse an existing hosted identity, pass:
 
 ```bash
-WINDIE_BACKEND_URL=https://api.windieos.com \
-WINDIE_INSTALL_TOKEN=<install-token> \
+AGENT_BACKEND_URL=https://backend.example.com \
+AGENT_INSTALL_TOKEN=<install-token> \
 node examples/simple-chat-cli/run.mjs
 ```
