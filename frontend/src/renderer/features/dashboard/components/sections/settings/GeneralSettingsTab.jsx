@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { useDesktopRendererConfigContext } from '../../../../../app/runtime/desktopRendererConfigRuntimeClient';
 import { DesktopShortcutRuntimeClient } from '../../../../../app/runtime/desktopShortcutRuntimeClient';
 import { desktopRuntimeSkin } from '../../../../../app/skin/desktopRuntimeSkin';
-import { CloneToggle, SelectDropdown } from './settingsControls';
+import { SettingsToggle, SelectDropdown } from './settingsControls';
 
 const generalSettingsSkin = desktopRuntimeSkin.settings.general;
 
@@ -40,10 +40,10 @@ function GeneralSettingsTab({ config, onConfigChange }) {
   };
 
   return (
-    <div className="clone-settings-general">
+    <div className="settings-surface-general">
       <h2>{generalSettingsSkin.title}</h2>
 
-      <div className="clone-settings-row clone-settings-row-rich">
+      <div className="settings-surface-row settings-surface-row-rich">
         <div>
           <span>{generalSettingsSkin.wakeword.label}</span>
           <p>{generalSettingsSkin.wakeword.description}</p>
@@ -51,38 +51,38 @@ function GeneralSettingsTab({ config, onConfigChange }) {
             <p>{generalSettingsSkin.wakeword.suppressedDescription}</p>
           ) : null}
         </div>
-        <CloneToggle
+        <SettingsToggle
           checked={wakewordEnabled}
           onChange={setWakewordEnabled}
           ariaLabel={generalSettingsSkin.wakeword.label}
         />
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich">
+      <div className="settings-surface-row settings-surface-row-rich">
         <div>
           <span>{generalSettingsSkin.speechAfterWakeword.label}</span>
           <p>{generalSettingsSkin.speechAfterWakeword.description}</p>
         </div>
-        <CloneToggle
+        <SettingsToggle
           checked={wakewordSttEnabled}
           onChange={handleWakewordSttEnabledChange}
           ariaLabel={generalSettingsSkin.speechAfterWakeword.label}
         />
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich">
+      <div className="settings-surface-row settings-surface-row-rich">
         <div>
           <span>{generalSettingsSkin.toolLogs.label}</span>
           <p>{generalSettingsSkin.toolLogs.description}</p>
         </div>
-        <CloneToggle
+        <SettingsToggle
           checked={showToolLogs}
           onChange={handleShowToolLogsChange}
           ariaLabel={generalSettingsSkin.toolLogs.label}
         />
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich">
+      <div className="settings-surface-row settings-surface-row-rich">
         <div>
           <span>{generalSettingsSkin.globalStopShortcut.label}</span>
           <p>
@@ -94,7 +94,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
             .
           </p>
           {shortcutStatusPresentation.showFallbackNotice ? (
-            <p className="clone-settings-inline-warning">
+            <p className="settings-surface-inline-warning">
               {generalSettingsSkin.globalStopShortcut.fallbackPrefix}
               {' '}
               <strong>
@@ -105,7 +105,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
             </p>
           ) : null}
           {shortcutStatusPresentation.showRegistrationFailure ? (
-            <p className="clone-settings-inline-warning">
+            <p className="settings-surface-inline-warning">
               {generalSettingsSkin.globalStopShortcut.registrationFailure}
             </p>
           ) : null}
@@ -122,7 +122,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
               global_agent_stop_shortcut: nextShortcut,
             });
           }}
-          className="clone-settings-select-shortcut"
+          className="settings-surface-select-shortcut"
         />
       </div>
     </div>

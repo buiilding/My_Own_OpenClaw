@@ -13,9 +13,9 @@ export function SelectDropdown({
   className = '',
 }) {
   return (
-    <div className={['clone-settings-select-wrap', className].filter(Boolean).join(' ')}>
-      {showSwatch ? <span className="clone-settings-swatch" aria-hidden="true" /> : null}
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="clone-settings-select">
+    <div className={['settings-surface-select-wrap', className].filter(Boolean).join(' ')}>
+      {showSwatch ? <span className="settings-surface-swatch" aria-hidden="true" /> : null}
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="settings-surface-select">
         {options.map((option) => (
           <option key={option.value || option} value={option.value || option}>
             {option.label || option}
@@ -41,14 +41,14 @@ SelectDropdown.propTypes = {
   className: PropTypes.string,
 };
 
-export function CloneToggle({
+export function SettingsToggle({
   checked,
   onChange,
   ariaLabel,
   disabled = false,
 }) {
   return (
-    <label className={`clone-settings-toggle${checked ? ' checked' : ''}`.trim()}>
+    <label className={`settings-surface-toggle${checked ? ' checked' : ''}`.trim()}>
       <input
         type="checkbox"
         checked={checked}
@@ -56,12 +56,12 @@ export function CloneToggle({
         aria-label={ariaLabel}
         disabled={disabled}
       />
-      <span className="clone-settings-toggle-thumb" />
+      <span className="settings-surface-toggle-thumb" />
     </label>
   );
 }
 
-CloneToggle.propTypes = {
+SettingsToggle.propTypes = {
   checked: PropTypes.bool.isRequired,
   onChange: PropTypes.func.isRequired,
   ariaLabel: PropTypes.string,

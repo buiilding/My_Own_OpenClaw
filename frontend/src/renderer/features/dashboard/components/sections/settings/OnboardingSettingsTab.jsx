@@ -13,10 +13,10 @@ function OnboardingSettingsTab() {
   }, [restartOnboarding]);
 
   return (
-    <div className="clone-settings-general">
+    <div className="settings-surface-general">
       <h2>Onboarding</h2>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
         <div>
           <span>Run onboarding again</span>
           <p>
@@ -26,7 +26,7 @@ function OnboardingSettingsTab() {
         </div>
         <button
           type="button"
-          className="clone-settings-secondary-button"
+          className="settings-surface-secondary-button"
           onClick={handleRestartOnboarding}
         >
           Open onboarding

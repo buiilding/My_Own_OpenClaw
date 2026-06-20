@@ -4,7 +4,7 @@
 
 import PropTypes from 'prop-types';
 import { Monitor, Moon, Sun } from 'lucide-react';
-import { CloneToggle } from './settingsControls';
+import { SettingsToggle } from './settingsControls';
 import { DEFAULT_APPEARANCE_THEME } from '../../../../../app/skin/desktopRuntimeConfig';
 
 const THEME_MODE_OPTIONS = Object.freeze([
@@ -68,15 +68,15 @@ function AppearanceSettingsTab({ config, onConfigChange }) {
   };
 
   return (
-    <div className="clone-settings-general clone-settings-appearance">
+    <div className="settings-surface-general settings-surface-appearance">
       <h2>Appearance</h2>
 
-      <section className="clone-settings-theme-mode-card" aria-label="Theme">
+      <section className="settings-surface-theme-mode-card" aria-label="Theme">
         <div>
           <h3>Theme</h3>
           <p>Use light, dark, or match your system</p>
         </div>
-        <div className="clone-settings-theme-mode-segment" role="group" aria-label="Theme mode">
+        <div className="settings-surface-theme-mode-segment" role="group" aria-label="Theme mode">
           {THEME_MODE_OPTIONS.map((option) => {
             const Icon = option.icon;
             const isActive = appearanceMode === option.value;
@@ -99,12 +99,12 @@ function AppearanceSettingsTab({ config, onConfigChange }) {
       {THEME_SECTIONS.map((section) => {
         const theme = appearanceTheme[section.id];
         return (
-          <section key={section.id} className="clone-settings-theme-card" aria-label={section.title}>
-            <header className="clone-settings-theme-card-header">
+          <section key={section.id} className="settings-surface-theme-card" aria-label={section.title}>
+            <header className="settings-surface-theme-card-header">
               <h3>{section.title}</h3>
             </header>
 
-            <div className="clone-settings-theme-grid">
+            <div className="settings-surface-theme-grid">
               {THEME_FIELDS.map((field) => (
                 <ThemeField
                   key={`${section.id}-${field.key}`}
@@ -132,9 +132,9 @@ function ThemeField({
 
   if (field.kind === 'toggle') {
     return (
-      <div className="clone-settings-theme-row">
+      <div className="settings-surface-theme-row">
         <span>{field.label}</span>
-        <CloneToggle
+        <SettingsToggle
           checked={value === true}
           ariaLabel={label}
           onChange={onChange}
@@ -146,9 +146,9 @@ function ThemeField({
   if (field.kind === 'range') {
     const contrast = Number.isFinite(Number(value)) ? Number(value) : 0;
     return (
-      <div className="clone-settings-theme-row">
+      <div className="settings-surface-theme-row">
         <span>{field.label}</span>
-        <div className="clone-settings-contrast-control">
+        <div className="settings-surface-contrast-control">
           <input
             type="range"
             min="0"
@@ -165,10 +165,10 @@ function ThemeField({
 
   if (field.kind === 'font') {
     return (
-      <label className="clone-settings-theme-row">
+      <label className="settings-surface-theme-row">
         <span>{field.label}</span>
         <input
-          className="clone-settings-font-input"
+          className="settings-surface-font-input"
           type="text"
           value={value || ''}
           aria-label={label}
@@ -179,16 +179,16 @@ function ThemeField({
   }
 
   return (
-    <label className="clone-settings-theme-row">
+    <label className="settings-surface-theme-row">
       <span>{field.label}</span>
       <span
-        className="clone-settings-color-pill"
+        className="settings-surface-color-pill"
         style={{
           background: value,
           color: getPillTextColor(value),
         }}
       >
-        <span className="clone-settings-color-dot" aria-hidden="true" />
+        <span className="settings-surface-color-dot" aria-hidden="true" />
         <input
           type="text"
           value={value || ''}

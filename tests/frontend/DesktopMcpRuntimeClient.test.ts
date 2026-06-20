@@ -117,7 +117,7 @@ describe('DesktopMcpRuntimeClient', () => {
       enablementId: 'mcp:memory',
       enabled: true,
       statusLabel: 'Error',
-      statusClassName: 'clone-settings-tool-status clone-settings-tool-status-error',
+      statusClassName: 'settings-surface-tool-status settings-surface-tool-status-error',
       statusText: 'Missing binary.',
       debugSpec: {
         id: 'memory',
@@ -139,7 +139,7 @@ describe('DesktopMcpRuntimeClient', () => {
       enablementId: 'cua',
       enabled: false,
       statusLabel: 'Unknown',
-      statusClassName: 'clone-settings-tool-status',
+      statusClassName: 'settings-surface-tool-status',
       statusText: 'cua-driver',
     }));
   });

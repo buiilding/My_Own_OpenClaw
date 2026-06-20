@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Settings Surface Naming Boundary
+
+- Finding: dashboard settings presentation still used the legacy
+  `CloneSettings.css`, `clone-settings-*` class prefix, and `CloneToggle`
+  component name even though the renderer boundary is a generic desktop chat UI
+  skinned/configured for WindieOS through the renderer skin.
+- Change: renamed the settings stylesheet to `SettingsSurface.css`, moved the
+  settings class prefix to `settings-surface-*`, and renamed the reusable
+  settings toggle control to `SettingsToggle` while preserving the existing
+  dashboard settings markup and runtime clients.
+- Validation: focused renderer skin/config and settings runtime tests guard the
+  new generic settings surface names and keep the retired clone settings
+  stylesheet, class prefix, and toggle export out of renderer source.
+- Compatibility: no migration required. Renderer settings tabs, CSS load order,
+  MCP status class projection, IPC channels, storage keys, credentials,
+  permissions, provider policy, hosted URLs, and local execution behavior are
+  unchanged.
+
 ### 2026-06-20 Main Session Context Runtime Boundary
 
 - Finding: `ipc.cjs` rebuilt the same client/backend session context in several

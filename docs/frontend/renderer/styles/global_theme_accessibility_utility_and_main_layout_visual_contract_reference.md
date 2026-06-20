@@ -16,7 +16,7 @@ This page documents:
 - `frontend/src/renderer/styles/ChatInterface.css`
 - `frontend/src/renderer/styles/DashboardShell.css`
 - `frontend/src/renderer/styles/CloneMemoryModels.css`
-- `frontend/src/renderer/styles/CloneSettings.css`
+- `frontend/src/renderer/styles/SettingsSurface.css`
 - `frontend/src/renderer/styles/DesktopOnboarding.css`
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
@@ -104,7 +104,7 @@ Responsive behavior:
 - `ModelsSection` (hover-expanding model cards)
 - `UsageSection` placeholder panels that reuse the clone/dashboard panel visual language
 
-`CloneSettings.css` is section-scoped through `SettingsSection.jsx`, not a root
+`SettingsSurface.css` is section-scoped through `SettingsSection.jsx`, not a root
 `App.jsx` import. It owns settings tab and control visuals while the dashboard
 shell still owns modal framing and backdrop behavior.
 

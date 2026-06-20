@@ -21,7 +21,7 @@ import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
 import OnboardingSettingsTab from './settings/OnboardingSettingsTab';
 import WorkspaceSettingsTab from './settings/WorkspaceSettingsTab';
-import '../../../../styles/CloneSettings.css';
+import '../../../../styles/SettingsSurface.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
@@ -45,7 +45,7 @@ const appearanceThemeSectionShape = PropTypes.shape({
 
 function PlaceholderTab({ title }) {
   return (
-    <div className="clone-settings-placeholder">
+    <div className="settings-surface-placeholder">
       <h2>{title}</h2>
       <p>Settings for {title.toLowerCase()} will appear here.</p>
     </div>
@@ -97,23 +97,23 @@ function SettingsSection({
   };
 
   return (
-    <div className="clone-settings-panel">
-      <aside className="clone-settings-sidebar">
+    <div className="settings-surface-panel">
+      <aside className="settings-surface-sidebar">
         <button
           type="button"
-          className="clone-settings-close clone-settings-close-left"
+          className="settings-surface-close settings-surface-close-left"
           onClick={onClose}
           aria-label="Back to dashboard"
         >
           <ArrowLeft size={18} />
         </button>
 
-        <nav className="clone-settings-tab-list">
+        <nav className="settings-surface-tab-list">
           {SETTINGS_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
-              className={`clone-settings-tab${activeTab === tab.id ? ' active' : ''}`}
+              className={`settings-surface-tab${activeTab === tab.id ? ' active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
               data-testid={`settings-tab-${tab.id}`}
             >
@@ -124,8 +124,8 @@ function SettingsSection({
         </nav>
       </aside>
 
-      <section className="clone-settings-content-wrap">
-        <div className="clone-settings-content">
+      <section className="settings-surface-content-wrap">
+        <div className="settings-surface-content">
           {renderTabContent()}
         </div>
       </section>

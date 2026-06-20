@@ -1,8 +1,8 @@
 /*
- * Styles the clone settings surface for the renderer UI.
+ * Styles the settings surface for the renderer UI.
  */
 
-.clone-settings-panel {
+.settings-surface-panel {
   display: flex;
   min-width: 0;
   height: 100%;
@@ -14,7 +14,7 @@
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
 }
 
-.clone-settings-sidebar {
+.settings-surface-sidebar {
   width: 228px;
   min-width: 0;
   flex-shrink: 0;
@@ -23,7 +23,7 @@
   padding: 14px 10px 12px;
 }
 
-.clone-settings-close {
+.settings-surface-close {
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -34,24 +34,24 @@
   justify-content: center;
 }
 
-.clone-settings-close:hover {
+.settings-surface-close:hover {
   background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
 }
 
-.clone-settings-close-left {
+.settings-surface-close-left {
   width: 28px;
   height: 28px;
   margin-bottom: 10px;
 }
 
-.clone-settings-tab-list {
+.settings-surface-tab-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.clone-settings-tab {
+.settings-surface-tab {
   width: 100%;
   border: 0;
   border-radius: 8px;
@@ -66,17 +66,17 @@
   font-size: 13px;
 }
 
-.clone-settings-tab:hover {
+.settings-surface-tab:hover {
   background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
 }
 
-.clone-settings-tab.active {
+.settings-surface-tab.active {
   background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
 }
 
-.clone-settings-content-wrap {
+.settings-surface-content-wrap {
   flex: 1;
   min-width: 0;
   position: relative;
@@ -84,7 +84,7 @@
   background: color-mix(in srgb, var(--ui-panel-bg) 34%, transparent 66%);
 }
 
-.clone-settings-content {
+.settings-surface-content {
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -94,8 +94,8 @@
   padding: 42px clamp(24px, 4vw, 64px);
 }
 
-.clone-settings-general h2,
-.clone-settings-placeholder h2 {
+.settings-surface-general h2,
+.settings-surface-placeholder h2 {
   margin: 0 0 16px;
   font-size: 31px;
   line-height: 1.2;
@@ -104,7 +104,7 @@
   color: var(--ui-text-primary);
 }
 
-.clone-settings-row {
+.settings-surface-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -112,26 +112,26 @@
   padding: 10px 0;
 }
 
-.clone-settings-row > span,
-.clone-settings-row-rich span {
+.settings-surface-row > span,
+.settings-surface-row-rich span {
   font-size: 15px;
   color: var(--ui-text-primary);
 }
 
-.clone-settings-row-rich {
+.settings-surface-row-rich {
   align-items: flex-start;
 }
 
-.clone-settings-row-rich > div {
+.settings-surface-row-rich > div {
   min-width: 0;
 }
 
-.clone-settings-row-stack {
+.settings-surface-row-stack {
   align-items: stretch;
   flex-direction: column;
 }
 
-.clone-settings-textarea {
+.settings-surface-textarea {
   width: 100%;
   min-height: 132px;
   margin-top: 12px;
@@ -145,13 +145,13 @@
   line-height: 1.45;
 }
 
-.clone-settings-tool-grid {
+.settings-surface-tool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 10px;
 }
 
-.clone-settings-tool-toggle {
+.settings-surface-tool-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -163,18 +163,18 @@
   background: var(--ui-surface-elevated);
 }
 
-.clone-settings-tool-card {
+.settings-surface-tool-card {
   border: 1px solid var(--ui-border-subtle);
   border-radius: 8px;
   background: var(--ui-surface-elevated);
 }
 
-.clone-settings-tool-card .clone-settings-tool-toggle {
+.settings-surface-tool-card .settings-surface-tool-toggle {
   border: 0;
   background: transparent;
 }
 
-.clone-settings-tool-toggle span {
+.settings-surface-tool-toggle span {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -183,40 +183,40 @@
   color: var(--ui-text-primary);
 }
 
-.clone-settings-tool-toggle small,
-.clone-settings-tool-status {
+.settings-surface-tool-toggle small,
+.settings-surface-tool-status {
   font-size: 11px;
   line-height: 1.35;
   color: var(--ui-text-muted);
 }
 
-.clone-settings-tool-status {
+.settings-surface-tool-status {
   margin: 0;
   padding: 0 12px 10px;
 }
 
-.clone-settings-tool-status-error {
+.settings-surface-tool-status-error {
   color: color-mix(in srgb, #ff9d90 76%, var(--ui-text-primary) 24%);
 }
 
-.clone-settings-schema-viewer {
+.settings-surface-schema-viewer {
   padding: 0 12px 12px;
 }
 
-.clone-settings-schema-viewer summary {
+.settings-surface-schema-viewer summary {
   cursor: pointer;
   font-size: 11px;
   color: var(--ui-text-muted);
 }
 
-.clone-settings-schema-viewer summary small {
+.settings-surface-schema-viewer summary small {
   display: block;
   margin-top: 2px;
   color: var(--ui-text-muted);
   font-size: 10.5px;
 }
 
-.clone-settings-schema-viewer pre {
+.settings-surface-schema-viewer pre {
   overflow: auto;
   max-height: 240px;
   margin: 8px 0 0;
@@ -228,18 +228,18 @@
   line-height: 1.4;
 }
 
-.clone-settings-layer-list {
+.settings-surface-layer-list {
   display: grid;
   gap: 10px;
 }
 
-.clone-settings-appearance {
+.settings-surface-appearance {
   display: grid;
   gap: 22px;
   max-width: 1180px;
 }
 
-.clone-settings-theme-mode-card {
+.settings-surface-theme-mode-card {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) auto;
   align-items: center;
@@ -254,7 +254,7 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.clone-settings-theme-mode-card h3 {
+.settings-surface-theme-mode-card h3 {
   margin: 0;
   color: var(--ui-text-primary);
   font-size: 18px;
@@ -262,14 +262,14 @@
   letter-spacing: 0;
 }
 
-.clone-settings-theme-mode-card p {
+.settings-surface-theme-mode-card p {
   margin: 8px 0 0;
   color: var(--ui-text-muted);
   font-size: 14px;
   line-height: 1.35;
 }
 
-.clone-settings-theme-mode-segment {
+.settings-surface-theme-mode-segment {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -279,7 +279,7 @@
   border: 1px solid var(--ui-border-subtle);
 }
 
-.clone-settings-theme-mode-segment button {
+.settings-surface-theme-mode-segment button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -296,11 +296,11 @@
   letter-spacing: 0;
 }
 
-.clone-settings-theme-mode-segment button:hover {
+.settings-surface-theme-mode-segment button:hover {
   color: var(--ui-text-primary);
 }
 
-.clone-settings-theme-mode-segment button.active {
+.settings-surface-theme-mode-segment button.active {
   background: color-mix(in srgb, var(--agent-accent) 18%, var(--ui-panel-bg) 82%);
   color: var(--ui-text-primary);
   box-shadow:
@@ -308,7 +308,7 @@
     0 8px 20px rgba(0, 0, 0, 0.16);
 }
 
-.clone-settings-theme-card {
+.settings-surface-theme-card {
   overflow: hidden;
   border: 1px solid var(--ui-border-soft);
   border-radius: 18px;
@@ -318,14 +318,14 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.clone-settings-theme-card-header {
+.settings-surface-theme-card-header {
   display: flex;
   align-items: center;
   min-height: 72px;
   padding: 0 32px;
 }
 
-.clone-settings-theme-card-header h3 {
+.settings-surface-theme-card-header h3 {
   margin: 0;
   color: var(--ui-text-secondary);
   font-size: 20px;
@@ -333,11 +333,11 @@
   letter-spacing: 0;
 }
 
-.clone-settings-theme-grid {
+.settings-surface-theme-grid {
   display: grid;
 }
 
-.clone-settings-theme-row {
+.settings-surface-theme-row {
   display: grid;
   grid-template-columns: minmax(200px, 1fr) minmax(280px, 420px);
   align-items: center;
@@ -347,21 +347,21 @@
   border-top: 1px solid var(--ui-border-subtle);
 }
 
-.clone-settings-theme-row > span:first-child {
+.settings-surface-theme-row > span:first-child {
   color: var(--ui-text-primary);
   font-size: 17px;
   letter-spacing: 0;
 }
 
-.clone-settings-color-pill,
-.clone-settings-font-input {
+.settings-surface-color-pill,
+.settings-surface-font-input {
   width: 100%;
   height: 44px;
   border-radius: 16px;
   justify-self: end;
 }
 
-.clone-settings-color-pill {
+.settings-surface-color-pill {
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -370,7 +370,7 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-.clone-settings-color-dot {
+.settings-surface-color-dot {
   width: 20px;
   height: 20px;
   border-radius: 999px;
@@ -379,8 +379,8 @@
   flex: 0 0 auto;
 }
 
-.clone-settings-color-pill input,
-.clone-settings-font-input {
+.settings-surface-color-pill input,
+.settings-surface-font-input {
   min-width: 0;
   border: 0;
   outline: none;
@@ -390,12 +390,12 @@
   font-size: 15px;
 }
 
-.clone-settings-color-pill input {
+.settings-surface-color-pill input {
   width: 100%;
   text-transform: uppercase;
 }
 
-.clone-settings-font-input {
+.settings-surface-font-input {
   padding: 0 16px;
   border: 1px solid var(--ui-border-soft);
   background: color-mix(in srgb, var(--ui-surface-elevated) 86%, white 14%);
@@ -403,30 +403,30 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.clone-settings-contrast-control {
+.settings-surface-contrast-control {
   display: grid;
   grid-template-columns: 1fr 42px;
   align-items: center;
   gap: 16px;
 }
 
-.clone-settings-contrast-control input {
+.settings-surface-contrast-control input {
   width: 100%;
   accent-color: var(--agent-accent);
 }
 
-.clone-settings-contrast-control output {
+.settings-surface-contrast-control output {
   min-width: 32px;
   color: var(--ui-text-primary);
   font-size: 17px;
   text-align: right;
 }
 
-.clone-settings-row-action {
+.settings-surface-row-action {
   align-items: center;
 }
 
-.clone-settings-row-rich p {
+.settings-surface-row-rich p {
   margin: 4px 0 0;
   max-width: 390px;
   font-size: 11.5px;
@@ -434,15 +434,15 @@
   color: var(--ui-text-muted);
 }
 
-.clone-settings-workspace-path {
+.settings-surface-workspace-path {
   word-break: break-word;
 }
 
-.clone-settings-inline-warning {
+.settings-surface-inline-warning {
   color: color-mix(in srgb, var(--ui-text-primary) 82%, #c86922 18%);
 }
 
-.clone-settings-danger-button {
+.settings-surface-danger-button {
   border: 1px solid color-mix(in srgb, #c84d3c 68%, var(--ui-border-soft) 32%);
   border-radius: 999px;
   background: color-mix(in srgb, #c84d3c 14%, transparent 86%);
@@ -457,17 +457,17 @@
   transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
 }
 
-.clone-settings-danger-button:hover:not(:disabled) {
+.settings-surface-danger-button:hover:not(:disabled) {
   background: color-mix(in srgb, #c84d3c 24%, transparent 76%);
   border-color: color-mix(in srgb, #e0624e 78%, var(--ui-border-soft) 22%);
 }
 
-.clone-settings-danger-button:disabled {
+.settings-surface-danger-button:disabled {
   cursor: default;
   opacity: 0.55;
 }
 
-.clone-settings-secondary-button {
+.settings-surface-secondary-button {
   border: 1px solid var(--ui-border-soft);
   border-radius: 999px;
   background: color-mix(in srgb, var(--ui-panel-bg) 82%, white 18%);
@@ -482,17 +482,17 @@
   transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
 }
 
-.clone-settings-secondary-button:hover:not(:disabled) {
+.settings-surface-secondary-button:hover:not(:disabled) {
   background: var(--ui-hover-strong-bg);
   border-color: var(--ui-text-dim);
 }
 
-.clone-settings-secondary-button:disabled {
+.settings-surface-secondary-button:disabled {
   cursor: default;
   opacity: 0.55;
 }
 
-.clone-settings-primary-button {
+.settings-surface-primary-button {
   border: 1px solid var(--agent-accent);
   border-radius: 999px;
   background: var(--agent-accent);
@@ -508,32 +508,32 @@
   transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, opacity 140ms ease;
 }
 
-.clone-settings-primary-button:hover:not(:disabled) {
+.settings-surface-primary-button:hover:not(:disabled) {
   background: var(--agent-accent-hover);
   border-color: var(--agent-accent-hover);
   transform: translateY(-1px);
 }
 
-.clone-settings-primary-button:disabled {
+.settings-surface-primary-button:disabled {
   cursor: default;
   opacity: 0.55;
 }
 
-.clone-settings-action-status {
+.settings-surface-action-status {
   margin: 6px 0 0;
   font-size: 12px;
   line-height: 1.4;
 }
 
-.clone-settings-action-status-success {
+.settings-surface-action-status-success {
   color: var(--agent-accent-pale);
 }
 
-.clone-settings-action-status-error {
+.settings-surface-action-status-error {
   color: color-mix(in srgb, #ff9d90 76%, var(--ui-text-primary) 24%);
 }
 
-.clone-settings-select-wrap {
+.settings-surface-select-wrap {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -541,7 +541,7 @@
   flex-shrink: 0;
 }
 
-.clone-settings-select {
+.settings-surface-select {
   border: 0;
   background: transparent;
   color: var(--ui-text-primary);
@@ -553,12 +553,12 @@
   padding-right: 2px;
 }
 
-.clone-settings-select option {
+.settings-surface-select option {
   color: var(--ui-text-primary);
   background: var(--ui-panel-bg);
 }
 
-.clone-settings-row-tts .clone-settings-select-wrap {
+.settings-surface-row-tts .settings-surface-select-wrap {
   position: relative;
   min-width: 132px;
   justify-content: flex-start;
@@ -569,7 +569,7 @@
   cursor: pointer;
 }
 
-.clone-settings-row-tts .clone-settings-select {
+.settings-surface-row-tts .settings-surface-select {
   width: 100%;
   padding-right: 20px;
   font-size: 13px;
@@ -577,18 +577,18 @@
   letter-spacing: 0.01em;
 }
 
-.clone-settings-row-tts .clone-settings-select-wrap:hover {
+.settings-surface-row-tts .settings-surface-select-wrap:hover {
   border-color: rgba(0, 122, 255, 0.42);
   background: var(--ui-hover-bg);
 }
 
-.clone-settings-row-tts .clone-settings-select-wrap svg {
+.settings-surface-row-tts .settings-surface-select-wrap svg {
   position: absolute;
   right: 10px;
   pointer-events: none;
 }
 
-.clone-settings-select-shortcut {
+.settings-surface-select-shortcut {
   position: relative;
   min-width: 168px;
   justify-content: flex-start;
@@ -599,7 +599,7 @@
   cursor: pointer;
 }
 
-.clone-settings-select-shortcut .clone-settings-select {
+.settings-surface-select-shortcut .settings-surface-select {
   width: 100%;
   padding-right: 20px;
   font-size: 13px;
@@ -607,18 +607,18 @@
   letter-spacing: 0.01em;
 }
 
-.clone-settings-select-shortcut:hover {
+.settings-surface-select-shortcut:hover {
   border-color: rgba(0, 122, 255, 0.42);
   background: var(--ui-hover-bg);
 }
 
-.clone-settings-select-shortcut svg {
+.settings-surface-select-shortcut svg {
   position: absolute;
   right: 10px;
   pointer-events: none;
 }
 
-.clone-settings-swatch {
+.settings-surface-swatch {
   width: 12px;
   height: 12px;
   border-radius: 999px;
@@ -626,13 +626,13 @@
   background: var(--ui-settings-swatch-bg);
 }
 
-.clone-settings-voice-wrap {
+.settings-surface-voice-wrap {
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
-.clone-settings-play-button {
+.settings-surface-play-button {
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -645,12 +645,12 @@
   font-size: 13px;
 }
 
-.clone-settings-play-button:hover {
+.settings-surface-play-button:hover {
   background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
 }
 
-.clone-settings-toggle {
+.settings-surface-toggle {
   position: relative;
   width: 34px;
   height: 20px;
@@ -662,14 +662,14 @@
   flex-shrink: 0;
 }
 
-.clone-settings-toggle input {
+.settings-surface-toggle input {
   opacity: 0;
   width: 0;
   height: 0;
   position: absolute;
 }
 
-.clone-settings-toggle-thumb {
+.settings-surface-toggle-thumb {
   width: 14px;
   height: 14px;
   margin-left: 3px;
@@ -678,72 +678,72 @@
   transition: transform 0.2s ease;
 }
 
-.clone-settings-toggle.checked {
+.settings-surface-toggle.checked {
   background: var(--ui-hover-strong-bg);
 }
 
-.clone-settings-toggle.checked .clone-settings-toggle-thumb {
+.settings-surface-toggle.checked .settings-surface-toggle-thumb {
   transform: translateX(14px);
   background: var(--ui-toggle-thumb-on);
 }
 
-.clone-settings-placeholder p {
+.settings-surface-placeholder p {
   margin: 0;
   font-size: 13px;
   color: var(--ui-text-muted);
 }
 
-.clone-settings-browser-title-row {
+.settings-surface-browser-title-row {
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
-.clone-settings-browser-status {
+.settings-surface-browser-status {
   color: var(--ui-text-primary);
 }
 
 @media (max-width: 860px) {
-  .clone-settings-sidebar {
+  .settings-surface-sidebar {
     width: 190px;
   }
 
-  .clone-settings-row {
+  .settings-surface-row {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .clone-settings-theme-mode-card {
+  .settings-surface-theme-mode-card {
     grid-template-columns: 1fr;
     align-items: stretch;
     padding: 18px;
   }
 
-  .clone-settings-theme-mode-segment {
+  .settings-surface-theme-mode-segment {
     width: 100%;
     justify-content: space-between;
   }
 
-  .clone-settings-theme-mode-segment button {
+  .settings-surface-theme-mode-segment button {
     flex: 1;
     justify-content: center;
     padding: 0 10px;
   }
 
-  .clone-settings-theme-row {
+  .settings-surface-theme-row {
     grid-template-columns: 1fr;
     align-items: flex-start;
     gap: 10px;
     padding: 14px 18px;
   }
 
-  .clone-settings-color-pill,
-  .clone-settings-font-input,
-  .clone-settings-contrast-control {
+  .settings-surface-color-pill,
+  .settings-surface-font-input,
+  .settings-surface-contrast-control {
     width: 100%;
   }
 
-  .clone-settings-voice-wrap {
+  .settings-surface-voice-wrap {
     width: 100%;
     justify-content: space-between;
   }

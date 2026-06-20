@@ -17,17 +17,17 @@ function MemorySettingsTab({ onChatsCleared }) {
   } = useMemorySettingsActions();
 
   return (
-    <div className="clone-settings-memory">
+    <div className="settings-surface-memory">
       <h2>{memorySettingsSkin.title}</h2>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
         <div>
           <span>{memorySettingsSkin.deleteMemories.label}</span>
           <p>{memorySettingsSkin.deleteMemories.description}</p>
         </div>
         <button
           type="button"
-          className="clone-settings-danger-button"
+          className="settings-surface-danger-button"
           onClick={() => {
             void clearLocalMemory();
           }}
@@ -39,14 +39,14 @@ function MemorySettingsTab({ onChatsCleared }) {
         </button>
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
         <div>
           <span>{memorySettingsSkin.deleteChats.label}</span>
           <p>{memorySettingsSkin.deleteChats.description}</p>
         </div>
         <button
           type="button"
-          className="clone-settings-danger-button"
+          className="settings-surface-danger-button"
           onClick={() => {
             void clearChatHistory(onChatsCleared);
           }}
@@ -59,7 +59,7 @@ function MemorySettingsTab({ onChatsCleared }) {
       </div>
 
       {status.message ? (
-        <p className={`clone-settings-action-status clone-settings-action-status-${status.tone}`}>
+        <p className={`settings-surface-action-status settings-surface-action-status-${status.tone}`}>
           {status.message}
         </p>
       ) : null}

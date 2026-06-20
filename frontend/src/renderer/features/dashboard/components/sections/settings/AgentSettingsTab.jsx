@@ -14,7 +14,7 @@ import {
   EMPTY_AGENT_REMOTE_TOOL_CATALOG,
   EMPTY_AGENT_TOOL_MANIFEST_STATUS,
 } from '../../../../../app/runtime/desktopExtensionRuntimeClient';
-import { CloneToggle } from './settingsControls';
+import { SettingsToggle } from './settingsControls';
 
 const agentSettingsSkin = desktopRuntimeSkin.settings.agent;
 
@@ -50,15 +50,15 @@ function AgentSettingsTab({ config, onConfigChange }) {
   }, []);
 
   return (
-    <div className="clone-settings-general">
+    <div className="settings-surface-general">
       <h2>{agentSettingsSkin.title}</h2>
 
-      <div className="clone-settings-row clone-settings-row-rich">
+      <div className="settings-surface-row settings-surface-row-rich">
         <div>
           <span>{agentSettingsSkin.customInstructions.label}</span>
           <p>{agentSettingsSkin.customInstructions.description}</p>
           <textarea
-            className="clone-settings-textarea"
+            className="settings-surface-textarea"
             value={config?.agent_custom_instructions || ''}
             onChange={(event) => onConfigChange({
               agent_custom_instructions: event.target.value,
@@ -69,16 +69,16 @@ function AgentSettingsTab({ config, onConfigChange }) {
         </div>
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-stack">
         <div>
           <span>{agentSettingsSkin.extensions.label}</span>
           <p>{agentSettingsSkin.extensions.description}</p>
         </div>
-        <div className="clone-settings-layer-list">
+        <div className="settings-surface-layer-list">
           {extensionRuntime.plugins.length > 0 ? extensionRuntime.plugins.map((plugin) => {
             const presentation = DesktopExtensionRuntimeClient.getPluginRuntimePresentation(plugin);
             return (
-              <details key={presentation.key} className="clone-settings-schema-viewer">
+              <details key={presentation.key} className="settings-surface-schema-viewer">
                 <summary>
                   {presentation.displayName}
                   <small>
@@ -89,10 +89,10 @@ function AgentSettingsTab({ config, onConfigChange }) {
               </details>
             );
           }) : (
-            <p className="clone-settings-tool-status">{agentSettingsSkin.extensions.emptyPlugins}</p>
+            <p className="settings-surface-tool-status">{agentSettingsSkin.extensions.emptyPlugins}</p>
           )}
           {skillsPresentation.count > 0 ? (
-            <details className="clone-settings-schema-viewer">
+            <details className="settings-surface-schema-viewer">
               <summary>
                 Skills
                 <small>{skillsPresentation.summary}</small>
@@ -101,7 +101,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
             </details>
           ) : null}
           {mcpsPresentation.count > 0 ? (
-            <details className="clone-settings-schema-viewer">
+            <details className="settings-surface-schema-viewer">
               <summary>
                 MCP servers
                 <small>{mcpsPresentation.summary}</small>
@@ -112,7 +112,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
           {extensionRuntime.errors.length > 0 ? extensionRuntime.errors.map((error) => {
             const presentation = DesktopExtensionRuntimeClient.getExtensionRuntimeErrorPresentation(error);
             return (
-              <p key={presentation.key} className="clone-settings-tool-status clone-settings-tool-status-error">
+              <p key={presentation.key} className="settings-surface-tool-status settings-surface-tool-status-error">
                 {presentation.text}
               </p>
             );
@@ -120,17 +120,17 @@ function AgentSettingsTab({ config, onConfigChange }) {
         </div>
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-stack">
         <div>
           <span>{agentSettingsSkin.localTools.label}</span>
           <p>{agentSettingsSkin.localTools.description}</p>
         </div>
-        <div className="clone-settings-tool-grid">
+        <div className="settings-surface-tool-grid">
           {agentSettingsSkin.localTools.ids.map((toolName) => (
-            <div key={toolName} className="clone-settings-tool-card">
-              <div className="clone-settings-tool-toggle">
+            <div key={toolName} className="settings-surface-tool-card">
+              <div className="settings-surface-tool-toggle">
                 <span>{toolName}</span>
-                <CloneToggle
+                <SettingsToggle
                   checked={DesktopExtensionRuntimeClient.isLocalToolEnabled(config, toolName)}
                   onChange={(enabled) => onConfigChange(
                     DesktopExtensionRuntimeClient.getLocalToolToggleConfigPatch(
@@ -153,19 +153,19 @@ function AgentSettingsTab({ config, onConfigChange }) {
         </div>
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-stack">
         <div>
           <span>{agentSettingsSkin.remoteTools.label}</span>
           <p>{agentSettingsSkin.remoteTools.description}</p>
         </div>
-        <div className="clone-settings-tool-grid">
+        <div className="settings-surface-tool-grid">
           {agentSettingsSkin.remoteTools.ids.map((toolName) => {
             const toolPresentation = DesktopExtensionRuntimeClient.getRemoteToolPresentation(
               remoteToolCatalog,
               toolName,
             );
             return (
-              <div key={toolName} className="clone-settings-tool-toggle clone-settings-tool-card">
+              <div key={toolName} className="settings-surface-tool-toggle settings-surface-tool-card">
                 <span>
                   {toolName}
                   {!toolPresentation.available ? (
@@ -175,7 +175,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
                     </small>
                   ) : null}
                 </span>
-                <CloneToggle
+                <SettingsToggle
                   checked={DesktopExtensionRuntimeClient.isRemoteToolEnabled(config, toolName)}
                   onChange={(enabled) => onConfigChange(
                     DesktopExtensionRuntimeClient.getRemoteToolToggleConfigPatch(
@@ -197,9 +197,9 @@ function AgentSettingsTab({ config, onConfigChange }) {
 
 function PluginRuntimeDetails({ presentation }) {
   return (
-    <div className="clone-settings-extension-detail">
+    <div className="settings-surface-extension-detail">
       {presentation.description ? (
-        <p className="clone-settings-tool-status">{presentation.description}</p>
+        <p className="settings-surface-tool-status">{presentation.description}</p>
       ) : null}
       {presentation.permissions.length > 0 ? (
         <div>
@@ -230,21 +230,21 @@ function ToolAcceptanceStatus({ presentation }) {
   const config = agentSettingsSkin.toolAcceptance;
   if (presentation.status === 'rejected') {
     return (
-      <p className="clone-settings-tool-status clone-settings-tool-status-error">
+      <p className="settings-surface-tool-status settings-surface-tool-status-error">
         {config.rejectedPrefix}: {presentation.rejectedReason}
       </p>
     );
   }
   if (presentation.status !== 'accepted' || !presentation.acceptedTool) {
     return (
-      <p className="clone-settings-tool-status">{config.pending}</p>
+      <p className="settings-surface-tool-status">{config.pending}</p>
     );
   }
   const { acceptedTool } = presentation;
   return (
-    <details className="clone-settings-schema-viewer">
+    <details className="settings-surface-schema-viewer">
       <summary>{config.acceptedSummary}</summary>
-      <p className="clone-settings-tool-status">
+      <p className="settings-surface-tool-status">
         {formatToolAcceptanceRuntimeSummary(acceptedTool)}
       </p>
       <pre>{JSON.stringify({

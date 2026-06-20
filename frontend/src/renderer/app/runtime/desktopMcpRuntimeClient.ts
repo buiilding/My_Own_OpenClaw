@@ -119,8 +119,8 @@ export function getDesktopMcpServerPresentation(server: unknown): DesktopMcpServ
     enabled: source.effective_enabled === true,
     statusLabel,
     statusClassName: statusState === 'error'
-      ? 'clone-settings-tool-status clone-settings-tool-status-error'
-      : 'clone-settings-tool-status',
+      ? 'settings-surface-tool-status settings-surface-tool-status-error'
+      : 'settings-surface-tool-status',
     statusText: statusReason || command,
     debugSpec: {
       id: source.id,

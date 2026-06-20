@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/settings: rename the settings surface stylesheet, class prefix, and
+  toggle control to generic renderer UI names so dashboard settings no longer
+  carry the legacy clone surface naming. No migration required.
 - main/ipc: compose repeated client/backend session snapshots through
   `ipc_session_context_runtime.cjs`, keeping status, query, SDK invoke, and
   transcript-session sync state shape decisions out of `ipc.cjs`. No migration
@@ -2735,7 +2738,7 @@ All notable changes to WindieOS will be documented in this file.
   websocket handshake path and route removed post-handshake schema-sync queries
   to the SDK agent definition contract.
 - docs/frontend: align dashboard shell/style references with the current
-  `DashboardShell.css`, `CloneMemoryModels.css`, `CloneSettings.css`, and
+  `DashboardShell.css`, `CloneMemoryModels.css`, `SettingsSurface.css`, and
   `FrontendOnboarding.css` ownership after stale renderer styles were removed.
 - docs/sdk: route SDK websocket typing and removed `ws.d.ts` ambient
   declaration queries to the WindieClient runtime contract.

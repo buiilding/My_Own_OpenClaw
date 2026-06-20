@@ -84,20 +84,20 @@ function WorkspaceSettingsTab() {
   }, []);
 
   return (
-    <div className="clone-settings-general">
+    <div className="settings-surface-general">
       <h2>{workspaceSettingsSkin.title}</h2>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
         <div>
           <span>{workspaceSettingsSkin.activeWorkspaceLabel}</span>
           <p>{workspaceSettingsSkin.description}</p>
-          <p className="clone-settings-workspace-path">
+          <p className="settings-surface-workspace-path">
             {activeWorkspacePresentation.pathText}
           </p>
         </div>
         <button
           type="button"
-          className="clone-settings-secondary-button"
+          className="settings-surface-secondary-button"
           onClick={() => {
             void handleChangeWorkspace();
           }}
@@ -108,7 +108,7 @@ function WorkspaceSettingsTab() {
       </div>
 
       {statusMessage ? (
-        <p className={`clone-settings-action-status clone-settings-action-status-${statusTone}`}>
+        <p className={`settings-surface-action-status settings-surface-action-status-${statusTone}`}>
           {statusMessage}
         </p>
       ) : null}

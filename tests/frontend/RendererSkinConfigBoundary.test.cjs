@@ -13,6 +13,7 @@ const skinConfigFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeCon
 const skinCssFacadePath = path.join(rendererRoot, 'app/skin/desktopRuntimeSkin.css');
 const skinCssPath = path.join(rendererRoot, 'app/skin/windieDesktopSkin.css');
 const dashboardShellCssPath = path.join(rendererRoot, 'styles/DashboardShell.css');
+const settingsSurfaceCssPath = path.join(rendererRoot, 'styles/SettingsSurface.css');
 const modelSelectionDefaultsPath = path.join(rendererRoot, 'app/skin/modelSelectionDefaults.js');
 const providerCredentialSettingsPath = path.join(rendererRoot, 'app/skin/providerCredentialSettings.js');
 const providerModelDisplaySettingsPath = path.join(rendererRoot, 'app/skin/providerModelDisplaySettings.js');
@@ -34,6 +35,9 @@ function read(relativePath) {
 const retiredDesktopAgentMarker = (suffix) => `__desktop${'Agent'}${suffix}`;
 const retiredDesktopAgentToken = (suffix) => `desktop-${'agent'}-${suffix}`;
 const retiredDesktopAgentClassName = (suffix) => `Desktop${'Agent'}${suffix}`;
+const retiredSettingsCssFile = `Clone${'Settings'}.css`;
+const retiredSettingsClassPrefix = `clone-${'settings'}`;
+const retiredSettingsToggleName = `Clone${'Toggle'}`;
 
 describe('renderer skin/config boundary', () => {
   test('WindieOS product strings for settings live in the renderer skin', () => {
@@ -88,6 +92,30 @@ describe('renderer skin/config boundary', () => {
       expect(source).not.toContain('Local sidecar tools');
       expect(source).not.toContain('No sidecar plugins loaded');
       expect(source).not.toContain('Connect WindieOS before deleting saved data.');
+    }
+  });
+
+  test('settings surface source uses generic renderer UI naming', () => {
+    const sourcePaths = [
+      settingsSurfaceCssPath,
+      path.join(dashboardSectionsRoot, 'SettingsSection.jsx'),
+      path.join(dashboardSectionsRoot, 'McpsSection.jsx'),
+      path.join(settingsRoot, 'settingsControls.jsx'),
+      path.join(settingsRoot, 'GeneralSettingsTab.jsx'),
+      path.join(settingsRoot, 'AppearanceSettingsTab.jsx'),
+      path.join(settingsRoot, 'AgentSettingsTab.jsx'),
+      path.join(rendererRoot, 'app/runtime/desktopMcpRuntimeClient.ts'),
+    ];
+    const sources = sourcePaths.map((sourcePath) => fs.readFileSync(sourcePath, 'utf8'));
+
+    expect(fs.existsSync(settingsSurfaceCssPath)).toBe(true);
+    expect(fs.existsSync(path.join(rendererRoot, 'styles', retiredSettingsCssFile))).toBe(false);
+    expect(sources.join('\n')).toContain('settings-surface');
+    expect(sources.join('\n')).toContain('SettingsToggle');
+    for (const source of sources) {
+      expect(source).not.toContain(retiredSettingsCssFile);
+      expect(source).not.toContain(retiredSettingsClassPrefix);
+      expect(source).not.toContain(retiredSettingsToggleName);
     }
   });
 

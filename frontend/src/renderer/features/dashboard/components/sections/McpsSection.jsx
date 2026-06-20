@@ -12,7 +12,7 @@ import {
   DesktopMcpRuntimeClient,
   EMPTY_DESKTOP_MCP_REGISTRY,
 } from '../../../../app/runtime/desktopMcpRuntimeClient';
-import { CloneToggle } from './settings/settingsControls';
+import { SettingsToggle } from './settings/settingsControls';
 
 function McpsSection({ onClose = () => {} }) {
   const [registry, setRegistry] = useState(EMPTY_DESKTOP_MCP_REGISTRY);
@@ -78,14 +78,14 @@ function McpsSection({ onClose = () => {} }) {
         <p>Manage local protocol integrations.</p>
       </div>
       <div className="clone-panel-body">
-        <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+        <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
           <div>
             <span>Servers</span>
             <p>{registry.mcps.length} configured</p>
           </div>
           <button
             type="button"
-            className="clone-settings-secondary-button"
+            className="settings-surface-secondary-button"
             onClick={handleRefresh}
             disabled={isRefreshing}
             aria-label="Refresh MCP servers"
@@ -96,7 +96,7 @@ function McpsSection({ onClose = () => {} }) {
         </div>
 
         {error ? (
-          <p className="clone-settings-action-status clone-settings-action-status-error">{error}</p>
+          <p className="settings-surface-action-status settings-surface-action-status-error">{error}</p>
         ) : null}
 
         {isLoading ? (
@@ -104,17 +104,17 @@ function McpsSection({ onClose = () => {} }) {
         ) : registry.mcps.length === 0 ? (
           <div className="clone-empty-state">No MCP servers configured.</div>
         ) : (
-          <div className="clone-settings-layer-list">
+          <div className="settings-surface-layer-list">
             {registry.mcps.map((server) => {
               const presentation = DesktopMcpRuntimeClient.getMcpServerPresentation(server);
               return (
-                <section key={presentation.key} className="clone-settings-tool-card">
-                  <div className="clone-settings-tool-toggle">
+                <section key={presentation.key} className="settings-surface-tool-card">
+                  <div className="settings-surface-tool-toggle">
                     <span>
                       {presentation.name}
                       <small>{presentation.statusLabel}</small>
                     </span>
-                    <CloneToggle
+                    <SettingsToggle
                       checked={presentation.enabled}
                       onChange={(enabled) => handleToggle(presentation.enablementId, enabled)}
                       ariaLabel={`Enable ${presentation.name}`}
@@ -135,7 +135,7 @@ function McpsSection({ onClose = () => {} }) {
           return (
             <p
               key={presentation.key}
-              className="clone-settings-tool-status clone-settings-tool-status-error"
+              className="settings-surface-tool-status settings-surface-tool-status-error"
             >
               {presentation.text}
             </p>

@@ -84,12 +84,12 @@ function BrowserSettingsTab() {
   };
 
   return (
-    <div className="clone-settings-general">
+    <div className="settings-surface-general">
       <h2>{browserSettingsSkin.title}</h2>
 
-      <div className="clone-settings-row clone-settings-row-rich">
+      <div className="settings-surface-row settings-surface-row-rich">
         <div>
-          <div className="clone-settings-browser-title-row">
+          <div className="settings-surface-browser-title-row">
             <span>{browserSettingsSkin.browserName}</span>
             <PermissionStatusBadge
               permission={browserPermission}
@@ -98,28 +98,28 @@ function BrowserSettingsTab() {
           </div>
           <p>{browserSettingsSkin.description}</p>
           {statusDetails.reason ? (
-            <p className="clone-settings-browser-status">{statusDetails.reason}</p>
+            <p className="settings-surface-browser-status">{statusDetails.reason}</p>
           ) : null}
           {statusDetails.remediation ? (
-            <p className="clone-settings-inline-warning">{statusDetails.remediation}</p>
+            <p className="settings-surface-inline-warning">{statusDetails.remediation}</p>
           ) : null}
           {openBrowserError ? (
-            <p className="clone-settings-action-status clone-settings-action-status-error">{openBrowserError}</p>
+            <p className="settings-surface-action-status settings-surface-action-status-error">{openBrowserError}</p>
           ) : null}
           {!statusDetails.reason && !openBrowserError && error ? (
-            <p className="clone-settings-action-status clone-settings-action-status-error">{error}</p>
+            <p className="settings-surface-action-status settings-surface-action-status-error">{error}</p>
           ) : null}
         </div>
       </div>
 
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+      <div className="settings-surface-row settings-surface-row-rich settings-surface-row-action">
         <div>
           <span>{browserSettingsSkin.actionLabel}</span>
           <p>{browserSettingsSkin.actionDescription}</p>
         </div>
         <button
           type="button"
-          className="clone-settings-primary-button"
+          className="settings-surface-primary-button"
           onClick={() => {
             void handleOpenBrowser();
           }}
