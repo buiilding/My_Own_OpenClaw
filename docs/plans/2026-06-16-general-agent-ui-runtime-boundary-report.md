@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `cc215cc09` (`test(renderer): neutralize workspace fixtures`)
-- Latest completed slice: renderer desktop workspace runtime/binding fixtures
-  and renderer dashboard conversation metadata/live-turn fixtures now use
-  neutral project workspace samples instead of WindieOS-flavored fixture data.
+- Latest inspected plan checkpoint: `0c07197c3` (`test(renderer): neutralize conversation metadata fixtures`)
+- Latest completed slice: renderer dashboard conversation metadata/live-turn
+  fixtures and local-runtime chat event store fixtures now use neutral project
+  workspace samples instead of WindieOS-flavored fixture data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -68,7 +68,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   desktop workspace runtime, conversation-binding, dashboard conversation
   metadata, and live-turn fixtures now use neutral project workspace samples
   while preserving the same value-normalization, session-storage, SDK command,
-  and dashboard grouping/loading contracts. Preload SDK-command validation
+  and dashboard grouping/loading contracts. Local-runtime chat event store
+  fixtures now use the same neutral project workspace samples while preserving
+  SQLite conversation listing semantics. Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
@@ -7532,3 +7534,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   normalization, new-chat workspace binding, IPC channels, permissions,
   storage format, credentials, hosted backend URLs, provider policy, and
   local-runtime behavior are unchanged; no migration is required.
+- Local-runtime chat event store fixture samples now use neutral
+  `project-alpha` workspace paths/names and user-facing text instead of
+  WindieOS-flavored sample data. SQLite schema, event append/load behavior,
+  conversation visibility filtering, list metadata, title derivation,
+  workspace metadata persistence, revision storage, IPC/RPC payload contracts,
+  credentials, permissions, hosted backend URLs, provider policy, and
+  renderer/SDK behavior are unchanged; no migration is required.

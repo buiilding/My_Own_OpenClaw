@@ -18442,3 +18442,21 @@ Each completed slice should report:
   normalization, new-chat workspace binding, IPC channels, permissions, storage
   format, credentials, hosted backend URLs, provider policy, and local-runtime
   behavior are unchanged.
+
+### 2026-06-20 Local-runtime chat event store fixture neutrality
+
+- Finding: local-runtime chat event store tests exercise generic SQLite
+  conversation event persistence, list metadata, title derivation, visibility
+  filtering, and workspace metadata persistence, but still used WindieOS-flavored
+  workspace and user-facing text samples.
+- Change: switched those local-runtime chat event store fixture values to
+  neutral `project-alpha` samples and extended the modular boundary guard so
+  retired product-shaped chat event store samples stay out of the local-runtime
+  persistence tests.
+- Validation: focused sidecar chat event store test, focused modular boundary
+  test, exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. SQLite schema, event append/load
+  behavior, conversation visibility filtering, list metadata, title derivation,
+  workspace metadata persistence, revision storage, IPC/RPC payload contracts,
+  credentials, permissions, hosted backend URLs, provider policy, and
+  renderer/SDK behavior are unchanged.

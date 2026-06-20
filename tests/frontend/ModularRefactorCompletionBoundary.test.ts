@@ -393,6 +393,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(conversationMetadataText).toContain("workspaceName: 'Project Alpha'");
   });
 
+  test('local-runtime chat event store tests keep workspace fixtures product-neutral', async () => {
+    const source = await read('tests/sidecar/test_chat_event_store.py');
+
+    expect(source).not.toContain('/work/WindieOS');
+    expect(source).not.toContain('workspace_name="WindieOS"');
+    expect(source).not.toContain('"workspace_name"] == "WindieOS"');
+    expect(source).not.toContain('You are in WindieOS.');
+    expect(source).toContain('/work/project-alpha');
+    expect(source).toContain('workspace_name="Project Alpha"');
+    expect(source).toContain('You are in Project Alpha.');
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),

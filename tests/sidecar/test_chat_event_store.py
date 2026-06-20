@@ -408,8 +408,8 @@ async def test_list_conversations_hides_internal_lifecycle_only_rows(
         turn_ref="turn-1",
         tool_name=None,
         correlation_id=None,
-        workspace_path="/work/WindieOS",
-        workspace_name="WindieOS",
+        workspace_path="/work/project-alpha",
+        workspace_name="Project Alpha",
         metadata={},
         attachments=[],
         event_payload={
@@ -453,17 +453,17 @@ async def test_list_conversations_uses_user_facing_metadata(
             "user_message",
             "user",
             "what workspace am I in?",
-            "/work/WindieOS",
-            "WindieOS",
+            "/work/project-alpha",
+            "Project Alpha",
             {"text": "what workspace am I in?"},
         ),
         (
             "assistant_message",
             "assistant",
-            "You are in WindieOS.",
+            "You are in Project Alpha.",
             None,
             None,
-            {"text": "You are in WindieOS."},
+            {"text": "You are in Project Alpha."},
         ),
         (
             "memory_store_changed",
@@ -517,9 +517,9 @@ async def test_list_conversations_uses_user_facing_metadata(
     ]
     assert conversations[0]["entry_count"] == 4
     assert conversations[0]["title"] == "what workspace am I in?"
-    assert conversations[0]["last_message"] == "You are in WindieOS."
-    assert conversations[0]["workspace_path"] == "/work/WindieOS"
-    assert conversations[0]["workspace_name"] == "WindieOS"
+    assert conversations[0]["last_message"] == "You are in Project Alpha."
+    assert conversations[0]["workspace_path"] == "/work/project-alpha"
+    assert conversations[0]["workspace_name"] == "Project Alpha"
 
 
 @pytest.mark.asyncio
