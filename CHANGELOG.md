@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/main: refresh the frontend architecture main-composition row now that
+  backend endpoint, install-auth context, and status broadcast ownership live in
+  focused helpers. No migration required.
 - main/ipc: move renderer `ipc-status` broadcast channel selection and payload
   fan-out into `ipc_status_payloads.cjs`, leaving `ipc.cjs` to inject renderer
   fan-out while preserving connection status payloads. No migration required.

@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Frontend Architecture Main Composition Debt Wording
+
+- Finding: the frontend architecture migration-status table still said future
+  extraction should move remaining endpoint/install-auth/session lifecycle
+  wiring, even after endpoint state, install-auth context, and status
+  broadcasts moved behind focused Electron main helpers.
+- Change: refreshed the Electron main composition row to list backend endpoint
+  state, install-auth context, and status broadcasts as current focused-module
+  owners, narrowing future debt to remaining session/lifecycle dependency
+  wiring.
+- Validation: focused modular docs boundary guard rejects the retired
+  endpoint/install-auth/session debt phrase.
+- Compatibility: no migration required. Runtime code, IPC payloads, storage,
+  credentials, permissions, hosted URLs, provider policy, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Main IPC Status Broadcast Boundary
 
 - Finding: `ipc_status_payloads.cjs` owned renderer status payload shape and

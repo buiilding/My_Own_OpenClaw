@@ -396,6 +396,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('local runtime daemon startup/reuse');
     expect(docText).not.toContain('SDK desktop runtime');
     expect(docText).not.toContain('SDK agent runtime');
+    expect(docText).not.toContain('remaining endpoint/install-auth/session lifecycle wiring');
     expect(docText).not.toContain('routes tool events to the sidecar daemon');
     expect(docText).not.toContain('through Electron main and the sidecar daemon');
     expect(docText).not.toContain('before sidecar execution');
