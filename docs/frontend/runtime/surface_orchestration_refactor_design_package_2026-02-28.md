@@ -28,7 +28,8 @@ Current ownership:
   resource requests; it does not own native window hide/restore or computer-use
   surface mode policy.
 - `frontend/src/main/sidecar/local_runtime_window_visibility.cjs` owns
-  screenshot task routing and currently calls the sidecar task directly.
+  screenshot task routing and currently calls the local-runtime screenshot task
+  directly.
 
 Use [Overlay Phase and Surface Change Workflow](overlay_phase_and_surface_change_workflow.md),
 [Message Send Surface Policy and Screenshot Capture Reference](../renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md),

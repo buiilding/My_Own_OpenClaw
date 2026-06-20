@@ -96,7 +96,7 @@ imports the canonical local-runtime names directly.
 
 For local tool execution where `toolName === 'screenshot'`:
 
-- wraps call with `withHiddenWindowForScreenshot(...)`, which currently calls the sidecar task directly
+- wraps call with `withHiddenWindowForScreenshot(...)`, which currently calls the local-runtime screenshot task directly
 - dashboard-to-pill handoff for SDK/main computer-use execution happens before
   local execution in Electron main; renderer code does not own screenshot
   hide/restore

@@ -130,7 +130,7 @@ Validation:
 
 - `tests/backend/test_tool_preparer.py`
 - coordinate or OCR/vision focused tests.
-- SDK/main local-runtime and sidecar screenshot/computer tests if executable payload expectations changed.
+- SDK/main local-runtime and local-runtime Python screenshot/computer tests if executable payload expectations changed.
 
 Rules:
 

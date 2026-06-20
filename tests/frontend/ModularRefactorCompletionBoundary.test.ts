@@ -1558,6 +1558,12 @@ describe('modular sdk refactor completion boundary', () => {
         'cannot reach the Python sidecar daemon',
         'without sidecar dispatch',
         'sidecar daemon client/lifecycle ownership',
+        'sidecar screenshot/computer tests',
+        'Python sidecar screenshot tests',
+        'sidecar task directly',
+        'screenshot sidecar returns',
+        'after sidecar screenshot tool execution',
+        'Python sidecar local-runtime implementation',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

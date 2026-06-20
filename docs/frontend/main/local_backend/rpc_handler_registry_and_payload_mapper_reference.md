@@ -86,7 +86,7 @@ Timeout tiers:
 
 Special wrapper:
 
-- `screenshot` runs inside `withHiddenWindowForScreenshot(...)`, which currently calls the sidecar task directly
+- `screenshot` runs inside `withHiddenWindowForScreenshot(...)`, which currently calls the local-runtime screenshot task directly
 
 Response normalization:
 
@@ -97,7 +97,7 @@ Response normalization:
 Screenshot result materialization:
 
 - only screenshot tool results run screenshot materialization
-- if the screenshot sidecar returns owned `data.screenshot_path` under `${os.tmpdir()}/desktop-runtime-screenshots` with a `desktop-runtime-shot-` filename, bridge attempts artifact upload (`POST /api/artifacts/`)
+- if the local-runtime screenshot tool returns owned `data.screenshot_path` under `${os.tmpdir()}/desktop-runtime-screenshots` with a `desktop-runtime-shot-` filename, bridge attempts artifact upload (`POST /api/artifacts/`)
 - success path injects `screenshot_ref` + `screenshot_url`
 - upload failure falls back to inline base64 `screenshot`
 - bridge deletes accepted temporary screenshot files and removes `screenshot_path` before returning

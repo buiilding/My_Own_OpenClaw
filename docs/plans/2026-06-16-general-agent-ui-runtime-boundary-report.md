@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: frontend inventory, main, transcript, protocol, and
-  domain-ownership docs now route daemon/chat-event labels through
-  local-runtime wording.
+- Latest completed slice: screenshot materialization, backend tool-turn, debug
+  observability, and system-state docs now route screenshot/test/JSON-RPC labels
+  through local-runtime wording.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -240,6 +240,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   through SDK/renderer consumers.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Screenshot Materialization Labels
+
+- Finding: screenshot materialization, backend tool-turn validation,
+  observability routing, and system-state JSON-RPC docs still used sidecar
+  screenshot/test/implementation labels for reusable local-runtime paths.
+- Change: routed those references through local-runtime screenshot tool,
+  local-runtime Python screenshot/computer test, and local-runtime Python
+  implementation wording while preserving concrete Python sidecar paths where
+  the docs point to implementation modules.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  screenshot/materialization phrase scan, and diff check.
+- Compatibility: no migration required. Runtime code, screenshot capture,
+  artifact materialization, JSON-RPC payloads, IPC payloads, tool-result
+  envelopes, storage, credentials, permissions, hosted backend URLs, provider
+  policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime JSON-RPC Route Labels
 
