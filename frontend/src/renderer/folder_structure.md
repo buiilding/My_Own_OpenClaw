@@ -194,7 +194,7 @@ frontend/src/renderer/
 │       │
 │       ├── hooks/                       # Voice business logic hooks
 │       │   ├── useVoiceMode.ts          # useVoiceMode - Uses desktop voice runtime gateway connection and audio capture
-│       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
+│       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword capture through the local-runtime helper bridge
 │       │
 │
 │
@@ -399,10 +399,10 @@ frontend/src/renderer/
        ├─> Create AudioContext and required AudioWorklet capture processor
        ├─> Capture audio chunks (Float32Array → Int16Array)
        ├─> Send to main process via IPC (SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK)
-       └─> Main process forwards to Python wakeword service
+       └─> Main process forwards framed audio to the local-runtime wakeword helper backed by the Python wakeword service
            ↓
 3. DETECTION EVENT
-   └─> Python wakeword service detects wakeword
+   └─> Local-runtime wakeword helper emits detection from the Python wakeword service
        └─> Main process → IPC: ON_CHANNELS.WAKEWORD_DETECTED
            └─> useWakewordDetection hook receives event
                └─> onWakewordDetected callback
@@ -488,7 +488,7 @@ frontend/src/renderer/
 
 12. **Voice Integration**: Desktop voice runtime gateway for real-time transcription with backend-owned provider policy and utterance end detection
 
-13. **Wakeword Detection**: openWakeWord integration via Python subprocess with audio chunk streaming
+13. **Wakeword Detection**: local-runtime wakeword helper integration backed by the Python subprocess with audio chunk streaming
 
 14. **Audio Playback**: Queue-based audio player for TTS chunks from backend
 
@@ -627,7 +627,7 @@ Tools that may appear in renderer display projections:
 ### Wakeword Detection (openWakeWord)
 - Audio capture in renderer process
 - Chunks sent to main process via IPC
-- Main process forwards to Python wakeword service
+- Main process forwards framed audio to the local-runtime wakeword helper backed by the Python wakeword service
 - Detection threshold: 0.5
 - Cooldown period: 2 seconds between detections
 

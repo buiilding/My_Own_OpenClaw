@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/voice: route frontend architecture and renderer folder wakeword flow
+  wording through the local-runtime wakeword helper backed by the Python
+  service instead of a direct main-to-Python service path. No migration
+  required.
 - docs/events: route websocket event-contract debugging through Agent SDK
   normalization/projection and typed Electron fan-out instead of the retired
   generic main rebroadcast model. No migration required.

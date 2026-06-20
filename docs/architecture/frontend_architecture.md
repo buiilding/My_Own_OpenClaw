@@ -237,7 +237,7 @@ Current ownership boundary:
 ### Wakeword/Voice Flow
 
 1. Renderer wakeword hook captures mic PCM and sends `wakeword-audio-chunk` IPC.
-2. Main wakeword bridge forwards framed audio to Python wakeword subprocess.
+2. Main wakeword bridge forwards framed audio to the local-runtime wakeword helper backed by the Python wakeword subprocess.
 3. Detection emits `wakeword-detected` back to renderer + `wakeword-detected` backend event.
 4. Renderer shows chatbox/focuses input; optional STT continuation uses voice-mode gateway hook.
 

@@ -2142,8 +2142,10 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md'),
       read('docs/getting-started/docs_hub.md'),
       read('docs/help/triage_routes.md'),
+      read('docs/architecture/frontend_architecture.md'),
       read('docs/nodes/runtime_node_matrix.md'),
       read('docs/README.md'),
+      read('frontend/src/renderer/folder_structure.md'),
     ]);
     const docText = docs.join('\n');
 
@@ -2151,6 +2153,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Electron Wakeword Bridge');
     expect(docText).toContain('local-runtime wakeword helper');
     expect(docText).toContain('local-runtime wakeword helper backed by the Python service');
+    expect(docText).toContain('local-runtime wakeword helper backed by the Python wakeword service');
+    expect(docText).toContain('local-runtime wakeword helper backed by the Python wakeword subprocess');
     expect(docText).toContain('typed `audio-chunk` side-channel');
     expect(docText).toContain('DesktopAudioRuntimeClient');
     expect(docText).not.toContain('Frontend Voice Capture');
@@ -2163,6 +2167,10 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('wakeword chunks do not reach sidecar');
     expect(docText).not.toContain('microphone chunk framing into sidecar');
     expect(docText).not.toContain('sidecar wakeword service, backend transcription');
+    expect(docText).not.toContain('Main process forwards to Python wakeword service');
+    expect(docText).not.toContain('Main wakeword bridge forwards framed audio to Python wakeword subprocess');
+    expect(docText).not.toContain('openWakeWord integration via Python subprocess with audio chunk streaming');
+    expect(docText).not.toContain('wakeword detection via openWakeWord');
     expect(docText).not.toContain('Local Runtime Sidecar Wakeword Bridge and Audio Framing Reference');
     expect(docText).not.toContain('Sidecar wakeword service:');
     expect(docText).not.toContain('Electron main relays them to renderer through `from-backend`');

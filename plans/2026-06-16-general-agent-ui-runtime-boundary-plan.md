@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Frontend Wakeword Helper Flow Docs Boundary
+
+- Finding: the frontend architecture wakeword flow and renderer folder
+  structure guide still described wakeword audio as Electron main forwarding
+  directly to the Python wakeword service/subprocess, even though the reusable
+  boundary is the local-runtime wakeword helper backed by that service.
+- Change: updated the first-read frontend flow docs to route wakeword capture
+  through renderer IPC, the Electron wakeword bridge, and the local-runtime
+  wakeword helper backed by the Python service/subprocess.
+- Validation: extended the voice routing docs guard to read the frontend
+  architecture and renderer folder-structure guides, require local-runtime
+  wakeword helper wording, and reject the retired direct main-to-Python service
+  phrases.
+- Compatibility: no migration required. Runtime code, wakeword IPC channels,
+  subprocess framing, renderer wakeword state, backend wakeword activation
+  messages, storage, credentials, permissions, provider policy, hosted URLs,
+  and local execution behavior are unchanged.
+
 ### 2026-06-20 Websocket Event SDK Fan-Out Docs Boundary
 
 - Finding: the runtime node matrix, streaming/event reference docs, IPC

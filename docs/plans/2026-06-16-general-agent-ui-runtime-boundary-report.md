@@ -5103,6 +5103,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Remaining Findings
 
+- Frontend architecture and renderer folder-structure wakeword flow docs now
+  route wakeword capture through the local-runtime wakeword helper backed by
+  the Python service/subprocess instead of a direct Electron-main-to-Python
+  service path.
 - Websocket event first-read docs now route renderer-visible backend stream
   output through Agent SDK normalization/projection and typed Electron fan-out
   channels instead of the retired generic Electron/main rebroadcast or
