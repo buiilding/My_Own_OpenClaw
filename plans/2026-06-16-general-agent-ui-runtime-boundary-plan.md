@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Runtime Conversation Reference Boundary
+
+- Finding: `ipc.cjs` still owned Agent SDK runtime conversation-ref resolution,
+  including nested transport `payload.conversation_ref`, direct
+  `conversation_ref` / `conversationRef` aliases, cached current-conversation
+  fallback, and trim/null handling for direct wake-up adapter command paths.
+- Change: added `ipc_runtime_conversation_ref.cjs` to own the boundary resolver.
+  `ipc.cjs` now passes the current conversation fallback into that helper
+  instead of carrying inline identity parsing and local string normalization.
+- Validation: focused resolver coverage for nested transport precedence,
+  direct snake_case/camelCase fallback, cached current-conversation fallback,
+  blank/non-string rejection, and a boundary guard that keeps resolver policy
+  out of `ipc.cjs`.
+- Compatibility: no migration required. Conversation ref precedence, SDK
+  command/replay routing, direct wake-up adapter behavior, renderer IPC
+  channels, backend payload shapes, storage, credentials, permissions, hosted
+  URLs, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main AgentClient Lifecycle Boundary
 
 - Finding: `ipc.cjs` still owned the cached `AgentClient` instance directly,

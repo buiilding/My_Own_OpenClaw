@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move Agent SDK runtime conversation-ref resolution into
+  `ipc_runtime_conversation_ref.cjs`, preserving nested transport
+  `payload.conversation_ref`, direct snake_case/camelCase aliases, cached
+  current-conversation fallback, and trim/null semantics. No migration required.
 - main/ipc: move cached `AgentClient` lifecycle into
   `ipc_agent_client_lifecycle.cjs`, preserving lazy construction,
   `client_initialized` logging, initialized-client lookup, local-runtime

@@ -59,6 +59,9 @@ const {
   createAgentClientLifecycle,
 } = require('./ipc/ipc_agent_client_lifecycle.cjs');
 const {
+  resolveRuntimeConversationRef: resolveRuntimeConversationRefValue,
+} = require('./ipc/ipc_runtime_conversation_ref.cjs');
+const {
   startAgentRuntime,
 } = require('./ipc/ipc_agent_wakeup_runtime.cjs');
 const {
@@ -492,10 +495,6 @@ function resetIpcProcessStateForTests() {
   electronMainTraceLogger.reset();
 }
 
-function normalizeOptionalString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 function resolveWorkspacePathForAgent(payload = {}) {
   return resolveWorkspacePathForAgentPayload(payload, latestDesktopUiConfig);
 }
@@ -535,19 +534,7 @@ function handleAgentBackendFallback(endpointPayload = {}) {
 }
 
 function resolveRuntimeConversationRef(input = {}) {
-  const payload = input && typeof input === 'object' && !Array.isArray(input)
-    ? input.payload
-    : null;
-  const fromPayload = payload && typeof payload === 'object' && !Array.isArray(payload)
-    ? payload.conversation_ref
-    : null;
-  const direct = input && typeof input === 'object' && !Array.isArray(input)
-    ? (input.conversation_ref || input.conversationRef)
-    : null;
-  return normalizeOptionalString(fromPayload)
-    || normalizeOptionalString(direct)
-    || currentConversationRef
-    || null;
+  return resolveRuntimeConversationRefValue(input, currentConversationRef);
 }
 
 function buildDesktopInstallAuth() {
