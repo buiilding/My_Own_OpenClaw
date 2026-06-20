@@ -138,7 +138,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend websocket hop through the Agent SDK runtime instead of a direct main
   WebSocket-client path. Voice/audio channel docs now route TTS playback
   through the typed `audio-chunk` side-channel and renderer audio runtime
-  instead of the removed generic `from-backend` relay.
+  instead of the removed generic `from-backend` relay. The channels hub and
+  routing matrix now route dashboard and minimal-pill chat through renderer SDK
+  commands, the Electron Agent SDK host, and Agent SDK backend transport
+  instead of shortcutting directly from Electron IPC to backend `/ws`.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -5037,6 +5040,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   backend `audio-chunk` payloads, SDK conversation events, renderer playback
   behavior, storage, credentials, permissions, provider policy, hosted URLs,
   and local execution behavior are unchanged.
+
+### 2026-06-20 Channel Chat SDK Transport Map Boundary
+
+- Finding: the first-read channels hub still summarized dashboard and
+  minimal-pill chat as renderer or overlay IPC going directly to backend `/ws`,
+  and the channel routing matrix still described minimal-pill query transport
+  as overlay IPC to Electron main to `/ws`.
+- Change: updated the channel hub and routing matrix to route desktop chat
+  entries through renderer SDK commands, the Electron Agent SDK host, and Agent
+  SDK backend transport before the backend websocket query, while keeping
+  backend query ownership unchanged.
+- Validation: added a focused channel docs boundary guard requiring the Agent
+  SDK host/backend-transport path and rejecting the retired direct
+  Electron-IPC-to-backend query summaries.
+- Compatibility: no migration required. Runtime code, IPC channel names,
+  `windie:invoke` command names, backend websocket payloads, SDK projection
+  events, storage, credentials, permissions, provider policy, hosted URLs, and
+  local execution behavior are unchanged.
 
 ## Remaining Findings
 

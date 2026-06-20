@@ -525,6 +525,23 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('Main Process → WebSocket → Backend');
   });
 
+  test('channel docs route desktop chat through the Agent SDK runtime', async () => {
+    const docs = await Promise.all([
+      read('docs/channels/README.md'),
+      read('docs/channels/channel_routing_matrix.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('renderer SDK command -> Electron Agent SDK host -> Agent SDK backend transport -> backend `/ws`');
+    expect(docText).toContain('overlay renderer SDK command -> Electron Agent SDK host -> Agent SDK backend transport -> backend `/ws`');
+    expect(docText).toContain('overlay renderer `windie:invoke` command `conversation.send` -> Electron main Agent SDK host -> Agent SDK backend transport -> `/ws` `query`');
+    expect(docText).toContain('desktop SDK command path or backend websocket');
+    expect(docText).not.toContain('renderer -> Electron IPC -> backend `/ws`');
+    expect(docText).not.toContain('overlay renderer -> Electron IPC -> backend `/ws`');
+    expect(docText).not.toContain('overlay renderer IPC -> Electron main -> `/ws` `query`');
+    expect(docText).not.toContain('desktop IPC or `/ws`');
+  });
+
   test('local runtime conversation store keeps diagnostic collection naming generic', async () => {
     const source = await read('packages/windie-sdk-js/src/stores/LocalRuntimeConversationStore.ts');
 

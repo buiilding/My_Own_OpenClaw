@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route dashboard and minimal-pill chat entries through renderer
+  SDK commands, the Electron Agent SDK host, and Agent SDK backend transport
+  instead of shortcutting directly from Electron IPC to backend `/ws`. No
+  migration required.
 - docs/channels: route TTS audio playback through the typed `audio-chunk`
   side-channel and renderer audio runtime instead of the removed generic
   `from-backend` relay. No migration required.
