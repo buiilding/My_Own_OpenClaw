@@ -120,6 +120,24 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture Agent System Runtime Boundary
+
+- Finding: `docs/architecture/agent_system.md` still described settings as
+  frontend-sent and tool calls/bundles as sent to the frontend, even though
+  renderer settings now flow through the Agent SDK runtime and tool calls flow
+  through SDK/main local-runtime dispatch.
+- Change: reworded the settings and tool-lifecycle bullets around
+  renderer-managed client settings, backend `update-settings`, and SDK/main
+  local-runtime dispatch, and extended the modular tool-routing guard for those
+  exact phrases.
+- Validation: passed focused modular boundary test, docs listing, stale
+  agent-system frontend-routing scan, and diff check.
+- Compatibility: no migration required. `update-settings` payload shape,
+  session config application, tool schemas, tool-call payloads, SDK/main
+  dispatch, Python sidecar modules, renderer display, storage, credentials,
+  permissions, provider policy, local-runtime routing, and hosted URLs are
+  unchanged.
+
 ### 2026-06-20 Architecture Tool System Local-Runtime Boundary
 
 - Finding: `docs/architecture/tool_system.md` still carried a Frontend

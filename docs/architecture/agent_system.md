@@ -38,7 +38,7 @@ Key entry points:
 
 ## Session Config Updates
 
-Frontend settings are sent via `update-settings` and applied to the user session before the next query.
+Renderer-managed client settings are sent through the Agent SDK runtime as backend `update-settings` messages and applied to the user session before the next query.
 
 Workspace prompt context:
 
@@ -70,7 +70,7 @@ Tool preparation metadata now uses a typed execution reference:
 The backend owns the preparation and result handling pipeline:
 
 - **Preparation**: screenshot availability, OCR, coordinate resolution
-- **Sending**: tool calls/bundles to the frontend
+- **Sending**: tool calls/bundles through SDK/main local-runtime dispatch
 - **Waiting**: wait for tool results from SDK/main local-runtime dispatch
 - **Processing**: transform tool outputs into history entries
 

@@ -883,6 +883,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar result');
     expect(toolRoutingDocText).not.toContain('what the sidecar executed');
     expect(toolRoutingDocText).toContain('SDK/main local-runtime dispatch');
+    expect(toolRoutingDocText).toContain('Renderer-managed client settings');
+    expect(toolRoutingDocText).toContain('tool calls/bundles through SDK/main local-runtime dispatch');
     expect(toolRoutingDocText).toContain('wait for tool results from SDK/main local-runtime dispatch');
     expect(toolRoutingDocText).toContain('stay behind the local-runtime boundary');
     expect(toolRoutingDocText).toContain('local-runtime/provider routes decide where work executes');
@@ -902,6 +904,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(toolRoutingDocText).not.toContain('sidecar runtime implementations');
     expect(toolRoutingDocText).not.toContain('backend schemas and sidecar runtime');
     expect(toolRoutingDocText).not.toContain('dispatches to the sidecar');
+    expect(toolRoutingDocText).not.toContain('Frontend settings are sent');
+    expect(toolRoutingDocText).not.toContain('tool calls/bundles to the frontend');
     expect(toolRoutingDocText).not.toContain('wait for tool results from the sidecar');
     expect(toolRoutingDocText).not.toContain('stay in the sidecar');
     expect(toolRoutingDocText).not.toContain('sidecar/provider routes decide where work executes');
