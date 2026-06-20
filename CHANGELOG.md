@@ -38,6 +38,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: rename the local-runtime Python implementation workflow file
+  away from the sidecar-facing filename and update routing links to
+  `local_runtime_python_change_workflow.md`. No migration required.
 - docs/frontend: rename the local-runtime tool change workflow file away from
   the sidecar-facing path and update cross-runtime links to the new
   `local_runtime_tool_change_workflow.md` route. No migration required.

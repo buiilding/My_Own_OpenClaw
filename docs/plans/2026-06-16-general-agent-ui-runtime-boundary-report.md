@@ -7340,3 +7340,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   local-runtime Python implementation, backend tool schemas, SDK/main dispatch,
   IPC channels, storage, credentials, permissions, hosted backend URLs, and
   provider policy are unchanged; no migration is required.
+- The local-runtime Python implementation workflow now lives at
+  `docs/frontend/sidecar/local_runtime_python_change_workflow.md`, with inbound
+  routing links updated away from the sidecar-facing filename. Runtime code,
+  local-runtime Python behavior, JSON-RPC methods, executable tool schemas,
+  Electron bridge IPC, storage, credentials, permissions, hosted backend URLs,
+  and provider policy are unchanged; no migration is required.

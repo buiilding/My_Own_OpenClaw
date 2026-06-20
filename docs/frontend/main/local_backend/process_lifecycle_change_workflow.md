@@ -174,6 +174,6 @@ Docs-only changes should run `<windie> docs list`, `git diff --check`, and a foc
 - [Local-Runtime Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [SDK-Owned Local-Runtime Lifecycle Reference](../../sidecar/local_backend_process_lifecycle_reference.md)
 - [Local Runtime JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
-- [Local-Runtime Python Implementation Change Workflow](../../sidecar/sidecar_runtime_change_workflow.md)
+- [Local-Runtime Python Implementation Change Workflow](../../sidecar/local_runtime_python_change_workflow.md)
 - [IPC Change Workflow](../../ipc_change_workflow.md)
 - [Release and Packaging Change Workflow](../../../operations/release_packaging_change_workflow.md)

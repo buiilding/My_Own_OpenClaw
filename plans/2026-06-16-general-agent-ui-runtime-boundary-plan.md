@@ -18006,3 +18006,21 @@ Each completed slice should report:
   implementation, backend tool schemas, SDK/main dispatch, IPC channels,
   storage, credentials, permissions, hosted backend URLs, and provider policy
   are unchanged.
+
+### 2026-06-20 Local runtime Python workflow path rename
+
+- Finding: the Python implementation workflow title and content had already
+  moved to local-runtime ownership, but the docs route still used
+  `docs/frontend/sidecar/sidecar_runtime_change_workflow.md`, preserving a
+  sidecar-facing owner label for local-runtime Python changes.
+- Change: renamed the workflow to
+  `docs/frontend/sidecar/local_runtime_python_change_workflow.md` and updated
+  getting-started, browser, security, reference, frontend hub, JSON-RPC,
+  process-lifecycle, and modular docs guard links to the local-runtime Python
+  path.
+- Validation: focused modular docs boundary test, exact old-path scan, docs
+  listing, and diff checks.
+- Compatibility: no migration required. Runtime code, local-runtime Python
+  behavior, JSON-RPC methods, executable tool schemas, Electron bridge IPC,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged.

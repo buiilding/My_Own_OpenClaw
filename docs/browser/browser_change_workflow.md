@@ -295,4 +295,4 @@ Before committing a browser change:
 - [Local-Runtime Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 - [ADR 004: Browser Extension Auto-Attach Boundary](../adr/004-browser-extension-auto-attach.md)
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md)
-- [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md)
+- [Local-Runtime Python Implementation Change Workflow](../frontend/sidecar/local_runtime_python_change_workflow.md)

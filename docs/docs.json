@@ -119,7 +119,7 @@
               "frontend/contracts/README",
               "frontend/contracts/ipc/README",
               "frontend/sidecar/README",
-              "frontend/sidecar/sidecar_runtime_change_workflow"
+              "frontend/sidecar/local_runtime_python_change_workflow"
             ]
           }
         ]
