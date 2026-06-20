@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture SDK Event Fan-Out Docs Boundary
+
+- Finding: first-read architecture docs still presented the retired generic
+  `to-backend`/`from-backend` renderer relay as current IPC, even though
+  preload and frontend contract docs now route renderer commands through
+  `windie:invoke` and backend-origin fan-out through SDK projections plus typed
+  side-channel events.
+- Change: updated the communication flow and system architecture docs to route
+  renderer sends through the Electron main Agent SDK host, renderer display
+  through SDK rows/current-turn/status projections, conversation side effects
+  through `windie:conversation-event`, and non-chat backend events through
+  typed channels such as settings/capability/audio.
+- Validation: added a modular docs boundary guard that keeps the two
+  architecture pages from reintroducing the removed generic relay wording.
+- Compatibility: no migration required. Runtime IPC channel names, preload
+  allowlists, SDK projection payloads, backend websocket payloads, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Renderer Onboarding Start CTA Skin Boundary
 
 - Finding: onboarding docs still described completion through the first-party

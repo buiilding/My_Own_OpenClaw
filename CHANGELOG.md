@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/architecture: route renderer/backend communication through the current
+  SDK command, SDK projection, and typed backend side-channel fan-out model
+  instead of documenting the removed generic `to-backend`/`from-backend`
+  renderer relay as current IPC. No migration required.
 - renderer/dashboard: rename the shared memory/models/usage/MCP panel stylesheet
   and class prefixes to generic dashboard panel surface names, and update the
   settings docs route away from the retired settings-tabs wording. No migration

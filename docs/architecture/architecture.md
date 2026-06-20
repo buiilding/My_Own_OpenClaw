@@ -168,7 +168,8 @@ This is not the primary open-source SDK contract. The default client contract is
    ↓
 2. useChatMessageSender hook handles message
    ↓
-3. Frontend captures screenshot when `include_query_screenshot=true` (default enabled)
+3. Renderer capture policy requests a screenshot when
+   `include_query_screenshot=true` (default enabled)
    ↓
 4. Message sent via IpcBridge → Main Process
    ↓
@@ -188,7 +189,7 @@ This is not the primary open-source SDK contract. The default client contract is
     ↓
 12. ToolPreparer prepares tool calls
     ↓
-13. Tools sent to frontend for execution
+13. Backend emits tool-call/tool-bundle events on the SDK transport
     ↓
 14. SDK runtime receives and normalizes tool-call/tool-bundle events
     ↓
@@ -202,7 +203,7 @@ This is not the primary open-source SDK contract. The default client contract is
     ↓
 19. Agent continues or completes
     ↓
-20. Response streamed back to frontend
+20. SDK runtime projects the streamed response for renderer consumers
     ↓
 21. useChatStream hook processes events
     ↓
@@ -266,7 +267,7 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 6. Tool call prepared with coordinates (shallow copy optimization)
    ↓
-7. Tool sent to frontend via WebSocket
+7. Tool-call event sent to the SDK runtime via WebSocket
    ↓
 8. SDK runtime receives and normalizes the tool-call event
    ↓
@@ -340,8 +341,12 @@ Screenshots are captured strategically at key points to provide visual context f
 ### IPC Protocol (Electron)
 
 **Channels**:
-- `to-backend`: Renderer → Main → Backend
-- `from-backend`: Backend → Main → Renderer, plus local `local-user-message` query-mirror events emitted by main process
+- `windie:invoke`: Renderer -> Electron main SDK command bridge
+- `windie:rows`, `windie:current-turn`, `windie:status`: SDK projection
+  fan-out from Electron main to renderer surfaces
+- `windie:conversation-event`: SDK-normalized conversation side-effect events
+- `backend-settings-event`, `agent-capability-event`, `audio-chunk`: typed
+  backend side-channel event fan-out for non-chat consumers
 - `ipc-status`: Connection status
 - `wakeword-audio-chunk`: Audio data for wakeword
 - `wakeword-detected`: Wakeword detection event

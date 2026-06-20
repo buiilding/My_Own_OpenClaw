@@ -504,6 +504,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('local tool calls to the sidecar runtime');
   });
 
+  test('architecture docs route renderer IPC through SDK commands and typed event fan-out', async () => {
+    const docs = await Promise.all([
+      read('docs/architecture/architecture.md'),
+      read('docs/architecture/communication_flow.md'),
+    ]);
+    const docText = docs.join('\n');
+
+    expect(docText).toContain('`windie:invoke`: Renderer -> Electron main SDK command bridge');
+    expect(docText).toContain('`windie:conversation-event`: SDK-normalized conversation side-effect events');
+    expect(docText).toMatch(/typed\s+backend side-channel event fan-out/);
+    expect(docText).not.toContain('`to-backend`: Renderer');
+    expect(docText).not.toContain('`from-backend`: Backend');
+    expect(docText).not.toContain('**`from-backend`**');
+    expect(docText).not.toContain('Receive messages from backend and local query-mirror events');
+  });
+
   test('local runtime conversation store keeps diagnostic collection naming generic', async () => {
     const source = await read('packages/windie-sdk-js/src/stores/LocalRuntimeConversationStore.ts');
 

@@ -11,7 +11,7 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `11d0fe9e6` (`docs(channels): align local tool runtime routing`)
+- Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -127,7 +127,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   missing-tool/result and executable-argument parity ownership.
   Architecture, review, help, backend service, and frontend routing docs now
   qualify backend-import parity rules as desktop client and Python sidecar
-  ownership instead of broad frontend/sidecar wording.
+  ownership instead of broad frontend/sidecar wording. Architecture first-read
+  docs now route renderer/backend communication through `windie:invoke`, SDK
+  projections, `windie:conversation-event`, and typed backend side-channel
+  fan-out instead of the retired generic `to-backend`/`from-backend` relay.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -4952,6 +4955,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   `desktop-runtime` default directory, env overrides, Windows fallback behavior,
   storage formats, permissions, credentials, IPC, local-runtime launch, hosted
   backend URL handling, and provider policy are unchanged.
+
+### 2026-06-20 Architecture SDK Event Fan-Out Docs Boundary
+
+- Finding: first-read architecture docs still described renderer/backend IPC
+  through the retired generic `to-backend` and `from-backend` relay even though
+  the current renderer command path is `windie:invoke` and backend-origin
+  renderer fan-out is SDK projections plus typed side-channel events.
+- Change: updated the communication-flow and system-architecture pages to route
+  user queries through the Electron main Agent SDK host, describe renderer
+  display as SDK rows/current-turn/status projection consumption, route
+  normalized side effects through `windie:conversation-event`, and list
+  settings/capability/audio as typed backend event channels.
+- Validation: added a focused modular docs boundary guard for the architecture
+  pages so the removed generic relay is not documented as current IPC again.
+- Compatibility: no migration required. Runtime IPC channel names, preload
+  allowlists, SDK projection payloads, backend websocket payloads, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
 
 ## Remaining Findings
 

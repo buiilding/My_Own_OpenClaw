@@ -31,7 +31,7 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 │  ┌───────────────────────────────────────────────────┐  │
 │  │  Main Process (Node.js)                           │  │
 │  │  - IPC Bridge (ipc.cjs)                            │  │
-│  │  - WebSocket Client                                 │  │
+│  │  - Agent SDK host                                   │  │
 │  └───────────────────────────────────────────────────┘  │
 │        ↕ WebSocket / HTTP (resolved by Electron main endpoint policy) │
 │  ┌───────────────────────────────────────────────────┐  │
@@ -77,10 +77,26 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 
 #### Main → Renderer
 
-**`from-backend`**
-- Purpose: Receive messages from backend and local query-mirror events from main process
-- Format: `{ id, type, payload }`
-- Usage: Backend responses plus locally emitted `local-user-message` events (sent immediately when a `query` is accepted by main process, before backend streaming begins)
+**`windie:rows`, `windie:current-turn`, `windie:status`**
+- Purpose: Receive SDK conversation display rows, current-turn projection, and
+  runtime status snapshots.
+- Format: SDK projection payloads emitted by Electron main from the active
+  `ConversationRuntime`.
+- Usage: Chat, response overlay, and dashboard surfaces render SDK-owned
+  conversation state without interpreting backend WebSocket packets.
+
+**`windie:conversation-event`**
+- Purpose: Receive SDK-normalized conversation side-effect events.
+- Format: `{ type, conversationRef, turnRef?, payload? }`
+- Usage: Transcript/session adapters consume normalized conversation events
+  instead of subscribing to a generic backend-wire IPC stream.
+
+**Typed backend event channels**
+- Purpose: Receive non-chat backend side-channel events.
+- Format: Event-specific payloads on channels such as `backend-settings-event`,
+  `agent-capability-event`, and `audio-chunk`.
+- Usage: Settings/model ACKs, capability metadata, and audio playback use typed
+  renderer clients rather than the removed generic backend event channel.
 
 **`ipc-status`**
 - Purpose: Connection status updates
@@ -124,7 +140,8 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 - Adapts renderer messages to the SDK runtime
 - Starts `AgentClient.wakeUp(...)` directly and delegates hosted backend
   WebSocket transport to the SDK `Agent`/`ConversationRuntime` path
-- Builds complete user messages with system state and memories
+- Builds SDK runtime command payloads with system state, artifacts, and
+  local-runtime memory context
 
 ## WebSocket Communication
 
@@ -464,9 +481,10 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 6. Main process receives IPC message
    ↓
-7. Main process builds complete message with system state and memories
+7. Main process resolves system state, artifacts, and local-runtime memory
+   context for the SDK command
    ↓
-8. Main process sends WebSocket message to backend
+8. SDK runtime sends the backend WebSocket `query` message
    ↓
 9. Backend validates message (`backend/src/api/schemas/incoming.py`)
    ↓
@@ -478,11 +496,11 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
     ↓
 13. Backend streams response chunks
     ↓
-14. Main process receives WebSocket messages
+14. SDK runtime normalizes backend WebSocket messages into conversation events
     ↓
-15. Main process forwards to renderer via IPC
+15. Main process forwards SDK projections and typed side-channel events via IPC
     ↓
-16. useChatStream hook processes events
+16. Renderer runtime clients process SDK projections and typed events
     ↓
 17. Chat store updated via Zustand
     ↓
@@ -535,13 +553,13 @@ Settings are persisted locally and synced to the backend session:
    ↓
 2. Error caught and logged
    ↓
-3. Error message sent to backend (if needed)
+3. Error recorded through app diagnostics or SDK runtime state as appropriate
    ↓
-4. Backend processes error
+4. Backend processes only backend-owned protocol/runtime errors
    ↓
-5. Backend sends error response
+5. SDK/runtime error events settle the affected turn or surface
    ↓
-6. Frontend receives error
+6. Renderer receives the projected error state
    ↓
 7. Error displayed in UI
 ```
@@ -570,10 +588,11 @@ Settings are persisted locally and synced to the backend session:
 
 ### Reconnection Logic
 
-**Main Process**:
-- Auto-reconnect on disconnect
-- Exponential backoff
-- Max reconnection attempts
+**SDK/Electron Agent Host**:
+- Ensures backend connectivity on demand for SDK runtime commands
+- Keeps the backend connection alive during active loop phases
+- Lets idle intentional closes remain closed until another command needs the
+  hosted runtime
 
 **Backend**:
 - Handles reconnection gracefully
@@ -589,10 +608,10 @@ Settings are persisted locally and synced to the backend session:
 - Single sender task
 - Thread-safe message enqueueing
 
-**Main Process**:
-- Single WebSocket connection
-- Message queue for sending
-- Thread-safe IPC handling
+**SDK/Electron Agent Host**:
+- SDK-owned backend transport command queue
+- Electron main IPC dispatch remains single-process and channel allowlisted
+- Conversation state is projected from SDK events before renderer fan-out
 
 ## Performance Considerations
 
@@ -620,8 +639,9 @@ Settings are persisted locally and synced to the backend session:
 
 ### Secure Communication
 
-- **Local Only**: WebSocket on localhost
-- **No External Access**: No external connections
+- **Explicit Endpoints**: Hosted and self-hosted backend URLs come from the
+  Electron/SDK endpoint policy
+- **Local Execution Boundary**: Machine actions stay on the SDK local runtime
 - **IPC Security**: Whitelisted channels only
 - **Content Security**: CSP headers enforced
 
