@@ -111,7 +111,7 @@ Key normalized event families include:
 Type guards:
 
 - SDK conversation event types and display row projections from
-  `renderer/infrastructure/api/agentSdkClient.ts`
+  `packages/windie-sdk-js`
 
 ## Overlay Phase Contract
 

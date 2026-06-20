@@ -124,7 +124,7 @@ Primary files:
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/sidecar/local_runtime_bridge.cjs`
 - `frontend/src/main/python/windie/_backend_config.py`
-- `frontend/src/renderer/infrastructure/api/**`
+- `packages/windie-sdk-js`
 - `docs/install/local_backend_and_endpoint_setup.md`
 - `docs/debug/endpoint_and_network_debugging.md`
 

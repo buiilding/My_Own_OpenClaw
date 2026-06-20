@@ -8,7 +8,7 @@ import {
 } from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
 import {
   createConversationEvent,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 
 jest.mock('../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient', () => ({

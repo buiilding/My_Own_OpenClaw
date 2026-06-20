@@ -18,7 +18,7 @@ WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix
 | Backend-only tool | backend registry only | `backend/src/tools/registry.py`, domain implementation | backend tool tests and docs explaining no local-runtime executable parity |
 | LLM provider | provider factory + config + model catalog | `backend/src/llm/providers`, `backend/src/llm/providers/factory.py`, `backend/src/llm/models/models_config.py`, `backend/src/core/config` | provider factory/config/model-list/stream tests |
 | Inference provider | capability router/adapter | `backend/src/core/inference`, `backend/src/core/interfaces`, `backend/src/services/ocr`, `backend/src/services/vision`, embedding services | provider health/circuit/tool-output tests |
-| Hosted SDK route | FastAPI SDK router + client wrappers | `backend/src/api/routes/sdk`, `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`, `frontend/src/main/python/windie/sdk.py` | backend route tests, TS/Python SDK client tests |
+| Hosted SDK route | FastAPI SDK router + client wrappers | `backend/src/api/routes/sdk`, `packages/windie-sdk-js`, `frontend/src/main/python/windie/sdk.py` | backend route tests, TS/Python SDK client tests |
 | Artifact route/storage | artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | upload/fetch/client tests |
 | Browser action | backend browser schema + local-runtime browser execution | `backend/src/tools/browser`, `frontend/src/main/python/tools/browser` | backend/local-runtime browser schema parity and action tests |
 | Renderer feature | feature module + provider/layout wiring | `frontend/src/renderer/features`, `frontend/src/renderer/app`, `frontend/src/renderer/infrastructure` | focused renderer tests |

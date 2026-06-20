@@ -2,4 +2,4 @@
  * Re-exports SDK conversation runtime contracts for renderer feature clients.
  */
 
-export * from '../../infrastructure/api/agentSdkClient';
+export * from '../../../../../packages/windie-sdk-js/src';

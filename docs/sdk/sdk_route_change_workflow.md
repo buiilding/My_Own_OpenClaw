@@ -19,7 +19,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 | Backend request/response models | `backend/src/api/routes/sdk/models.py` | Pydantic payload validation and typed response shapes. |
 | Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
 | Backend SDK helpers | `backend/src/sdk` | Tool/context helpers and sub-agent helper utilities. |
-| TypeScript hosted client | `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` | Public TS route methods, request typing, artifact helpers, and `AgentClient.wakeUp` agent runtime. |
+| TypeScript hosted client | `packages/windie-sdk-js` | Public TS route methods, request typing, artifact helpers, and `AgentClient.wakeUp` agent runtime. |
 | Python SDK/developer client | `frontend/src/main/python/windie/sdk.py` | Python hosted client behavior. |
 
 ## Add or Change a Route
@@ -29,7 +29,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 3. Register the route in `backend/src/api/routes/sdk/router.py`.
 4. Keep route registration pointed at `backend.src.api.routes.sdk.router`.
 5. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) if the public route surface changes.
-6. Add or update TypeScript client types and methods in `agentSdkClient.ts`.
+6. Add or update TypeScript client types and methods in `packages/windie-sdk-js`.
 7. Update Python hosted client behavior when parity is expected.
 8. Add backend route tests and client tests.
 

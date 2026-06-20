@@ -52,8 +52,8 @@ frontend/src/
 │   ├── features/chat                      # Chat stream, display-only tool state, message UI
 │   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
-│   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
-│       └── api/agentSdkClient.ts          # SDK runtime and hosted transport facade for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
+│   └── infrastructure                     # IPC/transcript/tool-exec/audio services
+│       └── transcript/                    # SDK-backed conversation store adapters
 └── landing/                               # Marketing/landing surface
 ```
 
@@ -74,24 +74,26 @@ Current runtime behavior also relies on these explicit seams:
   `sidecar/local_runtime_execute_tool_runtime.cjs`.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local runtime readiness from the shared IPC status surface and consume shared browser-session/local-runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localRuntimeStatusStore` owns the initial `get-local-runtime-status` bootstrap plus `local-runtime-status` event subscription, app feature code reaches it through `DesktopLocalRuntimeStatusRuntimeClient`, and `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
 - **Renderer API access is facade-owned by boundary**: the legacy renderer
-  `infrastructure/api/client.ts` bridge has been removed. Feature code reaches
-  Electron IPC and SDK-shaped commands through app runtime facades such as
-  `app/runtime/desktopLiveTurnRuntimeClient.ts`,
+  `infrastructure/api/client.ts` bridge and the later
+  `infrastructure/api/agentSdkClient.ts` re-export facade have been removed.
+  Feature code reaches Electron IPC and SDK-shaped commands through app runtime
+  facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`,
   `app/runtime/desktopSettingsRuntimeClient.ts`,
   `app/runtime/desktopConversationContinuityService.ts`, and
-  `app/runtime/desktopConversationLibraryClient.js`.
-  `renderer/infrastructure/api/agentSdkClient.ts` exposes the SDK runtime
-  surface used by hosted transport wrappers, SDK conversation/runtime contracts,
-  and first-party Electron facades. Desktop-specific adapters are allowed behind
-  SDK interfaces such as `ConversationStore` and `AgentRuntimeTransport`; the
-  app facades may use lower-level SDK modules, but renderer feature code should
-  not reimplement SDK conversation, tool-routing, rehydrate, compaction, or
-  projection semantics.
+  `app/runtime/desktopConversationLibraryClient.js`. SDK conversation/runtime
+  contracts enter renderer app code through the app-runtime conversation
+  contracts facade at `app/runtime/desktopConversationRuntimeContracts.ts`,
+  which imports the standalone `packages/windie-sdk-js` package directly.
+  Desktop-specific adapters are allowed behind SDK interfaces such as
+  `ConversationStore` and `AgentRuntimeTransport`; the app facades may use
+  lower-level SDK modules, but renderer feature code should not reimplement SDK
+  conversation, tool-routing, rehydrate, compaction, or projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
   map SDK projections into `ChatMessage` state, but request/provider/bundle
-  identity precedence for tool-call and tool-output rows comes from the SDK
-  correlation helpers exported through `renderer/infrastructure/api/agentSdkClient.ts`.
-  Electron store adapters and feature code should not keep separate
+  identity precedence for tool-call and tool-output rows comes from SDK
+  correlation helpers imported from `packages/windie-sdk-js` through renderer
+  app-runtime or adapter-owned contracts. Electron store adapters and feature
+  code should not keep separate
   backend-event alias tables for `request_id`, `tool_call_id`,
   `correlation_id`, or `bundle_id`.
 - **Settings/model sync is facade-owned**: provider/config helpers build plain renderer config and model-selection data. Backend settings payload shaping and model command dispatch stay behind `app/runtime/desktopSettingsRuntimeClient.ts` and focused conversation runtime facades.
@@ -516,8 +518,9 @@ Primary modules:
 ### Shared Infrastructure
 
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
-- `infrastructure/api/agentSdkClient.ts`: SDK runtime and hosted transport
-  facade used by renderer-owned adapters, not feature modules directly.
+- `app/runtime/desktopConversationRuntimeContracts.ts`: app-runtime
+  conversation contracts facade over `packages/windie-sdk-js`, used by renderer
+  feature modules that need SDK conversation/runtime types.
 - `app/runtime/desktopConversationContinuityService.ts` and `app/runtime/desktopConversationLibraryClient.js`: replay, rehydrate, list/load/delete/search through the SDK `LocalRuntimeConversationStore` via the desktop conversation store factory.
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.

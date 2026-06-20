@@ -37,6 +37,10 @@ describe('renderer api client boundary', () => {
     await expect(fs.access(path.join(rendererRoot, 'infrastructure/api/client.ts'))).rejects.toThrow();
   });
 
+  test('retired renderer SDK re-export facade has been deleted', async () => {
+    await expect(fs.access(path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'))).rejects.toThrow();
+  });
+
   test('renderer features use desktop runtime facades instead of direct ApiClient calls', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
@@ -73,27 +77,24 @@ describe('renderer api client boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer SDK facade uses generic SDK type names directly', async () => {
+  test('renderer app-runtime contracts import SDK package contracts directly', async () => {
     const source = await fs.readFile(
-      path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'),
+      path.join(rendererRoot, 'app/runtime/desktopConversationRuntimeContracts.ts'),
       'utf8',
     );
     const retiredProductType = `${'Wind' + 'ie'}ModelSelection`;
 
     expect(source).toContain("export * from '../../../../../packages/windie-sdk-js/src';");
     expect(source).not.toContain(`${retiredProductType} as AgentModelSelection`);
+    expect(source).not.toContain('infrastructure/api/agentSdkClient');
   });
 
-  test('production renderer sdk facade imports stay behind app runtime contracts', async () => {
+  test('production renderer code does not import the retired SDK re-export facade', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
-    const allowedRelativePath = 'app/runtime/desktopConversationRuntimeContracts.ts';
 
     for (const file of files) {
       const relativePath = path.relative(rendererRoot, file).replace(/\\/g, '/');
-      if (relativePath === allowedRelativePath) {
-        continue;
-      }
       const source = await fs.readFile(file, 'utf8');
       if (
         source.includes('infrastructure/api/agentSdkClient')
@@ -104,13 +105,7 @@ describe('renderer api client boundary', () => {
       }
     }
 
-    const contractsSource = await fs.readFile(
-      path.join(rendererRoot, allowedRelativePath),
-      'utf8',
-    );
-
     expect(offenders).toEqual([]);
-    expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
   });
 
   test('renderer architecture docs do not restore deleted api client or app-import sdk facade labels', async () => {
@@ -125,18 +120,20 @@ describe('renderer api client boundary', () => {
     ]);
     const docText = docs.join('\n');
 
-    expect(docText).toContain('legacy renderer\n  `infrastructure/api/client.ts` bridge has been removed');
-    expect(docText).toContain('SDK runtime and hosted transport facade');
-    expect(docText).toContain('Renderer SDK facade for hosted transport wrappers and runtime contracts');
+    expect(docText).toContain('`infrastructure/api/client.ts` bridge and the later');
+    expect(docText).toContain('app-runtime conversation contracts facade');
+    expect(docText).toContain('retired Electron renderer SDK re-export facade has been removed');
     expect(docText).toContain('Electron renderer app-runtime facades');
     expect(docText).toContain('first-party Electron renderer app-runtime facades');
-    expect(docText).toContain('Non-Electron clients should import the SDK package');
+    expect(docText).toContain('non-Electron clients should import the\nSDK package');
     expect(docText).toContain('SDK/Main -> Backend');
     expect(docText).toContain('Backend -> SDK/Renderer Consumers');
     expect(docText).toContain('SDK/main local-runtime dispatch');
     expect(docText).toContain('SDK/main result shaping');
     expect(docText).toContain('RendererApiClientBoundary.test.ts');
     expect(docText).not.toContain('Developer-facing backend SDK transport wrapper');
+    expect(docText).not.toContain('SDK runtime and hosted transport facade');
+    expect(docText).not.toContain('Renderer SDK facade for hosted transport wrappers and runtime contracts');
     expect(docText).not.toContain('Electron renderer `ApiClient`');
     expect(docText).not.toContain('renderer `ApiClient`');
     expect(docText).not.toContain('renderer API client');

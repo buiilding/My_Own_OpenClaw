@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- renderer/sdk: remove the retired renderer `agentSdkClient.ts` SDK re-export
+  facade; renderer app-runtime contracts now import the SDK package directly
+  and active docs route hosted TypeScript client work to `packages/windie-sdk-js`.
+  No migration required.
 - sdk/backend: make SDK `provider_api_keys` websocket filtering provider-id
   agnostic while backend validation remains the authority for supported
   provider credential IDs and ignores unsupported provider entries. No

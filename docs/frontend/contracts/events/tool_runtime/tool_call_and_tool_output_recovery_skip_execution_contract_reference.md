@@ -140,7 +140,7 @@ SDK tool coordination resolves correlation ids in this order:
 ### Tool-output display/transcript correlation
 
 The SDK `resolveToolOutputCorrelationId(payload, eventId)` helper is imported
-through `agentSdkClient`; renderer chat-stream utilities do not wrap it. Helper
+through the SDK package; renderer chat-stream utilities do not wrap it. Helper
 precedence:
 
 1. `payload.requestId` / `payload.request_id`

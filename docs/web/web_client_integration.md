@@ -19,10 +19,10 @@ WindieOS hosted clients talk directly to the backend. They do not use Electron I
 | Electron renderer app-runtime facades | `frontend/src/renderer/app/runtime/*` | app-internal UI/runtime requests | public browser SDK contract |
 | VM worker runtime | `frontend/src/main/app/vm_worker_runtime.cjs` | `/api/runs/*` assignment/control and normal websocket dispatch | normal desktop user query routing |
 
-`frontend/src/renderer/infrastructure/api/agentSdkClient.ts` is the first-party
-Electron renderer SDK facade for hosted transport wrappers and runtime
-contracts. Non-Electron clients should import the SDK package instead of
-reaching into renderer infrastructure.
+The retired Electron renderer SDK re-export facade has been removed.
+First-party Electron renderer code uses app-runtime facades under
+`frontend/src/renderer/app/runtime/*`; non-Electron clients should import the
+SDK package instead of reaching into renderer infrastructure.
 
 ## Integration Checklist
 

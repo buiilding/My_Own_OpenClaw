@@ -53,20 +53,20 @@ async function collectSourceNeedleOffenders(
 }
 
 describe('renderer app runtime boundary', () => {
-  test('renderer skin and SDK facade use desktop-runtime UI wording', async () => {
+  test('renderer skin and app runtime contracts use desktop-runtime UI wording', async () => {
     const skinSource = await fs.readFile(
       path.join(appRoot, 'skin/windieDesktopSkin.js'),
       'utf8',
     );
-    const sdkFacadeSource = await fs.readFile(
-      path.join(rendererRoot, 'infrastructure/api/agentSdkClient.ts'),
+    const contractsSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationRuntimeContracts.ts'),
       'utf8',
     );
 
     expect(skinSource).toContain('generic desktop runtime UI');
     expect(skinSource).not.toContain('generic desktop agent UI');
-    expect(sdkFacadeSource).toContain('desktop runtime UI');
-    expect(sdkFacadeSource).not.toContain('desktop agent UI');
+    expect(contractsSource).toContain('renderer feature clients');
+    expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
   test('app runtime SDK consumers route through the conversation contracts facade', async () => {
@@ -90,7 +90,8 @@ describe('renderer app runtime boundary', () => {
     );
 
     expect(offenders).toEqual([]);
-    expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
+    expect(contractsSource).toContain("packages/windie-sdk-js/src");
+    expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
   test('frontend architecture docs describe renderer skin facades with desktop-runtime wording', async () => {

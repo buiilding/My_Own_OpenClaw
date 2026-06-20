@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer SDK Re-export Facade Removal
+
+- Finding: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` had
+  converged to a one-line SDK package re-export, while production renderer code
+  already reached SDK contracts through app-runtime facades.
+- Change: deleted the obsolete renderer infrastructure facade, routed
+  `desktopConversationRuntimeContracts.ts` directly to `packages/windie-sdk-js`,
+  updated active docs to name the SDK package and app-runtime contracts facade,
+  and tightened renderer boundary tests so the retired path cannot return.
+- Validation: focused renderer app/API/chat/transcript boundary tests, exact
+  stale active-doc/source scans, docs listing, and diff checks.
+- Compatibility: no migration required. SDK exports, IPC command strings,
+  renderer feature imports, transcript storage behavior, hosted routes,
+  credentials, permissions, provider policy, storage, and local-runtime
+  execution are unchanged.
+
 ### 2026-06-20 Local Demo Seed Provider Metadata Cleanup
 
 - Finding: `dev_seed_mock_memory.py` is development/demo local data, but its

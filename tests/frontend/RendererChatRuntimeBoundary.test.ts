@@ -77,7 +77,8 @@ describe('renderer chat runtime boundary', () => {
     }
 
     expect(offenders).toEqual([]);
-    expect(contractsSource).toContain('infrastructure/api/agentSdkClient');
+    expect(contractsSource).toContain("packages/windie-sdk-js/src");
+    expect(contractsSource).not.toContain('infrastructure/api/agentSdkClient');
   });
 
   test('chat feature code builds deferred model selection through app runtime facade', async () => {

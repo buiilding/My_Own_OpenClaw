@@ -10,7 +10,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 ## Canonical Modules
 
-- SDK runtime: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
+- SDK runtime: `packages/windie-sdk-js`
 - Electron adapter: `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_agent_connection_events.cjs`
 - `frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs`

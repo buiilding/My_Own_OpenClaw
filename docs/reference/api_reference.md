@@ -24,7 +24,7 @@ The canonical TypeScript SDK surface is the standalone `@windie/sdk` package in
 `packages/windie-sdk-js`. The desktop and local-runtime Python trees expose first-class
 package entrypoints for their runtime boundary:
 
-- `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` (TypeScript app entrypoint)
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeContracts.ts` (Electron renderer app-runtime conversation contracts facade)
 - `frontend/src/main/python/windie/sdk.py` (Python)
 
 These clients talk only to the public backend surfaces documented here:
@@ -32,8 +32,11 @@ These clients talk only to the public backend surfaces documented here:
 - HTTP: `/api/artifacts/*`, `/api/sdk/*`
 - WebSocket: `/ws`
 
-The Electron renderer app exposes the TypeScript SDK facade at `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`, while the Python package exports `AgentSdkClient` from `windie`.
-The hosted SDK clients are intentionally separate from the first-party Electron renderer app-runtime facades, which adapt SDK and hosted transport contracts for the desktop UI and IPC boundary.
+The Electron renderer app consumes the TypeScript SDK package through focused
+app-runtime facades, while the Python package exports `AgentSdkClient` from
+`windie`. The hosted SDK clients are intentionally separate from the
+first-party Electron renderer app-runtime facades, which adapt SDK and hosted
+transport contracts for the desktop UI and IPC boundary.
 
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
 

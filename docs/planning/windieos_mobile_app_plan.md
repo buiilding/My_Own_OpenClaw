@@ -108,7 +108,7 @@ Implementation steps:
 2. Refactor Electron-only call sites to go through interfaces:
    - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
    - `frontend/src/renderer/app/runtime/*RuntimeClient*`
-   - `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
+   - `packages/windie-sdk-js`
    - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
    - `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
    - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`

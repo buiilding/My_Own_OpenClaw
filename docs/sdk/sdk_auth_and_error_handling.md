@@ -24,7 +24,7 @@ SDK clients use hosted backend auth rules. They do not bypass install auth, prov
 
 | Client | Endpoint source |
 | --- | --- |
-| TypeScript hosted client | Constructor/base URL options in `agentSdkClient.ts`. |
+| TypeScript hosted client | Constructor/base URL options in `packages/windie-sdk-js`. |
 | Python hosted client | Sidecar/developer client configuration in `frontend/src/main/python/windie/sdk.py`. |
 | Electron desktop runtime facades | App-internal IPC into the SDK runtime adapter; not the same as hosted SDK HTTP client. |
 | Sidecar remote clients | Electron-injected backend URL and install token where hosted auth applies. |

@@ -54,7 +54,7 @@ Core behavior:
 - `shouldIgnoreStreamError` suppresses known settings-update transport noise through `desktopSettingsUpdateErrorRuntime` from user-visible assistant error rows.
 - `buildScreenshotAttachment` normalizes `screenshotRef` and derives URL from `buildRuntimeArtifactUrl(ref)` when URL missing.
 - Tool-call and tool-output correlation id normalization is owned by the SDK
-  helper surface imported through `agentSdkClient`, not by
+  helper surface imported through the SDK package, not by
   `desktopChatStreamEventPayloadRuntime`.
 - `resolveErrorText` precedence:
 1. payload content string

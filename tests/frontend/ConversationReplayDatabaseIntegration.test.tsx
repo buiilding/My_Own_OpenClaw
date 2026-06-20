@@ -16,7 +16,7 @@ import {
   SdkConversationRuntime,
   type ConversationEvent,
   type JsonRecord,
-} from '../../frontend/src/renderer/infrastructure/api/agentSdkClient';
+} from '../../packages/windie-sdk-js/src';
 import { invokeAgentSdkCommand } from '../../frontend/src/renderer/app/runtime/agentSdkCommandInvokeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 

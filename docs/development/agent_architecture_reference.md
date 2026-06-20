@@ -179,7 +179,7 @@ Key entry points:
 - Renderer: `frontend/src/renderer/app/`,
   `frontend/src/renderer/features/chat/`,
   `frontend/src/renderer/features/dashboard/`,
-  `frontend/src/renderer/infrastructure/api/`,
+  `packages/windie-sdk-js`,
   `frontend/src/renderer/app/runtime/`.
 - Local-runtime Python implementation: `frontend/src/main/python/local_backend.py`,
   `frontend/src/main/python/sidecar_daemon.py`,

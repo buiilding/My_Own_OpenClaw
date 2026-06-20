@@ -17,7 +17,8 @@ clients are useful for artifacts and SDK HTTP routes. Agent sessions should use
 
 Package boundary: `packages/windie-sdk-js`
 
-Renderer app facade path: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts`
+Electron renderer app-runtime contracts facade:
+`frontend/src/renderer/app/runtime/desktopConversationRuntimeContracts.ts`
 
 The package name is `@windie/sdk`.
 

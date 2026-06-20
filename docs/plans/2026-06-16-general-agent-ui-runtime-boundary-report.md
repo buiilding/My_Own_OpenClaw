@@ -12,9 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: SDK provider credential filtering is provider-id
-  agnostic while backend validation remains the authority for supported
-  provider credential ids.
+- Latest completed slice: retired renderer `agentSdkClient.ts` re-export
+  facade removed; app-runtime SDK contracts now import the SDK package
+  directly.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,9 +245,29 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   facade instead of carrying a second websocket allowlist. SDK provider
   credential filtering now preserves syntactically safe provider ids while
   backend validation owns the supported provider list and ignores unsupported
-  provider credential entries.
+  provider credential entries. The obsolete renderer `agentSdkClient.ts`
+  package re-export facade has been deleted; renderer app-runtime contract
+  code imports `packages/windie-sdk-js` directly and active docs route hosted
+  TypeScript SDK work to the package boundary.
 
 ## Inspection Log
+
+### 2026-06-20 Renderer SDK Re-export Facade Removal
+
+- Finding: `frontend/src/renderer/infrastructure/api/agentSdkClient.ts` had
+  converged to a one-line re-export of `packages/windie-sdk-js`, leaving a
+  redundant renderer infrastructure API shim after production callers moved to
+  app-runtime SDK contract facades.
+- Change: deleted the facade, routed
+  `desktopConversationRuntimeContracts.ts` directly to the SDK package, updated
+  tests that imported the shim, and refreshed active architecture/SDK/web docs
+  to name the SDK package or renderer app-runtime contracts facade.
+- Validation: focused renderer app/API/chat/transcript boundary tests, exact
+  stale active-doc/source scans, docs listing, and diff checks.
+- Compatibility: no migration required. SDK exports, IPC command strings,
+  renderer feature imports, transcript storage behavior, hosted routes,
+  credentials, permissions, provider policy, storage, and local-runtime
+  execution are unchanged.
 
 ### 2026-06-20 SDK Provider Credential Map Boundary
 
