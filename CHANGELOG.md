@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- architecture/docs: route extension-point tool ownership through SDK/main
+  local-runtime dispatch with Python sidecar implementation notes. No
+  migration required.
 - architecture/docs: route the memory system overview through SDK
   local-runtime memory ownership while keeping Python sidecar implementation
   breadcrumbs. No migration required.

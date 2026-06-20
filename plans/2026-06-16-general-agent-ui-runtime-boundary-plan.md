@@ -120,6 +120,23 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture Extension-Point Tool Boundary
+
+- Finding: `docs/architecture/extension_points.md` still labeled OS-level
+  local tools as `Frontend Python Sidecar Tools` and described execution as
+  direct Electron IPC, even though current tool dispatch routes through the
+  SDK/main local-runtime boundary with Python sidecar modules as the backing
+  implementation.
+- Change: reworded the extension-point heading and execution description
+  through local-runtime Python tools and SDK/main local-runtime dispatch, and
+  extended the modular tool-boundary guard to include the extension-points doc.
+- Validation: passed focused modular boundary test, docs listing, stale
+  frontend-sidecar tools label scan, and diff check.
+- Compatibility: no migration required. Tool schemas, executable tool names,
+  IPC channels, SDK/main dispatch behavior, Python sidecar tool modules,
+  renderer tool display, storage, credentials, permissions, provider policy,
+  local-runtime routing, and hosted URLs are unchanged.
+
 ### 2026-06-20 Architecture Memory Overview Local-Runtime Boundary
 
 - Finding: `docs/architecture/memory_system.md` still opened by assigning

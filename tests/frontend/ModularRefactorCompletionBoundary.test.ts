@@ -711,6 +711,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/security/security_boundary_matrix.md'),
       read('docs/security/security_change_playbook.md'),
       read('docs/security/permissions_and_local_authority_workflow.md'),
+      read('docs/architecture/extension_points.md'),
     ]);
     const docText = docs.join('\n');
     const toolRoutingDocText = (await Promise.all([
@@ -766,6 +767,7 @@ describe('modular sdk refactor completion boundary', () => {
       read('docs/tools/browser.md'),
       read('docs/tools/computer.md'),
       read('docs/sdk/conversation_runtime.md'),
+      read('docs/architecture/extension_points.md'),
     ])).join('\n');
     const localRuntimePayloadDocText = (await Promise.all([
       read('docs/architecture/agent_visible_data_pipeline.md'),
@@ -816,6 +818,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Local Runtime Python Implementation Docs Hub');
     expect(docText).toContain('Local-runtime boundaries should');
     expect(docText).toContain('Tool Policy or Local-Runtime Execution');
+    expect(docText).toContain('Local-Runtime Python Tools');
+    expect(docText).toContain('SDK/main local-runtime dispatch');
     expect(runtimeTraceText).toContain('## Local-Runtime Python JSON-RPC Trace');
     expect(runtimeTraceText).toContain('Python sidecar protocol');
     expect(browserToolOverviewText).toContain('local-runtime execution, Python sidecar adapters');
@@ -845,6 +849,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('tool, or sidecar change');
     expect(docText).not.toContain('Sidecar boundaries should');
     expect(docText).not.toContain('Tool Policy or Sidecar Execution');
+    expect(docText).not.toContain('Frontend Python Sidecar Tools');
+    expect(docText).not.toContain('These are executed via IPC from the Electron main process');
     expect(docText).not.toContain('platform-specific main/sidecar adapters');
     expect(runtimeTraceText).not.toContain('## Sidecar JSON-RPC Trace');
     expect(runtimeTraceText).not.toContain('Sidecar executed a registered tool');

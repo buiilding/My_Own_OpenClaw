@@ -22,16 +22,19 @@ capability policy in `backend/src/tools/agent_capability_policy.py` and
 `backend/src/tools/tool_policy.py`. Add new production profiles or capability
 gates there.
 
-## 2) Frontend Python Sidecar Tools
+## 2) Local-Runtime Python Tools
 
-Most OS-level tools are implemented in the Python sidecar:
+Most OS-level tools execute through the SDK/main local-runtime boundary and are
+currently backed by Python sidecar modules:
 
 - `frontend/src/main/python/tools/`
   - `filesystem/` (read/write/search)
   - `computer/` (mouse/keyboard/scroll/screenshot)
   - `system/` (stats/window/wait)
 
-These are executed via IPC from the Electron main process.
+These are executed through SDK/main local-runtime dispatch; Electron main owns
+the desktop host bridge and the Python sidecar modules own the current
+implementation behavior.
 
 ## 3) LLM Providers
 
