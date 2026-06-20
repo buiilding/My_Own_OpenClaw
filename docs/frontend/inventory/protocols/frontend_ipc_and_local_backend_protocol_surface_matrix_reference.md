@@ -203,7 +203,7 @@ builds the Python JSON-RPC method and params behind that boundary.
 | readiness probe (internal) | `ping` | Startup readiness checks |
 | diagnostics (registered in sidecar) | `get_status` | Read through SDK local-runtime status helpers |
 
-### Sidecar Method Registry (`local_backend.py`)
+### Python JSON-RPC Method Registry (`local_backend.py`)
 
 Registered callable surface:
 

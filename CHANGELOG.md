@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: route active tool-contract and frontend protocol registry
+  labels through local-runtime executable registry and Python JSON-RPC method
+  registry wording instead of sidecar registry owner labels. No migration
+  required.
 - docs/frontend: route retired renderer envelope and local-runtime tool catalog
   wording through SDK/main local-runtime and backend/local-runtime contracts
   instead of SDK main-runtime and sidecar registry labels. No migration

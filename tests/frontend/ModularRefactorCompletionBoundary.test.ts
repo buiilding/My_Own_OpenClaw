@@ -1423,6 +1423,8 @@ describe('modular sdk refactor completion boundary', () => {
         'Frontend sidecar',
         'local-runtime sidecar',
         'Local Runtime Sidecar',
+        'Sidecar registry',
+        'Sidecar Method Registry',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

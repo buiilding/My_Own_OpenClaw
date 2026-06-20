@@ -275,6 +275,17 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: routed active tool contract and frontend IPC/local-runtime
+  protocol registry table labels through `Local-runtime executable registry`
+  and `Python JSON-RPC Method Registry` instead of `Sidecar registry` and
+  `Sidecar Method Registry` public owner wording. Validation covered the
+  modular docs boundary guard, docs search, related commit search, exact
+  active-doc stale registry-label scan, docs listing, and diff check. No
+  migration required; tool schemas, executable registry behavior, JSON-RPC
+  method names, IPC channels, SDK/main dispatch, renderer display, storage,
+  credentials, permissions, provider policy, hosted URLs, and local-runtime
+  behavior are unchanged.
+
 - 2026-06-20: routed local-runtime tool catalog and retired renderer
   tool-result envelope docs through local-runtime registry dispatch backed by
   Python modules, backend/local-runtime contracts, and SDK/main local-runtime

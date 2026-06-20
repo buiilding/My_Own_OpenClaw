@@ -238,6 +238,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Registry Table Local-Runtime Labels
+
+- Finding: active tool contract and frontend IPC/local-runtime protocol docs
+  still used `Sidecar registry` and `Sidecar Method Registry` labels for
+  registry tables after public routing moved to local-runtime executable
+  registry ownership and Python JSON-RPC implementation details.
+- Change: renamed the tool contract file-table row to
+  `Local-runtime executable registry`, renamed the protocol heading to
+  `Python JSON-RPC Method Registry`, and extended the modular docs guard so
+  those retired public owner labels stay out of active docs.
+- Validation: focused modular docs boundary guard, docs search, related commit
+  search, exact active-doc stale registry-label scan, docs listing, and diff
+  check.
+- Compatibility: no migration required. Tool schemas, executable registry
+  behavior, JSON-RPC method names, IPC channels, SDK/main dispatch, renderer
+  display, storage, credentials, permissions, provider policy, hosted URLs, and
+  local-runtime behavior are unchanged.
+
 ### 2026-06-20 Renderer Envelope and Tool Catalog Route Labels
 
 - Finding: local-runtime tool catalog and retired renderer tool-result envelope

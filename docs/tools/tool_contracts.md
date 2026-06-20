@@ -135,7 +135,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 | Sending/waiting/processing | `backend/src/agent/tools/sending/*`, `backend/src/agent/tools/waiting/*`, `backend/src/agent/tools/processing/*` |
 | SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/AgentClient.ts`, `packages/windie-sdk-js/src/runtime/Agent.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Main local-runtime bridge | `frontend/src/main/sidecar/local_runtime*.cjs` |
-| Sidecar registry | `frontend/src/main/python/tools/registry.py` |
+| Local-runtime executable registry | `frontend/src/main/python/tools/registry.py` |
 
 For a step-by-step change route across these owners, use [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md).
 
