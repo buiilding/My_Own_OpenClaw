@@ -335,6 +335,22 @@ describe('modular sdk refactor completion boundary', () => {
     await expect(pathExists('tests/frontend/WindieSdkManagedWebSocketSession.test.ts')).resolves.toBe(false);
   });
 
+  test('Agent SDK tests keep workspace fixtures product-neutral', async () => {
+    const sdkTestText = await Promise.all([
+      read('tests/frontend/AgentSdkClient.test.ts'),
+      read('tests/frontend/AgentConversationStoreApi.test.ts'),
+      read('tests/frontend/AgentSdkConversationRuntime.test.ts'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(sdkTestText).not.toContain('/work/WindieOS');
+    expect(sdkTestText).not.toContain('/Windieos_workspace/');
+    expect(sdkTestText).not.toContain("workspaceName: 'WindieOS'");
+    expect(sdkTestText).not.toContain("workspace_name: 'WindieOS'");
+    expect(sdkTestText).toContain('/work/project-alpha');
+    expect(sdkTestText).toContain('/Users/dev/workspaces/project-alpha');
+    expect(sdkTestText).toContain("workspaceName: 'Project Alpha'");
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),

@@ -18301,3 +18301,21 @@ Each completed slice should report:
   websocket fallback behavior, package names, environment variable names,
   credentials, permissions, storage, provider policy, hosted backend contracts,
   and local-runtime behavior are unchanged.
+
+### 2026-06-20 Agent SDK neutral workspace fixtures
+
+- Finding: several generic Agent SDK tests still used WindieOS-named workspace
+  paths or workspace display names as sample user project data, which made SDK
+  store/projection coverage read as product-specific even though the workspace
+  fields are caller-supplied metadata.
+- Change: switched the Agent SDK client, public conversation-store API, and SDK
+  conversation-runtime workspace fixtures to neutral project values and added a
+  modular boundary assertion that keeps retired product workspace samples out of
+  those SDK-focused tests.
+- Validation: focused Agent SDK client, conversation-store API, conversation
+  runtime, modular boundary, exact retired workspace fixture scan, docs listing,
+  and diff checks.
+- Compatibility: no migration required. Conversation event payload keys,
+  workspace metadata extraction, local-runtime conversation-store RPC shapes,
+  SDK projections, storage contracts, credentials, permissions, hosted backend
+  URLs, provider policy, and local-runtime behavior are unchanged.

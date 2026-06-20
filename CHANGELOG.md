@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: use neutral project workspace fixtures in Agent SDK client,
+  conversation-store, and conversation-runtime coverage instead of WindieOS
+  workspace samples. No migration required.
+
 - tests/sdk: use neutral hosted endpoint fixtures in Agent SDK client coverage
   instead of production WindieOS URLs or product-flavored test hosts. No
   migration required.

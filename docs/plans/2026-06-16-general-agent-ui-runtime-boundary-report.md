@@ -11,11 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `d4969d168` (`docs(sdk): clarify python validation ownership`)
-- Latest completed slice: SDK route/auth docs now label Python validation rows
-  through Python SDK package ownership, and Agent SDK client fixtures now use
-  neutral hosted endpoint hosts instead of production WindieOS URLs or
-  product-flavored test hosts.
+- Latest inspected plan checkpoint: `c0ae5095f` (`test(sdk): neutralize hosted endpoint fixtures`)
+- Latest completed slice: Agent SDK client fixtures now use neutral hosted
+  endpoint hosts, and Agent SDK workspace fixtures now use neutral project
+  samples instead of product-named workspace data.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -53,9 +52,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   now use generic `agent-*` values while the existing backend mode remains
   unchanged. Agent SDK client fixtures now use neutral hosted endpoint hosts
   while preserving the same hosted route construction, websocket fallback, and
-  environment compatibility coverage. Preload SDK-command validation failures
-  use generic Agent SDK wording while the `window.windie` bridge contract
-  remains stable. Python SDK
+  environment compatibility coverage. Agent SDK workspace fixtures now use
+  neutral project metadata while preserving the same local-runtime store and
+  projection contracts. Preload SDK-command validation failures use generic
+  Agent SDK wording while the `window.windie` bridge contract remains stable.
+  Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,
   and JS SDK public stream projections use generic fallback error wording when
   runtime errors omit a message. SDK local-runtime auto-start discovery and
@@ -7462,3 +7463,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   fallback behavior, package names, environment variable names, credentials,
   permissions, storage, provider policy, hosted backend contracts, and
   local-runtime behavior are unchanged; no migration is required.
+- Agent SDK client, public conversation-store API, and conversation-runtime
+  tests now use neutral project workspace paths/names instead of WindieOS-named
+  workspace fixture data, with a modular guard for those SDK-focused tests.
+  Conversation event payload keys, workspace metadata extraction,
+  local-runtime conversation-store RPC shapes, SDK projections, storage
+  contracts, credentials, permissions, hosted backend URLs, provider policy,
+  and local-runtime behavior are unchanged; no migration is required.

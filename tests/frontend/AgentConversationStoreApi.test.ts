@@ -410,7 +410,7 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
         toolName: 'mouse_control',
         toolCallId: 'call-1',
         workspacePath: '/repo',
-        workspaceName: 'WindieOS',
+        workspaceName: 'Project Alpha',
         modelId: 'model-1',
         modelProvider: 'provider-1',
         screenshotRef: 'artifact-1',
@@ -432,7 +432,7 @@ describe('LocalRuntimeConversationStore event payload write params', () => {
         tool_name: 'mouse_control',
         correlation_id: 'call-1',
         workspace_path: '/repo',
-        workspace_name: 'WindieOS',
+        workspace_name: 'Project Alpha',
         attachments: [
           expect.objectContaining({
             kind: 'image',

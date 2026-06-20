@@ -4574,7 +4574,7 @@ describe('Agent SDK conversation runtime core', () => {
       turnRef: 'turn-feature-paths',
       resources: [{
         kind: 'workspace',
-        workspacePath: '/Users/peterbui/Agent_workspaces/Windieos_workspace/WindieOS',
+        workspacePath: '/Users/dev/workspaces/project-alpha',
       }],
     });
 

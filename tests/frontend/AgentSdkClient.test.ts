@@ -3948,7 +3948,7 @@ describe('Agent SDK client behavior', () => {
       runtime: { rpc },
       eventWriteParams: ({ event, defaultParams }) => ({
         ...defaultParams,
-        workspace_path: '/work/WindieOS',
+        workspace_path: '/work/project-alpha',
         tool_name: event.payload.toolName,
         metadata: {
           model_id: 'model-1',
@@ -3981,7 +3981,7 @@ describe('Agent SDK client behavior', () => {
         content: 'tool output',
         role: 'tool',
         record_kind: 'chat_event',
-        workspace_path: '/work/WindieOS',
+        workspace_path: '/work/project-alpha',
         tool_name: 'read_file',
         metadata: {
           model_id: 'model-1',
