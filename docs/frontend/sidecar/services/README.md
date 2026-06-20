@@ -2,7 +2,7 @@
 summary: "Local-runtime services docs sub-hub for standalone Python service entrypoints such as wakeword subprocess model/bootstrap binary framing."
 read_when:
   - When changing `frontend/src/main/python/wakeword_service.py`.
-  - When debugging standalone sidecar service startup/shutdown behavior or protocol-frame mismatches.
+  - When debugging standalone local-runtime Python service startup/shutdown behavior or protocol-frame mismatches.
 title: "Local-Runtime Services Docs Hub"
 ---
 

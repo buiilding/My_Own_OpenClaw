@@ -120,6 +120,21 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Local-Runtime Python Service Hub Labels
+
+- Finding: local-runtime service hubs still used sidecar service startup,
+  service-script, and sidecar-daemon hub wording where the reusable boundary is
+  local-runtime Python service/daemon ownership.
+- Change: routed those hub/read_when labels through local-runtime Python
+  service and daemon wording while preserving concrete wakeword service paths
+  and Electron main bridge framing details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  service label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, service framing,
+  wakeword subprocess behavior, daemon launch behavior, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 IPC Local-Runtime Authority Label
 
 - Finding: the IPC change workflow still routed security concerns through

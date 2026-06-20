@@ -275,6 +275,14 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python service hub label slice by
+  routing service startup/framing and daemon hub labels through local-runtime
+  Python service/daemon wording instead of sidecar service/daemon labels.
+  Validation: focused modular docs boundary test, docs listing, exact stale
+  service label scan, and diff checks. No migration required; no runtime code,
+  service framing, wakeword subprocess behavior, daemon launch behavior, IPC
+  payload, storage, credential, permission, hosted URL, provider-policy, or
+  trust-boundary behavior changed.
 - 2026-06-20: completed an IPC local-runtime authority label slice by routing
   the security triage row through local-runtime authority wording instead of
   sidecar authority. Validation: focused modular docs boundary test, docs

@@ -1,7 +1,7 @@
 ---
 summary: "Local-runtime service protocol docs sub-hub for wakeword-service length-prefixed binary result framing backed by local-runtime Python service scripts."
 read_when:
-  - When changing stdin/stdout framing contracts between Electron main-process bridges and sidecar service scripts.
+  - When changing stdin/stdout framing contracts between Electron main-process bridges and local-runtime Python service scripts.
   - When debugging parse mismatches or truncated frames in service subprocess protocols.
 title: "Local-Runtime Service Protocol Docs Hub"
 ---

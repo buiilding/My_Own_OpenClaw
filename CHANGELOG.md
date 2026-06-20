@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route local-runtime service hub labels through
+  local-runtime Python service/daemon wording instead of sidecar service hub
+  wording. No migration required.
 - docs(security): route IPC security triage through local-runtime authority
   wording instead of sidecar authority wording. No migration required.
 - docs(memory): route transcript replay, dashboard, identity, and docs hub

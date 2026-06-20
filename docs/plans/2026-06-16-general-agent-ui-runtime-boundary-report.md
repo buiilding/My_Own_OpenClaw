@@ -12,9 +12,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: IPC security triage now routes permission and trust
-  checks through local-runtime authority instead of sidecar authority, with a
-  focused docs boundary guard against the retired phrase.
+- Latest completed slice: local-runtime service hubs now describe
+  local-runtime Python service startup/framing and daemon docs instead of
+  sidecar service/daemon hub labels, with a focused docs boundary guard
+  against those retired phrases.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -243,6 +244,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Local-Runtime Python Service Hub Labels
+
+- Finding: local-runtime service hubs still used sidecar service startup,
+  service-script, and sidecar-daemon hub wording where the reusable boundary is
+  local-runtime Python service/daemon ownership.
+- Change: routed those hub/read_when labels through local-runtime Python
+  service and daemon wording while preserving concrete wakeword service paths
+  and Electron main bridge framing details.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  service label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, service framing,
+  wakeword subprocess behavior, daemon launch behavior, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
 
 ### 2026-06-20 IPC Local-Runtime Authority Label
 
