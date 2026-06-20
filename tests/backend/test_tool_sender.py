@@ -419,7 +419,7 @@ class _BackendSearchTool(Tool[_BackendSearchArgs]):
             success=True,
             data={
                 "provider": "brave",
-                "query": "latest windieos news",
+                "query": "latest project alpha news",
                 "results": [
                     {
                         "rank": 1,
@@ -449,7 +449,7 @@ class _BackendSearchToolWithDuplicateResults(Tool[_BackendSearchArgs]):
             success=True,
             data={
                 "provider": "brave",
-                "query": "latest windieos news",
+                "query": "latest project alpha news",
                 "results": [
                     {
                         "rank": 1,
@@ -504,7 +504,7 @@ async def test_send_tools_executes_backend_tool_with_standard_tool_call_and_outp
     request_id = "req-web-search-1"
     parsed_call = ParsedToolCall(
         tool_name="web_search",
-        parameters={"query": "latest windieos news"},
+        parameters={"query": "latest project alpha news"},
         metadata={
             "request_id": request_id,
             "tool_call_id": "tool_llm_web_search_1",
@@ -540,7 +540,7 @@ async def test_send_tools_emits_backend_tool_progress_before_final_tool_events()
     request_id = "req-web-search-progress-1"
     parsed_call = ParsedToolCall(
         tool_name="web_search",
-        parameters={"query": "latest windieos news"},
+        parameters={"query": "latest project alpha news"},
         metadata={
             "request_id": request_id,
             "tool_call_id": "tool_llm_web_search_progress_1",
@@ -574,7 +574,7 @@ async def test_send_tools_keeps_duplicate_search_results_inside_tool_output_only
     request_id = "req-web-search-dedupe-1"
     parsed_call = ParsedToolCall(
         tool_name="web_search",
-        parameters={"query": "latest windieos news"},
+        parameters={"query": "latest project alpha news"},
         metadata={
             "request_id": request_id,
             "tool_call_id": "tool_llm_web_search_dedupe_1",
@@ -606,7 +606,7 @@ async def test_send_tools_rejects_bundles_that_include_backend_tools():
     bundle_id = "bundle-backend-unsupported"
     parsed_call = ParsedToolCall(
         tool_name="web_search",
-        parameters={"query": "latest windieos news"},
+        parameters={"query": "latest project alpha news"},
         metadata={
             "bundle_id": bundle_id,
             "request_id": "req-backend-bundle-1",

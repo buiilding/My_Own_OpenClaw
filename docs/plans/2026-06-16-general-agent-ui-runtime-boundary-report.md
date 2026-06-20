@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f34779797` (`test(renderer): neutralize workspace ui fixtures`)
-- Latest completed slice: unicode/mojibake repair fixtures now use neutral
-  project document text instead of WindieOS-flavored active-document samples.
+- Latest inspected plan checkpoint: `7ef3437a4` (`test(runtime): neutralize unicode repair fixtures`)
+- Latest completed slice: backend web-search/provider tests now use neutral
+  query samples instead of WindieOS-flavored arbitrary search text.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -85,6 +85,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Unicode/mojibake repair fixtures now use neutral project document text while
   preserving quote, dash, and lone-surrogate normalization behavior across the
   local-runtime sanitizer and renderer stream-update normalizer.
+  Backend web-search/provider fixtures now use neutral query samples while
+  preserving native source extraction, source de-duplication, backend
+  tool-sender progress ordering, and backend-executed tool-output behavior.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7562,3 +7565,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   payload mapping, IPC/RPC contracts, storage, credentials, permissions, hosted
   backend URLs, provider policy, and product skin behavior are unchanged; no
   migration is required.
+- Backend web-search/provider fixture samples now use neutral `project alpha`
+  query text instead of WindieOS-flavored sample data. OpenAI/Gemini native
+  source extraction, source de-duplication, backend tool-sender progress
+  ordering, backend-executed tool-output behavior, query payload shape,
+  credentials, permissions, hosted backend URLs, provider policy, and
+  local-runtime behavior are unchanged; no migration is required.

@@ -467,6 +467,17 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('<active_window>Project Alpha Notes</active_window>');
   });
 
+  test('backend web-search tests keep query fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/backend/test_tool_sender.py'),
+      read('tests/backend/test_gemini_provider.py'),
+      read('tests/backend/test_openai_provider.py'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('latest windieos news');
+    expect(source).toContain('latest project alpha news');
+  });
+
   test('landing docs track desktop runtime and local runtime public copy', async () => {
     const landingDocs = await Promise.all([
       read('docs/frontend/landing/landing_page_runtime_and_content_reference.md'),

@@ -18562,3 +18562,22 @@ Each completed slice should report:
   lone-surrogate replacement, stream-update payload shape, tool schema payload
   mapping, IPC/RPC contracts, storage, credentials, permissions, hosted backend
   URLs, provider policy, and product skin behavior are unchanged.
+
+### 2026-06-20 Backend web-search query fixture neutrality
+
+- Finding: backend OpenAI/Gemini web-search source extraction and backend
+  tool-sender tests exercise provider normalization, source de-duplication,
+  progress ordering, and backend-executed tool-output behavior, but their
+  search query samples still used WindieOS identity as arbitrary user text.
+- Change: switched those web-search query fixture values to neutral
+  `latest project alpha news` samples and extended the modular boundary guard
+  so the retired product-shaped query sample stays out of backend web-search
+  coverage.
+- Validation: focused backend tool-sender, Gemini provider, OpenAI provider,
+  and modular boundary tests; exact retired fixture scan, docs listing, and
+  diff checks.
+- Compatibility: no migration required. OpenAI/Gemini native source extraction,
+  source de-duplication, backend tool-sender progress ordering,
+  backend-executed tool-output behavior, query payload shape, credentials,
+  permissions, hosted backend URLs, provider policy, and local-runtime behavior
+  are unchanged.

@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/backend: use neutral web-search query samples in provider source
+  extraction and backend tool-sender coverage instead of WindieOS-flavored
+  query fixture data. No migration required.
+
 - tests/runtime: use neutral project text in unicode/mojibake repair coverage
   instead of WindieOS-flavored active-document fixture data. No migration
   required.

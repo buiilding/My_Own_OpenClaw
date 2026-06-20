@@ -161,7 +161,7 @@ async def test_gemini_native_web_search_falls_back_to_sync_completion_when_async
             "candidates": [
                 {
                     "groundingMetadata": {
-                        "webSearchQueries": ["latest windieos news"],
+                        "webSearchQueries": ["latest project alpha news"],
                         "groundingChunks": [
                             {
                                 "web": {
@@ -194,7 +194,7 @@ async def test_gemini_native_web_search_falls_back_to_sync_completion_when_async
             "url": "https://example.com/a",
             "title": "Example A",
             "provider": "gemini",
-            "query": "latest windieos news",
+            "query": "latest project alpha news",
             "rank": 1,
         }
     ]
@@ -542,7 +542,7 @@ def test_extract_gemini_web_search_sources_ignores_entries_without_urls_and_dedu
         "candidates": [
             {
                 "groundingMetadata": {
-                    "webSearchQueries": ["latest windieos news"],
+                    "webSearchQueries": ["latest project alpha news"],
                     "groundingChunks": [
                         {"web": {"uri": "https://example.com/a", "title": "Example A"}},
                         {"web": {"uri": "", "title": "Missing URL"}},
@@ -564,14 +564,14 @@ def test_extract_gemini_web_search_sources_ignores_entries_without_urls_and_dedu
             "url": "https://example.com/a",
             "title": "Example A",
             "provider": "gemini",
-            "query": "latest windieos news",
+            "query": "latest project alpha news",
             "rank": 1,
         },
         {
             "url": "https://example.com/b",
             "title": "Example B",
             "provider": "gemini",
-            "query": "latest windieos news",
+            "query": "latest project alpha news",
             "rank": 4,
         },
     ]

@@ -1865,7 +1865,7 @@ def test_extract_openai_web_search_sources_dedupes_urls_and_preserves_query_orde
         "output": [
             {
                 "type": "web_search_call",
-                "query": "latest windieos news",
+                "query": "latest project alpha news",
                 "action": {
                     "sources": [
                         {"url": "https://example.com/a", "title": "Example A"},
@@ -1895,14 +1895,14 @@ def test_extract_openai_web_search_sources_dedupes_urls_and_preserves_query_orde
             "url": "https://example.com/a",
             "title": "Example A",
             "provider": "openai",
-            "query": "latest windieos news",
+            "query": "latest project alpha news",
             "rank": 1,
         },
         {
             "url": "https://example.com/b",
             "title": "Example B",
             "provider": "openai",
-            "query": "latest windieos news",
+            "query": "latest project alpha news",
             "rank": 3,
         },
         {
