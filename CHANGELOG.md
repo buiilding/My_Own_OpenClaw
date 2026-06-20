@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/renderer: use neutral selected-workspace samples in chat and settings
+  workspace UI coverage instead of WindieOS-flavored project paths. No
+  migration required.
+
 - tests/sidecar: use neutral window-title samples in local-runtime window
   manager, system-state, and MCP structured-result coverage instead of
   WindieOS-flavored fixture data. No migration required.

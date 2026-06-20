@@ -11,10 +11,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `f8f22f400` (`test(backend): neutralize user query context fixtures`)
-- Latest completed slice: local-runtime window manager, system-state, and MCP
-  structured-result fixtures now use neutral window-title samples instead of
-  WindieOS-flavored fixture data.
+- Latest inspected plan checkpoint: `05c538775` (`test(sidecar): neutralize window title fixtures`)
+- Latest completed slice: renderer chat and settings workspace UI fixtures now
+  use neutral selected-workspace paths instead of WindieOS-flavored project
+  paths.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -80,7 +80,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   samples while preserving strict `<user_query>` extraction semantics.
   Local-runtime window manager, system-state, and MCP structured-result fixtures
   now use neutral window-title samples while preserving matching, fallback, and
-  raw-result preservation behavior. Preload SDK-command validation
+  raw-result preservation behavior. Renderer chat and settings workspace UI
+  fixtures now use neutral selected-workspace paths while preserving active
+  workspace name derivation, permission request, and workspace update behavior.
+  Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
   stream and trace-query fallback failures also use generic Agent SDK wording,

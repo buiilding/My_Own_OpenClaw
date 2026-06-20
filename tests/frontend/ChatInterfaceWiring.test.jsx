@@ -617,7 +617,7 @@ describe('ChatInterface wiring', () => {
               permission_id: 'filesystem_workspace_access',
               granted: true,
               details: {
-                selected_paths: ['/Users/peterbui/Projects/WindieOS'],
+                selected_paths: ['/Users/peterbui/Projects/project-alpha'],
               },
             },
           },
@@ -628,9 +628,9 @@ describe('ChatInterface wiring', () => {
 
     render(<ChatInterface />);
 
-    expect(await screen.findByRole('button', { name: 'Change active workspace from WindieOS' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Change active workspace from project-alpha' })).toBeInTheDocument();
     expect(screen.getByText('Workspace')).toBeInTheDocument();
-    expect(screen.getByText('WindieOS')).toBeInTheDocument();
+    expect(screen.getByText('project-alpha')).toBeInTheDocument();
   });
 
   test('updates the active workspace badge when the main process broadcasts a workspace change', async () => {
@@ -675,7 +675,7 @@ describe('ChatInterface wiring', () => {
               permission_id: 'filesystem_workspace_access',
               granted: true,
               details: {
-                selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+                selected_paths: ['D:\\Assistants\\project-alpha'],
               },
             },
           },
@@ -694,7 +694,7 @@ describe('ChatInterface wiring', () => {
       });
     });
     expect(
-      await screen.findByRole('button', { name: 'Change active workspace from windieos' }),
+      await screen.findByRole('button', { name: 'Change active workspace from project-alpha' }),
     ).toBeInTheDocument();
   });
 

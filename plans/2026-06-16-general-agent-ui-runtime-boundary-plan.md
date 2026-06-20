@@ -18528,3 +18528,19 @@ Each completed slice should report:
   foreground verification, active-window fallback, MCP raw result preservation,
   JSON-RPC payload shape, storage, credentials, permissions, hosted backend
   URLs, provider policy, and renderer/backend behavior are unchanged.
+
+### 2026-06-20 Renderer workspace UI fixture neutrality
+
+- Finding: renderer chat and settings workspace UI tests exercise generic
+  active-workspace display, workspace-name derivation, and permission request
+  behavior, but still used WindieOS-flavored selected workspace paths as sample
+  project folders.
+- Change: switched those selected workspace fixture paths to neutral
+  `project-alpha` samples and extended the modular boundary guard so the
+  retired product-shaped paths stay out of renderer workspace UI coverage.
+- Validation: focused chat interface wiring, settings section, modular
+  boundary, exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Workspace permission IDs, IPC channels,
+  active workspace name derivation, workspace selection requests, storage,
+  credentials, hosted backend URLs, provider policy, backend behavior, and
+  local-runtime behavior are unchanged.

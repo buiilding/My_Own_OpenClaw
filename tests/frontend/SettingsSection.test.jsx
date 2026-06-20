@@ -443,7 +443,7 @@ describe('SettingsSection', () => {
               permission_id: 'filesystem_workspace_access',
               granted: true,
               details: {
-                selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+                selected_paths: ['D:\\Assistants\\project-alpha'],
               },
             },
           },
@@ -457,7 +457,7 @@ describe('SettingsSection', () => {
               permission_id: 'filesystem_workspace_access',
               granted: true,
               details: {
-                selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos\\frontend'],
+                selected_paths: ['D:\\Assistants\\project-alpha\\frontend'],
               },
             },
           },
@@ -468,7 +468,7 @@ describe('SettingsSection', () => {
 
     renderSettingsSection({ initialTab: 'workspace' });
 
-    expect(await screen.findByText('D:\\Assistants\\WindieOS_workspace\\windieos')).toBeInTheDocument();
+    expect(await screen.findByText('D:\\Assistants\\project-alpha')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Change workspace' }));
 
@@ -478,7 +478,7 @@ describe('SettingsSection', () => {
       });
     });
     expect(await screen.findByText('Active workspace set to frontend.')).toBeInTheDocument();
-    expect(screen.getByText('D:\\Assistants\\WindieOS_workspace\\windieos\\frontend')).toBeInTheDocument();
+    expect(screen.getByText('D:\\Assistants\\project-alpha\\frontend')).toBeInTheDocument();
   });
 
   test('workspace tab updates when the main process broadcasts a workspace change', async () => {

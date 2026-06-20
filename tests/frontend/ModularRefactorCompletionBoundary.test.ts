@@ -370,6 +370,18 @@ describe('modular sdk refactor completion boundary', () => {
     expect(workspaceTestText).toContain("activeWorkspaceName: 'Project Alpha'");
   });
 
+  test('renderer workspace surface tests keep selected workspace fixtures product-neutral', async () => {
+    const workspaceSurfaceText = await Promise.all([
+      read('tests/frontend/ChatInterfaceWiring.test.jsx'),
+      read('tests/frontend/SettingsSection.test.jsx'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(workspaceSurfaceText).not.toContain('/Users/peterbui/Projects/WindieOS');
+    expect(workspaceSurfaceText).not.toContain('D:\\\\Assistants\\\\WindieOS_workspace\\\\windieos');
+    expect(workspaceSurfaceText).toContain('/Users/peterbui/Projects/project-alpha');
+    expect(workspaceSurfaceText).toContain('D:\\\\Assistants\\\\project-alpha');
+  });
+
   test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
     const conversationMetadataText = await Promise.all([
       read('tests/frontend/ConversationGroups.test.js'),
