@@ -275,6 +275,18 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed a local-runtime Python daemon-label slice by routing
+  architecture, local-runtime daemon, local-runtime memory, and error routing
+  docs through local-runtime Python daemon/process wording instead of local
+  Python sidecar, Python sidecar daemon, or sidecar process helper labels. The
+  slice preserved concrete `sidecar_daemon.py`, discovery-file, and frontend
+  sidecar path names. Validation covered the focused modular docs boundary
+  test, docs listing, exact active daemon/process stale-label scan, and diff
+  check. No migration required; runtime code, executable behavior, daemon
+  discovery payloads, JSON-RPC/WebSocket payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 - 2026-06-20: completed a local-runtime Python process-label slice by routing
   runtime configuration, packaged desktop, endpoint setup, and installation
   docs through local-runtime Python process wording instead of Python sidecar

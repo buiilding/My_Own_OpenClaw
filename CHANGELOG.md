@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(runtime): route local-runtime daemon/process labels through
+  local-runtime Python daemon/process wording while preserving concrete
+  `sidecar_daemon.py` names. No migration required.
 - docs(install): route public install/config process labels through
   local-runtime Python process wording instead of Python sidecar process or
   local Python sidecar wording. No migration required.

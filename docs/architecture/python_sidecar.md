@@ -8,10 +8,10 @@ read_when:
 
 ## Overview
 
-The SDK-owned local runtime starts or reuses a **local Python sidecar daemon**
+The SDK-owned local runtime starts or reuses a **local-runtime Python daemon**
 that executes tools, captures system state, and manages local memory. Electron
 main supplies desktop launch facts and host-only helpers, but does not own a
-standalone sidecar process or stdin/stdout transport.
+standalone local-runtime Python process or stdin/stdout transport.
 
 The local runtime is the local execution boundary, currently backed by the
 local-runtime Python implementation. It is not a replacement backend. Its role in the

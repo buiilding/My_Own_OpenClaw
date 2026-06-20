@@ -245,6 +245,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Local-Runtime Python Daemon Labels
+
+- Finding: architecture, local-runtime daemon, local-runtime memory, and error
+  routing docs still used local Python sidecar, Python sidecar daemon, or
+  sidecar process helper labels for daemon/process ownership.
+- Change: routed those labels through local-runtime Python daemon/process
+  wording while preserving concrete `sidecar_daemon.py`, discovery-file, and
+  frontend sidecar path names.
+- Validation: focused modular docs boundary test, docs listing, exact active
+  daemon/process stale-label scan, and diff check.
+- Compatibility: no migration required. Runtime code, executable behavior,
+  daemon discovery payloads, JSON-RPC/WebSocket payloads, IPC payloads, storage,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Python Process Labels
 
 - Finding: runtime configuration, packaged desktop, endpoint setup, and

@@ -1,7 +1,7 @@
 ---
-summary: "Python sidecar daemon HTTP/WebSocket contract behind the SDK local-runtime boundary, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
+summary: "Local-runtime Python daemon HTTP/WebSocket contract behind the SDK local-runtime boundary, discovery token model, dynamic module/plugin/MCP registration, and executor-only responsibility boundary."
 read_when:
-  - When changing the Python sidecar daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
+  - When changing the local-runtime Python daemon, local tool registration, daemon auth, sidecar discovery, or SDK local execution.
   - When deciding whether a capability belongs in backend policy or local executor code.
   - When debugging `baseUrl` discovery metadata rejected by daemon discovery reuse.
 title: "Sidecar Daemon Runtime Reference"
@@ -9,7 +9,7 @@ title: "Sidecar Daemon Runtime Reference"
 
 # Sidecar Daemon Runtime Reference
 
-The Python sidecar daemon is the current local-runtime executor implementation.
+The local-runtime Python daemon is the current local-runtime executor implementation.
 It does not own backend policy, model lists, OCR/vision availability, paid
 capability gates, or prompt construction.
 
@@ -25,7 +25,7 @@ The daemon:
 - is started/reused by the SDK auto-local-runtime provider from desktop launch options
   supplied by Electron main
 - owns the app-session `LocalRuntimeService` instance and its `LocalMemoryStore`
-- exposes built-in local-runtime tools through the existing Python sidecar
+- exposes built-in local-runtime tools through the existing local-runtime Python
   `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
 
