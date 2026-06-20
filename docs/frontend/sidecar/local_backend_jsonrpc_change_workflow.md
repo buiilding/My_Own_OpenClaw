@@ -1,7 +1,7 @@
 ---
 summary: "Workflow for adding, changing, or debugging WindieOS local-runtime JSON-RPC methods across SDK local-runtime callers, Python JSON-RPC handler registration, payload normalization, timeouts, readiness, and tests."
 read_when:
-  - When adding, renaming, deleting, or changing a Python sidecar JSON-RPC method.
+  - When adding, renaming, deleting, or changing a local-runtime JSON-RPC method backed by Python sidecar modules.
   - When an SDK local-runtime call reaches Electron main or the daemon but does not reach the expected Python JSON-RPC method, maps payload keys incorrectly, times out, or returns the wrong success/error envelope.
 title: "Local Runtime JSON-RPC Change Workflow"
 ---
@@ -71,7 +71,7 @@ Renderer-visible chat and memory actions enter through SDK-shaped commands such
 as `conversations.list`, `conversations.search`, `conversation.load`,
 `conversation.delete`, `conversations.clearAll`, `memories.list`,
 `memories.delete`, and `memories.clearAll`. The SDK local-runtime store owns the
-Python sidecar JSON-RPC calls behind those commands.
+local-runtime JSON-RPC calls behind those commands.
 
 Completed-turn memory writes are SDK-owned and call the local runtime through
 `store_memory_by_embedding`; there is no renderer-visible `store-memory` IPC
