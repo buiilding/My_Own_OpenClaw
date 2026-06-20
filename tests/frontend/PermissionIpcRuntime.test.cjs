@@ -303,7 +303,7 @@ describe('permission_ipc_runtime', () => {
   });
 
   test('emits workspace update after a granted workspace selection request', async () => {
-    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-workspace-'));
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-workspace-'));
     const emitWorkspaceAccessUpdated = jest.fn();
     const { invokeHandlers } = createRuntime({
       dialog: {
@@ -344,7 +344,7 @@ describe('permission_ipc_runtime', () => {
   });
 
   test('sets the active workspace only when the path was already granted', async () => {
-    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-conversation-workspace-'));
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-conversation-workspace-'));
     const emitWorkspaceAccessUpdated = jest.fn();
     let storedEntry = {
       granted: true,
@@ -399,7 +399,7 @@ describe('permission_ipc_runtime', () => {
   });
 
   test('records active workspace changes as sanitized app diagnostics without paths', async () => {
-    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-diagnostic-workspace-'));
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-diagnostic-workspace-'));
     const appDiagnostics = [];
     let storedEntry = {
       granted: true,
@@ -459,7 +459,7 @@ describe('permission_ipc_runtime', () => {
   });
 
   test('rejects arbitrary active workspace paths that were not selected through permission flow', async () => {
-    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-untrusted-workspace-'));
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'project-alpha-untrusted-workspace-'));
     const emitWorkspaceAccessUpdated = jest.fn();
     const permissionStateStore = {
       get: jest.fn(async () => null),

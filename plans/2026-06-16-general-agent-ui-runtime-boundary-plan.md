@@ -18600,3 +18600,20 @@ Each completed slice should report:
   active-tab labeling, carousel switching, disconnect, polling, in-flight
   connect behavior, IPC channels, storage, permissions, hosted backend URLs,
   provider policy, and local-runtime browser behavior are unchanged.
+
+### 2026-06-20 Main permission workspace path fixture neutrality
+
+- Finding: main permission IPC/service tests exercise workspace picker grants,
+  active-workspace updates, selected-path persistence, untrusted-path rejection,
+  and sanitized diagnostics, but their temp workspace paths still used
+  WindieOS-flavored directory names as arbitrary filesystem fixture data.
+- Change: switched those workspace path fixture values to neutral
+  `project-alpha` temp path prefixes and extended the modular boundary guard so
+  the retired product-shaped temp paths stay out of main permission workspace
+  coverage.
+- Validation: focused permission IPC runtime, permission service, and modular
+  boundary tests; exact retired fixture scan, docs listing, and diff checks.
+- Compatibility: no migration required. Workspace picker grants,
+  active-workspace updates, selected-path persistence, untrusted-path rejection,
+  sanitized diagnostics, IPC channels, storage, permissions, hosted backend
+  URLs, provider policy, and local-runtime behavior are unchanged.

@@ -338,7 +338,7 @@ describe('permission_service', () => {
   test('filesystem access starts as needs-action and becomes granted after folder picker selection', async () => {
     const showOpenDialog = jest.fn(async () => ({
       canceled: false,
-      filePaths: ['/tmp/windieos-workspace'],
+      filePaths: ['/tmp/project-alpha-workspace'],
     }));
     const initial = await runPermissionProbe('filesystem_workspace_access', {
       platform: 'linux',
@@ -375,7 +375,7 @@ describe('permission_service', () => {
       },
     });
     expect(reprobe.status).toBe('granted');
-    expect(reprobe.details.selected_paths).toEqual(['/tmp/windieos-workspace']);
+    expect(reprobe.details.selected_paths).toEqual(['/tmp/project-alpha-workspace']);
   });
 
   test('shell execution grant flow can be satisfied through elevated command prompt', async () => {

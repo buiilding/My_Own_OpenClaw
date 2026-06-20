@@ -38,6 +38,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/main: use neutral workspace path samples in permission IPC/service
+  coverage instead of WindieOS-flavored temp directory fixture data. No
+  migration required.
+
 - tests/renderer: use neutral browser tab URL samples in browser session store
   and chat browser carousel coverage instead of WindieOS-flavored fixture
   domains. No migration required.

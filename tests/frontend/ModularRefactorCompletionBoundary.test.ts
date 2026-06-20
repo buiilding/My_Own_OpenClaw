@@ -382,6 +382,22 @@ describe('modular sdk refactor completion boundary', () => {
     expect(workspaceSurfaceText).toContain('D:\\\\Assistants\\\\project-alpha');
   });
 
+  test('main permission workspace tests keep path fixtures product-neutral', async () => {
+    const source = await Promise.all([
+      read('tests/frontend/PermissionIpcRuntime.test.cjs'),
+      read('tests/frontend/PermissionService.test.cjs'),
+    ]).then(sources => sources.join('\n'));
+
+    expect(source).not.toContain('windieos-workspace');
+    expect(source).not.toContain('windieos-conversation-workspace');
+    expect(source).not.toContain('windieos-diagnostic-workspace');
+    expect(source).not.toContain('windieos-untrusted-workspace');
+    expect(source).toContain('project-alpha-workspace');
+    expect(source).toContain('project-alpha-conversation-workspace');
+    expect(source).toContain('project-alpha-diagnostic-workspace');
+    expect(source).toContain('project-alpha-untrusted-workspace');
+  });
+
   test('renderer conversation metadata tests keep workspace fixtures product-neutral', async () => {
     const conversationMetadataText = await Promise.all([
       read('tests/frontend/ConversationGroups.test.js'),

@@ -11,9 +11,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 ## Current Status
 
 - Status: in progress
-- Latest inspected plan checkpoint: `7a062cbd3` (`test(backend): neutralize web search query fixtures`)
-- Latest completed slice: renderer browser session tests now use neutral tab
-  URL samples instead of WindieOS-flavored browser fixture domains.
+- Latest inspected plan checkpoint: `7bbf833a3` (`test(renderer): neutralize browser tab fixtures`)
+- Latest completed slice: main permission workspace tests now use neutral
+  workspace path samples instead of WindieOS-flavored temp directory fixtures.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -91,6 +91,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   Renderer browser session fixtures now use neutral tab URLs while preserving
   browser session readiness, active-tab labeling, carousel switching,
   disconnect, polling, and in-flight connect behavior.
+  Main permission workspace fixtures now use neutral temp paths while preserving
+  workspace picker grants, active-workspace updates, selected-path persistence,
+  untrusted-path rejection, and sanitized diagnostics.
   Preload SDK-command validation
   failures use generic Agent SDK wording while the
   `window.windie` bridge contract remains stable. Python SDK
@@ -7580,3 +7583,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   polling, in-flight connect behavior, IPC channels, storage, permissions,
   hosted backend URLs, provider policy, and local-runtime browser behavior are
   unchanged; no migration is required.
+- Main permission workspace fixture samples now use neutral `project-alpha`
+  temp path prefixes instead of WindieOS-flavored sample directories. Workspace
+  picker grants, active-workspace updates, selected-path persistence,
+  untrusted-path rejection, sanitized diagnostics, IPC channels, storage,
+  permissions, hosted backend URLs, provider policy, and local-runtime behavior
+  are unchanged; no migration is required.
