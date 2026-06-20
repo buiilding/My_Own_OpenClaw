@@ -16,6 +16,15 @@ async function read(relativePath: string): Promise<string> {
   return fs.readFile(path.join(repoRoot, relativePath), 'utf8');
 }
 
+async function pathExists(relativePath: string): Promise<boolean> {
+  try {
+    await fs.access(path.join(repoRoot, relativePath));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function listMarkdownFiles(relativeDir: string): Promise<string[]> {
   const absoluteDir = path.join(repoRoot, relativeDir);
   const entries = await fs.readdir(absoluteDir, { withFileTypes: true });
@@ -300,6 +309,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(architectureText).not.toContain('sidecar-backed SDK store');
     expect(architectureText).not.toContain('SDK desktop agent');
     expect(architectureText).not.toContain(`SDK desktop-${'agent'}`);
+    await expect(pathExists('tests/frontend/AgentSdkManagedWebSocketSession.test.ts')).resolves.toBe(true);
+    await expect(pathExists('tests/frontend/WindieSdkManagedWebSocketSession.test.ts')).resolves.toBe(false);
   });
 
   test('landing docs track desktop runtime and local runtime public copy', async () => {

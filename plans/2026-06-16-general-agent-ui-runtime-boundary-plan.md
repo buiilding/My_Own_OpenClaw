@@ -18057,3 +18057,20 @@ Each completed slice should report:
   model-facing query content, memory embedding/search behavior, IPC payloads,
   local-runtime Python storage behavior, storage schemas, credentials,
   permissions, hosted backend URLs, and provider policy are unchanged.
+
+### 2026-06-20 Managed websocket test route rename
+
+- Finding: the private SDK websocket lifecycle helper had already moved from
+  `ManagedBackendSession` to `ManagedWebSocketSession`, but its focused test
+  route still used the product-branded `WindieSdkManagedWebSocketSession`
+  filename.
+- Change: renamed the focused test to
+  `tests/frontend/AgentSdkManagedWebSocketSession.test.ts` and added a modular
+  guard that the generic route exists while the retired branded route stays
+  absent.
+- Validation: focused Agent SDK managed websocket test, modular docs boundary
+  test, exact old-route scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, private SDK transport
+  behavior, public SDK exports, websocket payloads, reconnect/fallback behavior,
+  local-runtime behavior, storage, credentials, permissions, hosted backend
+  URLs, and provider policy are unchanged.

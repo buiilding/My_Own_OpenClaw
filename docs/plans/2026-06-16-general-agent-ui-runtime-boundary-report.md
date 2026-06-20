@@ -7359,3 +7359,10 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   IPC payloads, local-runtime Python storage behavior, storage schemas,
   credentials, permissions, hosted backend URLs, and provider policy are
   unchanged; no migration is required.
+- The private SDK managed websocket focused test now lives at
+  `tests/frontend/AgentSdkManagedWebSocketSession.test.ts`, matching the
+  generic `ManagedWebSocketSession` helper name after the private transport
+  rename. Runtime code, private SDK transport behavior, public SDK exports,
+  websocket payloads, reconnect/fallback behavior, local-runtime behavior,
+  storage, credentials, permissions, hosted backend URLs, and provider policy
+  are unchanged; no migration is required.
