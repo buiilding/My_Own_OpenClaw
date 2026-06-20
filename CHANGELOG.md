@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/providers: replace the stale Kimi frontend validation command's deleted
+  `ApiClient.test.ts` entry with the current renderer ApiClient boundary guard.
+  No migration required.
 - docs/frontend: route architecture, transcript, artifact, packaging, and
   domain-triage labels through SDK/local-runtime conversation store, renderer
   app-runtime, and Electron main Agent SDK host ownership instead of

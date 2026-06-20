@@ -120,6 +120,20 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Kimi Provider Frontend Validation Route Cleanup
+
+- Finding: the Kimi provider doc still referenced the deleted
+  `ApiClient.test.ts` in focused frontend validation, even though renderer
+  API-client behavior is now guarded by the app-runtime facade boundary test.
+- Change: replaced the stale test name with `RendererApiClientBoundary.test.ts`
+  and extended that boundary guard to read the Kimi provider doc.
+- Validation: focused renderer ApiClient boundary test, docs search, related
+  commit search, stale `ApiClient.test.ts` scan, docs listing, and diff check.
+- Compatibility: no migration required. Provider config, model catalog,
+  renderer app-runtime behavior, SDK facade behavior, IPC channels, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Frontend Store and Domain Triage Boundary Wording
 
 - Finding: frontend architecture, domain triage, transcript, artifact, and

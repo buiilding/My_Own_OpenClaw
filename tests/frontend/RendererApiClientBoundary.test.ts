@@ -118,6 +118,7 @@ describe('renderer api client boundary', () => {
       fs.readFile(path.resolve(__dirname, '../../docs/architecture/frontend_architecture.md'), 'utf8'),
       fs.readFile(path.resolve(__dirname, '../../docs/operations/release_packaging_change_workflow.md'), 'utf8'),
       fs.readFile(path.resolve(__dirname, '../../docs/planning/windieos_mobile_app_plan.md'), 'utf8'),
+      fs.readFile(path.resolve(__dirname, '../../docs/providers/kimi_coding.md'), 'utf8'),
       fs.readFile(path.resolve(__dirname, '../../docs/reference/api_reference.md'), 'utf8'),
       fs.readFile(path.resolve(__dirname, '../../docs/web/web_client_integration.md'), 'utf8'),
       fs.readFile(path.join(rendererRoot, 'folder_structure.md'), 'utf8'),
@@ -134,19 +135,21 @@ describe('renderer api client boundary', () => {
     expect(docText).toContain('Backend -> SDK/Renderer Consumers');
     expect(docText).toContain('SDK/main local-runtime dispatch');
     expect(docText).toContain('SDK/main result shaping');
+    expect(docText).toContain('RendererApiClientBoundary.test.ts');
     expect(docText).not.toContain('Developer-facing backend SDK transport wrapper');
     expect(docText).not.toContain('Electron renderer `ApiClient`');
     expect(docText).not.toContain('renderer `ApiClient`');
     expect(docText).not.toContain('renderer API client');
     expect(docText).not.toContain('customer-facing frontend');
     expect(docText).not.toContain('Client Messages (Frontend');
-    expect(docText).not.toContain('Server Messages (Backend → Frontend)');
+    expect(docText).not.toContain('Server Messages (Backend \u2192 Frontend)');
     expect(docText).not.toContain('Send tool execution result from frontend');
     expect(docText).not.toContain('Result of an atomic tool bundle executed on the frontend');
     expect(docText).not.toContain('frontend bundle runner');
     expect(docText).not.toContain('frontend uses fallback text');
     expect(docText).not.toContain('Request tool execution from frontend');
     expect(docText).not.toContain('Frontend executes all tools sequentially');
+    expect(docText).not.toContain('ApiClient.test.ts');
     expect(docText).not.toContain('Renderer SDK facade for hosted transport wrappers, runtime contracts, and app imports');
     expect(docText).not.toContain('`renderer/infrastructure/api/client.ts` remains');
     expect(docText).not.toContain('typed backend command emitter');

@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: replaced the Kimi provider doc's deleted `ApiClient.test.ts`
+  frontend validation route with the current `RendererApiClientBoundary.test.ts`
+  guard and added that provider doc to the guard input set. Validation covered
+  the focused renderer ApiClient boundary test, docs search, related commit
+  search, stale test-name scan, docs listing, and diff check. No migration
+  required; provider config, model catalog, renderer app-runtime behavior, SDK
+  facade behavior, IPC channels, storage, credentials, permissions, provider
+  policy, hosted URLs, and local execution behavior are unchanged.
+
 - 2026-06-20: routed frontend architecture, domain triage, transcript,
   artifact, and packaging docs through SDK/local-runtime conversation store,
   renderer app-runtime, Electron main Agent SDK host, and local-runtime Python

@@ -238,6 +238,21 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 ## Inspection Log
 
+### 2026-06-20 Kimi Provider Frontend Validation Route Cleanup
+
+- Finding: `docs/providers/kimi_coding.md` still listed the deleted
+  `ApiClient.test.ts` in its focused frontend validation command after renderer
+  API-client behavior moved to the app-runtime facade and boundary guard.
+- Change: replaced that stale test route with
+  `RendererApiClientBoundary.test.ts` and extended the renderer ApiClient
+  boundary guard to cover the Kimi provider doc.
+- Validation: focused renderer ApiClient boundary test, docs search, related
+  commit search, stale `ApiClient.test.ts` scan, docs listing, and diff check.
+- Compatibility: no migration required. Provider config, model catalog,
+  renderer app-runtime behavior, SDK facade behavior, IPC channels, storage,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Frontend Store and Domain Triage Boundary Wording
 
 - Finding: frontend architecture, domain triage, transcript, artifact, and

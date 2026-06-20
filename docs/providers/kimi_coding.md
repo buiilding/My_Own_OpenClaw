@@ -71,5 +71,5 @@ Focused frontend tests:
 
 ```bash
 cd frontend
-<windie> test frontend -- ModelCardData.test.js ApiClient.test.ts AppConfigProvider.models.test.tsx
+<windie> test frontend -- ModelCardData.test.js RendererApiClientBoundary.test.ts AppConfigProvider.models.test.tsx
 ```
