@@ -151,7 +151,7 @@ From `tests/frontend/LocalRuntimeBridge.rpc.test.cjs`:
 
 1. channel constants drift between preload allowlist and `ipcMain.handle` registration
 2. SDK command payload keys drift from SDK local-runtime store params
-3. method name drift (`delete_semantic_memory`, `conversation.append_event`, etc.) breaking sidecar routing silently
+3. method name drift (`delete_semantic_memory`, `conversation.append_event`, etc.) breaking local-runtime routing silently
 4. wrapper-specific behavior drift (`screenshot` visibility runtime wrapper ownership, browser timeout tier)
 
 ## Related Pages

@@ -1773,6 +1773,12 @@ describe('modular sdk refactor completion boundary', () => {
         'missing sidecar endpoint config',
         'primary sidecar endpoint override',
         '`BACKEND_HTTP_URL` is ignored in the sidecar',
+        'sidecar routing',
+        'Missing sidecar endpoint config',
+        'wrong endpoint in sidecar',
+        'sidecar defaults',
+        'Sidecar storage RPC names',
+        'sidecar ToolResult tests',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

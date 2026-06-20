@@ -275,6 +275,15 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed an architecture local-runtime route-label slice by
+  routing tool-system routing, backend endpoint failure, ownership decision,
+  storage RPC, ToolResult validation, and RPC drift docs through
+  local-runtime/local-runtime Python wording instead of sidecar routing/default
+  labels. Validation: focused modular docs boundary test, exact stale
+  architecture route-label scan, docs listing, and diff checks. No migration
+  required; no runtime code, JSON-RPC method name, endpoint env var, storage,
+  ToolResult payload, IPC payload, credential, permission, hosted URL,
+  provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a frontend local-runtime route-label slice by routing
   IPC troubleshooting, frontend inventory headings, source-map query labels,
   change-path validation labels, and backend endpoint config docs through

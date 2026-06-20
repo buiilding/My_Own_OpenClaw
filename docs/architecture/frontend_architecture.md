@@ -372,7 +372,7 @@ Primary modules:
   - Calls SDK-shaped commands such as `conversation.appendEvent`,
     `conversation.rewrite`, `conversation.replaceCompactedReplay`,
     `conversation.load`, and `conversations.list/search/delete`.
-  - Sidecar storage RPC names stay inside SDK store/local-runtime
+  - Local-runtime storage RPC names stay inside SDK store/local-runtime
     implementation code and Electron main local-runtime bridge internals.
 - `renderer/app/runtime/desktopConversationSessionRuntime.ts`:
   - Shared renderer policy for conversation selection, local conversation creation, transcript-session sync, and active-chat projection.

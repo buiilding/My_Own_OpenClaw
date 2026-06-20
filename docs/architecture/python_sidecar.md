@@ -140,7 +140,7 @@ Local memory is backed by the local-runtime Python implementation:
 - Backend base URL comes from an explicit client `backend_url` or
   `AGENT_BACKEND_HTTP_URL`; WindieOS Electron launches mirror the hosted
   endpoint resolver into that generic env and `WINDIE_BACKEND_HTTP_URL`.
-  Missing sidecar endpoint config fails fast instead of falling back to a
+  Missing local-runtime backend endpoint config fails fast instead of falling back to a
   hosted default.
 - Local-runtime Python hosted-helper HTTP clients do not parse Electron endpoint env
   aliases or retry alternate backend URLs. Remote memory/title/summarization

@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(architecture): route remaining active architecture/reference sidecar
+  routing, endpoint, storage, and ToolResult labels through local-runtime
+  wording. No migration required.
 - renderer/tracing: move minimal chat-pill state diagnostic payload shaping into
   `desktopRendererTraceRuntime` so the feature passes value-level state instead
   of assembling snake_case trace fields directly. No migration required.

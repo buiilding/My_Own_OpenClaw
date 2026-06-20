@@ -173,7 +173,7 @@ Execution identity provenance:
 Direct tool contract before execution:
 
 - model-facing tool names are already the execution-facing tool names
-- no wrapper-envelope normalization happens in parser, registry, or sidecar routing
+- no wrapper-envelope normalization happens in parser, registry, or local-runtime routing
 - each backend-executed direct tool validates through its backend schema; each local-executed direct tool validates in the local runtime
 - unified `computer_use` and `system_use` wrapper names remain repo-local reference artifacts, not registered runtime tool names
 

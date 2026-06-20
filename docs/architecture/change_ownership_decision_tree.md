@@ -38,7 +38,7 @@ Use this before touching code when ownership is ambiguous.
 Choose the producer first:
 
 - malformed backend event: fix backend, not renderer display
-- wrong endpoint in sidecar: fix Electron main env propagation, not sidecar defaults
+- wrong local-runtime backend endpoint: fix Electron main env propagation, not local-runtime Python defaults
 - permission status wrong: fix permission probe, not UI label
 - tool call valid but action fails: fix SDK/main local-runtime dispatch, not backend schema
 - packaged-only failure: fix packaging/runtime path, not source-mode launch code

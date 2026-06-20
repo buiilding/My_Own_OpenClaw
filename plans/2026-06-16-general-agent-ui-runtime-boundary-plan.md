@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Architecture Local-Runtime Route Labels
+
+- Finding: active architecture and reference docs still used sidecar routing,
+  sidecar endpoint/default, Sidecar storage RPC, and sidecar ToolResult labels
+  for routes whose reusable owner is local-runtime/local-runtime Python.
+- Change: routed those labels through local-runtime/local-runtime Python
+  wording while preserving JSON-RPC method names, endpoint env vars,
+  `frontend/src/main/python/tools/result.py`, and concrete implementation docs.
+- Validation: focused modular docs boundary test, exact stale architecture
+  route-label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  endpoint env vars, storage behavior, ToolResult payloads, IPC payloads,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
+
 ### 2026-06-20 Frontend Local-Runtime Route Labels
 
 - Finding: active IPC troubleshooting, frontend inventory, source-map query,

@@ -12,11 +12,11 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: IPC troubleshooting, frontend inventory, source-map
-  query labels, change-path validation, and backend endpoint config docs now
-  route public labels through local-runtime/local-runtime Python wording instead
-  of Sidecar/sidecar route labels, while keeping concrete Python paths,
-  endpoint env vars, and JSON-RPC handler details intact.
+- Latest completed slice: architecture and reference docs now route
+  tool-system routing, backend endpoint failure, ownership decisions, storage
+  RPC, ToolResult validation, and RPC drift labels through
+  local-runtime/local-runtime Python wording instead of sidecar route/default
+  labels, while keeping concrete implementation details intact.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -245,6 +245,22 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 Architecture Local-Runtime Route Labels
+
+- Finding: active architecture and reference docs still used sidecar routing,
+  sidecar endpoint/default, Sidecar storage RPC, and sidecar ToolResult labels
+  for routes whose reusable owner is local-runtime/local-runtime Python.
+- Change: routed those labels through local-runtime/local-runtime Python
+  wording while preserving JSON-RPC method names, endpoint env vars,
+  `frontend/src/main/python/tools/result.py`, and concrete implementation docs.
+- Validation: focused modular docs boundary test, exact stale architecture
+  route-label scan, docs listing, and diff checks.
+- Compatibility: no migration required. Runtime code, JSON-RPC method names,
+  endpoint env vars, storage behavior, ToolResult payloads, IPC payloads,
+  credentials, permissions, hosted backend URLs, provider policy, and trust
+  boundaries are unchanged.
+
 
 ### 2026-06-20 Frontend Local-Runtime Route Labels
 
