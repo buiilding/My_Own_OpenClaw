@@ -73,6 +73,10 @@ describe('main ipc sdk runtime boundary', () => {
       path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs'),
       'utf8',
     );
+    const agentRuntimeLifecycleSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc/ipc_agent_runtime_lifecycle.cjs'),
+      'utf8',
+    );
     expect(source).toContain('createElectronAgentClientRuntime({');
     expect(source).not.toContain('new AgentClient({');
     expect(electronAgentClientFactorySource).toContain('new AgentClient({');
@@ -153,8 +157,17 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('[Main][SDK] client_initialized');
     expect(source).not.toContain('[Main][SDK] creating_client backend=');
     expect(electronAgentClientFactorySource).toContain('[Main][SDK] creating_client backend=');
-    expect(source).toContain('[Main][SDK] local_runtime_ensure_start reason=');
-    expect(source).toContain('[Main][SDK] local_runtime_ready reason=');
+    expect(source).toContain('createAgentRuntimeLifecycle({');
+    expect(source).not.toContain('let activeAgent');
+    expect(source).not.toContain('let pendingAgentStartPromise');
+    expect(source).not.toContain('pendingAgentStartPromise = startAgent({');
+    expect(agentRuntimeLifecycleSource).toContain('let activeAgent = null;');
+    expect(agentRuntimeLifecycleSource).toContain('let pendingAgentStartPromise = null;');
+    expect(agentRuntimeLifecycleSource).toContain('pendingAgentStartPromise = startAgent({');
+    expect(source).not.toContain('[Main][SDK] local_runtime_ensure_start reason=');
+    expect(source).not.toContain('[Main][SDK] local_runtime_ready reason=');
+    expect(agentRuntimeLifecycleSource).toContain('[Main][SDK] local_runtime_ensure_start reason=');
+    expect(agentRuntimeLifecycleSource).toContain('[Main][SDK] local_runtime_ready reason=');
     expect(source).toContain('handleAgentConnectionEvent(event');
     expect(source).toContain('handleAgentBackendFallbackEvent(endpointPayload');
     expect(source).not.toContain('[Main][Backend] connected user=');

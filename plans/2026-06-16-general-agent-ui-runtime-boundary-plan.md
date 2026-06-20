@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Active Agent Runtime Lifecycle Boundary
+
+- Finding: after extracting AgentClient construction and wake-up orchestration,
+  `ipc.cjs` still owned active adapter lifecycle state directly: active adapter
+  caching, pending wake-up coalescing, backend traffic/idle forwarding,
+  local-runtime ensure logging, connectivity checks, and test reset closure.
+- Change: added `ipc_agent_runtime_lifecycle.cjs` to own the active Agent SDK
+  adapter mini-state machine. `ipc.cjs` now injects `startAgent`,
+  `getAgentClient`, the initialized-client lookup, and main-runtime logging
+  while keeping renderer IPC composition and host callbacks in the root.
+- Validation: focused lifecycle coverage for concurrent wake-up sharing, active
+  adapter reuse, backend traffic/idle forwarding, known local-runtime lookup,
+  local-runtime ready/failure logging, reset close behavior, and a boundary
+  guard that keeps `activeAgent` and pending start state out of `ipc.cjs`.
+- Compatibility: no migration required. Agent wake-up inputs, active adapter
+  behavior, backend traffic timing, local-runtime ensure calls, renderer IPC
+  channels, storage, credentials, permissions, hosted URLs, provider policy, and
+  local execution behavior are unchanged.
+
 ### 2026-06-20 Main Agent Wake-Up Runtime Boundary
 
 - Finding: after extracting the direct wake-up adapter and AgentClient factory,

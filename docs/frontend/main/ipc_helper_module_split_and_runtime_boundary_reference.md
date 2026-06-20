@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_electron_agent_client_factory.cjs`, or `ipc_agent_wakeup_runtime.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_conversation_status_runtime.cjs`, `ipc_workspace_path_runtime.cjs`, `ipc_direct_wake_up_agent_adapter.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_settings_sync.cjs`, `ipc_desktop_ui_config_persistence_runtime.cjs`, `ipc_global_stop_shortcut_config_runtime.cjs`, `ipc_main_process_trace_runtime.cjs`, `ipc_mcp_refresh_runtime.cjs`, `ipc_agent_connection_events.cjs`, `ipc_agent_backend_close_runtime.cjs`, `ipc_electron_agent_client_factory.cjs`, `ipc_agent_wakeup_runtime.cjs`, or `ipc_agent_runtime_lifecycle.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
   - When resolving stale references to removed `ipc_response_overlay_handlers.cjs` or `prime-response-overlay-awaiting`; pending user-turn preflight now uses `windie:pending-turn`.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
@@ -48,6 +48,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_agent_backend_close_runtime.cjs`
 - `frontend/src/main/ipc/ipc_electron_agent_client_factory.cjs`
 - `frontend/src/main/ipc/ipc_agent_wakeup_runtime.cjs`
+- `frontend/src/main/ipc/ipc_agent_runtime_lifecycle.cjs`
 - `frontend/src/main/ipc/ipc_extension_mcp_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -170,6 +171,19 @@ Owns Electron-main Agent SDK wake-up orchestration:
 - assembles `AgentClient.wakeUp(...)` options, including host skin agent name,
   test-mode builtins/MCP/memory/persistence disabling, and local tool lifecycle
 - constructs the direct wake-up adapter and records wake-up diagnostics
+
+### `ipc_agent_runtime_lifecycle.cjs`
+
+Owns Electron-main active Agent SDK adapter lifecycle state:
+
+- shares one pending wake-up operation across concurrent callers
+- caches and returns the active direct wake-up adapter after startup
+- forwards backend traffic and idle-sync notifications into the active adapter
+- resolves the known SDK local runtime from the initialized client or active
+  adapter fallback
+- routes `AgentClient.localRuntime(...)` ensure calls with start/ready/failure
+  logging
+- resets active adapter state for tests and closes the adapter when requested
 
 ### `ipc_direct_wake_up_agent_adapter.cjs`
 
@@ -575,6 +589,10 @@ generic `to-backend` router or direct chat query IPC handlers.
 30. Agent SDK wake-up orchestration, including install-auth gating, wake-up
     option assembly, direct wake-up adapter construction, and wake-up
     diagnostics, delegates to `ipc_agent_wakeup_runtime.cjs`.
+31. active Agent SDK adapter lifecycle state, including pending wake-up
+    coalescing, active adapter caching, backend traffic/idle forwarding,
+    local-runtime ensure logging, connectivity checks, and reset closure,
+    delegates to `ipc_agent_runtime_lifecycle.cjs`.
 
 ## Drift Hotspots
 

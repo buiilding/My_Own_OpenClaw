@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move active Agent SDK adapter lifecycle state into
+  `ipc_agent_runtime_lifecycle.cjs`, including pending wake-up coalescing,
+  active adapter reuse, backend traffic/idle forwarding, local-runtime ensure
+  logging, connectivity checks, and test reset closure. No migration required.
 - main/ipc: move Agent SDK wake-up orchestration into
   `ipc_agent_wakeup_runtime.cjs`, including install-auth gating, wake-up option
   assembly, test-mode MCP/memory/persistence disabling, direct wake adapter

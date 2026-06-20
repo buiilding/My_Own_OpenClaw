@@ -56,6 +56,9 @@ const {
   startAgentRuntime,
 } = require('./ipc/ipc_agent_wakeup_runtime.cjs');
 const {
+  createAgentRuntimeLifecycle,
+} = require('./ipc/ipc_agent_runtime_lifecycle.cjs');
+const {
   registerDesktopUiConfigHandlers,
 } = require('./ipc/ipc_desktop_ui_config_handlers.cjs');
 const {
@@ -252,8 +255,6 @@ let localToolLifecycle = null;
 let syncSdkLiveTurnSurfaceIntent = null;
 let agentWebSocketImpl = null;
 let agentClient = null;
-let activeAgent = null;
-let pendingAgentStartPromise = null;
 let latestCurrentTurnProjection = null;
 let latestPendingTurn = null;
 let desktopLocalRuntimeLaunchConfig = null;
@@ -261,6 +262,12 @@ const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const electronMainTraceLogger = createElectronMainTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
+const agentRuntimeLifecycle = createAgentRuntimeLifecycle({
+  startAgent,
+  getAgentClient,
+  getAgentClientIfInitialized: () => agentClient,
+  logMainRuntime,
+});
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   getLatestDesktopUiConfig: () => latestDesktopUiConfig,
   setLatestDesktopUiConfig: (config) => {
@@ -556,7 +563,7 @@ function createElectronAgentClient() {
     onBackendHandshakeError: error => handleAgentConnection({ type: 'handshake-error', error }),
     onBackendMessageError: error => handleAgentConnection({ type: 'message-error', error }),
     onBackendSend: type => {
-      activeAgent?.noteBackendTraffic?.(`send:${type}`);
+      agentRuntimeLifecycle.noteBackendTraffic(`send:${type}`);
     },
     onBackendFallback: endpoint => handleAgentBackendFallback(endpoint),
     isTest: process.env.NODE_ENV === 'test',
@@ -611,51 +618,27 @@ async function startAgent({ reason = 'request', workspacePath = null } = {}) {
 }
 
 async function ensureAgent({ reason = 'request', workspacePath = null } = {}) {
-  if (activeAgent) {
-    return activeAgent;
-  }
-  if (!pendingAgentStartPromise) {
-    pendingAgentStartPromise = startAgent({
-      reason,
-      workspacePath,
-    })
-      .then((agent) => {
-        activeAgent = agent;
-        return agent;
-      })
-      .finally(() => {
-        pendingAgentStartPromise = null;
-      });
-  }
-  return pendingAgentStartPromise;
+  return agentRuntimeLifecycle.ensureAgent({ reason, workspacePath });
 }
 
 function syncBackendIdleDisconnectTimer(reason = 'idle-sync') {
-  activeAgent?.syncBackendIdleTimer(reason);
+  agentRuntimeLifecycle.syncBackendIdleDisconnectTimer(reason);
 }
 
 function noteBackendTraffic(reason = 'traffic') {
-  activeAgent?.noteBackendTraffic(reason);
+  agentRuntimeLifecycle.noteBackendTraffic(reason);
 }
 
 function getKnownAgentLocalRuntime() {
-  return agentClient?.getKnownLocalRuntime?.() || activeAgent?.localRuntime || null;
+  return agentRuntimeLifecycle.getKnownAgentLocalRuntime();
 }
 
 async function ensureAgentLocalRuntime({ reason = 'local-runtime' } = {}) {
-  logMainRuntime(`[Main][SDK] local_runtime_ensure_start reason=${reason}`);
-  try {
-    const runtime = await getAgentClient().localRuntime({ reason });
-    logMainRuntime(`[Main][SDK] local_runtime_ready reason=${reason}`);
-    return runtime;
-  } catch (error) {
-    logMainRuntime(`[Main][SDK] local_runtime_failed reason=${reason} message=${JSON.stringify(error?.message || String(error))}`);
-    throw error;
-  }
+  return agentRuntimeLifecycle.ensureAgentLocalRuntime({ reason });
 }
 
 function isBackendRuntimeConnected() {
-  return isConnected && Boolean(activeAgent?.isConnected());
+  return agentRuntimeLifecycle.isBackendRuntimeConnected(isConnected);
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
@@ -822,7 +805,7 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
     setConnected: (value) => {
       isConnected = value;
     },
-    markInferenceContextsStale: () => activeAgent?.markInferenceContextsStale?.(),
+    markInferenceContextsStale: () => agentRuntimeLifecycle.getActiveAgent()?.markInferenceContextsStale?.(),
     resetSettingsSyncState,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     getActiveQueryContext: () => activeQueryContext,
@@ -858,13 +841,11 @@ function shutdownIpcForTests() {
   agentWebSocketImpl = null;
   installAuthRuntime.reset();
   isConnected = false;
-  pendingAgentStartPromise = null;
   mcpRefreshRuntime.reset();
   latestPendingTurn = null;
   void agentClient?.shutdownLocalRuntime?.();
   agentClient = null;
-  activeAgent?.close();
-  activeAgent = null;
+  agentRuntimeLifecycle.reset({ closeActiveAgent: true });
   desktopLocalRuntimeLaunchConfig = null;
 }
 
@@ -1094,7 +1075,7 @@ function initializeIpc(win, options = {}) {
         currentSessionId,
         currentUserId,
         isConnected,
-        agent: activeAgent,
+        agent: agentRuntimeLifecycle.getActiveAgent(),
       }),
       ensureAgent,
       resolveWorkspacePathForAgent,
@@ -1140,7 +1121,8 @@ async function sendQueryThroughAgentSdkRuntime({ payload = {}, messageId = null 
 }
 
 async function stopQueryThroughAgentSdkRuntime(payload = {}) {
-  if (!activeAgent) {
+  const agent = agentRuntimeLifecycle.getActiveAgent();
+  if (!agent) {
     return false;
   }
   const stopTurnRef = payload && typeof payload.turn_ref === 'string'
@@ -1152,7 +1134,7 @@ async function stopQueryThroughAgentSdkRuntime(payload = {}) {
     turnRef: stopTurnRef,
     broadcast: true,
   });
-  await activeAgent.stop({
+  await agent.stop({
     conversation_ref: stopConversationRef,
     turn_ref: stopTurnRef,
   });
