@@ -105,7 +105,7 @@ When satisfied:
 
 - one permission card per slide with a `Grant` action where applicable
 - a final stop-agent shortcut slide after the permission sequence
-- final `Start WindieOS` CTA enabled after permission status loads, with a warning if permissions remain missing
+- final skin-provided start CTA enabled after permission status loads, with a warning if permissions remain missing
 
 The slideshow uses only permissions where `show_in_onboarding !== false`.
 Settings no longer mount a full permission-list maintenance view; focused

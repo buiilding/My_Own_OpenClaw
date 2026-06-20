@@ -161,7 +161,7 @@ UI rules:
 
 - onboarding renders permission slides from the current manifest plus a final
   stop-shortcut slide.
-- "Start WindieOS" completes onboarding even if optional or follow-up
+- the skin-provided start CTA completes onboarding even if optional or follow-up
   permissions are still missing.
 - onboarding main window suppresses maximize/fullscreen behavior so OS prompts
   are not hidden behind a fullscreen shell.

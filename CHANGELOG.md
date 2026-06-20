@@ -39,6 +39,9 @@ All notable changes to WindieOS will be documented in this file.
   and class prefixes to generic dashboard panel surface names, and update the
   settings docs route away from the retired settings-tabs wording. No migration
   required.
+- docs/renderer: describe onboarding completion through the skin-provided start
+  CTA instead of treating the first-party WindieOS start label as renderer
+  contract copy. No migration required.
 - renderer/settings: rename the settings surface stylesheet, class prefix, and
   toggle control to generic renderer UI names so dashboard settings no longer
   carry the legacy clone surface naming. No migration required.

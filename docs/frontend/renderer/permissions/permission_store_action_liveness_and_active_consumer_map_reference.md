@@ -38,7 +38,7 @@ directly.
 - `requestPermission(permissionId)`
   - called by `DesktopOnboardingSlideshow` Grant actions and Browser settings Open Browser action
 - `completeOnboarding()`
-  - called by `DesktopOnboardingSlideshow` before `Start WindieOS`
+  - called by `DesktopOnboardingSlideshow` before the skin-provided start CTA
 
 ### Exported but currently dormant in mounted renderer UI
 

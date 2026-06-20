@@ -120,6 +120,22 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Renderer Onboarding Start CTA Skin Boundary
+
+- Finding: onboarding docs still described completion through the first-party
+  WindieOS start label even though `DesktopOnboardingSlideshow` already reads
+  that copy from `desktopRuntimeSkin.onboarding.startLabel`.
+- Change: reworded startup and permission-onboarding docs to describe the
+  skin-provided start CTA as the contract while leaving the WindieOS label in
+  the renderer skin and existing UI tests.
+- Validation: focused renderer skin/config boundary tests guard that the
+  onboarding consumer does not hard-code the first-party label; docs listing
+  and exact docs scans verify the stale docs wording is gone.
+- Compatibility: no migration required. Onboarding behavior, permission store
+  completion, skin copy, renderer routing, IPC channels, storage keys,
+  credentials, permissions, provider policy, hosted URLs, and local execution
+  behavior are unchanged.
+
 ### 2026-06-20 Renderer Dashboard Panel Surface Naming Boundary
 
 - Finding: the root renderer dashboard panel stylesheet and shared class tokens

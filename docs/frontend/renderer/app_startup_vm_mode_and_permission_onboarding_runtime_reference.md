@@ -127,13 +127,13 @@ Viewport/layout behavior:
 - onboarding uses the full renderer window
 - permission setup shows one permission card per slide so fit does not depend on total permission count
 - widths are driven by a small set of onboarding CSS tokens (`shell`, `stage`, `copy`, `card`, `feedback`) instead of repeated inline caps
-- footer actions remain outside the scroll region so `Next` / `Back` / `Start WindieOS` stay reachable under constrained viewport heights
+- footer actions remain outside the scroll region so `Next`, `Back`, and the skin-provided start CTA stay reachable under constrained viewport heights
 
 Navigation behavior:
 
 - `Next` / `Back` controls slide index
 - permission slides advance through the current manifest in order
-- final CTA `Start WindieOS` calls `permissionStore.completeOnboarding()`
+- the final skin-provided start CTA calls `permissionStore.completeOnboarding()`
 - after completion, `AppContent` re-resolves startup surface and hands visibility to the minimal chat pill instead of leaving the dashboard window open
 - startup-surface handoff is a generic lifecycle restore, not a wakeword/user
   summon; Electron main may suppress it when the user previously closed the
@@ -142,7 +142,7 @@ Navigation behavior:
 - onboarding completion uses `DesktopWindowRuntimeClient.showChatboxWithValues(...)`
   with the `onboarding-complete` reason so the first-run wizard can still
   intentionally land on the minimal chat pill
-- `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
+- the final start CTA stays enabled once permission status has loaded, even if some permissions are still missing
 - the final slide warns when permissions remain missing and points the user to Settings for follow-up
 - while onboarding is active, closing the main window hides onboarding without restoring the minimal chat pill; reopening the app restores onboarding until the wizard is completed
 - onboarding is treated as its own primary surface in the main process, separate from both dashboard and minimal chat pill state
