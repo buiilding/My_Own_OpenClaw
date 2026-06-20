@@ -1934,6 +1934,8 @@ describe('modular sdk refactor completion boundary', () => {
         'Electron + sidecar adapters',
         'Main/sidecar boundary:',
         'sidecar remains tool executor',
+        'sidecar JSON-RPC call behind',
+        'When adding/changing sidecar JSON-RPC methods',
         'frontend/sidecar code import backend modules',
         'frontend/sidecar code must never import backend code',
         'Client-local runtime and sidecar code must not import',

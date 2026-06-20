@@ -63,7 +63,7 @@ envelope orchestration.
 When adding or changing a method:
 
 - Register the method in `LocalRuntimeService._initialize_methods`.
-- If renderer code will call it, add or extend an SDK-shaped command/facade and keep the sidecar JSON-RPC call behind SDK local-runtime code rather than exposing a sidecar-named IPC channel.
+- If renderer code will call it, add or extend an SDK-shaped command/facade and keep the local-runtime JSON-RPC call behind SDK local-runtime code rather than exposing a sidecar-named IPC channel.
 - Validate params through handler signatures and explicit type checks.
 - Add or update Electron main bridge code only for scoped host channels that require Electron authority.
 - Keep snake_case sidecar params and document any camelCase bridge mapping.
