@@ -223,6 +223,7 @@ const {
 } = require('./ipc/ipc_agent_sdk_command_handlers.cjs');
 const {
   createRendererWindowRegistry,
+  createRendererWindowRuntime,
 } = require('./ipc/ipc_renderer_windows.cjs');
 const {
   broadcastQuerySendFailure: broadcastQuerySendFailureRuntime,
@@ -311,6 +312,16 @@ const responseOverlayPhaseRuntime = createResponseOverlayPhaseRuntime({
   log,
 });
 const ipcEventReplayState = createIpcEventReplayState();
+const rendererWindowRuntime = createRendererWindowRuntime({
+  registry: rendererWindowRegistry,
+  getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+  getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
+  getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
+  getReplayEvents: () => ipcEventReplayState.snapshot(),
+  buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
+    fallbackConversationRef: backendSessionState.getConversationRef(),
+  }),
+});
 const backendMessageObserverRegistry = createBackendMessageObserverRegistry({
   log,
 });
@@ -882,16 +893,7 @@ async function ensureInitialSettingsSync() {
 }
 
 function trackRendererWindow(win) {
-  rendererWindowRegistry.track({
-    win,
-    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    getLatestCurrentTurn: () => liveTurnState.getLatestCurrentTurn(),
-    getLatestPendingTurn: () => liveTurnState.getLatestPendingTurn(),
-    getReplayEvents: () => ipcEventReplayState.snapshot(),
-    buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
-      fallbackConversationRef: backendSessionState.getConversationRef(),
-    }),
-  });
+  rendererWindowRuntime.track(win);
 }
 
 function clearLatestPendingTurn(input = {}) {
@@ -899,11 +901,7 @@ function clearLatestPendingTurn(input = {}) {
 }
 
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
-  rendererWindowRegistry.broadcast({
-    channel,
-    payload,
-    sourceWebContents,
-  });
+  rendererWindowRuntime.broadcast(channel, payload, sourceWebContents);
 }
 
 function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
@@ -930,7 +928,7 @@ function initializeIpc(win, options = {}) {
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });
-  rendererWindowRegistry.reset();
+  rendererWindowRuntime.reset();
   trackRendererWindow(win);
   ipcStartupStateRuntime.initialize();
 

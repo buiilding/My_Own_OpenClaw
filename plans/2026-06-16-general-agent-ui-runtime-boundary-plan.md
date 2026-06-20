@@ -120,6 +120,25 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 Main Renderer Window Runtime Boundary
+
+- Finding: `ipc_renderer_windows.cjs` owned renderer-window storage, tracking,
+  late-window sync, and fan-out behavior, but `ipc.cjs` still assembled overlay
+  phase, SDK current-turn sync, pending-turn sync, buffered event replay,
+  backend-event projection, broadcast payload, and reset wiring around the
+  registry on every track/broadcast path.
+- Change: added `createRendererWindowRuntime(...)` so the renderer-window
+  helper owns reusable tracking and fan-out dependency composition. `ipc.cjs`
+  now calls the composed runtime for track, broadcast, and initialization reset.
+- Validation: focused renderer-window coverage verifies runtime track,
+  broadcast, and reset behavior plus source guards that keep direct registry
+  track/broadcast calls out of `ipc.cjs`.
+- Compatibility: no migration required. Renderer window registration and
+  cleanup, response-overlay phase sync, current-turn sync, pending-turn replay,
+  buffered conversation-event replay, source-window broadcast exclusion,
+  stream-trace logging, renderer IPC channels, storage, credentials,
+  permissions, provider policy, and local execution behavior are unchanged.
+
 ### 2026-06-20 Main Backend Close Runtime Boundary
 
 - Finding: `ipc_agent_backend_close_runtime.cjs` owned SDK backend close

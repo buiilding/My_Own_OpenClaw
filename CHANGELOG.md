@@ -35,6 +35,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- main/ipc: move renderer-window tracking and fan-out dependency wiring into
+  `createRendererWindowRuntime(...)`, preserving overlay phase sync, current
+  turn sync, pending-turn replay, buffered conversation-event replay, reset,
+  and broadcast exclusion behavior. No migration required.
 - main/ipc: move Agent SDK backend-close cleanup dependency wiring into
   `createAgentBackendCloseRuntime(...)`, preserving interrupted-query
   synthesis, idle overlay fallback, session reset, replay clearing, disconnect

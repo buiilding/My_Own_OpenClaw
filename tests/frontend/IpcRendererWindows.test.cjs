@@ -2,6 +2,7 @@
 
 const {
   createRendererWindowRegistry,
+  createRendererWindowRuntime,
   trackRendererWindow,
 } = require('../../frontend/src/main/ipc/ipc_renderer_windows.cjs');
 const fs = require('fs/promises');
@@ -133,6 +134,34 @@ describe('ipc_renderer_windows', () => {
     expect(registry.size()).toBe(0);
   });
 
+  test('runtime composes renderer sync dependencies for track and broadcast', () => {
+    const registry = createRendererWindowRegistry();
+    const runtime = createRendererWindowRuntime({
+      registry,
+      getResponseOverlayPhase: () => 'streaming',
+      getLatestCurrentTurn: () => ({ turnRef: 'turn-1' }),
+      getLatestPendingTurn: () => null,
+      getReplayEvents: () => [],
+    });
+    const win = createWindowMock();
+
+    runtime.track(win);
+    runtime.broadcast('test-channel', { ok: true }, null);
+
+    expect(win.webContents.send).toHaveBeenCalledWith('response-overlay-phase', {
+      phase: 'streaming',
+      source: 'sync',
+    });
+    expect(win.webContents.send).toHaveBeenCalledWith('windie:current-turn', {
+      turnRef: 'turn-1',
+    });
+    expect(win.webContents.send).toHaveBeenCalledWith('test-channel', { ok: true });
+    expect(runtime.size()).toBe(1);
+
+    runtime.reset();
+    expect(runtime.size()).toBe(0);
+  });
+
   test('ipc.cjs delegates renderer window storage to the registry', async () => {
     const mainSource = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
@@ -144,10 +173,15 @@ describe('ipc_renderer_windows', () => {
     );
 
     expect(mainSource).toContain('createRendererWindowRegistry()');
-    expect(mainSource).toContain('rendererWindowRegistry.track({');
-    expect(mainSource).toContain('rendererWindowRegistry.broadcast({');
+    expect(mainSource).toContain('createRendererWindowRuntime({');
+    expect(mainSource).toContain('rendererWindowRuntime.track(win)');
+    expect(mainSource).toContain('rendererWindowRuntime.broadcast(channel, payload, sourceWebContents)');
+    expect(mainSource).toContain('rendererWindowRuntime.reset()');
+    expect(mainSource).not.toContain('rendererWindowRegistry.track({');
+    expect(mainSource).not.toContain('rendererWindowRegistry.broadcast({');
     expect(mainSource).not.toContain('let rendererWindows = new Set()');
     expect(mainSource).not.toContain('rendererWindows = new Set()');
+    expect(helperSource).toContain('function createRendererWindowRuntime');
     expect(helperSource).toContain('const rendererWindows = new Set();');
   });
 });

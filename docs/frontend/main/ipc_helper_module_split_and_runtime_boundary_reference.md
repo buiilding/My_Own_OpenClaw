@@ -599,6 +599,9 @@ Owns IPC-facing app diagnostic append error handling:
 
 Owns renderer-window lifecycle and generic fan-out:
 
+- `createRendererWindowRuntime`: composes renderer window registry, overlay
+  phase, SDK current-turn sync, pending-turn sync, buffered replay, and
+  conversation-event projection dependencies once for `ipc.cjs`
 - `createRendererWindowRegistry`: owns the renderer window set plus track,
   broadcast, reset, and size accessors for the IPC composition root
 - `trackRendererWindow`: register + prune windows, sync current overlay phase after load

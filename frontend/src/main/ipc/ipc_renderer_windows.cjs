@@ -160,8 +160,52 @@ function createRendererWindowRegistry() {
   };
 }
 
+function createRendererWindowRuntime({
+  registry = createRendererWindowRegistry(),
+  getResponseOverlayPhase,
+  getLatestCurrentTurn = null,
+  getLatestPendingTurn = null,
+  getReplayEvents = null,
+  buildConversationEvent = null,
+} = {}) {
+  function track(win) {
+    return registry.track({
+      win,
+      getResponseOverlayPhase,
+      getLatestCurrentTurn,
+      getLatestPendingTurn,
+      getReplayEvents,
+      buildConversationEvent,
+    });
+  }
+
+  function broadcast(channel, payload, sourceWebContents = null) {
+    return registry.broadcast({
+      channel,
+      payload,
+      sourceWebContents,
+    });
+  }
+
+  function reset() {
+    return registry.reset();
+  }
+
+  function size() {
+    return registry.size();
+  }
+
+  return {
+    broadcast,
+    reset,
+    size,
+    track,
+  };
+}
+
 module.exports = {
   broadcastToRenderers,
   createRendererWindowRegistry,
+  createRendererWindowRuntime,
   trackRendererWindow,
 };
