@@ -120,6 +120,19 @@ Each completed slice should report:
 
 ## Progress Notes
 
+### 2026-06-20 IPC Local-Runtime Authority Label
+
+- Finding: the IPC change workflow still routed security concerns through
+  sidecar authority even though the reusable security boundary is
+  local-runtime authority behind Electron IPC/preload checks.
+- Change: routed the security triage row through local-runtime authority
+  wording and extended the modular docs guard against the retired phrase.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  authority label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, permission behavior, IPC
+  payloads, preload allowlists, local-runtime execution, storage, credentials,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
+
 ### 2026-06-20 Local-Runtime Transcript Storage Labels
 
 - Finding: transcript replay, memory identity, dashboard, docs hub, and docs

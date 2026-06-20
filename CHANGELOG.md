@@ -35,6 +35,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(security): route IPC security triage through local-runtime authority
+  wording instead of sidecar authority wording. No migration required.
 - docs(memory): route transcript replay, dashboard, identity, and docs hub
   storage labels through local-runtime transcript/memory storage wording
   instead of sidecar storage owner labels. No migration required.

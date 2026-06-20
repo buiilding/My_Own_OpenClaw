@@ -275,6 +275,13 @@ For each completed slice, record:
 
 ## Progress Notes
 
+- 2026-06-20: completed an IPC local-runtime authority label slice by routing
+  the security triage row through local-runtime authority wording instead of
+  sidecar authority. Validation: focused modular docs boundary test, docs
+  listing, exact stale authority label scan, and diff checks. No migration
+  required; no runtime code, permission behavior, IPC payload, preload
+  allowlist, local-runtime execution, storage, credential, hosted URL,
+  provider-policy, or trust-boundary behavior changed.
 - 2026-06-20: completed a local-runtime transcript/memory storage label slice
   by routing transcript replay, memory identity, dashboard, docs hub, and docs
   structure routes through local-runtime transcript storage, local-runtime

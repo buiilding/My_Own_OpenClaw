@@ -2674,6 +2674,7 @@ describe('modular sdk refactor completion boundary', () => {
         'sidecar search SQL',
         'sidecar DB',
         'sidecar storage internals',
+        'sidecar authority',
         'Python sidecar unit test for the executable tool',
         'Python sidecar computer implementations',
         'Python sidecar scoped host bridge',

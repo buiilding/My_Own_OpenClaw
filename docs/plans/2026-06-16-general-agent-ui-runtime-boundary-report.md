@@ -12,10 +12,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
 
 - Status: in progress
 - Latest inspected plan checkpoint: `c118dfaba` (`docs(renderer): route onboarding start copy through skin`)
-- Latest completed slice: transcript replay, memory identity, dashboard,
-  docs hub, and docs-structure routes now describe local-runtime
-  transcript/memory storage instead of sidecar storage/DB/search owner labels,
-  with a focused docs boundary guard against those retired phrases.
+- Latest completed slice: IPC security triage now routes permission and trust
+  checks through local-runtime authority instead of sidecar authority, with a
+  focused docs boundary guard against the retired phrase.
 - Current behavior: renderer product copy is skin-owned, Electron main product
   copy is host-skin-owned, voice capture internals use generic naming, and SDK
   default agent display names are generic unless a host supplies product
@@ -244,6 +243,19 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   executor/daemon route-owner labels.
 
 ## Inspection Log
+
+### 2026-06-20 IPC Local-Runtime Authority Label
+
+- Finding: the IPC change workflow still routed security concerns through
+  sidecar authority even though the reusable security boundary is
+  local-runtime authority behind Electron IPC/preload checks.
+- Change: routed the security triage row through local-runtime authority
+  wording and extended the modular docs guard against the retired phrase.
+- Validation: focused modular docs boundary test, docs listing, exact stale
+  authority label scan, and diff checks.
+- Compatibility: no migration required. Runtime code, permission behavior, IPC
+  payloads, preload allowlists, local-runtime execution, storage, credentials,
+  hosted backend URLs, provider policy, and trust boundaries are unchanged.
 
 ### 2026-06-20 Local-Runtime Transcript Storage Labels
 
