@@ -97,14 +97,17 @@ Main flow:
 1. backend query processing decides whether speech/TTS is enabled.
 2. backend TTS manager turns streamed text into audio chunks.
 3. chunks are emitted over the main `/ws` channel as `audio-chunk` events.
-4. Electron main relays them to renderer through `from-backend`.
-5. renderer audio playback services queue/decode/play chunks.
+4. Electron main relays them to renderer on the typed `audio-chunk` side-channel.
+5. `DesktopAudioRuntimeClient` validates the payload and renderer audio playback
+   services queue/decode/play chunks.
 6. stop/new-query cleanup resets pending audio as needed.
 
 Key files:
 
 - `backend/src/api/processing/tts/*`
 - `backend/src/api/services/tts_session.py`
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/renderer/app/runtime/desktopAudioRuntimeClient.ts`
 - `frontend/src/renderer/features/voice/**`
 - `frontend/src/renderer/infrastructure` audio playback helpers
 

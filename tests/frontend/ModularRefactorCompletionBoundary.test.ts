@@ -2103,8 +2103,10 @@ describe('modular sdk refactor completion boundary', () => {
   test('voice routing docs use renderer and electron owner labels', async () => {
     const docs = await Promise.all([
       read('docs/channels/voice_audio_change_workflow.md'),
+      read('docs/channels/README.md'),
       read('docs/channels/voice_and_audio_channels.md'),
       read('docs/desktop/voice_and_wakeword.md'),
+      read('docs/frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md'),
       read('docs/frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md'),
       read('docs/frontend/renderer/voice/README.md'),
       read('docs/frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md'),
@@ -2117,6 +2119,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).toContain('Renderer Voice Capture');
     expect(docText).toContain('Electron Wakeword Bridge');
     expect(docText).toContain('local-runtime wakeword helper');
+    expect(docText).toContain('typed `audio-chunk` side-channel');
+    expect(docText).toContain('DesktopAudioRuntimeClient');
     expect(docText).not.toContain('Frontend Voice Capture');
     expect(docText).not.toContain('Frontend Wakeword Bridge');
     expect(docText).not.toContain('Sidecar wakeword service');
@@ -2125,5 +2129,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(docText).not.toContain('renderer microphone chunks -> Electron main -> Python sidecar wakeword service');
     expect(docText).not.toContain('Local Runtime Sidecar Wakeword Bridge and Audio Framing Reference');
     expect(docText).not.toContain('Sidecar wakeword service:');
+    expect(docText).not.toContain('Electron main relays them to renderer through `from-backend`');
+    expect(docText).not.toContain('renderer `from-backend` guards');
+    expect(docText).not.toContain('Electron wakeword bridge -> sidecar subprocess');
   });
 });

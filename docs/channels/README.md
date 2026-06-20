@@ -22,7 +22,7 @@ patching the wrong consumer.
 | Minimal chat pill | Floating overlay composer | overlay renderer -> Electron IPC -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Minimal Chat Pill](../desktop/minimal_chat_pill.md) |
 | Backend agent stream | Main query/control protocol | WebSocket `/ws` | [Backend API and Transport](../backend/api/api_and_transport.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
-| Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
+| Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> local-runtime wakeword helper backed by the Python subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
 | Local tools | Computer, browser, filesystem, shell, memory | SDK/main local runtime -> Python sidecar executor | [Local Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
@@ -48,7 +48,9 @@ Read:
 - [Streaming and Events](../concepts/streaming_and_events.md)
 - [WebSocket Event Reference](../reference/websocket_event_reference.md)
 
-Use this route for backend streamed event names, formatter payloads, outgoing schemas, SDK runtime normalization, renderer `from-backend` guards, chat stream handlers, terminal events, and audio side-channel payloads.
+Use this route for backend streamed event names, formatter payloads, outgoing
+schemas, SDK runtime normalization, typed SDK/backend-event guards, chat stream
+handlers, terminal events, and audio side-channel payloads.
 
 ### Add a Query Input Surface
 

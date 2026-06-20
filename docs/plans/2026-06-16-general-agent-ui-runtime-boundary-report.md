@@ -136,7 +136,9 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   instead of a removed renderer `to-backend` relay. The system architecture
   overview now describes Electron main as the Agent SDK host and routes the
   backend websocket hop through the Agent SDK runtime instead of a direct main
-  WebSocket-client path.
+  WebSocket-client path. Voice/audio channel docs now route TTS playback
+  through the typed `audio-chunk` side-channel and renderer audio runtime
+  instead of the removed generic `from-backend` relay.
 
   Local-runtime JSON-RPC, sidecar tool-change, and tool-turn docs now qualify
   Python sidecar method, handler, daemon, protocol, memory, and tool validation
@@ -5017,6 +5019,24 @@ User plan: [`plans/2026-06-16-general-agent-ui-runtime-boundary-plan.md`](../../
   commands, backend websocket payloads, projection events, storage,
   credentials, permissions, provider policy, hosted URLs, and local execution
   behavior are unchanged.
+
+### 2026-06-20 Voice Audio Typed Side-Channel Docs Boundary
+
+- Finding: the voice/audio channel guide still described TTS playback as
+  Electron main relaying `audio-chunk` backend events to renderer through the
+  removed generic `from-backend` channel, and the channels hub still routed
+  websocket event changes through renderer `from-backend` guards.
+- Change: updated the voice/audio channel guide and channels hub to route TTS
+  playback through the typed `audio-chunk` side-channel,
+  `DesktopAudioRuntimeClient`, and renderer audio playback services while
+  keeping backend TTS generation on the main query websocket.
+- Validation: extended the voice routing boundary guard to require typed audio
+  side-channel and renderer audio runtime wording while rejecting the retired
+  `from-backend` audio path.
+- Compatibility: no migration required. Runtime code, IPC channel names,
+  backend `audio-chunk` payloads, SDK conversation events, renderer playback
+  behavior, storage, credentials, permissions, provider policy, hosted URLs,
+  and local execution behavior are unchanged.
 
 ## Remaining Findings
 

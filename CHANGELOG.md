@@ -35,6 +35,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/channels: route TTS audio playback through the typed `audio-chunk`
+  side-channel and renderer audio runtime instead of the removed generic
+  `from-backend` relay. No migration required.
 - docs/architecture: finish routing the system architecture overview through
   the Electron Agent SDK host by replacing remaining direct WebSocket-client
   and main-to-websocket query-flow wording. No migration required.
